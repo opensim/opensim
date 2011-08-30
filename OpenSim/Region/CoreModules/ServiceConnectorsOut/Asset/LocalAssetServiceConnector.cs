@@ -129,15 +129,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                     m_Cache = null;
             }
 
-            m_log.InfoFormat("[LOCAL ASSET SERVICES CONNECTOR]: Enabled local assets for region {0}", scene.RegionInfo.RegionName);
+            m_log.DebugFormat(
+                "[LOCAL ASSET SERVICES CONNECTOR]: Enabled connector for region {0}", scene.RegionInfo.RegionName);
 
             if (m_Cache != null)
             {
-                m_log.InfoFormat("[LOCAL ASSET SERVICES CONNECTOR]: Enabled asset caching for region {0}", scene.RegionInfo.RegionName);
+                m_log.DebugFormat(
+                    "[LOCAL ASSET SERVICES CONNECTOR]: Enabled asset caching for region {0}",
+                    scene.RegionInfo.RegionName);
             }
             else
             {
-                // Short-circuit directly to storage layer
+                // Short-circuit directly to storage layer.  This ends up storing temporary and local assets.
                 //
                 scene.UnregisterModuleInterface<IAssetService>(this);
                 scene.RegisterModuleInterface<IAssetService>(m_AssetService);
@@ -246,9 +249,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 m_Cache.Cache(asset);
             
             if (asset.Temporary || asset.Local)
+            {
+//                m_log.DebugFormat(
+//                    "[LOCAL ASSET SERVICE CONNECTOR]: Returning asset {0} {1} without querying database since status Temporary = {2}, Local = {3}",
+//                    asset.Name, asset.ID, asset.Temporary, asset.Local);
+
                 return asset.ID;
-            
-            return m_AssetService.Store(asset);
+            }
+            else
+            {
+//                m_log.DebugFormat(
+//                    "[LOCAL ASSET SERVICE CONNECTOR]: Passing {0} {1} on to asset service for storage, status Temporary = {2}, Local = {3}",
+//                    asset.Name, asset.ID, asset.Temporary, asset.Local);
+                
+                return m_AssetService.Store(asset);
+            }
         }
 
         public bool UpdateContent(string id, byte[] data)

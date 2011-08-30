@@ -1695,9 +1695,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </param>
         public void MoveToTarget(Vector3 pos, bool noFly)
         {
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
-//                Name, pos, m_scene.RegionInfo.RegionName);
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
+                Name, pos, m_scene.RegionInfo.RegionName);
 
             if (pos.X < 0 || pos.X >= Constants.RegionSize
                 || pos.Y < 0 || pos.Y >= Constants.RegionSize

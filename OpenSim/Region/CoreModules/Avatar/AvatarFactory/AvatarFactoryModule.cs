@@ -257,19 +257,26 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             return true;
         }
 
-        public bool SaveBakedTextures(UUID agentId)
+        public Dictionary<BakeType, Primitive.TextureEntryFace> GetBakedTextureFaces(UUID agentId)
         {
             ScenePresence sp = m_scene.GetScenePresence(agentId);
 
-            if (sp == null || sp.IsChildAgent)
-                return false;
+            if (sp == null)
+                return new Dictionary<BakeType, Primitive.TextureEntryFace>();
+
+            return GetBakedTextureFaces(sp);
+        }
+
+        private Dictionary<BakeType, Primitive.TextureEntryFace> GetBakedTextureFaces(ScenePresence sp)
+        {
+            if (sp.IsChildAgent)
+                return new Dictionary<BakeType, Primitive.TextureEntryFace>();
+
+            Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures
+                = new Dictionary<BakeType, Primitive.TextureEntryFace>();
 
             AvatarAppearance appearance = sp.Appearance;
             Primitive.TextureEntryFace[] faceTextures = appearance.Texture.FaceTextures;
-
-            m_log.DebugFormat(
-                "[AV FACTORY]: Permanently saving baked textures for {0} in {1}",
-                sp.Name, m_scene.RegionInfo.RegionName);
 
             foreach (int i in Enum.GetValues(typeof(BakeType)))
             {
@@ -283,7 +290,31 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 //                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
 
                 int ftIndex = (int)AppearanceManager.BakeTypeToAgentTextureIndex(bakeType);
-                Primitive.TextureEntryFace bakedTextureFace = faceTextures[ftIndex];
+                bakedTextures[bakeType] = faceTextures[ftIndex];
+            }
+
+            return bakedTextures;
+        }
+
+        public bool SaveBakedTextures(UUID agentId)
+        {
+            ScenePresence sp = m_scene.GetScenePresence(agentId);
+
+            if (sp == null)
+                return false;
+
+            m_log.DebugFormat(
+                "[AV FACTORY]: Permanently saving baked textures for {0} in {1}",
+                sp.Name, m_scene.RegionInfo.RegionName);
+
+            Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures = GetBakedTextureFaces(sp);
+
+            if (bakedTextures.Count == 0)
+                return false;
+
+            foreach (BakeType bakeType in bakedTextures.Keys)
+            {
+                Primitive.TextureEntryFace bakedTextureFace = bakedTextures[bakeType];
 
                 if (bakedTextureFace == null)
                 {
@@ -299,6 +330,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (asset != null)
                 {
                     asset.Temporary = false;
+                    asset.Local = false;
                     m_scene.AssetService.Store(asset);
                 }
                 else
