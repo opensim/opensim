@@ -646,7 +646,8 @@ namespace Prebuild.Core.Targets
                 ss.WriteLine("            <include name=\"OpenSim*.dll\"/>");
                 ss.WriteLine("            <include name=\"OpenSim*.exe\"/>");
                 ss.WriteLine("            <include name=\"ScriptEngines/*\"/>");
-                ss.WriteLine("            <include name=\"Physics/*\"/>");
+                ss.WriteLine("            <include name=\"Physics/*.dll\"/>");
+                ss.WriteLine("            <include name=\"Physics/*.dll.mdb\"/>");
                 ss.WriteLine("            <exclude name=\"OpenSim.32BitLaunch.exe\"/>");
                 ss.WriteLine("            <exclude name=\"ScriptEngines/Default.lsl\"/>");
                 ss.WriteLine("        </fileset>");
