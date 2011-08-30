@@ -137,7 +137,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public void SaveChangedAttachments(IScenePresence sp)
         {
             // Need to copy this list because DetachToInventoryPrep mods it
-            List<SceneObjectGroup> attachments = new List<SceneObjectGroup>(sp.Attachments.ToArray());
+            List<SceneObjectGroup> attachments = new List<SceneObjectGroup>(sp.Attachments);
 
             foreach (SceneObjectGroup grp in attachments)
             {
