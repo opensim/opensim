@@ -145,7 +145,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 {
                     grp.IsAttachment = false;
                     grp.AbsolutePosition = grp.RootPart.AttachedPos;
-//                        grp.DetachToInventoryPrep();
                     UpdateKnownItem(sp.ControllingClient, grp, grp.GetFromItemID(), grp.OwnerID);
                     grp.IsAttachment = true;
                 }

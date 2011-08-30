@@ -3162,7 +3162,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_eventManager.TriggerOnRemovePresence(agentID);
 
-                if (AttachmentsModule != null && avatar != null && (!avatar.IsChildAgent) && avatar.PresenceType != PresenceType.Npc)
+                if (AttachmentsModule != null && !avatar.IsChildAgent && avatar.PresenceType != PresenceType.Npc)
                     AttachmentsModule.SaveChangedAttachments(avatar);
 
                 ForEachClient(
