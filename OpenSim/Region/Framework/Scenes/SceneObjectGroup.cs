@@ -254,11 +254,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public override string Name
         {
-            get {
+            get
+            {
                 if (RootPart == null)
                     return String.Empty;
-                return RootPart.Name;
+                else
+                    return RootPart.Name;
             }
+
             set { RootPart.Name = value; }
         }
 
