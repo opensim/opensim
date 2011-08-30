@@ -133,6 +133,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 }
             }
         }
+
+        public void SaveChangedAttachments(IScenePresence sp)
+        {
+            // Need to copy this list because DetachToInventoryPrep mods it
+            List<SceneObjectGroup> attachments = new List<SceneObjectGroup>(sp.Attachments.ToArray());
+
+            foreach (SceneObjectGroup grp in attachments)
+            {
+                if (grp.HasGroupChanged) // Resizer scripts?
+                {
+                    grp.IsAttachment = false;
+                    grp.AbsolutePosition = grp.RootPart.AttachedPos;
+//                        grp.DetachToInventoryPrep();
+                    UpdateKnownItem(sp.ControllingClient, grp, grp.GetFromItemID(), grp.OwnerID);
+                    grp.IsAttachment = true;
+                }
+            }
+        }
         
         /// <summary>
         /// Called by client

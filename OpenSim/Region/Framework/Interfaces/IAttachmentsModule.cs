@@ -42,6 +42,12 @@ namespace OpenSim.Region.Framework.Interfaces
         void RezAttachments(IScenePresence sp);
 
         /// <summary>
+        /// Save the attachments that have change on this presence.
+        /// </summary>
+        /// <param name="sp"></param>
+        void SaveChangedAttachments(IScenePresence sp);
+
+        /// <summary>
         /// Attach an object to an avatar from the world.
         /// </summary>
         /// <param name="controllingClient"></param>

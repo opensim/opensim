@@ -26,7 +26,9 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
@@ -52,5 +54,14 @@ namespace OpenSim.Region.Framework.Interfaces
         // get a synchronization issue.
         /// </remarks>
         AvatarAppearance Appearance { get; set; }
+
+        /// <summary>
+        /// The scene objects attached to this avatar.
+        /// </summary>
+        /// <remarks>
+        ///  Do not change this list directly - use methods such as
+        /// AddAttachment() and RemoveAttachment().  Lock this list when performing any read operations upon it.
+        /// </remarks>
+        List<SceneObjectGroup> Attachments { get; }
     }
 }
