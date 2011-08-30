@@ -168,12 +168,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             UserInventoryHelpers.CreateInventoryItem(
                 scene, attName, attItemId, attAssetId, m_presence.UUID, InventoryType.Object);
 
-// Check item status
-            Assert.That(scene.InventoryService.GetItem(new InventoryItemBase(attItemId)), Is.Not.Null);
-
-            UUID attSoId = m_attMod.RezSingleAttachmentFromInventory(
+            ISceneEntity so = m_attMod.RezSingleAttachmentFromInventory(
                 m_presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
-            m_attMod.DetachSingleAttachmentToGround(attSoId, m_presence.ControllingClient);
+            m_attMod.DetachSingleAttachmentToGround(so.LocalId, m_presence.ControllingClient);
 
             // Check scene presence status
             Assert.That(m_presence.HasAttachments(), Is.False);

@@ -548,13 +548,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_activeScripts += number;
         }
 
-        public void DropObject(uint objectLocalID, IClientAPI remoteClient)
-        {
-            SceneObjectGroup group = GetGroupByPrim(objectLocalID);
-            if (group != null)
-                m_parentScene.AttachmentsModule.DetachSingleAttachmentToGround(group.UUID, remoteClient);
-        }
-
         protected internal void HandleUndo(IClientAPI remoteClient, UUID primId)
         {
             if (primId != UUID.Zero)

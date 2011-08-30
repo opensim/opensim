@@ -46,7 +46,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        private Scene m_scene = null;
+        private Scene m_scene;
         private IDialogModule m_dialogModule;
         
         public string Name { get { return "Attachments Module"; } }
@@ -83,6 +83,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             client.OnObjectAttach += AttachObject;
             client.OnObjectDetach += DetachObject;
             client.OnDetachAttachmentIntoInv += DetachSingleAttachmentToInv;
+            client.OnObjectDrop += DetachSingleAttachmentToGround;
         }
         
         public void UnsubscribeFromClientEvents(IClientAPI client)
@@ -92,6 +93,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             client.OnObjectAttach -= AttachObject;
             client.OnObjectDetach -= DetachObject;
             client.OnDetachAttachmentIntoInv -= DetachSingleAttachmentToInv;
+            client.OnObjectDrop -= DetachSingleAttachmentToGround;
         }
         
         /// <summary>
@@ -250,12 +252,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
         
-        public UUID RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
+        public ISceneEntity RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
             return RezSingleAttachmentFromInventory(remoteClient, itemID, AttachmentPt, true);
         }
 
-        public UUID RezSingleAttachmentFromInventory(
+        public ISceneEntity RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus)
         {
 //            m_log.DebugFormat(
@@ -269,7 +271,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 m_log.ErrorFormat(
                     "[ATTACHMENTS MODULE]: Could not find presence for client {0} {1} in RezSingleAttachmentFromInventory()",
                     remoteClient.Name, remoteClient.AgentId);
-                return UUID.Zero;
+                return null;
             }
             
             // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
@@ -286,10 +288,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     ShowAttachInUserInventory(att, sp, itemID, AttachmentPt);
             }
 
-            if (null == att)
-                return UUID.Zero;
-            else
-                return att.UUID;
+            return att;
         }
 
         private SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
@@ -449,13 +448,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
 
-        public void DetachSingleAttachmentToGround(UUID sceneObjectID, IClientAPI remoteClient)
+        public void DetachSingleAttachmentToGround(uint soLocalId, IClientAPI remoteClient)
         {
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: DetachSingleAttachmentToGround() for {0}, object {1}",
 //                remoteClient.Name, sceneObjectID);
 
-            SceneObjectGroup so = m_scene.GetSceneObjectGroup(sceneObjectID);
+            SceneObjectGroup so = m_scene.GetGroupByPrim(soLocalId);
 
             if (so == null)
                 return;
@@ -489,7 +488,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 remoteClient.SendRemoveInventoryItem(inventoryID);
             }
 
-            m_scene.EventManager.TriggerOnAttach(so.LocalId, sceneObjectID, UUID.Zero);
+            m_scene.EventManager.TriggerOnAttach(so.LocalId, so.UUID, UUID.Zero);
         }
 
         /// <summary>

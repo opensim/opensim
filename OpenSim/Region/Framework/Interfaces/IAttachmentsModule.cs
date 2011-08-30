@@ -64,7 +64,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="itemID"></param>
         /// <param name="AttachmentPt"></param>
         /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
-        UUID RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
+        ISceneEntity RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
 
         /// <summary>
         /// Rez an attachment from user inventory
@@ -77,7 +77,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// False is required so that we don't attempt to update information when a user enters a scene with the
         /// attachment already correctly set up in inventory.
         /// <returns>The uuid of the scene object that was attached.  Null if the scene object could not be found</returns>
-        UUID RezSingleAttachmentFromInventory(
+        ISceneEntity RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus);
 
         /// <summary>
@@ -105,9 +105,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Detach the given item to the ground.
         /// </summary>
-        /// <param name="sceneObjectID"></param>
+        /// <param name="objectLocalID"></param>
         /// <param name="remoteClient"></param>
-        void DetachSingleAttachmentToGround(UUID sceneObjectID, IClientAPI remoteClient);
+        void DetachSingleAttachmentToGround(uint objectLocalID, IClientAPI remoteClient);
 
         /// <summary>
         /// Detach the given item so that it remains in the user's inventory.
