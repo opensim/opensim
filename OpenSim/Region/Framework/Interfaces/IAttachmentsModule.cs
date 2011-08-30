@@ -36,6 +36,12 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IAttachmentsModule
     {
         /// <summary>
+        /// RezAttachments. This should only be called upon login on the first region.
+        /// Attachment rezzings on crossings and TPs are done in a different way.
+        /// </summary>
+        void RezAttachments(IScenePresence sp);
+
+        /// <summary>
         /// Attach an object to an avatar from the world.
         /// </summary>
         /// <param name="controllingClient"></param>

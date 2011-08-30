@@ -66,7 +66,7 @@ namespace OpenSim.Region.Framework.Scenes
 
     public delegate void SendCourseLocationsMethod(UUID scene, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs);
 
-    public class ScenePresence : EntityBase, ISceneEntity
+    public class ScenePresence : EntityBase, IScenePresence
     {
 //        ~ScenePresence()
 //        {
@@ -444,9 +444,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected PhysicsActor m_physicsActor;
 
-        /// <value>
-        /// The client controlling this presence
-        /// </value>
         public IClientAPI ControllingClient
         {
             get { return m_controllingClient; }
@@ -2689,9 +2686,6 @@ namespace OpenSim.Region.Framework.Scenes
                 UUID, m_appearance.VisualParams, m_appearance.Texture.GetBytes());
         }
 
-        // Because appearance setting is in a module, we actually need
-        // to give it access to our appearance directly, otherwise we
-        // get a synchronization issue.
         public AvatarAppearance Appearance
         {
             get { return m_appearance; }
@@ -3811,44 +3805,6 @@ namespace OpenSim.Region.Framework.Scenes
             //DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
 
             return flags;
-        }
-
-        /// <summary>
-        /// RezAttachments. This should only be called upon login on the first region.
-        /// Attachment rezzings on crossings and TPs are done in a different way.
-        /// </summary>
-        public void RezAttachments()
-        {
-            if (null == m_appearance)
-            {
-                m_log.WarnFormat("[ATTACHMENT]: Appearance has not been initialized for agent {0}", UUID);
-                return;
-            }
-
-            List<AvatarAttachment> attachments = m_appearance.GetAttachments();
-            foreach (AvatarAttachment attach in attachments)
-            {
-                int p = attach.AttachPoint;
-                UUID itemID = attach.ItemID;
-
-                //UUID assetID = attach.AssetID;
-                // For some reason assetIDs are being written as Zero's in the DB -- need to track tat down
-                // But they're not used anyway, the item is being looked up for now, so let's proceed.
-                //if (UUID.Zero == assetID) 
-                //{
-                //    m_log.DebugFormat("[ATTACHMENT]: Cannot rez attachment in point {0} with itemID {1}", p, itemID);
-                //    continue;
-                //}
-
-                try
-                {
-                    m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p);
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("[ATTACHMENT]: Unable to rez attachment: {0}{1}", e.Message, e.StackTrace);
-                }
-            }
         }
 
         private void ReprioritizeUpdates()

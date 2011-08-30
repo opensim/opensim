@@ -95,6 +95,44 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             client.OnDetachAttachmentIntoInv -= DetachSingleAttachmentToInv;
             client.OnObjectDrop -= DetachSingleAttachmentToGround;
         }
+
+        /// <summary>
+        /// RezAttachments. This should only be called upon login on the first region.
+        /// Attachment rezzings on crossings and TPs are done in a different way.
+        /// </summary>
+        public void RezAttachments(IScenePresence sp)
+        {
+            if (null == sp.Appearance)
+            {
+                m_log.WarnFormat("[ATTACHMENTS MODULE]: Appearance has not been initialized for agent {0}", sp.UUID);
+                return;
+            }
+
+            List<AvatarAttachment> attachments = sp.Appearance.GetAttachments();
+            foreach (AvatarAttachment attach in attachments)
+            {
+                int p = attach.AttachPoint;
+                UUID itemID = attach.ItemID;
+
+                //UUID assetID = attach.AssetID;
+                // For some reason assetIDs are being written as Zero's in the DB -- need to track tat down
+                // But they're not used anyway, the item is being looked up for now, so let's proceed.
+                //if (UUID.Zero == assetID) 
+                //{
+                //    m_log.DebugFormat("[ATTACHMENT]: Cannot rez attachment in point {0} with itemID {1}", p, itemID);
+                //    continue;
+                //}
+
+                try
+                {
+                    RezSingleAttachmentFromInventory(sp.ControllingClient, itemID, (uint)p);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[ATTACHMENTS MODULE]: Unable to rez attachment: {0}{1}", e.Message, e.StackTrace);
+                }
+            }
+        }
         
         /// <summary>
         /// Called by client
