@@ -1508,7 +1508,21 @@ namespace OpenSim.Framework
             // When OpenSim interacts with a database or sends data over the wire, it must send this in en_US culture
             // so that we don't encounter problems where, for instance, data is saved with a culture that uses commas
             // for decimals places but is read by a culture that treats commas as number seperators.
-            WaitCallback realCallback = delegate(object o) { Culture.SetCurrentCulture(); callback(o); };
+            WaitCallback realCallback = delegate(object o)
+            {
+                Culture.SetCurrentCulture();
+
+                try
+                {
+                    callback(o);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[UTIL]: Continuing after async_call_method thread terminated with exception {0}{1}",
+                        e.Message, e.StackTrace);
+                }
+            };
 
             switch (FireAndForgetMethod)
             {
