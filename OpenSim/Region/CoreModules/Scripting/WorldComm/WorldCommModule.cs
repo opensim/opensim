@@ -283,7 +283,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         }
 
         /// <summary>
-        /// Delivers the message to.
+        /// Delivers the message to a scene entity.
         /// </summary>
         /// <param name='target'>
         /// Target.
@@ -314,17 +314,19 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     m_scene.SimChatBroadcast(Utils.StringToBytes(msg), ChatTypeEnum.Owner, 0, pos, name, id, false);
                 }
 
-                List<SceneObjectGroup> attachments = sp.Attachments;
+                List<SceneObjectGroup> attachments = sp.GetAttachments();
+
                 // Nothing left to do
                 if (attachments == null)
                     return true;
 
                 // Get uuid of attachments
                 List<UUID> targets = new List<UUID>();
-                foreach ( SceneObjectGroup sog in attachments )
+                foreach (SceneObjectGroup sog in attachments)
                 {
                     targets.Add(sog.UUID);
                 }
+
                 // Need to check each attachment
                 foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
                 {
@@ -334,9 +336,10 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     if (m_scene.GetSceneObjectPart(li.GetHostID()) == null)
                         continue;
 
-                    if ( targets.Contains(li.GetHostID()))
+                    if (targets.Contains(li.GetHostID()))
                         QueueMessage(new ListenerInfo(li, name, id, msg));
                 }
+
                 return true;
             }
 
@@ -363,6 +366,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     break;
                 }
             }
+            
             return true;
         }
 

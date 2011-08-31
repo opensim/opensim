@@ -208,7 +208,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
                     sp.Teleport(position);
 
-                    foreach (SceneObjectGroup grp in sp.Attachments)
+                    foreach (SceneObjectGroup grp in sp.GetAttachments())
                         sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
                 }
                 else // Another region possibly in another simulator
@@ -559,11 +559,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual void AgentHasMovedAway(ScenePresence sp, bool logout)
         {
-            foreach (SceneObjectGroup sop in sp.Attachments)
+            foreach (SceneObjectGroup sop in sp.GetAttachments())
             {
                 sop.Scene.DeleteSceneObject(sop, true);
             }
-            sp.Attachments.Clear();
+            sp.ClearAttachments();
         }
 
         protected void KillEntity(Scene scene, uint localID)
@@ -1764,34 +1764,33 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected bool CrossAttachmentsIntoNewRegion(GridRegion destination, ScenePresence sp, bool silent)
         {
-            List<SceneObjectGroup> m_attachments = sp.Attachments;
-            lock (m_attachments)
+            List<SceneObjectGroup> m_attachments = sp.GetAttachments();
+
+            // Validate
+            foreach (SceneObjectGroup gobj in m_attachments)
             {
-                // Validate
-                foreach (SceneObjectGroup gobj in m_attachments)
-                {
-                    if (gobj == null || gobj.IsDeleted)
-                        return false;
-                }
-
-                foreach (SceneObjectGroup gobj in m_attachments)
-                {
-                    // If the prim group is null then something must have happened to it!
-                    if (gobj != null && gobj.RootPart != null)
-                    {
-                        // Set the parent localID to 0 so it transfers over properly.
-                        gobj.RootPart.SetParentLocalId(0);
-                        gobj.AbsolutePosition = gobj.RootPart.AttachedPos;
-                        gobj.IsAttachment = false;
-                        //gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
-                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending attachment {0} to region {1}", gobj.UUID, destination.RegionName);
-                        CrossPrimGroupIntoNewRegion(destination, gobj, silent);
-                    }
-                }
-                m_attachments.Clear();
-
-                return true;
+                if (gobj == null || gobj.IsDeleted)
+                    return false;
             }
+
+            foreach (SceneObjectGroup gobj in m_attachments)
+            {
+                // If the prim group is null then something must have happened to it!
+                if (gobj != null && gobj.RootPart != null)
+                {
+                    // Set the parent localID to 0 so it transfers over properly.
+                    gobj.RootPart.SetParentLocalId(0);
+                    gobj.AbsolutePosition = gobj.RootPart.AttachedPos;
+                    gobj.IsAttachment = false;
+                    //gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending attachment {0} to region {1}", gobj.UUID, destination.RegionName);
+                    CrossPrimGroupIntoNewRegion(destination, gobj, silent);
+                }
+            }
+
+            sp.ClearAttachments();
+
+            return true;
         }
 
         #endregion
@@ -1840,7 +1839,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             int i = 0;
             if (sp.InTransitScriptStates.Count > 0)
             {
-                sp.Attachments.ForEach(delegate(SceneObjectGroup sog)
+                List<SceneObjectGroup> attachments = sp.GetAttachments();
+
+                foreach (SceneObjectGroup sog in attachments)
                 {
                     if (i < sp.InTransitScriptStates.Count)
                     {
@@ -1849,8 +1850,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         sog.ResumeScripts();
                     }
                     else
-                        m_log.ErrorFormat("[ENTITY TRANSFER MODULE]: InTransitScriptStates.Count={0} smaller than Attachments.Count={1}", sp.InTransitScriptStates.Count, sp.Attachments.Count);
-                });
+                        m_log.ErrorFormat(
+                            "[ENTITY TRANSFER MODULE]: InTransitScriptStates.Count={0} smaller than Attachments.Count={1}",
+                            sp.InTransitScriptStates.Count, attachments.Count);
+                }
 
                 sp.InTransitScriptStates.Clear();
             }

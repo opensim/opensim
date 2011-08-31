@@ -144,14 +144,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     return false;
 
             // FIXME: An extremely bad bit of code that reaches directly into the attachments list and manipulates it
-            List<SceneObjectGroup> attachments = sp.Attachments;
-            lock (attachments)
-            {
-                foreach (SceneObjectGroup att in attachments)
-                    scene.DeleteSceneObject(att, false);
+            foreach (SceneObjectGroup att in sp.GetAttachments())
+                scene.DeleteSceneObject(att, false);
 
-                attachments.Clear();
-            }
+            sp.ClearAttachments();
 
             AvatarAppearance npcAppearance = new AvatarAppearance(appearance, true);
             sp.Appearance = npcAppearance;

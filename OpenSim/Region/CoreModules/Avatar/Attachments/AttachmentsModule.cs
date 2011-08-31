@@ -136,10 +136,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void SaveChangedAttachments(IScenePresence sp)
         {
-            // Need to copy this list because DetachToInventoryPrep mods it
-            List<SceneObjectGroup> attachments = new List<SceneObjectGroup>(sp.Attachments);
-
-            foreach (SceneObjectGroup grp in attachments)
+            foreach (SceneObjectGroup grp in sp.GetAttachments())
             {
                 if (grp.HasGroupChanged) // Resizer scripts?
                 {
@@ -273,14 +270,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             // Remove any previous attachments
             UUID itemID = UUID.Zero;
-            foreach (SceneObjectGroup grp in sp.Attachments)
-            {
-                if (grp.AttachmentPoint == attachmentPt)
-                {
-                    itemID = grp.GetFromItemID();
-                    break;
-                }
-            }
+
+            List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
+
+            // At the moment we can only deal with a single attachment
+            if (attachments.Count != 0)
+                itemID = attachments[0].GetFromItemID();
 
             if (itemID != UUID.Zero)
                 DetachSingleAttachmentToInv(itemID, sp);

@@ -114,10 +114,13 @@ namespace OpenSim.Region.Framework.Scenes
         }
         protected ScenePresenceAnimator m_animator;
 
-        public List<SceneObjectGroup> Attachments
-        {
-            get { return m_attachments; }
-        }
+        /// <summary>
+        /// Attachments recorded on this avatar.
+        /// </summary>
+        /// <remarks>
+        /// TODO: For some reason, we effectively have a list both here and in Appearance.  Need to work out if this is
+        /// necessary.
+        /// </remarks>
         protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
 
         private Dictionary<UUID, ScriptControllers> scriptedcontrols = new Dictionary<UUID, ScriptControllers>();
@@ -940,15 +943,18 @@ namespace OpenSim.Region.Framework.Scenes
             // and it has already rezzed the attachments and started their scripts.
             // We do the following only for non-login agents, because their scripts
             // haven't started yet.
-            if (wasChild && Attachments != null && Attachments.Count > 0)
+            lock (m_attachments)
             {
-                m_log.DebugFormat("[SCENE PRESENCE]: Restarting scripts in attachments...");
-                // Resume scripts
-                Attachments.ForEach(delegate(SceneObjectGroup sog)
+                if (wasChild && m_attachments != null && m_attachments.Count > 0)
                 {
-                    sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                    sog.ResumeScripts();
-                });
+                    m_log.DebugFormat("[SCENE PRESENCE]: Restarting scripts in attachments...");
+                    // Resume scripts
+                    foreach (SceneObjectGroup sog in m_attachments)
+                    {
+                        sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                        sog.ResumeScripts();
+                    }
+                }
             }
 
             // send the animations of the other presences to me
@@ -3472,9 +3478,19 @@ namespace OpenSim.Region.Framework.Scenes
                 m_attachments.Add(gobj);
             }
         }
-        
+
         /// <summary>
-        /// Get the scene object attached to the given point.
+        /// Get all the presence's attachments.
+        /// </summary>
+        /// <returns>A copy of the list which contains the attachments.</returns>
+        public List<SceneObjectGroup> GetAttachments()
+        {
+            lock (m_attachments)
+                return new List<SceneObjectGroup>(m_attachments);
+        }
+
+        /// <summary>
+        /// Get the scene objects attached to the given point.
         /// </summary>
         /// <param name="attachmentPoint"></param>
         /// <returns>Returns an empty list if there were no attachments at the point.</returns>
@@ -3519,6 +3535,15 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_attachments)
                 m_attachments.Remove(gobj);
+        }
+
+        /// <summary>
+        /// Clear all attachments
+        /// </summary>
+        public void ClearAttachments()
+        {
+            lock (m_attachments)
+                m_attachments.Clear();
         }
 
         public bool ValidateAttachments()

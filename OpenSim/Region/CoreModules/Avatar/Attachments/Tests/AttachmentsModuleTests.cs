@@ -106,7 +106,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             // Check status on scene presence
             Assert.That(m_presence.HasAttachments(), Is.True);
-            List<SceneObjectGroup> attachments = m_presence.Attachments;
+            List<SceneObjectGroup> attachments = m_presence.GetAttachments();
             Assert.That(attachments.Count, Is.EqualTo(1));
             SceneObjectGroup attSo = attachments[0];
             Assert.That(attSo.Name, Is.EqualTo(attName));
@@ -140,7 +140,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             // Check scene presence status
             Assert.That(m_presence.HasAttachments(), Is.True);
-            List<SceneObjectGroup> attachments = m_presence.Attachments;
+            List<SceneObjectGroup> attachments = m_presence.GetAttachments();
             Assert.That(attachments.Count, Is.EqualTo(1));
             SceneObjectGroup attSo = attachments[0];
             Assert.That(attSo.Name, Is.EqualTo(attName));
@@ -174,7 +174,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             // Check scene presence status
             Assert.That(m_presence.HasAttachments(), Is.False);
-            List<SceneObjectGroup> attachments = m_presence.Attachments;
+            List<SceneObjectGroup> attachments = m_presence.GetAttachments();
             Assert.That(attachments.Count, Is.EqualTo(0));
 
             // Check appearance status
@@ -208,7 +208,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             // Check status on scene presence
             Assert.That(m_presence.HasAttachments(), Is.False);
-            List<SceneObjectGroup> attachments = m_presence.Attachments;
+            List<SceneObjectGroup> attachments = m_presence.GetAttachments();
             Assert.That(attachments.Count, Is.EqualTo(0));
 
             // Check item status
@@ -237,7 +237,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             ScenePresence presence = SceneHelpers.AddScenePresence(scene, acd);
 
             Assert.That(presence.HasAttachments(), Is.True);
-            List<SceneObjectGroup> attachments = presence.Attachments;
+            List<SceneObjectGroup> attachments = presence.GetAttachments();
 
             Assert.That(attachments.Count, Is.EqualTo(1));
             SceneObjectGroup attSo = attachments[0];

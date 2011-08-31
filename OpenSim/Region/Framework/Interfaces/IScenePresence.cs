@@ -58,10 +58,13 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// The scene objects attached to this avatar.
         /// </summary>
+        /// <returns>
+        /// A copy of the list.
+        /// </returns>
         /// <remarks>
         ///  Do not change this list directly - use methods such as
-        /// AddAttachment() and RemoveAttachment().  Lock this list when performing any read operations upon it.
+        /// AddAttachment() and RemoveAttachment().
         /// </remarks>
-        List<SceneObjectGroup> Attachments { get; }
+        List<SceneObjectGroup> GetAttachments();
     }
 }
