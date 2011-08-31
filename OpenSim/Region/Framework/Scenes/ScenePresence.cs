@@ -900,9 +900,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             AbsolutePosition = pos;
 
-            if (m_appearance.AvatarHeight > 0)
-                SetHeight(m_appearance.AvatarHeight);
-
             AddToPhysicalScene(isFlying);
 
             if (m_forceFly)
@@ -1036,10 +1033,6 @@ namespace OpenSim.Region.Framework.Scenes
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
 
-            // FIXME: Move me into AddToPhysicalScene
-            if (m_appearance.AvatarHeight > 0)
-                SetHeight(m_appearance.AvatarHeight);
-
             SendTerseUpdateToAllClients();
         }
 
@@ -1052,9 +1045,6 @@ namespace OpenSim.Region.Framework.Scenes
             RemoveFromPhysicalScene();
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
-
-            if (m_appearance.AvatarHeight > 0)
-                SetHeight(m_appearance.AvatarHeight);
 
             SendTerseUpdateToAllClients();
         }
@@ -1825,12 +1815,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_parentID = 0;
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
-
-                if (m_physicsActor != null)
-                {
-                    if (m_appearance.AvatarHeight > 0)
-                        SetHeight(m_appearance.AvatarHeight);
-                }
             }
 
             Animator.TrySetMovementAnimation("STAND");
@@ -3313,6 +3297,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_physicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
             m_physicsActor.SubscribeEvents(500);
             m_physicsActor.LocalID = LocalId;
+
+            SetHeight(m_appearance.AvatarHeight);
         }
 
         private void OutOfBoundsCall(Vector3 pos)

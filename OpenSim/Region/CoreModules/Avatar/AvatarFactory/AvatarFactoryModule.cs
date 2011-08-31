@@ -214,7 +214,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     changed = sp.Appearance.SetVisualParams(visualParams);
                     if (sp.Appearance.AvatarHeight > 0)
                         sp.SetHeight(sp.Appearance.AvatarHeight);
-                    }
+                }
 
                 // Process the baked texture array
                 if (textureEntry != null)
