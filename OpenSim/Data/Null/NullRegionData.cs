@@ -40,7 +40,7 @@ namespace OpenSim.Data.Null
     {
         private static NullRegionData Instance = null;
 
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         Dictionary<UUID, RegionData> m_regionData = new Dictionary<UUID, RegionData>();
 
