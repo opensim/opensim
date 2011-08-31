@@ -945,7 +945,7 @@ namespace OpenSim.Region.Framework.Scenes
             // haven't started yet.
             lock (m_attachments)
             {
-                if (wasChild && m_attachments != null && m_attachments.Count > 0)
+                if (wasChild && HasAttachments())
                 {
                     m_log.DebugFormat("[SCENE PRESENCE]: Restarting scripts in attachments...");
                     // Resume scripts
