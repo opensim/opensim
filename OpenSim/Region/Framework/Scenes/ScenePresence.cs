@@ -885,11 +885,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             float localAVHeight = 1.56f;
-            if (m_appearance != null)
-            {
-                if (m_appearance.AvatarHeight > 0)
-                    localAVHeight = m_appearance.AvatarHeight;
-            }
+            if (m_appearance.AvatarHeight > 0)
+                localAVHeight = m_appearance.AvatarHeight;
 
             float posZLimit = 0;
 
@@ -903,25 +900,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
             AbsolutePosition = pos;
 
-            if (m_appearance != null)
-            {
-                if (m_appearance.AvatarHeight > 0)
-                    SetHeight(m_appearance.AvatarHeight);
-            }
-            else
-            {
-                m_log.ErrorFormat("[SCENE PRESENCE]: null appearance in MakeRoot in {0}", Scene.RegionInfo.RegionName);
-                // emergency; this really shouldn't happen
-                m_appearance = new AvatarAppearance();
-            }
-            
-            AddToPhysicalScene(isFlying);
+            if (m_appearance.AvatarHeight > 0)
+                SetHeight(m_appearance.AvatarHeight);
 
-            if (m_appearance != null)
-            {
-                if (m_appearance.AvatarHeight > 0)
-                    SetHeight(m_appearance.AvatarHeight);
-            }
+            AddToPhysicalScene(isFlying);
 
             if (m_forceFly)
             {
@@ -1053,11 +1035,10 @@ namespace OpenSim.Region.Framework.Scenes
             Velocity = Vector3.Zero;
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
-            if (m_appearance != null)
-            {
-                if (m_appearance.AvatarHeight > 0)
-                    SetHeight(m_appearance.AvatarHeight);
-            }
+
+            // FIXME: Move me into AddToPhysicalScene
+            if (m_appearance.AvatarHeight > 0)
+                SetHeight(m_appearance.AvatarHeight);
 
             SendTerseUpdateToAllClients();
         }
@@ -1071,11 +1052,9 @@ namespace OpenSim.Region.Framework.Scenes
             RemoveFromPhysicalScene();
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
-            if (m_appearance != null)
-            {
-                if (m_appearance.AvatarHeight > 0)
-                    SetHeight(m_appearance.AvatarHeight);
-            }
+
+            if (m_appearance.AvatarHeight > 0)
+                SetHeight(m_appearance.AvatarHeight);
 
             SendTerseUpdateToAllClients();
         }
@@ -1129,7 +1108,7 @@ namespace OpenSim.Region.Framework.Scenes
         #region Event Handlers
 
         /// <summary>
-        /// Sets avatar height in the phyiscs plugin
+        /// Sets avatar height in the physics plugin
         /// </summary>
         public void SetHeight(float height)
         {
@@ -1846,7 +1825,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_parentID = 0;
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
-                if (m_physicsActor != null && m_appearance != null)
+
+                if (m_physicsActor != null)
                 {
                     if (m_appearance.AvatarHeight > 0)
                         SetHeight(m_appearance.AvatarHeight);

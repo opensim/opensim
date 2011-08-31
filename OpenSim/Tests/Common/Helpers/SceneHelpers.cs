@@ -357,6 +357,7 @@ namespace OpenSim.Tests.Common
             agentData.startpos = Vector3.Zero;
             agentData.CapsPath = "http://wibble.com";
             agentData.ServiceURLs = new Dictionary<string, object>();
+            agentData.Appearance = new AvatarAppearance();
 
             return agentData;
         }
