@@ -4761,6 +4761,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else
                     attachPoint = 0;
 
+//                m_log.DebugFormat(
+//                    "[LLCLIENTVIEW]: Sending attachPoint {0} for {1} {2} to {3}",
+//                    attachPoint, part.Name, part.LocalId, Name);
+
                 collisionPlane = Vector4.Zero;
                 position = part.RelativePosition;
                 velocity = part.Velocity;
@@ -4925,8 +4929,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
             {
                 update.NameValue = Utils.EmptyBytes;
-                update.State = data.Shape.State;
+
+                // The root part state is the canonical state for all parts of the object.  The other part states in the
+                // case for attachments may contain conflicting values that can end up crashing the viewer.
+                update.State = data.ParentGroup.RootPart.Shape.State;
             }
+
+//                m_log.DebugFormat(
+//                    "[LLCLIENTVIEW]: Sending state {0} for {1} {2} to {3}",
+//                    update.State, data.Name, data.LocalId, Name);
 
             update.ObjectData = objectData;
             update.ParentID = data.ParentID;
