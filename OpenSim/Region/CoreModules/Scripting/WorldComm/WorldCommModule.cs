@@ -366,7 +366,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     break;
                 }
             }
-            
+
             return true;
         }
 

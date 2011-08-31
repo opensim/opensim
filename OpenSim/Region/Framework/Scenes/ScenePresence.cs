@@ -3512,7 +3512,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool HasAttachments()
         {
-            return m_attachments.Count > 0;
+            lock (m_attachments)
+                return m_attachments.Count > 0;
         }
 
         public bool HasScriptedAttachments()
