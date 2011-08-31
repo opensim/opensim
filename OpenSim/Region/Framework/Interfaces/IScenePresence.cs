@@ -62,9 +62,22 @@ namespace OpenSim.Region.Framework.Interfaces
         /// A copy of the list.
         /// </returns>
         /// <remarks>
-        ///  Do not change this list directly - use methods such as
-        /// AddAttachment() and RemoveAttachment().
+        ///  Do not change this list directly - use the attachments module.
         /// </remarks>
         List<SceneObjectGroup> GetAttachments();
+
+        /// <summary>
+        /// The scene objects attached to this avatar at a specific attachment point.
+        /// </summary>
+        /// <param name="attachmentPoint"></param>
+        /// <returns></returns>
+        List<SceneObjectGroup> GetAttachments(uint attachmentPoint);
+
+        bool HasAttachments();
+
+        // Don't use these methods directly.  Instead, use the AttachmentsModule
+        void AddAttachment(SceneObjectGroup gobj);
+        void RemoveAttachment(SceneObjectGroup gobj);
+        void ClearAttachments();
     }
 }

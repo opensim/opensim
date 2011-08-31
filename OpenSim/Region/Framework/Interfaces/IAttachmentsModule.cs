@@ -48,6 +48,15 @@ namespace OpenSim.Region.Framework.Interfaces
         void SaveChangedAttachments(IScenePresence sp);
 
         /// <summary>
+        /// Delete all the presence's attachments from the scene
+        /// </summary>
+        /// <param name="sp">
+        /// This is done when a root agent leaves/is demoted to child (for instance, on logout, teleport or region cross).
+        /// </param>
+        /// <param name="silent"></param>
+        void DeleteAttachmentsFromScene(IScenePresence sp, bool silent);
+
+        /// <summary>
         /// Attach an object to an avatar from the world.
         /// </summary>
         /// <param name="controllingClient"></param>

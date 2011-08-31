@@ -559,11 +559,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual void AgentHasMovedAway(ScenePresence sp, bool logout)
         {
-            foreach (SceneObjectGroup sop in sp.GetAttachments())
-            {
-                sop.Scene.DeleteSceneObject(sop, true);
-            }
-            sp.ClearAttachments();
+            sp.Scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, true);
         }
 
         protected void KillEntity(Scene scene, uint localID)

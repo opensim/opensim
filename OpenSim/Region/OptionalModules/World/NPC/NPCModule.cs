@@ -143,11 +143,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 if (!m_avatars.ContainsKey(agentId))
                     return false;
 
-            // FIXME: An extremely bad bit of code that reaches directly into the attachments list and manipulates it
-            foreach (SceneObjectGroup att in sp.GetAttachments())
-                scene.DeleteSceneObject(att, false);
-
-            sp.ClearAttachments();
+            scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, false);
 
             AvatarAppearance npcAppearance = new AvatarAppearance(appearance, true);
             sp.Appearance = npcAppearance;

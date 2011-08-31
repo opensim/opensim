@@ -147,6 +147,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 }
             }
         }
+
+        public void DeleteAttachmentsFromScene(IScenePresence sp, bool silent)
+        {
+            foreach (SceneObjectGroup sop in sp.GetAttachments())
+            {
+                sop.Scene.DeleteSceneObject(sop, silent);
+            }
+
+            sp.ClearAttachments();
+        }
         
         /// <summary>
         /// Called by client

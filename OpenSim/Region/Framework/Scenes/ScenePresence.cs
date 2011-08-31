@@ -3401,19 +3401,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Close()
         {
-            lock (m_attachments)
-            {
-                // Delete attachments from scene
-                // Don't try to save, as this thread won't live long
-                // enough to complete the save. This would cause no copy
-                // attachments to poof!
-                //
-                foreach (SceneObjectGroup grp in m_attachments)
-                {
-                    m_scene.DeleteSceneObject(grp, false);
-                }
-                m_attachments.Clear();
-            }
+            m_scene.AttachmentsModule.DeleteAttachmentsFromScene(this, false);
             
             lock (m_knownChildRegions)
             {
