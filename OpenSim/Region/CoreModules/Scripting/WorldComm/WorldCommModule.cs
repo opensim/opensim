@@ -316,8 +316,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
                 List<SceneObjectGroup> attachments = sp.GetAttachments();
 
-                // Nothing left to do
-                if (attachments == null)
+                if (attachments.Count == 0)
                     return true;
 
                 // Get uuid of attachments
