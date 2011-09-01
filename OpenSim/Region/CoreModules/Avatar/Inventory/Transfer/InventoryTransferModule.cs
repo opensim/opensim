@@ -208,9 +208,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     Array.Copy(copyIDBytes, 0, im.binaryBucket, 1, copyIDBytes.Length);
                     
                     if (user != null)
-                    {
                         user.ControllingClient.SendBulkUpdateInventory(folderCopy);
-                    }
 
                     // HACK!!
                     im.imSessionID = folderID.Guid;
@@ -240,9 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     Array.Copy(copyID.GetBytes(), 0, im.binaryBucket, 1, 16);
                     
                     if (user != null)
-                    {
                         user.ControllingClient.SendBulkUpdateInventory(itemCopy);
-                    }
 
                     // HACK!!
                     im.imSessionID = itemID.Guid;
@@ -288,7 +284,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                             ScenePresence fromUser = scene.GetScenePresence(new UUID(im.fromAgentID));
 
-                            fromUser.ControllingClient.SendBulkUpdateInventory(folder);
+                            // If the user has left the scene by the time the message comes back then we can't send
+                            // them the update.
+                            if (fromUser != null)
+                                fromUser.ControllingClient.SendBulkUpdateInventory(folder);
                         });
                 }
             }
