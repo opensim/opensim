@@ -2021,25 +2021,17 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 GetGeometricCenter()
         {
             if (PhysActor != null)
-            {
                 return new Vector3(PhysActor.CenterOfMass.X, PhysActor.CenterOfMass.Y, PhysActor.CenterOfMass.Z);
-            }
             else
-            {
                 return new Vector3(0, 0, 0);
-            }
         }
 
         public float GetMass()
         {
             if (PhysActor != null)
-            {
                 return PhysActor.Mass;
-            }
             else
-            {
                 return 0;
-            }
         }
 
         public Vector3 GetForce()
@@ -2055,15 +2047,12 @@ namespace OpenSim.Region.Framework.Scenes
             client.SendObjectPropertiesReply(this);
         }
 
-        public UUID GetRootPartUUID()
-        {
-            return m_parentGroup.UUID;
-        }
-
         /// <summary>
         /// Method for a prim to get it's world position from the group.
-        /// Remember, the Group Position simply gives the position of the group itself
         /// </summary>
+        /// <remarks>
+        /// Remember, the Group Position simply gives the position of the group itself
+        /// </remarks>
         /// <returns>A Linked Child Prim objects position in world</returns>
         public Vector3 GetWorldPosition()
         {
@@ -3117,7 +3106,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             UUID ownerID = _ownerID;
             UUID objectID = ParentGroup.RootPart.UUID;
-            UUID parentID = GetRootPartUUID();
+            UUID parentID = ParentGroup.UUID;
 
             UUID soundID = UUID.Zero;
             Vector3 position = AbsolutePosition; // region local
@@ -3156,7 +3145,7 @@ namespace OpenSim.Region.Framework.Scenes
                         ParentGroup.PlaySoundMasterPrim = this;
                         ownerID = _ownerID;
                         objectID = ParentGroup.RootPart.UUID;
-                        parentID = GetRootPartUUID();
+                        parentID = ParentGroup.UUID;
                         position = AbsolutePosition; // region local
                         regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
                         if (triggered)
@@ -3167,7 +3156,7 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             ownerID = prim._ownerID;
                             objectID = prim.ParentGroup.RootPart.UUID;
-                            parentID = prim.GetRootPartUUID();
+                            parentID = prim.ParentGroup.UUID;
                             position = prim.AbsolutePosition; // region local
                             regionHandle = prim.ParentGroup.Scene.RegionInfo.RegionHandle;
                             if (triggered)
