@@ -732,8 +732,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
             if (e == null || attachment) // Single
             {
-                SceneObjectGroup g =
-                    SceneObjectSerializer.FromOriginalXmlFormat(UUID.Zero, xmlData);
+                SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
 
                 objlist.Add(g);
                 veclist.Add(new Vector3(0, 0, 0));
@@ -762,8 +761,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
                 foreach (XmlNode n in groups)
                 {
-                    SceneObjectGroup g =
-                        SceneObjectSerializer.FromOriginalXmlFormat(UUID.Zero, n.OuterXml);
+                    SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
 
                     objlist.Add(g);
                     XmlElement el = (XmlElement)n;

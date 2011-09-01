@@ -53,19 +53,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <summary>
         /// Deserialize a scene object from the original xml format
         /// </summary>
-        /// <param name="serialization"></param>
+        /// <param name="xmlData"></param>
         /// <returns></returns>
-        public static SceneObjectGroup FromOriginalXmlFormat(string serialization)
-        {
-            return FromOriginalXmlFormat(UUID.Zero, serialization);
-        }
-        
-        /// <summary>
-        /// Deserialize a scene object from the original xml format
-        /// </summary>
-        /// <param name="serialization"></param>
-        /// <returns></returns>
-        public static SceneObjectGroup FromOriginalXmlFormat(UUID fromUserInventoryItemID, string xmlData)
+        public static SceneObjectGroup FromOriginalXmlFormat(string xmlData)
         {
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
             //int time = System.Environment.TickCount;
@@ -87,7 +77,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                 sr = new StringReader(parts[0].InnerXml);
                 reader = new XmlTextReader(sr);
-                SceneObjectGroup sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(fromUserInventoryItemID, reader));
+                SceneObjectGroup sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(reader));
                 reader.Close();
                 sr.Close();
 

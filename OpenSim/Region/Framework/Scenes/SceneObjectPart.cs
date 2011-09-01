@@ -1904,22 +1904,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public static SceneObjectPart FromXml(XmlTextReader xmlReader)
         {
-            return FromXml(UUID.Zero, xmlReader);
-        }
-
-        /// <summary>
-        /// Restore this part from the serialized xml representation.
-        /// </summary>
-        /// <param name="fromUserInventoryItemId">The inventory id from which this part came, if applicable</param>
-        /// <param name="xmlReader"></param>
-        /// <returns></returns>
-        public static SceneObjectPart FromXml(UUID fromUserInventoryItemId, XmlTextReader xmlReader)
-        {
             SceneObjectPart part = SceneObjectSerializer.Xml2ToSOP(xmlReader);
-            part.m_fromUserInventoryItemID = fromUserInventoryItemId;
 
             // for tempOnRez objects, we have to fix the Expire date.
-            if ((part.Flags & PrimFlags.TemporaryOnRez) != 0) part.ResetExpire();
+            if ((part.Flags & PrimFlags.TemporaryOnRez) != 0)
+                part.ResetExpire();
 
             return part;
         }
