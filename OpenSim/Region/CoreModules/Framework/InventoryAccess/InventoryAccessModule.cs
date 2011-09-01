@@ -822,7 +822,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return null;
             }
 
-            for (int i = 0 ; i < objlist.Count; i++)
+            for (int i = 0; i < objlist.Count; i++)
             {
                 group = objlist[i];
 
@@ -831,8 +831,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 3");
                 }
-
-                group.RootPart.FromFolderID = item.Folder;
 
                 // If it's rezzed in world, select it. Much easier to
                 // find small items.
@@ -890,44 +888,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
 
                 group.SetGroup(remoteClient.ActiveGroupId, remoteClient);
-                if ((rootPart.OwnerID != item.Owner) ||
-                    (item.CurrentPermissions & 16) != 0)
-                {
-                    //Need to kill the for sale here
-                    rootPart.ObjectSaleType = 0;
-                    rootPart.SalePrice = 10;
 
-                    if (m_Scene.Permissions.PropagatePermissions())
-                    {
-                        foreach (SceneObjectPart part in group.Parts)
-                        {
-                            if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
-                            {
-                                part.EveryoneMask = item.EveryOnePermissions;
-                                part.NextOwnerMask = item.NextPermissions;
-                            }
-                            part.GroupMask = 0; // DO NOT propagate here
-                        }
-
-                        group.ApplyNextOwnerPermissions();
-                    }
-                }
-
-                foreach (SceneObjectPart part in group.Parts)
-                {
-                    if ((part.OwnerID != item.Owner) ||
-                        (item.CurrentPermissions & 16) != 0)
-                    {
-                        part.LastOwnerID = part.OwnerID;
-                        part.OwnerID = item.Owner;
-                        part.Inventory.ChangeInventoryOwner(item.Owner);
-                        part.GroupMask = 0; // DO NOT propagate here
-                    }
-                    part.EveryoneMask = item.EveryOnePermissions;
-                    part.NextOwnerMask = item.NextPermissions;
-                }
-
-                rootPart.TrimPermissions();
+                DoPreRezWhenFromItem(item, group);
 
                 if (!attachment)
                 {
@@ -949,6 +911,52 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             DoPostRezWhenFromItem(item, attachment);
 
             return group;
+        }
+
+        private void DoPreRezWhenFromItem(InventoryItemBase item, SceneObjectGroup so)
+        {
+            so.RootPart.FromFolderID = item.Folder;
+
+            SceneObjectPart rootPart = so.RootPart;
+
+            if ((rootPart.OwnerID != item.Owner) ||
+                (item.CurrentPermissions & 16) != 0)
+            {
+                //Need to kill the for sale here
+                rootPart.ObjectSaleType = 0;
+                rootPart.SalePrice = 10;
+
+                if (m_Scene.Permissions.PropagatePermissions())
+                {
+                    foreach (SceneObjectPart part in so.Parts)
+                    {
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
+                        {
+                            part.EveryoneMask = item.EveryOnePermissions;
+                            part.NextOwnerMask = item.NextPermissions;
+                        }
+                        part.GroupMask = 0; // DO NOT propagate here
+                    }
+
+                    so.ApplyNextOwnerPermissions();
+                }
+            }
+
+            foreach (SceneObjectPart part in so.Parts)
+            {
+                if ((part.OwnerID != item.Owner) ||
+                    (item.CurrentPermissions & 16) != 0)
+                {
+                    part.LastOwnerID = part.OwnerID;
+                    part.OwnerID = item.Owner;
+                    part.Inventory.ChangeInventoryOwner(item.Owner);
+                    part.GroupMask = 0; // DO NOT propagate here
+                }
+                part.EveryoneMask = item.EveryOnePermissions;
+                part.NextOwnerMask = item.NextPermissions;
+            }
+
+            rootPart.TrimPermissions();
         }
 
         private void DoPostRezWhenFromItem(InventoryItemBase item, bool isAttachment)
