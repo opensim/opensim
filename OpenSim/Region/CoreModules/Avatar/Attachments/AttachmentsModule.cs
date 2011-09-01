@@ -470,12 +470,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return;
             }
 
-            if (null == att.RootPart)
-            {
-                m_log.Error("[ATTACHMENTS MODULE]: Unable to save attachment for a prim without the rootpart!");
-                return;
-            }
-
             InventoryItemBase item = new InventoryItemBase(itemID, sp.UUID);
             item = m_scene.InventoryService.GetItem(item);
             bool changed = sp.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID);

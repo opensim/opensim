@@ -362,7 +362,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         protected bool AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
-            if (sceneObject == null || sceneObject.RootPart == null || sceneObject.RootPart.UUID == UUID.Zero)
+            if (sceneObject == null || sceneObject.RootPart.UUID == UUID.Zero)
                 return false;
 
             if (Entities.ContainsKey(sceneObject.UUID))

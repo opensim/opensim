@@ -1772,7 +1772,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             foreach (SceneObjectGroup gobj in m_attachments)
             {
                 // If the prim group is null then something must have happened to it!
-                if (gobj != null && gobj.RootPart != null)
+                if (gobj != null)
                 {
                     // Set the parent localID to 0 so it transfers over properly.
                     gobj.RootPart.SetParentLocalId(0);

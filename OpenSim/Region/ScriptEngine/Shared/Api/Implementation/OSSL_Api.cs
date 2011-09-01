@@ -673,8 +673,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup.RootPart != null)
-                m_host.ParentGroup.RootPart.SetFloatOnWater(floatYN);
+            m_host.ParentGroup.RootPart.SetFloatOnWater(floatYN);
         }
 
         // Teleport functions

@@ -118,59 +118,56 @@ namespace OpenSim.Region.DataSnapshot.Providers
                     {
                         SceneObjectPart m_rootPart = obj.RootPart;
 
-                        if (m_rootPart != null)
+                        ILandObject land = m_scene.LandChannel.GetLandObject(m_rootPart.AbsolutePosition.X, m_rootPart.AbsolutePosition.Y);
+
+                        XmlNode xmlobject = nodeFactory.CreateNode(XmlNodeType.Element, "object", "");
+                        node = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
+                        node.InnerText = obj.UUID.ToString();
+                        xmlobject.AppendChild(node);
+
+                        node = nodeFactory.CreateNode(XmlNodeType.Element, "title", "");
+                        node.InnerText = m_rootPart.Name;
+                        xmlobject.AppendChild(node);
+
+                        node = nodeFactory.CreateNode(XmlNodeType.Element, "description", "");
+                        node.InnerText = m_rootPart.Description;
+                        xmlobject.AppendChild(node);
+
+                        node = nodeFactory.CreateNode(XmlNodeType.Element, "flags", "");
+                        node.InnerText = String.Format("{0:x}", (uint)m_rootPart.Flags);
+                        xmlobject.AppendChild(node);
+
+                        node = nodeFactory.CreateNode(XmlNodeType.Element, "regionuuid", "");
+                        node.InnerText = m_scene.RegionInfo.RegionSettings.RegionUUID.ToString();
+                        xmlobject.AppendChild(node);
+
+                        if (land != null && land.LandData != null)
                         {
-                            ILandObject land = m_scene.LandChannel.GetLandObject(m_rootPart.AbsolutePosition.X, m_rootPart.AbsolutePosition.Y);
-
-                            XmlNode xmlobject = nodeFactory.CreateNode(XmlNodeType.Element, "object", "");
-                            node = nodeFactory.CreateNode(XmlNodeType.Element, "uuid", "");
-                            node.InnerText = obj.UUID.ToString();
+                            node = nodeFactory.CreateNode(XmlNodeType.Element, "parceluuid", "");
+                            node.InnerText = land.LandData.GlobalID.ToString();
                             xmlobject.AppendChild(node);
-
-                            node = nodeFactory.CreateNode(XmlNodeType.Element, "title", "");
-                            node.InnerText = m_rootPart.Name;
-                            xmlobject.AppendChild(node);
-
-                            node = nodeFactory.CreateNode(XmlNodeType.Element, "description", "");
-                            node.InnerText = m_rootPart.Description;
-                            xmlobject.AppendChild(node);
-
-                            node = nodeFactory.CreateNode(XmlNodeType.Element, "flags", "");
-                            node.InnerText = String.Format("{0:x}", (uint)m_rootPart.Flags);
-                            xmlobject.AppendChild(node);
-
-                            node = nodeFactory.CreateNode(XmlNodeType.Element, "regionuuid", "");
-                            node.InnerText = m_scene.RegionInfo.RegionSettings.RegionUUID.ToString();
-                            xmlobject.AppendChild(node);
-
-                            if (land != null && land.LandData != null)
-                            {
-                                node = nodeFactory.CreateNode(XmlNodeType.Element, "parceluuid", "");
-                                node.InnerText = land.LandData.GlobalID.ToString();
-                                xmlobject.AppendChild(node);
-                            }
-                            else
-                            {
-                                // Something is wrong with this object. Let's not list it.
-                                m_log.WarnFormat("[DATASNAPSHOT]: Bad data for object {0} ({1}) in region {2}", obj.Name, obj.UUID, m_scene.RegionInfo.RegionName);
-                                continue;
-                            }
-
-                            node = nodeFactory.CreateNode(XmlNodeType.Element, "location", "");
-                            Vector3 loc = obj.AbsolutePosition;
-                            node.InnerText = loc.X.ToString() + "/" + loc.Y.ToString() + "/" + loc.Z.ToString();
-                            xmlobject.AppendChild(node);
-
-                            string bestImage = GuessImage(obj);
-                            if (bestImage != string.Empty)
-                            {
-                                node = nodeFactory.CreateNode(XmlNodeType.Element, "image", "");
-                                node.InnerText = bestImage;
-                                xmlobject.AppendChild(node);
-                            }
-
-                            parent.AppendChild(xmlobject);
                         }
+                        else
+                        {
+                            // Something is wrong with this object. Let's not list it.
+                            m_log.WarnFormat("[DATASNAPSHOT]: Bad data for object {0} ({1}) in region {2}", obj.Name, obj.UUID, m_scene.RegionInfo.RegionName);
+                            continue;
+                        }
+
+                        node = nodeFactory.CreateNode(XmlNodeType.Element, "location", "");
+                        Vector3 loc = obj.AbsolutePosition;
+                        node.InnerText = loc.X.ToString() + "/" + loc.Y.ToString() + "/" + loc.Z.ToString();
+                        xmlobject.AppendChild(node);
+
+                        string bestImage = GuessImage(obj);
+                        if (bestImage != string.Empty)
+                        {
+                            node = nodeFactory.CreateNode(XmlNodeType.Element, "image", "");
+                            node.InnerText = bestImage;
+                            xmlobject.AppendChild(node);
+                        }
+
+                        parent.AppendChild(xmlobject);
                     }
                     #pragma warning disable 0612
                 }

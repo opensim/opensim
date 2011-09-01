@@ -1743,14 +1743,6 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectGroup group in PrimsFromDB)
             {
                 EventManager.TriggerOnSceneObjectLoaded(group);
-                
-                if (group.RootPart == null)
-                {
-                    m_log.ErrorFormat(
-                        "[SCENE]: Found a SceneObjectGroup with m_rootPart == null and {0} children",
-                        group.Parts == null ? 0 : group.PrimCount);
-                }
-
                 AddRestoredSceneObject(group, true, true);
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                 rootPart.Flags &= ~PrimFlags.Scripted;
@@ -4215,7 +4207,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //  their scripts will actually run.
                 //      -- Leaf, Tue Aug 12 14:17:05 EDT 2008
                 SceneObjectPart parent = part.ParentGroup.RootPart;
-                if (parent != null && part.ParentGroup.IsAttachment)
+                if (part.ParentGroup.IsAttachment)
                     return ScriptDanger(parent, parent.GetWorldPosition());
                 else
                     return ScriptDanger(part, part.GetWorldPosition());
@@ -5015,7 +5007,9 @@ namespace OpenSim.Region.Framework.Scenes
                             if (rootPart.GroupPosition.Z < 0.0 || rootPart.GroupPosition.Z > 10000.0)
                             {
                                 delete = true;
-                            } else {
+                            }
+                            else
+                            {
                                 ILandObject parcel = LandChannel.GetLandObject(rootPart.GroupPosition.X, rootPart.GroupPosition.Y);
 
                                 if (parcel == null || parcel.LandData.Name == "NO LAND")

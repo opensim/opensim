@@ -381,7 +381,6 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                     {
                         SceneObjectPart selectedTree = ((SceneObjectGroup)m_scene.Entities[tree]).RootPart;
 
-
                         m_scene.DeleteSceneObject(selectedTree.ParentGroup, false);
                         m_scene.ForEachClient(delegate(IClientAPI controller)
                         {

@@ -254,14 +254,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public override string Name
         {
-            get
-            {
-                if (RootPart == null)
-                    return String.Empty;
-                else
-                    return RootPart.Name;
-            }
-
+            get { return RootPart.Name; }
             set { RootPart.Name = value; }
         }
 
@@ -1054,7 +1047,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             part.SetParent(this);
             part.LinkNum = m_parts.Add(part.UUID, part);
-            if (part.LinkNum == 2 && RootPart != null)
+            if (part.LinkNum == 2)
                 RootPart.LinkNum = 1;
         }
 
@@ -1537,137 +1530,93 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void applyImpulse(Vector3 impulse)
         {
-            // We check if rootpart is null here because scripts don't delete if you delete the host.
-            // This means that unfortunately, we can pass a null physics actor to Simulate!
-            // Make sure we don't do that!
-            SceneObjectPart rootpart = m_rootPart;
-            if (rootpart != null)
+            if (IsAttachment)
             {
-                if (IsAttachment)
+                ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
+                if (avatar != null)
                 {
-                    ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
-                    if (avatar != null)
-                    {
-                        avatar.PushForce(impulse);
-                    }
+                    avatar.PushForce(impulse);
                 }
-                else
+            }
+            else
+            {
+                if (RootPart.PhysActor != null)
                 {
-                    if (rootpart.PhysActor != null)
-                    {
-                        rootpart.PhysActor.AddForce(impulse, true);
-                        m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
-                    }
+                    RootPart.PhysActor.AddForce(impulse, true);
+                    m_scene.PhysicsScene.AddPhysicsActorTaint(RootPart.PhysActor);
                 }
             }
         }
 
         public void applyAngularImpulse(Vector3 impulse)
         {
-            // We check if rootpart is null here because scripts don't delete if you delete the host.
-            // This means that unfortunately, we can pass a null physics actor to Simulate!
-            // Make sure we don't do that!
-            SceneObjectPart rootpart = m_rootPart;
-            if (rootpart != null)
+            if (RootPart.PhysActor != null)
             {
-                if (rootpart.PhysActor != null)
+                if (!IsAttachment)
                 {
-                    if (!IsAttachment)
-                    {
-                        rootpart.PhysActor.AddAngularForce(impulse, true);
-                        m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
-                    }
+                    RootPart.PhysActor.AddAngularForce(impulse, true);
+                    m_scene.PhysicsScene.AddPhysicsActorTaint(RootPart.PhysActor);
                 }
             }
         }
 
         public void setAngularImpulse(Vector3 impulse)
         {
-            // We check if rootpart is null here because scripts don't delete if you delete the host.
-            // This means that unfortunately, we can pass a null physics actor to Simulate!
-            // Make sure we don't do that!
-            SceneObjectPart rootpart = m_rootPart;
-            if (rootpart != null)
+            if (RootPart.PhysActor != null)
             {
-                if (rootpart.PhysActor != null)
+                if (!IsAttachment)
                 {
-                    if (!IsAttachment)
-                    {
-                        rootpart.PhysActor.Torque = impulse;
-                        m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
-                    }
+                    RootPart.PhysActor.Torque = impulse;
+                    m_scene.PhysicsScene.AddPhysicsActorTaint(RootPart.PhysActor);
                 }
             }
         }
 
         public Vector3 GetTorque()
         {
-            // We check if rootpart is null here because scripts don't delete if you delete the host.
-            // This means that unfortunately, we can pass a null physics actor to Simulate!
-            // Make sure we don't do that!
-            SceneObjectPart rootpart = m_rootPart;
-            if (rootpart != null)
+            if (RootPart.PhysActor != null)
             {
-                if (rootpart.PhysActor != null)
+                if (!IsAttachment)
                 {
-                    if (!IsAttachment)
-                    {
-                        Vector3 torque = rootpart.PhysActor.Torque;
-                        return torque;
-                    }
+                    Vector3 torque = RootPart.PhysActor.Torque;
+                    return torque;
                 }
             }
+
             return Vector3.Zero;
         }
 
         public void moveToTarget(Vector3 target, float tau)
         {
-            SceneObjectPart rootpart = m_rootPart;
-            if (rootpart != null)
+            if (IsAttachment)
             {
-                if (IsAttachment)
+                ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
+                if (avatar != null)
                 {
-                    ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
-                    if (avatar != null)
-                    {
-                        avatar.MoveToTarget(target, false);
-                    }
+                    avatar.MoveToTarget(target, false);
                 }
-                else
+            }
+            else
+            {
+                if (RootPart.PhysActor != null)
                 {
-                    if (rootpart.PhysActor != null)
-                    {
-                        rootpart.PhysActor.PIDTarget = target;
-                        rootpart.PhysActor.PIDTau = tau;
-                        rootpart.PhysActor.PIDActive = true;
-                    }
+                    RootPart.PhysActor.PIDTarget = target;
+                    RootPart.PhysActor.PIDTau = tau;
+                    RootPart.PhysActor.PIDActive = true;
                 }
             }
         }
 
         public void stopMoveToTarget()
         {
-            SceneObjectPart rootpart = m_rootPart;
-            if (rootpart != null)
-            {
-                if (rootpart.PhysActor != null)
-                {
-                    rootpart.PhysActor.PIDActive = false;
-                }
-            }
+            if (RootPart.PhysActor != null)
+                RootPart.PhysActor.PIDActive = false;
         }
         
         public void stopLookAt()
         {
-            SceneObjectPart rootpart = m_rootPart;
-            if (rootpart != null)
-            {
-                if (rootpart.PhysActor != null)
-                {
-                    rootpart.PhysActor.APIDActive = false;
-                }
-            }
-        
+            if (RootPart.PhysActor != null)
+                RootPart.PhysActor.APIDActive = false;
         }
 
         /// <summary>
@@ -1678,22 +1627,18 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="tau">Number of seconds over which to reach target</param>
         public void SetHoverHeight(float height, PIDHoverType hoverType, float tau)
         {
-            SceneObjectPart rootpart = m_rootPart;
-            if (rootpart != null)
+            if (RootPart.PhysActor != null)
             {
-                if (rootpart.PhysActor != null)
+                if (height != 0f)
                 {
-                    if (height != 0f)
-                    {
-                        rootpart.PhysActor.PIDHoverHeight = height;
-                        rootpart.PhysActor.PIDHoverType = hoverType;
-                        rootpart.PhysActor.PIDTau = tau;
-                        rootpart.PhysActor.PIDHoverActive = true;
-                    }
-                    else
-                    {
-                        rootpart.PhysActor.PIDHoverActive = false;
-                    }
+                    RootPart.PhysActor.PIDHoverHeight = height;
+                    RootPart.PhysActor.PIDHoverType = hoverType;
+                    RootPart.PhysActor.PIDTau = tau;
+                    RootPart.PhysActor.PIDHoverActive = true;
+                }
+                else
+                {
+                    RootPart.PhysActor.PIDHoverActive = false;
                 }
             }
         }
@@ -3056,28 +3001,23 @@ namespace OpenSim.Region.Framework.Scenes
             int yaxis = 4;
             int zaxis = 8;
 
-            if (m_rootPart != null)
-            {
-                setX = ((axis & xaxis) != 0) ? true : false;
-                setY = ((axis & yaxis) != 0) ? true : false;
-                setZ = ((axis & zaxis) != 0) ? true : false;
+            setX = ((axis & xaxis) != 0) ? true : false;
+            setY = ((axis & yaxis) != 0) ? true : false;
+            setZ = ((axis & zaxis) != 0) ? true : false;
 
-                float setval = (rotate10 > 0) ? 1f : 0f;
+            float setval = (rotate10 > 0) ? 1f : 0f;
 
-                if (setX)
-                    m_rootPart.RotationAxis.X = setval;
-                if (setY)
-                    m_rootPart.RotationAxis.Y = setval;
-                if (setZ)
-                    m_rootPart.RotationAxis.Z = setval;
+            if (setX)
+                RootPart.RotationAxis.X = setval;
+            if (setY)
+                RootPart.RotationAxis.Y = setval;
+            if (setZ)
+                RootPart.RotationAxis.Z = setval;
 
-                if (setX || setY || setZ)
-                {
-                    m_rootPart.SetPhysicsAxisRotation();
-                }
-
-            }
+            if (setX || setY || setZ)
+                RootPart.SetPhysicsAxisRotation();
         }
+
         public int registerRotTargetWaypoint(Quaternion target, float tolerance)
         {
             scriptRotTarget waypoint = new scriptRotTarget();
@@ -3205,7 +3145,13 @@ namespace OpenSim.Region.Framework.Scenes
                         foreach (uint idx in m_rotTargets.Keys)
                         {
                             scriptRotTarget target = m_rotTargets[idx];
-                            double angle = Math.Acos(target.targetRot.X * m_rootPart.RotationOffset.X + target.targetRot.Y * m_rootPart.RotationOffset.Y + target.targetRot.Z * m_rootPart.RotationOffset.Z + target.targetRot.W * m_rootPart.RotationOffset.W) * 2;
+                            double angle
+                                = Math.Acos(
+                                    target.targetRot.X * m_rootPart.RotationOffset.X
+                                        + target.targetRot.Y * m_rootPart.RotationOffset.Y
+                                        + target.targetRot.Z * m_rootPart.RotationOffset.Z
+                                        + target.targetRot.W * m_rootPart.RotationOffset.W)
+                                    * 2;
                             if (angle < 0) angle = -angle;
                             if (angle > Math.PI) angle = (Math.PI * 2 - angle);
                             if (angle <= target.tolerance)

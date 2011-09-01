@@ -99,11 +99,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_log.Debug("Paid: " + objectID + " from " + agentID + ", amount " + amount);
 
             part = part.ParentGroup.RootPart;
-
-            if (part != null)
-            {
-                money(part.LocalId, agentID, amount);
-            }
+            money(part.LocalId, agentID, amount);
         }
 
         /// <summary>

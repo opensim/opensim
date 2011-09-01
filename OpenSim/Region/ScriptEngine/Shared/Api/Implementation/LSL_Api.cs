@@ -2767,8 +2767,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // If either of these are null, then there was an unknown error.
                     if (new_group == null)
                         continue;
-                    if (new_group.RootPart == null)
-                        continue;
 
                     // objects rezzed with this method are die_at_edge by default.
                     new_group.RootPart.SetDieAtEdge(true);
@@ -6983,10 +6981,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
                             SceneObjectPart rootPart = part.ParentGroup.RootPart;
-                            if (rootPart != null) //  better safe than sorry
-                            {
-                                SetRot(part, rootPart.RotationOffset * Rot2Quaternion(q));
-                            }
+                            SetRot(part, rootPart.RotationOffset * Rot2Quaternion(q));
                         }
 
                         break;

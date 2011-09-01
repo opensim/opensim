@@ -322,8 +322,6 @@ namespace OpenSim.Region.ClientStack.Linden
             rootpart.NextOwnerMask = next_owner_mask;
             rootpart.Material = (byte)material;
             
-            
-            
             m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
             
             responsedata["int_response_code"] = 200; //501; //410; //404;
