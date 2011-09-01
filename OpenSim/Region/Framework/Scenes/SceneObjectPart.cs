@@ -208,13 +208,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </value>
         private UUID m_fromUserInventoryItemID;
         
-        
         public UUID FromUserInventoryItemID
         {
             get { return m_fromUserInventoryItemID; }
+            set { m_fromUserInventoryItemID = value; }
         }
-        
-        
+
         public scriptEvents AggregateScriptEvents;
 
         

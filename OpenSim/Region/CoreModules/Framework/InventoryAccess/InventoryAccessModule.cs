@@ -719,26 +719,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
 
             SceneObjectGroup group = null;
-            UUID itemId = UUID.Zero;
-
-            // If we have permission to copy then link the rezzed object back to the user inventory
-            // item that it came from.  This allows us to enable 'save object to inventory'
-            if (!m_Scene.Permissions.BypassPermissions())
-            {
-                if ((item.CurrentPermissions & (uint)PermissionMask.Copy)
-                    == (uint)PermissionMask.Copy && (item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
-                {
-                    itemId = item.ID;
-                }
-            }
-            else
-            {
-                if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
-                {
-                    // Brave new fullperm world
-                    itemId = item.ID;
-                }
-            }
 
             string xmlData = Utils.BytesToString(rezAsset.Data);
             List<SceneObjectGroup> objlist =
@@ -753,8 +733,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (e == null || attachment) // Single
             {
                 SceneObjectGroup g =
-                        SceneObjectSerializer.FromOriginalXmlFormat(
-                        itemId, xmlData);
+                    SceneObjectSerializer.FromOriginalXmlFormat(UUID.Zero, xmlData);
+
                 objlist.Add(g);
                 veclist.Add(new Vector3(0, 0, 0));
 
@@ -783,8 +763,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 foreach (XmlNode n in groups)
                 {
                     SceneObjectGroup g =
-                            SceneObjectSerializer.FromOriginalXmlFormat(
-                            itemId, n.OuterXml);
+                        SceneObjectSerializer.FromOriginalXmlFormat(UUID.Zero, n.OuterXml);
+
                     objlist.Add(g);
                     XmlElement el = (XmlElement)n;
 
@@ -893,6 +873,27 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         private bool DoPreRezWhenFromItem(
             IClientAPI remoteClient, InventoryItemBase item, List<SceneObjectGroup> objlist, Vector3 pos, bool isAttachment)
         {
+            UUID fromUserInventoryItemId = UUID.Zero;
+
+            // If we have permission to copy then link the rezzed object back to the user inventory
+            // item that it came from.  This allows us to enable 'save object to inventory'
+            if (!m_Scene.Permissions.BypassPermissions())
+            {
+                if ((item.CurrentPermissions & (uint)PermissionMask.Copy)
+                    == (uint)PermissionMask.Copy && (item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
+                {
+                    fromUserInventoryItemId = item.ID;
+                }
+            }
+            else
+            {
+                if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
+                {
+                    // Brave new fullperm world
+                    fromUserInventoryItemId = item.ID;
+                }
+            }
+
             int primcount = 0;
             foreach (SceneObjectGroup g in objlist)
                 primcount += g.PrimCount;
@@ -958,6 +959,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
     
                 foreach (SceneObjectPart part in so.Parts)
                 {
+                    part.FromUserInventoryItemID = fromUserInventoryItemId;
+
                     if ((part.OwnerID != item.Owner) ||
                         (item.CurrentPermissions & 16) != 0)
                     {
