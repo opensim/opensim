@@ -234,35 +234,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             switch (linkType)
             {
             case ScriptBaseClass.LINK_SET:
-                if (m_host.ParentGroup != null)
-                {
-                    return new List<SceneObjectPart>(m_host.ParentGroup.Parts);
-                }
-                return ret;
+                return new List<SceneObjectPart>(m_host.ParentGroup.Parts);
 
             case ScriptBaseClass.LINK_ROOT:
-                if (m_host.ParentGroup != null)
-                {
-                    ret = new List<SceneObjectPart>();
-                    ret.Add(m_host.ParentGroup.RootPart);
-                    return ret;
-                }
+                ret = new List<SceneObjectPart>();
+                ret.Add(m_host.ParentGroup.RootPart);
                 return ret;
 
             case ScriptBaseClass.LINK_ALL_OTHERS:
-                if (m_host.ParentGroup ==  null)
-                    return new List<SceneObjectPart>();
-
                 ret = new List<SceneObjectPart>(m_host.ParentGroup.Parts);
 
                 if (ret.Contains(m_host))
                     ret.Remove(m_host);
+
                 return ret;
 
             case ScriptBaseClass.LINK_ALL_CHILDREN:
-                if (m_host.ParentGroup ==  null)
-                    return new List<SceneObjectPart>();
-
                 ret = new List<SceneObjectPart>(m_host.ParentGroup.Parts);
 
                 if (ret.Contains(m_host.ParentGroup.RootPart))
@@ -273,15 +260,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return ret;
 
             default:
-                if (linkType < 0 || m_host.ParentGroup ==  null)
+                if (linkType < 0)
                     return new List<SceneObjectPart>();
+
                 SceneObjectPart target = m_host.ParentGroup.GetLinkNumPart(linkType);
                 if (target == null)
                     return new List<SceneObjectPart>();
                 ret = new List<SceneObjectPart>();
                 ret.Add(target);
                 return ret;
-
             }
         }
 
@@ -1199,8 +1186,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (value != 0)
                 {
                     SceneObjectGroup group = m_host.ParentGroup;
-                    if (group == null)
-                        return;
                     bool allow = true;
 
                     foreach (SceneObjectPart part in group.Parts)
@@ -1214,16 +1199,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (!allow)
                         return;
+
                     m_host.ScriptSetPhysicsStatus(true);
                 }
                 else
+                {
                     m_host.ScriptSetPhysicsStatus(false);
+                }
             }
 
             if ((status & ScriptBaseClass.STATUS_PHANTOM) == ScriptBaseClass.STATUS_PHANTOM)
             {
-                if (m_host.ParentGroup != null)
-                    m_host.ParentGroup.ScriptSetPhantomStatus(value != 0);
+                m_host.ParentGroup.ScriptSetPhantomStatus(value != 0);
             }
 
             if ((status & ScriptBaseClass.STATUS_CAST_SHADOWS) == ScriptBaseClass.STATUS_CAST_SHADOWS)
@@ -1365,8 +1352,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void SetScale(SceneObjectPart part, LSL_Vector scale)
         {
             // TODO: this needs to trigger a persistance save as well
-            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+            if (part == null || part.ParentGroup.IsDeleted)
                 return;
+
             if (scale.x < 0.01)
                 scale.x = 0.01;
             if (scale.y < 0.01)
@@ -1409,7 +1397,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             m_host.ClickAction = (byte)action;
-            if (m_host.ParentGroup != null) m_host.ParentGroup.HasGroupChanged = true;
+            m_host.ParentGroup.HasGroupChanged = true;
             m_host.ScheduleFullUpdate();
             return;
         }
@@ -2033,14 +2021,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             else
             {
                 // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
-                SceneObjectGroup group = m_host.ParentGroup;
-                if (group != null) // a bit paranoid, maybe
+                SceneObjectPart rootPart = m_host.ParentGroup.RootPart;
+                if (rootPart != null) // better safe than sorry
                 {
-                    SceneObjectPart rootPart = group.RootPart;
-                    if (rootPart != null) // again, better safe than sorry
-                    {
-                        SetRot(m_host, rootPart.RotationOffset * Rot2Quaternion(rot));
-                    }
+                    SetRot(m_host, rootPart.RotationOffset * Rot2Quaternion(rot));
                 }
             }
 
@@ -2128,15 +2112,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup != null)
+            if (!m_host.ParentGroup.IsDeleted)
             {
-                if (!m_host.ParentGroup.IsDeleted)
-                {
-                    if (local != 0)
-                        force *= llGetRot();
+                if (local != 0)
+                    force *= llGetRot();
 
-                    m_host.ParentGroup.RootPart.SetForce(new Vector3((float)force.x, (float)force.y, (float)force.z));
-                }
+                m_host.ParentGroup.RootPart.SetForce(new Vector3((float)force.x, (float)force.y, (float)force.z));
             }
         }
 
@@ -2146,15 +2127,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup != null)
+            if (!m_host.ParentGroup.IsDeleted)
             {
-                if (!m_host.ParentGroup.IsDeleted)
-                {
-                    Vector3 tmpForce = m_host.ParentGroup.RootPart.GetForce();
-                    force.x = tmpForce.X;
-                    force.y = tmpForce.Y;
-                    force.z = tmpForce.Z;
-                }
+                Vector3 tmpForce = m_host.ParentGroup.RootPart.GetForce();
+                force.x = tmpForce.X;
+                force.y = tmpForce.Y;
+                force.z = tmpForce.Z;
             }
 
             return force;
@@ -3163,12 +3141,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetBuoyancy(double buoyancy)
         {
             m_host.AddScriptLPS(1);
-            if (m_host.ParentGroup != null)
+
+            if (!m_host.ParentGroup.IsDeleted)
             {
-                if (!m_host.ParentGroup.IsDeleted)
-                {
-                    m_host.ParentGroup.RootPart.SetBuoyancy((float)buoyancy);
-                }
+                m_host.ParentGroup.RootPart.SetBuoyancy((float)buoyancy);
             }
         }
 
@@ -6238,12 +6214,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetVehicleType(int type)
         {
             m_host.AddScriptLPS(1);
-            if (m_host.ParentGroup != null)
+
+            if (!m_host.ParentGroup.IsDeleted)
             {
-                if (!m_host.ParentGroup.IsDeleted)
-                {
-                    m_host.ParentGroup.RootPart.SetVehicleType(type);
-                }
+                m_host.ParentGroup.RootPart.SetVehicleType(type);
             }
         }
 
@@ -6253,12 +6227,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup != null)
+            if (!m_host.ParentGroup.IsDeleted)
             {
-                if (!m_host.ParentGroup.IsDeleted)
-                {
-                    m_host.ParentGroup.RootPart.SetVehicleFloatParam(param, (float)value);
-                }
+                m_host.ParentGroup.RootPart.SetVehicleFloatParam(param, (float)value);
             }
         }
 
@@ -6267,13 +6238,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetVehicleVectorParam(int param, LSL_Vector vec)
         {
             m_host.AddScriptLPS(1);
-            if (m_host.ParentGroup != null)
+
+            if (!m_host.ParentGroup.IsDeleted)
             {
-                if (!m_host.ParentGroup.IsDeleted)
-                {
-                    m_host.ParentGroup.RootPart.SetVehicleVectorParam(param,
-                        new Vector3((float)vec.x, (float)vec.y, (float)vec.z));
-                }
+                m_host.ParentGroup.RootPart.SetVehicleVectorParam(param,
+                    new Vector3((float)vec.x, (float)vec.y, (float)vec.z));
             }
         }
 
@@ -6282,37 +6251,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetVehicleRotationParam(int param, LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
-            if (m_host.ParentGroup != null)
+
+            if (!m_host.ParentGroup.IsDeleted)
             {
-                if (!m_host.ParentGroup.IsDeleted)
-                {
-                    m_host.ParentGroup.RootPart.SetVehicleRotationParam(param,
-                        Rot2Quaternion(rot));
-                }
+                m_host.ParentGroup.RootPart.SetVehicleRotationParam(param, Rot2Quaternion(rot));
             }
         }
 
         public void llSetVehicleFlags(int flags)
         {
             m_host.AddScriptLPS(1);
-            if (m_host.ParentGroup != null)
+
+            if (!m_host.ParentGroup.IsDeleted)
             {
-                if (!m_host.ParentGroup.IsDeleted)
-                {
-                    m_host.ParentGroup.RootPart.SetVehicleFlags(flags, false);
-                }
+                m_host.ParentGroup.RootPart.SetVehicleFlags(flags, false);
             }
         }
 
         public void llRemoveVehicleFlags(int flags)
         {
             m_host.AddScriptLPS(1);
-            if (m_host.ParentGroup != null)
+
+            if (!m_host.ParentGroup.IsDeleted)
             {
-                if (!m_host.ParentGroup.IsDeleted)
-                {
-                    m_host.ParentGroup.RootPart.SetVehicleFlags(flags, true);
-                }
+                m_host.ParentGroup.RootPart.SetVehicleFlags(flags, true);
             }
         }
 
@@ -6467,11 +6429,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llVolumeDetect(int detect)
         {
             m_host.AddScriptLPS(1);
-            if (m_host.ParentGroup != null)
-            {
-                if (!m_host.ParentGroup.IsDeleted)
-                    m_host.ParentGroup.ScriptSetVolumeDetect(detect != 0);
-            }
+
+            if (!m_host.ParentGroup.IsDeleted)
+                m_host.ParentGroup.ScriptSetVolumeDetect(detect != 0);
         }
 
         /// <summary>
@@ -7022,14 +6982,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         else
                         {
                             // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
-                            SceneObjectGroup group = part.ParentGroup;
-                            if (group != null) // a bit paranoid, maybe
+                            SceneObjectPart rootPart = part.ParentGroup.RootPart;
+                            if (rootPart != null) //  better safe than sorry
                             {
-                                SceneObjectPart rootPart = group.RootPart;
-                                if (rootPart != null) // again, better safe than sorry
-                                {
-                                    SetRot(part, rootPart.RotationOffset * Rot2Quaternion(q));
-                                }
+                                SetRot(part, rootPart.RotationOffset * Rot2Quaternion(q));
                             }
                         }
 
@@ -7278,13 +7234,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                          break;
 
                      case (int)ScriptBaseClass.PRIM_PHANTOM:
-                        if (remain < 1)
+                         if (remain < 1)
                              return;
 
                          string ph = rules.Data[idx++].ToString();
-
-                         if (m_host.ParentGroup != null)
-                            m_host.ParentGroup.ScriptSetPhantomStatus(ph.Equals("1"));
+                         m_host.ParentGroup.ScriptSetPhantomStatus(ph.Equals("1"));
 
                          break;
 
@@ -7307,8 +7261,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
                         string temp = rules.Data[idx++].ToString();
 
-                        if (m_host.ParentGroup != null)
-                            m_host.ParentGroup.ScriptSetTemporaryStatus(temp.Equals("1"));
+                        m_host.ParentGroup.ScriptSetTemporaryStatus(temp.Equals("1"));
 
                         break;
 

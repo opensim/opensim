@@ -672,13 +672,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetPrimFloatOnWater");
 
             m_host.AddScriptLPS(1);
-            if (m_host.ParentGroup != null)
-            {
-                if (m_host.ParentGroup.RootPart != null)
-                {
-                    m_host.ParentGroup.RootPart.SetFloatOnWater(floatYN);
-                }
-            }
+
+            if (m_host.ParentGroup.RootPart != null)
+                m_host.ParentGroup.RootPart.SetFloatOnWater(floatYN);
         }
 
         // Teleport functions

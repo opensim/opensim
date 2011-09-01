@@ -225,16 +225,8 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetSceneObjectPart(primId);
             if (part == null)
                 return new ArrayList();
-            SceneObjectGroup group = part.ParentGroup;
-            if (null == group)
-            {
-                m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Prim inventory update requested for item ID {0} in prim ID {1} but this prim does not exist",
-                    itemId, primId);
 
-                return new ArrayList();
-            }
+            SceneObjectGroup group = part.ParentGroup;
 
             // Retrieve item
             TaskInventoryItem item = group.GetInventoryItem(part.LocalId, itemId);
@@ -971,33 +963,23 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetSceneObjectPart(localID);
             if (part == null)
                 return;
-            SceneObjectGroup group = part.ParentGroup;
-            if (group != null)
-            {
-                if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
-                    return;
-                
-                TaskInventoryItem item = group.GetInventoryItem(localID, itemID);
-                if (item == null)
-                    return;
 
-                if (item.Type == 10)
-                {
-                    part.RemoveScriptEvents(itemID);
-                    EventManager.TriggerRemoveScript(localID, itemID);
-                }
-                
-                group.RemoveInventoryItem(localID, itemID);
-                part.GetProperties(remoteClient);
-            }
-            else
+            SceneObjectGroup group = part.ParentGroup;
+            if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
+                return;
+            
+            TaskInventoryItem item = group.GetInventoryItem(localID, itemID);
+            if (item == null)
+                return;
+
+            if (item.Type == 10)
             {
-                m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Removal of item {0} requested of prim {1} but this prim does not exist",
-                    itemID,
-                    localID);
+                part.RemoveScriptEvents(itemID);
+                EventManager.TriggerRemoveScript(localID, itemID);
             }
+            
+            group.RemoveInventoryItem(localID, itemID);
+            part.GetProperties(remoteClient);
         }
 
         private InventoryItemBase CreateAgentInventoryItemFromTask(UUID destAgent, SceneObjectPart part, UUID itemId)
@@ -1770,7 +1752,7 @@ namespace OpenSim.Region.Framework.Scenes
                     continue;
 
                 // Already deleted by someone else
-                if (part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                if (part.ParentGroup.IsDeleted)
                     continue;
 
                 // Can't delete child prims
@@ -2034,6 +2016,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart part = GetSceneObjectPart(localID);
 	            if (part == null)
 	                continue;
+
                 if (!groups.Contains(part.ParentGroup))
                     groups.Add(part.ParentGroup);
             }

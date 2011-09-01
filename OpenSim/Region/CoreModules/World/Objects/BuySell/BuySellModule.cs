@@ -85,7 +85,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             IClientAPI client, UUID agentID, UUID sessionID, uint localID, byte saleType, int salePrice)
         {
             SceneObjectPart part = m_scene.GetSceneObjectPart(localID);
-            if (part == null || part.ParentGroup == null)
+            if (part == null)
                 return;
 
             if (part.ParentGroup.IsDeleted)
@@ -109,9 +109,6 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             SceneObjectPart part = m_scene.GetSceneObjectPart(localID);
 
             if (part == null)
-                return false;
-
-            if (part.ParentGroup == null)
                 return false;
 
             SceneObjectGroup group = part.ParentGroup;

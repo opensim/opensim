@@ -766,13 +766,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             else if ((e is TargetInvocationException) && (e.InnerException is SelfDeleteException))
                             {
                                 m_InSelfDelete = true;
-                                if (part != null && part.ParentGroup != null)
+                                if (part != null)
                                     m_Engine.World.DeleteSceneObject(part.ParentGroup, false);
                             }
                             else if ((e is TargetInvocationException) && (e.InnerException is ScriptDeleteException))
                             {
                                 m_InSelfDelete = true;
-                                if (part != null && part.ParentGroup != null)
+                                if (part != null)
                                     part.Inventory.RemoveInventoryItem(m_ItemID);
                             }
                         }

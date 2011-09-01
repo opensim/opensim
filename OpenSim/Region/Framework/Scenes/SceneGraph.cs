@@ -1630,27 +1630,18 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectGroup parentGroup = root.ParentGroup;
 
                 List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
-                if (parentGroup != null)
-                {
-                    // We do this in reverse to get the link order of the prims correct
-                    for (int i = children.Count - 1; i >= 0; i--)
-                    {
-                        SceneObjectGroup child = children[i].ParentGroup;
 
-                        if (child != null)
-                        {
-                            // Make sure no child prim is set for sale
-                            // So that, on delink, no prims are unwittingly
-                            // left for sale and sold off
-                            child.RootPart.ObjectSaleType = 0;
-                            child.RootPart.SalePrice = 10;
-                            childGroups.Add(child);
-                        }
-                    }
-                }
-                else
+                // We do this in reverse to get the link order of the prims correct
+                for (int i = children.Count - 1; i >= 0; i--)
                 {
-                    return; // parent is null so not in this region
+                    SceneObjectGroup child = children[i].ParentGroup;
+
+                    // Make sure no child prim is set for sale
+                    // So that, on delink, no prims are unwittingly
+                    // left for sale and sold off
+                    child.RootPart.ObjectSaleType = 0;
+                    child.RootPart.SalePrice = 10;
+                    childGroups.Add(child);
                 }
 
                 foreach (SceneObjectGroup child in childGroups)

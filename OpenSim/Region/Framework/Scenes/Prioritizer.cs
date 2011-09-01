@@ -208,8 +208,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (entity is SceneObjectPart)
             {
                 SceneObjectGroup group = (entity as SceneObjectPart).ParentGroup;
-                if (group != null)
-                    entityPos = group.AbsolutePosition;
+                entityPos = group.AbsolutePosition;
             }
 
             // Use the camera position for local agents and avatar position for remote agents

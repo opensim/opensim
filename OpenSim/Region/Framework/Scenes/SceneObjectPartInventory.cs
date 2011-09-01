@@ -112,15 +112,17 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Reset UUIDs for all the items in the prim's inventory.  This involves either generating
+        /// Reset UUIDs for all the items in the prim's inventory.
+        /// </summary>
+        /// <remarks>
+        /// This involves either generating
         /// new ones or setting existing UUIDs to the correct parent UUIDs.
         ///
         /// If this method is called and there are inventory items, then we regard the inventory as having changed.
-        /// </summary>
-        /// <param name="linkNum">Link number for the part</param>
+        /// </remarks>
         public void ResetInventoryIDs()
         {
-            if (null == m_part || null == m_part.ParentGroup)
+            if (null == m_part)
                 return;
             
             lock (m_items)

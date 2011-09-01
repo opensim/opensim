@@ -3012,58 +3012,51 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 AXOrigin = new Vector3(RayStart.X, RayStart.Y, RayStart.Z);
                 Vector3 AXdirection = new Vector3(direction.X, direction.Y, direction.Z);
 
-                if (target2.ParentGroup != null)
+                pos = target2.AbsolutePosition;
+                //m_log.Info("[OBJECT_REZ]: TargetPos: " + pos.ToString() + ", RayStart: " + RayStart.ToString() + ", RayEnd: " + RayEnd.ToString() + ", Volume: " + Util.GetDistanceTo(RayStart,RayEnd).ToString() + ", mag1: " + Util.GetMagnitude(RayStart).ToString() + ", mag2: " + Util.GetMagnitude(RayEnd).ToString());
+
+                // TODO: Raytrace better here
+
+                //EntityIntersection ei = m_sceneGraph.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
+                Ray NewRay = new Ray(AXOrigin, AXdirection);
+
+                // Ray Trace against target here
+                EntityIntersection ei = target2.TestIntersectionOBB(NewRay, Quaternion.Identity, frontFacesOnly, CopyCenters);
+
+                // Un-comment out the following line to Get Raytrace results printed to the console.
+                //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
+                float ScaleOffset = 0.5f;
+
+                // If we hit something
+                if (ei.HitTF)
                 {
-                    pos = target2.AbsolutePosition;
-                    //m_log.Info("[OBJECT_REZ]: TargetPos: " + pos.ToString() + ", RayStart: " + RayStart.ToString() + ", RayEnd: " + RayEnd.ToString() + ", Volume: " + Util.GetDistanceTo(RayStart,RayEnd).ToString() + ", mag1: " + Util.GetMagnitude(RayStart).ToString() + ", mag2: " + Util.GetMagnitude(RayEnd).ToString());
+                    Vector3 scale = target.Scale;
+                    Vector3 scaleComponent = new Vector3(ei.AAfaceNormal.X, ei.AAfaceNormal.Y, ei.AAfaceNormal.Z);
+                    if (scaleComponent.X != 0) ScaleOffset = scale.X;
+                    if (scaleComponent.Y != 0) ScaleOffset = scale.Y;
+                    if (scaleComponent.Z != 0) ScaleOffset = scale.Z;
+                    ScaleOffset = Math.Abs(ScaleOffset);
+                    Vector3 intersectionpoint = new Vector3(ei.ipoint.X, ei.ipoint.Y, ei.ipoint.Z);
+                    Vector3 normal = new Vector3(ei.normal.X, ei.normal.Y, ei.normal.Z);
+                    Vector3 offset = normal * (ScaleOffset / 2f);
+                    pos = intersectionpoint + offset;
 
-                    // TODO: Raytrace better here
-
-                    //EntityIntersection ei = m_sceneGraph.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
-                    Ray NewRay = new Ray(AXOrigin, AXdirection);
-
-                    // Ray Trace against target here
-                    EntityIntersection ei = target2.TestIntersectionOBB(NewRay, Quaternion.Identity, frontFacesOnly, CopyCenters);
-
-                    // Un-comment out the following line to Get Raytrace results printed to the console.
-                    //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
-                    float ScaleOffset = 0.5f;
-
-                    // If we hit something
-                    if (ei.HitTF)
+                    // stick in offset format from the original prim
+                    pos = pos - target.ParentGroup.AbsolutePosition;
+                    if (CopyRotates)
                     {
-                        Vector3 scale = target.Scale;
-                        Vector3 scaleComponent = new Vector3(ei.AAfaceNormal.X, ei.AAfaceNormal.Y, ei.AAfaceNormal.Z);
-                        if (scaleComponent.X != 0) ScaleOffset = scale.X;
-                        if (scaleComponent.Y != 0) ScaleOffset = scale.Y;
-                        if (scaleComponent.Z != 0) ScaleOffset = scale.Z;
-                        ScaleOffset = Math.Abs(ScaleOffset);
-                        Vector3 intersectionpoint = new Vector3(ei.ipoint.X, ei.ipoint.Y, ei.ipoint.Z);
-                        Vector3 normal = new Vector3(ei.normal.X, ei.normal.Y, ei.normal.Z);
-                        Vector3 offset = normal * (ScaleOffset / 2f);
-                        pos = intersectionpoint + offset;
+                        Quaternion worldRot = target2.GetWorldRotation();
 
-                        // stick in offset format from the original prim
-                        pos = pos - target.ParentGroup.AbsolutePosition;
-                        if (CopyRotates)
-                        {
-                            Quaternion worldRot = target2.GetWorldRotation();
-
-                            // SceneObjectGroup obj = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
-                            m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
-                            //obj.Rotation = worldRot;
-                            //obj.UpdateGroupRotationR(worldRot);
-                        }
-                        else
-                        {
-                            m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID);
-                        }
+                        // SceneObjectGroup obj = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
+                        m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
+                        //obj.Rotation = worldRot;
+                        //obj.UpdateGroupRotationR(worldRot);
                     }
-
-                    return;
+                    else
+                    {
+                        m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID);
+                    }
                 }
-
-                return;
             }
         }
 
@@ -3233,12 +3226,13 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetSceneObjectPart(localID);
             if (part != null) // It is a prim
             {
-                if (part.ParentGroup != null && !part.ParentGroup.IsDeleted) // Valid
+                if (!part.ParentGroup.IsDeleted) // Valid
                 {
                     if (part.ParentGroup.RootPart != part) // Child part
                         return;
                 }
             }
+
             ForEachClient(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, localID); });
         }
 

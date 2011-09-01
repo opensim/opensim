@@ -1131,7 +1131,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 SceneObjectPart part = scene.GetSceneObjectPart(objectID);
                 if (part.OwnerID != moverID)
                 {
-                    if (part.ParentGroup != null && !part.ParentGroup.IsDeleted)
+                    if (!part.ParentGroup.IsDeleted)
                     {
                         if (part.ParentGroup.IsAttachment)
                             return false;

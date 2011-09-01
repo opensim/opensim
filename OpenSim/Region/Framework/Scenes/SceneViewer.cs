@@ -110,7 +110,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     SceneObjectPart part = m_partsUpdateQueue.Dequeue();
                     
-                    if (part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                    if (part.ParentGroup.IsDeleted)
                         continue;
                     
                     if (m_updateTimes.ContainsKey(part.UUID))
