@@ -4766,26 +4766,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public int registerTargetWaypoint(Vector3 target, float tolerance)
-        {
-            return m_parentGroup.registerTargetWaypoint(target, tolerance);
-        }
-
-        public void unregisterTargetWaypoint(int handle)
-        {
-            m_parentGroup.unregisterTargetWaypoint(handle);
-        }
-
-        public int registerRotTargetWaypoint(Quaternion target, float tolerance)
-        {
-            return m_parentGroup.registerRotTargetWaypoint(target, tolerance);
-        }
-
-        public void unregisterRotTargetWaypoint(int handle)
-        {
-            m_parentGroup.unregisterRotTargetWaypoint(handle);
-        }
-
         public void SetCameraAtOffset(Vector3 v)
         {
             m_cameraAtOffset = v;
