@@ -803,24 +803,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
             }
 
-            int primcount = 0;
-            foreach (SceneObjectGroup g in objlist)
-                primcount += g.PrimCount;
-
-            if (!m_Scene.Permissions.CanRezObject(
-                primcount, remoteClient.AgentId, pos)
-                && !attachment)
-            {
-                // The client operates in no fail mode. It will
-                // have already removed the item from the folder
-                // if it's no copy.
-                // Put it back if it's not an attachment
-                //
-                if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!attachment))
-                    remoteClient.SendBulkUpdateInventory(item);
-
+            if (!DoPreRezWhenFromItem(remoteClient, item, objlist, pos, attachment))
                 return null;
-            }
 
             for (int i = 0; i < objlist.Count; i++)
             {
@@ -829,7 +813,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                        Vector3 storedPosition = group.AbsolutePosition;
                 if (group.UUID == UUID.Zero)
                 {
-                    m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 3");
+                    m_log.Debug("[InventoryAccessModule]: Object has UUID.Zero! Position 3");
                 }
 
                 // If it's rezzed in world, select it. Much easier to
@@ -873,23 +857,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 SceneObjectPart rootPart = group.RootPart;
 
-                // Since renaming the item in the inventory does not
-                // affect the name stored in the serialization, transfer
-                // the correct name from the inventory to the
-                // object itself before we rez.
-                //
-                // Only do these for the first object if we are rezzing a coalescence.
-                if (i == 0)
-                {
-                    rootPart.Name = item.Name;
-                    rootPart.Description = item.Description;
-                    rootPart.ObjectSaleType = item.SaleType;
-                    rootPart.SalePrice = item.SalePrice;
-                }
-
                 group.SetGroup(remoteClient.ActiveGroupId, remoteClient);
-
-                DoPreRezWhenFromItem(item, group);
 
                 if (!attachment)
                 {
@@ -913,52 +881,106 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return group;
         }
 
-        private void DoPreRezWhenFromItem(InventoryItemBase item, SceneObjectGroup so)
+        /// <summary>
+        /// Do pre-rez processing when the object comes from an item.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="item"></param>
+        /// <param name="objlist"></param>
+        /// <param name="pos"></param>
+        /// <param name="isAttachment"></param>
+        /// <returns>true if we can processed with rezzing, false if we need to abort</returns>
+        private bool DoPreRezWhenFromItem(
+            IClientAPI remoteClient, InventoryItemBase item, List<SceneObjectGroup> objlist, Vector3 pos, bool isAttachment)
         {
-            so.RootPart.FromFolderID = item.Folder;
+            int primcount = 0;
+            foreach (SceneObjectGroup g in objlist)
+                primcount += g.PrimCount;
 
-            SceneObjectPart rootPart = so.RootPart;
-
-            if ((rootPart.OwnerID != item.Owner) ||
-                (item.CurrentPermissions & 16) != 0)
+            if (!m_Scene.Permissions.CanRezObject(
+                primcount, remoteClient.AgentId, pos)
+                && !isAttachment)
             {
-                //Need to kill the for sale here
-                rootPart.ObjectSaleType = 0;
-                rootPart.SalePrice = 10;
+                // The client operates in no fail mode. It will
+                // have already removed the item from the folder
+                // if it's no copy.
+                // Put it back if it's not an attachment
+                //
+                if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!isAttachment))
+                    remoteClient.SendBulkUpdateInventory(item);
 
-                if (m_Scene.Permissions.PropagatePermissions())
-                {
-                    foreach (SceneObjectPart part in so.Parts)
-                    {
-                        if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
-                        {
-                            part.EveryoneMask = item.EveryOnePermissions;
-                            part.NextOwnerMask = item.NextPermissions;
-                        }
-                        part.GroupMask = 0; // DO NOT propagate here
-                    }
-
-                    so.ApplyNextOwnerPermissions();
-                }
+                return false;
             }
 
-            foreach (SceneObjectPart part in so.Parts)
+            for (int i = 0; i < objlist.Count; i++)
             {
-                if ((part.OwnerID != item.Owner) ||
+                SceneObjectGroup so = objlist[i];
+                SceneObjectPart rootPart = so.RootPart;
+
+                // Since renaming the item in the inventory does not
+                // affect the name stored in the serialization, transfer
+                // the correct name from the inventory to the
+                // object itself before we rez.
+                //
+                // Only do these for the first object if we are rezzing a coalescence.
+                if (i == 0)
+                {
+                    rootPart.Name = item.Name;
+                    rootPart.Description = item.Description;
+                    rootPart.ObjectSaleType = item.SaleType;
+                    rootPart.SalePrice = item.SalePrice;
+                }
+
+                rootPart.FromFolderID = item.Folder;
+    
+                if ((rootPart.OwnerID != item.Owner) ||
                     (item.CurrentPermissions & 16) != 0)
                 {
-                    part.LastOwnerID = part.OwnerID;
-                    part.OwnerID = item.Owner;
-                    part.Inventory.ChangeInventoryOwner(item.Owner);
-                    part.GroupMask = 0; // DO NOT propagate here
+                    //Need to kill the for sale here
+                    rootPart.ObjectSaleType = 0;
+                    rootPart.SalePrice = 10;
+    
+                    if (m_Scene.Permissions.PropagatePermissions())
+                    {
+                        foreach (SceneObjectPart part in so.Parts)
+                        {
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
+                            {
+                                part.EveryoneMask = item.EveryOnePermissions;
+                                part.NextOwnerMask = item.NextPermissions;
+                            }
+                            part.GroupMask = 0; // DO NOT propagate here
+                        }
+    
+                        so.ApplyNextOwnerPermissions();
+                    }
                 }
-                part.EveryoneMask = item.EveryOnePermissions;
-                part.NextOwnerMask = item.NextPermissions;
+    
+                foreach (SceneObjectPart part in so.Parts)
+                {
+                    if ((part.OwnerID != item.Owner) ||
+                        (item.CurrentPermissions & 16) != 0)
+                    {
+                        part.LastOwnerID = part.OwnerID;
+                        part.OwnerID = item.Owner;
+                        part.Inventory.ChangeInventoryOwner(item.Owner);
+                        part.GroupMask = 0; // DO NOT propagate here
+                    }
+                    part.EveryoneMask = item.EveryOnePermissions;
+                    part.NextOwnerMask = item.NextPermissions;
+                }
+    
+                rootPart.TrimPermissions();
             }
 
-            rootPart.TrimPermissions();
+            return true;
         }
 
+        /// <summary>
+        /// Do post-rez processing when the object comes from an item.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="isAttachment"></param>
         private void DoPostRezWhenFromItem(InventoryItemBase item, bool isAttachment)
         {
             if (!m_Scene.Permissions.BypassPermissions())
