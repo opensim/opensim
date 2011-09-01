@@ -865,21 +865,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             group.SetFromItemID(itemID);
                         }
 
-                        SceneObjectPart rootPart = null;
-
-                        try
-                        {
-                            rootPart = group.GetChildPart(group.UUID);
-                        }
-                        catch (NullReferenceException)
-                        {
-                            string isAttachment = "";
-
-                            if (attachment)
-                                isAttachment = " Object was an attachment";
-
-                            m_log.Error("[AGENT INVENTORY]: Error rezzing ItemID: " + itemID + " object has no rootpart." + isAttachment);
-                        }
+                        SceneObjectPart rootPart = group.GetChildPart(group.UUID);
 
                         // Since renaming the item in the inventory does not
                         // affect the name stored in the serialization, transfer
