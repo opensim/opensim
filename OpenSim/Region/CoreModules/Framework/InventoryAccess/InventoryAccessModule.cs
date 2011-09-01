@@ -946,6 +946,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                            group.Name, group.LocalId, group.UUID, remoteClient.Name);
             }
 
+            DoPostRezWhenFromItem(item, attachment);
+
+            return group;
+        }
+
+        private void DoPostRezWhenFromItem(InventoryItemBase item, bool isAttachment)
+        {
             if (!m_Scene.Permissions.BypassPermissions())
             {
                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
@@ -953,7 +960,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     // If this is done on attachments, no
                     // copy ones will be lost, so avoid it
                     //
-                    if (!attachment)
+                    if (!isAttachment)
                     {
                         List<UUID> uuids = new List<UUID>();
                         uuids.Add(item.ID);
@@ -961,8 +968,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     }
                 }
             }
-
-            return group;
         }
 
         protected void AddUserData(SceneObjectGroup sog)
