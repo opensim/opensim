@@ -693,12 +693,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
 //            m_log.DebugFormat("[INVENTORY ACCESS MODULE]: RezObject for {0}, item {1}", remoteClient.Name, itemID);
-            
-            byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
-            Vector3 scale = new Vector3(0.5f, 0.5f, 0.5f);
-            Vector3 pos = m_Scene.GetNewRezLocation(
-                      RayStart, RayEnd, RayTargetID, Quaternion.Identity,
-                      BypassRayCast, bRayEndIsIntersection, true, scale, false);
 
             InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
             item = m_Scene.InventoryService.GetItem(item);
@@ -731,7 +725,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             // item that it came from.  This allows us to enable 'save object to inventory'
             if (!m_Scene.Permissions.BypassPermissions())
             {
-                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == (uint)PermissionMask.Copy && (item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
+                if ((item.CurrentPermissions & (uint)PermissionMask.Copy)
+                    == (uint)PermissionMask.Copy && (item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
                 {
                     itemId = item.ID;
                 }
@@ -749,6 +744,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             List<SceneObjectGroup> objlist =
                     new List<SceneObjectGroup>();
             List<Vector3> veclist = new List<Vector3>();
+            byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
+            Vector3 pos;
 
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xmlData);
