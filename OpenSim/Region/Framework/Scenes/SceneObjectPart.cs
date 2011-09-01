@@ -1536,15 +1536,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_parentGroup.setAngularImpulse(impulse);
         }
 
-        public Vector3 GetTorque()
-        {
-            if (m_parentGroup != null)
-            {
-                m_parentGroup.GetTorque();
-            }
-            return Vector3.Zero;
-        }
-
         /// <summary>
         /// Apply physics to this part.
         /// </summary>

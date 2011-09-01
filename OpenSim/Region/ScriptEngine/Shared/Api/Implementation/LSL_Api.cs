@@ -2202,7 +2202,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetTorque()
         {
             m_host.AddScriptLPS(1);
-            Vector3 torque = m_host.GetTorque();
+            Vector3 torque = m_host.ParentGroup.GetTorque();
             return new LSL_Vector(torque.X,torque.Y,torque.Z);
         }
 
