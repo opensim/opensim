@@ -78,23 +78,6 @@ namespace OpenSim.Data.MySQL
                 //
                 Migration m = new Migration(dbcon, Assembly, "RegionStore");
                 m.Update();
-
-                // Clean dropped attachments
-                //
-                try
-                {
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
-                    {
-                        cmd.CommandText = "delete from prims, primshapes using prims " +
-                                "left join primshapes on prims.uuid = primshapes.uuid " +
-                                "where PCode = 9 and State <> 0";
-                        ExecuteNonQuery(cmd);
-                    }
-                }
-                catch (MySqlException ex)
-                {
-                    m_log.Error("[REGION DB]: Error cleaning up dropped attachments: " + ex.Message);
-                }
             }
         }
 

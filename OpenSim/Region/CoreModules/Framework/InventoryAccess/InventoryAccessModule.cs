@@ -946,6 +946,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                             rootPart.ScheduleFullUpdate();
                         }
+
+//                        m_log.DebugFormat(
+//                            "[InventoryAccessModule]: Rezzed {0} {1} {2} for {3}",
+//                            group.Name, group.LocalId, group.UUID, remoteClient.Name);
                     }
 
                     if (!m_Scene.Permissions.BypassPermissions())
