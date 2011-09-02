@@ -794,14 +794,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     m_log.Debug("[InventoryAccessModule]: Object has UUID.Zero! Position 3");
                 }
 
-                // If it's rezzed in world, select it. Much easier to
-                // find small items.
-                //
                 if (!attachment)
                 {
+                    // If it's rezzed in world, select it. Much easier to
+                    // find small items.
+                    //
                     group.RootPart.CreateSelected = true;
-                    foreach (SceneObjectPart child in group.Parts)
-                        child.CreateSelected = true;
+
+                    foreach (SceneObjectPart part in group.Parts)
+                    {
+                        part.CreateSelected = true;
+                    }
                 }
 
                 group.ResetIDs();

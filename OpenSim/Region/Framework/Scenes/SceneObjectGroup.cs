@@ -183,6 +183,12 @@ namespace OpenSim.Region.Framework.Scenes
         public void ClearPartAttachmentData()
         {
             AttachmentPoint = 0;
+
+            // Even though we don't use child part state parameters for attachments any more, we still need to set
+            // these to zero since having them non-zero in rezzed scene objects will crash some clients.  Even if
+            // we store them correctly, scene objects that we receive from elsewhere might not.
+            foreach (SceneObjectPart part in Parts)
+                part.Shape.State = 0;
         }
 
         /// <summary>
