@@ -3182,7 +3182,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_authenticateHandler.RemoveCircuit(avatar.ControllingClient.CircuitCode);
-                CleanDroppedAttachments();
+//                CleanDroppedAttachments();
                 //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
                 //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));
             }
@@ -3406,7 +3406,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (vialogin) 
             {
-                CleanDroppedAttachments();
+//                CleanDroppedAttachments();
 
                 if (TestBorderCross(agent.startpos, Cardinals.E))
                 {
@@ -5123,40 +5123,40 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void CleanDroppedAttachments()
-        {
-            List<SceneObjectGroup> objectsToDelete =
-                    new List<SceneObjectGroup>();
-
-            lock (m_cleaningAttachments)
-            {
-                ForEachSOG(delegate (SceneObjectGroup grp)
-                        {
-                            if (grp.RootPart.Shape.PCode == 0 && grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
-                            {
-                                UUID agentID = grp.OwnerID;
-                                if (agentID == UUID.Zero)
-                                {
-                                    objectsToDelete.Add(grp);
-                                    return;
-                                }
-
-                                ScenePresence sp = GetScenePresence(agentID);
-                                if (sp == null)
-                                {
-                                    objectsToDelete.Add(grp);
-                                    return;
-                                }
-                            }
-                        });
-            }
-
-            foreach (SceneObjectGroup grp in objectsToDelete)
-            {
-                m_log.InfoFormat("[SCENE]: Deleting dropped attachment {0} of user {1}", grp.UUID, grp.OwnerID);
-                DeleteSceneObject(grp, true);
-            }
-        }
+//        public void CleanDroppedAttachments()
+//        {
+//            List<SceneObjectGroup> objectsToDelete =
+//                    new List<SceneObjectGroup>();
+//
+//            lock (m_cleaningAttachments)
+//            {
+//                ForEachSOG(delegate (SceneObjectGroup grp)
+//                        {
+//                            if (grp.RootPart.Shape.PCode == 0 && grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
+//                            {
+//                                UUID agentID = grp.OwnerID;
+//                                if (agentID == UUID.Zero)
+//                                {
+//                                    objectsToDelete.Add(grp);
+//                                    return;
+//                                }
+//
+//                                ScenePresence sp = GetScenePresence(agentID);
+//                                if (sp == null)
+//                                {
+//                                    objectsToDelete.Add(grp);
+//                                    return;
+//                                }
+//                            }
+//                        });
+//            }
+//
+//            foreach (SceneObjectGroup grp in objectsToDelete)
+//            {
+//                m_log.InfoFormat("[SCENE]: Deleting dropped attachment {0} of user {1}", grp.UUID, grp.OwnerID);
+//                DeleteSceneObject(grp, true);
+//            }
+//        }
 
         // This method is called across the simulation connector to
         // determine if a given agent is allowed in this region
