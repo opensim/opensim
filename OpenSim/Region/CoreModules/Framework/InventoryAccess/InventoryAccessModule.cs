@@ -799,8 +799,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     // If it's rezzed in world, select it. Much easier to
                     // find small items.
                     //
-                    group.RootPart.CreateSelected = true;
-
                     foreach (SceneObjectPart part in group.Parts)
                     {
                         part.CreateSelected = true;
