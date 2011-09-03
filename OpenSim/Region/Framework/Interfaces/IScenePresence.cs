@@ -46,6 +46,11 @@ namespace OpenSim.Region.Framework.Interfaces
         IClientAPI ControllingClient { get; }
 
         /// <summary>
+        /// What type of presence is this?  User, NPC, etc.
+        /// </summary>
+        PresenceType PresenceType { get; }
+
+        /// <summary>
         /// Avatar appearance data.
         /// </summary>
         /// <remarks>

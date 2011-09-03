@@ -433,6 +433,10 @@ namespace OpenSim.Framework
             if (attachpoint == 0)
                 return false;
 
+//            m_log.DebugFormat(
+//                "[AVATAR APPEARANCE]: Setting attachment at {0} with item ID {1}, asset ID {2}",
+//                 attachpoint, item, asset);
+
             if (item == UUID.Zero)
             {
                 if (m_attachments.ContainsKey(attachpoint))
@@ -459,7 +463,7 @@ namespace OpenSim.Framework
             }
             else
             {
-                ReplaceAttachment(new AvatarAttachment(attachpoint,item,asset));
+                ReplaceAttachment(new AvatarAttachment(attachpoint,item, asset));
             }
             return true;
         }
@@ -608,7 +612,14 @@ namespace OpenSim.Framework
                 {
                     OSDArray attachs = (OSDArray)(data["attachments"]);
                     for (int i = 0; i < attachs.Count; i++)
-                        AppendAttachment(new AvatarAttachment((OSDMap)attachs[i]));
+                    {
+                        AvatarAttachment att = new AvatarAttachment((OSDMap)attachs[i]);
+                        AppendAttachment(att);
+                        
+//                        m_log.DebugFormat(
+//                            "[AVATAR APPEARANCE]: Unpacked attachment itemID {0}, assetID {1}, point {2}",
+//                            att.ItemID, att.AssetID, att.AttachPoint);
+                    }
                 }
             }
             catch (Exception e)

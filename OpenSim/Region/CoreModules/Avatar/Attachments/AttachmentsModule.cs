@@ -111,10 +111,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             List<AvatarAttachment> attachments = sp.Appearance.GetAttachments();
             foreach (AvatarAttachment attach in attachments)
             {
-                int p = attach.AttachPoint;
-                UUID itemID = attach.ItemID;
+                uint p = (uint)attach.AttachPoint;
 
-                //UUID assetID = attach.AssetID;
+//                m_log.DebugFormat(
+//                    "[ATTACHMENTS MODULE]: Doing initial rez of attachment with itemID {0}, assetID {1}, point {2} for {3} in {4}",
+//                    attach.ItemID, attach.AssetID, p, sp.Name, m_scene.RegionInfo.RegionName);
+
                 // For some reason assetIDs are being written as Zero's in the DB -- need to track tat down
                 // But they're not used anyway, the item is being looked up for now, so let's proceed.
                 //if (UUID.Zero == assetID) 
@@ -125,7 +127,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 try
                 {
-                    RezSingleAttachmentFromInventory(sp.ControllingClient, itemID, (uint)p);
+                    // If we're an NPC then skip all the item checks and manipulations since we don't have an
+                    // inventory right now.
+                    if (sp.PresenceType == PresenceType.Npc)
+                        RezSingleAttachmentFromInventoryInternal(sp, UUID.Zero, attach.AssetID, p);
+                    else
+                        RezSingleAttachmentFromInventory(sp.ControllingClient, attach.ItemID, p);
                 }
                 catch (Exception e)
                 {
@@ -231,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             return AttachObject(sp, group, AttachmentPt, silent);
         }
         
-        private bool AttachObject(ScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent)
+        private bool AttachObject(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent)
         {
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
@@ -284,17 +291,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
 
             // At the moment we can only deal with a single attachment
-            if (attachments.Count != 0)
-                itemID = attachments[0].GetFromItemID();
-
-            if (itemID != UUID.Zero)
-                DetachSingleAttachmentToInv(itemID, sp);
-
-            itemID = group.GetFromItemID();
-            if (itemID == UUID.Zero)
-                itemID = AddSceneObjectAsAttachment(sp.ControllingClient, group).ID;
-
-            ShowAttachInUserInventory(sp, attachmentPt, itemID, group);
+            // We also don't want to do any of the inventory operations for an NPC.
+            if (sp.PresenceType != PresenceType.Npc)
+            {
+                if (attachments.Count != 0)
+                    itemID = attachments[0].GetFromItemID();
+    
+                if (itemID != UUID.Zero)
+                    DetachSingleAttachmentToInv(itemID, sp);
+    
+                itemID = group.GetFromItemID();
+                if (itemID == UUID.Zero)
+                    itemID = AddSceneObjectAsAttachment(sp.ControllingClient, group).ID;
+    
+                ShowAttachInUserInventory(sp, attachmentPt, itemID, group);
+            }
 
             AttachToAgent(sp, group, attachmentPt, attachPos, silent);
 
@@ -312,7 +323,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
         
-        public ISceneEntity RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
+        public ISceneEntity RezSingleAttachmentFromInventory(
+            IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
             return RezSingleAttachmentFromInventory(remoteClient, itemID, AttachmentPt, true);
         }
@@ -338,7 +350,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // be removed when that functionality is implemented in opensim
             AttachmentPt &= 0x7f;
 
-            SceneObjectGroup att = RezSingleAttachmentFromInventoryInternal(sp, itemID, AttachmentPt);
+            SceneObjectGroup att = RezSingleAttachmentFromInventoryInternal(sp, itemID, UUID.Zero, AttachmentPt);
 
             if (updateInventoryStatus)
             {
@@ -352,14 +364,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         }
 
         private SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
-            ScenePresence sp, UUID itemID, uint attachmentPt)
+            IScenePresence sp, UUID itemID, UUID assetID, uint attachmentPt)
         {
             IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
             if (invAccess != null)
             {
-                SceneObjectGroup objatt = invAccess.RezObject(sp.ControllingClient,
-                    itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
-                    false, false, sp.UUID, true);
+                SceneObjectGroup objatt;
+
+                if (itemID != UUID.Zero)
+                    objatt = invAccess.RezObject(sp.ControllingClient,
+                        itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
+                        false, false, sp.UUID, true);
+                else
+                    objatt = invAccess.RezObject(sp.ControllingClient,
+                        null, assetID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
+                        false, false, sp.UUID, true);
 
 //                m_log.DebugFormat(
 //                    "[ATTACHMENTS MODULE]: Retrieved single object {0} for attachment to {1} on point {2}",
@@ -425,7 +444,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="attachmentPoint"></param>
         /// <returns></returns>
         private UUID ShowAttachInUserInventory(
-            SceneObjectGroup att, ScenePresence sp, UUID itemID, uint attachmentPoint)
+            SceneObjectGroup att, IScenePresence sp, UUID itemID, uint attachmentPoint)
         {
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: Updating inventory of {0} to show attachment of {1} {2} (item ID {3}) at {4}",
@@ -452,7 +471,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="itemID"></param>
         /// <param name="att"></param>
         private void ShowAttachInUserInventory(
-            ScenePresence sp, uint AttachmentPt, UUID itemID, SceneObjectGroup att)
+            IScenePresence sp, uint AttachmentPt, UUID itemID, SceneObjectGroup att)
         {
 //            m_log.DebugFormat(
 //                "[USER INVENTORY]: Updating attachment {0} for {1} at {2} using item ID {3}", 
@@ -574,7 +593,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         
         // What makes this method odd and unique is it tries to detach using an UUID....     Yay for standards.
         // To LocalId or UUID, *THAT* is the question. How now Brown UUID??
-        private void DetachSingleAttachmentToInv(UUID itemID, ScenePresence sp)
+        private void DetachSingleAttachmentToInv(UUID itemID, IScenePresence sp)
         {
             if (itemID == UUID.Zero) // If this happened, someone made a mistake....
                 return;
@@ -697,16 +716,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <summary>
         /// Attach this scene object to the given avatar.
         /// </summary>
-        /// 
+        /// <remarks>
         /// This isn't publicly available since attachments should always perform the corresponding inventory 
         /// operation (to show the attach in user inventory and update the asset with positional information).
-        /// 
+        /// </remarks>
         /// <param name="sp"></param>
         /// <param name="so"></param>
         /// <param name="attachmentpoint"></param>
         /// <param name="attachOffset"></param>
         /// <param name="silent"></param>
-        protected void AttachToAgent(ScenePresence avatar, SceneObjectGroup so, uint attachmentpoint, Vector3 attachOffset, bool silent)
+        private void AttachToAgent(
+            IScenePresence avatar, SceneObjectGroup so, uint attachmentpoint, Vector3 attachOffset, bool silent)
         {
 //            m_log.DebugFormat("[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} in pt {2} pos {3} {4}",
 //                so.Name, avatar.Name, attachmentpoint, attachOffset, so.RootPart.AttachedPos);

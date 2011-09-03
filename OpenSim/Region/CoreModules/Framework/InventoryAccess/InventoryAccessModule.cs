@@ -669,28 +669,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return item;
         }
 
-        /// <summary>
-        /// Rez an object into the scene from the user's inventory
-        /// </summary>
-        /// <remarks>
-        /// FIXME: It would be really nice if inventory access modules didn't also actually do the work of rezzing
-        /// things to the scene.  The caller should be doing that, I think.
-        /// </remarks>
-        /// <param name="remoteClient"></param>
-        /// <param name="itemID"></param>
-        /// <param name="RayEnd"></param>
-        /// <param name="RayStart"></param>
-        /// <param name="RayTargetID"></param>
-        /// <param name="BypassRayCast"></param>
-        /// <param name="RayEndIsIntersection"></param>
-        /// <param name="RezSelected"></param>
-        /// <param name="RemoveItem"></param>
-        /// <param name="fromTaskID"></param>
-        /// <param name="attachment"></param>
-        /// <returns>The SceneObjectGroup rezzed or null if rez was unsuccessful.</returns>
-        public virtual SceneObjectGroup RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
-                                    UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
-                                    bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
+        public virtual SceneObjectGroup RezObject(
+            IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
+            UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+            bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
 //            m_log.DebugFormat("[INVENTORY ACCESS MODULE]: RezObject for {0}, item {1}", remoteClient.Name, itemID);
 
@@ -707,13 +689,34 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
 
             item.Owner = remoteClient.AgentId;
-            AssetBase rezAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
+
+            return RezObject(
+                remoteClient, item, item.AssetID,
+                RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
+                RezSelected, RemoveItem, fromTaskID, attachment);
+        }
+
+        public virtual SceneObjectGroup RezObject(
+            IClientAPI remoteClient, InventoryItemBase item, UUID assetID, Vector3 RayEnd, Vector3 RayStart,
+            UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+            bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
+        {
+            AssetBase rezAsset = m_Scene.AssetService.Get(assetID.ToString());
 
             if (rezAsset == null)
             {
-                m_log.WarnFormat(
-                    "[InventoryAccessModule]: Could not find asset {0} for item {1} {2} for {3} in RezObject()",
-                    item.AssetID, item.Name, item.ID, remoteClient.Name);
+                if (item != null)
+                {
+                    m_log.WarnFormat(
+                        "[InventoryAccessModule]: Could not find asset {0} for item {1} {2} for {3} in RezObject()",
+                        assetID, item.Name, item.ID, remoteClient.Name);
+                }
+                else
+                {
+                    m_log.WarnFormat(
+                        "[InventoryAccessModule]: Could not find asset {0} for {1} in RezObject()",
+                        assetID, remoteClient.Name);
+                }
 
                 return null;
             }
@@ -781,7 +784,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
             }
 
-            if (!DoPreRezWhenFromItem(remoteClient, item, objlist, pos, attachment))
+            if (item != null && !DoPreRezWhenFromItem(remoteClient, item, objlist, pos, attachment))
                 return null;
 
             for (int i = 0; i < objlist.Count; i++)
@@ -829,10 +832,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                     group.AbsolutePosition = pos + veclist[i];
                 }
-                else
-                {
-                    group.SetFromItemID(itemID);
-                }
 
                 SceneObjectPart rootPart = group.RootPart;
 
@@ -855,7 +854,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                            group.Name, group.LocalId, group.UUID, remoteClient.Name);
             }
 
-            DoPostRezWhenFromItem(item, attachment);
+            if (item != null)
+                DoPostRezWhenFromItem(item, attachment);
 
             return group;
         }
@@ -973,6 +973,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
     
                 rootPart.TrimPermissions();
+
+                if (isAttachment)
+                    so.SetFromItemID(item.ID);
             }
 
             return true;
