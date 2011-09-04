@@ -54,10 +54,58 @@ namespace OpenSim.Region.Framework.Interfaces
         /// FIXME: This is not very useful.  It would be far more useful to return a list of items instead.
         /// </returns>
         UUID CopyToInventory(DeRezAction action, UUID folderID, List<SceneObjectGroup> objectGroups, IClientAPI remoteClient);
-        
-        SceneObjectGroup RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
-                                    UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
-                                    bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment);
+
+        /// <summary>
+        /// Rez an object into the scene from the user's inventory
+        /// </summary>
+        /// <remarks>
+        /// FIXME: It would be really nice if inventory access modules didn't also actually do the work of rezzing
+        /// things to the scene.  The caller should be doing that, I think.
+        /// </remarks>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="RayEnd"></param>
+        /// <param name="RayStart"></param>
+        /// <param name="RayTargetID"></param>
+        /// <param name="BypassRayCast"></param>
+        /// <param name="RayEndIsIntersection"></param>
+        /// <param name="RezSelected"></param>
+        /// <param name="RemoveItem"></param>
+        /// <param name="fromTaskID"></param>
+        /// <param name="attachment"></param>
+        /// <returns>The SceneObjectGroup rezzed or null if rez was unsuccessful.</returns>
+        SceneObjectGroup RezObject(
+            IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
+            UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+            bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment);
+
+        /// <summary>
+        /// Rez an object into the scene from the user's inventory
+        /// </summary>
+        /// <remarks>
+        /// FIXME: It would be really nice if inventory access modules didn't also actually do the work of rezzing
+        /// things to the scene.  The caller should be doing that, I think.
+        /// </remarks>
+        /// <param name="remoteClient"></param>
+        /// <param name="item">
+        /// The item from which the object asset came.  Can be null, in which case pre and post rez item adjustment and checks are not performed.
+        /// </param>
+        /// <param name="assetID">The asset id for the object to rez.</param>
+        /// <param name="RayEnd"></param>
+        /// <param name="RayStart"></param>
+        /// <param name="RayTargetID"></param>
+        /// <param name="BypassRayCast"></param>
+        /// <param name="RayEndIsIntersection"></param>
+        /// <param name="RezSelected"></param>
+        /// <param name="RemoveItem"></param>
+        /// <param name="fromTaskID"></param>
+        /// <param name="attachment"></param>
+        /// <returns>The SceneObjectGroup rezzed or null if rez was unsuccessful.</returns>
+        SceneObjectGroup RezObject(
+            IClientAPI remoteClient, InventoryItemBase item, UUID assetID, Vector3 RayEnd, Vector3 RayStart,
+            UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+            bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment);
+
         void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver);
 
         /// <summary>

@@ -84,21 +84,6 @@ namespace OpenSim.Data.MSSQL
                 //New Migration settings
                 Migration m = new Migration(conn, Assembly, "RegionStore");
                 m.Update();
-
-                // Clean dropped attachments
-                //
-                try
-                {
-                    using (SqlCommand cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = "delete from prims where prims.UUID in (select UUID from primshapes where PCode = 9 and State <> 0); delete from primshapes where PCode = 9 and State <> 0";
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _Log.Error("[REGION DB]: Error cleaning up dropped attachments: " + ex.Message);
-                }
             }
         }
 

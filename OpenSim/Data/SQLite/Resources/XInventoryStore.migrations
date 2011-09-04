@@ -41,8 +41,6 @@ COMMIT;
 
 :VERSION 2
 
-ATTACH 'inventoryStore.db' AS old;
-
 BEGIN TRANSACTION;
 
 INSERT INTO inventoryfolders (folderName, type, version, folderID, agentID, parentFolderID) SELECT `name` AS folderName, `type` AS type, `version` AS version, `UUID` AS folderID, `agentID` AS agentID, `parentID` AS parentFolderID from old.inventoryfolders;

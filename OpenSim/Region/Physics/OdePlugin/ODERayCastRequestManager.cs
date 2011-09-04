@@ -45,9 +45,14 @@ namespace OpenSim.Region.Physics.OdePlugin
     public class ODERayCastRequestManager
     {
         /// <summary>
-        /// Pending Raycast Requests
+        /// Pending raycast requests
         /// </summary>
         protected List<ODERayCastRequest> m_PendingRequests = new List<ODERayCastRequest>();
+
+        /// <summary>
+        /// Pending ray requests
+        /// </summary>
+        protected List<ODERayRequest> m_PendingRayRequests = new List<ODERayRequest>();
 
         /// <summary>
         /// Scene that created this object.
@@ -96,6 +101,29 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         /// <summary>
+        /// Queues a raycast
+        /// </summary>
+        /// <param name="position">Origin of Ray</param>
+        /// <param name="direction">Ray normal</param>
+        /// <param name="length">Ray length</param>
+        /// <param name="count"></param>
+        /// <param name="retMethod">Return method to send the results</param>
+        public void QueueRequest(Vector3 position, Vector3 direction, float length, int count, RayCallback retMethod)
+        {
+            lock (m_PendingRequests)
+            {
+                ODERayRequest req = new ODERayRequest();
+                req.callbackMethod = retMethod;
+                req.length = length;
+                req.Normal = direction;
+                req.Origin = position;
+                req.Count = count;
+
+                m_PendingRayRequests.Add(req);
+            }
+        }
+
+        /// <summary>
         /// Process all queued raycast requests
         /// </summary>
         /// <returns>Time in MS the raycasts took to process.</returns>
@@ -119,15 +147,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                             //Fail silently
                         }
                     }
-                    /*
-                    foreach (ODERayCastRequest req in m_PendingRequests)
-                    {
-                        if (req.callbackMethod != null) // quick optimization here, don't raycast 
-                            RayCast(req);               // if there isn't anyone to send results to
-                            
-                    }
-                    */
+
                     m_PendingRequests.Clear();
+                }
+            }
+
+            lock (m_PendingRayRequests)
+            {
+                if (m_PendingRayRequests.Count > 0)
+                {
+                    ODERayRequest[] reqs = m_PendingRayRequests.ToArray();
+                    for (int i = 0; i < reqs.Length; i++)
+                    {
+                        if (reqs[i].callbackMethod != null) // quick optimization here, don't raycast 
+                            RayCast(reqs[i]);               // if there isn't anyone to send results
+                    }
+
+                    m_PendingRayRequests.Clear();
                 }
             }
 
@@ -152,7 +188,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // Remove Ray
             d.GeomDestroy(ray);
-
 
             // Define default results
             bool hitYN = false;
@@ -184,6 +219,31 @@ namespace OpenSim.Region.Physics.OdePlugin
                 req.callbackMethod(hitYN, closestcontact, hitConsumerID, distance, snormal);
         }
 
+        /// <summary>
+        /// Method that actually initiates the raycast
+        /// </summary>
+        /// <param name="req"></param>
+        private void RayCast(ODERayRequest req)
+        {
+            // Create the ray
+            IntPtr ray = d.CreateRay(m_scene.space, req.length);
+            d.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
+
+            // Collide test
+            d.SpaceCollide2(m_scene.space, ray, IntPtr.Zero, nearCallback);
+
+            // Remove Ray
+            d.GeomDestroy(ray);
+
+            // Find closest contact and object.
+            lock (m_contactResults)
+            {
+                // Return results
+                if (req.callbackMethod != null)
+                    req.callbackMethod(m_contactResults);
+            }
+        }
+        
         // This is the standard Near.   Uses space AABBs to speed up detection.
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
@@ -349,10 +409,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             m_contactResults.Add(collisionresult);
                     }
                 }
-
-                
             }
-
         }
 
         /// <summary>
@@ -372,11 +429,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         public RaycastCallback callbackMethod;
     }
 
-    public struct ContactResult
+    public struct ODERayRequest
     {
-        public Vector3 Pos;
-        public float Depth;
-        public uint ConsumerID;
+        public Vector3 Origin;
         public Vector3 Normal;
+        public int Count;
+        public float length;
+        public RayCallback callbackMethod;
     }
 }

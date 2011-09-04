@@ -37,6 +37,27 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IAttachmentsModule
     {
         /// <summary>
+        /// RezAttachments. This should only be called upon login on the first region.
+        /// Attachment rezzings on crossings and TPs are done in a different way.
+        /// </summary>
+        void RezAttachments(IScenePresence sp);
+
+        /// <summary>
+        /// Save the attachments that have change on this presence.
+        /// </summary>
+        /// <param name="sp"></param>
+        void SaveChangedAttachments(IScenePresence sp);
+
+        /// <summary>
+        /// Delete all the presence's attachments from the scene
+        /// </summary>
+        /// <param name="sp">
+        /// This is done when a root agent leaves/is demoted to child (for instance, on logout, teleport or region cross).
+        /// </param>
+        /// <param name="silent"></param>
+        void DeleteAttachmentsFromScene(IScenePresence sp, bool silent);
+
+        /// <summary>
         /// Attach an object to an avatar from the world.
         /// </summary>
         /// <param name="controllingClient"></param>
@@ -48,13 +69,11 @@ namespace OpenSim.Region.Framework.Interfaces
             IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent);
 
         /// <summary>
-        /// Attach an object to an avatar.
+        /// Attach an object to an avatar
         /// </summary>
-        /// <param name="controllingClient"></param>
-        /// <param name="localID"></param>
-        /// <param name="attachPoint"></param>
-        /// <param name="rot"></param>
-        /// <param name="attachPos"></param>
+        /// <param name="remoteClient"></param>
+        /// <param name="grp"></param>
+        /// <param name="AttachmentPt"></param>
         /// <param name="silent"></param>
         /// <returns>true if the object was successfully attached, false otherwise</returns>
         bool AttachObject(
@@ -67,7 +86,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="itemID"></param>
         /// <param name="AttachmentPt"></param>
         /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
-        UUID RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
+        ISceneEntity RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
 
         /// <summary>
         /// Rez an attachment from user inventory
@@ -80,7 +99,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// False is required so that we don't attempt to update information when a user enters a scene with the
         /// attachment already correctly set up in inventory.
         /// <returns>The uuid of the scene object that was attached.  Null if the scene object could not be found</returns>
-        UUID RezSingleAttachmentFromInventory(
+        ISceneEntity RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus);
 
         // Same as above, but also load script states from a separate doc
@@ -101,9 +120,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Detach an object from the avatar.
         /// </summary>
-        ///
+        /// <remarks>
         /// This method is called in response to a client's detach request, so we only update the information in
         /// inventory
+        /// </remarks>
         /// <param name="objectLocalID"></param>
         /// <param name="remoteClient"></param>
         void DetachObject(uint objectLocalID, IClientAPI remoteClient);
@@ -111,12 +131,12 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Detach the given item to the ground.
         /// </summary>
-        /// <param name="itemID"></param>
+        /// <param name="objectLocalID"></param>
         /// <param name="remoteClient"></param>
-        void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient);
+        void DetachSingleAttachmentToGround(uint objectLocalID, IClientAPI remoteClient);
 
         /// <summary>
-        /// Update the user inventory to show a detach.
+        /// Detach the given item so that it remains in the user's inventory.
         /// </summary>
         /// <param name="itemID">
         /// A <see cref="UUID"/>
@@ -124,23 +144,15 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="remoteClient">
         /// A <see cref="IClientAPI"/>
         /// </param>
-        void ShowDetachInUserInventory(UUID itemID, IClientAPI remoteClient);
+        void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient);
         
         /// <summary>
         /// Update the user inventory with a changed attachment
         /// </summary>
-        /// <param name="remoteClient">
-        /// A <see cref="IClientAPI"/>
-        /// </param>
-        /// <param name="grp">
-        /// A <see cref="SceneObjectGroup"/>
-        /// </param>
-        /// <param name="itemID">
-        /// A <see cref="UUID"/>
-        /// </param>
-        /// <param name="agentID">
-        /// A <see cref="UUID"/>
-        /// </param>
+        /// <param name="remoteClient"></param>
+        /// <param name="grp"></param>
+        /// <param name="itemID"></param>
+        /// <param name="agentID"></param>
         void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID);
     }
 }

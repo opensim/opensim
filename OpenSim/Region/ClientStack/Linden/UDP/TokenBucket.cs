@@ -44,7 +44,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static Int32 m_counter = 0;
         
-        private Int32 m_identifier;
+//        private Int32 m_identifier;
         
         /// <summary>
         /// Number of ticks (ms) per quantum, drip rate and max burst
@@ -173,7 +173,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// second. If zero, the bucket always remains full</param>
         public TokenBucket(TokenBucket parent, Int64 dripRate) 
         {
-            m_identifier = m_counter++;
+//            m_identifier = m_counter++;
+            m_counter++;
 
             Parent = parent;
             RequestedDripRate = dripRate;
@@ -320,7 +321,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
     public class AdaptiveTokenBucket : TokenBucket
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// The minimum rate for flow control. Minimum drip rate is one

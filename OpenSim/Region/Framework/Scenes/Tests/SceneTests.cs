@@ -58,9 +58,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestUpdateScene()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
             scene.Update();
             
             Assert.That(scene.Frame, Is.EqualTo(1));

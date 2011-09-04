@@ -403,7 +403,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         protected bool AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
-            if (sceneObject == null || sceneObject.RootPart == null || sceneObject.RootPart.UUID == UUID.Zero)
+            if (sceneObject == null || sceneObject.RootPart.UUID == UUID.Zero)
                 return false;
 
             if (Entities.ContainsKey(sceneObject.UUID))
@@ -613,13 +613,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_activeScripts += number;
         }
 
-        public void DropObject(uint objectLocalID, IClientAPI remoteClient)
-        {
-            SceneObjectGroup group = GetGroupByPrim(objectLocalID);
-            if (group != null)
-                m_parentScene.AttachmentsModule.DetachSingleAttachmentToGround(group.UUID, remoteClient);
-        }
-
         protected internal void HandleUndo(IClientAPI remoteClient, UUID primId)
         {
             if (primId != UUID.Zero)
@@ -629,11 +622,13 @@ namespace OpenSim.Region.Framework.Scenes
                     part.Undo();
             }
         }
+
         protected internal void HandleRedo(IClientAPI remoteClient, UUID primId)
         {
             if (primId != UUID.Zero)
             {
                 SceneObjectPart part = m_parentScene.GetSceneObjectPart(primId);
+
                 if (part != null)
                     part.Redo();
             }
@@ -653,12 +648,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected internal ScenePresence CreateAndAddChildScenePresence(IClientAPI client, AvatarAppearance appearance)
+        protected internal ScenePresence CreateAndAddChildScenePresence(
+            IClientAPI client, AvatarAppearance appearance, PresenceType type)
         {
             ScenePresence newAvatar = null;
 
             // ScenePresence always defaults to child agent
-            newAvatar = new ScenePresence(client, m_parentScene, m_regInfo, appearance);
+            newAvatar = new ScenePresence(client, m_parentScene, m_regInfo, appearance, type);
 
             AddScenePresence(newAvatar);
 
@@ -1285,19 +1281,20 @@ namespace OpenSim.Region.Framework.Scenes
         #region Client Event handlers
 
         /// <summary>
-        ///
+        /// Update the scale of an individual prim.
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="scale"></param>
         /// <param name="remoteClient"></param>
         protected internal void UpdatePrimScale(uint localID, Vector3 scale, IClientAPI remoteClient)
         {
-            SceneObjectGroup group = GetGroupByPrim(localID);
-            if (group != null)
+            SceneObjectPart part = GetSceneObjectPart(localID);
+
+            if (part != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanEditObject(part.ParentGroup.UUID, remoteClient.AgentId))
                 {
-                    group.Resize(scale, localID);
+                    part.Resize(scale);
                 }
             }
         }
@@ -1309,7 +1306,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
                 {
-                    group.GroupResize(scale, localID);
+                    group.GroupResize(scale);
                 }
             }
         }
@@ -1363,19 +1360,18 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))
                 {
-                    group.UpdateSingleRotation(rot,pos, localID);
+                    group.UpdateSingleRotation(rot, pos, localID);
                 }
             }
         }
 
-
         /// <summary>
-        ///
+        /// Update the rotation of a whole group.
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="rot"></param>
         /// <param name="remoteClient"></param>
-        protected internal void UpdatePrimRotation(uint localID, Quaternion rot, IClientAPI remoteClient)
+        protected internal void UpdatePrimGroupRotation(uint localID, Quaternion rot, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
@@ -1394,7 +1390,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         /// <param name="rot"></param>
         /// <param name="remoteClient"></param>
-        protected internal void UpdatePrimRotation(uint localID, Vector3 pos, Quaternion rot, IClientAPI remoteClient)
+        protected internal void UpdatePrimGroupRotation(uint localID, Vector3 pos, Quaternion rot, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
@@ -1425,12 +1421,12 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Update the position of the given part
+        /// Update the position of the given group.
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="pos"></param>
         /// <param name="remoteClient"></param>
-        public void UpdatePrimPosition(uint localID, Vector3 pos, IClientAPI remoteClient)
+        public void UpdatePrimGroupPosition(uint localID, Vector3 pos, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             
@@ -1481,21 +1477,26 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Update the flags on a scene object.  This covers properties such as phantom, physics and temporary.
         /// </summary>
+        /// <remarks>
+        /// This is currently handling the incoming call from the client stack (e.g. LLClientView).
+        /// </remarks>
         /// <param name="localID"></param>
-        /// <param name="packet"></param>
+        /// <param name="UsePhysics"></param>
+        /// <param name="SetTemporary"></param>
+        /// <param name="SetPhantom"></param>
         /// <param name="remoteClient"></param>
-        /// This routine seems to get called when a user changes object settings in the viewer.
-        /// If some one can confirm that, please change the comment according.
-        protected internal void UpdatePrimFlags(uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, IClientAPI remoteClient)
+        protected internal void UpdatePrimFlags(
+            uint localID, bool UsePhysics, bool SetTemporary, bool SetPhantom, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
                 {
-                    group.UpdatePrimFlags(localID, UsePhysics, IsTemporary, IsPhantom, false); // VolumeDetect can't be set via UI and will always be off when a change is made there
+                    // VolumeDetect can't be set via UI and will always be off when a change is made there
+                    group.UpdatePrimFlags(localID, UsePhysics, SetTemporary, SetPhantom, false);
                 }
             }
         }
@@ -1618,8 +1619,11 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
                 {
                     SceneObjectPart part = m_parentScene.GetSceneObjectPart(primLocalID);
-                    part.ClickAction = Convert.ToByte(clickAction);
-                    group.HasGroupChanged = true;
+                    if (part != null)
+                    {
+	                    part.ClickAction = Convert.ToByte(clickAction);
+	                    group.HasGroupChanged = true;
+                    }
                 }
             }
         }
@@ -1632,8 +1636,11 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
                 {
                     SceneObjectPart part = m_parentScene.GetSceneObjectPart(primLocalID);
-                    part.Material = Convert.ToByte(material);
-                    group.HasGroupChanged = true;
+                    if (part != null)
+                    {
+                        part.Material = Convert.ToByte(material);
+                        group.HasGroupChanged = true;
+                    }
                 }
             }
         }
@@ -1706,22 +1713,23 @@ namespace OpenSim.Region.Framework.Scenes
                 parentGroup.areUpdatesSuspended = true;
 
                 List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
-                if (parentGroup != null)
-                {
-                    // We do this in reverse to get the link order of the prims correct
-                    for (int i = children.Count - 1; i >= 0; i--)
-                    {
-                        SceneObjectGroup child = children[i].ParentGroup;
 
+                // We do this in reverse to get the link order of the prims correct
+                for (int i = children.Count - 1; i >= 0; i--)
+                {
+                    SceneObjectGroup child = children[i].ParentGroup;
+
+                    // Make sure no child prim is set for sale
+                    // So that, on delink, no prims are unwittingly
+                    // left for sale and sold off
+                   
                         if (child != null)
                         {
+                            child.RootPart.ObjectSaleType = 0;
+                            child.RootPart.SalePrice = 10;
                             childGroups.Add(child);
                         }
                     }
-                }
-                else
-                {
-                    return; // parent is null so not in this region
                 }
 
                 foreach (SceneObjectGroup child in childGroups)

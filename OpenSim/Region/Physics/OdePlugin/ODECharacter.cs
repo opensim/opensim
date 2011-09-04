@@ -258,7 +258,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override bool Flying
         {
             get { return flying; }
-            set { flying = value; }
+            set
+            {
+                flying = value;
+//                m_log.DebugFormat("[PHYSICS]: Set OdeCharacter Flying to {0}", flying);
+            }
         }
 
         /// <summary>
@@ -305,10 +309,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_iscolliding = true;
                 }
+
                 if (m_wascolliding != m_iscolliding)
                 {
                     //base.SendCollisionUpdate(new CollisionEventUpdate());
                 }
+
                 m_wascolliding = m_iscolliding;
             }
         }
@@ -1219,18 +1225,23 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_requestedUpdateFrequency = ms;
             m_eventsubscription = ms;
-            _parent_scene.addCollisionEventReporting(this);
+            _parent_scene.AddCollisionEventReporting(this);
         }
+
         public override void UnSubscribeEvents()
         {
-            _parent_scene.remCollisionEventReporting(this);
+            _parent_scene.RemoveCollisionEventReporting(this);
             m_requestedUpdateFrequency = 0;
             m_eventsubscription = 0;
         }
+
         public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
             if (m_eventsubscription > 0)
             {
+//                m_log.DebugFormat(
+//                    "[PHYSICS]: Adding collision event for {0}, collidedWith {1}, contact {2}", "", CollidedWith, contact);
+
                 CollisionEventsThisFrame.addCollider(CollidedWith, contact);
             }
         }
@@ -1247,6 +1258,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_eventsubscription = 0;
             }
         }
+
         public override bool SubscribedEvents()
         {
             if (m_eventsubscription > 0)

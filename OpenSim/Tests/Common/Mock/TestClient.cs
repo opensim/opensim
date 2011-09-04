@@ -95,7 +95,7 @@ namespace OpenSim.Tests.Common.Mock
         public event DeRezObject OnDeRezObject;
         public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall1 OnRequestWearables;
-        public event GenericCall1 OnCompleteMovementToRegion;
+        public event Action<IClientAPI, bool> OnCompleteMovementToRegion;
         public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
@@ -234,7 +234,7 @@ namespace OpenSim.Tests.Common.Mock
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
-        public event UpdateVector OnAutoPilotGo;
+        public event Action<Vector3, bool> OnAutoPilotGo;
 
         public event TerrainUnacked OnUnackedTerrain;
 
@@ -455,7 +455,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public void CompleteMovement()
         {
-            OnCompleteMovementToRegion(this);
+            OnCompleteMovementToRegion(this, true);
         }
 
         public virtual void ActivateGesture(UUID assetId, UUID gestureId)
@@ -579,7 +579,7 @@ namespace OpenSim.Tests.Common.Mock
 
             // Stage 2: add the new client as a child agent to the scene
             TeleportSceneClient = new TestClient(newAgent, TeleportTargetScene);
-            TeleportTargetScene.AddNewClient(TeleportSceneClient);
+            TeleportTargetScene.AddNewClient(TeleportSceneClient, PresenceType.User);
         }
 
         public virtual void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
@@ -759,9 +759,10 @@ namespace OpenSim.Tests.Common.Mock
 
             if (OnCompleteMovementToRegion != null)
             {
-                OnCompleteMovementToRegion(this);
+                OnCompleteMovementToRegion(this, true);
             }
         }
+        
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
         {
         }
@@ -890,7 +891,7 @@ namespace OpenSim.Tests.Common.Mock
         }
         public void Close(bool sendStop)
         {
-            m_scene.RemoveClient(AgentId);
+            m_scene.RemoveClient(AgentId, true);
         }
 
         public void Start()

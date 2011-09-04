@@ -203,6 +203,9 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
     FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
 
+    ;; Ask co-operative viewers to use a different currency name
+    ;Currency = ""
+
     WelcomeMessage = "Welcome, Avatar!"
     AllowRemoteSetLoginLevel = "false"
     

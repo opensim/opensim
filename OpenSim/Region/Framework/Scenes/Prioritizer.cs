@@ -116,14 +116,13 @@ namespace OpenSim.Region.Framework.Scenes
             return priority;
         }
 
-
         private uint GetPriorityByTime(IClientAPI client, ISceneEntity entity)
         {
             // And anything attached to this avatar gets top priority as well
             if (entity is SceneObjectPart)
             {
                 SceneObjectPart sop = (SceneObjectPart)entity;
-                if (sop.ParentGroup.RootPart.IsAttachment && client.AgentId == sop.ParentGroup.RootPart.AttachedAvatar)
+                if (sop.ParentGroup.IsAttachment && client.AgentId == sop.ParentGroup.AttachedAvatar)
                     return 1;
             }
 
@@ -136,7 +135,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (entity is SceneObjectPart)
             {
                 SceneObjectPart sop = (SceneObjectPart)entity;
-                if (sop.ParentGroup.RootPart.IsAttachment && client.AgentId == sop.ParentGroup.RootPart.AttachedAvatar)
+                if (sop.ParentGroup.IsAttachment && client.AgentId == sop.ParentGroup.AttachedAvatar)
                     return 1;
             }
 
@@ -149,7 +148,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (entity is SceneObjectPart)
             {
                 SceneObjectPart sop = (SceneObjectPart)entity;
-                if (sop.ParentGroup.RootPart.IsAttachment && client.AgentId == sop.ParentGroup.RootPart.AttachedAvatar)
+                if (sop.ParentGroup.IsAttachment && client.AgentId == sop.ParentGroup.AttachedAvatar)
                     return 1;
             }
 
@@ -172,7 +171,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (entity is SceneObjectPart)
                     {
                         // Attachments are high priority, 
-                        if (((SceneObjectPart)entity).ParentGroup.RootPart.IsAttachment)
+                        if (((SceneObjectPart)entity).ParentGroup.IsAttachment)
                             return 1;
 
                         // Non physical prims are lower priority than physical prims
@@ -209,8 +208,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (entity is SceneObjectPart)
             {
                 SceneObjectGroup group = (entity as SceneObjectPart).ParentGroup;
-                if (group != null)
-                    entityPos = group.AbsolutePosition;
+                entityPos = group.AbsolutePosition;
             }
 
             // Use the camera position for local agents and avatar position for remote agents

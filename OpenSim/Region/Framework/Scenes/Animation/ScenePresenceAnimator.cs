@@ -27,6 +27,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -40,6 +42,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
     /// </summary>
     public class ScenePresenceAnimator
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public AnimationSet Animations
         {
             get { return m_animations;  }
@@ -79,6 +83,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_scenePresence.IsChildAgent)
                 return;
 
+//            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Adding animation {0} for {1}", animID, m_scenePresence.Name);
+
             if (m_animations.Add(animID, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, objectID))
                 SendAnimPack();
         }
@@ -92,6 +98,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             UUID animID = m_scenePresence.ControllingClient.GetDefaultAnimation(name);
             if (animID == UUID.Zero)
                 return;
+
+//            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Adding animation {0} {1} for {2}", animID, name, m_scenePresence.Name);
 
             AddAnimation(animID, objectID);
         }
@@ -136,6 +144,10 @@ TrySetMovementAnimation("STAND");
                 if (m_animations.TrySetDefaultAnimation(
                     anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
                 {
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE ANIMATOR]: Updating movement animation to {0} for {1}",
+//                        anim, m_scenePresence.Name);
+
                     // 16384 is CHANGED_ANIMATION
                     m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { (int)Changed.ANIMATION});
                     SendAnimPack();
@@ -353,7 +365,7 @@ TrySetMovementAnimation("STAND");
 /* This section removed, replaced by jumping section
             m_animTickFall = 0;
 
-            if (move.Z > 0f)
+            if (move.Z > 0.2f)
             {
                 // Jumping
                 if (!jumping)

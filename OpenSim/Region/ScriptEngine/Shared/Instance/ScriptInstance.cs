@@ -234,7 +234,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_MaxScriptQueue = maxScriptQueue;
             m_stateSource = stateSource;
             m_postOnRez = postOnRez;
-            m_AttachedAvatar = part.AttachedAvatar;
+            m_AttachedAvatar = part.ParentGroup.AttachedAvatar;
             m_RegionID = part.ParentGroup.Scene.RegionInfo.RegionID;
 
             if (part != null)
@@ -772,13 +772,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             else if ((e is TargetInvocationException) && (e.InnerException is SelfDeleteException))
                             {
                                 m_InSelfDelete = true;
-                                if (part != null && part.ParentGroup != null)
+                                if (part != null)
                                     m_Engine.World.DeleteSceneObject(part.ParentGroup, false);
                             }
                             else if ((e is TargetInvocationException) && (e.InnerException is ScriptDeleteException))
                             {
                                 m_InSelfDelete = true;
-                                if (part != null && part.ParentGroup != null)
+                                if (part != null)
                                     part.Inventory.RemoveInventoryItem(m_ItemID);
                             }
                         }

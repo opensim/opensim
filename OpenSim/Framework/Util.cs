@@ -56,8 +56,13 @@ namespace OpenSim.Framework
     /// <summary>
     /// The method used by Util.FireAndForget for asynchronously firing events
     /// </summary>
+    /// <remarks>
+    /// None is used to execute the method in the same thread that made the call.  It should only be used by regression
+    /// test code that relies on predictable event ordering.
+    /// </remarks>
     public enum FireAndForgetMethod
     {
+        None,
         UnsafeQueueUserWorkItem,
         QueueUserWorkItem,
         BeginInvoke,
@@ -89,7 +94,8 @@ namespace OpenSim.Framework
         public static readonly Regex UUIDPattern 
             = new Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
-        public static FireAndForgetMethod FireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
+        public static FireAndForgetMethod DefaultFireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
+        public static FireAndForgetMethod FireAndForgetMethod = DefaultFireAndForgetMethod;
 
         /// <summary>
         /// Gets the name of the directory where the current running executable
@@ -1511,25 +1517,47 @@ namespace OpenSim.Framework
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
+            // When OpenSim interacts with a database or sends data over the wire, it must send this in en_US culture
+            // so that we don't encounter problems where, for instance, data is saved with a culture that uses commas
+            // for decimals places but is read by a culture that treats commas as number seperators.
+            WaitCallback realCallback = delegate(object o)
+            {
+                Culture.SetCurrentCulture();
+
+                try
+                {
+                    callback(o);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[UTIL]: Continuing after async_call_method thread terminated with exception {0}{1}",
+                        e.Message, e.StackTrace);
+                }
+            };
+
             switch (FireAndForgetMethod)
             {
+                case FireAndForgetMethod.None:
+                    realCallback.Invoke(obj);
+                    break;
                 case FireAndForgetMethod.UnsafeQueueUserWorkItem:
-                    ThreadPool.UnsafeQueueUserWorkItem(callback, obj);
+                    ThreadPool.UnsafeQueueUserWorkItem(realCallback, obj);
                     break;
                 case FireAndForgetMethod.QueueUserWorkItem:
-                    ThreadPool.QueueUserWorkItem(callback, obj);
+                    ThreadPool.QueueUserWorkItem(realCallback, obj);
                     break;
                 case FireAndForgetMethod.BeginInvoke:
                     FireAndForgetWrapper wrapper = FireAndForgetWrapper.Instance;
-                    wrapper.FireAndForget(callback, obj);
+                    wrapper.FireAndForget(realCallback, obj);
                     break;
                 case FireAndForgetMethod.SmartThreadPool:
                     if (m_ThreadPool == null)
                         m_ThreadPool = new SmartThreadPool(2000, 15, 2);
-                    m_ThreadPool.QueueWorkItem(SmartThreadPoolCallback, new object[] { callback, obj });
+                    m_ThreadPool.QueueWorkItem(SmartThreadPoolCallback, new object[] { realCallback, obj });
                     break;
                 case FireAndForgetMethod.Thread:
-                    Thread thread = new Thread(delegate(object o) { callback(o); });
+                    Thread thread = new Thread(delegate(object o) { realCallback(o); });
                     thread.Start(obj);
                     break;
                 default:

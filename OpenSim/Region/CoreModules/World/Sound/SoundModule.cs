@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
                 if (grp.IsAttachment)
                 {
-                    if (grp.GetAttachmentPoint() > 30) // HUD
+                    if (grp.AttachmentPoint > 30) // HUD
                     {
                         if (sp.ControllingClient.AgentId != grp.OwnerID)
                             return;
@@ -115,7 +115,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
             {
                 SceneObjectGroup grp = part.ParentGroup;
 
-                if (grp.IsAttachment && grp.GetAttachmentPoint() > 30)
+                if (grp.IsAttachment && grp.AttachmentPoint > 30)
                 {
                     objectID = ownerID;
                     parentID = ownerID;

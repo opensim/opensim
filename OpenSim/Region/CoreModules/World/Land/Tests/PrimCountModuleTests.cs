@@ -64,8 +64,8 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         {
             m_pcm = new PrimCountModule();
             LandManagementModule lmm = new LandManagementModule();
-            m_scene = SceneSetupHelpers.SetupScene();            
-            SceneSetupHelpers.SetupSceneModules(m_scene, lmm, m_pcm);             
+            m_scene = SceneHelpers.SetupScene();            
+            SceneHelpers.SetupSceneModules(m_scene, lmm, m_pcm);             
                         
             int xParcelDivider = (int)Constants.RegionSize - 1;
             
@@ -106,12 +106,12 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestAddOwnerObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();                                  
                   
             IPrimCounts pc = m_lo.PrimCounts;         
             
-            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_userId, "a", 0x01);             
+            SceneObjectGroup sog = SceneHelpers.CreateSceneObject(3, m_userId, "a", 0x01);             
             m_scene.AddNewSceneObject(sog, false);
             
             Assert.That(pc.Owner, Is.EqualTo(3));
@@ -124,7 +124,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Simulator, Is.EqualTo(3));            
             
             // Add a second object and retest
-            SceneObjectGroup sog2 = SceneSetupHelpers.CreateSceneObject(2, m_userId, "b", 0x10);             
+            SceneObjectGroup sog2 = SceneHelpers.CreateSceneObject(2, m_userId, "b", 0x10);             
             m_scene.AddNewSceneObject(sog2, false);   
             
             Assert.That(pc.Owner, Is.EqualTo(5));
@@ -143,12 +143,12 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestCopyOwnerObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();                                  
                   
             IPrimCounts pc = m_lo.PrimCounts;
             
-            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_userId, "a", 0x01);             
+            SceneObjectGroup sog = SceneHelpers.CreateSceneObject(3, m_userId, "a", 0x01);             
             m_scene.AddNewSceneObject(sog, false);
             m_scene.SceneGraph.DuplicateObject(sog.LocalId, Vector3.Zero, 0, m_userId, UUID.Zero, Quaternion.Identity); 
             
@@ -169,12 +169,12 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestMoveOwnerObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();                                  
                                           
-            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_userId, "a", 0x01);             
+            SceneObjectGroup sog = SceneHelpers.CreateSceneObject(3, m_userId, "a", 0x01);             
             m_scene.AddNewSceneObject(sog, false);
-            SceneObjectGroup sog2 = SceneSetupHelpers.CreateSceneObject(2, m_userId, "b", 0x10);             
+            SceneObjectGroup sog2 = SceneHelpers.CreateSceneObject(2, m_userId, "b", 0x10);             
             m_scene.AddNewSceneObject(sog2, false);   
             
             // Move the first scene object to the eastern strip parcel           
@@ -230,13 +230,13 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestRemoveOwnerObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             IPrimCounts pc = m_lo.PrimCounts;
             
-            m_scene.AddNewSceneObject(SceneSetupHelpers.CreateSceneObject(1, m_userId, "a", 0x1), false);
-            SceneObjectGroup sogToDelete = SceneSetupHelpers.CreateSceneObject(3, m_userId, "b", 0x10);
+            m_scene.AddNewSceneObject(SceneHelpers.CreateSceneObject(1, m_userId, "a", 0x1), false);
+            SceneObjectGroup sogToDelete = SceneHelpers.CreateSceneObject(3, m_userId, "b", 0x10);
             m_scene.AddNewSceneObject(sogToDelete, false);            
             m_scene.DeleteSceneObject(sogToDelete, false);
             
@@ -253,14 +253,14 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestAddGroupObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();                                  
             
             m_lo.DeedToGroup(m_groupId);
                   
             IPrimCounts pc = m_lo.PrimCounts;       
             
-            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_otherUserId, "a", 0x01);             
+            SceneObjectGroup sog = SceneHelpers.CreateSceneObject(3, m_otherUserId, "a", 0x01);             
             sog.GroupID = m_groupId;
             m_scene.AddNewSceneObject(sog, false);
             
@@ -284,18 +284,18 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestRemoveGroupObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             m_lo.DeedToGroup(m_groupId);
             
             IPrimCounts pc = m_lo.PrimCounts;
             
-            SceneObjectGroup sogToKeep = SceneSetupHelpers.CreateSceneObject(1, m_userId, "a", 0x1);
+            SceneObjectGroup sogToKeep = SceneHelpers.CreateSceneObject(1, m_userId, "a", 0x1);
             sogToKeep.GroupID = m_groupId;            
             m_scene.AddNewSceneObject(sogToKeep, false);
             
-            SceneObjectGroup sogToDelete = SceneSetupHelpers.CreateSceneObject(3, m_userId, "b", 0x10);
+            SceneObjectGroup sogToDelete = SceneHelpers.CreateSceneObject(3, m_userId, "b", 0x10);
             m_scene.AddNewSceneObject(sogToDelete, false);            
             m_scene.DeleteSceneObject(sogToDelete, false);
             
@@ -313,12 +313,12 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]        
         public void TestAddOthersObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();                                  
                   
             IPrimCounts pc = m_lo.PrimCounts;       
             
-            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_otherUserId, "a", 0x01);             
+            SceneObjectGroup sog = SceneHelpers.CreateSceneObject(3, m_otherUserId, "a", 0x01);             
             m_scene.AddNewSceneObject(sog, false);
             
             Assert.That(pc.Owner, Is.EqualTo(0));
@@ -334,13 +334,13 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestRemoveOthersObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             IPrimCounts pc = m_lo.PrimCounts;
             
-            m_scene.AddNewSceneObject(SceneSetupHelpers.CreateSceneObject(1, m_otherUserId, "a", 0x1), false);
-            SceneObjectGroup sogToDelete = SceneSetupHelpers.CreateSceneObject(3, m_otherUserId, "b", 0x10);
+            m_scene.AddNewSceneObject(SceneHelpers.CreateSceneObject(1, m_otherUserId, "a", 0x1), false);
+            SceneObjectGroup sogToDelete = SceneHelpers.CreateSceneObject(3, m_otherUserId, "b", 0x10);
             m_scene.AddNewSceneObject(sogToDelete, false);            
             m_scene.DeleteSceneObject(sogToDelete, false);
             
@@ -360,10 +360,10 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestTaint()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             IPrimCounts pc = m_lo.PrimCounts;
             
-            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_userId, "a", 0x01);             
+            SceneObjectGroup sog = SceneHelpers.CreateSceneObject(3, m_userId, "a", 0x01);             
             m_scene.AddNewSceneObject(sog, false); 
             
             m_pcm.TaintPrimCount();

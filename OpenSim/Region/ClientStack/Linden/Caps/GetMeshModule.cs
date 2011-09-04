@@ -50,8 +50,8 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class GetMeshModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Scene m_scene;
         private IAssetService m_AssetService;
@@ -113,12 +113,12 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            UUID capID = UUID.Random();
+//            UUID capID = UUID.Random();
 
             //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
             if (m_URL == "localhost")
             {
-                m_log.InfoFormat("[GETMESH]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
+//                m_log.DebugFormat("[GETMESH]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
                 GetMeshHandler gmeshHandler = new GetMeshHandler(m_AssetService);
                 IRequestHandler reqHandler = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(),
                                                            delegate(Hashtable m_dhttpMethod)
@@ -130,7 +130,7 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             else
             {
-                m_log.InfoFormat("[GETMESH]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
+//                m_log.DebugFormat("[GETMESH]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
                 caps.RegisterHandler("GetMesh", m_URL);
             }
         }

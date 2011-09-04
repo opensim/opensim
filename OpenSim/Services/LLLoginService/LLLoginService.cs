@@ -75,6 +75,7 @@ namespace OpenSim.Services.LLLoginService
         protected bool m_AllowRemoteSetLoginLevel;
         protected string m_MapTileURL;
         protected string m_SearchURL;
+        protected string m_Currency;
 
         protected string m_AllowedClients;
         protected string m_DeniedClients;
@@ -108,6 +109,7 @@ namespace OpenSim.Services.LLLoginService
             m_GatekeeperURL = m_LoginServerConfig.GetString("GatekeeperURI", string.Empty);
             m_MapTileURL = m_LoginServerConfig.GetString("MapTileURL", string.Empty);
             m_SearchURL = m_LoginServerConfig.GetString("SearchURL", string.Empty);
+            m_Currency = m_LoginServerConfig.GetString("Currency", string.Empty);
 
             m_AllowedClients = m_LoginServerConfig.GetString("AllowedClients", string.Empty);
             m_DeniedClients = m_LoginServerConfig.GetString("DeniedClients", string.Empty);
@@ -408,14 +410,14 @@ namespace OpenSim.Services.LLLoginService
                 if (m_FriendsService != null)
                 {
                     friendsList = m_FriendsService.GetFriends(account.PrincipalID);
-                    m_log.DebugFormat("[LLOGIN SERVICE]: Retrieved {0} friends", friendsList.Length);
+//                    m_log.DebugFormat("[LLOGIN SERVICE]: Retrieved {0} friends", friendsList.Length);
                 }
 
                 //
                 // Finally, fill out the response and return it
                 //
                 LLLoginResponse response = new LLLoginResponse(account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
-                    where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP, m_MapTileURL, m_SearchURL);
+                    where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP, m_MapTileURL, m_SearchURL, m_Currency);
 
                 m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to client.");
                 return response;
@@ -792,7 +794,7 @@ namespace OpenSim.Services.LLLoginService
             if (avatar != null)
                 aCircuit.Appearance = new AvatarAppearance(avatar);
             else
-                aCircuit.Appearance = new AvatarAppearance(account.PrincipalID);
+                aCircuit.Appearance = new AvatarAppearance();
 
             //aCircuit.BaseFolder = irrelevant
             aCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();

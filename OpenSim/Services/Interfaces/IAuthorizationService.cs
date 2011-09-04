@@ -34,14 +34,21 @@ namespace OpenSim.Services.Interfaces
     
     public interface IAuthorizationService
     {
-        //////////////////////////////////////////////////////
-        // Authorized
-        //
-        // This method returns a simple true false indicating 
-        // whether or not a user has access to the region
-        //
-        bool IsAuthorizedForRegion(string userID, string regionID, out string message);
-
+        /// <summary>
+        /// Check whether the user should be given access to the region.
+        /// </summary>
+        /// <remarks>
+        /// We also supply user first name and last name for situations where the user does not have an account
+        /// on the region (e.g. they're a visitor via Hypergrid).
+        /// </remarks>
+        /// <param name="userID"></param>
+        /// <param name="firstName">/param>
+        /// <param name="lastName"></param>
+        /// <param name="regionID"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        bool IsAuthorizedForRegion(
+            string userID, string firstName, string lastName, string regionID, out string message);
     }
     
     public class AuthorizationRequest
@@ -63,7 +70,8 @@ namespace OpenSim.Services.Interfaces
             m_regionID = RegionID;
         }
         
-        public AuthorizationRequest(string ID,string FirstName, string SurName, string Email, string RegionName, string RegionID)
+        public AuthorizationRequest(
+            string ID, string FirstName, string SurName, string Email, string RegionName, string RegionID)
         {
             m_userID = ID;
             m_firstname = FirstName;
@@ -108,9 +116,6 @@ namespace OpenSim.Services.Interfaces
             get { return m_regionID; }
             set { m_regionID = value; }
         }
-        
-        
-        
     }
     
     public class AuthorizationResponse
@@ -126,7 +131,6 @@ namespace OpenSim.Services.Interfaces
         {
             m_isAuthorized = isAuthorized;
             m_message = message;
-            
         }
         
         public bool IsAuthorized

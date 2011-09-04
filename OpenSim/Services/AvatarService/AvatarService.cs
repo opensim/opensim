@@ -54,7 +54,7 @@ namespace OpenSim.Services.AvatarService
         public AvatarAppearance GetAppearance(UUID principalID)
         {
             AvatarData avatar = GetAvatar(principalID);
-            return avatar.ToAvatarAppearance(principalID);
+            return avatar.ToAvatarAppearance();
         }
         
         public bool SetAppearance(UUID principalID, AvatarAppearance appearance)
@@ -109,7 +109,33 @@ namespace OpenSim.Services.AvatarService
             foreach (KeyValuePair<string,string> kvp in avatar.Data)
             {
                 av.Data["Name"] = kvp.Key;
-                av.Data["Value"] = kvp.Value;
+
+                // justincc 20110730.  Yes, this is a hack to get around the fact that a bug in OpenSim is causing
+                // various simulators on osgrid to inject bad values.  Since these simulators might be around for a
+                // long time, we are going to manually police the value.
+                //
+                // It should be possible to remove this in half a year if we don't want to police values server side.
+                if (kvp.Key == "AvatarHeight")
+                {
+                    float height;
+                    if (!float.TryParse(kvp.Value, out height) || height < 0 || height > 10)
+                    {
+                        string rawHeight = kvp.Value.Replace(",", ".");
+
+                        if (!float.TryParse(rawHeight, out height) || height < 0 || height > 10)
+                            height = 1.771488f;
+
+                        m_log.DebugFormat(
+                            "[AVATAR SERVICE]: Rectifying height of avatar {0} from {1} to {2}",
+                            principalID, kvp.Value, height);
+                    }
+
+                    av.Data["Value"] = height.ToString();
+                }
+                else
+                {
+                    av.Data["Value"] = kvp.Value;
+                }
                 
                 if (!m_Database.Store(av))
                 {

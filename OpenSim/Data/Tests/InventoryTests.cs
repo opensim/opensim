@@ -114,7 +114,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T001_LoadEmpty()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             Assert.That(db.getInventoryFolder(zero), Is.Null);
             Assert.That(db.getInventoryFolder(folder1), Is.Null);
@@ -134,7 +134,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T010_FolderNonParent()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             InventoryFolderBase f1 = NewFolder(folder2, folder1, owner1, name2);
             // the folder will go in
@@ -146,7 +146,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T011_FolderCreate()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             InventoryFolderBase f1 = NewFolder(folder1, zero, owner1, name1);
             // TODO: this is probably wrong behavior, but is what we have
@@ -171,7 +171,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T012_FolderList()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             InventoryFolderBase f2 = NewFolder(folder3, folder1, owner1, name3);
             db.addInventoryFolder(f2);
@@ -187,7 +187,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T013_FolderHierarchy()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             int n = db.getFolderHierarchy(zero).Count;  // (for dbg - easier to see what's returned)
             Assert.That(n, Is.EqualTo(0), "Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0))");
@@ -202,7 +202,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T014_MoveFolder()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             InventoryFolderBase f2 = db.getInventoryFolder(folder2);
             f2.ParentID = folder3;
@@ -218,7 +218,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T015_FolderHierarchy()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0), "Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0))");
             Assert.That(db.getFolderHierarchy(folder1).Count, Is.EqualTo(2), "Assert.That(db.getFolderHierarchy(folder1).Count, Is.EqualTo(2))");
@@ -231,7 +231,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T100_NoItems()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0), "Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0))");
             Assert.That(db.getInventoryInFolder(folder1).Count, Is.EqualTo(0), "Assert.That(db.getInventoryInFolder(folder1).Count, Is.EqualTo(0))");
@@ -245,7 +245,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T101_CreatItems()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             db.addInventoryItem(NewItem(item1, folder3, owner1, iname1, asset1));
             db.addInventoryItem(NewItem(item2, folder3, owner1, iname2, asset2));
@@ -256,7 +256,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T102_CompareItems()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             InventoryItemBase i1 = db.getInventoryItem(item1);
             InventoryItemBase i2 = db.getInventoryItem(item2);
@@ -275,7 +275,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T103_UpdateItem()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             // TODO: probably shouldn't have the ability to have an
             // owner of an item in a folder not owned by the user
@@ -295,7 +295,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T104_RandomUpdateItem()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             PropertyScrambler<InventoryFolderBase> folderScrambler =
                 new PropertyScrambler<InventoryFolderBase>()
@@ -354,7 +354,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T999_StillNull()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             // After all tests are run, these should still return no results
             Assert.That(db.getInventoryFolder(zero), Is.Null);

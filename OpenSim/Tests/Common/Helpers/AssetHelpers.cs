@@ -42,7 +42,7 @@ namespace OpenSim.Tests.Common
         /// <returns></returns>
         public static AssetBase CreateAsset()
         {
-            return CreateAsset(UUID.Random(), AssetType.Notecard, "hello", UUID.Random());
+            return CreateAsset(UUID.Random());
         }
 
         /// <summary>
@@ -50,9 +50,9 @@ namespace OpenSim.Tests.Common
         /// </summary>
         /// <param name="creatorId">/param>
         /// <returns></returns>
-        public static AssetBase CreateAsset(UUID creatorId)
+        public static AssetBase CreateAsset(UUID id)
         {
-            return CreateAsset(UUID.Random(), AssetType.Notecard, "hello", creatorId);
+            return CreateAsset(id, AssetType.Notecard, "hello", UUID.Random());
         }
         
         /// <summary>

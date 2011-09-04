@@ -61,7 +61,7 @@ namespace OpenSim.Framework.Tests
                             "Magnitude of vector was incorrect.");
 
                 TestDelegate d = delegate() { Util.GetNormalizedVector(v1); };
-                bool causesArgumentException = TestHelper.AssertThisDelegateCausesArgumentException(d);
+                bool causesArgumentException = TestHelpers.AssertThisDelegateCausesArgumentException(d);
                 Assert.That(causesArgumentException, Is.True,
                             "Getting magnitude of null vector did not cause argument exception.");
 
@@ -94,12 +94,12 @@ namespace OpenSim.Framework.Tests
                             "Magnitude of vector was incorrect.");
 
                 TestDelegate d = delegate() { Util.GetNormalizedVector(v1); };
-                bool causesArgumentException = TestHelper.AssertThisDelegateCausesArgumentException(d);
+                bool causesArgumentException = TestHelpers.AssertThisDelegateCausesArgumentException(d);
                 Assert.That(causesArgumentException, Is.True,
                             "Getting magnitude of null vector did not cause argument exception.");
 
                 d = delegate() { Util.GetNormalizedVector(v2); };
-                causesArgumentException = TestHelper.AssertThisDelegateCausesArgumentException(d);
+                causesArgumentException = TestHelpers.AssertThisDelegateCausesArgumentException(d);
                 Assert.That(causesArgumentException, Is.True,
                             "Getting magnitude of null vector did not cause argument exception.");
             }
@@ -122,7 +122,7 @@ namespace OpenSim.Framework.Tests
                             "Magnitude of vector was incorrect.");
 
                 TestDelegate d = delegate() { Util.GetNormalizedVector(v1); };
-                bool causesArgumentException = TestHelper.AssertThisDelegateCausesArgumentException(d);
+                bool causesArgumentException = TestHelpers.AssertThisDelegateCausesArgumentException(d);
                 Assert.That(causesArgumentException, Is.True,
                             "Getting magnitude of null vector did not cause argument exception.");
 

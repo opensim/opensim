@@ -51,6 +51,13 @@ namespace OpenSim.Services.Connectors
         private int m_retryCounter;
         private Dictionary<int, List<AssetBase>> m_retryQueue = new Dictionary<int, List<AssetBase>>();
         private Timer m_retryTimer;
+        private delegate void AssetRetrievedEx(AssetBase asset);
+
+        // Keeps track of concurrent requests for the same asset, so that it's only loaded once.
+        // Maps: Asset ID -> Handlers which will be called when the asset has been loaded
+        private Dictionary<string, AssetRetrievedEx> m_AssetHandlers = new Dictionary<string, AssetRetrievedEx>();
+
+
         public AssetServicesConnector()
         {
         }
@@ -230,23 +237,56 @@ namespace OpenSim.Services.Connectors
 
             if (asset == null || asset.Data == null || asset.Data.Length == 0)
             {
-                bool result = false;
+                lock (m_AssetHandlers)
+                {
+                    AssetRetrievedEx handlerEx = new AssetRetrievedEx(delegate(AssetBase _asset) { handler(id, sender, _asset); });
 
-                AsynchronousRestObjectRequester.
-                        MakeRequest<int, AssetBase>("GET", uri, 0,
+                    AssetRetrievedEx handlers;
+                    if (m_AssetHandlers.TryGetValue(id, out handlers))
+                    {
+                        // Someone else is already loading this asset. It will notify our handler when done.
+                        handlers += handlerEx;
+                        return true;
+                    }
+
+                    // Load the asset ourselves
+                    handlers += handlerEx;
+                    m_AssetHandlers.Add(id, handlers);
+                }
+
+                bool success = false;
+                try
+                {
+                    AsynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0,
                         delegate(AssetBase a)
                         {
                             if (m_Cache != null)
                                 m_Cache.Cache(a);
-                            handler(id, sender, a);
-                            result = true;
-                        });
 
-                return result;
+                            AssetRetrievedEx handlers;
+                            lock (m_AssetHandlers)
+                            {
+                                handlers = m_AssetHandlers[id];
+                                m_AssetHandlers.Remove(id);
+                            }
+                            handlers.Invoke(a);
+                        });
+                    
+                    success = true;
+                }
+                finally
+                {
+                    if (!success)
+                    {
+                        lock (m_AssetHandlers)
+                        {
+                            m_AssetHandlers.Remove(id);
+                        }
+                    }
+                }
             }
             else
             {
-                //Util.FireAndForget(delegate { handler(id, sender, asset); });
                 handler(id, sender, asset);
             }
 

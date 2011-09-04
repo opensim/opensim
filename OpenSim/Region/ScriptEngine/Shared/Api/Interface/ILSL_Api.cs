@@ -60,6 +60,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llBase64ToString(string str);
               void llBreakAllLinks();
               void llBreakLink(int linknum);
+          LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options);
        LSL_Integer llCeil(double f);
               void llClearCameraParams();
        LSL_Integer llClearPrimMedia(LSL_Integer face);
@@ -271,6 +272,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llPushObject(string target, LSL_Vector impulse, LSL_Vector ang_impulse, int local);
               void llRefreshPrimURL();
               void llRegionSay(int channelID, string text);
+              void llRegionSayTo(string target, int channelID, string text);
               void llReleaseCamera(string avatar);
               void llReleaseControls();
               void llReleaseURL(string url);
@@ -405,7 +407,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llXorBase64StringsCorrect(string str1, string str2);
        LSL_Integer llGetLinkNumberOfSides(LSL_Integer link);
 
-        void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
-        LSL_List GetLinkPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
+              void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
+          LSL_List GetLinkPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
     }
 }

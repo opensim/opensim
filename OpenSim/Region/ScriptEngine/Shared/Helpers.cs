@@ -205,7 +205,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return;
             }
 
-            part=part.ParentGroup.RootPart; // We detect objects only
+            part = part.ParentGroup.RootPart; // We detect objects only
 
             LinkNum = 0; // Not relevant
 

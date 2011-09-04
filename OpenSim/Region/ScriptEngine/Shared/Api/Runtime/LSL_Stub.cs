@@ -1206,6 +1206,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llRegionSay(channelID, text);
         }
 
+        public void llRegionSayTo(string key, int channelID, string text)
+        {
+            m_LSL_Functions.llRegionSayTo(key, channelID, text);
+        }
+
         public void llReleaseCamera(string avatar)
         {
             m_LSL_Functions.llReleaseCamera(avatar);

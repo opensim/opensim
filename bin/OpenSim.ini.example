@@ -39,6 +39,9 @@
     ;# {save_crashes} {} {Save crashes to disk?} {true false} false
     ;; Set this to true if you want to log crashes to disk
     ;; this can be useful when submitting bug reports.
+    ;; However, this will only log crashes within OpenSimulator that cause the entire program to exit
+    ;; It will not log crashes caused by virtual machine failures, which includes mono and ODE failures.
+    ;; You will need to capture these native stack traces by recording the session log itself.
     ; save_crashes = false
 
     ;# {crash_dir} {save_crashes:true} {Directory to save crashes to?} {} crashes
@@ -68,15 +71,6 @@
     ;; in a <Regions> tag.
     ; regionload_webserver_url = "http://example.com/regions.xml";
 
-    ;# {TextureOnMapTile} {} {Use terrain textures for map tiles?} {true false} false
-    ;; Use terrain texture for maptiles if true, use shaded green if false
-    ; TextureOnMapTile = false
-
-    ;# {DrawPrimOnMapTile} {} {Draw prim shapes on map tiles?} {true false} false
-    ;; Draw objects on maptile.  This step might take a long time if you've
-    ;; got a large number of objects, so you can turn it off here if you'd like.
-    ; DrawPrimOnMapTile = true
-
     ;# {NonPhysicalPrimMax} {} {Maximum size of nonphysical prims?} {} 256
     ;; Maximum size for non-physical prims.  Affects resizing of existing prims.  This can be overriden in the region config file (as NonphysicalPrimMax!).
     ; NonPhysicalPrimMax = 256
@@ -89,9 +83,11 @@
     ;; This can be overriden in the region config file.
     ; ClampPrimSize = false
 
-    ;# {AllowScriptCrossing} {} {Allow scripts to cross into this region} {true false} false
-    ;; Allow scripts to keep running when they cross region boundaries, rather than being restarted.  Script code is recompiled on the destination region and the state reloaded.
-    ; AllowScriptCrossing = false
+    ;# {AllowScriptCrossing} {} {Allow scripts to cross into this region} {true false} true
+    ;; Allow scripts to keep running when they cross region boundaries, rather than being restarted.  State is reloaded on the destination region.
+    ;; This only applies when crossing to a region running in a different simulator.  
+    ;; For crossings where the regions are on the same simulator the script is always kept running.
+    ; AllowScriptCrossing = true
 
     ;# {TrustBinaries} {AllowScriptCrossing:true} {Accept compiled binary script code? (DANGEROUS!)} {true false} false
     ;; Allow compiled script binary code to cross region boundaries.
@@ -155,6 +151,7 @@
     ;; OpenDynamicsEngine is by some distance the most developed physics engine
     ;; basicphysics effectively does not model physics at all, making all
     ;; objects phantom
+    ;; The Bullet plugins do not work properly right now.  A better Bullet plugin is on the way.
     ;; Default is OpenDynamicsEngine
     ; physics = OpenDynamicsEngine
     ; physics = basicphysics
@@ -190,7 +187,7 @@
     ;; Map tile options. You can choose to generate no map tiles at all,
     ;; generate normal maptiles, or nominate an uploaded texture to
     ;; be the map tile
-    ; GenerateMaptiles = "true"
+    ; GenerateMaptiles = true
 
     ;; If desired, a running region can update the map tiles periodically
     ;; to reflect building activity. This names no sense of you don't have
@@ -199,6 +196,15 @@
 
     ;; If not generating maptiles, use this static texture asset ID
     ; MaptileStaticUUID = "00000000-0000-0000-0000-000000000000"
+
+    ;# {TextureOnMapTile} {} {Use terrain textures for map tiles?} {true false} true
+    ;; Use terrain texture for maptiles if true, use shaded green if false
+    ; TextureOnMapTile = true
+
+    ;# {DrawPrimOnMapTile} {} {Draw prim shapes on map tiles?} {true false} false
+    ;; Draw objects on maptile.  This step might take a long time if you've
+    ;; got a large number of objects, so you can turn it off here if you'd like.
+    ; DrawPrimOnMapTile = true
 
     ;; Http proxy setting for llHTTPRequest and dynamic texture loading, if required
     ; HttpProxy = "http://proxy.com:8080"
@@ -218,7 +224,7 @@
     ;; The SMTP server enabled the email module to send email to external
     ;; destinations.
 
-    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {Enable SMTP service?} {true false} true
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {Enable SMTP service?} {true false} false
     ;; Enable sending email via SMTP
     ; enabled = false
 
@@ -313,8 +319,8 @@
     ; meant to override the MapImage and search server url given at login, and varying 
     ; on a sim-basis.
     ; Viewers that don't understand it, will ignore it
-    ;MapImageServerURI = "http://127.0.0.1:9000/
-    ;SearchServerURI = "http://127.0.0.1:9000/
+    ;MapImageServerURI = "http://127.0.0.1:9000/"
+    ;SearchServerURI = "http://127.0.0.1:9000/"
 
 
 [Chat]
@@ -709,6 +715,11 @@
     ;# {Enabled} {} {Enable Media-on-a-Prim (MOAP)} {true false} true
     ;; Enable media on a prim facilities
     ; Enabled = true;
+
+
+[NPC]
+    ;# {Enabled} {} {Enable Non Player Character (NPC) facilities} {true false} false
+    ; Enabled = false
 
 
 [PrimLimitsModule]

@@ -177,18 +177,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Add/Remove Agent/Avatar
 
-        /// <summary>
-        /// Register the new client with the scene.  The client starts off as a child agent - the later agent crossing
-        /// will promote it to a root agent during login.
-        /// </summary>
-        /// <param name="client"></param
-        public abstract void AddNewClient(IClientAPI client);
-
-        /// <summary>
-        /// Remove a client from the scene
-        /// </summary>
-        /// <param name="agentID"></param>
-        public abstract void RemoveClient(UUID agentID);
+        public abstract void AddNewClient(IClientAPI client, PresenceType type);
+        public abstract void RemoveClient(UUID agentID, bool closeChildAgents);
 
         public bool TryGetScenePresence(UUID agentID, out object scenePresence)
         {

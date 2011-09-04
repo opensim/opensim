@@ -211,11 +211,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                                 return;
                             }
                         }
-                        else
-                        {
-                            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: User {0} does not have InventoryServerURI. OH NOES!", userID);
-                            return;
-                        }
+//                        else
+//                        {
+//                            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: User {0} does not have InventoryServerURI. OH NOES!", userID);
+//                            return;
+//                        }
                     }
                 }
                 if (sp == null)

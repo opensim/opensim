@@ -1373,9 +1373,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public string GetXMLState(UUID itemID)
         {
+//            m_log.DebugFormat("[XEngine]: Getting XML state for {0}", itemID);
+
             IScriptInstance instance = GetInstance(itemID);
             if (instance == null)
+            {
+//                m_log.DebugFormat("[XEngine]: Found no script for {0}, returning empty string", itemID);
                 return "";
+            }
+
             string xml = instance.GetXMLState();
 
             XmlDocument sdoc = new XmlDocument();
@@ -1516,6 +1522,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             mapData.InnerText = map;
 
             stateData.AppendChild(mapData);
+
+//            m_log.DebugFormat("[XEngine]: Got XML state for {0}", itemID);
+
             return doc.InnerXml;
         }
 

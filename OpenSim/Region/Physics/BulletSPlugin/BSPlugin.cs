@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -6,7 +6,7 @@
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
+ *     * Redistributions in binary form must reproduce the above copyrightD
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
  *     * Neither the name of the OpenSimulator Project nor the
@@ -24,48 +24,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 using System;
-using System.Diagnostics;
-using NUnit.Framework;
+using System.Collections.Generic;
+using OpenSim.Framework;
+using OpenSim.Region.Physics.Manager;
 using OpenMetaverse;
 
-namespace OpenSim.Tests.Common
+namespace OpenSim.Region.Physics.BulletSPlugin
 {
-    public class TestHelper
+public class BSPlugin : IPhysicsPlugin
+{
+    //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+    private BSScene _mScene;
+
+    public BSPlugin()
     {
-        public static bool AssertThisDelegateCausesArgumentException(TestDelegate d)
-        {
-            try
-            {
-                d();
-            }
-            catch(ArgumentException)
-            {
-                return true;
-            }
-
-            return false;
-        }
-        
-        /// <summary>
-        /// A debugging method that can be used to print out which test method you are in 
-        /// </summary>
-        public static void InMethod()
-        {
-            StackTrace stackTrace = new StackTrace();
-            Console.WriteLine();
-            Console.WriteLine("===> In Test Method : {0} <===", stackTrace.GetFrame(1).GetMethod().Name);
-        }
-
-        /// <summary>
-        /// Parse tail section into full UUID.
-        /// </summary>
-        /// <param name="tail"></param>
-        /// <returns></returns>
-        public static UUID ParseTail(int tail)
-        {
-            return new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", tail));
-        }
     }
+
+    public bool Init()
+    {
+        return true;
+    }
+
+    public PhysicsScene GetScene(String sceneIdentifier)
+    {
+        if (_mScene == null)
+        {
+            _mScene = new BSScene(sceneIdentifier);
+        }
+        return (_mScene);
+    }
+
+    public string GetName()
+    {
+        return ("BulletSim");
+    }
+
+    public void Dispose()
+    {
+    }
+}
 }

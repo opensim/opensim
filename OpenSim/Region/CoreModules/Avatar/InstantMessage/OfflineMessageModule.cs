@@ -172,11 +172,15 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         private void RetrieveInstantMessages(IClientAPI client)
         {
             if (m_RestURL == String.Empty)
+			{
                 return;
+			}
+			else
+            {
+                m_log.DebugFormat("[OFFLINE MESSAGING]: Retrieving stored messages for {0}", client.AgentId);
 
-            m_log.DebugFormat("[OFFLINE MESSAGING] Retrieving stored messages for {0}", client.AgentId);
-
-            List<GridInstantMessage> msglist = SynchronousRestObjectPoster.BeginPostObject<UUID, List<GridInstantMessage>>(
+                List<GridInstantMessage> msglist
+                    = SynchronousRestObjectRequester.MakeRequest<UUID, List<GridInstantMessage>>(
                         "POST", m_RestURL + "/RetrieveMessages/", client.AgentId);
 
             if (msglist != null)
@@ -209,6 +213,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 im.dialog != (byte)InstantMessageDialog.GroupInvitation &&
                 im.dialog != (byte)InstantMessageDialog.InventoryOffered)
             {
+                bool success = SynchronousRestObjectRequester.MakeRequest<GridInstantMessage, bool>(
+                        "POST", m_RestURL+"/SaveMessage/", im);
                 return;
             }
 

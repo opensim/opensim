@@ -53,6 +53,11 @@ namespace OpenSim.Data.SQLite
         private Dictionary<string, FieldInfo> m_FieldMap =
                 new Dictionary<string, FieldInfo>();
 
+        protected virtual Assembly Assembly
+        {
+            get { return GetType().Assembly; }
+        }
+
         public SQLiteEstateStore()
         {
         }
@@ -71,8 +76,7 @@ namespace OpenSim.Data.SQLite
             m_connection = new SqliteConnection(m_connectionString);
             m_connection.Open();
 
-            Assembly assem = GetType().Assembly;
-            Migration m = new Migration(m_connection, assem, "EstateStore");
+            Migration m = new Migration(m_connection, Assembly, "EstateStore");
             m.Update();
 
             //m_connection.Close();

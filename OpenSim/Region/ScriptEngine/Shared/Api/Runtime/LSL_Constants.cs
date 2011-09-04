@@ -594,7 +594,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int STATS_ACTIVE_SCRIPTS = 19;
         public const int STATS_SCRIPT_LPS = 20;
 
+        // Constants for osNpc* functions
+        public const int OS_NPC_FLY = 0;
+        public const int OS_NPC_NO_FLY = 1;
+        public const int OS_NPC_LAND_AT_TARGET = 2;
+
         public const string URL_REQUEST_GRANTED = "URL_REQUEST_GRANTED";
         public const string URL_REQUEST_DENIED = "URL_REQUEST_DENIED";
+
+        public static readonly LSLInteger RC_REJECT_TYPES = 2;
+        public static readonly LSLInteger RC_DATA_FLAGS = 4;
+        public static readonly LSLInteger RC_MAX_HITS = 8;
+        public static readonly LSLInteger RC_DETECT_PHANTOM = 16;
+
+        public static readonly LSLInteger RC_REJECT_AGENTS = 2;
+        public static readonly LSLInteger RC_REJECT_PHYSICAL = 4;
+        public static readonly LSLInteger RC_REJECT_NONPHYSICAL = 8;
+        public static readonly LSLInteger RC_REJECT_LAND = 16;
+
+        public static readonly LSLInteger RC_GET_NORMAL = 2;
+        public static readonly LSLInteger RC_GET_ROOT_KEY = 4;
+        public static readonly LSLInteger RC_GET_LINK_NUM = 8;
+
+        public static readonly LSLInteger RCERR_CAST_TIME_EXCEEDED = 1;
     }
 }

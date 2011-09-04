@@ -188,6 +188,8 @@ namespace OpenSim.Services.LLLoginService
 
         private BuddyList m_buddyList = null;
 
+        private string currency;
+
         static LLLoginResponse()
         {
             // This is being set, but it's not used
@@ -223,7 +225,7 @@ namespace OpenSim.Services.LLLoginService
         public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, GridUserInfo pinfo,
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
-            GridRegion home, IPEndPoint clientIP, string mapTileURL, string searchURL)
+            GridRegion home, IPEndPoint clientIP, string mapTileURL, string searchURL, string currency)
             : this()
         {
             FillOutInventoryData(invSkel, libService);
@@ -241,6 +243,7 @@ namespace OpenSim.Services.LLLoginService
             StartLocation = where;
             MapTileURL = mapTileURL;
             SearchURL = searchURL;
+            Currency = currency;
 
             FillOutHomeData(pinfo, home);
             LookAt = String.Format("[r{0},r{1},r{2}]", lookAt.X, lookAt.Y, lookAt.Z);
@@ -388,6 +391,8 @@ namespace OpenSim.Services.LLLoginService
             initialOutfit.Add(InitialOutfitHash);
             mapTileURL = String.Empty;
             searchURL = String.Empty;
+
+            currency = String.Empty;
         }
 
 
@@ -460,6 +465,12 @@ namespace OpenSim.Services.LLLoginService
                 if (m_buddyList != null)
                 {
                     responseData["buddy-list"] = m_buddyList.ToArray();
+                }
+
+                if (currency != String.Empty)
+                {
+                    // responseData["real_currency"] = currency;
+                    responseData["currency"] = currency;
                 }
 
                 responseData["login"] = "true";
@@ -944,6 +955,12 @@ namespace OpenSim.Services.LLLoginService
         {
             get { return m_buddyList; }
             set { m_buddyList = value; }
+        }
+
+        public string Currency
+        {
+            get { return currency; }
+            set { currency = value; }
         }
 
         #endregion

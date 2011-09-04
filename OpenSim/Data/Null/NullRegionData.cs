@@ -40,7 +40,7 @@ namespace OpenSim.Data.Null
     {
         private static NullRegionData Instance = null;
 
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         Dictionary<UUID, RegionData> m_regionData = new Dictionary<UUID, RegionData>();
 
@@ -97,7 +97,7 @@ namespace OpenSim.Data.Null
 
             foreach (RegionData r in m_regionData.Values)
             {
-                    m_log.DebugFormat("[NULL REGION DATA]: comparing {0} to {1}", cleanName, r.RegionName.ToLower());
+//                    m_log.DebugFormat("[NULL REGION DATA]: comparing {0} to {1}", cleanName, r.RegionName.ToLower());
                     if (queryMatch(r.RegionName.ToLower()))
                         ret.Add(r);
             }

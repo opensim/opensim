@@ -108,8 +108,6 @@
     <Key Name="inventoryType" Value="19" />
   </Section>
 
-  
-
 <!--
   <Section Name="Example Library Item">
     <Key Name="inventoryID" Value="30000000-0000-2222-4444-000000000001" />
@@ -119,10 +117,6 @@
     <Key Name="name" Value="Example Library Item" />
     <Key Name="assetType" Value="7" />
     <Key Name="inventoryType" Value="7" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
 --> 
 

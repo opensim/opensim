@@ -208,9 +208,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     Array.Copy(copyIDBytes, 0, im.binaryBucket, 1, copyIDBytes.Length);
                     
                     if (user != null)
-                    {
                         user.ControllingClient.SendBulkUpdateInventory(folderCopy);
-                    }
 
                     // HACK!!
                     im.imSessionID = folderID.Guid;
@@ -240,9 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     Array.Copy(copyID.GetBytes(), 0, im.binaryBucket, 1, 16);
                     
                     if (user != null)
-                    {
                         user.ControllingClient.SendBulkUpdateInventory(itemCopy);
-                    }
 
                     // HACK!!
                     im.imSessionID = itemID.Guid;
@@ -280,7 +276,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 else
                 {
                     if (m_TransferModule != null)
-                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {});
+                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {
+                            // Send BulkUpdateInventory
+                            IInventoryService invService = scene.InventoryService;
+                            UUID inventoryEntityID = new UUID(im.imSessionID); // The inventory item /folder, back from it's trip
+
+                            InventoryFolderBase folder = new InventoryFolderBase(inventoryEntityID, client.AgentId);
+                            folder = invService.GetFolder(folder);
+
+                            ScenePresence fromUser = scene.GetScenePresence(new UUID(im.fromAgentID));
+
+                            // If the user has left the scene by the time the message comes back then we can't send
+                            // them the update.
+                            if (fromUser != null)
+                                fromUser.ControllingClient.SendBulkUpdateInventory(folder);
+                        });
                 }
             }
             else if (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)

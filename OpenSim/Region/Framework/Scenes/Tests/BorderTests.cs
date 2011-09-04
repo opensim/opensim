@@ -41,7 +41,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestCross()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             List<Border> testborders = new List<Border>();
 
@@ -99,7 +99,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestCrossSquare512()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             List<Border> testborders = new List<Border>();
 
@@ -179,7 +179,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestCrossRectangle512x256()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             List<Border> testborders = new List<Border>();
 
@@ -259,7 +259,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestCrossOdd512x512w256hole()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             List<Border> testborders = new List<Border>();
             //   512____

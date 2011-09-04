@@ -45,14 +45,15 @@
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
     ;; Copy the config .example file into your own .ini file and change configs there
+    ;; We recommend the use of the FlotsamAssetCache since this is most actively maintained.
+
+    AssetCaching = "FlotsamAssetCache"
+    Include-FlotsamCache = "config-include/FlotsamCache.ini"
 
     ;AssetCaching = "GlynnTuckerAssetCache"
 
-    ;AssetCaching = "FlotsamAssetCache"
-    ;Include-FlotsamCache = "config-include/FlotsamCache.ini"
-
-    AssetCaching = "CenomeMemoryAssetCache"
-    Include-CenomeCache = "config-include/CenomeCache.ini"
+    ; AssetCaching = "CenomeMemoryAssetCache"
+    ; Include-CenomeCache = "config-include/CenomeCache.ini"
 
     ;; Authorization is not on by default, as it depends on external php
     ;AuthorizationServices = "LocalAuthorizationServicesConnector"
@@ -96,23 +97,26 @@
     SRV_FriendsServerURI = "http://127.0.0.1:9000"
     SRV_IMServerURI = "http://127.0.0.1:9000"
 
-	;; For Viewer 2
-	MapTileURL = "http://127.0.0.1:9000/"
+    ;; For Viewer 2
+    MapTileURL = "http://127.0.0.1:9000/"
 
-	;; Regular expressions for controlling which client versions are accepted/denied.
-	;; An empty string means nothing is checked.
-	;;
-	;; Example 1: allow only these 3 types of clients (any version of them)
-	;; AllowedClients = "Imprudence|Hippo|Second Life"
-	;;
-	;; Example 2: allow all clients except these
-	;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
-	;;
-	;; Note that these are regular expressions, so every character counts.
-	;; Also note that this is very weak security and should not be trusted as a reliable means
-	;; for keeping bad clients out; modified clients can fake their identifiers.
-	;;
-	;;
+    ;; Ask co-operative viewers to use a different currency name
+    ;Currency = ""
+
+    ;; Regular expressions for controlling which client versions are accepted/denied.
+    ;; An empty string means nothing is checked.
+    ;;
+    ;; Example 1: allow only these 3 types of clients (any version of them)
+    ;; AllowedClients = "Imprudence|Hippo|Second Life"
+    ;;
+    ;; Example 2: allow all clients except these
+    ;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
+    ;;
+    ;; Note that these are regular expressions, so every character counts.
+    ;; Also note that this is very weak security and should not be trusted as a reliable means
+    ;; for keeping bad clients out; modified clients can fake their identifiers.
+    ;;
+    ;;
     ;AllowedClients = ""
     ;DeniedClients = ""
 

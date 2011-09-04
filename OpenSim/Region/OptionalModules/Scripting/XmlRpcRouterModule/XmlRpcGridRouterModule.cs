@@ -106,7 +106,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
                 info.channel = channel;
                 info.uri = uri;
 
-                bool success = SynchronousRestObjectPoster.BeginPostObject<XmlRpcInfo, bool>(
+                bool success = SynchronousRestObjectRequester.MakeRequest<XmlRpcInfo, bool>(
                         "POST", m_ServerURI+"/RegisterChannel/", info);
 
                 if (!success)
@@ -125,7 +125,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
 
             if (m_Channels.ContainsKey(itemID))
             {
-                bool success = SynchronousRestObjectPoster.BeginPostObject<UUID, bool>(
+                bool success = SynchronousRestObjectRequester.MakeRequest<UUID, bool>(
                         "POST", m_ServerURI+"/RemoveChannel/", m_Channels[itemID]);
 
                 if (!success)

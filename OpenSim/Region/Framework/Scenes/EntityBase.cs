@@ -66,12 +66,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Signals whether this entity was in a scene but has since been removed from it.
         /// </summary>
-        public bool IsDeleted
-        {
-            get { return m_isDeleted; }
-            set { m_isDeleted = value; }
-        }
-        protected bool m_isDeleted;
+        public bool IsDeleted { get; protected internal set; }
 
         protected Vector3 m_pos;
 

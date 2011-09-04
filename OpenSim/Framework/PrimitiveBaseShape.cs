@@ -879,6 +879,67 @@ namespace OpenSim.Framework
             }
         }
 
+        public ulong GetMeshKey(Vector3 size, float lod)
+        {
+            ulong hash = 5381;
+
+            hash = djb2(hash, this.PathCurve);
+            hash = djb2(hash, (byte)((byte)this.HollowShape | (byte)this.ProfileShape));
+            hash = djb2(hash, this.PathBegin);
+            hash = djb2(hash, this.PathEnd);
+            hash = djb2(hash, this.PathScaleX);
+            hash = djb2(hash, this.PathScaleY);
+            hash = djb2(hash, this.PathShearX);
+            hash = djb2(hash, this.PathShearY);
+            hash = djb2(hash, (byte)this.PathTwist);
+            hash = djb2(hash, (byte)this.PathTwistBegin);
+            hash = djb2(hash, (byte)this.PathRadiusOffset);
+            hash = djb2(hash, (byte)this.PathTaperX);
+            hash = djb2(hash, (byte)this.PathTaperY);
+            hash = djb2(hash, this.PathRevolutions);
+            hash = djb2(hash, (byte)this.PathSkew);
+            hash = djb2(hash, this.ProfileBegin);
+            hash = djb2(hash, this.ProfileEnd);
+            hash = djb2(hash, this.ProfileHollow);
+
+            // TODO: Separate scale out from the primitive shape data (after
+            // scaling is supported at the physics engine level)
+            byte[] scaleBytes = size.GetBytes();
+            for (int i = 0; i < scaleBytes.Length; i++)
+                hash = djb2(hash, scaleBytes[i]);
+
+            // Include LOD in hash, accounting for endianness
+            byte[] lodBytes = new byte[4];
+            Buffer.BlockCopy(BitConverter.GetBytes(lod), 0, lodBytes, 0, 4);
+            if (!BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lodBytes, 0, 4);
+            }
+            for (int i = 0; i < lodBytes.Length; i++)
+                hash = djb2(hash, lodBytes[i]);
+
+            // include sculpt UUID
+            if (this.SculptEntry)
+            {
+                scaleBytes = this.SculptTexture.GetBytes();
+                for (int i = 0; i < scaleBytes.Length; i++)
+                    hash = djb2(hash, scaleBytes[i]);
+            }
+
+            return hash;
+        }
+
+        private ulong djb2(ulong hash, byte c)
+        {
+            return ((hash << 5) + hash) + (ulong)c;
+        }
+
+        private ulong djb2(ulong hash, ushort c)
+        {
+            hash = ((hash << 5) + hash) + (ulong)((byte)c);
+            return ((hash << 5) + hash) + (ulong)(c >> 8);
+        }
+
         public byte[] ExtraParamsToBytes()
         {
 //            m_log.DebugFormat("[EXTRAPARAMS]: Called ExtraParamsToBytes()");

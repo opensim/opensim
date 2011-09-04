@@ -26,81 +26,41 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.Reflection;
+using NUnit.Framework;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Framework
+namespace OpenSim.Region.Framework.Scenes.Tests
 {
     /// <summary>
-    /// Undo stack.  Deletes entries beyond a certain capacity
+    /// Basic scene object status tests
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    [Serializable]
-    public class UndoStack<T>
+    [TestFixture]
+    public class SceneObjectStatusTests
     {
-        private List<T> m_undolist;
-        private int m_max;
-
-        public UndoStack(int capacity)
+        [Test]
+        public void TestSetPhantom()
         {
-            m_undolist = new List<T>();
-            m_max = capacity;
-        }
+            TestHelpers.InMethod();
 
-        public bool IsFull
-        {
-            get { return m_undolist.Count >= m_max; }
-        }
+//            Scene scene = SceneSetupHelpers.SetupScene();
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, UUID.Zero);
+            SceneObjectPart rootPart = so.RootPart;
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
 
-        public int Capacity
-        {
-            get { return m_max; }
-        }
+            so.ScriptSetPhantomStatus(true);
 
-        public int Count
-        {
-            get
-            {
-                return m_undolist.Count;
-            }
-        }
+//            Console.WriteLine("so.RootPart.Flags [{0}]", so.RootPart.Flags);
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.Phantom));
 
-        public void Push(T item)
-        {
-            if (IsFull)
-            {
-                m_undolist.RemoveAt(0);
-            }
-            m_undolist.Add(item);
-        }
+            so.ScriptSetPhantomStatus(false);
 
-        public T Pop()
-        {
-            if (m_undolist.Count > 0)
-            {
-                int ind = m_undolist.Count - 1;
-                T item = m_undolist[ind];
-                m_undolist.RemoveAt(ind);
-                return item;
-            }
-            else
-                throw new InvalidOperationException("Cannot pop from empty stack");
-        }
-
-        public T Peek()
-        {
-            if (m_undolist.Count > 0)
-            {
-                return m_undolist[m_undolist.Count - 1];
-            }
-            else
-            {
-                return default(T);
-            }
-        }
-
-        public void Clear()
-        {
-            m_undolist.Clear();
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));            
         }
     }
 }

@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Tests
             SecureSessionId = UUID.Random();
             SessionId = UUID.Random();
 
-            AvAppearance = new AvatarAppearance(AgentId);
+            AvAppearance = new AvatarAppearance();
             VisualParams = new byte[218];
 
             //body

@@ -130,7 +130,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int idx = 0;
             while (idx < rules.Length)
             {
-                uint rule = (uint)rules.GetLSLIntegerItem(idx);
+                LSL_Integer ruleInt = rules.GetLSLIntegerItem(idx);
+                uint rule = (uint)ruleInt;
                 LSL_List toadd = new LSL_List();
 
                 switch (rule)
@@ -247,7 +248,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (toadd.Length > 0)
                 {
-                    values.Add(rule);
+                    values.Add(ruleInt);
                     values.Add(toadd.Data[0]);
                 }
                 idx++;

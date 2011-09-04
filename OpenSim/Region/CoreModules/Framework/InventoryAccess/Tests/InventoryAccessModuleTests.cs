@@ -65,8 +65,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             config.AddConfig("Modules");
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
             
-            m_scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(m_scene, config, m_iam);
+            m_scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(m_scene, config, m_iam);
             
             // Create user
             string userFirstName = "Jock";
@@ -82,14 +82,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
         [Test]
         public void TestRezCoalescedObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             // Create asset
-            SceneObjectGroup object1 = SceneSetupHelpers.CreateSceneObject(1, m_userId, "Object1", 0x20);
+            SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, m_userId, "Object1", 0x20);
             object1.AbsolutePosition = new Vector3(15, 30, 45);
             
-            SceneObjectGroup object2 = SceneSetupHelpers.CreateSceneObject(1, m_userId, "Object2", 0x40);
+            SceneObjectGroup object2 = SceneHelpers.CreateSceneObject(1, m_userId, "Object2", 0x40);
             object2.AbsolutePosition = new Vector3(25, 50, 75);                 
             
             CoalescedSceneObjects coa = new CoalescedSceneObjects(m_userId, object1, object2);
@@ -138,11 +138,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
         [Test]
         public void TestRezObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             // Create asset
-            SceneObjectGroup object1 = SceneSetupHelpers.CreateSceneObject(1, m_userId, "My Little Dog Object", 0x40);         
+            SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, m_userId, "My Little Dog Object", 0x40);         
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);

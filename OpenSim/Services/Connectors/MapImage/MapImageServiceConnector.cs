@@ -50,7 +50,6 @@ namespace OpenSim.Services.Connectors
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_ServerURI = String.Empty;
-        private IImprovedAssetCache m_Cache = null;
 
         public MapImageServicesConnector()
         {

@@ -191,10 +191,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (part == null)
                 return;
             
-            // The prim is in the process of being deleted.
-            if (null == part.ParentGroup.RootPart)
-                return;
-            
             // A deselect packet contains all the local prims being deselected.  However, since selection is still
             // group based we only want the root prim to trigger a full update - otherwise on objects with many prims
             // we end up sending many duplicate ObjectUpdates

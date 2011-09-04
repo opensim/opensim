@@ -40,6 +40,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.Avatar.Gods;
+using OpenSim.Region.CoreModules.Asset;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory;
@@ -54,8 +55,13 @@ namespace OpenSim.Tests.Common
     /// <summary>
     /// Helpers for setting up scenes.
     /// </summary>
-    public class SceneSetupHelpers
+    public class SceneHelpers
     {
+        public static TestScene SetupScene()
+        {
+            return SetupScene(null);
+        }
+
         /// <summary>
         /// Set up a test scene
         /// </summary>
@@ -63,9 +69,14 @@ namespace OpenSim.Tests.Common
         /// Automatically starts service threads, as would the normal runtime.
         /// </remarks>
         /// <returns></returns>
-        public static TestScene SetupScene()
+        public static TestScene SetupScene(CoreAssetCache cache)
         {
-            return SetupScene("Unit test region", UUID.Random(), 1000, 1000);
+            return SetupScene("Unit test region", UUID.Random(), 1000, 1000, cache);
+        }
+
+        public static TestScene SetupScene(string name, UUID id, uint x, uint y)
+        {
+            return SetupScene(name, id, x, y, null);
         }
 
         /// <summary>
@@ -78,7 +89,7 @@ namespace OpenSim.Tests.Common
         /// <param name="y">Y co-ordinate of the region</param>
         /// <param name="cm">This should be the same if simulating two scenes within a standalone</param>
         /// <returns></returns>
-        public static TestScene SetupScene(string name, UUID id, uint x, uint y)
+        public static TestScene SetupScene(string name, UUID id, uint x, uint y, CoreAssetCache cache)
         {
             Console.WriteLine("Setting up test scene {0}", name);
 
@@ -103,7 +114,7 @@ namespace OpenSim.Tests.Common
             godsModule.Initialise(testScene, new IniConfigSource());
             testScene.AddModule(godsModule.Name, godsModule);
 
-            LocalAssetServicesConnector       assetService       = StartAssetService(testScene);
+            LocalAssetServicesConnector       assetService       = StartAssetService(testScene, cache);
                                                                    StartAuthenticationService(testScene);
             LocalInventoryServicesConnector   inventoryService   = StartInventoryService(testScene);
                                                                    StartGridService(testScene);
@@ -132,7 +143,7 @@ namespace OpenSim.Tests.Common
             return testScene;
         }
 
-        private static LocalAssetServicesConnector StartAssetService(Scene testScene)
+        private static LocalAssetServicesConnector StartAssetService(Scene testScene, CoreAssetCache cache)
         {
             LocalAssetServicesConnector assetService = new LocalAssetServicesConnector();
             IConfigSource config = new IniConfigSource();
@@ -145,6 +156,20 @@ namespace OpenSim.Tests.Common
             
             assetService.Initialise(config);
             assetService.AddRegion(testScene);
+
+            if (cache != null)
+            {
+                IConfigSource cacheConfig = new IniConfigSource();
+                cacheConfig.AddConfig("Modules");
+                cacheConfig.Configs["Modules"].Set("AssetCaching", "CoreAssetCache");
+                cacheConfig.AddConfig("AssetCache");
+
+                cache.Initialise(cacheConfig);
+                cache.AddRegion(testScene);
+                cache.RegionLoaded(testScene);
+                testScene.AddRegionModule(cache.Name, cache);
+            }
+
             assetService.RegionLoaded(testScene);
             testScene.AddRegionModule(assetService.Name, assetService);
             
@@ -331,6 +356,8 @@ namespace OpenSim.Tests.Common
             agentData.InventoryFolder = UUID.Zero;
             agentData.startpos = Vector3.Zero;
             agentData.CapsPath = "http://wibble.com";
+            agentData.ServiceURLs = new Dictionary<string, object>();
+            agentData.Appearance = new AvatarAppearance();
 
             return agentData;
         }
@@ -341,9 +368,9 @@ namespace OpenSim.Tests.Common
         /// <param name="scene"></param>
         /// <param name="agentId"></param>
         /// <returns></returns>
-        public static TestClient AddRootAgent(Scene scene, UUID agentId)
+        public static ScenePresence AddScenePresence(Scene scene, UUID agentId)
         {
-            return AddRootAgent(scene, GenerateAgentData(agentId));
+            return AddScenePresence(scene, GenerateAgentData(agentId));
         }
 
         /// <summary>
@@ -364,7 +391,7 @@ namespace OpenSim.Tests.Common
         /// <param name="scene"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
-        public static TestClient AddRootAgent(Scene scene, AgentCircuitData agentData)
+        public static ScenePresence AddScenePresence(Scene scene, AgentCircuitData agentData)
         {
             string reason;
 
@@ -379,14 +406,14 @@ namespace OpenSim.Tests.Common
 
             // Stage 2: add the new client as a child agent to the scene
             TestClient client = new TestClient(agentData, scene);
-            scene.AddNewClient(client);
+            scene.AddNewClient(client, PresenceType.User);
 
             // Stage 3: Complete the entrance into the region.  This converts the child agent into a root agent.
             ScenePresence scp = scene.GetScenePresence(agentData.AgentID);
-            scp.CompleteMovement(client);
+            scp.CompleteMovement(client, true);
             //scp.MakeRootAgent(new Vector3(90, 90, 90), true);
 
-            return client;
+            return scp;
         }
 
         /// <summary>

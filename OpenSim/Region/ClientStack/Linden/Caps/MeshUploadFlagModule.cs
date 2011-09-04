@@ -48,8 +48,8 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class MeshUploadFlagModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Is this module enabled?
@@ -124,7 +124,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Hashtable MeshUploadFlag(Hashtable mDhttpMethod)
         {
-            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: MeshUploadFlag request");
+//            m_log.DebugFormat("[MESH UPLOAD FLAG MODULE]: MeshUploadFlag request");
 
             OSDMap data = new OSDMap();
     	    ScenePresence sp = m_scene.GetScenePresence(m_agentID);

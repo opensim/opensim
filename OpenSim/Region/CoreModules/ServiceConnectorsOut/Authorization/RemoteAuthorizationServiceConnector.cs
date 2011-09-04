@@ -117,9 +117,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 
         }
         
-        public bool IsAuthorizedForRegion(string userID, string regionID, out string message)
+        public bool IsAuthorizedForRegion(
+             string userID, string firstName, string lastName, string regionID, out string message)
         {
-            m_log.InfoFormat("[REMOTE AUTHORIZATION CONNECTOR]: IsAuthorizedForRegion checking {0} for region {1}", userID, regionID);
+            m_log.InfoFormat(
+                "[REMOTE AUTHORIZATION CONNECTOR]: IsAuthorizedForRegion checking {0} for region {1}", userID, regionID);
             
             bool isAuthorized = true;
             message = String.Empty;
@@ -140,17 +142,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             if (scene != null)
             {
                 UserAccount account = scene.UserAccountService.GetUserAccount(UUID.Zero, new UUID(userID));
-                isAuthorized = IsAuthorizedForRegion(userID, account.FirstName, account.LastName,
-                    account.Email, scene.RegionInfo.RegionName, regionID, out message);
+
+                isAuthorized
+                    = IsAuthorizedForRegion(
+                        userID, firstName, lastName, account.Email, scene.RegionInfo.RegionName, regionID, out message);
             }
             else
             {
-                m_log.ErrorFormat("[REMOTE AUTHORIZATION CONNECTOR] IsAuthorizedForRegion, can't find scene to match region id of {0} ",regionID);
+                m_log.ErrorFormat(
+                    "[REMOTE AUTHORIZATION CONNECTOR] IsAuthorizedForRegion, can't find scene to match region id of {0}",
+                    regionID);
             }
             
-            
             return isAuthorized;
-            
         }
     }
 }

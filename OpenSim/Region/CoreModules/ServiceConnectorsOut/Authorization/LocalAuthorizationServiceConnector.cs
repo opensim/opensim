@@ -39,8 +39,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 {
-    public class LocalAuthorizationServicesConnector :
-            ISharedRegionModule, IAuthorizationService
+    public class LocalAuthorizationServicesConnector : ISharedRegionModule, IAuthorizationService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -127,15 +126,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             if (!m_Enabled)
                 return;
 
-            m_log.InfoFormat("[AUTHORIZATION CONNECTOR]: Enabled local authorization for region {0}", scene.RegionInfo.RegionName);
-
-           
+            m_log.InfoFormat(
+                "[AUTHORIZATION CONNECTOR]: Enabled local authorization for region {0}",
+                scene.RegionInfo.RegionName);
         }
 
-        public bool IsAuthorizedForRegion(string userID, string regionID, out string message)
+        public bool IsAuthorizedForRegion(
+            string userID, string firstName, string lastName, string regionID, out string message)
         {
-            return m_AuthorizationService.IsAuthorizedForRegion(userID, regionID, out message);
+            return m_AuthorizationService.IsAuthorizedForRegion(userID, firstName, lastName, regionID, out message);
         }
-
     }
 }

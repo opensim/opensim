@@ -53,17 +53,17 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
         public void SetUp()
         {
             m_module = new MoapModule();
-            m_scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(m_scene, m_module);            
+            m_scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(m_scene, m_module);            
         }        
         
         [Test]
         public void TestClearMediaUrl()
         {
-            TestHelper.InMethod();           
+            TestHelpers.InMethod();           
 //            log4net.Config.XmlConfigurator.Configure();
             
-            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
             MediaEntry me = new MediaEntry();            
             
             m_module.SetMediaEntry(part, 1, me);
@@ -84,11 +84,11 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
         [Test]
         public void TestSetMediaUrl()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             string homeUrl = "opensimulator.org";            
             
-            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
             MediaEntry me = new MediaEntry() { HomeURL = homeUrl };            
             
             m_module.SetMediaEntry(part, 1, me);

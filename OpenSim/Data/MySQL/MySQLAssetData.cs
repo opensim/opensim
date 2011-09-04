@@ -253,12 +253,14 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// check if the asset UUID exist in database
+        /// Check if the asset exists in the database
         /// </summary>
         /// <param name="uuid">The asset UUID</param>
-        /// <returns>true if exist.</returns>
+        /// <returns>true if it exists, false otherwise.</returns>
         override public bool ExistsAsset(UUID uuid)
         {
+//            m_log.DebugFormat("[ASSETS DB]: Checking for asset {0}", uuid);
+
             bool assetExists = false;
 
             lock (m_dbLock)
@@ -275,7 +277,10 @@ namespace OpenSim.Data.MySQL
                             using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                             {
                                 if (dbReader.Read())
+                                {
+//                                    m_log.DebugFormat("[ASSETS DB]: Found asset {0}", uuid);
                                     assetExists = true;
+                                }
                             }
                         }
                         catch (Exception e)

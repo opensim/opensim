@@ -126,6 +126,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             m_scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
             m_scene.EventManager.OnOarFileLoaded -= OnOarFileLoaded;
 
+            if(m_uri != string.Empty)
+            {
+                RRAlert("shutdown");
+            }
+
             m_scene = null;
         }
 

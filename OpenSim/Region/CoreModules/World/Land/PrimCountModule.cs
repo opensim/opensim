@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
     public class PrimCountModule : IPrimCountModule, INonSharedRegionModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_Scene;
         private Dictionary<UUID, PrimCounts> m_PrimCounts =

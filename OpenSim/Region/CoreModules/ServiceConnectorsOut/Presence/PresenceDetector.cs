@@ -39,7 +39,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 {
     public class PresenceDetector 
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IPresenceService m_PresenceService;
         private Scene m_aScene;
@@ -94,7 +94,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
                     }
                 }
 
-                m_log.DebugFormat("[PRESENCE DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
+//                m_log.DebugFormat("[PRESENCE DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
                 m_PresenceService.LogoutAgent(client.SessionId);
             }
 

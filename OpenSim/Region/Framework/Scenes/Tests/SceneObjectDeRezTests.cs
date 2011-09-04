@@ -56,17 +56,17 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeRezSceneObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
                         
             UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");
             
-            TestScene scene = SceneSetupHelpers.SetupScene();
+            TestScene scene = SceneHelpers.SetupScene();
             IConfigSource configSource = new IniConfigSource();
             IConfig config = configSource.AddConfig("Startup");
             config.Set("serverside_object_permissions", true);
-            SceneSetupHelpers.SetupSceneModules(scene, configSource, new object[] { new PermissionsModule() });
-            TestClient client = SceneSetupHelpers.AddRootAgent(scene, userId);
+            SceneHelpers.SetupSceneModules(scene, configSource, new object[] { new PermissionsModule() });
+            IClientAPI client = SceneHelpers.AddScenePresence(scene, userId).ControllingClient;
             
             // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
@@ -94,18 +94,18 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeRezSceneObjectNotOwner()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
                         
             UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");
             UUID objectOwnerId = UUID.Parse("20000000-0000-0000-0000-000000000001");
             
-            TestScene scene = SceneSetupHelpers.SetupScene();
+            TestScene scene = SceneHelpers.SetupScene();
             IConfigSource configSource = new IniConfigSource();
             IConfig config = configSource.AddConfig("Startup");
             config.Set("serverside_object_permissions", true);
-            SceneSetupHelpers.SetupSceneModules(scene, configSource, new object[] { new PermissionsModule() });            
-            TestClient client = SceneSetupHelpers.AddRootAgent(scene, userId);
+            SceneHelpers.SetupSceneModules(scene, configSource, new object[] { new PermissionsModule() });            
+            IClientAPI client = SceneHelpers.AddScenePresence(scene, userId).ControllingClient;
             
             // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;

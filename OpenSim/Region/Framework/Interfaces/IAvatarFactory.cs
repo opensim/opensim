@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 
@@ -32,6 +33,30 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IAvatarFactory
     {
+        /// <summary>
+        /// Send the appearance of an avatar to others in the scene.
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <returns></returns>
+        bool SendAppearance(UUID agentId);
+
+        /// <summary>
+        /// Return the baked texture ids of the given agent.
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <returns>An empty list if this agent has no baked textures (e.g. because it's a child agent)</returns>
+        Dictionary<BakeType, Primitive.TextureEntryFace> GetBakedTextureFaces(UUID agentId);
+
+        /// <summary>
+        /// Save the baked textures for the given agent permanently in the asset database.
+        /// </summary>
+        /// <remarks>
+        /// This is used to preserve apperance textures for NPCs
+        /// </remarks>
+        /// <param name="agentId"></param>
+        /// <returns>true if a valid agent was found, false otherwise</returns>
+        bool SaveBakedTextures(UUID agentId);
+
         bool ValidateBakedTextureCache(IClientAPI client);
         void QueueAppearanceSend(UUID agentid);
         void QueueAppearanceSave(UUID agentid);
