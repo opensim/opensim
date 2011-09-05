@@ -3498,7 +3498,10 @@ namespace OpenSim.Region.Framework.Scenes
                 m_attachments.Clear();
         }
 
-        public bool ValidateAttachments()
+        /// <summary>
+        /// This is currently just being done for information.
+        /// </summary>
+        public void ValidateAttachments()
         {
             lock (m_attachments)
             {
@@ -3508,21 +3511,16 @@ namespace OpenSim.Region.Framework.Scenes
                     if (gobj == null)
                     {
                         m_log.WarnFormat(
-                            "[SCENE PRESENCE]: Failed to validate an attachment for {0} since it was null", Name);
-                        return false;
+                            "[SCENE PRESENCE]: Failed to validate an attachment for {0} since it was null.  Continuing", Name);
                     }
-
-                    if (gobj.IsDeleted)
+                    else if (gobj.IsDeleted)
                     {
                         m_log.WarnFormat(
-                            "[SCENE PRESENCE]: Failed to validate attachment {0} {1} for {2} since it had been deleted",
+                            "[SCENE PRESENCE]: Failed to validate attachment {0} {1} for {2} since it had been deleted.  Continuing",
                             gobj.Name, gobj.UUID, Name);
-                        return false;
                     }
                 }
             }
-
-            return true;
         }
 
         /// <summary>

@@ -209,7 +209,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.Teleport(position);
 
                     foreach (SceneObjectGroup grp in sp.GetAttachments())
-                        sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
+                    {
+                        if (grp.IsDeleted)
+                            sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
+                    }
                 }
                 else // Another region possibly in another simulator
                 {
@@ -326,11 +329,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (sp.ParentID != (uint)0)
                     sp.StandUp();
 
-                if (!sp.ValidateAttachments())
-                {
-                    sp.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
-                    return;
-                }
+//                if (!sp.ValidateAttachments())
+//                {
+//                    sp.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
+//                    return;
+//                }
 
                 string reason;
                 string version;
@@ -944,8 +947,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             Scene m_scene = agent.Scene;
 
-            if (neighbourRegion != null && agent.ValidateAttachments())
+            if (neighbourRegion != null)
             {
+                agent.ValidateAttachments();
+
                 pos = pos + (agent.Velocity);
 
                 SetInTransit(agent.UUID);
@@ -1763,16 +1768,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             List<SceneObjectGroup> m_attachments = sp.GetAttachments();
 
             // Validate
-            foreach (SceneObjectGroup gobj in m_attachments)
-            {
-                if (gobj == null || gobj.IsDeleted)
-                    return false;
-            }
+//            foreach (SceneObjectGroup gobj in m_attachments)
+//            {
+//                if (gobj == null || gobj.IsDeleted)
+//                    return false;
+//            }
 
             foreach (SceneObjectGroup gobj in m_attachments)
             {
                 // If the prim group is null then something must have happened to it!
-                if (gobj != null)
+                if (gobj != null && !gobj.IsDeleted)
                 {
                     // Set the parent localID to 0 so it transfers over properly.
                     gobj.RootPart.SetParentLocalId(0);
