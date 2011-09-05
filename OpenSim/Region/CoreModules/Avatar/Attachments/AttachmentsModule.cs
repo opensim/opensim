@@ -430,34 +430,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             
             return null;
         }
-        
-        /// <summary>
-        /// Update the user inventory to the attachment of an item
-        /// </summary>
-        /// <param name="att"></param>
-        /// <param name="sp"></param>
-        /// <param name="itemID"></param>
-        /// <param name="attachmentPoint"></param>
-        /// <returns></returns>
-        private UUID ShowAttachInUserInventory(
-            SceneObjectGroup att, IScenePresence sp, UUID itemID, uint attachmentPoint)
-        {
-//            m_log.DebugFormat(
-//                "[ATTACHMENTS MODULE]: Updating inventory of {0} to show attachment of {1} {2} (item ID {3}) at {4}",
-//                sp.Name, att.Name, att.LocalId, itemID, AttachmentPt);
-            
-            if (!att.IsDeleted)
-                attachmentPoint = att.AttachmentPoint;
-
-            InventoryItemBase item = new InventoryItemBase(itemID, sp.UUID);
-            item = m_scene.InventoryService.GetItem(item);
-
-            bool changed = sp.Appearance.SetAttachment((int)attachmentPoint, itemID, item.AssetID);
-            if (changed && m_scene.AvatarFactory != null)
-                m_scene.AvatarFactory.QueueAppearanceSave(sp.UUID);
-            
-            return att.UUID;
-        }
 
         /// <summary>
         /// Update the user inventory to reflect an attachment
