@@ -326,12 +326,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public ISceneEntity RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
-            return RezSingleAttachmentFromInventory(remoteClient, itemID, AttachmentPt, true);
-        }
-
-        public ISceneEntity RezSingleAttachmentFromInventory(
-            IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus)
-        {
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: Rezzing attachment to point {0} from item {1} for {2}", 
 //                (AttachmentPoint)AttachmentPt, itemID, remoteClient.Name);
@@ -352,11 +346,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             SceneObjectGroup att = RezSingleAttachmentFromInventoryInternal(sp, itemID, UUID.Zero, AttachmentPt);
 
-            if (updateInventoryStatus)
-            {
-                if (att == null)
-                    DetachSingleAttachmentToInv(itemID, sp.ControllingClient);
-            }
+            if (att == null)
+                DetachSingleAttachmentToInv(itemID, sp.ControllingClient);
 
             return att;
         }
