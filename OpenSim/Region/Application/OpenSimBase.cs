@@ -411,6 +411,8 @@ namespace OpenSim
 
             scene.StartTimer();
 
+            scene.StartScripts();
+
             return clientServer;
         }
 

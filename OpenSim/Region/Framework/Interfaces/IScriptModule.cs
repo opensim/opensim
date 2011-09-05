@@ -52,5 +52,10 @@ namespace OpenSim.Region.Framework.Interfaces
         ArrayList GetScriptErrors(UUID itemID);
 
         void SaveAllState();
+
+        /// <summary>
+        /// Starts the processing threads.
+        /// </summary>
+        void StartProcessing();
     }
 }

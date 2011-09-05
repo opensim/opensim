@@ -57,11 +57,11 @@ namespace OpenSim.Region.Framework.Scenes
         protected AsyncInventorySender m_asyncInventorySender;
 
         /// <summary>
-        /// Start all the scripts in the scene which should be started.
+        /// Creates all the scripts in the scene which should be started.
         /// </summary>
         public void CreateScriptInstances()
         {
-            m_log.Info("[PRIM INVENTORY]: Starting scripts in scene");
+            m_log.Info("[PRIM INVENTORY]: Creating scripts in scene");
 
             EntityBase[] entities = Entities.GetEntities();
             foreach (EntityBase group in entities)
@@ -70,6 +70,26 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
                     ((SceneObjectGroup) group).ResumeScripts();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Lets the script engines start processing scripts.
+        /// </summary>
+        public void StartScripts()
+        {
+            m_log.Info("[PRIM INVENTORY]: Starting scripts in scene");
+
+            IScriptModule[] engines = RequestModuleInterfaces<IScriptModule>();
+            if (engines != null)
+            {
+                foreach (IScriptModule engine in engines)
+                {
+                    if (engine != null)
+                    {
+                        engine.StartProcessing();
+                    }
                 }
             }
         }

@@ -339,7 +339,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoBackup),
                                            new Object[] { m_SaveTime });
             }
+        }
 
+        public void StartProcessing()
+        {
             m_ThreadPool.Start();
         }
 
