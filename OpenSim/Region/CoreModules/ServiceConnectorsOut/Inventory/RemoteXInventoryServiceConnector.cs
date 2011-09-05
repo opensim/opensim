@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private XInventoryServicesConnector m_RemoteConnector;
 
         private IUserManagement m_UserManager;
-        private IUserManagement UserManager
+        public IUserManagement UserManager
         {
             get
             {
@@ -59,6 +59,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     m_UserManager = m_Scene.RequestModuleInterface<IUserManagement>();
                 }
                 return m_UserManager;
+            }
+
+            set
+            {
+                m_UserManager = value;
             }
         }
 

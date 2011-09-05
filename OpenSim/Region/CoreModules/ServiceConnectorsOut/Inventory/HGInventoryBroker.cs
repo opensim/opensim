@@ -572,14 +572,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     string connectorType = new HeloServicesConnector(url).Helo();
                     m_log.DebugFormat("[HG INVENTORY SERVICE]: HELO returned {0}", connectorType);
                     if (connectorType == "opensim-simian")
+                    {
                         connector = new SimianInventoryServiceConnector(url);
+                    }
                     else
-                        connector = new RemoteXInventoryServicesConnector(url);
+                    {
+                        RemoteXInventoryServicesConnector rxisc = new RemoteXInventoryServicesConnector(url);
+                        rxisc.UserManager = UserManagementModule;
+                        connector = rxisc;
+                    }
+
                     m_connectors.Add(url, connector);
                 }
             }
+
             return connector;
         }
-
     }
 }
