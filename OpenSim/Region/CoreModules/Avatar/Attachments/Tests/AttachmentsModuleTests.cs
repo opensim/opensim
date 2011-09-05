@@ -150,6 +150,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(attSo.IsTemporary, Is.False);
 
             // Check appearance status
+            Assert.That(m_presence.Appearance.GetAttachments().Count, Is.EqualTo(1));
             Assert.That(m_presence.Appearance.GetAttachpoint(attItemId), Is.EqualTo((int)AttachmentPoint.Chest));
         }
 

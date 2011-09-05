@@ -242,7 +242,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         {
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
-//                group.Name, group.LocalId, sp.Name, AttachmentPt, silent);
+//                group.Name, group.LocalId, sp.Name, attachmentPt, silent);
 
             if (sp.GetAttachments(attachmentPt).Contains(group))
             {
@@ -356,8 +356,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             {
                 if (att == null)
                     DetachSingleAttachmentToInv(itemID, sp.ControllingClient);
-                else
-                    ShowAttachInUserInventory(att, sp, itemID, AttachmentPt);
             }
 
             return att;
@@ -386,9 +384,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 
                 if (objatt != null)
                 {
-                    // Loading the inventory from XML will have set this, but
-                    // there is no way the object could have changed yet,
-                    // since scripts aren't running yet. So, clear it here.
+                    // HasGroupChanged is being set from within RezObject.  Ideally it would be set by the caller.
                     objatt.HasGroupChanged = false;
                     bool tainted = false;
                     if (attachmentPt != 0 && attachmentPt != objatt.AttachmentPoint)

@@ -402,8 +402,13 @@ namespace OpenSim.Framework
 
         internal void AppendAttachment(AvatarAttachment attach)
         {
-            if (! m_attachments.ContainsKey(attach.AttachPoint))
+//            m_log.DebugFormat(
+//                "[AVATAR APPEARNCE]: Appending itemID={0}, assetID={1} at {2}",
+//                attach.ItemID, attach.AssetID, attach.AttachPoint);
+
+            if (!m_attachments.ContainsKey(attach.AttachPoint))
                 m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
+
             m_attachments[attach.AttachPoint].Add(attach);
         }
 
@@ -430,12 +435,12 @@ namespace OpenSim.Framework
         /// </returns>
         public bool SetAttachment(int attachpoint, UUID item, UUID asset)
         {
-            if (attachpoint == 0)
-                return false;
-
 //            m_log.DebugFormat(
 //                "[AVATAR APPEARANCE]: Setting attachment at {0} with item ID {1}, asset ID {2}",
 //                 attachpoint, item, asset);
+
+            if (attachpoint == 0)
+                return false;
 
             if (item == UUID.Zero)
             {
@@ -465,6 +470,7 @@ namespace OpenSim.Framework
             {
                 ReplaceAttachment(new AvatarAttachment(attachpoint,item, asset));
             }
+
             return true;
         }
 
