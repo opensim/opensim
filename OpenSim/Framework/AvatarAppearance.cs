@@ -414,12 +414,16 @@ namespace OpenSim.Framework
 
         internal void ReplaceAttachment(AvatarAttachment attach)
         {
+//            m_log.DebugFormat(
+//                "[AVATAR APPEARANCE]: Replacing itemID={0}, assetID={1} at {2}",
+//                attach.ItemID, attach.AssetID, attach.AttachPoint);
+
             m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
             m_attachments[attach.AttachPoint].Add(attach);
         }
 
         /// <summary>
-        /// Add an attachment
+        /// Set an attachment
         /// </summary>
         /// <remarks>
         /// If the attachpoint has the
@@ -449,11 +453,20 @@ namespace OpenSim.Framework
                     m_attachments.Remove(attachpoint);
                     return true;
                 }
+                
                 return false;
             }
 
-            // check if the item is already attached at this point
-            if (GetAttachpoint(item) == (attachpoint & 0x7F))
+            // When a user logs in, the attachment item ids are pulled from persistence in the Avatars table.  However,
+            // the asset ids are not saved.  When the avatar enters a simulator the attachments are set again.  If
+            // we simply perform an item check here then the asset ids (which are now present) are never set, and NPC attachments
+            // later fail unless the attachment is detached and reattached.
+            //
+            // Therefore, we will carry on with the set if the existing attachment has no asset id.
+            AvatarAttachment existingAttachment = GetAttachmentForItem(item);
+            if (existingAttachment != null
+                && existingAttachment.AssetID != UUID.Zero
+                && existingAttachment.AttachPoint == (attachpoint & 0x7F))
             {
                 // m_log.DebugFormat("[AVATAR APPEARANCE] attempt to attach an already attached item {0}",item);
                 return false;
@@ -472,6 +485,23 @@ namespace OpenSim.Framework
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// If the item is already attached, return it.
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <returns>Returns null if this item is not attached.</returns>
+        public AvatarAttachment GetAttachmentForItem(UUID itemID)
+        {
+            foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
+            {
+                int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID == itemID; });
+                if (index >= 0)
+                    return kvp.Value[index];
+            }
+
+            return null;
         }
 
         public int GetAttachpoint(UUID itemID)

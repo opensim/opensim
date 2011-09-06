@@ -628,6 +628,7 @@ namespace OpenSim.Framework
                         // We know all of these must end up as attachments so we
                         // append rather than replace to ensure multiple attachments
                         // per point continues to work
+//                        m_log.DebugFormat("[CHILDAGENTDATAUPDATE]: Appending attachments for {0}", AgentID);
                         Appearance.AppendAttachment(new AvatarAttachment((OSDMap)o));
                     }
                 }

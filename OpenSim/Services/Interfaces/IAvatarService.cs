@@ -262,7 +262,6 @@ namespace OpenSim.Services.Interfaces
                             UUID.Parse(Data["SkirtItem"]),
                             UUID.Parse(Data["SkirtAsset"]));
 
-
                 if (Data.ContainsKey("VisualParams"))
                 {
                     string[] vps = Data["VisualParams"].Split(new char[] {','});
@@ -291,7 +290,6 @@ namespace OpenSim.Services.Interfaces
                     }
                 }
 
-
                 // Attachments
                 Dictionary<string, string> attchs = new Dictionary<string, string>();
                 foreach (KeyValuePair<string, string> _kvp in Data)
@@ -308,7 +306,7 @@ namespace OpenSim.Services.Interfaces
                     UUID uuid = UUID.Zero;
                     UUID.TryParse(_kvp.Value, out uuid);
 
-                    appearance.SetAttachment(point,uuid,UUID.Zero);
+                    appearance.SetAttachment(point, uuid, UUID.Zero);
                 }
 
                 if (appearance.Wearables[AvatarWearable.BODY].Count == 0)

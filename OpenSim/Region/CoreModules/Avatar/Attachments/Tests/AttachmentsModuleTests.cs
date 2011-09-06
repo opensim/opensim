@@ -247,6 +247,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(attSo.IsAttachment);
             Assert.That(attSo.UsesPhysics, Is.False);
             Assert.That(attSo.IsTemporary, Is.False);
+
+            // Check appearance status
+            List<AvatarAttachment> retreivedAttachments = presence.Appearance.GetAttachments();
+            Assert.That(retreivedAttachments.Count, Is.EqualTo(1));
+            Assert.That(retreivedAttachments[0].AttachPoint, Is.EqualTo((int)AttachmentPoint.Chest));
+            Assert.That(retreivedAttachments[0].ItemID, Is.EqualTo(attItemId));
+            Assert.That(retreivedAttachments[0].AssetID, Is.EqualTo(attAssetId));
+            Assert.That(presence.Appearance.GetAttachpoint(attItemId), Is.EqualTo((int)AttachmentPoint.Chest));
         }
 
         // I'm commenting this test because scene setup NEEDS InventoryService to 
