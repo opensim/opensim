@@ -64,7 +64,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             get
             {
                 if (m_UserManagement == null)
+                {
                     m_UserManagement = m_Scenes[0].RequestModuleInterface<IUserManagement>();
+
+                    if (m_UserManagement == null)
+                        m_log.ErrorFormat(
+                            "[HG INVENTORY CONNECTOR]: Could not retrieve IUserManagement module from {0}",
+                            m_Scenes[0].RegionInfo.RegionName);
+                }
+
                 return m_UserManagement;
             }
         }
@@ -323,7 +331,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         }
 
-        public  List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
+        public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             //m_log.Debug("[HG INVENTORY CONNECTOR]: GetFolderItems " + folderID);
 
@@ -338,7 +346,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         }
 
-        public  bool AddFolder(InventoryFolderBase folder)
+        public bool AddFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return false;
@@ -355,7 +363,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.AddFolder(folder);
         }
 
-        public  bool UpdateFolder(InventoryFolderBase folder)
+        public bool UpdateFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return false;
@@ -372,7 +380,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.UpdateFolder(folder);
         }
 
-        public  bool DeleteFolders(UUID ownerID, List<UUID> folderIDs)
+        public bool DeleteFolders(UUID ownerID, List<UUID> folderIDs)
         {
             if (folderIDs == null)
                 return false;
@@ -391,7 +399,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.DeleteFolders(ownerID, folderIDs);
         }
 
-        public  bool MoveFolder(InventoryFolderBase folder)
+        public bool MoveFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return false;
@@ -408,7 +416,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.MoveFolder(folder);
         }
 
-        public  bool PurgeFolder(InventoryFolderBase folder)
+        public bool PurgeFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return false;
@@ -442,7 +450,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.AddItem(item);
         }
 
-        public  bool UpdateItem(InventoryItemBase item)
+        public bool UpdateItem(InventoryItemBase item)
         {
             if (item == null)
                 return false;
@@ -459,7 +467,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.UpdateItem(item);
         }
 
-        public  bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
+        public bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
         {
             if (items == null)
                 return false;
@@ -478,7 +486,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.MoveItems(ownerID, items);
         }
 
-        public  bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
+        public bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
         {
             //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Delete {0} items for user {1}", itemIDs.Count, ownerID);
 
@@ -497,7 +505,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.DeleteItems(ownerID, itemIDs);
         }
 
-        public  InventoryItemBase GetItem(InventoryItemBase item)
+        public InventoryItemBase GetItem(InventoryItemBase item)
         {
             if (item == null)
                 return null;
@@ -513,7 +521,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.GetItem(item);
         }
 
-        public  InventoryFolderBase GetFolder(InventoryFolderBase folder)
+        public InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return null;
@@ -530,17 +538,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.GetFolder(folder);
         }
 
-        public  bool HasInventoryForUser(UUID userID)
+        public bool HasInventoryForUser(UUID userID)
         {
             return false;
         }
 
-        public  List<InventoryItemBase> GetActiveGestures(UUID userId)
+        public List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             return new List<InventoryItemBase>();
         }
 
-        public  int GetAssetPermissions(UUID userID, UUID assetID)
+        public int GetAssetPermissions(UUID userID, UUID assetID)
         {
             //m_log.Debug("[HG INVENTORY CONNECTOR]: GetAssetPermissions " + assetID);
 

@@ -87,8 +87,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 "Show the bindings between user UUIDs and user names",
                 String.Empty,
                 HandleShowUsers);
-
-
         }
 
         public bool IsSharedModule

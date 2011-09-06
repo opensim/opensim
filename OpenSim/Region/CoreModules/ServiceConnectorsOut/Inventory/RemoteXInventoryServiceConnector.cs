@@ -57,12 +57,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 if (m_UserManager == null)
                 {
                     m_UserManager = m_Scene.RequestModuleInterface<IUserManagement>();
+
+                    if (m_UserManager == null)
+                        m_log.ErrorFormat(
+                            "[XINVENTORY CONNECTOR]: Could not retrieve IUserManagement module from {0}",
+                            m_Scene.RegionInfo.RegionName);
                 }
+
                 return m_UserManager;
             }
 
             set
             {
+                m_log.WarnFormat(
+                    "[XINVENTORY CONNECTOR]: Manually setting UserManager {0} (scene {1})", value, m_Scene);
+
                 m_UserManager = value;
             }
         }
@@ -91,11 +100,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             Init(source);
         }
 
-        protected  void Init(IConfigSource source)
+        protected void Init(IConfigSource source)
         {
             m_RemoteConnector = new XInventoryServicesConnector(source);
         }
-
 
         #region ISharedRegionModule
 
@@ -186,7 +194,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.GetFolderForType(userID, type);
         }
 
-        public  InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
             InventoryCollection invCol = m_RemoteConnector.GetFolderContent(userID, folderID);
             Util.FireAndForget(delegate
