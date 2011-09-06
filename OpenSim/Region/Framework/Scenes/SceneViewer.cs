@@ -231,7 +231,8 @@ namespace OpenSim.Region.Framework.Scenes
         public int GetPendingObjectsCount()
         {
             if (m_pendingObjects != null)
-                return m_pendingObjects.Count;
+                lock (m_pendingObjects)
+                    return m_pendingObjects.Count;
 
             return 0;
         }
