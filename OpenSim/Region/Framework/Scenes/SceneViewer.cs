@@ -193,37 +193,38 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void Reset()
-        {
-            if (m_pendingObjects == null)
-                return;
-
-            lock (m_pendingObjects)
-            {
-                if (m_pendingObjects != null)
-                {
-                    m_pendingObjects.Clear();
-                    m_pendingObjects = null;
-                }
-            }
-        }
+//        public void Reset()
+//        {
+//            if (m_pendingObjects == null)
+//                return;
+//
+//            lock (m_pendingObjects)
+//            {
+//                if (m_pendingObjects != null)
+//                {
+//                    m_pendingObjects.Clear();
+//                    m_pendingObjects = null;
+//                }
+//            }
+//        }
 
         public void Close()
         {
             lock (m_pendingObjects)
             {
+                // We perform this under the m_pendingObjects lock in order to avoid a race condition with another
+                // thread on SendPrimUpdates()
                 IsEnabled = false;
 
                 lock (m_updateTimes)
                 {
                     m_updateTimes.Clear();
                 }
+
                 lock (m_partsUpdateQueue)
                 {
                     m_partsUpdateQueue.Clear();
                 }
-    
-                Reset();
             }
         }
 
