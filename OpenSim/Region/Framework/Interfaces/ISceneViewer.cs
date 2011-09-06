@@ -35,7 +35,7 @@ namespace OpenSim.Region.Framework.Interfaces
     /// </summary>
     public interface ISceneViewer
     {
-        void Reset();
+//        void Reset();
         void Close();
 
         /// <summary>
