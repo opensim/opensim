@@ -285,26 +285,31 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             group.AttachmentPoint = attachmentPt;
             group.AbsolutePosition = attachPos;
 
-            // Remove any previous attachments
-            UUID itemID = UUID.Zero;
-
-            List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
-
-            // At the moment we can only deal with a single attachment
             // We also don't want to do any of the inventory operations for an NPC.
             if (sp.PresenceType != PresenceType.Npc)
             {
+                // Remove any previous attachments
+                List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
+
+                // At the moment we can only deal with a single attachment
                 if (attachments.Count != 0)
-                    itemID = attachments[0].GetFromItemID();
+                {
+                    UUID oldAttachmentItemID = attachments[0].GetFromItemID();
     
-                if (itemID != UUID.Zero)
-                    DetachSingleAttachmentToInv(itemID, sp);
+                    if (oldAttachmentItemID != UUID.Zero)
+                        DetachSingleAttachmentToInv(oldAttachmentItemID, sp);
+                    else
+                        m_log.WarnFormat(
+                            "[ATTACHMENTS MODULE]: When detaching existing attachment {0} {1} at point {2} to make way for {3} {4} for {5}, couldn't find the associated item ID to adjust inventory attachment record!",
+                            attachments[0].Name, attachments[0].LocalId, attachmentPt, group.Name, group.LocalId, sp.Name);
+                }
+
+                // Add the new attachment to inventory if we don't already have it.
+                UUID newAttachmentItemID = group.GetFromItemID();
+                if (newAttachmentItemID == UUID.Zero)
+                    newAttachmentItemID = AddSceneObjectAsNewAttachmentInInv(sp.ControllingClient, group).ID;
     
-                itemID = group.GetFromItemID();
-                if (itemID == UUID.Zero)
-                    itemID = AddSceneObjectAsNewAttachmentInInv(sp.ControllingClient, group).ID;
-    
-                ShowAttachInUserInventory(sp, attachmentPt, itemID, group);
+                ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group);
             }
 
             AttachToAgent(sp, group, attachmentPt, attachPos, silent);
