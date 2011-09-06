@@ -302,7 +302,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
     
                 itemID = group.GetFromItemID();
                 if (itemID == UUID.Zero)
-                    itemID = AddSceneObjectAsAttachment(sp.ControllingClient, group).ID;
+                    itemID = AddSceneObjectAsNewAttachmentInInv(sp.ControllingClient, group).ID;
     
                 ShowAttachInUserInventory(sp, attachmentPt, itemID, group);
             }
@@ -733,12 +733,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         }
 
         /// <summary>
-        /// Add a scene object that was previously free in the scene as an attachment to an avatar.
+        /// Add a scene object as a new attachment in the user inventory.
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="grp"></param>
         /// <returns>The user inventory item created that holds the attachment.</returns>
-        private InventoryItemBase AddSceneObjectAsAttachment(IClientAPI remoteClient, SceneObjectGroup grp)
+        private InventoryItemBase AddSceneObjectAsNewAttachmentInInv(IClientAPI remoteClient, SceneObjectGroup grp)
         {
 //            m_log.DebugFormat("[SCENE]: Called AddSceneObjectAsAttachment for object {0} {1} for {2} {3} {4}", grp.Name, grp.LocalId, remoteClient.Name, remoteClient.AgentId, AgentId);
 
