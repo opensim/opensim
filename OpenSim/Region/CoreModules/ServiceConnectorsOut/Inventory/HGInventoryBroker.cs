@@ -148,8 +148,29 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             scene.RegisterModuleInterface<IInventoryService>(this);
 
-            scene.EventManager.OnClientClosed += OnClientClosed;
+            if (m_Scenes.Count == 1)
+            {
+                // FIXME: The local connector needs the scene to extract the UserManager.  However, it's not enabled so
+                // we can't just add the region.  But this approach is super-messy.
+                if (m_LocalGridInventoryService is RemoteXInventoryServicesConnector)
+                {
+                    m_log.DebugFormat(
+                        "[HG INVENTORY BROKER]: Manually setting scene in RemoteXInventoryServicesConnector to {0}",
+                        scene.RegionInfo.RegionName);
 
+                    ((RemoteXInventoryServicesConnector)m_LocalGridInventoryService).Scene = scene;
+                }
+                else if (m_LocalGridInventoryService is LocalInventoryServicesConnector)
+                {
+                    m_log.DebugFormat(
+                        "[HG INVENTORY BROKER]: Manually setting scene in LocalInventoryServicesConnector to {0}",
+                        scene.RegionInfo.RegionName);
+
+                    ((LocalInventoryServicesConnector)m_LocalGridInventoryService).Scene = scene;
+                }
+
+                scene.EventManager.OnClientClosed += OnClientClosed;
+            }
         }
 
         public void RemoveRegion(Scene scene)
@@ -586,7 +607,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     else
                     {
                         RemoteXInventoryServicesConnector rxisc = new RemoteXInventoryServicesConnector(url);
-                        rxisc.UserManager = UserManagementModule;
+                        rxisc.Scene = m_Scenes[0];
                         connector = rxisc;
                     }
 

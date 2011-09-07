@@ -45,6 +45,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private static readonly ILog m_log =
                 LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Scene used by this module.  This currently needs to be publicly settable for HGInventoryBroker.
+        /// </summary>
+        public Scene Scene { get; set; }
+
         private bool m_Enabled = false;
         private Scene m_Scene;
         private XInventoryServicesConnector m_RemoteConnector;
@@ -56,23 +61,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             {
                 if (m_UserManager == null)
                 {
-                    m_UserManager = m_Scene.RequestModuleInterface<IUserManagement>();
+                    m_UserManager = Scene.RequestModuleInterface<IUserManagement>();
 
                     if (m_UserManager == null)
                         m_log.ErrorFormat(
                             "[XINVENTORY CONNECTOR]: Could not retrieve IUserManagement module from {0}",
-                            m_Scene.RegionInfo.RegionName);
+                            Scene.RegionInfo.RegionName);
                 }
 
                 return m_UserManager;
-            }
-
-            set
-            {
-                m_log.WarnFormat(
-                    "[XINVENTORY CONNECTOR]: Manually setting UserManager {0} (scene {1})", value, m_Scene);
-
-                m_UserManager = value;
             }
         }
 
@@ -141,15 +138,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             scene.RegisterModuleInterface<IInventoryService>(this);
 
-            if (m_Scene == null)
-                m_Scene = scene;
+            if (Scene == null)
+                Scene = scene;
         }
 
         public void RemoveRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
-
         }
 
         public void RegionLoaded(Scene scene)
