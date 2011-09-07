@@ -703,9 +703,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         == World.LandChannel.GetLandObject(
                             presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
                     {
-                        World.RequestTeleportLocation(presence.ControllingClient, regionName,
-                            new Vector3((float)position.x, (float)position.y, (float)position.z),
-                            new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation);
+                        // We will launch the teleport on a new thread so that when the script threads are terminated
+                        // before teleport in ScriptInstance.GetXMLState(), we don't end up aborting the one doing the teleporting.                        
+                        Util.FireAndForget(
+                            o => World.RequestTeleportLocation(presence.ControllingClient, regionName,
+                                new Vector3((float)position.x, (float)position.y, (float)position.z),
+                                new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation));
 
                         ScriptSleep(5000);
                     }
@@ -741,9 +744,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         == World.LandChannel.GetLandObject(
                             presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
                     {
-                        World.RequestTeleportLocation(presence.ControllingClient, regionHandle,
-                            new Vector3((float)position.x, (float)position.y, (float)position.z),
-                            new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation);
+                        // We will launch the teleport on a new thread so that when the script threads are terminated
+                        // before teleport in ScriptInstance.GetXMLState(), we don't end up aborting the one doing the teleporting.
+                        Util.FireAndForget(
+                            o => World.RequestTeleportLocation(presence.ControllingClient, regionHandle,
+                                new Vector3((float)position.x, (float)position.y, (float)position.z),
+                                new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation));
+
                         ScriptSleep(5000);
                     }
                 }
