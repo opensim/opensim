@@ -172,10 +172,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         private void RetrieveInstantMessages(IClientAPI client)
         {
             if (m_RestURL == String.Empty)
-			{
+            {
                 return;
-			}
-			else
+            }
+            else
             {
                 m_log.DebugFormat("[OFFLINE MESSAGING]: Retrieving stored messages for {0}", client.AgentId);
 
@@ -183,64 +183,51 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     = SynchronousRestObjectRequester.MakeRequest<UUID, List<GridInstantMessage>>(
                         "POST", m_RestURL + "/RetrieveMessages/", client.AgentId);
 
-            if (msglist != null)
-            {
-                foreach (GridInstantMessage im in msglist)
+                if (msglist != null)
                 {
-                    // client.SendInstantMessage(im);
+                    foreach (GridInstantMessage im in msglist)
+                    {
+                        // client.SendInstantMessage(im);
 
-                    // Send through scene event manager so all modules get a chance
-                    // to look at this message before it gets delivered.
-                    //
-                    // Needed for proper state management for stored group
-                    // invitations
-                    //
+                        // Send through scene event manager so all modules get a chance
+                        // to look at this message before it gets delivered.
+                        //
+                        // Needed for proper state management for stored group
+                        // invitations
+                        //
 
-                    im.offline = 1;
+                        im.offline = 1;
 
-                    Scene s = FindScene(client.AgentId);
-                    if (s != null)
-                        s.EventManager.TriggerIncomingInstantMessage(im);
+                        Scene s = FindScene(client.AgentId);
+                        if (s != null)
+                            s.EventManager.TriggerIncomingInstantMessage(im);
+                    }
                 }
             }
         }
 
         private void UndeliveredMessage(GridInstantMessage im)
         {
-            if (im.dialog != (byte)InstantMessageDialog.MessageFromObject &&
-                im.dialog != (byte)InstantMessageDialog.MessageFromAgent &&
-                im.dialog != (byte)InstantMessageDialog.GroupNotice &&
-                im.dialog != (byte)InstantMessageDialog.GroupInvitation &&
-                im.dialog != (byte)InstantMessageDialog.InventoryOffered)
+            if ((im.offline != 0)
+                && (!im.fromGroup || (im.fromGroup && m_ForwardOfflineGroupMessages)))
             {
                 bool success = SynchronousRestObjectRequester.MakeRequest<GridInstantMessage, bool>(
-                        "POST", m_RestURL+"/SaveMessage/", im);
-                return;
-            }
+                        "POST", m_RestURL + "/SaveMessage/", im);
 
-            // It's not delivered. Make sure the scope id is saved
-            // We don't need the imSessionID here anymore, overwrite it
-            Scene scene = FindScene(new UUID(im.fromAgentID));
-            if (scene == null)
-                scene = m_SceneList[0];
+                if (im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
+                {
+                    IClientAPI client = FindClient(new UUID(im.fromAgentID));
+                    if (client == null)
+                        return;
 
-            bool success = SynchronousRestObjectPoster.BeginPostObject<GridInstantMessage, bool>(
-                    "POST", m_RestURL+"/SaveMessage/?scope=" +
-                    scene.RegionInfo.ScopeID.ToString(), im);
-
-            if (im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
-            {
-                IClientAPI client = FindClient(new UUID(im.fromAgentID));
-                if (client == null)
-                    return;
-
-                client.SendInstantMessage(new GridInstantMessage(
-                        null, new UUID(im.toAgentID),
-                        "System", new UUID(im.fromAgentID),
-                        (byte)InstantMessageDialog.MessageFromAgent,
-                        "User is not logged in. "+
-                        (success ? "Message saved." : "Message not saved"),
-                        false, new Vector3()));
+                    client.SendInstantMessage(new GridInstantMessage(
+                            null, new UUID(im.toAgentID),
+                            "System", new UUID(im.fromAgentID),
+                            (byte)InstantMessageDialog.MessageFromAgent,
+                            "User is not logged in. " +
+                            (success ? "Message saved." : "Message not saved"),
+                            false, new Vector3()));
+                }
             }
         }
     }

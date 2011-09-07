@@ -1364,9 +1364,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// This is the event handler for client movement. If a client is moving, this event is triggering.
         /// </summary>
+        /// <summary>
+        /// This is the event handler for client movement. If a client is moving, this event is triggering.
+        /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
-//            m_log.DebugFormat("[SCENE PRESENCE]: Received agent update from {0}", remoteClient.Name);
+            //            m_log.DebugFormat("[SCENE PRESENCE]: Received agent update from {0}", remoteClient.Name);
 
             //if (m_isChildAgent)
             //{
@@ -1389,7 +1392,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Error("[AVATAR]: NonFinite Avatar position detected... Reset Position. Mantis this please. Error #9999902");
 
                 m_pos = m_LastFinitePos;
-                
                 if (!m_pos.IsFinite())
                 {
                     m_pos.X = 127f;
@@ -1459,6 +1461,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scene.PhysicsScene.RaycastWorld(m_pos, Vector3.Normalize(m_CameraCenter - posAdjusted), Vector3.Distance(m_CameraCenter, posAdjusted) + 0.3f, RayCastCameraCallback);
                 }
             }
+
             lock (scriptedcontrols)
             {
                 if (scriptedcontrols.Count > 0)
@@ -1473,9 +1476,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
             {
-                m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
-                Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
-
                 // TODO: This doesn't prevent the user from walking yet.
                 // Setting parent ID would fix this, if we knew what value
                 // to use.  Or we could add a m_isSitting variable.
@@ -1530,20 +1530,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (actor.Flying != oldflying)
                     update_movementflag = true;
 
-                if (m_animator.m_jumping)     // add for jumping
-                    update_movementflag = true;
-
-                if (q != m_bodyRot)
-                {
-                    m_bodyRot = q;
-                    update_rotation = true;
-                }
-
-                //guilty until proven innocent..
-                bool Nudging = true;
-                //Basically, if there is at least one non-nudge control then we don't need
-                //to worry about stopping the avatar
-
                 if (m_parentID == 0)
                 {
                     bool bAllowUpdateMoveToPosition = false;
@@ -1557,12 +1543,10 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                         dirVectors = Dir_Vectors;
 
-                    bool[] isNudge = GetDirectionIsNudge();
-
-                    
-                    
-                    
-
+                    // The fact that m_movementflag is a byte needs to be fixed
+                    // it really should be a uint
+                    // A DIR_CONTROL_FLAG occurs when the user is trying to move in a particular direction.
+                    uint nudgehack = 250;
                     foreach (Dir_ControlFlags DCF in DIR_CONTROL_FLAGS)
                     {
                         if (((uint)flags & (uint)DCF) != 0)
@@ -1572,30 +1556,43 @@ namespace OpenSim.Region.Framework.Scenes
                             try
                             {
                                 agent_control_v3 += dirVectors[i];
-                                if (isNudge[i] == false)
-                                {
-                                    Nudging = false;
-                                }
+                                //m_log.DebugFormat("[Motion]: {0}, {1}",i, dirVectors[i]);
                             }
                             catch (IndexOutOfRangeException)
                             {
                                 // Why did I get this?
                             }
 
-                            if ((m_movementflag & (uint)DCF) == 0)
+                            if ((m_movementflag & (byte)(uint)DCF) == 0)
                             {
+                                if (DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACK_NUDGE)
+                                {
+                                    m_movementflag |= (byte)nudgehack;
+                                }
 
-//                                m_log.DebugFormat("[SCENE PRESENCE]: Updating m_movementflag for {0} with {1}", Name, DCF);
+                                //                                m_log.DebugFormat("[SCENE PRESENCE]: Updating m_movementflag for {0} with {1}", Name, DCF);
                                 m_movementflag += (byte)(uint)DCF;
                                 update_movementflag = true;
                             }
                         }
                         else
                         {
-                            if ((m_movementflag & (uint)DCF) != 0)
+                            if ((m_movementflag & (byte)(uint)DCF) != 0 ||
+                                ((DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACK_NUDGE)
+                                && ((m_movementflag & (byte)nudgehack) == nudgehack))
+                                ) // This or is for Nudge forward
                             {
-                                m_movementflag -= (byte)(uint)DCF;
+                                //                                m_log.DebugFormat("[SCENE PRESENCE]: Updating m_movementflag for {0} with lack of {1}", Name, DCF);
+                                m_movementflag -= ((byte)(uint)DCF);
                                 update_movementflag = true;
+
+                                /*
+                                    if ((DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE)
+                                    && ((m_movementflag & (byte)nudgehack) == nudgehack))
+                                    {
+                                        m_log.Debug("Removed Hack flag");
+                                    }
+                                */
                             }
                             else
                             {
@@ -1605,128 +1602,19 @@ namespace OpenSim.Region.Framework.Scenes
 
                         i++;
                     }
+
                     if (MovingToTarget)
                     {
-                        m_moveToPositionTarget = Vector3.Zero;
-                        m_moveToPositionInProgress = false;
-                        update_movementflag = true;
-                        bAllowUpdateMoveToPosition = false;
-                    }
-
-                    if (bAllowUpdateMoveToPosition && (m_moveToPositionInProgress && !m_autopilotMoving))
-                    {
-/*
-                        bool twoD = false;
-                        bool there = false;
-                        if (Animator != null)
-                        {
-                            switch (Animator.CurrentMovementAnimation)
-                            {
-                                case "STAND":
-                                case "WALK":
-                                case "RUN":
-                                case "CROUCH":
-                                case "CROUCHWALK":
-                                {
-                                     twoD = true;
-                                }
-                                break;
-                            }
-                        }
-
-                        if (twoD)
-                        {
-*/
-                            Vector3 abspos = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, 0.0f);
-                            Vector3 tgt = new Vector3(m_moveToPositionTarget.X, m_moveToPositionTarget.Y, 0.0f);
-/*                            if (Util.GetDistanceTo(abspos, tgt) <= 0.5f) there = true;
-                        }
-                        else
-                        {
-                            if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 0.5f) there = true;
-                        }
-*/
-                        //Check the error term of the current position in relation to the target position
-//                        if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 0.5f)
-//                        if (there)
-                        if (Util.GetDistanceTo(abspos, tgt) <= 0.5f)
+                        // If the user has pressed a key then we want to cancel any move to target.
+                        if (DCFlagKeyPressed)
                         {
                             ResetMoveToTarget();
                             update_movementflag = true;
                         }
                         else if (bAllowUpdateMoveToPosition)
                         {
-                            try
-                            {
-                                // move avatar in 2D at one meter/second towards target, in avatar coordinate frame.
-                                // This movement vector gets added to the velocity through AddNewMovement().
-                                // Theoretically we might need a more complex PID approach here if other 
-                                // unknown forces are acting on the avatar and we need to adaptively respond
-                                // to such forces, but the following simple approach seems to works fine.
-                                Vector3 LocalVectorToTarget3D =
-//                                    (m_moveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
-                                    (tgt - abspos)
-                                    * Matrix4.CreateFromQuaternion(Quaternion.Inverse(bodyRotation)); // change to avatar coords
-                                // Ignore z component of vector
-                                Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
-                                LocalVectorToTarget2D.Normalize();
-                                
-                                //We're not nudging
-                                Nudging = false;
-                                agent_control_v3 += LocalVectorToTarget2D;
-
-                                // update avatar movement flags. the avatar coordinate system is as follows:
-                                //
-                                //                        +X (forward)
-                                //
-                                //                        ^
-                                //                        |
-                                //                        |
-                                //                        |
-                                //                        |
-                                //     (left) +Y <--------o--------> -Y
-                                //                       avatar
-                                //                        |
-                                //                        |
-                                //                        |
-                                //                        |
-                                //                        v
-                                //                        -X
-                                //
-
-                                // based on the above avatar coordinate system, classify the movement into 
-                                // one of left/right/back/forward.
-                                if (LocalVectorToTarget2D.Y > 0)//MoveLeft
-                                {
-                                    m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
-                                    //AgentControlFlags
-                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
-                                    update_movementflag = true;
-                                }
-                                else if (LocalVectorToTarget2D.Y < 0) //MoveRight
-                                {
-                                    m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
-                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
-                                    update_movementflag = true;
-                                }
-                                if (LocalVectorToTarget2D.X < 0) //MoveBack
-                                {
-                                    m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
-                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
-                                    update_movementflag = true;
-                                }
-                                else if (LocalVectorToTarget2D.X > 0) //Move Forward
-                                {
-                                    m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
-                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
-                                    update_movementflag = true;
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                //Avoid system crash, can be slower but...
-                                m_log.DebugFormat("Crash! {0}", e.ToString());
-                            }
+                            if (HandleMoveToTargetUpdate(ref agent_control_v3))
+                                update_movementflag = true;
                         }
                     }
                 }
@@ -1759,30 +1647,25 @@ namespace OpenSim.Region.Framework.Scenes
                 // which occurs later in the main scene loop
                 if (update_movementflag || (update_rotation && DCFlagKeyPressed))
                 {
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE]: In {0} adding velocity of {1} to {2}, umf = {3}, ur = {4}",
-//                        m_scene.RegionInfo.RegionName, agent_control_v3, Name, update_movementflag, update_rotation);
+                    //                    m_log.DebugFormat(
+                    //                        "[SCENE PRESENCE]: In {0} adding velocity of {1} to {2}, umf = {3}, ur = {4}",
+                    //                        m_scene.RegionInfo.RegionName, agent_control_v3, Name, update_movementflag, update_rotation);
 
-                    AddNewMovement(agent_control_v3, q, Nudging);
-
-                    
+                    AddNewMovement(agent_control_v3);
                 }
-//                else
-//                {
-//                    if (!update_movementflag)
-//                    {
-//                        m_log.DebugFormat(
-//                            "[SCENE PRESENCE]: In {0} ignoring requested update of {1} for {2} as update_movementflag = false",
-//                            m_scene.RegionInfo.RegionName, agent_control_v3, Name);
-//                    }
-//                }
+                //                else
+                //                {
+                //                    if (!update_movementflag)
+                //                    {
+                //                        m_log.DebugFormat(
+                //                            "[SCENE PRESENCE]: In {0} ignoring requested update of {1} for {2} as update_movementflag = false",
+                //                            m_scene.RegionInfo.RegionName, agent_control_v3, Name);
+                //                    }
+                //                }
 
                 if (update_movementflag && m_parentID == 0)
                     Animator.UpdateMovementAnimations();
             }
-
-            if (update_movementflag && !SitGround)
-                Animator.UpdateMovementAnimations();
 
             m_scene.EventManager.TriggerOnClientMovement(this);
 
@@ -1799,24 +1682,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>True if movement has been updated in some way.  False otherwise.</returns>
         public bool HandleMoveToTargetUpdate(ref Vector3 agent_control_v3)
         {
-//            m_log.DebugFormat("[SCENE PRESENCE]: Called HandleMoveToTargetUpdate() for {0}", Name);
+            //            m_log.DebugFormat("[SCENE PRESENCE]: Called HandleMoveToTargetUpdate() for {0}", Name);
+
             bool updated = false;
 
-        public void StopMoveToPosition()
-        {
-             m_moveToPositionTarget = Vector3.Zero;
-             m_moveToPositionInProgress = false;
-        }
+            //            m_log.DebugFormat(
+            //                "[SCENE PRESENCE]: bAllowUpdateMoveToPosition {0}, m_moveToPositionInProgress {1}, m_autopilotMoving {2}",
+            //                allowUpdate, m_moveToPositionInProgress, m_autopilotMoving);
 
-        public void DoMoveToPosition(Object sender, string method, List<String> args)
-        {
-//Console.WriteLine("SP:DoMoveToPosition");
-            try
+            if (!m_autopilotMoving)
             {
                 double distanceToTarget = Util.GetDistanceTo(AbsolutePosition, MoveToPositionTarget);
-//                        m_log.DebugFormat(
-//                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
-//                            Name, AbsolutePosition, MoveToPositionTarget, distanceToTarget);
+                //                        m_log.DebugFormat(
+                //                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
+                //                            Name, AbsolutePosition, MoveToPositionTarget, distanceToTarget);
 
                 // Check the error term of the current position in relation to the target position
                 if (distanceToTarget <= 1)
@@ -1839,7 +1718,7 @@ namespace OpenSim.Region.Framework.Scenes
                             (MoveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
                             * Matrix4.CreateFromQuaternion(Quaternion.Inverse(Rotation)); // change to avatar coords
                         // Ignore z component of vector
-//                        Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
+                        //                        Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
                         LocalVectorToTarget3D.Normalize();
 
                         // update avatar movement flags. the avatar coordinate system is as follows:
@@ -1905,9 +1784,9 @@ namespace OpenSim.Region.Framework.Scenes
                             updated = true;
                         }
 
-//                        m_log.DebugFormat(
-//                            "[SCENE PRESENCE]: HandleMoveToTargetUpdate adding {0} to move vector {1} for {2}",
-//                            LocalVectorToTarget3D, agent_control_v3, Name);
+                        //                        m_log.DebugFormat(
+                        //                            "[SCENE PRESENCE]: HandleMoveToTargetUpdate adding {0} to move vector {1} for {2}",
+                        //                            LocalVectorToTarget3D, agent_control_v3, Name);
 
                         agent_control_v3 += LocalVectorToTarget3D;
                     }
@@ -1917,7 +1796,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.DebugFormat("Crash! {0}", e.ToString());
                     }
                 }
-			}
+            }
 
             return updated;
         }
@@ -2746,41 +2625,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// Rotate the avatar to the given rotation and apply a movement in the given relative vector
         /// </summary>
         /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
-        /// <param name="rotation">The direction in which this avatar should now face.
-        public void AddNewMovement(Vector3 vec, Quaternion rotation, bool Nudging)
+        public void AddNewMovement(Vector3 vec)
         {
-            if (m_isChildAgent)
-            {
-                // WHAT???
-                m_log.Debug("[SCENEPRESENCE]: AddNewMovement() called on child agent");
-
-                return;
-            }
-
             m_perfMonMS = Util.EnvironmentTickCount();
 
             Vector3 direc = vec * Rotation;
             direc.Normalize();
-            PhysicsActor actor = m_physicsActor;
-
-            if (actor.Flying != m_flyingOld)	            // add for fly velocity control
-            {
-                m_flyingOld = actor.Flying;	                // add for fly velocity control
-                if (!actor.Flying) m_wasFlying = true;	    // add for fly velocity control
-            }
-
-            if (m_physicsActor.IsColliding == true) m_wasFlying = false;	    // add for fly velocity control
-
-            if ((vec.Z == 0f) && !actor.Flying) direc.Z = 0f; // Prevent camera WASD up.
 
             direc *= 0.03f * 128f * m_speedModifier;
 
+            PhysicsActor actor = m_physicsActor;
             if (actor != null)
             {
                 if (actor.Flying)
                 {
-// rm speed mod                    direc *= 4.0f;
-                    direc *= 5.2f;      // for speed mod
+                    direc *= 4.0f;
                     //bool controlland = (((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) || ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
                     //bool colliding = (m_physicsActor.IsColliding==true);
                     //if (controlland)
@@ -2793,34 +2652,22 @@ namespace OpenSim.Region.Framework.Scenes
                     //    m_log.Info("[AGENT]: Stop FLying");
                     //}
                 }
-                if (Animator.m_falling && m_wasFlying)    // if falling from flying, disable motion add
-                {
-                    direc *= 0.0f;
-                }
- /* This jumping section removed to SPA
                 else if (!actor.Flying && actor.IsColliding)
                 {
                     if (direc.Z > 2.0f)
                     {
-                        if(m_animator.m_animTickJump == -1)
-						{
-                    		direc.Z *= 3.0f;	// jump
-                    	}
-                    	else
-                    	{
-                    		direc.Z *= 0.1f;	// prejump
-                    	}
-                        / * Animations are controlled via  GetMovementAnimation() in ScenePresenceAnimator.cs
-                           Animator.TrySetMovementAnimation("PREJUMP");
-                           Animator.TrySetMovementAnimation("JUMP");
-                        * /
+                        direc.Z *= 3.0f;
+
+                        // TODO: PreJump and jump happen too quickly.  Many times prejump gets ignored.
+                        Animator.TrySetMovementAnimation("PREJUMP");
+                        Animator.TrySetMovementAnimation("JUMP");
                     }
-                }  */
+                }
             }
 
             // TODO: Add the force instead of only setting it to support multiple forces per frame?
             m_forceToApply = direc;
-            m_isNudging = Nudging;
+
             m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
         }
 
@@ -3961,7 +3808,7 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
                 {
                     StartCollidingMessage.Colliders = colliding;
 
-                    foreach (SceneObjectGroup att in Attachments)
+                    foreach (SceneObjectGroup att in GetAttachments())
                         Scene.EventManager.TriggerScriptCollidingStart(att.LocalId, StartCollidingMessage);
                 }
             }
@@ -3996,7 +3843,7 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
                 {
                     EndCollidingMessage.Colliders = colliding;
 
-                    foreach (SceneObjectGroup att in Attachments)
+                    foreach (SceneObjectGroup att in GetAttachments())
                         Scene.EventManager.TriggerScriptCollidingEnd(att.LocalId, EndCollidingMessage);
                 }
             }
@@ -4517,7 +4364,7 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
             List<AvatarAttachment> attachments = m_appearance.GetAttachments();
             foreach (AvatarAttachment attach in attachments)
             {
-                if (m_isDeleted)
+                if (IsDeleted)
                     return;
 
                 int p = attach.AttachPoint;
@@ -4603,7 +4450,7 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
         public void SaveChangedAttachments()
         {
             // Need to copy this list because DetachToInventoryPrep mods it
-            List<SceneObjectGroup> attachments = new List<SceneObjectGroup>(Attachments.ToArray());
+            List<SceneObjectGroup> attachments = new List<SceneObjectGroup>(GetAttachments().ToArray());
 
             IAttachmentsModule attachmentsModule = m_scene.AttachmentsModule;
             if (attachmentsModule != null)
@@ -4612,12 +4459,12 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
                 {
                     if (grp.HasGroupChanged) // Resizer scripts?
                     {
-                        grp.RootPart.IsAttachment = false;
+                        grp.IsAttachment = false;
                         grp.AbsolutePosition = grp.RootPart.AttachedPos;
 //                        grp.DetachToInventoryPrep();
                         attachmentsModule.UpdateKnownItem(ControllingClient,
                                 grp, grp.GetFromItemID(), grp.OwnerID);
-                        grp.RootPart.IsAttachment = true;
+                        grp.IsAttachment = true;
                     }
                 }
             }

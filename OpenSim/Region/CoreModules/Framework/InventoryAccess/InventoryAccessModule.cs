@@ -788,7 +788,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (item != null && !DoPreRezWhenFromItem(remoteClient, item, objlist, pos, attachment))
                 return null;
-
+            SceneObjectPart rootPart = group.RootPart;
             for (int i = 0; i < objlist.Count; i++)
             {
                 group = objlist[i];
@@ -835,8 +835,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     group.AbsolutePosition = pos + veclist[i];
                 }
 
-                SceneObjectPart rootPart = group.RootPart;
-
                 group.SetGroup(remoteClient.ActiveGroupId, remoteClient);
 
                 if (!attachment)
@@ -861,13 +859,57 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (item != null)
                 DoPostRezWhenFromItem(item, attachment);
 
-                        if ((rootPart.OwnerID != item.Owner) ||
+            if ((rootPart.OwnerID != item.Owner) ||
                             (item.CurrentPermissions & 16) != 0 || // Magic number
                             (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
+            {
+                //Need to kill the for sale here
+                rootPart.ObjectSaleType = 0;
+                rootPart.SalePrice = 10;
+
+                if (m_Scene.Permissions.PropagatePermissions())
+                {
+                    foreach (SceneObjectPart part in group.Parts)
+                    {
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
                         {
-                            //Need to kill the for sale here
-                            rootPart.ObjectSaleType = 0;
-                            rootPart.SalePrice = 10;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                                part.EveryoneMask = item.EveryOnePermissions;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                                part.NextOwnerMask = item.NextPermissions;
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                                part.GroupMask = item.GroupPermissions;
+                        }
+                    }
+
+                    foreach (SceneObjectPart part in group.Parts)
+                    {
+                        part.LastOwnerID = part.OwnerID;
+                        part.OwnerID = item.Owner;
+                        part.Inventory.ChangeInventoryOwner(item.Owner);
+                    }
+
+                    group.ApplyNextOwnerPermissions();
+                }
+            }
+            foreach (SceneObjectPart part in group.Parts)
+            {
+                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                    part.EveryoneMask = item.EveryOnePermissions;
+                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                    part.NextOwnerMask = item.NextPermissions;
+                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                    part.GroupMask = item.GroupPermissions;
+            }
+
+            if ((rootPart.OwnerID != item.Owner) ||
+                (item.CurrentPermissions & 16) != 0 || // Magic number
+                (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
+            {
+                //Need to kill the for sale here
+                rootPart.ObjectSaleType = 0;
+                rootPart.SalePrice = 10;
+            }
 
             return group;
         }
@@ -1014,48 +1056,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         m_Scene.InventoryService.DeleteItems(item.Owner, uuids);
                     }
                 }
-            }
-			if ((rootPart.OwnerID != item.Owner) ||
-                            (item.CurrentPermissions & 16) != 0 || // Magic number
-                            (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
-                        {
-                            //Need to kill the for sale here
-                            rootPart.ObjectSaleType = 0;
-                            rootPart.SalePrice = 10;
-				
-			    if (m_Scene.Permissions.PropagatePermissions())
-                            {
-                                foreach (SceneObjectPart part in group.Parts)
-                                {
-                                    if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
-                                    {
-                                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
-                                            part.EveryoneMask = item.EveryOnePermissions;
-                                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
-                                            part.NextOwnerMask = item.NextPermissions;
-                                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
-                                            part.GroupMask = item.GroupPermissions;
-                                    }
-                                }
-                                
-                                foreach (SceneObjectPart part in group.Parts)
-                                {
-                                    part.LastOwnerID = part.OwnerID;
-                                    part.OwnerID = item.Owner;
-                                    part.Inventory.ChangeInventoryOwner(item.Owner);
-                                }
-
-                                group.ApplyNextOwnerPermissions();
-                            }
-                        }
- 			foreach (SceneObjectPart part in group.Parts)
-            {
-            	if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
-                	part.EveryoneMask = item.EveryOnePermissions;
-                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
-                    part.NextOwnerMask = item.NextPermissions;
-                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
-                    part.GroupMask = item.GroupPermissions;
             }
         }
 

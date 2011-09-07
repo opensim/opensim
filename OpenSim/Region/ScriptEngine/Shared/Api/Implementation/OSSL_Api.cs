@@ -2166,8 +2166,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 UUID x = module.CreateNPC(firstname,
                                           lastname,
                                           new Vector3((float) position.x, (float) position.y, (float) position.z),
-                                          World,
-                                          appearance);
+                                          World,appearance);
 
                 return new LSL_Key(x.ToString());
             }

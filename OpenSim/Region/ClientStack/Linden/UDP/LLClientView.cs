@@ -3747,7 +3747,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (!m_scene.TryGetScenePresence(part.OwnerID, out sp))
                             continue;
 
-                        List<SceneObjectGroup> atts = sp.Attachments;
+                        List<SceneObjectGroup> atts = sp.GetAttachments();
                         bool found = false;
                         foreach (SceneObjectGroup att in atts)
                         {

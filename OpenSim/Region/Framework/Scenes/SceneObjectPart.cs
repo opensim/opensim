@@ -852,7 +852,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             set
             {
-                StoreUndoState(UndoType.STATE_PRIM_ROTATION);
+                StoreUndoState();
                 m_rotationOffset = value;
 
                 PhysicsActor actor = PhysActor;
@@ -3590,7 +3590,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_parentGroup.ScheduleGroupForTerseUpdate();
             //m_parentGroup.ScheduleGroupForFullUpdate();
         }
-        public void StoreUndoState(UndoType type)
+
+        public void StoreUndoState()
         {
             StoreUndoState(false);
         }
@@ -3613,57 +3614,45 @@ namespace OpenSim.Region.Framework.Scenes
                                     // TODO: May need to fix for group comparison
                                     if (last.Compare(this))
                                     {
-    //                                        m_log.DebugFormat(
-    //                                            "[SCENE OBJECT PART]: Not storing undo for {0} {1} since current state is same as last undo state, initial stack size {2}",
-    //                                            Name, LocalId, m_undo.Count);
-    
+                                        //                                        m_log.DebugFormat(
+                                        //                                            "[SCENE OBJECT PART]: Not storing undo for {0} {1} since current state is same as last undo state, initial stack size {2}",
+                                        //                                            Name, LocalId, m_undo.Count);
+
                                         return;
                                     }
                                 }
                             }
-    
-    //                            m_log.DebugFormat(
-    //                                "[SCENE OBJECT PART]: Storing undo state for {0} {1}, forGroup {2}, initial stack size {3}",
-    //                                Name, LocalId, forGroup, m_undo.Count);
-    
+
+                            //                            m_log.DebugFormat(
+                            //                                "[SCENE OBJECT PART]: Storing undo state for {0} {1}, forGroup {2}, initial stack size {3}",
+                            //                                Name, LocalId, forGroup, m_undo.Count);
+
                             if (m_parentGroup.GetSceneMaxUndo() > 0)
                             {
                                 UndoState nUndo = new UndoState(this, forGroup);
-    
-                                UndoState nUndo = new UndoState(this, type);
 
-                                if (lastUndo != null)
-                                {
-                                    TimeSpan ts = DateTime.Now.Subtract(lastUndo.LastUpdated);
-                                    if (ts.TotalMilliseconds < 500)
-                                    {
-                                        //Delete the last entry since it was less than 500 milliseconds ago
-                                        nUndo.Merge(lastUndo);
-                                        m_undo.Pop();
-                                    }
-                                }
                                 m_undo.Push(nUndo);
-    
+
                                 if (m_redo.Count > 0)
                                     m_redo.Clear();
-    
-    //                                m_log.DebugFormat(
-    //                                    "[SCENE OBJECT PART]: Stored undo state for {0} {1}, forGroup {2}, stack size now {3}",
-    //                                    Name, LocalId, forGroup, m_undo.Count);
+
+                                //                                m_log.DebugFormat(
+                                //                                    "[SCENE OBJECT PART]: Stored undo state for {0} {1}, forGroup {2}, stack size now {3}",
+                                //                                    Name, LocalId, forGroup, m_undo.Count);
                             }
                         }
                     }
                 }
-//                else
-//                {
-//                    m_log.DebugFormat("[SCENE OBJECT PART]: Ignoring undo store for {0} {1}", Name, LocalId);
-//                }
+                //                else
+                //                {
+                //                    m_log.DebugFormat("[SCENE OBJECT PART]: Ignoring undo store for {0} {1}", Name, LocalId);
+                //                }
             }
-//            else
-//            {
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT PART]: Ignoring undo store for {0} {1} since already undoing", Name, LocalId);
-//            }
+            //            else
+            //            {
+            //                m_log.DebugFormat(
+            //                    "[SCENE OBJECT PART]: Ignoring undo store for {0} {1} since already undoing", Name, LocalId);
+            //            }
         }
 
         /// <summary>

@@ -968,24 +968,25 @@ namespace OpenSim.Region.Framework.Scenes
             if (part != null)
             {
                 group = part.ParentGroup;
-            }            
+            }
             if (part != null && group != null)
             {
                 if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
                     return;
-                
+
                 TaskInventoryItem item = group.GetInventoryItem(localID, itemID);
                 if (item == null)
                     return;
 
-            if (item.Type == 10)
-            {
-                part.RemoveScriptEvents(itemID);
-                EventManager.TriggerRemoveScript(localID, itemID);
+                if (item.Type == 10)
+                {
+                    part.RemoveScriptEvents(itemID);
+                    EventManager.TriggerRemoveScript(localID, itemID);
+                }
+
+                group.RemoveInventoryItem(localID, itemID);
+                part.GetProperties(remoteClient);
             }
-            
-            group.RemoveInventoryItem(localID, itemID);
-            part.GetProperties(remoteClient);
         }
 
         private InventoryItemBase CreateAgentInventoryItemFromTask(UUID destAgent, SceneObjectPart part, UUID itemId)

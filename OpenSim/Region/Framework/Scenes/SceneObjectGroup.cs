@@ -350,10 +350,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_rotation; }
             set {
-                foreach(SceneObjectPart p in m_parts.GetArray())
-                {
-                    p.StoreUndoState(UndoType.STATE_GROUP_ROTATION);
-                }
                 m_rotation = value; 
             }
         }
@@ -487,8 +483,6 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart[] parts = m_parts.GetArray();
                 foreach (SceneObjectPart part in parts)
                 {
-                    part.IgnoreUndoUpdate = false;
-                    part.StoreUndoState(UndoType.STATE_GROUP_POSITION);
                     part.GroupPosition = val;
                     if (!m_dupeInProgress)
                     {
@@ -1193,45 +1187,31 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="agentID"></param>
         /// <param name="attachmentpoint"></param>
         /// <param name="AttachOffset"></param>
-        public void AttachToAgent(UUID agentID, uint attachmentpoint, Vector3 AttachOffset, bool silent)
+        private void AttachToAgent(
+            ScenePresence avatar, SceneObjectGroup so, uint attachmentpoint, Vector3 attachOffset, bool silent)
         {
-            ScenePresence avatar = m_scene.GetScenePresence(agentID);
             if (avatar != null)
             {
                 // don't attach attachments to child agents
                 if (avatar.IsChildAgent) return;
 
-//                m_log.DebugFormat("[SOG]: Adding attachment {0} to avatar {1}", Name, avatar.Name);
-                                  
-                DetachFromBackup();
-
                 // Remove from database and parcel prim count
-                m_scene.DeleteFromStorage(UUID);
+                m_scene.DeleteFromStorage(so.UUID);
                 m_scene.EventManager.TriggerParcelPrimCountTainted();
 
-                m_rootPart.AttachedAvatar = agentID;
+                so.AttachedAvatar = avatar.UUID;
 
-                //Anakin Lohner bug #3839 
-                lock (m_parts)
+                if (so.RootPart.PhysActor != null)
                 {
-                    foreach (SceneObjectPart p in m_parts.GetArray())
-                    {
-                        p.AttachedAvatar = agentID;
-                    }
+                    m_scene.PhysicsScene.RemovePrim(so.RootPart.PhysActor);
+                    so.RootPart.PhysActor = null;
                 }
 
-                if (m_rootPart.PhysActor != null)
-                {
-                    m_scene.PhysicsScene.RemovePrim(m_rootPart.PhysActor);
-                    m_rootPart.PhysActor = null;
-                }
-
-                AbsolutePosition = AttachOffset;
-                m_rootPart.AttachedPos = AttachOffset;
-                m_rootPart.IsAttachment = true;
-
-                m_rootPart.SetParentLocalId(avatar.LocalId);
-                SetAttachmentPoint(Convert.ToByte(attachmentpoint));
+                so.AbsolutePosition = attachOffset;
+                so.RootPart.AttachedPos = attachOffset;
+                so.IsAttachment = true;
+                so.RootPart.SetParentLocalId(avatar.LocalId);
+                so.AttachmentPoint = attachmentpoint;
 
                 avatar.AddAttachment(this);
 
@@ -1254,18 +1234,13 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.WarnFormat(
                     "[SOG]: Tried to add attachment {0} to avatar with UUID {1} in region {2} but the avatar is not present", 
-                    UUID, agentID, Scene.RegionInfo.RegionName);
+                    UUID, avatar.ControllingClient.AgentId, Scene.RegionInfo.RegionName);
             }
         }
 
         public byte GetAttachmentPoint()
         {
             return m_rootPart.Shape.State;
-        }
-
-        public void ClearPartAttachmentData()
-        {
-            SetAttachmentPoint((Byte)0);
         }
 
         public void DetachToGround()
@@ -1788,19 +1763,19 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // This is only necessary when userExposed is false!
 
-            bool previousAttachmentStatus = dupe.IsAttachment;
+                bool previousAttachmentStatus = dupe.IsAttachment;
             
-            if (!userExposed)
-                dupe.IsAttachment = true;
+                if (!userExposed)
+                    dupe.IsAttachment = true;
 
                 if (!userExposed)
                     dupe.RootPart.IsAttachment = true;
 
                 dupe.AbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
-            if (!userExposed)
-            {
-                dupe.IsAttachment = previousAttachmentStatus;
-            }
+                if (!userExposed)
+                {
+                    dupe.IsAttachment = previousAttachmentStatus;
+                }
 
                 if (!userExposed)
                 {
@@ -1855,8 +1830,8 @@ namespace OpenSim.Region.Framework.Scenes
                     dupe.UpdateParentIDs();
                     dupe.HasGroupChanged = true;
                     dupe.AttachToBackup();
-
-                    ScheduleGroupForFullUpdate();
+                }
+                ScheduleGroupForFullUpdate();
                 // Need to duplicate the physics actor as well
                 if (part.PhysActor != null && userExposed)
                 {
@@ -3175,7 +3150,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (IsAttachment)
                 {
-                    m_rootPart.StoreUndoState(UndoType.STATE_GROUP_POSITION);
                     m_rootPart.AttachedPos = pos;
                 }
                 if (RootPart.GetStatusSandbox())
@@ -3207,9 +3181,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart part = GetChildPart(localID);
 
-//            SceneObjectPart[] parts = m_parts.GetArray();
-//            for (int i = 0; i < parts.Length; i++)
-//                parts[i].StoreUndoState();
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+                parts[i].StoreUndoState();
 
             if (part != null)
             {
@@ -3368,8 +3342,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart part = GetChildPart(localID);
             SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].StoreUndoState(UndoType.STATE_PRIM_ROTATION);
 
             if (part != null)
             {
@@ -3440,14 +3412,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Quaternion axRot = rot;
             Quaternion oldParentRot = m_rootPart.RotationOffset;
-
-            m_rootPart.StoreUndoState(UndoType.STATE_PRIM_ROTATION);
-            bool cancelUndo = false;
-            if (!m_rootPart.Undoing)
-            {
-                m_rootPart.Undoing = true;
-                cancelUndo = true;
-            }
+            m_rootPart.StoreUndoState();
             
             //Don't use UpdateRotation because it schedules an update prematurely
             m_rootPart.RotationOffset = rot;

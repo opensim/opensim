@@ -1437,9 +1437,9 @@ namespace OpenSim.Region.Framework.Scenes
                     // Set the new attachment point data in the object
                     byte attachmentPoint = group.GetAttachmentPoint();
                     group.UpdateGroupPosition(pos);
-                    group.RootPart.IsAttachment = false;
+                    group.IsAttachment = false;
                     group.AbsolutePosition = group.RootPart.AttachedPos;
-                    group.SetAttachmentPoint(attachmentPoint);
+                    group.AttachmentPoint = attachmentPoint;
                     group.HasGroupChanged = true;
                 }
                 else
@@ -1723,12 +1723,11 @@ namespace OpenSim.Region.Framework.Scenes
                     // So that, on delink, no prims are unwittingly
                     // left for sale and sold off
                    
-                        if (child != null)
-                        {
-                            child.RootPart.ObjectSaleType = 0;
-                            child.RootPart.SalePrice = 10;
-                            childGroups.Add(child);
-                        }
+                    if (child != null)
+                    {
+                        child.RootPart.ObjectSaleType = 0;
+                        child.RootPart.SalePrice = 10;
+                        childGroups.Add(child);
                     }
                 }
 
