@@ -163,6 +163,10 @@ namespace OpenSim.Data.Null
         {
             RegionSettings rs = null;
             m_regionSettings.TryGetValue(regionUUID, out rs);
+
+            if (rs == null)
+                rs = new RegionSettings();
+            
             return rs;
         }
 
