@@ -47,7 +47,6 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Capabilities.Handlers
 {
-
     public class GetTextureHandler : BaseStreamHandler
     {
         private static readonly ILog m_log =
@@ -67,7 +66,6 @@ namespace OpenSim.Capabilities.Handlers
 
         public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-
             // Try to parse the texture ID from the request URL
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             string textureStr = query.GetOne("texture_id");
@@ -85,6 +83,8 @@ namespace OpenSim.Capabilities.Handlers
             UUID textureID;
             if (!String.IsNullOrEmpty(textureStr) && UUID.TryParse(textureStr, out textureID))
             {
+//                m_log.DebugFormat("[GETTEXTURE]: Received request for texture id {0}", textureID);
+                
                 string[] formats;
                 if (format != null && format != string.Empty)
                 {
@@ -105,7 +105,6 @@ namespace OpenSim.Capabilities.Handlers
                     if (FetchTexture(httpRequest, httpResponse, textureID, f))
                         break;
                 }
-
             }
             else
             {
