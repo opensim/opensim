@@ -50,11 +50,19 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
     [TestFixture]
     public class NPCModuleTests
     {
-        [SetUp]
-        public void Init()
+        [TestFixtureSetUp]
+        public void FixtureInit()
         {
             // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
             Util.FireAndForgetMethod = FireAndForgetMethod.None;
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
+            // threads.  Possibly, later tests should be rewritten not to worry about such things.
+            Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
         }
 
         [Test]

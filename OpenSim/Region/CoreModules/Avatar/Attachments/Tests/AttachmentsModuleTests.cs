@@ -58,12 +58,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         private AttachmentsModule m_attMod;
         private ScenePresence m_presence;
 
-        [SetUp]
-        public void Init()
+        [TestFixtureSetUp]
+        public void FixtureInit()
         {
             // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
             Util.FireAndForgetMethod = FireAndForgetMethod.None;
+        }
 
+        [SetUp]
+        public void Init()
+        {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
@@ -73,7 +77,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             SceneHelpers.SetupSceneModules(scene, config, m_attMod, new BasicInventoryAccessModule());
         }
 
-        [TearDown]
+        [TestFixtureTearDown]
         public void TearDown()
         {
             // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
