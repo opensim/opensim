@@ -70,6 +70,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
         }
 
+        [SetUp]
         public void Init()
         {
             IConfigSource config = new IniConfigSource();
@@ -82,7 +83,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             umm = new UserManagementModule();
             am = new AttachmentsModule();
 
-            TestScene scene = SceneHelpers.SetupScene();
+            scene = SceneHelpers.SetupScene();
             SceneHelpers.SetupSceneModules(scene, config, afm, umm, am, new BasicInventoryAccessModule(), new NPCModule());
         }
 
