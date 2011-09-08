@@ -50,6 +50,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
     [TestFixture]
     public class NPCModuleTests
     {
+        private TestScene scene;
+        private AvatarFactoryModule afm;
+        private UserManagementModule umm;
+        private AttachmentsModule am;
+
         [TestFixtureSetUp]
         public void FixtureInit()
         {
@@ -65,21 +70,28 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
         }
 
+        public void Init()
+        {
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("NPC");
+            config.Configs["NPC"].Set("Enabled", "true");
+            config.AddConfig("Modules");
+            config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
+
+            afm = new AvatarFactoryModule();
+            umm = new UserManagementModule();
+            am = new AttachmentsModule();
+
+            TestScene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, config, afm, umm, am, new BasicInventoryAccessModule(), new NPCModule());
+        }
+
         [Test]
         public void TestCreate()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            IConfigSource config = new IniConfigSource();
-            config.AddConfig("NPC");
-            config.Configs["NPC"].Set("Enabled", "true");
-
-            AvatarFactoryModule afm = new AvatarFactoryModule();
-            UserManagementModule umm = new UserManagementModule();
-
-            TestScene scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(scene, config, afm, umm, new NPCModule());
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 
@@ -111,35 +123,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            IConfigSource config = new IniConfigSource();
-            config.AddConfig("NPC");
-            config.Configs["NPC"].Set("Enabled", "true");
-            config.AddConfig("Modules");
-            config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
-
-            AvatarFactoryModule afm = new AvatarFactoryModule();
-            UserManagementModule umm = new UserManagementModule();
-            AttachmentsModule am = new AttachmentsModule();
-
-            TestScene scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(scene, config, afm, umm, am, new BasicInventoryAccessModule(), new NPCModule());
-
             UUID userId = TestHelpers.ParseTail(0x1);
             UserAccountHelpers.CreateUserWithInventory(scene, userId);
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, userId);
-//            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
-
-            // 8 is the index of the first baked texture in AvatarAppearance
-//            UUID originalFace8TextureId = TestHelpers.ParseTail(0x10);
-//            Primitive.TextureEntry originalTe = new Primitive.TextureEntry(UUID.Zero);
-//            Primitive.TextureEntryFace originalTef = originalTe.CreateFace(8);
-//            originalTef.TextureID = originalFace8TextureId;
-
-            // We also need to add the texture to the asset service, otherwise the AvatarFactoryModule will tell
-            // ScenePresence.SendInitialData() to reset our entire appearance.
-//            scene.AssetService.Store(AssetHelpers.CreateAsset(originalFace8TextureId));
-//
-//            afm.SetAppearanceFromClient(sp.ControllingClient, originalTe, null);
 
             UUID attItemId = TestHelpers.ParseTail(0x2);
             UUID attAssetId = TestHelpers.ParseTail(0x3);
@@ -165,6 +151,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             // Just for now, we won't test the name since this is (wrongly) the asset part name rather than the item
             // name.  TODO: Do need to fix ultimately since the item may be renamed before being passed on to an NPC.
 //            Assert.That(attSo.Name, Is.EqualTo(attName));
+
             Assert.That(attSo.AttachmentPoint, Is.EqualTo((byte)AttachmentPoint.Chest));
             Assert.That(attSo.IsAttachment);
             Assert.That(attSo.UsesPhysics, Is.False);
@@ -178,13 +165,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            IConfigSource config = new IniConfigSource();
-
-            config.AddConfig("NPC");
-            config.Configs["NPC"].Set("Enabled", "true");
-
-            TestScene scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(scene, config, new NPCModule());
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 
