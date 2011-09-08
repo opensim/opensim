@@ -588,7 +588,42 @@ namespace OpenSim.Region.Framework.Scenes
             #region Region Settings
 
             // Load region settings
-            m_regInfo.RegionSettings = simDataService.LoadRegionSettings(m_regInfo.RegionID);
+            // LoadRegionSettings creates new region settings in persistence if they don't already exist for this region.
+            // However, in this case, the default textures are not set in memory properly, so we need to do it here and
+            // resave.
+            // FIXME: It shouldn't be up to the database plugins to create this data - we should do it when a new
+            // region is set up and avoid these gyrations.
+            RegionSettings rs = simDataService.LoadRegionSettings(m_regInfo.RegionID);
+            bool updatedTerrainTextures = false;
+            if (rs.TerrainTexture1 == UUID.Zero)
+            {
+                rs.TerrainTexture1 = RegionSettings.DEFAULT_TERRAIN_TEXTURE_1;
+                updatedTerrainTextures = true;
+            }
+
+            if (rs.TerrainTexture2 == UUID.Zero)
+            {
+                rs.TerrainTexture2 = RegionSettings.DEFAULT_TERRAIN_TEXTURE_2;
+                updatedTerrainTextures = true;
+            }
+
+            if (rs.TerrainTexture3 == UUID.Zero)
+            {
+                rs.TerrainTexture3 = RegionSettings.DEFAULT_TERRAIN_TEXTURE_3;
+                updatedTerrainTextures = true;
+            }
+
+            if (rs.TerrainTexture4 == UUID.Zero)
+            {
+                rs.TerrainTexture4 = RegionSettings.DEFAULT_TERRAIN_TEXTURE_4;
+                updatedTerrainTextures = true;
+            }
+
+            if (updatedTerrainTextures)
+                rs.Save();
+
+            m_regInfo.RegionSettings = rs;
+
             if (estateDataService != null)
                 m_regInfo.EstateSettings = estateDataService.LoadEstateSettings(m_regInfo.RegionID, false);
 
