@@ -441,14 +441,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch
             {
-                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0} for StatusNotification", m_ServerURL);
 //                reason = "Exception: " + e.Message;
                 return friendsOnline;
             }
 
             if (response.IsFault)
             {
-                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} for StatusNotification returned an error: {1}", m_ServerURL, response.FaultString);
 //                reason = "XMLRPC Fault";
                 return friendsOnline;
             }
@@ -512,14 +512,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch
             {
-                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0} for GetOnlineFriends", m_ServerURL);
 //                reason = "Exception: " + e.Message;
                 return online;
             }
 
             if (response.IsFault)
             {
-                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} for GetOnlineFriends returned an error: {1}", m_ServerURL, response.FaultString);
 //                reason = "XMLRPC Fault";
                 return online;
             }
@@ -577,14 +577,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch
             {
-                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0} for GetServerURLs", m_ServerURL);
 //                reason = "Exception: " + e.Message;
                 return serverURLs;
             }
 
             if (response.IsFault)
             {
-                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} for GetServerURLs returned an error: {1}", m_ServerURL, response.FaultString);
 //                reason = "XMLRPC Fault";
                 return serverURLs;
             }
@@ -641,14 +641,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch
             {
-                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0} for LocateUser", m_ServerURL);
 //                reason = "Exception: " + e.Message;
                 return url;
             }
 
             if (response.IsFault)
             {
-                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} for LocateUser returned an error: {1}", m_ServerURL, response.FaultString);
 //                reason = "XMLRPC Fault";
                 return url;
             }
@@ -700,14 +700,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch
             {
-                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0} for GetUUI", m_ServerURL);
 //                reason = "Exception: " + e.Message;
                 return uui;
             }
 
             if (response.IsFault)
             {
-                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} for GetUUI returned an error: {1}", m_ServerURL, response.FaultString);
 //                reason = "XMLRPC Fault";
                 return uui;
             }
@@ -748,14 +748,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0} for GetBoolResponse", m_ServerURL);
                 reason = "Exception: " + e.Message;
                 return false;
             }
 
             if (response.IsFault)
             {
-                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} for GetBoolResponse returned an error: {1}", m_ServerURL, response.FaultString);
                 reason = "XMLRPC Fault";
                 return false;
             }
