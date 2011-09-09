@@ -196,8 +196,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             Util.FireAndForget(delegate
             {
                 if (UserManager != null)
-                    foreach (InventoryItemBase item in invCol.Items)
+                {
+                    // Protect ourselves against the caller subsequently modifying the items list
+                    foreach (InventoryItemBase item in new List<InventoryItemBase>(invCol.Items))
                         UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+                }
             });
 
             return invCol;
