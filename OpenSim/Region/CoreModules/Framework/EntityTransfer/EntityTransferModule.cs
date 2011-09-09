@@ -329,6 +329,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (sp.ParentID != (uint)0)
                     sp.StandUp();
 
+                sp.ValidateAttachments();
+
 //                if (!sp.ValidateAttachments())
 //                {
 //                    sp.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
