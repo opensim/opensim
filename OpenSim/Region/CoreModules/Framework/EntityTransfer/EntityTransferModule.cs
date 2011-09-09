@@ -59,7 +59,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             get { return m_MaxTransferDistance; }
             set { m_MaxTransferDistance = value; }
         }
-        
 
         protected bool m_Enabled = false;
         protected Scene m_aScene;
@@ -67,7 +66,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected List<UUID> m_agentsInTransit;
         private ExpiringCache<UUID, ExpiringCache<ulong, DateTime>> m_bannedRegions =
                 new ExpiringCache<UUID, ExpiringCache<ulong, DateTime>>();
-
 
         #region ISharedRegionModule
 
@@ -329,7 +327,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (sp.ParentID != (uint)0)
                     sp.StandUp();
 
-                sp.ValidateAttachments();
+                if (!sp.ValidateAttachments())
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: Failed validation of all attachments for teleport of {0} from {1} to {2}.  Continuing.",
+                        sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName);
 
 //                if (!sp.ValidateAttachments())
 //                {
@@ -941,7 +942,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// This Closes child agents on neighbouring regions
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
-        protected ScenePresence CrossAgentToNewRegionAsync(ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, GridRegion neighbourRegion, bool isFlying, string version)
+        protected ScenePresence CrossAgentToNewRegionAsync(
+            ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, GridRegion neighbourRegion,
+            bool isFlying, string version)
         {
             ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
 
@@ -951,7 +954,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (neighbourRegion != null)
             {
-                agent.ValidateAttachments();
+                if (!agent.ValidateAttachments())
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: Failed validation of all attachments for region crossing of {0} from {1} to {2}.  Continuing.",
+                        agent.Name, agent.Scene.RegionInfo.RegionName, neighbourRegion.RegionName);
 
                 pos = pos + (agent.Velocity);
 
