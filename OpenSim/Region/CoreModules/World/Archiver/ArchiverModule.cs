@@ -128,6 +128,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 //            ops.Add("v|version=", delegate(string v) { options["version"] = v; });
             ops.Add("p|profile=", delegate(string v) { options["profile"] = v; });
             ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
+            ops.Add("perm=", delegate(string v) { options["checkPermissions"] = v; });
 
             List<string> mainParams = ops.Parse(cmdparams);
 
