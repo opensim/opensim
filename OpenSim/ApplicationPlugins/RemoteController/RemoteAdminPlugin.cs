@@ -741,21 +741,30 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         }
                         
                         // Create a new estate with the name provided
-                        region.EstateSettings = m_application.EstateDataService.LoadEstateSettings(region.RegionID, true);
+                        region.EstateSettings = m_application.EstateDataService.CreateNewEstate();
 
                         region.EstateSettings.EstateName = (string) requestData["estate_name"];
                         region.EstateSettings.EstateOwner = userID;
                         // Persistence does not seem to effect the need to save a new estate
                         region.EstateSettings.Save();
+
+                        if (!m_application.EstateDataService.LinkRegion(region.RegionID, (int) region.EstateSettings.EstateID))
+                            throw new Exception("Failed to join estate.");
                     }
                     else
                     {
                         int estateID = estateIDs[0];
 
-                        region.EstateSettings = m_application.EstateDataService.LoadEstateSettings(estateID);
+                        region.EstateSettings = m_application.EstateDataService.LoadEstateSettings(region.RegionID, false);
 
-                        if (!m_application.EstateDataService.LinkRegion(region.RegionID, estateID))
-                            throw new Exception("Failed to join estate.");
+                        if (region.EstateSettings.EstateID != estateID)
+                        {
+                            // The region is already part of an estate, but not the one we want.
+                            region.EstateSettings = m_application.EstateDataService.LoadEstateSettings(estateID);
+
+                            if (!m_application.EstateDataService.LinkRegion(region.RegionID, estateID))
+                                throw new Exception("Failed to join estate.");
+                        }
                     }
                     
                     // Create the region and perform any initial initialization
