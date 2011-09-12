@@ -120,6 +120,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
 
+        public Object AttachmentsSyncLock { get; private set; }
+
         private Dictionary<UUID, ScriptControllers> scriptedcontrols = new Dictionary<UUID, ScriptControllers>();
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
         private ScriptControlled LastCommands = ScriptControlled.CONTROL_ZERO;
@@ -709,6 +711,8 @@ namespace OpenSim.Region.Framework.Scenes
         public ScenePresence(
             IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance, PresenceType type)
         {
+            AttachmentsSyncLock = new Object();
+
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             m_sceneViewer = new SceneViewer(this);
             m_animator = new ScenePresenceAnimator(this);

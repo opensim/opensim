@@ -88,6 +88,15 @@ namespace OpenSim.Region.Framework.Interfaces
         ISceneEntity RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
 
         /// <summary>
+        /// Rez an attachment from user inventory and change inventory status to match.
+        /// </summary>
+        /// <param name="sp"></param>
+        /// <param name="itemID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
+        ISceneEntity RezSingleAttachmentFromInventory(ScenePresence sp, UUID itemID, uint AttachmentPt);
+
+        /// <summary>
         /// Rez multiple attachments from a user's inventory
         /// </summary>
         /// <param name="remoteClient"></param>
