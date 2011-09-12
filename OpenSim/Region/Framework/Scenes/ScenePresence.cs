@@ -3568,29 +3568,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-
-        public void initializeScenePresence(IClientAPI client, RegionInfo region, Scene scene)
-        {
-            m_controllingClient = client;
-            m_regionInfo = region;
-            m_scene = scene;
-
-            RegisterToEvents();
-
-            /*
-            AbsolutePosition = client.StartPos;
-
-            Animations = new AvatarAnimations();
-            Animations.LoadAnims();
-
-            m_animations = new List<UUID>();
-            m_animations.Add(Animations.AnimsUUID["STAND"]);
-            m_animationSeqs.Add(m_controllingClient.NextAnimationSequenceNumber);
-
-            SetDirectionVectors();
-            */
-        }
-
         internal void PushForce(Vector3 impulse)
         {
             if (PhysicsActor != null)
@@ -3618,6 +3595,7 @@ namespace OpenSim.Region.Framework.Scenes
                 obj.ignoreControls = (ScriptControlled)controls;
                 obj.eventControls = (ScriptControlled)controls;
             }
+
             if (pass_on == 1 && accept == 1)
             {
                 IgnoredControls = ScriptControlled.CONTROL_ZERO;
@@ -3638,6 +3616,7 @@ namespace OpenSim.Region.Framework.Scenes
                     scriptedcontrols[Script_item_UUID] = obj;
                 }
             }
+            
             ControllingClient.SendTakeControls(controls, pass_on == 1 ? true : false, true);
         }
 
