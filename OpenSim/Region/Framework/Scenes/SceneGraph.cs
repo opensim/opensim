@@ -418,6 +418,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (SceneObjectGroupsByLocalPartID)
             {
+//                m_log.DebugFormat(
+//                    "[SCENE GRAPH]: Adding scene object {0} {1} {2} to SceneObjectGroupsByLocalPartID in {3}",
+//                    sceneObject.Name, sceneObject.UUID, sceneObject.LocalId, m_parentScene.RegionInfo.RegionName);
+
                 SceneObjectGroupsByLocalPartID[sceneObject.LocalId] = sceneObject;
                 foreach (SceneObjectPart part in children)
                     SceneObjectGroupsByLocalPartID[part.LocalId] = sceneObject;
