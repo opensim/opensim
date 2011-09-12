@@ -740,7 +740,7 @@
     ;; "config-include/StandaloneCommon.ini.example" to "config-include/StandaloneCommon.ini" before
     ;; editing it to set the database and backend services that OpenSim will use.
     ;;
-    ; Include-Architecture = "config-include/Standalone.ini"
+    Include-Architecture = "config-include/Standalone.ini"
     ; Include-Architecture = "config-include/StandaloneHypergrid.ini"
     ; Include-Architecture = "config-include/Grid.ini"
     ; Include-Architecture = "config-include/GridHypergrid.ini"
