@@ -188,7 +188,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private float m_health = 100f;
 
-        protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion;
 
         private readonly Vector3[] Dir_Vectors = new Vector3[9];
@@ -725,7 +724,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_name = String.Format("{0} {1}", m_firstname, m_lastname);
             m_scene = world;
             m_uuid = client.AgentId;
-            m_regionInfo = world.RegionInfo;
             m_localId = m_scene.AllocateLocalId();
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
@@ -1156,7 +1154,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             //m_log.DebugFormat("Completed movement");
 
-            m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
+            m_controllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
             SendInitialData();
 
             // Create child agents in neighbouring regions
@@ -2877,8 +2875,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         protected int HaveNeighbor(Cardinals car, ref int[] fix)
         {
-            uint neighbourx = m_regionInfo.RegionLocX;
-            uint neighboury = m_regionInfo.RegionLocY;
+            uint neighbourx = m_scene.RegionInfo.RegionLocX;
+            uint neighboury = m_scene.RegionInfo.RegionLocY;
 
             int dir = (int)car;
 
@@ -2898,8 +2896,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (neighbourRegion == null)
             {
-                fix[0] = (int)(m_regionInfo.RegionLocX - neighbourx);
-                fix[1] = (int)(m_regionInfo.RegionLocY - neighboury);
+                fix[0] = (int)(m_scene.RegionInfo.RegionLocX - neighbourx);
+                fix[1] = (int)(m_scene.RegionInfo.RegionLocY - neighboury);
                 return dir * (-1);
             }
             else
@@ -3616,7 +3614,7 @@ namespace OpenSim.Region.Framework.Scenes
                     scriptedcontrols[Script_item_UUID] = obj;
                 }
             }
-            
+
             ControllingClient.SendTakeControls(controls, pass_on == 1 ? true : false, true);
         }
 
