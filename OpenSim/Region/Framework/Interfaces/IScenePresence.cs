@@ -67,7 +67,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// All add and remove attachment operations must synchronize on this for the lifetime of their operations.
         /// </remarks>
         Object AttachmentsSyncLock { get; }
-        
+
         /// <summary>
         /// The scene objects attached to this avatar.
         /// </summary>

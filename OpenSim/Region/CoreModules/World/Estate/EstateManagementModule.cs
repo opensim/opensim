@@ -968,10 +968,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
             args.terrainDetail2 = Scene.RegionInfo.RegionSettings.TerrainTexture3;
             args.terrainDetail3 = Scene.RegionInfo.RegionSettings.TerrainTexture4;
 
-            m_log.DebugFormat("[ESTATE MANAGEMENT MODULE]: Sending terrain texture 1 {0} for region {1}", args.terrainDetail0, Scene.RegionInfo.RegionName);
-            m_log.DebugFormat("[ESTATE MANAGEMENT MODULE]: Sending terrain texture 2 {0} for region {1}", args.terrainDetail1, Scene.RegionInfo.RegionName);
-            m_log.DebugFormat("[ESTATE MANAGEMENT MODULE]: Sending terrain texture 3 {0} for region {1}", args.terrainDetail2, Scene.RegionInfo.RegionName);
-            m_log.DebugFormat("[ESTATE MANAGEMENT MODULE]: Sending terrain texture 4 {0} for region {1}", args.terrainDetail3, Scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[ESTATE MANAGEMENT MODULE]: Sending terrain texture 1 {0} for region {1}", args.terrainDetail0, Scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[ESTATE MANAGEMENT MODULE]: Sending terrain texture 2 {0} for region {1}", args.terrainDetail1, Scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[ESTATE MANAGEMENT MODULE]: Sending terrain texture 3 {0} for region {1}", args.terrainDetail2, Scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[ESTATE MANAGEMENT MODULE]: Sending terrain texture 4 {0} for region {1}", args.terrainDetail3, Scene.RegionInfo.RegionName);
 
             remoteClient.SendRegionHandshake(Scene.RegionInfo,args);
         }
