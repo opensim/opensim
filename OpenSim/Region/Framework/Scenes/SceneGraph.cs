@@ -74,7 +74,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal EntityManager Entities = new EntityManager();
 
-        protected RegionInfo m_regInfo;
         protected Scene m_parentScene;
         protected Dictionary<UUID, SceneObjectGroup> m_updateList = new Dictionary<UUID, SceneObjectGroup>();
         protected int m_numRootAgents = 0;
@@ -108,10 +107,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        protected internal SceneGraph(Scene parent, RegionInfo regInfo)
+        protected internal SceneGraph(Scene parent)
         {
             m_parentScene = parent;
-            m_regInfo = regInfo;
         }
 
         public PhysicsScene PhysicsScene
@@ -122,7 +120,6 @@ namespace OpenSim.Region.Framework.Scenes
                 // If we're not doing the initial set
                 // Then we've got to remove the previous
                 // event handler
-
                 if (_PhyScene != null)
                     _PhyScene.OnPhysicsCrash -= physicsBasedCrash;
 
@@ -593,7 +590,7 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence newAvatar = null;
 
             // ScenePresence always defaults to child agent
-            newAvatar = new ScenePresence(client, m_parentScene, m_regInfo, appearance, type);
+            newAvatar = new ScenePresence(client, m_parentScene, appearance, type);
 
             AddScenePresence(newAvatar);
 

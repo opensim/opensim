@@ -656,7 +656,7 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.OnLandObjectRemoved +=
                 new EventManager.LandObjectRemoved(simDataService.RemoveLandObject);
 
-            m_sceneGraph = new SceneGraph(this, m_regInfo);
+            m_sceneGraph = new SceneGraph(this);
 
             // If the scene graph has an Unrecoverable error, restart this sim.
             // Currently the only thing that causes it to happen is two kinds of specific

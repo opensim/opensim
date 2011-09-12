@@ -707,9 +707,9 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Constructor(s)
-        
+
         public ScenePresence(
-            IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance, PresenceType type)
+            IClientAPI client, Scene world, AvatarAppearance appearance, PresenceType type)
         {
             AttachmentsSyncLock = new Object();
 
@@ -718,14 +718,14 @@ namespace OpenSim.Region.Framework.Scenes
             m_animator = new ScenePresenceAnimator(this);
             PresenceType = type;
             m_DrawDistance = world.DefaultDrawDistance;
-            m_rootRegionHandle = reginfo.RegionHandle;
+            m_rootRegionHandle = world.RegionInfo.RegionHandle;
             m_controllingClient = client;
             m_firstname = m_controllingClient.FirstName;
             m_lastname = m_controllingClient.LastName;
             m_name = String.Format("{0} {1}", m_firstname, m_lastname);
             m_scene = world;
             m_uuid = client.AgentId;
-            m_regionInfo = reginfo;
+            m_regionInfo = world.RegionInfo;
             m_localId = m_scene.AllocateLocalId();
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
