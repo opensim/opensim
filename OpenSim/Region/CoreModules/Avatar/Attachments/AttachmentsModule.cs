@@ -151,7 +151,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 //                {
                     grp.IsAttachment = false;
                     grp.AbsolutePosition = grp.RootPart.AttachedPos;
-                    UpdateKnownItem(sp.ControllingClient, grp, grp.GetFromItemID(), grp.OwnerID);
+                    UpdateKnownItem(sp.ControllingClient, grp);
                     grp.IsAttachment = true;
 //                }
             }
@@ -668,7 +668,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                             group.IsAttachment = false;
                             group.AbsolutePosition = group.RootPart.AttachedPos;
 
-                            UpdateKnownItem(sp.ControllingClient, group, group.GetFromItemID(), group.OwnerID);
+                            UpdateKnownItem(sp.ControllingClient, group);
                             m_scene.DeleteSceneObject(group, false);
 
                             return;
@@ -703,9 +703,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// </remarks>
         /// <param name="remoteClient"></param>
         /// <param name="grp"></param>
-        /// <param name="itemID"></param>
-        /// <param name="agentID"></param>
-        private void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID)
+        private void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp)
         {
             if (grp.HasGroupChanged || grp.ContainsScripts())
             {
@@ -715,7 +713,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
 
-                InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
+                InventoryItemBase item = new InventoryItemBase(grp.GetFromItemID(), remoteClient.AgentId);
                 item = m_scene.InventoryService.GetItem(item);
 
                 if (item != null)
