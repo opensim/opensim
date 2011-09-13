@@ -143,6 +143,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void SaveChangedAttachments(IScenePresence sp)
         {
+//            m_log.DebugFormat("[ATTACHMENTS MODULE]: Saving changed attachments for {0}", sp.Name);
+
             foreach (SceneObjectGroup grp in sp.GetAttachments())
             {
                 if (grp.HasGroupChanged) // Resizer scripts?
@@ -242,9 +244,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         {
             lock (sp.AttachmentsSyncLock)
             {
-    //            m_log.DebugFormat(
-    //                "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
-    //                group.Name, group.LocalId, sp.Name, attachmentPt, silent);
+//                m_log.DebugFormat(
+//                    "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
+//                    group.Name, group.LocalId, sp.Name, attachmentPt, silent);
     
                 if (sp.GetAttachments(attachmentPt).Contains(group))
                 {
@@ -365,6 +367,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public ISceneEntity RezSingleAttachmentFromInventory(ScenePresence sp, UUID itemID, uint AttachmentPt)
         {
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: RezSingleAttachmentFromInventory to point {0} from item {1} for {2}",
+//                (AttachmentPoint)AttachmentPt, itemID, sp.Name);
+
             // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
             // be removed when that functionality is implemented in opensim
             AttachmentPt &= 0x7f;
@@ -485,6 +491,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void DetachObject(uint objectLocalID, IClientAPI remoteClient)
         {
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: DetachObject() for object {0} on {1}", objectLocalID, remoteClient.Name);
+
             SceneObjectGroup group = m_scene.GetGroupByPrim(objectLocalID);
             if (group != null)
             {
@@ -588,6 +597,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         // To LocalId or UUID, *THAT* is the question. How now Brown UUID??
         private void DetachSingleAttachmentToInv(UUID itemID, IScenePresence sp)
         {
+//            m_log.DebugFormat("[ATTACHMENTS MODULE]: Detaching item {0} to inventory for {1}", itemID, sp.Name);
+
             if (itemID == UUID.Zero) // If this happened, someone made a mistake....
                 return;
 

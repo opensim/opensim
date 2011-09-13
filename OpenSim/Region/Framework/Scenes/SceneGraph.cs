@@ -431,6 +431,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>true if the object was deleted, false if there was no object to delete</returns>
         public bool DeleteSceneObject(UUID uuid, bool resultOfObjectLinked)
         {
+//            m_log.DebugFormat(
+//                "[SCENE GRAPH]: Deleting scene object with uuid {0}, resultOfObjectLinked = {1}",
+//                uuid, resultOfObjectLinked);
+
             EntityBase entity;
             if (!Entities.TryGetValue(uuid, out entity) || (!(entity is SceneObjectGroup)))
                 return false;
@@ -878,7 +882,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (Entities.TryGetValue(localID, out entity))
                 return entity as SceneObjectGroup;
 
-            //m_log.DebugFormat("Entered GetGroupByPrim with localID {0}", localID);
+//            m_log.DebugFormat("[SCENE GRAPH]: Entered GetGroupByPrim with localID {0}", localID);
+
             SceneObjectGroup sog;
             lock (SceneObjectGroupsByLocalPartID)
                 SceneObjectGroupsByLocalPartID.TryGetValue(localID, out sog);
@@ -886,8 +891,24 @@ namespace OpenSim.Region.Framework.Scenes
             if (sog != null)
             {
                 if (sog.HasChildPrim(localID))
+                {
+//                    m_log.DebugFormat(
+//                        "[SCENE GRAPH]: Found scene object {0} {1} {2} containing part with local id {3} in {4}.  Returning.",
+//                        sog.Name, sog.UUID, sog.LocalId, localID, m_parentScene.RegionInfo.RegionName);
+
                     return sog;
-                SceneObjectGroupsByLocalPartID.Remove(localID);
+                }
+                else
+                {
+                    lock (SceneObjectGroupsByLocalPartID)
+                    {
+                        m_log.WarnFormat(
+                            "[SCENE GRAPH]: Found scene object {0} {1} {2} via SceneObjectGroupsByLocalPartID index but it doesn't contain part with local id {3}.  Removing from entry from index in {4}.",
+                            sog.Name, sog.UUID, sog.LocalId, localID, m_parentScene.RegionInfo.RegionName);
+
+                        SceneObjectGroupsByLocalPartID.Remove(localID);
+                    }
+                }
             }
 
             EntityBase[] entityList = GetEntities();
