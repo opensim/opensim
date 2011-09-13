@@ -459,7 +459,6 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart[] parts = grp.Parts;
                 for (int i = 0; i < parts.Length; i++)
                     SceneObjectGroupsByFullPartID.Remove(parts[i].UUID);
-                SceneObjectGroupsByFullPartID.Remove(grp.RootPart.UUID);
             }
 
             lock (SceneObjectGroupsByLocalPartID)
@@ -467,7 +466,6 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart[] parts = grp.Parts;
                 for (int i = 0; i < parts.Length; i++)
                     SceneObjectGroupsByLocalPartID.Remove(parts[i].LocalId);
-                SceneObjectGroupsByLocalPartID.Remove(grp.RootPart.LocalId);
             }
 
             return Entities.Remove(uuid);

@@ -135,7 +135,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             // Now delete the scene object and check again
             scene.DeleteSceneObject(so, false);
-            
+
             Assert.That(scene.GetGroupByPrim(so.LocalId), Is.Null);
             Assert.That(scene.GetGroupByPrim(parts[partsToTestCount - 1].LocalId), Is.Null);
         }
