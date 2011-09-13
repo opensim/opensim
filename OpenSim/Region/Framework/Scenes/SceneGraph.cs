@@ -652,7 +652,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!Entities.Remove(agentID))
             {
                 m_log.WarnFormat(
-                    "[SCENEGRAPH]: Tried to remove non-existent scene presence with agent ID {0} from scene Entities list",
+                    "[SCENE GRAPH]: Tried to remove non-existent scene presence with agent ID {0} from scene Entities list",
                     agentID);
             }
 
@@ -675,7 +675,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    m_log.WarnFormat("[SCENEGRAPH]: Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
+                    m_log.WarnFormat("[SCENE GRAPH]: Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
                 }
             }
         }
