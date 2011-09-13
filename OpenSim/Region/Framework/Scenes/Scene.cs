@@ -1579,7 +1579,9 @@ namespace OpenSim.Region.Framework.Scenes
                     msg.ParentEstateID = RegionInfo.EstateSettings.ParentEstateID;
                     msg.Position = Vector3.Zero;
                     msg.RegionID = RegionInfo.RegionID.Guid;
-                    msg.binaryBucket = new byte[0];
+
+                    // We must fill in a null-terminated 'empty' string here since bytes[0] will crash viewer 3.
+                    msg.binaryBucket = Util.StringToBytes256("\0");
                     if (ret.Value.count > 1)
                         msg.message = string.Format("Your {0} objects were returned from {1} in region {2} due to {3}", ret.Value.count, ret.Value.location.ToString(), RegionInfo.RegionName, ret.Value.reason);
                     else
