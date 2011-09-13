@@ -245,3 +245,35 @@ ADD CONSTRAINT DF_inventoryitems_creatorID
 DEFAULT '00000000-0000-0000-0000-000000000000' FOR creatorID
    
 :GO
+
+:VERSION 9
+
+BEGIN TRANSACTION
+
+# CreatorID goes up to VARCHAR(255)
+
+exec sp_rename 'inventoryitems.CreatorID', 'cr_old', 'COLUMN'
+
+:GO
+
+alter table inventoryitems
+   add creatorID varchar(255) NULL
+   
+:GO   
+   
+update inventoryitems set creatorID = cr_old
+
+alter table inventoryitems
+drop CONSTRAINT DF_inventoryitems_creatorID
+:GO   
+
+alter table inventoryitems
+   drop column cr_old
+   :GO   
+COMMIT	
+
+ALTER TABLE inventoryitems
+ADD CONSTRAINT DF_inventoryitems_creatorID 
+DEFAULT '00000000-0000-0000-0000-000000000000' FOR creatorID
+   
+:GO
