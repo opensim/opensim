@@ -138,14 +138,5 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="sog"></param>
         /// <param name="pos"></param>
         void UpdateAttachmentPosition(SceneObjectGroup sog, Vector3 pos);
-        
-        /// <summary>
-        /// Update the user inventory with a changed attachment
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="grp"></param>
-        /// <param name="itemID"></param>
-        /// <param name="agentID"></param>
-        void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID);
     }
 }
