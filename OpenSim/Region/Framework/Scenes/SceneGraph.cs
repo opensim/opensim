@@ -369,12 +369,12 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENEGRAPH]: Adding scene object {0} {1}, with {2} parts on {3}", 
 //                sceneObject.Name, sceneObject.UUID, sceneObject.Parts.Length, m_parentScene.RegionInfo.RegionName);
 
-            SceneObjectPart[] children = sceneObject.Parts;
+            SceneObjectPart[] parts = sceneObject.Parts;
 
             // Clamp child prim sizes and add child prims to the m_numPrim count
             if (m_parentScene.m_clampPrimSize)
             {
-                foreach (SceneObjectPart part in children)
+                foreach (SceneObjectPart part in parts)
                 {
                     Vector3 scale = part.Shape.Scale;
 
@@ -388,7 +388,7 @@ namespace OpenSim.Region.Framework.Scenes
                     part.Shape.Scale = scale;
                 }
             }
-            m_numPrim += children.Length;
+            m_numPrim += parts.Length;
 
             sceneObject.AttachToScene(m_parentScene);
 
@@ -408,8 +408,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             lock (SceneObjectGroupsByFullPartID)
             {
-                SceneObjectGroupsByFullPartID[sceneObject.UUID] = sceneObject;
-                foreach (SceneObjectPart part in children)
+                foreach (SceneObjectPart part in parts)
                     SceneObjectGroupsByFullPartID[part.UUID] = sceneObject;
             }
 
@@ -419,8 +418,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                    "[SCENE GRAPH]: Adding scene object {0} {1} {2} to SceneObjectGroupsByLocalPartID in {3}",
 //                    sceneObject.Name, sceneObject.UUID, sceneObject.LocalId, m_parentScene.RegionInfo.RegionName);
 
-                SceneObjectGroupsByLocalPartID[sceneObject.LocalId] = sceneObject;
-                foreach (SceneObjectPart part in children)
+                foreach (SceneObjectPart part in parts)
                     SceneObjectGroupsByLocalPartID[part.LocalId] = sceneObject;
             }
 
