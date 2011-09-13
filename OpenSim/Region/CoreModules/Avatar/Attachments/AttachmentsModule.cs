@@ -707,48 +707,45 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="agentID"></param>
         public void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID)
         {
-            if (grp != null)
+            if (grp.HasGroupChanged || grp.ContainsScripts())
             {
-                if (grp.HasGroupChanged || grp.ContainsScripts())
+                m_log.DebugFormat(
+                    "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
+                    grp.UUID, grp.AttachmentPoint);
+
+                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
+
+                InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
+                item = m_scene.InventoryService.GetItem(item);
+
+                if (item != null)
                 {
-                    m_log.DebugFormat(
-                        "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
-                        grp.UUID, grp.AttachmentPoint);
+                    AssetBase asset = m_scene.CreateAsset(
+                        grp.GetPartName(grp.LocalId),
+                        grp.GetPartDescription(grp.LocalId),
+                        (sbyte)AssetType.Object,
+                        Utils.StringToBytes(sceneObjectXml),
+                        remoteClient.AgentId);
+                    m_scene.AssetService.Store(asset);
 
-                    string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
+                    item.AssetID = asset.FullID;
+                    item.Description = asset.Description;
+                    item.Name = asset.Name;
+                    item.AssetType = asset.Type;
+                    item.InvType = (int)InventoryType.Object;
 
-                    InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-                    item = m_scene.InventoryService.GetItem(item);
+                    m_scene.InventoryService.UpdateItem(item);
 
-                    if (item != null)
-                    {
-                        AssetBase asset = m_scene.CreateAsset(
-                            grp.GetPartName(grp.LocalId),
-                            grp.GetPartDescription(grp.LocalId),
-                            (sbyte)AssetType.Object,
-                            Utils.StringToBytes(sceneObjectXml),
-                            remoteClient.AgentId);
-                        m_scene.AssetService.Store(asset);
-
-                        item.AssetID = asset.FullID;
-                        item.Description = asset.Description;
-                        item.Name = asset.Name;
-                        item.AssetType = asset.Type;
-                        item.InvType = (int)InventoryType.Object;
-
-                        m_scene.InventoryService.UpdateItem(item);
-
-                        // this gets called when the agent logs off!
-                        if (remoteClient != null)
-                            remoteClient.SendInventoryItemCreateUpdate(item, 0);
-                    }
+                    // this gets called when the agent logs off!
+                    if (remoteClient != null)
+                        remoteClient.SendInventoryItemCreateUpdate(item, 0);
                 }
-                else
-                {
-                    m_log.DebugFormat(
-                        "[ATTACHMENTS MODULE]: Don't need to update asset for unchanged attachment {0}, attachpoint {1}",
-                        grp.UUID, grp.AttachmentPoint);
-                }
+            }
+            else
+            {
+                m_log.DebugFormat(
+                    "[ATTACHMENTS MODULE]: Don't need to update asset for unchanged attachment {0}, attachpoint {1}",
+                    grp.UUID, grp.AttachmentPoint);
             }
         } 
         
