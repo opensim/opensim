@@ -3404,7 +3404,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Close()
         {
-            m_scene.AttachmentsModule.DeleteAttachmentsFromScene(this, false);
+            if (!IsChildAgent)
+                m_scene.AttachmentsModule.DeleteAttachmentsFromScene(this, false);
             
             lock (m_knownChildRegions)
             {

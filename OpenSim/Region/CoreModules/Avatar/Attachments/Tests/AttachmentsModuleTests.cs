@@ -220,6 +220,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(m_presence.Appearance.GetAttachpoint(attItemId), Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Test that attachments don't hang about in the scene when the agent is closed
+        /// </summary>
+        [Test]
+        public void TestRemoveAttachmentsOnAvatarExit()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UUID attItemId = TestHelpers.ParseTail(0x2);
+            UUID attAssetId = TestHelpers.ParseTail(0x3);
+            string attName = "att";
+
+            UserAccountHelpers.CreateUserWithInventory(scene, userId);
+            InventoryItemBase attItem
+                = UserInventoryHelpers.CreateInventoryItem(
+                    scene, attName, attItemId, attAssetId, userId, InventoryType.Object);
+
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
+            acd.Appearance = new AvatarAppearance();
+            acd.Appearance.SetAttachment((int)AttachmentPoint.Chest, attItem.ID, attItem.AssetID);
+            ScenePresence presence = SceneHelpers.AddScenePresence(scene, acd);
+
+            SceneObjectGroup rezzedAtt = presence.GetAttachments()[0];
+
+            scene.IncomingCloseAgent(presence.UUID);
+
+            // Check that we can't retrieve this attachment from the scene.
+            Assert.That(scene.GetSceneObjectGroup(rezzedAtt.UUID), Is.Null);
+        }
+
         [Test]
         public void TestRezAttachmentsOnAvatarEntrance()
         {
