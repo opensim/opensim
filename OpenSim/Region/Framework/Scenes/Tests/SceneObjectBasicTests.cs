@@ -106,6 +106,33 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(retrievedPart.Name, Is.EqualTo(obj1Name));
             Assert.That(retrievedPart.UUID, Is.EqualTo(objUuid));
         }
+
+        /// <summary>
+        /// Test retrieving a scene object via the local id of one of its parts.
+        /// </summary>
+        [Test]
+        public void TestGetSceneObjectByPartLocalId()
+        {
+            TestHelpers.InMethod();
+
+            Scene scene = SceneHelpers.SetupScene();
+            int partsToTestCount = 3;
+
+            SceneObjectGroup so
+                = SceneHelpers.CreateSceneObject(partsToTestCount, TestHelpers.ParseTail(0x1), "obj1", 0x10);
+            SceneObjectPart[] parts = so.Parts;
+
+            scene.AddNewSceneObject(so, false);
+
+            // Test getting via the root part's local id
+            Assert.That(scene.GetGroupByPrim(so.LocalId), Is.Not.Null);
+
+            // Test getting via a non root part's local id
+            Assert.That(scene.GetGroupByPrim(parts[partsToTestCount - 1].LocalId), Is.Not.Null);
+
+            // Test that we don't get back an object for a local id that doesn't exist
+            Assert.That(scene.GetGroupByPrim(999), Is.Null);
+        }
         
         /// <summary>
         /// Test deleting an object from a scene.
