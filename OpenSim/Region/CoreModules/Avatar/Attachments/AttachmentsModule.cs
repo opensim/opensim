@@ -653,17 +653,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                             // Prepare sog for storage
                             group.AttachedAvatar = UUID.Zero;
-
-                            group.ForEachPart(
-                                delegate(SceneObjectPart part)
-                                {
-                                    // If there are any scripts,
-                                    // then always trigger a new object and state persistence in UpdateKnownItem()
-                                    if (part.Inventory.ContainsScripts())
-                                        group.HasGroupChanged = true;
-                                }
-                            );
-
                             group.RootPart.SetParentLocalId(0);
                             group.IsAttachment = false;
                             group.AbsolutePosition = group.RootPart.AttachedPos;
