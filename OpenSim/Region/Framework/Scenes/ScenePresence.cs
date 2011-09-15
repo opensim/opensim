@@ -3620,45 +3620,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public override void UpdateMovement()
         {
-            if (Animator!=null)             // add for jumping
-            {                               // add for jumping
-                // if (!m_animator.m_jumping)  // add for jumping
-                // {                           // add for jumping
+            if (m_forceToApply.HasValue)
+            {
+                Vector3 force = m_forceToApply.Value;
 
-                    if (m_forceToApply.HasValue)    // this section realigned
-                    {
+                m_updateflag = true;
 
-                        Vector3 force = m_forceToApply.Value;
-                        m_updateflag = true;
-if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for jumping
-                        Velocity = force;
-//Console.WriteLine("UM1 {0}", Velocity);
-                        m_forceToApply = null;
-                    }
-                    else
-                    {
-                        if (m_isNudging)
-                        {
-                            Vector3 force = Vector3.Zero;
+                Velocity = force;
 
-                            m_updateflag = true;
-if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for jumping
-                            Velocity = force;
-//Console.WriteLine("UM2 {0}", Velocity);
-                            m_isNudging = false;
-                           	m_updateCount = UPDATE_COUNT;			//KF: Update anims to pickup "STAND"
-                        }
-                        else      // add for jumping
-                        {  // add for jumping
-                            Vector3 force = Vector3.Zero;     // add for jumping
-if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for jumping
-//Console.WriteLine("UM3 {0}", Velocity);
-                            Velocity = force;     // add for jumping
-                        }
-                    }
-              //  }                                   // end realign
-            }                               // add for jumping
-        }                                   // add for jumping
+                m_forceToApply = null;
+            }
+        }
 
         /// <summary>
         /// Adds a physical representation of the avatar to the Physics plugin
