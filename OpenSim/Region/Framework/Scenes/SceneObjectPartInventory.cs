@@ -875,7 +875,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                    m_log.DebugFormat(
 //                        "[PRIM INVENTORY]: Not sending inventory data for part {0} {1} {2} for {3} since no items",
 //                        m_part.Name, m_part.LocalId, m_part.UUID, client.Name);
-    
+
                     client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
                     return;
                 }
