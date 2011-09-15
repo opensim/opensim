@@ -878,7 +878,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
 
-                CreateInventoryFile();                
+                CreateInventoryFile();
     
                 // In principle, we should only do the rest if the inventory changed;
                 // by sending m_inventorySerial to the client, it ought to know

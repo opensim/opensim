@@ -3591,7 +3591,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             parentPrim.ScheduleGroupForFullUpdate();
 
             if (client != null)
-                parentPrim.GetProperties(client);
+                parentPrim.SendPropertiesToClient(client);
 
             ScriptSleep(1000);
         }
