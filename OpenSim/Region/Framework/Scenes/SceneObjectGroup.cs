@@ -1245,7 +1245,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void DetachToGround()
         {
-            ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.AttachedAvatar);
+            ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
             if (avatar == null)
                 return;
 
@@ -1259,14 +1259,14 @@ namespace OpenSim.Region.Framework.Scenes
             RootPart.FromItemID = UUID.Zero;
 
             AbsolutePosition = detachedpos;
-            m_rootPart.AttachedAvatar = UUID.Zero;
+            AttachedAvatar = UUID.Zero;
 
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].AttachedAvatar = UUID.Zero;
+            //SceneObjectPart[] parts = m_parts.GetArray();
+            //for (int i = 0; i < parts.Length; i++)
+            //    parts[i].AttachedAvatar = UUID.Zero;
 
             m_rootPart.SetParentLocalId(0);
-            SetAttachmentPoint((byte)0);
+            AttachmentPoint = (byte)0;
             m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive, m_scene.m_physicalPrim);
             HasGroupChanged = true;
             RootPart.Rezzed = DateTime.Now;
@@ -1279,7 +1279,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void DetachToInventoryPrep()
         {
-            ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.AttachedAvatar);
+            ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
             //Vector3 detachedpos = new Vector3(127f, 127f, 127f);
             if (avatar != null)
             {
@@ -1287,15 +1287,15 @@ namespace OpenSim.Region.Framework.Scenes
                 avatar.RemoveAttachment(this);
             }
 
-            m_rootPart.AttachedAvatar = UUID.Zero;
+            AttachedAvatar = UUID.Zero;
 
-            SceneObjectPart[] parts = m_parts.GetArray();
+            /*SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
-                parts[i].AttachedAvatar = UUID.Zero;
+                parts[i].AttachedAvatar = UUID.Zero;*/
 
             m_rootPart.SetParentLocalId(0);
             //m_rootPart.SetAttachmentPoint((byte)0);
-            m_rootPart.IsAttachment = false;
+            IsAttachment = false;
             AbsolutePosition = m_rootPart.AttachedPos;
             //m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
             //AttachToBackup();
@@ -1471,7 +1471,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void DeleteGroupFromScene(bool silent)
         {
             // We need to keep track of this state in case this group is still queued for backup.
-            m_isDeleted = true;
+            IsDeleted = true;
 
             DetachFromBackup();
 
@@ -1746,97 +1746,63 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public SceneObjectGroup Copy(bool userExposed)
         {
-            SceneObjectGroup dupe;
-            try
+            SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
+            dupe.m_isBackedUp = false;
+            dupe.m_parts = new MapAndArray<OpenMetaverse.UUID, SceneObjectPart>();
+
+            // Warning, The following code related to previousAttachmentStatus is needed so that clones of 
+            // attachments do not bordercross while they're being duplicated.  This is hacktastic!
+            // Normally, setting AbsolutePosition will bordercross a prim if it's outside the region!
+            // unless IsAttachment is true!, so to prevent border crossing, we save it's attachment state 
+            // (which should be false anyway) set it as an Attachment and then set it's Absolute Position, 
+            // then restore it's attachment state
+
+            // This is only necessary when userExposed is false!
+
+            bool previousAttachmentStatus = dupe.IsAttachment;
+
+            if (!userExposed)
+                dupe.IsAttachment = true;
+
+            dupe.AbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
+
+            if (!userExposed)
             {
-                m_dupeInProgress = true;
-                dupe = (SceneObjectGroup)MemberwiseClone();
-                dupe.m_isBackedUp = false;
-                dupe.m_parts = new MapAndArray<OpenMetaverse.UUID, SceneObjectPart>();
+                dupe.IsAttachment = previousAttachmentStatus;
+            }
 
-                // Warning, The following code related to previousAttachmentStatus is needed so that clones of 
-                // attachments do not bordercross while they're being duplicated.  This is hacktastic!
-                // Normally, setting AbsolutePosition will bordercross a prim if it's outside the region!
-                // unless IsAttachment is true!, so to prevent border crossing, we save it's attachment state 
-                // (which should be false anyway) set it as an Attachment and then set it's Absolute Position, 
-                // then restore it's attachment state
+            dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
+            dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
 
-                // This is only necessary when userExposed is false!
+            if (userExposed)
+                dupe.m_rootPart.TrimPermissions();
 
-                bool previousAttachmentStatus = dupe.IsAttachment;
-            
-                if (!userExposed)
-                    dupe.IsAttachment = true;
+            List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.GetArray());
 
-                if (!userExposed)
-                    dupe.RootPart.IsAttachment = true;
+            partList.Sort(delegate(SceneObjectPart p1, SceneObjectPart p2)
+            {
+                return p1.LinkNum.CompareTo(p2.LinkNum);
+            }
+            );
 
-                dupe.AbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
-                if (!userExposed)
+            foreach (SceneObjectPart part in partList)
+            {
+                SceneObjectPart newPart;
+                if (part.UUID != m_rootPart.UUID)
                 {
-                    dupe.IsAttachment = previousAttachmentStatus;
+                    newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
+                    newPart.LinkNum = part.LinkNum;
+                }
+                else
+                {
+                    newPart = dupe.m_rootPart;
                 }
 
-                if (!userExposed)
-                {
-                    dupe.RootPart.IsAttachment = previousAttachmentStatus;
-                }
-
-                dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
-                dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
-
-                if (userExposed)
-                    dupe.m_rootPart.TrimPermissions();
-
-                List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.GetArray());
-
-                partList.Sort(delegate(SceneObjectPart p1, SceneObjectPart p2)
-                    {
-                        return p1.LinkNum.CompareTo(p2.LinkNum);
-                    }
-                );
-
-                foreach (SceneObjectPart part in partList)
-                {
-                    if (part.UUID != m_rootPart.UUID)
-                    {
-                        SceneObjectPart newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
-
-                        newPart.LinkNum = part.LinkNum;
-                    }
-
-                    // Need to duplicate the physics actor as well            
-                    if (part.PhysActor != null && userExposed)
-                    {
-                        PrimitiveBaseShape pbs = part.Shape;
-        
-                        part.PhysActor 
-                            = m_scene.PhysicsScene.AddPrimShape(
-                                string.Format("{0}/{1}", part.Name, part.UUID),
-                                pbs,
-                                part.AbsolutePosition,
-                                part.Scale,
-                                part.RotationOffset,
-                                part.PhysActor.IsPhysical,
-                                m_localId);
-                        part.PhysActor.SetMaterial((int)part.Material);
-        
-                        part.PhysActor.LocalID = part.LocalId;
-                        part.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
-                    }                
-                }
-                if (userExposed)
-                {
-                    dupe.UpdateParentIDs();
-                    dupe.HasGroupChanged = true;
-                    dupe.AttachToBackup();
-                }
-                ScheduleGroupForFullUpdate();
                 // Need to duplicate the physics actor as well
                 if (part.PhysActor != null && userExposed)
                 {
                     PrimitiveBaseShape pbs = newPart.Shape;
-    
+
                     newPart.PhysActor
                         = m_scene.PhysicsScene.AddPrimShape(
                             string.Format("{0}/{1}", newPart.Name, newPart.UUID),
@@ -1846,14 +1812,20 @@ namespace OpenSim.Region.Framework.Scenes
                             newPart.RotationOffset,
                             part.PhysActor.IsPhysical,
                             newPart.LocalId);
-    
+
                     newPart.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
                 }
             }
-            finally
+
+            if (userExposed)
             {
-                m_dupeInProgress = false;
+                dupe.UpdateParentIDs();
+                dupe.HasGroupChanged = true;
+                dupe.AttachToBackup();
+
+                ScheduleGroupForFullUpdate();
             }
+
             return dupe;
         }
 
@@ -1983,22 +1955,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void stopMoveToTarget()
         {
-            SceneObjectPart rootpart = m_rootPart;
-            if (rootpart != null)
-            {
-                if (IsAttachment)
-                {
-                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
-                    if (avatar != null) avatar.StopMoveToPosition();
-                }
-                else
-                {
-                    if (rootpart.PhysActor != null)
-                    {
-                        rootpart.PhysActor.PIDActive = false;
-                    }
-                }
-            }
+            if (RootPart.PhysActor != null)
+                RootPart.PhysActor.PIDActive = false;
         }
         
         public void rotLookAt(Quaternion target, float strength, float damping)
@@ -3087,8 +3045,6 @@ namespace OpenSim.Region.Framework.Scenes
             prevScale.X *= x;
             prevScale.Y *= y;
             prevScale.Z *= z;
-                part.IgnoreUndoUpdate = false;
-
 //            RootPart.IgnoreUndoUpdate = true;
             RootPart.Resize(prevScale);
 //            RootPart.IgnoreUndoUpdate = false;

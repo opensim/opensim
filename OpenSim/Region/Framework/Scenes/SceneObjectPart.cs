@@ -3243,6 +3243,14 @@ namespace OpenSim.Region.Framework.Scenes
                 STATUS_ROTATE_Z = rotate;
         }
 
+        public void SetBuoyancy(float fvalue)
+        {
+            if (PhysActor != null)
+            {
+                PhysActor.Buoyancy = fvalue;
+            }
+        }
+
         public void SetDieAtEdge(bool p)
         {
             if (m_parentGroup.IsDeleted)

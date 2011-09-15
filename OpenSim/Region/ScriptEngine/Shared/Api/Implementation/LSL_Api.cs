@@ -1219,7 +1219,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public virtual void llDie()
         {
             m_host.AddScriptLPS(1);
-            if (!m_host.IsAttachment) throw new SelfDeleteException();
+            if (!m_host.ParentGroup.IsAttachment) throw new SelfDeleteException();
         }
 
         public LSL_Float llGround(LSL_Vector offset)
@@ -3250,8 +3250,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 SceneObjectGroup grp = m_host.ParentGroup;
 
                 ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
-
-                grp.AttachToAgent(m_host.OwnerID, (uint)attachment, Vector3.Zero, false);
+                if (presence.Scene.AttachmentsModule != null)
+                {
+                    presence.Scene.AttachmentsModule.AttachObject(presence.ControllingClient, grp, (uint)attachment, false);
+                }
             }
         }
 
@@ -8034,7 +8036,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // the UUID with the avatar UUID and report it's bounding box
             SceneObjectPart part = World.GetSceneObjectPart(objID);
             if (part != null && part.ParentGroup.IsAttachment)
-                objID = part.ParentGroup.RootPart.AttachedAvatar;
+                objID = part.ParentGroup.AttachedAvatar;
 
             // Find out if this is an avatar ID. If so, return it's box
             ScenePresence presence = World.GetScenePresence(objID);
@@ -10064,7 +10066,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, 0);
             if (detectedParams == null)
             {
-                if (m_host.IsAttachment == true)
+                if (m_host.ParentGroup.IsAttachment == true)
                 {
                     detectedParams = new DetectParams();
                     detectedParams.Key = m_host.OwnerID;

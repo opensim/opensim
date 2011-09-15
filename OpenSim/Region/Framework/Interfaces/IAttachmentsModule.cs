@@ -103,7 +103,7 @@ namespace OpenSim.Region.Framework.Interfaces
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus);
 
         // Same as above, but also load script states from a separate doc
-        UUID RezSingleAttachmentFromInventory(
+        ISceneEntity RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus, XmlDocument doc);
 
         /// <summary>

@@ -131,6 +131,7 @@ namespace OpenSim.Region.Framework.Scenes
 //        private SceneObjectGroup proxyObjectGroup;
         //private SceneObjectPart proxyObjectPart = null;
         public Vector3 lastKnownAllowedPosition;
+        public bool sentMessageAboutRestrictedParcelFlyingDown;
         public Vector4 CollisionPlane = Vector4.UnitW;
         
 		private Vector3 m_avInitialPos;		// used to calculate unscripted sit rotation
@@ -4314,103 +4315,6 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
             //DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
 
             return flags;
-        }
-
-        /// <summary>
-        /// RezAttachments. This should only be called upon login on the first region.
-        /// Attachment rezzings on crossings and TPs are done in a different way.
-        /// </summary>
-        public void RezAttachments()
-        {
-            if (null == m_appearance)
-            {
-                m_log.WarnFormat("[ATTACHMENT]: Appearance has not been initialized for agent {0}", UUID);
-                return;
-            }
-
-            XmlDocument doc = new XmlDocument();
-            string stateData = String.Empty;
-
-            IAttachmentsService attServ = m_scene.RequestModuleInterface<IAttachmentsService>();
-            if (attServ != null)
-            {
-                m_log.DebugFormat("[ATTACHMENT]: Loading attachment data from attachment service");
-                stateData = attServ.Get(ControllingClient.AgentId.ToString());
-                if (stateData != String.Empty)
-                {
-                    try
-                    {
-                        doc.LoadXml(stateData);
-                    }
-                    catch { }
-                }
-            }
-
-            Dictionary<UUID, string> itemData = new Dictionary<UUID, string>();
-
-            XmlNodeList nodes = doc.GetElementsByTagName("Attachment");
-            if (nodes.Count > 0)
-            {
-                foreach (XmlNode n in nodes)
-                {
-                    XmlElement elem = (XmlElement)n;
-                    string itemID = elem.GetAttribute("ItemID");
-                    string xml = elem.InnerXml;
-
-                    itemData[new UUID(itemID)] = xml;
-                }
-            }
-
-            List<AvatarAttachment> attachments = m_appearance.GetAttachments();
-            foreach (AvatarAttachment attach in attachments)
-            {
-                if (IsDeleted)
-                    return;
-
-                int p = attach.AttachPoint;
-                UUID itemID = attach.ItemID;
-
-                //UUID assetID = attach.AssetID;
-                // For some reason assetIDs are being written as Zero's in the DB -- need to track tat down
-                // But they're not used anyway, the item is being looked up for now, so let's proceed.
-                //if (UUID.Zero == assetID) 
-                //{
-                //    m_log.DebugFormat("[ATTACHMENT]: Cannot rez attachment in point {0} with itemID {1}", p, itemID);
-                //    continue;
-                //}
-
-                try
-                {
-                    string xmlData;
-                    XmlDocument d = new XmlDocument();
-                    UUID asset;
-                    if (itemData.TryGetValue(itemID, out xmlData))
-                    {
-                        d.LoadXml(xmlData);
-                        m_log.InfoFormat("[ATTACHMENT]: Found saved state for item {0}, loading it", itemID);
-
-                        // Rez from inventory
-                        asset 
-                            = m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p, true, d);
-
-                    }
-                    else
-                    {
-                        // Rez from inventory (with a null doc to let
-                        // CHANGED_OWNER happen)
-                        asset 
-                            = m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p, true, null);
-                    }
-
-                    m_log.InfoFormat(
-                        "[ATTACHMENT]: Rezzed attachment in point {0} from item {1} and asset {2}",
-                        p, itemID, asset);
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("[ATTACHMENT]: Unable to rez attachment: {0}{1}", e.Message, e.StackTrace);
-                }
-            }
         }
 
         private void ReprioritizeUpdates()

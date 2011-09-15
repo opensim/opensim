@@ -2695,9 +2695,9 @@ namespace OpenSim.Region.Framework.Scenes
                     EventManager.TriggerOnClientLogin(client);
 
                     // Send initial parcel data
-                    Vector3 pos = presence.AbsolutePosition;
+                    Vector3 pos = createdSp.AbsolutePosition;
                     ILandObject land = LandChannel.GetLandObject(pos.X, pos.Y);
-                    land.SendLandUpdateToClient(presence.ControllingClient);
+                    land.SendLandUpdateToClient(client);
                 }
             }
         }
@@ -3500,7 +3500,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // check if banned regions are to be blacked out.
                     if (vialogin || (!m_seeIntoBannedRegion))
                     {
-                        if (!AuthorizeUser(agent.AgentID, out reason))
+                        if (!AuthorizeUser(agent, out reason))
                             return false;
                     }
                 }
@@ -3696,47 +3696,31 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="reason">outputs the reason to this string</param>
         /// <returns>True if the region accepts this agent.  False if it does not.  False will 
         /// also return a reason.</returns>
-        protected virtual bool AuthorizeUser(UUID agentID, out string reason)
+        protected virtual bool AuthorizeUser(AgentCircuitData agent, out string reason)
         {
             reason = String.Empty;
 
             if (!m_strictAccessControl) return true;
-            if (Permissions.IsGod(agentID)) return true;
-                      
+            if (Permissions.IsGod(agent.AgentID)) return true;
+
             if (AuthorizationService != null)
             {
                 if (!AuthorizationService.IsAuthorizedForRegion(
                     agent.AgentID.ToString(), agent.firstname, agent.lastname, RegionInfo.RegionID.ToString(), out reason))
                 {
-                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} at {1} because the user does not have access to the region",
-                                     agentID, RegionInfo.RegionName);
-                    
+                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the region",
+                                     agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+
                     return false;
                 }
             }
 
             if (m_regInfo.EstateSettings != null)
             {
-                int flags = GetUserFlags(agentID);
-                if (m_regInfo.EstateSettings.IsBanned(agentID, flags))
+                if (m_regInfo.EstateSettings.IsBanned(agent.AgentID,0))
                 {
-                    //Add some more info to help users
-                    if (!m_regInfo.EstateSettings.IsBanned(agentID, 32))
-                    {
-                        m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} at {1} because the region requires age verification",
-                                     agentID, RegionInfo.RegionName);
-                        reason = String.Format("Denied access to region {0}: Region requires age verification", RegionInfo.RegionName);
-                        return false;
-                    }
-                    if (!m_regInfo.EstateSettings.IsBanned(agentID, 4))
-                    {
-                        m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} {1} because the region requires payment info on file",
-                                     agentID, RegionInfo.RegionName);
-                        reason = String.Format("Denied access to region {0}: Region requires payment info on file", RegionInfo.RegionName);
-                        return false;
-                    }
-                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} at {3} because the user is on the banlist",
-                                     agentID, RegionInfo.RegionName);
+                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
+                                     agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
                     reason = String.Format("Denied access to region {0}: You have been banned from that region.",
                                            RegionInfo.RegionName);
                     return false;
@@ -3753,7 +3737,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (groupsModule != null)
             {
                 GroupMembershipData[] GroupMembership =
-                        groupsModule.GetMembershipData(agentID);
+                        groupsModule.GetMembershipData(agent.AgentID);
 
                 if (GroupMembership != null)
                 {
@@ -3782,15 +3766,43 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat("[CONNECTION BEGIN]: EstateGroups is null!");
 
             if (!m_regInfo.EstateSettings.PublicAccess &&
-                !m_regInfo.EstateSettings.HasAccess(agentID) &&
+                !m_regInfo.EstateSettings.HasAccess(agent.AgentID) &&
                 !groupAccess)
             {
-                m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} at {1} because the user does not have access to the estate",
-                                 agentID, RegionInfo.RegionName);
+                m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the estate",
+                                 agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
                 reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.",
                                        RegionInfo.RegionName);
                 return false;
             }
+
+            // TODO: estate/region settings are not properly hooked up
+            // to ILandObject.isRestrictedFromLand()
+            // if (null != LandChannel)
+            // {
+            //     // region seems to have local Id of 1
+            //     ILandObject land = LandChannel.GetLandObject(1);
+            //     if (null != land)
+            //     {
+            //         if (land.isBannedFromLand(agent.AgentID))
+            //         {
+            //             m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user has been banned from land",
+            //                              agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+            //             reason = String.Format("Denied access to private region {0}: You are banned from that region.",
+            //                                    RegionInfo.RegionName);
+            //             return false;
+            //         }
+
+            //         if (land.isRestrictedFromLand(agent.AgentID))
+            //         {
+            //             m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the region",
+            //                              agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+            //             reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.",
+            //                                    RegionInfo.RegionName);
+            //             return false;
+            //         }
+            //     }
+            // }
 
             return true;
         }
@@ -5387,9 +5399,16 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (!AuthorizeUser(agentID, out reason))
+            try
             {
-                // m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
+                if (!AuthorizeUser(GetScenePresence(agentID).ControllingClient.RequestClientInfo(), out reason))
+                {
+                    // m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
+                    return false;
+                }
+            }
+            catch
+            {
                 return false;
             }
 

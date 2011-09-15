@@ -131,7 +131,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // If we're an NPC then skip all the item checks and manipulations since we don't have an
                     // inventory right now.
                     if (sp.PresenceType == PresenceType.Npc)
-                        RezSingleAttachmentFromInventoryInternal(sp, UUID.Zero, attach.AssetID, p);
+                        RezSingleAttachmentFromInventoryInternal(sp, UUID.Zero, attach.AssetID, p, null);
                     else
                         RezSingleAttachmentFromInventory(sp.ControllingClient, attach.ItemID, p);
                 }
@@ -343,17 +343,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             return RezSingleAttachmentFromInventory(remoteClient, itemID, AttachmentPt, true, null);
         }
 
-        public UUID RezSingleAttachmentFromInventory(
+        public ISceneEntity RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus, XmlDocument doc)
-            ScenePresence sp = m_scene.GetScenePresence(remoteClient.AgentId);
-
         {
+            ScenePresence sp = m_scene.GetScenePresence(remoteClient.AgentId);
 			if (sp == null)            {                m_log.ErrorFormat(                    "[ATTACHMENTS MODULE]: Could not find presence for client {0} {1} in RezSingleAttachmentFromInventory()",                    remoteClient.Name, remoteClient.AgentId);                return null;            }            
             // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
             // be removed when that functionality is implemented in opensim
             AttachmentPt &= 0x7f;
 
-            SceneObjectGroup att = RezSingleAttachmentFromInventoryInternal(remoteClient, itemID, AttachmentPt, doc);
+            SceneObjectGroup att = RezSingleAttachmentFromInventoryInternal(sp, itemID, UUID.Zero, AttachmentPt, doc);
 
             if (updateInventoryStatus)
             {
@@ -367,7 +366,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         }
 
         protected SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
-            IClientAPI remoteClient, UUID itemID, uint AttachmentPt, XmlDocument doc)
+            IScenePresence sp, UUID itemID, UUID assetID, uint attachmentPt, XmlDocument doc)
         {
             IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
             if (invAccess != null)
@@ -462,9 +461,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (!att.IsDeleted)
                 attachmentPoint = att.AttachmentPoint;
 
-            ScenePresence presence;
-            if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
-            {
             InventoryItemBase item = new InventoryItemBase(itemID, sp.UUID);
                 if (m_scene.InventoryService != null)
                     item = m_scene.InventoryService.GetItem(item);

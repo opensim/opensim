@@ -96,6 +96,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         // caches ExtendedLandData
         private Cache parcelInfoCache;
+        private Dictionary<UUID, Vector3> forcedPosition =
+                new Dictionary<UUID, Vector3>();
 
         #region INonSharedRegionModule Members
 

@@ -313,14 +313,10 @@ namespace Flotsam.RegionModules.AssetCache
                 }
                 catch (Exception e)
                 {
-                    LogException(e);
+                    m_log.ErrorFormat(
+                        "[FLOTSAM ASSET CACHE]: Failed to update cache for asset {0}.  Exception {1} {2}",
+                        asset.ID, e.Message, e.StackTrace);
                 }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat(
-                    "[FLOTSAM ASSET CACHE]: Failed to update cache for asset {0}.  Exception {1} {2}",
-                    asset.ID, e.Message, e.StackTrace);
             }
         }
 
