@@ -1237,6 +1237,7 @@ namespace OpenSim.Region.Framework.Scenes
                                first, last);
 
 
+
                         m_log.InfoFormat("[USER ACCOUNT SERVICE]: Account {0} {1} created successfully", first, last);
 
                         m_regInfo.EstateSettings.EstateOwner = account.PrincipalID;

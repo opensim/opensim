@@ -467,7 +467,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 return;
             }
 
-            // m_log.WarnFormat("[AVFACTORY]: Received request for wearables of {0}", client.AgentId);
+//            m_log.DebugFormat("[AVFACTORY]: Received request for wearables of {0}", client.Name);
 
             client.SendWearables(sp.Appearance.Wearables, sp.Appearance.Serial++);
         }
