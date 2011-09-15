@@ -834,14 +834,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: Called AddSceneObjectAsAttachment for object {0} {1} for {2}",
 //                grp.Name, grp.LocalId, remoteClient.Name);
-
+            uint regionSize = Constants.RegionSize; //Avoid VS error "The operation overflows at compile time in checked mode"
             Vector3 inventoryStoredPosition = new Vector3
                    (((grp.AbsolutePosition.X > (int)Constants.RegionSize)
-                         ? Constants.RegionSize - 6
+                         ? regionSize - 6
                          : grp.AbsolutePosition.X)
                     ,
                     (grp.AbsolutePosition.Y > (int)Constants.RegionSize)
-                        ? Constants.RegionSize - 6
+                        ? regionSize - 6
                         : grp.AbsolutePosition.Y,
                     grp.AbsolutePosition.Z);
 
