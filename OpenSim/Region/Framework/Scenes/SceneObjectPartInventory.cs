@@ -866,8 +866,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_items)
             {
-                CreateInventoryFile();
-
                 // Don't send a inventory xfer name if there are no items.  Doing so causes viewer 3 to crash when rezzing
                 // a new script if any previous deletion has left the prim inventory empty.
                 if (m_items.Count == 0) // No inventory
@@ -879,6 +877,8 @@ namespace OpenSim.Region.Framework.Scenes
                     client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
                     return;
                 }
+
+                CreateInventoryFile();                
     
                 // In principle, we should only do the rest if the inventory changed;
                 // by sending m_inventorySerial to the client, it ought to know
