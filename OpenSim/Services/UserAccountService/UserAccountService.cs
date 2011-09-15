@@ -340,7 +340,7 @@ namespace OpenSim.Services.UserAccountService
                 email = MainConsole.Instance.CmdPrompt("Email", "");
             else email = cmdparams[5];
 
-            CreateUser(firstName, lastName, password, email);
+            CreateUser(UUID.Zero, firstName, lastName, password, email);
         }
 
         protected void HandleShowAccount(string module, string[] cmdparams)
@@ -452,11 +452,12 @@ namespace OpenSim.Services.UserAccountService
         /// <summary>
         /// Create a user
         /// </summary>
+        /// <param name="scopeID">Allows hosting of multiple grids in a single database.  Normally left as UUID.Zero</param>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <param name="password"></param>
         /// <param name="email"></param>
-        public UserAccount CreateUser(string firstName, string lastName, string password, string email)
+        public UserAccount CreateUser(UUID scopeID, string firstName, string lastName, string password, string email)
         {
             UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
             if (null == account)
