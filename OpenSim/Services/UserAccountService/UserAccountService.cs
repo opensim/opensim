@@ -456,7 +456,7 @@ namespace OpenSim.Services.UserAccountService
         /// <param name="lastName"></param>
         /// <param name="password"></param>
         /// <param name="email"></param>
-        private void CreateUser(string firstName, string lastName, string password, string email)
+        public UserAccount CreateUser(string firstName, string lastName, string password, string email)
         {
             UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
             if (null == account)
@@ -524,6 +524,8 @@ namespace OpenSim.Services.UserAccountService
             {
                 m_log.ErrorFormat("[USER ACCOUNT SERVICE]: A user with the name {0} {1} already exists!", firstName, lastName);
             }
+
+            return account;
         }
 
         private void CreateDefaultAppearanceEntries(UUID principalID)

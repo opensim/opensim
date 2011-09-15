@@ -41,11 +41,14 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.ClientStack;
+using OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
+using OpenSim.Services.UserAccountService;
 
 namespace OpenSim
 {
@@ -361,6 +364,53 @@ namespace OpenSim
             else m_log.Error("[REGIONMODULES]: The new RegionModulesController is missing...");
 
             scene.SetModuleInterfaces();
+
+            // FIXME: Put me into a separate method!
+            while (regionInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
+            {
+                MainConsole.Instance.OutputFormat("Estate {0} has no owner set.", regionInfo.EstateSettings.EstateName);
+                List<char> excluded = new List<char>(new char[1]{' '});
+                string first = MainConsole.Instance.CmdPrompt("Estate owner first name", "Test", excluded);
+                string last = MainConsole.Instance.CmdPrompt("Estate owner last name", "User", excluded);
+
+                UserAccount account = scene.UserAccountService.GetUserAccount(regionInfo.ScopeID, first, last);
+
+                if (account == null)
+                {
+                    m_log.DebugFormat("A {0}", scene.UserAccountService.GetType());
+
+//                    if (scene.UserAccountService is LocalUserAccountServicesConnector)
+//                    {
+//                        IUserAccountService innerUas
+//                            = ((LocalUserAccountServicesConnector)scene.UserAccountService).UserAccountService;
+//
+//                        m_log.DebugFormat("B {0}", innerUas.GetType());
+//
+//                        if (innerUas is UserAccountService)
+//                        {
+
+                    if (scene.UserAccountService is UserAccountService)
+                    {
+                        string password = MainConsole.Instance.PasswdPrompt("Password");
+                        string email = MainConsole.Instance.CmdPrompt("Email", "");
+
+                        // TODO: Where do we put m_regInfo.ScopeID?
+                        account = ((UserAccountService)scene.UserAccountService).CreateUser(first, last, password, email);
+                    }
+//                    }
+                }
+
+                if (account == null)
+                {
+                    m_log.ErrorFormat(
+                        "[OPENSIM]: Unable to store account. If this simulator is connected to a grid, you must create the estate owner account first.");
+                }
+                else
+                {
+                    regionInfo.EstateSettings.EstateOwner = account.PrincipalID;
+                    regionInfo.EstateSettings.Save();
+                }
+            }
 
             // Prims have to be loaded after module configuration since some modules may be invoked during the load
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);
