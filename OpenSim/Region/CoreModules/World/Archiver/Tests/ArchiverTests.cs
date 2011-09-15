@@ -318,6 +318,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 new ArchiveWriteRequestPreparation(null, (Stream)null, Guid.Empty).CreateControlFile(new Dictionary<string, Object>()));
 
             SceneObjectPart part1 = CreateSceneObjectPart1();
+
+            part1.SitTargetOrientation = new Quaternion(0.2f, 0.3f, 0.4f, 0.5f);
+            part1.SitTargetPosition = new Vector3(1, 2, 3);
+
             SceneObjectGroup object1 = new SceneObjectGroup(part1);
 
             // Let's put some inventory items into our object
@@ -390,6 +394,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 object1PartLoaded.RotationOffset, Is.EqualTo(part1.RotationOffset), "object1 rotation offset not equal");
             Assert.That(
                 object1PartLoaded.OffsetPosition, Is.EqualTo(part1.OffsetPosition), "object1 offset position not equal");
+            Assert.That(object1PartLoaded.SitTargetOrientation, Is.EqualTo(part1.SitTargetOrientation));
+            Assert.That(object1PartLoaded.SitTargetPosition, Is.EqualTo(part1.SitTargetPosition));
 
             TaskInventoryItem loadedSoundItem = object1PartLoaded.Inventory.GetInventoryItems(soundItemName)[0];
             Assert.That(loadedSoundItem, Is.Not.Null, "loaded sound item was null");

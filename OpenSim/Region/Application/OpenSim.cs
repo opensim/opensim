@@ -269,13 +269,15 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", false, "save oar",
                                           //"save oar [-v|--version=<N>] [-p|--profile=<url>] [<OAR path>]",
-                                          "save oar [-p|--profile=<url>] [--noassets] [<OAR path>]",
+                                          "save oar [-p|--profile=<url>] [--noassets] [--perm=<permissions>] [<OAR path>]",
                                           "Save a region's data to an OAR archive.",
 //                                          "-v|--version=<N> generates scene objects as per older versions of the serialization (e.g. -v=0)" + Environment.NewLine
                                           "-p|--profile=<url> adds the url of the profile service to the saved user information." + Environment.NewLine
-                                          + "  The OAR path must be a filesystem path."
-                                          + "  If this is not given then the oar is saved to region.oar in the current directory." + Environment.NewLine
-                                          + "--noassets stops assets being saved to the OAR.",
+                                          + "--noassets stops assets being saved to the OAR." + Environment.NewLine
+                                          + "--perm stops objects with insufficient permissions from being saved to the OAR." + Environment.NewLine
+                                          + "   <permissions> can contain one or more of these characters: \"C\" = Copy, \"T\" = Transfer" + Environment.NewLine
+                                          + "The OAR path must be a filesystem path."
+                                          + " If this is not given then the oar is saved to region.oar in the current directory.",
                                           SaveOar);
 
             m_console.Commands.AddCommand("region", false, "edit scale",

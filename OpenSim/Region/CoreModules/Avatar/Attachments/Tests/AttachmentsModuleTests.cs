@@ -58,12 +58,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         private AttachmentsModule m_attMod;
         private ScenePresence m_presence;
 
-        [SetUp]
-        public void Init()
+        [TestFixtureSetUp]
+        public void FixtureInit()
         {
             // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
             Util.FireAndForgetMethod = FireAndForgetMethod.None;
+        }
 
+        [SetUp]
+        public void Init()
+        {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
@@ -73,7 +77,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             SceneHelpers.SetupSceneModules(scene, config, m_attMod, new BasicInventoryAccessModule());
         }
 
-        [TearDown]
+        [TestFixtureTearDown]
         public void TearDown()
         {
             // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
@@ -150,6 +154,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(attSo.IsTemporary, Is.False);
 
             // Check appearance status
+            Assert.That(m_presence.Appearance.GetAttachments().Count, Is.EqualTo(1));
             Assert.That(m_presence.Appearance.GetAttachpoint(attItemId), Is.EqualTo((int)AttachmentPoint.Chest));
         }
 
@@ -215,6 +220,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(m_presence.Appearance.GetAttachpoint(attItemId), Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Test that attachments don't hang about in the scene when the agent is closed
+        /// </summary>
+        [Test]
+        public void TestRemoveAttachmentsOnAvatarExit()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UUID attItemId = TestHelpers.ParseTail(0x2);
+            UUID attAssetId = TestHelpers.ParseTail(0x3);
+            string attName = "att";
+
+            UserAccountHelpers.CreateUserWithInventory(scene, userId);
+            InventoryItemBase attItem
+                = UserInventoryHelpers.CreateInventoryItem(
+                    scene, attName, attItemId, attAssetId, userId, InventoryType.Object);
+
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
+            acd.Appearance = new AvatarAppearance();
+            acd.Appearance.SetAttachment((int)AttachmentPoint.Chest, attItem.ID, attItem.AssetID);
+            ScenePresence presence = SceneHelpers.AddScenePresence(scene, acd);
+
+            SceneObjectGroup rezzedAtt = presence.GetAttachments()[0];
+
+            scene.IncomingCloseAgent(presence.UUID);
+
+            // Check that we can't retrieve this attachment from the scene.
+            Assert.That(scene.GetSceneObjectGroup(rezzedAtt.UUID), Is.Null);
+        }
+
         [Test]
         public void TestRezAttachmentsOnAvatarEntrance()
         {
@@ -246,6 +283,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(attSo.IsAttachment);
             Assert.That(attSo.UsesPhysics, Is.False);
             Assert.That(attSo.IsTemporary, Is.False);
+
+            // Check appearance status
+            List<AvatarAttachment> retreivedAttachments = presence.Appearance.GetAttachments();
+            Assert.That(retreivedAttachments.Count, Is.EqualTo(1));
+            Assert.That(retreivedAttachments[0].AttachPoint, Is.EqualTo((int)AttachmentPoint.Chest));
+            Assert.That(retreivedAttachments[0].ItemID, Is.EqualTo(attItemId));
+            Assert.That(retreivedAttachments[0].AssetID, Is.EqualTo(attAssetId));
+            Assert.That(presence.Appearance.GetAttachpoint(attItemId), Is.EqualTo((int)AttachmentPoint.Chest));
         }
 
         // I'm commenting this test because scene setup NEEDS InventoryService to 

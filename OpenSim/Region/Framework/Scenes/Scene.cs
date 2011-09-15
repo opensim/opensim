@@ -610,9 +610,42 @@ namespace OpenSim.Region.Framework.Scenes
             #region Region Settings
 
             // Load region settings
-            m_regInfo.WindlightSettings = SimulationDataService.LoadRegionWindlightSettings(m_regInfo.RegionID);
+            // LoadRegionSettings creates new region settings in persistence if they don't already exist for this region.
+            // However, in this case, the default textures are not set in memory properly, so we need to do it here and
+            // resave.
+            // FIXME: It shouldn't be up to the database plugins to create this data - we should do it when a new
+            // region is set up and avoid these gyrations.
+            RegionSettings rs = simDataService.LoadRegionSettings(m_regInfo.RegionID);
+            bool updatedTerrainTextures = false;
+            if (rs.TerrainTexture1 == UUID.Zero)
+            {
+                rs.TerrainTexture1 = RegionSettings.DEFAULT_TERRAIN_TEXTURE_1;
+                updatedTerrainTextures = true;
+            }
 
-            m_regInfo.RegionSettings = simDataService.LoadRegionSettings(m_regInfo.RegionID);
+            if (rs.TerrainTexture2 == UUID.Zero)
+            {
+                rs.TerrainTexture2 = RegionSettings.DEFAULT_TERRAIN_TEXTURE_2;
+                updatedTerrainTextures = true;
+            }
+
+            if (rs.TerrainTexture3 == UUID.Zero)
+            {
+                rs.TerrainTexture3 = RegionSettings.DEFAULT_TERRAIN_TEXTURE_3;
+                updatedTerrainTextures = true;
+            }
+
+            if (rs.TerrainTexture4 == UUID.Zero)
+            {
+                rs.TerrainTexture4 = RegionSettings.DEFAULT_TERRAIN_TEXTURE_4;
+                updatedTerrainTextures = true;
+            }
+
+            if (updatedTerrainTextures)
+                rs.Save();
+
+            m_regInfo.RegionSettings = rs;
+
             if (estateDataService != null)
                 m_regInfo.EstateSettings = estateDataService.LoadEstateSettings(m_regInfo.RegionID, false);
 
@@ -645,7 +678,7 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.OnLandObjectRemoved +=
                 new EventManager.LandObjectRemoved(simDataService.RemoveLandObject);
 
-            m_sceneGraph = new SceneGraph(this, m_regInfo);
+            m_sceneGraph = new SceneGraph(this);
 
             // If the scene graph has an Unrecoverable error, restart this sim.
             // Currently the only thing that causes it to happen is two kinds of specific
@@ -1575,7 +1608,9 @@ namespace OpenSim.Region.Framework.Scenes
                     msg.ParentEstateID = RegionInfo.EstateSettings.ParentEstateID;
                     msg.Position = Vector3.Zero;
                     msg.RegionID = RegionInfo.RegionID.Guid;
-                    msg.binaryBucket = new byte[0];
+
+                    // We must fill in a null-terminated 'empty' string here since bytes[0] will crash viewer 3.
+                    msg.binaryBucket = Util.StringToBytes256("\0");
                     if (ret.Value.count > 1)
                         msg.message = string.Format("Your {0} objects were returned from {1} in region {2} due to {3}", ret.Value.count, ret.Value.location.ToString(), RegionInfo.RegionName, ret.Value.reason);
                     else
@@ -2492,14 +2527,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>False</returns>
         public virtual bool IncomingCreateObject(UUID userID, UUID itemID)
         {
-            //m_log.DebugFormat(" >>> IncomingCreateObject(userID, itemID) <<< {0} {1}", userID, itemID);
-            
-            ScenePresence sp = GetScenePresence(userID);
-            if (sp != null && AttachmentsModule != null)
-            {
-                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);
-                AttachmentsModule.RezSingleAttachmentFromInventory(sp.ControllingClient, itemID, attPt);
-            }
+            m_log.DebugFormat(" >>> IncomingCreateObject(userID, itemID) <<< {0} {1}", userID, itemID);
+
+            // Commented out since this is as yet unused and is arguably not the appropriate place to do this, as
+            // attachments are being rezzed elsewhere in AddNewClient()
+//            ScenePresence sp = GetScenePresence(userID);
+//            if (sp != null && AttachmentsModule != null)
+//            {
+//                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);
+//                AttachmentsModule.RezSingleAttachmentFromInventory(sp.ControllingClient, itemID, attPt);
+//            }
 
             return false;
         }
@@ -3272,8 +3309,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (AttachmentsModule != null && !avatar.IsChildAgent && avatar.PresenceType != PresenceType.Npc)
                     AttachmentsModule.SaveChangedAttachments(avatar);
 
-                if (avatar != null && (!avatar.IsChildAgent))
-                    avatar.SaveChangedAttachments();
+                if (AttachmentsModule != null && !avatar.IsChildAgent && avatar.PresenceType != PresenceType.Npc)
+                    AttachmentsModule.SaveChangedAttachments(avatar);
 
                 ForEachClient(
                     delegate(IClientAPI client)

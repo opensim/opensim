@@ -405,31 +405,40 @@ namespace OpenSim.Framework
         /// </remarks>
         public List<AvatarAttachment> GetAttachments()
         {
+            
+
             lock (m_attachments)
             {
-                List<AvatarAttachment> alist = new List<AvatarAttachment>();
+				List<AvatarAttachment> alist = new List<AvatarAttachment>();
                 foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
                 {
                     foreach (AvatarAttachment attach in kvp.Value)
                         alist.Add(new AvatarAttachment(attach));
                 }
-
-                return alist;
-            }
-        }
+				return alist;
+			}        }
 
         internal void AppendAttachment(AvatarAttachment attach)
         {
+//            m_log.DebugFormat(
+//                "[AVATAR APPEARNCE]: Appending itemID={0}, assetID={1} at {2}",
+//                attach.ItemID, attach.AssetID, attach.AttachPoint);
+
             lock (m_attachments)
             {
                 if (!m_attachments.ContainsKey(attach.AttachPoint))
                     m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
+    
                 m_attachments[attach.AttachPoint].Add(attach);
             }
         }
 
         internal void ReplaceAttachment(AvatarAttachment attach)
         {
+//            m_log.DebugFormat(
+//                "[AVATAR APPEARANCE]: Replacing itemID={0}, assetID={1} at {2}",
+//                attach.ItemID, attach.AssetID, attach.AttachPoint);
+
             lock (m_attachments)
             {
                 m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
@@ -438,7 +447,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Add an attachment
+        /// Set an attachment
         /// </summary>
         /// <remarks>
         /// If the attachpoint has the
@@ -454,12 +463,12 @@ namespace OpenSim.Framework
         /// </returns>
         public bool SetAttachment(int attachpoint, UUID item, UUID asset)
         {
-            if (attachpoint == 0)
-                return false;
-
 //            m_log.DebugFormat(
 //                "[AVATAR APPEARANCE]: Setting attachment at {0} with item ID {1}, asset ID {2}",
 //                 attachpoint, item, asset);
+
+            if (attachpoint == 0)
+                return false;
 
             if (item == UUID.Zero)
             {
@@ -470,12 +479,21 @@ namespace OpenSim.Framework
                         m_attachments.Remove(attachpoint);
                         return true;
                     }
-                    return false;
                 }
+                
+                return false;
             }
 
-            // check if the item is already attached at this point
-            if (GetAttachpoint(item) == (attachpoint & 0x7F))
+            // When a user logs in, the attachment item ids are pulled from persistence in the Avatars table.  However,
+            // the asset ids are not saved.  When the avatar enters a simulator the attachments are set again.  If
+            // we simply perform an item check here then the asset ids (which are now present) are never set, and NPC attachments
+            // later fail unless the attachment is detached and reattached.
+            //
+            // Therefore, we will carry on with the set if the existing attachment has no asset id.
+            AvatarAttachment existingAttachment = GetAttachmentForItem(item);
+            if (existingAttachment != null
+                && existingAttachment.AssetID != UUID.Zero
+                && existingAttachment.AttachPoint == (attachpoint & 0x7F))
             {
                 // m_log.DebugFormat("[AVATAR APPEARANCE] attempt to attach an already attached item {0}",item);
                 return false;
@@ -492,7 +510,28 @@ namespace OpenSim.Framework
             {
                 ReplaceAttachment(new AvatarAttachment(attachpoint,item, asset));
             }
+
             return true;
+        }
+
+        /// <summary>
+        /// If the item is already attached, return it.
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <returns>Returns null if this item is not attached.</returns>
+        public AvatarAttachment GetAttachmentForItem(UUID itemID)
+        {
+            lock (m_attachments)
+            {
+                foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
+                {
+                    int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID == itemID; });
+                    if (index >= 0)
+                        return kvp.Value[index];
+                }
+            }
+
+            return null;
         }
 
         public int GetAttachpoint(UUID itemID)
@@ -505,9 +544,8 @@ namespace OpenSim.Framework
                     if (index >= 0)
                         return kvp.Key;
                 }
-
-                return 0;
             }
+            return 0;
         }
 
         public bool DetachAttachment(UUID itemID)
@@ -521,23 +559,23 @@ namespace OpenSim.Framework
                     {
                         // Remove it from the list of attachments at that attach point
                         m_attachments[kvp.Key].RemoveAt(index);
-
+    
                         // And remove the list if there are no more attachments here
                         if (m_attachments[kvp.Key].Count == 0)
                             m_attachments.Remove(kvp.Key);
+    
                         return true;
                     }
                 }
             }
+
             return false;
         }
 
         public void ClearAttachments()
         {
             lock (m_attachments)
-            {
                 m_attachments.Clear();
-            }
         }
 
         #region Packing Functions

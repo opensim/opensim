@@ -89,18 +89,13 @@ namespace OpenSim.Region.Framework.Interfaces
         ISceneEntity RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
 
         /// <summary>
-        /// Rez an attachment from user inventory
+        /// Rez an attachment from user inventory and change inventory status to match.
         /// </summary>
-        /// <param name="remoteClient"></param>
+        /// <param name="sp"></param>
         /// <param name="itemID"></param>
         /// <param name="AttachmentPt"></param>
-        /// <param name="updateinventoryStatus">
-        /// If true, we also update the user's inventory to show that the attachment is set.  If false, we do not.
-        /// False is required so that we don't attempt to update information when a user enters a scene with the
-        /// attachment already correctly set up in inventory.
-        /// <returns>The uuid of the scene object that was attached.  Null if the scene object could not be found</returns>
-        ISceneEntity RezSingleAttachmentFromInventory(
-            IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus);
+        /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
+        ISceneEntity RezSingleAttachmentFromInventory(ScenePresence sp, UUID itemID, uint AttachmentPt);
 
         // Same as above, but also load script states from a separate doc
         ISceneEntity RezSingleAttachmentFromInventory(
@@ -146,13 +141,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient);
         
-        /// <summary>
-        /// Update the user inventory with a changed attachment
+        /// Update the position of an attachment.
         /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="grp"></param>
-        /// <param name="itemID"></param>
-        /// <param name="agentID"></param>
-        void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID);
+        /// <param name="sog"></param>
+        /// <param name="pos"></param>
+        void UpdateAttachmentPosition(SceneObjectGroup sog, Vector3 pos);
     }
 }

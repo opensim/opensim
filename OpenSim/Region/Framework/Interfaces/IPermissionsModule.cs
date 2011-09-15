@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,39 +25,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections;
 using OpenMetaverse;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IScriptModule: INonSharedRegionModule
+    /// <value>
+    /// Which set of permissions a user has.
+    /// </value>
+    public enum PermissionClass
     {
-        string ScriptEngineName { get; }
+        Owner,
+        Group,
+        Everyone
+    };
 
-        string GetXMLState(UUID itemID);
-        bool SetXMLState(UUID itemID, string xml);
-
-        bool PostScriptEvent(UUID itemID, string name, Object[] args);
-        bool PostObjectEvent(UUID itemID, string name, Object[] args);
-
-        // Suspend ALL scripts in a given scene object. The item ID
-        // is the UUID of a SOG, and the method acts on all contained
-        // scripts. This is different from the suspend/resume that
-        // can be issued by a client.
-        //
-        void SuspendScript(UUID itemID);
-        void ResumeScript(UUID itemID);
-
-        ArrayList GetScriptErrors(UUID itemID);
-
-        bool HasScript(UUID itemID, out bool running);
-
-        void SaveAllState();
-
+    public interface IPermissionsModule
+    {
+        
         /// <summary>
-        /// Starts the processing threads.
+        /// Returns the type of permissions that the user has over an object.
         /// </summary>
-        void StartProcessing();
+        /// <param name="user">The user</param>
+        /// <param name="obj">The object</param>
+        /// <returns>The type of permissions the user has over the object</returns>
+        PermissionClass GetPermissionClass(UUID user, SceneObjectPart obj);
     }
 }

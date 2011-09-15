@@ -39,7 +39,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Permissions
 {
-    public class PermissionsModule : IRegionModule
+    public class PermissionsModule : IRegionModule, IPermissionsModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
                 
@@ -149,6 +149,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 m_log.Info("[PERMISSIONS]: serverside_object_permissions = false in ini file so disabling all region service permission checks");
             else
                 m_log.Debug("[PERMISSIONS]: Enabling all region service permission checks");
+
+            scene.RegisterModuleInterface<IPermissionsModule>(this);
 
             //Register functions with Scene External Checks!
             m_scene.Permissions.OnBypassPermissions += BypassPermissions;
@@ -574,46 +576,18 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (objectOwner != UUID.Zero)
                 objectEveryoneMask |= (uint)PrimFlags.ObjectAnyOwner;
 
-            if (m_bypassPermissions)
-                return objectOwnerMask;
+            PermissionClass permissionClass = GetPermissionClass(user, task);
 
-            // Object owners should be able to edit their own content
-            if (user == objectOwner)
-                return objectOwnerMask;
-
-            if (IsFriendWithPerms(user, objectOwner))
+            switch (permissionClass)
             {
-                return objectOwnerMask;
-            }
-            // Estate users should be able to edit anything in the sim if RegionOwnerIsGod is set
-            if (m_RegionOwnerIsGod && IsEstateManager(user) && !IsAdministrator(objectOwner))
-            {
-                return objectOwnerMask;
-            }
-
-            // Admin should be able to edit anything in the sim (including admin objects)
-            if (IsAdministrator(user))
-            {
-                return objectOwnerMask;
-            }
-
-            // Users should be able to edit what is over their land.
-            Vector3 taskPos = task.AbsolutePosition;
-            ILandObject parcel = m_scene.LandChannel.GetLandObject(taskPos.X, taskPos.Y);
-            if (parcel != null && parcel.LandData.OwnerID == user && m_ParcelOwnerIsGod)
-            {
-                // Admin objects should not be editable by the above
-                if (!IsAdministrator(objectOwner))
-                {
+                case PermissionClass.Owner:
                     return objectOwnerMask;
-                }
+                case PermissionClass.Group:
+                    return objectGroupMask | objectEveryoneMask;
+                case PermissionClass.Everyone:
+                default:
+                    return objectEveryoneMask;
             }
-
-            // Group permissions
-            if ((task.GroupID != UUID.Zero) && IsGroupMember(task.GroupID, user, 0))
-                return objectGroupMask | objectEveryoneMask;
-
-            return objectEveryoneMask;
         }
 
         private uint ApplyObjectModifyMasks(uint setPermissionMask, uint objectFlagsMask)
@@ -642,6 +616,47 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
 
             return objectFlagsMask;
+        }
+
+        public PermissionClass GetPermissionClass(UUID user, SceneObjectPart obj)
+        {
+            if (obj == null)
+                return PermissionClass.Everyone;
+
+            if (m_bypassPermissions)
+                return PermissionClass.Owner;
+
+            // Object owners should be able to edit their own content
+            UUID objectOwner = obj.OwnerID;
+            if (user == objectOwner)
+                return PermissionClass.Owner;
+
+            if (IsFriendWithPerms(user, objectOwner))
+                return PermissionClass.Owner;
+
+            // Estate users should be able to edit anything in the sim if RegionOwnerIsGod is set
+            if (m_RegionOwnerIsGod && IsEstateManager(user) && !IsAdministrator(objectOwner))
+                return PermissionClass.Owner;
+
+            // Admin should be able to edit anything in the sim (including admin objects)
+            if (IsAdministrator(user))
+                return PermissionClass.Owner;
+
+            // Users should be able to edit what is over their land.
+            Vector3 taskPos = obj.AbsolutePosition;
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(taskPos.X, taskPos.Y);
+            if (parcel != null && parcel.LandData.OwnerID == user && m_ParcelOwnerIsGod)
+            {
+                // Admin objects should not be editable by the above
+                if (!IsAdministrator(objectOwner))
+                    return PermissionClass.Owner;
+            }
+
+            // Group permissions
+            if ((obj.GroupID != UUID.Zero) && IsGroupMember(obj.GroupID, user, 0))
+                return PermissionClass.Group;
+
+            return PermissionClass.Everyone;
         }
 
         /// <summary>

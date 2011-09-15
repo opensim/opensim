@@ -47,9 +47,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IInventoryService m_InventoryService;
+        /// <summary>
+        /// Scene used by this module.  This currently needs to be publicly settable for HGInventoryBroker.
+        /// </summary>
+        public Scene Scene { get; set; }
 
-        private Scene m_Scene;
+        private IInventoryService m_InventoryService;
 
         private IUserManagement m_UserManager;
         private IUserManagement UserManager
@@ -58,7 +61,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             {
                 if (m_UserManager == null)
                 {
-                    m_UserManager = m_Scene.RequestModuleInterface<IUserManagement>();
+                    m_UserManager = Scene.RequestModuleInterface<IUserManagement>();
                 }
                 return m_UserManager;
             }
@@ -131,8 +134,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             
             scene.RegisterModuleInterface<IInventoryService>(this);
 
-            if (m_Scene == null)
-                m_Scene = scene;
+            if (Scene == null)
+                Scene = scene;
         }
 
         public void RemoveRegion(Scene scene)
@@ -185,8 +188,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             Util.FireAndForget(delegate
             {
                 if (UserManager != null)
-                    foreach (InventoryItemBase item in invCol.Items)
+                {
+                    // Protect ourselves against the caller subsequently modifying the items list
+                    foreach (InventoryItemBase item in new List<InventoryItemBase>(invCol.Items))
                         UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+                }
             });
 
             return invCol;

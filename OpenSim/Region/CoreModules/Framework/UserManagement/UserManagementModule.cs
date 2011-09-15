@@ -87,8 +87,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 "Show the bindings between user UUIDs and user names",
                 String.Empty,
                 HandleShowUsers);
-
-
         }
 
         public bool IsSharedModule
@@ -365,9 +363,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             lock (m_UserCache)
                 m_UserCache[user.Id] = user;
 
-            m_log.DebugFormat(
-                "[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}",
-                user.Id, user.FirstName, user.LastName, user.HomeURL);
+//            m_log.DebugFormat(
+//                "[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}",
+//                user.Id, user.FirstName, user.LastName, user.HomeURL);
         }
 
         //public void AddUser(UUID uuid, string userData)

@@ -409,7 +409,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoBackup),
                                            new Object[] { m_SaveTime });
             }
+        }
 
+        public void StartProcessing()
+        {
             m_ThreadPool.Start();
         }
 
@@ -659,7 +662,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
             if (part == null)
             {
-                m_log.Error("[Script] SceneObjectPart unavailable. Script NOT started.");
+                m_log.ErrorFormat("[Script]: SceneObjectPart with localID {0} unavailable. Script NOT started.", localID);
                 m_ScriptErrorMessage += "SceneObjectPart unavailable. Script NOT started.\n";
                 m_ScriptFailCount++;
                 return false;

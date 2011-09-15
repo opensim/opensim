@@ -1239,10 +1239,15 @@ namespace OpenSim.Region.Framework.Scenes
                 item.CurrentPermissions = perms;
                 item.BasePermissions = perms;
             }
+            
             m_inventorySerial++;
             HasInventoryChanged = true;
         }
 
+        /// <summary>
+        /// Returns true if this part inventory contains any scripts.  False otherwise.
+        /// </summary>
+        /// <returns></returns>
         public bool ContainsScripts()
         {
             foreach (TaskInventoryItem item in m_items.Values)

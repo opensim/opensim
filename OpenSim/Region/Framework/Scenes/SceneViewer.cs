@@ -38,27 +38,42 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public class SceneViewer : ISceneViewer
     {
+        /// <summary>
+        /// Is this scene viewer enabled?
+        /// </summary>
+        private bool IsEnabled { get; set; }
+
+        /// <summary>
+        /// The scene presence serviced by this viewer.
+        /// </summary>
         protected ScenePresence m_presence;
+
+        /// <summary>
+        /// The queue of parts for which we need to send out updates.
+        /// </summary>
         protected UpdateQueue m_partsUpdateQueue = new UpdateQueue();
+
+        /// <summary>
+        /// The queue of objects for which we need to send out updates.
+        /// </summary>
         protected Queue<SceneObjectGroup> m_pendingObjects;
 
+        /// <summary>
+        /// The last update assocated with a given part update.
+        /// </summary>
         protected Dictionary<UUID, ScenePartUpdate> m_updateTimes = new Dictionary<UUID, ScenePartUpdate>();
-
-        public SceneViewer()
-        {
-        }
 
         public SceneViewer(ScenePresence presence)
         {
             m_presence = presence;
+            IsEnabled = true;
         }
 
-        /// <summary>
-        /// Add the part to the queue of parts for which we need to send an update to the client
-        /// </summary>
-        /// <param name="part"></param>
         public void QueuePartForUpdate(SceneObjectPart part)
         {
+            if (!IsEnabled)
+                return;
+
             lock (m_partsUpdateQueue)
             {
                 m_partsUpdateQueue.Enqueue(part);
@@ -87,6 +102,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (m_pendingObjects)
             {
+                // We must do this under lock so that we don't suffer a race condition if another thread closes the
+                // viewer
+                if (!IsEnabled)
+                    return;
+
                 while (m_pendingObjects != null && m_pendingObjects.Count > 0)
                 {
                     SceneObjectGroup g = m_pendingObjects.Dequeue();
@@ -119,7 +139,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                         // We deal with the possibility that two updates occur at
                         // the same unix time at the update point itself.
-
                         if ((update.LastFullUpdateTime < part.TimeStampFull) || part.ParentGroup.IsAttachment)
                         {
     //                            m_log.DebugFormat(
@@ -135,9 +154,7 @@ namespace OpenSim.Region.Framework.Scenes
                             // this update. If this happened, then subsequent
                             // updates which occurred on the same tick or the
                             // next tick of the last update would be ignored.
-
                             update.LastFullUpdateTime = part.TimeStampFull;
-
                         }
                         else if (update.LastTerseUpdateTime <= part.TimeStampTerse)
                         {
@@ -176,38 +193,46 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void Reset()
-        {
-            if (m_pendingObjects == null)
-                return;
-
-            lock (m_pendingObjects)
-            {
-                if (m_pendingObjects != null)
-                {
-                    m_pendingObjects.Clear();
-                    m_pendingObjects = null;
-                }
-            }
-        }
+//        public void Reset()
+//        {
+//            if (m_pendingObjects == null)
+//                return;
+//
+//            lock (m_pendingObjects)
+//            {
+//                if (m_pendingObjects != null)
+//                {
+//                    m_pendingObjects.Clear();
+//                    m_pendingObjects = null;
+//                }
+//            }
+//        }
 
         public void Close()
         {
-            lock (m_updateTimes)
+            lock (m_pendingObjects)
             {
-                m_updateTimes.Clear();
+                // We perform this under the m_pendingObjects lock in order to avoid a race condition with another
+                // thread on SendPrimUpdates()
+                IsEnabled = false;
+
+                lock (m_updateTimes)
+                {
+                    m_updateTimes.Clear();
+                }
+
+                lock (m_partsUpdateQueue)
+                {
+                    m_partsUpdateQueue.Clear();
+                }
             }
-            lock (m_partsUpdateQueue)
-            {
-                m_partsUpdateQueue.Clear();
-            }
-            Reset();
         }
 
         public int GetPendingObjectsCount()
         {
             if (m_pendingObjects != null)
-                return m_pendingObjects.Count;
+                lock (m_pendingObjects)
+                    return m_pendingObjects.Count;
 
             return 0;
         }

@@ -61,6 +61,14 @@ namespace OpenSim.Region.Framework.Interfaces
         AvatarAppearance Appearance { get; set; }
 
         /// <summary>
+        /// The AttachmentsModule synchronizes on this to avoid race conditions between commands to add and remove attachments.
+        /// </summary>
+        /// <remarks>
+        /// All add and remove attachment operations must synchronize on this for the lifetime of their operations.
+        /// </remarks>
+        Object AttachmentsSyncLock { get; }
+
+        /// <summary>
         /// The scene objects attached to this avatar.
         /// </summary>
         /// <returns>

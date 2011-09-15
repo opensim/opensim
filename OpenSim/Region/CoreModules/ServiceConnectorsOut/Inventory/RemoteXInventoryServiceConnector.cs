@@ -45,19 +45,30 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private static readonly ILog m_log =
                 LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Scene used by this module.  This currently needs to be publicly settable for HGInventoryBroker.
+        /// </summary>
+        public Scene Scene { get; set; }
+
         private bool m_Enabled = false;
         private Scene m_Scene;
         private XInventoryServicesConnector m_RemoteConnector;
 
         private IUserManagement m_UserManager;
-        private IUserManagement UserManager
+        public IUserManagement UserManager
         {
             get
             {
                 if (m_UserManager == null)
                 {
-                    m_UserManager = m_Scene.RequestModuleInterface<IUserManagement>();
+                    m_UserManager = Scene.RequestModuleInterface<IUserManagement>();
+
+                    if (m_UserManager == null)
+                        m_log.ErrorFormat(
+                            "[XINVENTORY CONNECTOR]: Could not retrieve IUserManagement module from {0}",
+                            Scene.RegionInfo.RegionName);
                 }
+
                 return m_UserManager;
             }
         }
@@ -86,11 +97,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             Init(source);
         }
 
-        protected  void Init(IConfigSource source)
+        protected void Init(IConfigSource source)
         {
             m_RemoteConnector = new XInventoryServicesConnector(source);
         }
-
 
         #region ISharedRegionModule
 
@@ -128,15 +138,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             scene.RegisterModuleInterface<IInventoryService>(this);
 
-            if (m_Scene == null)
-                m_Scene = scene;
+            if (Scene == null)
+                Scene = scene;
         }
 
         public void RemoveRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
-
         }
 
         public void RegionLoaded(Scene scene)
@@ -181,14 +190,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.GetFolderForType(userID, type);
         }
 
-        public  InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
             InventoryCollection invCol = m_RemoteConnector.GetFolderContent(userID, folderID);
             Util.FireAndForget(delegate
             {
                 if (UserManager != null)
-                    foreach (InventoryItemBase item in invCol.Items)
+                {
+                    // Protect ourselves against the caller subsequently modifying the items list
+                    foreach (InventoryItemBase item in new List<InventoryItemBase>(invCol.Items))
                         UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+                }
             });
 
             return invCol;

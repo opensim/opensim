@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -33,7 +34,9 @@ using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Region.CoreModules.Avatar.Attachments;
 using OpenSim.Region.CoreModules.Avatar.AvatarFactory;
+using OpenSim.Region.CoreModules.Framework.InventoryAccess;
 using OpenSim.Region.CoreModules.Framework.UserManagement;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar;
 using OpenSim.Region.Framework.Interfaces;
@@ -47,21 +50,49 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
     [TestFixture]
     public class NPCModuleTests
     {
+        private TestScene scene;
+        private AvatarFactoryModule afm;
+        private UserManagementModule umm;
+        private AttachmentsModule am;
+
+        [TestFixtureSetUp]
+        public void FixtureInit()
+        {
+            // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
+            Util.FireAndForgetMethod = FireAndForgetMethod.None;
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
+            // threads.  Possibly, later tests should be rewritten not to worry about such things.
+            Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
+        }
+
+        [SetUp]
+        public void Init()
+        {
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("NPC");
+            config.Configs["NPC"].Set("Enabled", "true");
+            config.AddConfig("Modules");
+            config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
+
+            afm = new AvatarFactoryModule();
+            umm = new UserManagementModule();
+            am = new AttachmentsModule();
+
+            scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, config, afm, umm, am, new BasicInventoryAccessModule(), new NPCModule());
+        }
+
         [Test]
         public void TestCreate()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            IConfigSource config = new IniConfigSource();
-            config.AddConfig("NPC");
-            config.Configs["NPC"].Set("Enabled", "true");
-
-            AvatarFactoryModule afm = new AvatarFactoryModule();
-            UserManagementModule umm = new UserManagementModule();
-
-            TestScene scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(scene, config, afm, umm, new NPCModule());
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 
@@ -88,18 +119,53 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         }
 
         [Test]
+        public void TestAttachments()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UserAccountHelpers.CreateUserWithInventory(scene, userId);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, userId);
+
+            UUID attItemId = TestHelpers.ParseTail(0x2);
+            UUID attAssetId = TestHelpers.ParseTail(0x3);
+            string attName = "att";
+
+            UserInventoryHelpers.CreateInventoryItem(
+                scene, attName, attItemId, attAssetId, sp.UUID, InventoryType.Object);
+
+            am.RezSingleAttachmentFromInventory(
+                sp.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
+
+            INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
+            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, sp.Appearance);
+
+            ScenePresence npc = scene.GetScenePresence(npcId);
+
+            // Check scene presence status
+            Assert.That(npc.HasAttachments(), Is.True);
+            List<SceneObjectGroup> attachments = npc.GetAttachments();
+            Assert.That(attachments.Count, Is.EqualTo(1));
+            SceneObjectGroup attSo = attachments[0];
+
+            // Just for now, we won't test the name since this is (wrongly) the asset part name rather than the item
+            // name.  TODO: Do need to fix ultimately since the item may be renamed before being passed on to an NPC.
+//            Assert.That(attSo.Name, Is.EqualTo(attName));
+
+            Assert.That(attSo.AttachmentPoint, Is.EqualTo((byte)AttachmentPoint.Chest));
+            Assert.That(attSo.IsAttachment);
+            Assert.That(attSo.UsesPhysics, Is.False);
+            Assert.That(attSo.IsTemporary, Is.False);
+            Assert.That(attSo.OwnerID, Is.EqualTo(npc.UUID));
+        }
+
+        [Test]
         public void TestMove()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            IConfigSource config = new IniConfigSource();
-
-            config.AddConfig("NPC");
-            config.Configs["NPC"].Set("Enabled", "true");
-
-            TestScene scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(scene, config, new NPCModule());
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 

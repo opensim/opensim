@@ -323,7 +323,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 List<UUID> targets = new List<UUID>();
                 foreach (SceneObjectGroup sog in attachments)
                 {
-                    targets.Add(sog.UUID);
+                    if (!sog.IsDeleted)
+                        targets.Add(sog.UUID);
                 }
 
                 // Need to check each attachment

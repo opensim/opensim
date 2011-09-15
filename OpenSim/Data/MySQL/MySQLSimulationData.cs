@@ -1209,7 +1209,6 @@ namespace OpenSim.Data.MySQL
             return prim;
         }
 
-
         /// <summary>
         /// Build a prim inventory item from the persisted data.
         /// </summary>

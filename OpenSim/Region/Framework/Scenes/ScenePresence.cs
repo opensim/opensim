@@ -124,6 +124,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
 
+        public Object AttachmentsSyncLock { get; private set; }
+
         private Dictionary<UUID, ScriptControllers> scriptedcontrols = new Dictionary<UUID, ScriptControllers>();
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
         private ScriptControlled LastCommands = ScriptControlled.CONTROL_ZERO;
@@ -199,7 +201,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private float m_health = 100f;
 
-        protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion;
 
         private readonly Vector3[] Dir_Vectors = new Vector3[11];
@@ -770,23 +771,24 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Constructor(s)
-        
+
         public ScenePresence(
-            IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance, PresenceType type)
+            IClientAPI client, Scene world, AvatarAppearance appearance, PresenceType type)
         {
+            AttachmentsSyncLock = new Object();
+
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             m_sceneViewer = new SceneViewer(this);
             m_animator = new ScenePresenceAnimator(this);
             PresenceType = type;
             m_DrawDistance = world.DefaultDrawDistance;
-            m_rootRegionHandle = reginfo.RegionHandle;
+            m_rootRegionHandle = world.RegionInfo.RegionHandle;
             m_controllingClient = client;
             m_firstname = m_controllingClient.FirstName;
             m_lastname = m_controllingClient.LastName;
             m_name = String.Format("{0} {1}", m_firstname, m_lastname);
             m_scene = world;
             m_uuid = client.AgentId;
-            m_regionInfo = reginfo;
             m_localId = m_scene.AllocateLocalId();
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
@@ -1302,7 +1304,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             //m_log.DebugFormat("Completed movement");
 
-            m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
+            m_controllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
             SendInitialData();
 
             // Create child agents in neighbouring regions
@@ -3226,8 +3228,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         protected int HaveNeighbor(Cardinals car, ref int[] fix)
         {
-            uint neighbourx = m_regionInfo.RegionLocX;
-            uint neighboury = m_regionInfo.RegionLocY;
+            uint neighbourx = m_scene.RegionInfo.RegionLocX;
+            uint neighboury = m_scene.RegionInfo.RegionLocY;
 
             int dir = (int)car;
 
@@ -3247,8 +3249,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (neighbourRegion == null)
             {
-                fix[0] = (int)(m_regionInfo.RegionLocX - neighbourx);
-                fix[1] = (int)(m_regionInfo.RegionLocY - neighboury);
+                fix[0] = (int)(m_scene.RegionInfo.RegionLocX - neighbourx);
+                fix[1] = (int)(m_scene.RegionInfo.RegionLocY - neighboury);
                 return dir * (-1);
             }
             else
@@ -3494,26 +3496,30 @@ namespace OpenSim.Region.Framework.Scenes
             catch { }
 
             // Attachment objects
-            if (m_attachments != null && m_attachments.Count > 0)
+            lock (m_attachments)
             {
-                cAgent.AttachmentObjects = new List<ISceneObject>();
-                cAgent.AttachmentObjectStates = new List<string>();
-//                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
-                m_InTransitScriptStates.Clear();
-                foreach (SceneObjectGroup sog in m_attachments)
+                if (m_attachments.Count > 0)
                 {
-                    // We need to make a copy and pass that copy
-                    // because of transfers withn the same sim
-                    ISceneObject clone = sog.CloneForNewScene();
-                    // Attachment module assumes that GroupPosition holds the offsets...!
-                    ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
-                    ((SceneObjectGroup)clone).IsAttachment = false;
-                    cAgent.AttachmentObjects.Add(clone);
-                    string state = sog.GetStateSnapshot();
-                    cAgent.AttachmentObjectStates.Add(state);
-                    m_InTransitScriptStates.Add(state);
-                    // Let's remove the scripts of the original object here
-                    sog.RemoveScriptInstances(true);
+                    cAgent.AttachmentObjects = new List<ISceneObject>();
+                    cAgent.AttachmentObjectStates = new List<string>();
+    //                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
+                    m_InTransitScriptStates.Clear();
+
+                    foreach (SceneObjectGroup sog in m_attachments)
+                    {
+                        // We need to make a copy and pass that copy
+                        // because of transfers withn the same sim
+                        ISceneObject clone = sog.CloneForNewScene();
+                        // Attachment module assumes that GroupPosition holds the offsets...!
+                        ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
+                        ((SceneObjectGroup)clone).IsAttachment = false;
+                        cAgent.AttachmentObjects.Add(clone);
+                        string state = sog.GetStateSnapshot();
+                        cAgent.AttachmentObjectStates.Add(state);
+                        m_InTransitScriptStates.Add(state);
+                        // Let's remove the scripts of the original object here
+                        sog.RemoveScriptInstances(true);
+                    }
                 }
             }
         }
@@ -3931,7 +3937,8 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
 
         public void Close()
         {
-            m_scene.AttachmentsModule.DeleteAttachmentsFromScene(this, false);
+            if (!IsChildAgent)
+                m_scene.AttachmentsModule.DeleteAttachmentsFromScene(this, false);
             
             lock (m_knownChildRegions)
             {
@@ -4035,8 +4042,13 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
                 m_attachments.Clear();
         }
 
+        /// <summary>
+        /// This is currently just being done for information.
+        /// </summary>
         public bool ValidateAttachments()
         {
+            bool validated = true;
+
             lock (m_attachments)
             {
                 // Validate
@@ -4045,21 +4057,22 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
                     if (gobj == null)
                     {
                         m_log.WarnFormat(
-                            "[SCENE PRESENCE]: Failed to validate an attachment for {0} since it was null", Name);
-                        return false;
-                    }
+                            "[SCENE PRESENCE]: Failed to validate an attachment for {0} since it was null.  Continuing", Name);
 
-                    if (gobj.IsDeleted)
+                        validated = false;
+                    }
+                    else if (gobj.IsDeleted)
                     {
                         m_log.WarnFormat(
-                            "[SCENE PRESENCE]: Failed to validate attachment {0} {1} for {2} since it had been deleted",
+                            "[SCENE PRESENCE]: Failed to validate attachment {0} {1} for {2} since it had been deleted.  Continuing",
                             gobj.Name, gobj.UUID, Name);
-                        return false;
+
+                        validated = false;
                     }
                 }
             }
 
-            return true;
+            return validated;
         }
 
         /// <summary>
@@ -4091,29 +4104,6 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
             }
         }
 
-
-        public void initializeScenePresence(IClientAPI client, RegionInfo region, Scene scene)
-        {
-            m_controllingClient = client;
-            m_regionInfo = region;
-            m_scene = scene;
-
-            RegisterToEvents();
-
-            /*
-            AbsolutePosition = client.StartPos;
-
-            Animations = new AvatarAnimations();
-            Animations.LoadAnims();
-
-            m_animations = new List<UUID>();
-            m_animations.Add(Animations.AnimsUUID["STAND"]);
-            m_animationSeqs.Add(m_controllingClient.NextAnimationSequenceNumber);
-
-            SetDirectionVectors();
-            */
-        }
-
         internal void PushForce(Vector3 impulse)
         {
             if (PhysicsActor != null)
@@ -4141,6 +4131,7 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
                 obj.ignoreControls = (ScriptControlled)controls;
                 obj.eventControls = (ScriptControlled)controls;
             }
+
             if (pass_on == 1 && accept == 1)
             {
                 IgnoredControls = ScriptControlled.CONTROL_ZERO;
@@ -4161,6 +4152,7 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
                     scriptedcontrols[Script_item_UUID] = obj;
                 }
             }
+
             ControllingClient.SendTakeControls(controls, pass_on == 1 ? true : false, true);
         }
 
@@ -4350,29 +4342,6 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
         													(double)(1 - (2.0f * rot.Y * rot.Y) - (2.0f * rot.Z * rot.Z)));
 	        return(new Vector3(x,y,z));
 	    }
-
-        public void SaveChangedAttachments()
-        {
-            // Need to copy this list because DetachToInventoryPrep mods it
-            List<SceneObjectGroup> attachments = new List<SceneObjectGroup>(GetAttachments().ToArray());
-
-            IAttachmentsModule attachmentsModule = m_scene.AttachmentsModule;
-            if (attachmentsModule != null)
-            {
-                foreach (SceneObjectGroup grp in attachments)
-                {
-                    if (grp.HasGroupChanged) // Resizer scripts?
-                    {
-                        grp.IsAttachment = false;
-                        grp.AbsolutePosition = grp.RootPart.AttachedPos;
-//                        grp.DetachToInventoryPrep();
-                        attachmentsModule.UpdateKnownItem(ControllingClient,
-                                grp, grp.GetFromItemID(), grp.OwnerID);
-                        grp.IsAttachment = true;
-                    }
-                }
-            }
-        }
 
         private void CheckLandingPoint(ref Vector3 pos)
         {

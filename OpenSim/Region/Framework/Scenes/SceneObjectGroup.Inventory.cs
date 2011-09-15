@@ -388,5 +388,18 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
                 parts[i].Inventory.ResumeScripts();
         }
+
+        /// <summary>
+        /// Returns true if any part in the scene object contains scripts, false otherwise.
+        /// </summary>
+        /// <returns></returns>
+        public bool ContainsScripts()
+        {
+            foreach (SceneObjectPart part in Parts)
+                if (part.Inventory.ContainsScripts())
+                    return true;
+
+            return false;
+        }
     }
 }

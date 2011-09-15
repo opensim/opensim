@@ -284,8 +284,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         part.LastOwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
                     // And zap any troublesome sit target information
-                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
-                    part.SitTargetPosition    = new Vector3(0, 0, 0);
+//                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
+//                    part.SitTargetPosition    = new Vector3(0, 0, 0);
 
                     // Fix ownership/creator of inventory items
                     // Not doing so results in inventory items

@@ -726,8 +726,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             SceneObjectGroup group = null;
 
             string xmlData = Utils.BytesToString(rezAsset.Data);
-            List<SceneObjectGroup> objlist =
-                    new List<SceneObjectGroup>();
+            List<SceneObjectGroup> objlist = new List<SceneObjectGroup>();
             List<Vector3> veclist = new List<Vector3>();
             byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
             Vector3 pos;
@@ -799,6 +798,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     m_log.Debug("[InventoryAccessModule]: Object has UUID.Zero! Position 3");
                 }
 
+                foreach (SceneObjectPart part in group.Parts)
+                {
+                    // Make the rezzer the owner, as this is not necessarily set correctly in the serialized asset.
+                    part.LastOwnerID = part.OwnerID;
+                    part.OwnerID = remoteClient.AgentId;
+                }
+
                 if (!attachment)
                 {
                     // If it's rezzed in world, select it. Much easier to
@@ -839,7 +845,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 if (!attachment)
                 {
-                    if (group.RootPart.Shape.PCode == (byte)PCode.Prim)
+                    if (rootPart.Shape.PCode == (byte)PCode.Prim)
                         group.ClearPartAttachmentData();
 
                     // Fire on_rez
@@ -1017,11 +1023,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     if ((part.OwnerID != item.Owner) ||
                         (item.CurrentPermissions & 16) != 0)
                     {
-                        part.LastOwnerID = part.OwnerID;
-                        part.OwnerID = item.Owner;
                         part.Inventory.ChangeInventoryOwner(item.Owner);
                         part.GroupMask = 0; // DO NOT propagate here
                     }
+
                     part.EveryoneMask = item.EveryOnePermissions;
                     part.NextOwnerMask = item.NextPermissions;
                 }

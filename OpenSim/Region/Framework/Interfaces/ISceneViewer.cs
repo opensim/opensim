@@ -30,11 +30,20 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
+    /// <summary>
+    /// Sends scheduled updates to it's associated ScenePresence.
+    /// </summary>
     public interface ISceneViewer
     {
-        void Reset();
+//        void Reset();
         void Close();
+
+        /// <summary>
+        /// Add the part to the queue of parts for which we need to send an update to the client
+        /// </summary>
+        /// <param name="part"></param>
         void QueuePartForUpdate(SceneObjectPart part);
+
         void SendPrimUpdates();
         int GetPendingObjectsCount();
     }
