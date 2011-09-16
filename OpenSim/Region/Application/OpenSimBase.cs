@@ -47,6 +47,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Server.Base;
+using OpenSim.Services.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.UserAccountService;
 
