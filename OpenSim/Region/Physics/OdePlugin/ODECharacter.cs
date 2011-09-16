@@ -464,10 +464,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_pidControllerActive = true;
 
                     Vector3 SetSize = value;
-                    m_tainted_CAPSULE_LENGTH = (SetSize.Z*1.15f) - CAPSULE_RADIUS*2.0f;
-                    //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
+                    m_tainted_CAPSULE_LENGTH = (SetSize.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
+//                    m_log.Info("[SIZE]: " + CAPSULE_LENGTH);
 
-                    Velocity = Vector3.Zero;
+                    // If we reset velocity here, then an avatar stalls when it crosses a border for the first time
+                    // (as the height of the new root agent is set).
+//                    Velocity = Vector3.Zero;
 
                     _parent_scene.AddPhysicsActorTaint(this);
                 }
@@ -785,6 +787,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_log.Warn("[PHYSICS]: Got a NaN velocity from Scene in a Character");
                 }
+
+//                m_log.DebugFormat("[PHYSICS]: Set target velocity of {0}", _target_velocity);
             }
         }
 
@@ -1325,7 +1329,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (Shell != IntPtr.Zero && Body != IntPtr.Zero && Amotor != IntPtr.Zero)
                 {
-
+//                    m_log.DebugFormat("[PHYSICS]: Changing capsule size");
+                    
                     m_pidControllerActive = true;
                     // no lock needed on _parent_scene.OdeLock because we are called from within the thread lock in OdePlugin's simulate()
                     d.JointDestroy(Amotor);
@@ -1336,7 +1341,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomDestroy(Shell);
                     AvatarGeomAndBodyCreation(_position.X, _position.Y,
                                       _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2), m_tensor);
-                    Velocity = Vector3.Zero;
+
+                    // As with Size, we reset velocity.  However, this isn't strictly necessary since it doesn't
+                    // appear to stall initial region crossings when done here.  Being done for consistency.
+//                    Velocity = Vector3.Zero;
 
                     _parent_scene.geom_name_map[Shell] = m_name;
                     _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
@@ -1361,7 +1369,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _position.Z = m_taintPosition.Z;
                 }
             }
-
         }
 
         internal void AddCollisionFrameTime(int p)

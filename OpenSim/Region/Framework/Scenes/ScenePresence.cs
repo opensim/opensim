@@ -469,6 +469,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (actor != null)
                 {
                     m_pos = actor.Position;
+
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: Set position {0} for {1} in {2} via getting AbsolutePosition!",
+//                        m_pos, Name, Scene.RegionInfo.RegionName);
                 }
                 else
                 {
@@ -544,7 +548,13 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 PhysicsActor actor = m_physicsActor;
                 if (actor != null)
+                {
                     m_velocity = actor.Velocity;
+
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: Set velocity {0} for {1} in {2} via getting Velocity!",
+//                        m_velocity, Name, Scene.RegionInfo.RegionName);
+                }
 
                 return m_velocity;
             }
