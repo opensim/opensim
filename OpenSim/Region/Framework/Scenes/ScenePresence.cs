@@ -467,7 +467,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 PhysicsActor actor = m_physicsActor;
                 if (actor != null)
+                {
                     m_pos = actor.Position;
+                }
                 else
                 {
                     // Obtain the correct position of a seated avatar.
@@ -517,13 +519,16 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_pos = value;
                 m_parentPosition = Vector3.Zero;
+
+//                m_log.DebugFormat(
+//                    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
+//                    Scene.RegionInfo.RegionName, Name, m_pos);
             }
         }
 
         public Vector3 OffsetPosition
         {
             get { return m_pos; }
-            set { m_pos = value; }
         }
 
         /// <summary>
@@ -556,6 +561,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_velocity = value;
+
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: In {0} set velocity of {1} to {2}",
+//                    Scene.RegionInfo.RegionName, Name, m_velocity);
             }
         }
 
@@ -1219,7 +1228,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
-//            m_log.DebugFormat("[SCENE PRESENCE]: Received agent update from {0}", remoteClient.Name);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: In {0} received agent update from {1}",
+//                Scene.RegionInfo.RegionName, remoteClient.Name);
 
             //if (m_isChildAgent)
             //{
@@ -3323,7 +3334,7 @@ namespace OpenSim.Region.Framework.Scenes
             //if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))
             // The Physics Scene will send updates every 500 ms grep: m_physicsActor.SubscribeEvents(
             // as of this comment the interval is set in AddToPhysicalScene
-            if (Animator!=null)
+            if (Animator != null)
                 Animator.UpdateMovementAnimations();
 
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
