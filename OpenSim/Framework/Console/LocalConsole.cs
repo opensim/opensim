@@ -417,7 +417,10 @@ namespace OpenSim.Framework.Console
                         SetCursorLeft(0);
                         y = SetCursorTop(y);
 
-                        System.Console.Write("{0}{1} ", prompt, cmdline);
+                        if (echo)
+                            System.Console.Write("{0}{1} ", prompt, cmdline);
+                        else
+                            System.Console.Write("{0}", prompt);
 
                         break;
                     case ConsoleKey.End:
