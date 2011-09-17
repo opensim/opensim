@@ -149,14 +149,11 @@
 
     ;; Choose one of the physics engines below
     ;; OpenDynamicsEngine is by some distance the most developed physics engine
-    ;; basicphysics effectively does not model physics at all, making all
-    ;; objects phantom
-    ;; The Bullet plugins do not work properly right now.  A better Bullet plugin is on the way.
+    ;; basicphysics effectively does not model physics at all, making all objects phantom
     ;; Default is OpenDynamicsEngine
     ; physics = OpenDynamicsEngine
     ; physics = basicphysics
     ; physics = POS
-    ; physics = modified_BulletX
 
     ;# {permissionmodules} {} {Permission modules to use (may specify multiple modules, separated by space} {} DefaultPermissionsModule
     ;; Permission modules to use, separated by space.
