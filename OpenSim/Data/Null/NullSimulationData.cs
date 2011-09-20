@@ -78,7 +78,9 @@ namespace OpenSim.Data.Null
 
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
-            return null;
+            RegionSettings rs = new RegionSettings();
+            rs.RegionUUID = regionUUID;
+            return rs;
         }
 
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
