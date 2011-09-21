@@ -1599,7 +1599,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
                 if (avatar != null)
                 {
-                    avatar.MoveToTarget(target, false);
+                    avatar.MoveToTarget(target, false, false);
                 }
             }
             else
