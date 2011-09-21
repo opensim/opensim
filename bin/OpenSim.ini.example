@@ -71,6 +71,11 @@
     ;; in a <Regions> tag.
     ; regionload_webserver_url = "http://example.com/regions.xml";
 
+    ;# {allow_regionless} {} {Allow simulator to start up with no regions configured.} {true false} false
+    ;; Allow the simulator to start up if there are no region configuration available
+    ;; from the selected region_info_source.
+    ; allow_regionless = false
+
     ;# {NonPhysicalPrimMax} {} {Maximum size of nonphysical prims?} {} 256
     ;; Maximum size for non-physical prims.  Affects resizing of existing prims.  This can be overriden in the region config file (as NonphysicalPrimMax!).
     ; NonPhysicalPrimMax = 256
