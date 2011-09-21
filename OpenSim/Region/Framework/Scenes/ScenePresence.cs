@@ -588,7 +588,7 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 m_bodyRot = value;
-                m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, m_bodyRot);
+//                m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, m_bodyRot);
             }
         }
 
