@@ -178,8 +178,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Quaternion m_bodyRot = Quaternion.Identity;
 
-        private Quaternion m_bodyRotPrevious = Quaternion.Identity;
-
         private const int LAND_VELOCITYMAG_MAX = 12;
 
         public bool IsRestrictedToRegion;
@@ -590,12 +588,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_bodyRot = value;
 //                m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, m_bodyRot);
             }
-        }
-
-        public Quaternion PreviousRotation
-        {
-            get { return m_bodyRotPrevious; }
-            set { m_bodyRotPrevious = value; }
         }
 
         /// <summary>
