@@ -154,14 +154,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             if (im.dialog == (byte)InstantMessageDialog.RequestTeleport)
             {
                 UUID sessionID = new UUID(im.imSessionID);
-                m_log.DebugFormat("[HG LURE MODULE]: RequestTeleport sessionID={0}, regionID={1}, message={2}", im.imSessionID, im.RegionID, im.message);
-                m_PendingLures.Add(sessionID, im, 7200); // 2 hours
+
+                if (!m_PendingLures.Contains(sessionID))
+                {
+                    m_log.DebugFormat("[HG LURE MODULE]: RequestTeleport sessionID={0}, regionID={1}, message={2}", im.imSessionID, im.RegionID, im.message);
+                    m_PendingLures.Add(sessionID, im, 7200); // 2 hours
+                }
 
                 // Forward. We do this, because the IM module explicitly rejects
                 // IMs of this type
                 if (m_TransferModule != null)
                     m_TransferModule.SendInstantMessage(im, delegate(bool success) { });
-
             }
         }
 
@@ -177,12 +180,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
             m_log.DebugFormat("[HG LURE MODULE]: TP invite with message {0}", message);
 
+            UUID sessionID = UUID.Random();
+
             GridInstantMessage m = new GridInstantMessage(scene, client.AgentId,
                     client.FirstName+" "+client.LastName, targetid,
                     (byte)InstantMessageDialog.RequestTeleport, false,
-                    message, UUID.Random(), false, presence.AbsolutePosition,
+                    message, sessionID, false, presence.AbsolutePosition,
                     new Byte[0]);
             m.RegionID = client.Scene.RegionInfo.RegionID.Guid;
+
+            m_log.DebugFormat("[HG LURE MODULE]: RequestTeleport sessionID={0}, regionID={1}, message={2}", m.imSessionID, m.RegionID, m.message);
+            m_PendingLures.Add(sessionID, m, 7200); // 2 hours
                     
             if (m_TransferModule != null)
             {
