@@ -1372,11 +1372,30 @@ namespace OpenSim.Framework
             return (ipaddr1 != null) ? "http://" + ipaddr1.ToString() + ":" + port1 : uri;
         }
 
+        /// <summary>
+        /// Convert a string to a byte format suitable for transport in an LLUDP packet.  The output is truncated to 256 bytes if necessary.
+        /// </summary>
+        /// <param name="str">
+        /// If null or empty, then an bytes[0] is returned.
+        /// Using "\0" will return a conversion of the null character to a byte.  This is not the same as bytes[0]
+        /// </param>
+        /// <param name="args">
+        /// Arguments to substitute into the string via the {} mechanism.
+        /// </param>
+        /// <returns></returns>
         public static byte[] StringToBytes256(string str, params object[] args)
         {
             return StringToBytes256(string.Format(str, args));
         }
-        
+
+        /// <summary>
+        /// Convert a string to a byte format suitable for transport in an LLUDP packet.  The output is truncated to 256 bytes if necessary.
+        /// </summary>
+        /// <param name="str">
+        /// If null or empty, then an bytes[0] is returned.
+        /// Using "\0" will return a conversion of the null character to a byte.  This is not the same as bytes[0]
+        /// </param>
+        /// <returns></returns>
         public static byte[] StringToBytes256(string str)
         {
             if (String.IsNullOrEmpty(str)) { return Utils.EmptyBytes; }
@@ -1395,11 +1414,30 @@ namespace OpenSim.Framework
             return data;
         }
 
+        /// <summary>
+        /// Convert a string to a byte format suitable for transport in an LLUDP packet.  The output is truncated to 1024 bytes if necessary.
+        /// </summary>
+        /// <param name="str">
+        /// If null or empty, then an bytes[0] is returned.
+        /// Using "\0" will return a conversion of the null character to a byte.  This is not the same as bytes[0]
+        /// </param>
+        /// <param name="args">
+        /// Arguments to substitute into the string via the {} mechanism.
+        /// </param>
+        /// <returns></returns>
         public static byte[] StringToBytes1024(string str, params object[] args)
         {
             return StringToBytes1024(string.Format(str, args));
         }
-        
+
+        /// <summary>
+        /// Convert a string to a byte format suitable for transport in an LLUDP packet.  The output is truncated to 1024 bytes if necessary.
+        /// </summary>
+        /// <param name="str">
+        /// If null or empty, then an bytes[0] is returned.
+        /// Using "\0" will return a conversion of the null character to a byte.  This is not the same as bytes[0]
+        /// </param>
+        /// <returns></returns>
         public static byte[] StringToBytes1024(string str)
         {
             if (String.IsNullOrEmpty(str)) { return Utils.EmptyBytes; }

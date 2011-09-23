@@ -41,11 +41,15 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.ClientStack;
+using OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Server.Base;
+using OpenSim.Services.Base;
+using OpenSim.Services.Interfaces;
+using OpenSim.Services.UserAccountService;
 
 namespace OpenSim
 {
@@ -362,6 +366,9 @@ namespace OpenSim
 
             scene.SetModuleInterfaces();
 
+            while (regionInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
+                SetUpEstateOwner(scene);
+
             // Prims have to be loaded after module configuration since some modules may be invoked during the load
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);
             
@@ -411,7 +418,67 @@ namespace OpenSim
 
             scene.StartTimer();
 
+            scene.StartScripts();
+
             return clientServer;
+        }
+
+        /// <summary>
+        /// Try to set up the estate owner for the given scene.
+        /// </summary>
+        /// <remarks>
+        /// The involves asking the user for information about the user on the console.  If the user does not already
+        /// exist then it is created.
+        /// </remarks>
+        /// <param name="scene"></param>
+        private void SetUpEstateOwner(Scene scene)
+        {
+            RegionInfo regionInfo = scene.RegionInfo;
+
+            MainConsole.Instance.OutputFormat("Estate {0} has no owner set.", regionInfo.EstateSettings.EstateName);
+            List<char> excluded = new List<char>(new char[1]{' '});
+            string first = MainConsole.Instance.CmdPrompt("Estate owner first name", "Test", excluded);
+            string last = MainConsole.Instance.CmdPrompt("Estate owner last name", "User", excluded);
+
+            UserAccount account = scene.UserAccountService.GetUserAccount(regionInfo.ScopeID, first, last);
+
+            if (account == null)
+            {
+
+                // XXX: The LocalUserAccountServicesConnector is currently registering its inner service rather than
+                // itself!
+//                    if (scene.UserAccountService is LocalUserAccountServicesConnector)
+//                    {
+//                        IUserAccountService innerUas
+//                            = ((LocalUserAccountServicesConnector)scene.UserAccountService).UserAccountService;
+//
+//                        m_log.DebugFormat("B {0}", innerUas.GetType());
+//
+//                        if (innerUas is UserAccountService)
+//                        {
+
+                if (scene.UserAccountService is UserAccountService)
+                {
+                    string password = MainConsole.Instance.PasswdPrompt("Password");
+                    string email = MainConsole.Instance.CmdPrompt("Email", "");
+
+                    account
+                        = ((UserAccountService)scene.UserAccountService).CreateUser(
+                            regionInfo.ScopeID, first, last, password, email);
+                }
+//                    }
+            }
+
+            if (account == null)
+            {
+                m_log.ErrorFormat(
+                    "[OPENSIM]: Unable to store account. If this simulator is connected to a grid, you must create the estate owner account first.");
+            }
+            else
+            {
+                regionInfo.EstateSettings.EstateOwner = account.PrincipalID;
+                regionInfo.EstateSettings.Save();
+            }
         }
 
         private void ShutdownRegion(Scene scene)

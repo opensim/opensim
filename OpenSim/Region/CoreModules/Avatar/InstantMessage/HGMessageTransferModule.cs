@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -145,14 +146,14 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         scene.Entities[toAgentID] is ScenePresence)
                 {
 //                    m_log.DebugFormat(
-//                        "[INSTANT MESSAGE]: Looking for root agent {0} in {1}", 
+//                        "[HG INSTANT MESSAGE]: Looking for root agent {0} in {1}", 
 //                        toAgentID.ToString(), scene.RegionInfo.RegionName);
                                         
                     ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
                     if (!user.IsChildAgent)
                     {
                         // Local message
-//                        m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", user.Name, toAgentID);
+//                        m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", user.Name, toAgentID);
                         user.ControllingClient.SendInstantMessage(im);
 
                         // Message sent
@@ -166,7 +167,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             foreach (Scene scene in m_Scenes)
             {
 //                m_log.DebugFormat(
-//                    "[INSTANT MESSAGE]: Looking for child of {0} in {1}", toAgentID, scene.RegionInfo.RegionName);
+//                    "[HG INSTANT MESSAGE]: Looking for child of {0} in {1}", toAgentID, scene.RegionInfo.RegionName);
 
                 if (scene.Entities.ContainsKey(toAgentID) &&
                         scene.Entities[toAgentID] is ScenePresence)
@@ -174,7 +175,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     // Local message
                     ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
 
-//                    m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", user.Name, toAgentID);
+//                    m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", user.Name, toAgentID);
                     user.ControllingClient.SendInstantMessage(im);
 
                     // Message sent
@@ -183,7 +184,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 }
             }
 
-//            m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
+//            m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
             // Is the user a local user?
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, toAgentID);
             string url = string.Empty;

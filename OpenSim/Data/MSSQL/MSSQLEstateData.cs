@@ -148,55 +148,10 @@ namespace OpenSim.Data.MSSQL
                 }
             }
 
-
             if (insertEstate && create)
             {
-                List<string> names = new List<string>(FieldList);
-
-                names.Remove("EstateID");
-
-                sql = string.Format("insert into estate_settings ({0}) values ( @{1})", String.Join(",", names.ToArray()), String.Join(", @", names.ToArray()));
-
-                //_Log.Debug("[DB ESTATE]: SQL: " + sql);
-                using (SqlConnection conn = new SqlConnection(m_connectionString))
-                using (SqlCommand insertCommand = new SqlCommand(sql, conn))
-                {
-                    insertCommand.CommandText = sql + " SET @ID = SCOPE_IDENTITY()";
-
-                    foreach (string name in names)
-                    {
-                        insertCommand.Parameters.Add(_Database.CreateParameter("@" + name, _FieldMap[name].GetValue(es)));
-                    }
-                    SqlParameter idParameter = new SqlParameter("@ID", SqlDbType.Int);
-                    idParameter.Direction = ParameterDirection.Output;
-                    insertCommand.Parameters.Add(idParameter);
-                    conn.Open();
-                    insertCommand.ExecuteNonQuery();
-
-                    es.EstateID = Convert.ToUInt32(idParameter.Value);
-                }
-
-                sql = "INSERT INTO [estate_map] ([RegionID] ,[EstateID]) VALUES (@RegionID, @EstateID)";
-                using (SqlConnection conn = new SqlConnection(m_connectionString))
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
-                {
-
-                    cmd.Parameters.Add(_Database.CreateParameter("@RegionID", regionID));
-                    cmd.Parameters.Add(_Database.CreateParameter("@EstateID", es.EstateID));
-                    // This will throw on dupe key
-                    try
-                    {
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.DebugFormat("[ESTATE DB]: Error inserting regionID and EstateID in estate_map: {0}", e);
-                    }
-                }
-
-                //TODO check if this is needed??
-                es.Save();
+                DoCreate(es);
+                LinkRegion(regionID, (int)es.EstateID);
             }
 
             LoadBanList(es);
@@ -208,6 +163,53 @@ namespace OpenSim.Data.MSSQL
             //Set event
             es.OnSave += StoreEstateSettings;
             return es;
+        }
+
+        public EstateSettings CreateNewEstate()
+        {
+            EstateSettings es = new EstateSettings();
+            es.OnSave += StoreEstateSettings;
+
+            DoCreate(es);
+
+            LoadBanList(es);
+
+            es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
+            es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
+            es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");
+
+            return es;
+        }
+
+        private void DoCreate(EstateSettings es)
+        {
+            List<string> names = new List<string>(FieldList);
+
+            names.Remove("EstateID");
+
+            string sql = string.Format("insert into estate_settings ({0}) values ( @{1})", String.Join(",", names.ToArray()), String.Join(", @", names.ToArray()));
+
+            //_Log.Debug("[DB ESTATE]: SQL: " + sql);
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand insertCommand = new SqlCommand(sql, conn))
+            {
+                insertCommand.CommandText = sql + " SET @ID = SCOPE_IDENTITY()";
+
+                foreach (string name in names)
+                {
+                    insertCommand.Parameters.Add(_Database.CreateParameter("@" + name, _FieldMap[name].GetValue(es)));
+                }
+                SqlParameter idParameter = new SqlParameter("@ID", SqlDbType.Int);
+                idParameter.Direction = ParameterDirection.Output;
+                insertCommand.Parameters.Add(idParameter);
+                conn.Open();
+                insertCommand.ExecuteNonQuery();
+
+                es.EstateID = Convert.ToUInt32(idParameter.Value);
+            }
+
+            //TODO check if this is needed??
+            es.Save();
         }
 
         /// <summary>
@@ -498,24 +500,43 @@ namespace OpenSim.Data.MSSQL
 
         public bool LinkRegion(UUID regionID, int estateID)
         {
-            string sql = "insert into estate_map values (@RegionID, @EstateID)";
+            string deleteSQL = "delete from estate_map where RegionID = @RegionID";
+            string insertSQL = "insert into estate_map values (@RegionID, @EstateID)";
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             {
                 conn.Open();
+                SqlTransaction transaction = conn.BeginTransaction();
+
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    using (SqlCommand cmd = new SqlCommand(deleteSQL, conn))
                     {
-                        cmd.Parameters.AddWithValue("@RegionID", regionID);
+                        cmd.Transaction = transaction;
+                        cmd.Parameters.AddWithValue("@RegionID", regionID.Guid);
+
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    using (SqlCommand cmd = new SqlCommand(insertSQL, conn))
+                    {
+                        cmd.Transaction = transaction;
+                        cmd.Parameters.AddWithValue("@RegionID", regionID.Guid);
                         cmd.Parameters.AddWithValue("@EstateID", estateID);
 
                         int ret = cmd.ExecuteNonQuery();
+
+                        if (ret != 0)
+                            transaction.Commit();
+                        else
+                            transaction.Rollback();
+
                         return (ret != 0);
                     }
                 }
                 catch (Exception ex)
                 {
                     m_log.Error("[REGION DB]: LinkRegion failed: " + ex.Message);
+                    transaction.Rollback();
                 }
             }
             return false;

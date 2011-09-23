@@ -430,6 +430,13 @@
     <Key Name="fileName" Value="default_avatar.jp2" />
   </Section>
 
+  <Section Name="Default Iris">
+    <Key Name="assetID" Value="6522e74d-1660-4e7f-b601-6f48c1659a77"/>
+    <Key Name="name" Value="Default Iris"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="default_iris.jp2" />
+  </Section>
+
   <Section Name="Cypress 1">
      <Key Name="assetID" Value="fb2ae204-3fd1-df33-594f-c9f882830e66"/>
      <Key Name="name" Value="Cypress 1"/>

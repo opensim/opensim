@@ -43,11 +43,12 @@ namespace OpenSim.Region.Framework.Scenes
     /// <summary>
     /// Gather uuids for a given entity.
     /// </summary>
-    ///
+    /// <remarks>
     /// This does a deep inspection of the entity to retrieve all the assets it uses (whether as textures, as scripts
     /// contained in inventory, as scripts contained in objects contained in another object's inventory, etc.  Assets
     /// are only retrieved when they are necessary to carry out the inspection (i.e. a serialized object needs to be
     /// retrieved to work out which assets it references).
+    /// </remarks>
     public class UuidGatherer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -76,11 +77,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Gather all the asset uuids associated with the asset referenced by a given uuid
         /// </summary>
-        /// 
+        /// <remarks>
         /// This includes both those directly associated with
         /// it (e.g. face textures) and recursively, those of items within it's inventory (e.g. objects contained
         /// within this object).
-        /// 
+        /// </remarks>
         /// <param name="assetUuid">The uuid of the asset for which to gather referenced assets</param>
         /// <param name="assetType">The type of the asset for the uuid given</param>
         /// <param name="assetUuids">The assets gathered</param>
@@ -123,11 +124,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Gather all the asset uuids associated with a given object.
         /// </summary>
-        /// 
+        /// <remarks>
         /// This includes both those directly associated with
         /// it (e.g. face textures) and recursively, those of items within it's inventory (e.g. objects contained
         /// within this object).
-        /// 
+        /// </remarks>
         /// <param name="sceneObject">The scene object for which to gather assets</param>
         /// <param name="assetUuids">The assets gathered</param>
         public void GatherAssetUuids(SceneObjectGroup sceneObject, IDictionary<UUID, AssetType> assetUuids)

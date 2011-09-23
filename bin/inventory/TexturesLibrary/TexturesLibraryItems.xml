@@ -561,4 +561,14 @@
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
   </Section>
+
+  <Section Name="Default Iris Texture">
+    <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000013"/>
+    <Key Name="assetID" Value="6522e74d-1660-4e7f-b601-6f48c1659a77"/>
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
+    <Key Name="description" Value=""/>
+    <Key Name="name" Value="Default Iris Texture" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+  </Section>
 </Nini>

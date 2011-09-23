@@ -117,6 +117,7 @@ what it is today.
 * nornalbion
 * Omar Vera Ustariz (IBM)
 * openlifegrid.com
+* Oren Hurvitz (Kitely)
 * otakup0pe
 * ralphos
 * RemedyTomm

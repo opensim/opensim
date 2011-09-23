@@ -784,6 +784,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool CreateInventoryFile()
         {
+//            m_log.DebugFormat(
+//                "[PRIM INVENTORY]: Creating inventory file for {0} {1} {2}, serial {3}",
+//                m_part.Name, m_part.UUID, m_part.LocalId, m_inventorySerial);
+
             if (m_inventoryFileName == String.Empty ||
                 m_inventoryFileNameSerial < m_inventorySerial)
             {
@@ -797,6 +801,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (TaskInventoryItem item in m_items.Values)
                     {
+//                        m_log.DebugFormat(
+//                            "[PRIM INVENTORY]: Adding item {0} {1} for serial {2} on prim {3} {4} {5}",
+//                            item.Name, item.ItemID, m_inventorySerial, m_part.Name, m_part.UUID, m_part.LocalId);
+
                         UUID ownerID = item.OwnerID;
                         uint everyoneMask = 0;
                         uint baseMask = item.BasePermissions;
@@ -856,28 +864,43 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="xferManager"></param>
         public void RequestInventoryFile(IClientAPI client, IXfer xferManager)
         {
-            CreateInventoryFile();
-
-            if (m_inventorySerial == 0) // No inventory
+            lock (m_items)
             {
-                client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
-                return;
+                // Don't send a inventory xfer name if there are no items.  Doing so causes viewer 3 to crash when rezzing
+                // a new script if any previous deletion has left the prim inventory empty.
+                if (m_items.Count == 0) // No inventory
+                {
+//                    m_log.DebugFormat(
+//                        "[PRIM INVENTORY]: Not sending inventory data for part {0} {1} {2} for {3} since no items",
+//                        m_part.Name, m_part.LocalId, m_part.UUID, client.Name);
+
+                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                    return;
+                }
+
+                CreateInventoryFile();
+    
+                // In principle, we should only do the rest if the inventory changed;
+                // by sending m_inventorySerial to the client, it ought to know
+                // that nothing changed and that it doesn't need to request the file. 
+                // Unfortunately, it doesn't look like the client optimizes this; 
+                // the client seems to always come back and request the Xfer, 
+                // no matter what value m_inventorySerial has.
+                // FIXME: Could probably be > 0 here rather than > 2
+                if (m_inventoryFileData.Length > 2)
+                {
+                    // Add the file for Xfer
+    //                m_log.DebugFormat(
+    //                    "[PRIM INVENTORY]: Adding inventory file {0} (length {1}) for transfer on {2} {3} {4}",
+    //                    m_inventoryFileName, m_inventoryFileData.Length, m_part.Name, m_part.UUID, m_part.LocalId);
+                    
+                    xferManager.AddNewFile(m_inventoryFileName, m_inventoryFileData);
+                }
+    
+                // Tell the client we're ready to Xfer the file
+                client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
+                        Util.StringToBytes256(m_inventoryFileName));
             }
-
-            // In principle, we should only do the rest if the inventory changed;
-            // by sending m_inventorySerial to the client, it ought to know
-            // that nothing changed and that it doesn't need to request the file. 
-            // Unfortunately, it doesn't look like the client optimizes this; 
-            // the client seems to always come back and request the Xfer, 
-            // no matter what value m_inventorySerial has.
-
-            if (m_inventoryFileData.Length > 2)
-                // Add the file for Xfer
-                xferManager.AddNewFile(m_inventoryFileName, m_inventoryFileData);
-
-            // Tell the client we're ready to Xfer the file
-            client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
-                    Util.StringToBytes256(m_inventoryFileName));
         }
 
         /// <summary>
@@ -1035,10 +1058,15 @@ namespace OpenSim.Region.Framework.Scenes
                     item.BasePermissions = perms;
                 }
             }
+            
             m_inventorySerial++;
             HasInventoryChanged = true;
         }
 
+        /// <summary>
+        /// Returns true if this part inventory contains any scripts.  False otherwise.
+        /// </summary>
+        /// <returns></returns>
         public bool ContainsScripts()
         {
             lock (m_items)

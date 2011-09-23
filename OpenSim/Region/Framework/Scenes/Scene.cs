@@ -656,7 +656,7 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.OnLandObjectRemoved +=
                 new EventManager.LandObjectRemoved(simDataService.RemoveLandObject);
 
-            m_sceneGraph = new SceneGraph(this, m_regInfo);
+            m_sceneGraph = new SceneGraph(this);
 
             // If the scene graph has an Unrecoverable error, restart this sim.
             // Currently the only thing that causes it to happen is two kinds of specific
@@ -870,6 +870,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (dm != null)
                 m_eventManager.OnPermissionError += dm.SendAlertToUser;
+
+            m_eventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
         }
 
         public override string GetSimulatorVersion()
@@ -1170,87 +1172,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_dialogModule = RequestModuleInterface<IDialogModule>();
             m_capsModule = RequestModuleInterface<ICapabilitiesModule>();
             m_teleportModule = RequestModuleInterface<IEntityTransferModule>();
-
-            // Shoving this in here for now, because we have the needed
-            // interfaces at this point
-            //
-            // TODO: Find a better place for this
-            //
-            while (m_regInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
-            {
-                MainConsole.Instance.OutputFormat("Estate {0} has no owner set.", m_regInfo.EstateSettings.EstateName);
-                List<char> excluded = new List<char>(new char[1]{' '});
-                string first = MainConsole.Instance.CmdPrompt("Estate owner first name", "Test", excluded);
-                string last = MainConsole.Instance.CmdPrompt("Estate owner last name", "User", excluded);
-
-                UserAccount account = UserAccountService.GetUserAccount(m_regInfo.ScopeID, first, last);
-
-                if (account == null)
-                {
-                    // Create a new account
-                    account = new UserAccount(m_regInfo.ScopeID, first, last, String.Empty);
-                    if (account.ServiceURLs == null || (account.ServiceURLs != null && account.ServiceURLs.Count == 0))
-                    {
-                        account.ServiceURLs = new Dictionary<string, object>();
-                        account.ServiceURLs["HomeURI"] = string.Empty;
-                        account.ServiceURLs["GatekeeperURI"] = string.Empty;
-                        account.ServiceURLs["InventoryServerURI"] = string.Empty;
-                        account.ServiceURLs["AssetServerURI"] = string.Empty;
-                    }
-
-                    if (UserAccountService.StoreUserAccount(account))
-                    {
-                        string password = MainConsole.Instance.PasswdPrompt("Password");
-                        string email = MainConsole.Instance.CmdPrompt("Email", "");
-
-                        account.Email = email;
-                        UserAccountService.StoreUserAccount(account);
-
-                        bool success = false;
-                        success = AuthenticationService.SetPassword(account.PrincipalID, password);
-                        if (!success)
-                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set password for account {0} {1}.",
-                               first, last);
-
-                        GridRegion home = null;
-                        if (GridService != null)
-                        {
-                            List<GridRegion> defaultRegions = GridService.GetDefaultRegions(UUID.Zero);
-                            if (defaultRegions != null && defaultRegions.Count >= 1)
-                                home = defaultRegions[0];
-
-                            if (GridUserService != null && home != null)
-                                GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
-                            else
-                                m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set home for account {0} {1}.",
-                                   first, last);
-
-                        }
-                        else
-                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to retrieve home region for account {0} {1}.",
-                               first, last);
-
-                        if (InventoryService != null)
-                            success = InventoryService.CreateUserInventory(account.PrincipalID);
-                        if (!success)
-                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to create inventory for account {0} {1}.",
-                               first, last);
-
-
-                        m_log.InfoFormat("[USER ACCOUNT SERVICE]: Account {0} {1} created successfully", first, last);
-
-                        m_regInfo.EstateSettings.EstateOwner = account.PrincipalID;
-                        m_regInfo.EstateSettings.Save();
-                    }
-                    else
-                        m_log.ErrorFormat("[SCENE]: Unable to store account. If this simulator is connected to a grid, you must create the estate owner account first.");
-                }
-                else
-                {
-                    m_regInfo.EstateSettings.EstateOwner = account.PrincipalID;
-                    m_regInfo.EstateSettings.Save();
-                }
-            }
         }
 
         #endregion
@@ -1579,7 +1500,9 @@ namespace OpenSim.Region.Framework.Scenes
                     msg.ParentEstateID = RegionInfo.EstateSettings.ParentEstateID;
                     msg.Position = Vector3.Zero;
                     msg.RegionID = RegionInfo.RegionID.Guid;
-                    msg.binaryBucket = new byte[0];
+
+                    // We must fill in a null-terminated 'empty' string here since bytes[0] will crash viewer 3.
+                    msg.binaryBucket = Util.StringToBytes256("\0");
                     if (ret.Value.count > 1)
                         msg.message = string.Format("Your {0} objects were returned from {1} in region {2} due to {3}", ret.Value.count, ret.Value.location.ToString(), RegionInfo.RegionName, ret.Value.reason);
                     else
@@ -2459,14 +2382,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>False</returns>
         public virtual bool IncomingCreateObject(UUID userID, UUID itemID)
         {
-            //m_log.DebugFormat(" >>> IncomingCreateObject(userID, itemID) <<< {0} {1}", userID, itemID);
-            
-            ScenePresence sp = GetScenePresence(userID);
-            if (sp != null && AttachmentsModule != null)
-            {
-                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);
-                AttachmentsModule.RezSingleAttachmentFromInventory(sp.ControllingClient, itemID, attPt);
-            }
+            m_log.DebugFormat(" >>> IncomingCreateObject(userID, itemID) <<< {0} {1}", userID, itemID);
+
+            // Commented out since this is as yet unused and is arguably not the appropriate place to do this, as
+            // attachments are being rezzed elsewhere in AddNewClient()
+//            ScenePresence sp = GetScenePresence(userID);
+//            if (sp != null && AttachmentsModule != null)
+//            {
+//                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);
+//                AttachmentsModule.RezSingleAttachmentFromInventory(sp.ControllingClient, itemID, attPt);
+//            }
 
             return false;
         }
@@ -5214,6 +5139,71 @@ namespace OpenSim.Region.Framework.Scenes
 
             reason = String.Empty;
             return true;
+        }
+
+        /// <summary>
+        /// This method deals with movement when an avatar is automatically moving (but this is distinct from the
+        /// autopilot that moves an avatar to a sit target!.
+        /// </summary>
+        /// <remarks>
+        /// This is not intended as a permament location for this method.
+        /// </remarks>
+        /// <param name="presence"></param>
+        private void HandleOnSignificantClientMovement(ScenePresence presence)
+        {
+            if (presence.MovingToTarget)
+            {
+                double distanceToTarget = Util.GetDistanceTo(presence.AbsolutePosition, presence.MoveToPositionTarget);
+//                            m_log.DebugFormat(
+//                                "[SCENE]: Abs pos of {0} is {1}, target {2}, distance {3}",
+//                                presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget, distanceToTarget);
+
+                // Check the error term of the current position in relation to the target position
+                if (distanceToTarget <= ScenePresence.SIGNIFICANT_MOVEMENT)
+                {
+                    // We are close enough to the target
+//                        m_log.DebugFormat("[SCENEE]: Stopping autopilot of  {0}", presence.Name);
+
+                    presence.Velocity = Vector3.Zero;
+                    presence.AbsolutePosition = presence.MoveToPositionTarget;
+                    presence.ResetMoveToTarget();
+
+                    if (presence.PhysicsActor.Flying)
+                    {
+                        // A horrible hack to stop the avatar dead in its tracks rather than having them overshoot
+                        // the target if flying.
+                        // We really need to be more subtle (slow the avatar as it approaches the target) or at
+                        // least be able to set collision status once, rather than 5 times to give it enough
+                        // weighting so that that PhysicsActor thinks it really is colliding.
+                        for (int i = 0; i < 5; i++)
+                            presence.PhysicsActor.IsColliding = true;
+
+                        if (presence.LandAtTarget)
+                            presence.PhysicsActor.Flying = false;
+
+//                            Vector3 targetPos = presence.MoveToPositionTarget;
+//                            float terrainHeight = (float)presence.Scene.Heightmap[(int)targetPos.X, (int)targetPos.Y];
+//                            if (targetPos.Z - terrainHeight < 0.2)
+//                            {
+//                                presence.PhysicsActor.Flying = false;
+//                            }
+                    }
+
+//                        m_log.DebugFormat(
+//                            "[SCENE]: AgentControlFlags {0}, MovementFlag {1} for {2}",
+//                            presence.AgentControlFlags, presence.MovementFlag, presence.Name);
+                }
+                else
+                {
+//                        m_log.DebugFormat(
+//                            "[SCENE]: Updating npc {0} at {1} for next movement to {2}",
+//                            presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget);
+
+                    Vector3 agent_control_v3 = new Vector3();
+                    presence.HandleMoveToTargetUpdate(ref agent_control_v3);
+                    presence.AddNewMovement(agent_control_v3);
+                }
+            }
         }
     }
 }

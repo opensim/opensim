@@ -53,78 +53,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             if (config != null && config.GetBoolean("Enabled", false))
             {
                 scene.RegisterModuleInterface<INPCModule>(this);
-                scene.EventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
-            }
-        }
-
-        public void HandleOnSignificantClientMovement(ScenePresence presence)
-        {
-            lock (m_avatars)
-            {
-                if (m_avatars.ContainsKey(presence.UUID) && presence.MovingToTarget)
-                {
-                    double distanceToTarget = Util.GetDistanceTo(presence.AbsolutePosition, presence.MoveToPositionTarget);
-//                            m_log.DebugFormat(
-//                                "[NPC MODULE]: Abs pos of {0} is {1}, target {2}, distance {3}",
-//                                presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget, distanceToTarget);
-
-                    // Check the error term of the current position in relation to the target position
-                    if (distanceToTarget <= ScenePresence.SIGNIFICANT_MOVEMENT)
-                    {
-                        // We are close enough to the target
-                        m_log.DebugFormat("[NPC MODULE]: Stopping movement of npc {0}", presence.Name);
-
-                        presence.Velocity = Vector3.Zero;
-                        presence.AbsolutePosition = presence.MoveToPositionTarget;
-                        presence.ResetMoveToTarget();
-
-                        if (presence.PhysicsActor.Flying)
-                        {
-                            // A horrible hack to stop the NPC dead in its tracks rather than having them overshoot
-                            // the target if flying.
-                            // We really need to be more subtle (slow the avatar as it approaches the target) or at
-                            // least be able to set collision status once, rather than 5 times to give it enough
-                            // weighting so that that PhysicsActor thinks it really is colliding.
-                            for (int i = 0; i < 5; i++)
-                                presence.PhysicsActor.IsColliding = true;
-
-//                            Vector3 targetPos = presence.MoveToPositionTarget;
-                            if (m_avatars[presence.UUID].LandAtTarget)
-                                presence.PhysicsActor.Flying = false;
-
-//                            float terrainHeight = (float)presence.Scene.Heightmap[(int)targetPos.X, (int)targetPos.Y];
-//                            if (targetPos.Z - terrainHeight < 0.2)
-//                            {
-//                                presence.PhysicsActor.Flying = false;
-//                            }
-                        }
-
-//                        m_log.DebugFormat(
-//                            "[NPC MODULE]: AgentControlFlags {0}, MovementFlag {1} for {2}",
-//                            presence.AgentControlFlags, presence.MovementFlag, presence.Name);
-                    }
-                    else
-                    {
-//                        m_log.DebugFormat(
-//                            "[NPC MODULE]: Updating npc {0} at {1} for next movement to {2}",
-//                            presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget);
-
-                        Vector3 agent_control_v3 = new Vector3();
-                        presence.HandleMoveToTargetUpdate(ref agent_control_v3);
-                        presence.AddNewMovement(agent_control_v3);
-                    }
-//
-////                    presence.DoMoveToPositionUpdate((0, presence.MoveToPositionTarget, null);
-
-//
-//
-
-                }
             }
         }
 
         public bool IsNPC(UUID agentId, Scene scene)
         {
+            // FIXME: This implementation could not just use the ScenePresence.PresenceType (and callers could inspect
+            // that directly).
             ScenePresence sp = scene.GetScenePresence(agentId);
             if (sp == null || sp.IsChildAgent)
                 return false;
@@ -218,8 +153,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                         "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
                         sp.Name, pos, scene.RegionInfo.RegionName, noFly, landAtTarget);
 
-                    m_avatars[agentID].LandAtTarget = landAtTarget;
-                    sp.MoveToTarget(pos, noFly);
+                    sp.MoveToTarget(pos, noFly, landAtTarget);
 
                     return true;
                 }

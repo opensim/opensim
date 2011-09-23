@@ -231,7 +231,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
-        public event Action<Vector3, bool> OnAutoPilotGo;
+        public event Action<Vector3, bool, bool> OnAutoPilotGo;
         public event TerrainUnacked OnUnackedTerrain;
         public event ActivateGesture OnActivateGesture;
         public event DeactivateGesture OnDeactivateGesture;
@@ -4119,8 +4119,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             while (updatesThisCall < m_maxUpdates)
             {
                 lock (m_entityProps.SyncRoot)
-                        if (!m_entityProps.TryDequeue(out iupdate, out timeinqueue))
-                            break;
+                    if (!m_entityProps.TryDequeue(out iupdate, out timeinqueue))
+                        break;
 
                 ObjectPropertyUpdate update = (ObjectPropertyUpdate)iupdate;
                 if (update.SendFamilyProps)
@@ -11640,9 +11640,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             locy = Convert.ToSingle(args[1]) - (float)regionY;
             locz = Convert.ToSingle(args[2]);
 
-            Action<Vector3, bool> handlerAutoPilotGo = OnAutoPilotGo;
+            Action<Vector3, bool, bool> handlerAutoPilotGo = OnAutoPilotGo;
             if (handlerAutoPilotGo != null)
-                handlerAutoPilotGo(new Vector3(locx, locy, locz), false);
+                handlerAutoPilotGo(new Vector3(locx, locy, locz), false, false);
         }
 
         /// <summary>

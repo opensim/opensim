@@ -225,6 +225,8 @@ namespace OpenSim.Framework
         /// </summary>
         public virtual void ResetAppearance()
         {
+//            m_log.WarnFormat("[AVATAR APPEARANCE]: Reset appearance");
+            
             m_serial = 0;
 
             SetDefaultTexture();
@@ -391,10 +393,14 @@ namespace OpenSim.Framework
         public List<AvatarAttachment> GetAttachments()
         {
             List<AvatarAttachment> alist = new List<AvatarAttachment>();
-            foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
+
+            lock (m_attachments)
             {
-                foreach (AvatarAttachment attach in kvp.Value)
-                    alist.Add(new AvatarAttachment(attach));
+                foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
+                {
+                    foreach (AvatarAttachment attach in kvp.Value)
+                        alist.Add(new AvatarAttachment(attach));
+                }
             }
 
             return alist;
@@ -406,10 +412,13 @@ namespace OpenSim.Framework
 //                "[AVATAR APPEARNCE]: Appending itemID={0}, assetID={1} at {2}",
 //                attach.ItemID, attach.AssetID, attach.AttachPoint);
 
-            if (!m_attachments.ContainsKey(attach.AttachPoint))
-                m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
-
-            m_attachments[attach.AttachPoint].Add(attach);
+            lock (m_attachments)
+            {
+                if (!m_attachments.ContainsKey(attach.AttachPoint))
+                    m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
+    
+                m_attachments[attach.AttachPoint].Add(attach);
+            }
         }
 
         internal void ReplaceAttachment(AvatarAttachment attach)
@@ -418,8 +427,11 @@ namespace OpenSim.Framework
 //                "[AVATAR APPEARANCE]: Replacing itemID={0}, assetID={1} at {2}",
 //                attach.ItemID, attach.AssetID, attach.AttachPoint);
 
-            m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
-            m_attachments[attach.AttachPoint].Add(attach);
+            lock (m_attachments)
+            {
+                m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
+                m_attachments[attach.AttachPoint].Add(attach);
+            }
         }
 
         /// <summary>
@@ -448,10 +460,13 @@ namespace OpenSim.Framework
 
             if (item == UUID.Zero)
             {
-                if (m_attachments.ContainsKey(attachpoint))
+                lock (m_attachments)
                 {
-                    m_attachments.Remove(attachpoint);
-                    return true;
+                    if (m_attachments.ContainsKey(attachpoint))
+                    {
+                        m_attachments.Remove(attachpoint);
+                        return true;
+                    }
                 }
                 
                 return false;
@@ -494,11 +509,14 @@ namespace OpenSim.Framework
         /// <returns>Returns null if this item is not attached.</returns>
         public AvatarAttachment GetAttachmentForItem(UUID itemID)
         {
-            foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
+            lock (m_attachments)
             {
-                int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID == itemID; });
-                if (index >= 0)
-                    return kvp.Value[index];
+                foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
+                {
+                    int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID == itemID; });
+                    if (index >= 0)
+                        return kvp.Value[index];
+                }
             }
 
             return null;
@@ -506,11 +524,14 @@ namespace OpenSim.Framework
 
         public int GetAttachpoint(UUID itemID)
         {
-            foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
+            lock (m_attachments)
             {
-                int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID == itemID; });
-                if (index >= 0)
-                    return kvp.Key;
+                foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
+                {
+                    int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID == itemID; });
+                    if (index >= 0)
+                        return kvp.Key;
+                }
             }
 
             return 0;
@@ -518,27 +539,32 @@ namespace OpenSim.Framework
 
         public bool DetachAttachment(UUID itemID)
         {
-            foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
+            lock (m_attachments)
             {
-                int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID == itemID; });
-                if (index >= 0)
+                foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
                 {
-                    // Remove it from the list of attachments at that attach point
-                    m_attachments[kvp.Key].RemoveAt(index);
-
-                    // And remove the list if there are no more attachments here
-                    if (m_attachments[kvp.Key].Count == 0)
-                        m_attachments.Remove(kvp.Key);
-
-                    return true;
+                    int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID == itemID; });
+                    if (index >= 0)
+                    {
+                        // Remove it from the list of attachments at that attach point
+                        m_attachments[kvp.Key].RemoveAt(index);
+    
+                        // And remove the list if there are no more attachments here
+                        if (m_attachments[kvp.Key].Count == 0)
+                            m_attachments.Remove(kvp.Key);
+    
+                        return true;
+                    }
                 }
             }
+
             return false;
         }
 
         public void ClearAttachments()
         {
-            m_attachments.Clear();
+            lock (m_attachments)
+                m_attachments.Clear();
         }
 
         #region Packing Functions
@@ -576,7 +602,8 @@ namespace OpenSim.Framework
             data["visualparams"] = visualparams;
 
             // Attachments
-            OSDArray attachs = new OSDArray(m_attachments.Count);
+            List<AvatarAttachment> attachments = GetAttachments();
+            OSDArray attachs = new OSDArray(attachments.Count);
             foreach (AvatarAttachment attach in GetAttachments())
                 attachs.Add(attach.Pack());
             data["attachments"] = attachs;

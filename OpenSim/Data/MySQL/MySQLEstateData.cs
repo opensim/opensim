@@ -149,6 +149,22 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        public EstateSettings CreateNewEstate()
+        {
+            EstateSettings es = new EstateSettings();
+            es.OnSave += StoreEstateSettings;
+
+            DoCreate(es);
+
+            LoadBanList(es);
+
+            es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
+            es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
+            es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");
+
+            return es;
+        }
+
         private EstateSettings DoLoad(MySqlCommand cmd, UUID regionID, bool create)
         {
             EstateSettings es = new EstateSettings();
@@ -188,54 +204,8 @@ namespace OpenSim.Data.MySQL
 
                 if (!found && create)
                 {
-                    // Migration case
-                    List<string> names = new List<string>(FieldList);
-
-                    names.Remove("EstateID");
-
-                    string sql = "insert into estate_settings (" + String.Join(",", names.ToArray()) + ") values ( ?" + String.Join(", ?", names.ToArray()) + ")";
-
-                    using (MySqlCommand cmd2 = dbcon.CreateCommand())
-                    {
-                        cmd2.CommandText = sql;
-                        cmd2.Parameters.Clear();
-
-                        foreach (string name in FieldList)
-                        {
-                            if (m_FieldMap[name].GetValue(es) is bool)
-                            {
-                                if ((bool)m_FieldMap[name].GetValue(es))
-                                    cmd2.Parameters.AddWithValue("?" + name, "1");
-                                else
-                                    cmd2.Parameters.AddWithValue("?" + name, "0");
-                            }
-                            else
-                            {
-                                cmd2.Parameters.AddWithValue("?" + name, m_FieldMap[name].GetValue(es).ToString());
-                            }
-                        }
-
-                        cmd2.ExecuteNonQuery();
-
-                        cmd2.CommandText = "select LAST_INSERT_ID() as id";
-                        cmd2.Parameters.Clear();
-
-                        using (IDataReader r = cmd2.ExecuteReader())
-                        {
-                            r.Read();
-                            es.EstateID = Convert.ToUInt32(r["id"]);
-                        }
-
-                        cmd2.CommandText = "insert into estate_map values (?RegionID, ?EstateID)";
-                        cmd2.Parameters.AddWithValue("?RegionID", regionID.ToString());
-                        cmd2.Parameters.AddWithValue("?EstateID", es.EstateID.ToString());
-
-                        // This will throw on dupe key
-                        try { cmd2.ExecuteNonQuery(); }
-                        catch (Exception) { }
-
-                        es.Save();
-                    }
+                    DoCreate(es);
+                    LinkRegion(regionID, (int)es.EstateID);
                 }
             }
 
@@ -245,6 +215,54 @@ namespace OpenSim.Data.MySQL
             es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
             es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");
             return es;
+        }
+
+        private void DoCreate(EstateSettings es)
+        {
+            // Migration case
+            List<string> names = new List<string>(FieldList);
+
+            names.Remove("EstateID");
+
+            string sql = "insert into estate_settings (" + String.Join(",", names.ToArray()) + ") values ( ?" + String.Join(", ?", names.ToArray()) + ")";
+
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+                using (MySqlCommand cmd2 = dbcon.CreateCommand())
+                {
+                    cmd2.CommandText = sql;
+                    cmd2.Parameters.Clear();
+
+                    foreach (string name in FieldList)
+                    {
+                        if (m_FieldMap[name].GetValue(es) is bool)
+                        {
+                            if ((bool)m_FieldMap[name].GetValue(es))
+                                cmd2.Parameters.AddWithValue("?" + name, "1");
+                            else
+                                cmd2.Parameters.AddWithValue("?" + name, "0");
+                        }
+                        else
+                        {
+                            cmd2.Parameters.AddWithValue("?" + name, m_FieldMap[name].GetValue(es).ToString());
+                        }
+                    }
+
+                    cmd2.ExecuteNonQuery();
+
+                    cmd2.CommandText = "select LAST_INSERT_ID() as id";
+                    cmd2.Parameters.Clear();
+
+                    using (IDataReader r = cmd2.ExecuteReader())
+                    {
+                        r.Read();
+                        es.EstateID = Convert.ToUInt32(r["id"]);
+                    }
+
+                    es.Save();
+                }
+            }
         }
 
         public void StoreEstateSettings(EstateSettings es)
@@ -477,7 +495,6 @@ namespace OpenSim.Data.MySQL
                     }
                 }
 
-
                 dbcon.Close();
             }
 
@@ -507,7 +524,6 @@ namespace OpenSim.Data.MySQL
                     }
                 }
 
-
                 dbcon.Close();
             }
 
@@ -519,16 +535,34 @@ namespace OpenSim.Data.MySQL
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
+                MySqlTransaction transaction = dbcon.BeginTransaction();
 
                 try
                 {
+                    // Delete any existing association of this region with an estate.
+                     using (MySqlCommand cmd = dbcon.CreateCommand())
+                     {
+                        cmd.Transaction = transaction;
+                        cmd.CommandText = "delete from estate_map where RegionID = ?RegionID";
+                        cmd.Parameters.AddWithValue("?RegionID", regionID);
+
+                        cmd.ExecuteNonQuery();
+                    }
+
                     using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
+                        cmd.Transaction = transaction;
                         cmd.CommandText = "insert into estate_map values (?RegionID, ?EstateID)";
                         cmd.Parameters.AddWithValue("?RegionID", regionID);
                         cmd.Parameters.AddWithValue("?EstateID", estateID);
 
                         int ret = cmd.ExecuteNonQuery();
+
+                        if (ret != 0)
+                            transaction.Commit();
+                        else
+                            transaction.Rollback();
+
                         dbcon.Close();
 
                         return (ret != 0);
@@ -537,6 +571,7 @@ namespace OpenSim.Data.MySQL
                 catch (MySqlException ex)
                 {
                     m_log.Error("[REGION DB]: LinkRegion failed: " + ex.Message);
+                    transaction.Rollback();
                 }
 
                 dbcon.Close();

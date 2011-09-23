@@ -441,7 +441,6 @@ namespace OpenSim.Framework
                 args["controllers"] = controls;
             }
 
-
             if ((CallbackURI != null) && (!CallbackURI.Equals("")))
                 args["callback_uri"] = OSD.FromString(CallbackURI);
 
