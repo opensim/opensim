@@ -334,6 +334,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateInventoryItemAsset(IClientAPI remoteClient, UUID transactionID,
                                              UUID itemID, InventoryItemBase itemUpd)
         {
+//            m_log.DebugFormat(
+//                "[USER INVENTORY]: Updating asset for item {0} {1}, transaction ID {2} for {3}",
+//                itemID, itemUpd.Name, transactionID, remoteClient.Name);
+
             // This one will let people set next perms on items in agent
             // inventory. Rut-Roh. Whatever. Make this secure. Yeah.
             //
@@ -385,8 +389,7 @@ namespace OpenSim.Region.Framework.Scenes
                     IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
                     if (agentTransactions != null)
                     {
-                        agentTransactions.HandleItemUpdateFromTransaction(
-                                     remoteClient, transactionID, item);
+                        agentTransactions.HandleItemUpdateFromTransaction(remoteClient, transactionID, item);
                     }
                 }
             }

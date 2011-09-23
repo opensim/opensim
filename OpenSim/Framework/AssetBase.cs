@@ -167,6 +167,7 @@ namespace OpenSim.Framework
             get { return m_metadata.FullID; }
             set { m_metadata.FullID = value; }
         }
+
         /// <summary>
         /// Asset MetaData ID (transferring from UUID to string ID)
         /// </summary>

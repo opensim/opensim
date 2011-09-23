@@ -211,6 +211,13 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 // Process the visual params, this may change height as well
                 if (visualParams != null)
                 {
+//                    string[] visualParamsStrings = new string[visualParams.Length];
+//                    for (int i = 0; i < visualParams.Length; i++)
+//                        visualParamsStrings[i] = visualParams[i].ToString();
+//                    m_log.DebugFormat(
+//                        "[AVFACTORY]: Setting visual params for {0} to {1}",
+//                        client.Name, string.Join(", ", visualParamsStrings));
+
                     float oldHeight = sp.Appearance.AvatarHeight;
                     changed = sp.Appearance.SetVisualParams(visualParams);
 
@@ -418,6 +425,13 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             // m_log.WarnFormat("[AVFACTORY] avatar {0} save appearance",agentid);
 
+            // This could take awhile since it needs to pull inventory
+            // We need to do it at the point of save so that there is a sufficient delay for any upload of new body part/shape
+            // assets and item asset id changes to complete.
+            // I don't think we need to worry about doing this within m_setAppearanceLock since the queueing avoids
+            // multiple save requests.
+            SetAppearanceAssets(sp.UUID, sp.Appearance);
+
             m_scene.AvatarService.SetAppearance(agentid, sp.Appearance);
         }
 
@@ -504,9 +518,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             avatAppearance.GetAssetsFrom(sp.Appearance);
 
-            // This could take awhile since it needs to pull inventory
-            SetAppearanceAssets(sp.UUID, ref avatAppearance);
-
             lock (m_setAppearanceLock)
             {
                 // Update only those fields that we have changed. This is important because the viewer
@@ -540,7 +551,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             return true;
         }
 
-        private void SetAppearanceAssets(UUID userID, ref AvatarAppearance appearance)
+        private void SetAppearanceAssets(UUID userID, AvatarAppearance appearance)
         {
             IInventoryService invService = m_scene.InventoryService;
 

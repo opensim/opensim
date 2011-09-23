@@ -41,14 +41,13 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
     /// </summary>
     public class AgentAssetTransactions
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Fields
         private bool m_dumpAssetsToFile;
         private Scene m_Scene;
-        public UUID UserID;
-        public Dictionary<UUID, AssetXferUploader> XferUploaders =
-                new Dictionary<UUID, AssetXferUploader>();
+        private UUID UserID;
+        private Dictionary<UUID, AssetXferUploader> XferUploaders = new Dictionary<UUID, AssetXferUploader>();
 
         // Methods
         public AgentAssetTransactions(UUID agentID, Scene scene,
@@ -59,35 +58,93 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             m_dumpAssetsToFile = dumpAssetsToFile;
         }
 
-        public AssetXferUploader RequestXferUploader(UUID transactionID)
+        /// <summary>
+        /// Return a xfer uploader if one does not already exist.
+        /// </summary>
+        /// <param name="transactionID"></param>
+        /// <param name="assetID">
+        /// We must transfer the new asset ID into the uploader on creation, otherwise
+        /// we can see race conditions with other threads which can retrieve an item before it is updated with the new
+        /// asset id.
+        /// </param>
+        /// <returns>
+        /// The xfer uploader requested.  Null if one is already in existence.
+        /// FIXME: This is a bizarre thing to do, and is probably meant to signal an error condition if multiple
+        /// transfers are made.  Needs to be corrected.
+        /// </returns>
+        public AssetXferUploader RequestXferUploader(UUID transactionID, UUID assetID)
         {
-            if (!XferUploaders.ContainsKey(transactionID))
+            lock (XferUploaders)
             {
-                AssetXferUploader uploader = new AssetXferUploader(m_Scene,
-                        m_dumpAssetsToFile);
-
-                lock (XferUploaders)
+                if (!XferUploaders.ContainsKey(transactionID))
                 {
-                    XferUploaders.Add(transactionID, uploader);
-                }
+                    AssetXferUploader uploader = new AssetXferUploader(this, m_Scene, assetID, m_dumpAssetsToFile);
 
-                return uploader;
+//                    m_log.DebugFormat(
+//                        "[AGENT ASSETS TRANSACTIONS]: Adding asset xfer uploader {0} since it didn't previously exist", transactionID);
+
+                    XferUploaders.Add(transactionID, uploader);
+
+                    return uploader;
+                }
             }
+
+            m_log.WarnFormat("[AGENT ASSETS TRANSACTIONS]: Ignoring request for asset xfer uploader {0} since it already exists", transactionID);
+
             return null;
         }
 
         public void HandleXfer(ulong xferID, uint packetID, byte[] data)
         {
+            AssetXferUploader foundUploader = null;
+
             lock (XferUploaders)
             {
                 foreach (AssetXferUploader uploader in XferUploaders.Values)
                 {
+//                    m_log.DebugFormat(
+//                        "[AGENT ASSETS TRANSACTIONS]: In HandleXfer, inspect xfer upload with xfer id {0}",
+//                        uploader.XferID);
+
                     if (uploader.XferID == xferID)
                     {
-                        uploader.HandleXferPacket(xferID, packetID, data);
+                        foundUploader = uploader;
                         break;
                     }
                 }
+            }
+
+            if (foundUploader != null)
+            {
+//                m_log.DebugFormat(
+//                    "[AGENT ASSETS TRANSACTIONS]: Found xfer uploader for xfer id {0}, packet id {1}, data length {2}",
+//                    xferID, packetID, data.Length);
+
+                foundUploader.HandleXferPacket(xferID, packetID, data);
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT ASSET TRANSACTIONS]: Could not find uploader for xfer id {0}, packet id {1}, data length {2}",
+                    xferID, packetID, data.Length);
+            }
+        }
+
+        public bool RemoveXferUploader(UUID transactionID)
+        {
+            lock (XferUploaders)
+            {
+                bool removed = XferUploaders.Remove(transactionID);
+
+                if (!removed)
+                    m_log.WarnFormat(
+                        "[AGENT ASSET TRANSACTIONS]: Received request to remove xfer uploader with transaction ID {0} but none found",
+                        transactionID);
+//                else
+//                    m_log.DebugFormat(
+//                        "[AGENT ASSET TRANSACTIONS]: Removed xfer uploader with transaction ID {0}", transactionID);
+
+                return removed;
             }
         }
 
@@ -96,16 +153,24 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 string description, string name, sbyte invType,
                sbyte type, byte wearableType, uint nextOwnerMask)
         {
-            if (XferUploaders.ContainsKey(transactionID))
+            AssetXferUploader uploader = null;
+
+            lock (XferUploaders)
             {
-                XferUploaders[transactionID].RequestCreateInventoryItem(
-                        remoteClient, transactionID, folderID,
-                        callbackID, description, name, invType, type,
-                        wearableType, nextOwnerMask);
+                if (XferUploaders.ContainsKey(transactionID))
+                    uploader = XferUploaders[transactionID];
             }
+
+            if (uploader != null)
+                uploader.RequestCreateInventoryItem(
+                    remoteClient, transactionID, folderID,
+                    callbackID, description, name, invType, type,
+                    wearableType, nextOwnerMask);
+            else
+                m_log.ErrorFormat(
+                    "[AGENT ASSET TRANSACTIONS]: Could not find uploader with transaction ID {0} when handling request to create inventory item {1} from {2}",
+                    transactionID, name, remoteClient.Name);
         }
-
-
 
         /// <summary>
         /// Get an uploaded asset. If the data is successfully retrieved,
@@ -113,19 +178,18 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// </summary>
         /// <param name="transactionID"></param>
         /// <returns>The asset if the upload has completed, null if it has not.</returns>
-        public AssetBase GetTransactionAsset(UUID transactionID)
+        private AssetBase GetTransactionAsset(UUID transactionID)
         {
-            if (XferUploaders.ContainsKey(transactionID))
+            lock (XferUploaders)
             {
-                AssetXferUploader uploader = XferUploaders[transactionID];
-                AssetBase asset = uploader.GetAssetData();
-
-                lock (XferUploaders)
+                if (XferUploaders.ContainsKey(transactionID))
                 {
-                    XferUploaders.Remove(transactionID);
-                }
+                    AssetXferUploader uploader = XferUploaders[transactionID];
+                    AssetBase asset = uploader.GetAssetData();
+                    RemoveXferUploader(transactionID);
 
-                return asset;
+                    return asset;
+                }
             }
 
             return null;
@@ -135,7 +199,15 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 SceneObjectPart part, UUID transactionID,
                 TaskInventoryItem item)
         {
-            if (XferUploaders.ContainsKey(transactionID))
+            AssetXferUploader uploader = null;
+
+            lock (XferUploaders)
+            {
+                if (XferUploaders.ContainsKey(transactionID))
+                    uploader = XferUploaders[transactionID];
+            }
+
+            if (uploader != null)
             {
                 AssetBase asset = GetTransactionAsset(transactionID);
 
@@ -161,28 +233,34 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                     m_Scene.AssetService.Store(asset);
                 }
             }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT ASSET TRANSACTIONS]: Could not find uploader with transaction ID {0} when handling request to update task inventory item {1} in {2}",
+                    transactionID, item.Name, part.Name);
+            }
         }
 
         public void RequestUpdateInventoryItem(IClientAPI remoteClient,
                 UUID transactionID, InventoryItemBase item)
         {
-            if (XferUploaders.ContainsKey(transactionID))
+            AssetXferUploader uploader = null;
+
+            lock (XferUploaders)
             {
-                AssetBase asset = GetTransactionAsset(transactionID);
+                if (XferUploaders.ContainsKey(transactionID))
+                    uploader = XferUploaders[transactionID];
+            }
 
-                if (asset != null)
-                {
-                    asset.FullID = UUID.Random();
-                    asset.Name = item.Name;
-                    asset.Description = item.Description;
-                    asset.Type = (sbyte)item.AssetType;
-                    item.AssetID = asset.FullID;
-
-                    m_Scene.AssetService.Store(asset);
-
-                    IInventoryService invService = m_Scene.InventoryService;
-                    invService.UpdateItem(item);
-                }
+            if (uploader != null)
+            {
+                uploader.RequestUpdateInventoryItem(remoteClient, transactionID, item);
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT ASSET TRANSACTIONS]: Could not find uploader with transaction ID {0} when handling request to update inventory item {1} for {2}",
+                    transactionID, item.Name, remoteClient.Name);
             }
         }
     }
