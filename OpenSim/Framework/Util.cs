@@ -1550,16 +1550,16 @@ namespace OpenSim.Framework
             {
                 Culture.SetCurrentCulture();
 
-                try
-                {
+//                try
+//                {
                     callback(o);
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat(
-                        "[UTIL]: Continuing after async_call_method thread terminated with exception {0}{1}",
-                        e.Message, e.StackTrace);
-                }
+//                }
+//                catch (Exception e)
+//                {
+//                    m_log.ErrorFormat(
+//                        "[UTIL]: Continuing after async_call_method thread terminated with exception {0}{1}",
+//                        e.Message, e.StackTrace);
+//                }
             };
 
             switch (FireAndForgetMethod)
