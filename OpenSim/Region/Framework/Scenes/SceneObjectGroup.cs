@@ -1174,7 +1174,11 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         part.UpdateFlag = 0;
                         if (part == m_rootPart)
-                            avatar.ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
+                        {
+                            if (!IsAttachment || (AttachedAvatar == avatar.ControllingClient.AgentId) || 
+                                (AttachmentPoint < 31) || (AttachmentPoint > 38))
+                                avatar.ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
+                        }
                     }
                 });
             }
