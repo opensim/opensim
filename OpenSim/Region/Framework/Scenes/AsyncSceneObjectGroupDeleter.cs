@@ -112,6 +112,11 @@ namespace OpenSim.Region.Framework.Scenes
         private void InventoryRunDeleteTimer(object sender, ElapsedEventArgs e)
         {
             m_log.Debug("[ASYNC DELETER]: Starting send to inventory loop");
+
+            // We must set appearance parameters in the en_US culture in order to avoid issues where values are saved
+            // in a culture where decimal points are commas and then reloaded in a culture which just treats them as
+            // number seperators.
+            Culture.SetCurrentCulture();            
             
             while (InventoryDeQueueAndDelete())
             {
