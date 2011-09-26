@@ -129,6 +129,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llAvatarOnSitTarget();
         }
 
+        public LSL_Key llAvatarOnLinkSitTarget(int linknum)
+        {
+            return m_LSL_Functions.llAvatarOnLinkSitTarget(linknum);
+        }
+
         public LSL_Rotation llAxes2Rot(LSL_Vector fwd, LSL_Vector left, LSL_Vector up)
         {
             return m_LSL_Functions.llAxes2Rot(fwd, left, up);

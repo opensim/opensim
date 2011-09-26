@@ -54,6 +54,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_Float llAtan2(double x, double y);
               void llAttachToAvatar(int attachment);
            LSL_Key llAvatarOnSitTarget();
+           LSL_Key llAvatarOnLinkSitTarget(int linknum);
       LSL_Rotation llAxes2Rot(LSL_Vector fwd, LSL_Vector left, LSL_Vector up);
       LSL_Rotation llAxisAngle2Rot(LSL_Vector axis, double angle);
        LSL_Integer llBase64ToInteger(string str);
