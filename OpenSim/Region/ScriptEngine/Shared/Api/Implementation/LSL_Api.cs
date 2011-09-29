@@ -3704,6 +3704,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetLinkKey(int linknum)
         {
             m_host.AddScriptLPS(1);
+            List<UUID> keytable = new List<UUID>();
+            // parse for sitting avatare-uuids
+            World.ForEachScenePresence(delegate(ScenePresence presence)
+            {
+                if (!presence.IsChildAgent && presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
+                    keytable.Add(presence.UUID);
+            });
+
+            int totalprims = m_host.ParentGroup.PrimCount + keytable.Count;
+            if (linknum > m_host.ParentGroup.PrimCount && linknum <= totalprims)
+            {
+                return keytable[totalprims - linknum].ToString();
+            }
+
+            if (linknum == 1 && m_host.ParentGroup.PrimCount == 1 && keytable.Count == 1)
+            {
+                return m_host.UUID.ToString();
+            }
+
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
             if (part != null)
             {
@@ -3747,6 +3766,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetLinkName(int linknum)
         {
             m_host.AddScriptLPS(1);
+            // parse for sitting avatare-names
+            List<String> nametable = new List<String>();
+            World.ForEachScenePresence(delegate(ScenePresence presence)
+            {
+                if (!presence.IsChildAgent && presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
+                    nametable.Add(presence.ControllingClient.Name);
+            });
+
+            int totalprims = m_host.ParentGroup.PrimCount + nametable.Count;
+            if (totalprims > m_host.ParentGroup.PrimCount)
+            {
+                // sitting Avatar-Name with negativ linknum / SinglePrim
+                if (linknum < 0 && m_host.ParentGroup.PrimCount == 1 && nametable.Count == 1)
+                    return nametable[0];
+                // Prim-Name / SinglePrim Sitting Avatar
+                if (linknum == 1 && m_host.ParentGroup.PrimCount == 1 && nametable.Count == 1)
+                    return m_host.Name;
+                // LinkNumber > of Real PrimSet = AvatarName
+                if (linknum > m_host.ParentGroup.PrimCount && linknum <= totalprims)
+                    return nametable[totalprims - linknum];
+            }
 
             // simplest case, this prims link number
             if (m_host.LinkNum == linknum)
@@ -3760,6 +3800,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                     return UUID.Zero.ToString();
             }
+
             // Link set
             SceneObjectPart part = null;
             if (m_host.LinkNum == 1) // this is the Root prim
