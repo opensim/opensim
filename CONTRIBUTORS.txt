@@ -5,7 +5,7 @@ for your effort!)
 These folks represent the current core team for OpenSim, and are the
 people that make the day to day of OpenSim happen.
 
-* justincc
+* justincc (OSVW Consulting, justincc.org)
 * chi11ken (Genkii)
 * dahlia
 * Melanie Thielker
@@ -15,6 +15,7 @@ people that make the day to day of OpenSim happen.
 * Mic Bowman (Intel)
 * BlueWall (James Hughes)
 * Snoopy Pfeffer
+* Richard Adams (Intel)
 
 = Core Developers Following the White Rabbit =
 Core developers who have temporarily (we hope) gone chasing the white rabbit. 
@@ -119,6 +120,7 @@ what it is today.
 * openlifegrid.com
 * Oren Hurvitz (Kitely)
 * otakup0pe
+* Pixel Tomsen
 * ralphos
 * RemedyTomm
 * Revolution

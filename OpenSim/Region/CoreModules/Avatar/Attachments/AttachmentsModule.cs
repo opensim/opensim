@@ -48,25 +48,42 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         
         private Scene m_scene;
         private IDialogModule m_dialogModule;
+
+        /// <summary>
+        /// Are attachments enabled?
+        /// </summary>
+        public bool Enabled { get; private set; }
         
         public string Name { get { return "Attachments Module"; } }
         public Type ReplaceableInterface { get { return null; } }
 
-        public void Initialise(IConfigSource source) {}
+        public void Initialise(IConfigSource source)
+        {
+            IConfig config = source.Configs["Attachments"];
+            if (config != null)
+                Enabled = config.GetBoolean("Enabled", true);
+            else
+                Enabled = true;
+        }
         
         public void AddRegion(Scene scene)
         {
             m_scene = scene;
             m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
             m_scene.RegisterModuleInterface<IAttachmentsModule>(this);
-            m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
+
+            if (Enabled)
+                m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
+
             // TODO: Should probably be subscribing to CloseClient too, but this doesn't yet give us IClientAPI
         }
         
         public void RemoveRegion(Scene scene) 
         {
             m_scene.UnregisterModuleInterface<IAttachmentsModule>(this);
-            m_scene.EventManager.OnNewClient -= SubscribeToClientEvents;
+
+            if (Enabled)
+                m_scene.EventManager.OnNewClient -= SubscribeToClientEvents;
         }
         
         public void RegionLoaded(Scene scene) {}
@@ -102,6 +119,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// </summary>
         public void RezAttachments(IScenePresence sp)
         {
+            if (!Enabled)
+                return;
+
             if (null == sp.Appearance)
             {
                 m_log.WarnFormat("[ATTACHMENTS MODULE]: Appearance has not been initialized for agent {0}", sp.UUID);
@@ -145,6 +165,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         {
 //            m_log.DebugFormat("[ATTACHMENTS MODULE]: Saving changed attachments for {0}", sp.Name);
 
+            if (!Enabled)
+                return;
+
             foreach (SceneObjectGroup grp in sp.GetAttachments())
             {
 //                if (grp.HasGroupChanged) // Resizer scripts?
@@ -162,6 +185,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: Deleting attachments from scene {0} for {1}, silent = {2}",
 //                m_scene.RegionInfo.RegionName, sp.Name, silent);
+
+            if (!Enabled)
+                return;
 
             foreach (SceneObjectGroup sop in sp.GetAttachments())
             {
@@ -183,6 +209,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: Attaching object local id {0} to {1} point {2} from ground (silent = {3})",
 //                objectLocalID, remoteClient.Name, AttachmentPt, silent);
+
+            if (!Enabled)
+                return;
 
             try
             {
@@ -232,6 +261,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public bool AttachObject(IClientAPI remoteClient, SceneObjectGroup group, uint AttachmentPt, bool silent)
         {
+            if (!Enabled)
+                return false;
+
             ScenePresence sp = m_scene.GetScenePresence(remoteClient.AgentId);
 
             if (sp == null)
@@ -331,6 +363,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
             RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects)
         {
+            if (!Enabled)
+                return;
+
             ScenePresence sp = m_scene.GetScenePresence(remoteClient.AgentId);
 
             if (sp == null)
@@ -354,6 +389,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         
         public ISceneEntity RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
+            if (!Enabled)
+                return null;
+
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: Rezzing attachment to point {0} from item {1} for {2}",
 //                (AttachmentPoint)AttachmentPt, itemID, remoteClient.Name);
@@ -373,6 +411,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public ISceneEntity RezSingleAttachmentFromInventory(ScenePresence sp, UUID itemID, uint AttachmentPt)
         {
+            if (!Enabled)
+                return null;
+
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: RezSingleAttachmentFromInventory to point {0} from item {1} for {2}",
 //                (AttachmentPoint)AttachmentPt, itemID, sp.Name);
@@ -535,6 +576,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         
         public void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient)
         {
+            if (!Enabled)
+                return;
+
             ScenePresence presence;
             if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
             {
@@ -554,6 +598,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void DetachSingleAttachmentToGround(uint soLocalId, IClientAPI remoteClient)
         {
+            if (!Enabled)
+                return;
+
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: DetachSingleAttachmentToGround() for {0}, object {1}",
 //                remoteClient.Name, soLocalId);
@@ -669,6 +716,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         
         public void UpdateAttachmentPosition(SceneObjectGroup sog, Vector3 pos)
         {
+            if (!Enabled)
+                return;
+
             // First we save the
             // attachment point information, then we update the relative 
             // positioning. Then we have to mark the object as NOT an

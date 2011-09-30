@@ -150,7 +150,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             if (!m_Enabled)
                 return;
-
         }
 
         #endregion
