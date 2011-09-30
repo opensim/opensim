@@ -595,6 +595,25 @@
     ;; VeryHigh, Severe
     OSFunctionThreatLevel = VeryLow
 
+    ; OS Functions enable/disable
+    ; For each function, you can add one line, as shown
+    ; The default for all functions allows them if below threat level
+
+    ; true allows the use of the function unconditionally
+    ; Allow_osSetRegionWaterHeight = true
+    
+    ; false disables the function completely
+    ; Allow_osSetRegionWaterHeight = false
+    
+    ; Comma separated list of UUIDS allows the function for that list of UUIDS
+    ; Allow_osSetRegionWaterHeight = 888760cb-a3cf-43ac-8ea4-8732fd3ee2bb
+
+    ; You can also use script creators as the uuid
+    ; Creators_osSetRegionWaterHeight = <uuid>, ...
+
+    ; If both Allow_ and Creators_ are given, effective permissions
+    ; are the union of the two.
+
     ;; Time a script can spend in an event handler before it is interrupted
     ; EventLimit = 30
 
