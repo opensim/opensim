@@ -4189,10 +4189,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public virtual void UpdateMovement()
-        {
-        }
-
         /// <summary>
         ///
         /// </summary>
