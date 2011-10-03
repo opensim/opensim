@@ -2966,8 +2966,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
                 if (attachmentsModule != null)
-                    attachmentsModule.AttachObject(presence.ControllingClient,
-                            grp, (uint)attachment, false);
+                    attachmentsModule.AttachObject(presence, grp, (uint)attachment, false);
             }
         }
 

@@ -58,17 +58,6 @@ namespace OpenSim.Region.Framework.Interfaces
         void DeleteAttachmentsFromScene(IScenePresence sp, bool silent);
 
         /// <summary>
-        /// Attach an object to an avatar from the world.
-        /// </summary>
-        /// <param name="controllingClient"></param>
-        /// <param name="localID"></param>
-        /// <param name="attachPoint"></param>
-        /// <param name="rot"></param>
-        /// <param name="silent"></param>
-        void AttachObject(
-            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent);
-
-        /// <summary>
         /// Attach an object to an avatar
         /// </summary>
         /// <param name="remoteClient"></param>
@@ -76,17 +65,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="AttachmentPt"></param>
         /// <param name="silent"></param>
         /// <returns>true if the object was successfully attached, false otherwise</returns>
-        bool AttachObject(
-            IClientAPI remoteClient, SceneObjectGroup grp, uint AttachmentPt, bool silent);
-
-        /// <summary>
-        /// Rez an attachment from user inventory and change inventory status to match.
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="itemID"></param>
-        /// <param name="AttachmentPt"></param>
-        /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
-        ISceneEntity RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
+        bool AttachObject(IScenePresence sp, SceneObjectGroup grp, uint AttachmentPt, bool silent);
 
         /// <summary>
         /// Rez an attachment from user inventory and change inventory status to match.
@@ -95,17 +74,15 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="itemID"></param>
         /// <param name="AttachmentPt"></param>
         /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
-        ISceneEntity RezSingleAttachmentFromInventory(ScenePresence sp, UUID itemID, uint AttachmentPt);
+        ISceneEntity RezSingleAttachmentFromInventory(IScenePresence sp, UUID itemID, uint AttachmentPt);
 
         /// <summary>
         /// Rez multiple attachments from a user's inventory
         /// </summary>
-        /// <param name="remoteClient"></param>
+        /// <param name="sp"></param>
         /// <param name="header"></param>
         /// <param name="objects"></param>
-        void RezMultipleAttachmentsFromInventory(
-            IClientAPI remoteClient,
-            List<KeyValuePair<UUID, uint>> rezlist);
+        void RezMultipleAttachmentsFromInventory(IScenePresence sp,List<KeyValuePair<UUID, uint>> rezlist);
 
         /// <summary>
         /// Detach an object from the avatar.
@@ -121,9 +98,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Detach the given item to the ground.
         /// </summary>
+        /// <param name="sp"></param>
         /// <param name="objectLocalID"></param>
-        /// <param name="remoteClient"></param>
-        void DetachSingleAttachmentToGround(uint objectLocalID, IClientAPI remoteClient);
+        void DetachSingleAttachmentToGround(IScenePresence sp, uint objectLocalID);
 
         /// <summary>
         /// Detach the given item so that it remains in the user's inventory.
