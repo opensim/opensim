@@ -4240,8 +4240,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llCollisionSound(string impact_sound, double impact_volume)
         {
-
             m_host.AddScriptLPS(1);
+            
             // TODO: Parameter check logic required.
             UUID soundId = UUID.Zero;
             if (!UUID.TryParse(impact_sound, out soundId))
