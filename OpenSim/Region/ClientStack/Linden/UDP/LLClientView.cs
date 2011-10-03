@@ -6079,9 +6079,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RezMultipleAttachmentsFromInv handlerRezMultipleAttachments = OnRezMultipleAttachmentsFromInv;
             if (handlerRezMultipleAttachments != null)
             {
-                RezMultipleAttachmentsFromInvPacket rez = (RezMultipleAttachmentsFromInvPacket)Pack;
-                handlerRezMultipleAttachments(this, rez.HeaderData,
-                                              rez.ObjectData);
+                List<KeyValuePair<UUID, uint>> rezlist = new List<KeyValuePair<UUID, uint>>();
+                foreach (RezMultipleAttachmentsFromInvPacket.ObjectDataBlock obj in ((RezMultipleAttachmentsFromInvPacket)Pack).ObjectData)
+                    rezlist.Add(new KeyValuePair<UUID, uint>(obj.ItemID, obj.AttachmentPt));
+                handlerRezMultipleAttachments(this, rezlist);
             }
 
             return true;
