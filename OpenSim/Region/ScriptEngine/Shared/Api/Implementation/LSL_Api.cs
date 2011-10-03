@@ -1935,7 +1935,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                return String.Empty;
+                return UUID.Zero.ToString();
             }
         }
 
