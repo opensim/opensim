@@ -462,9 +462,18 @@ namespace OpenSim
                     string password = MainConsole.Instance.PasswdPrompt("Password");
                     string email = MainConsole.Instance.CmdPrompt("Email", "");
 
+                    string rawPrincipalId = MainConsole.Instance.CmdPrompt("ID", UUID.Random().ToString());
+        
+                    UUID principalId = UUID.Zero;
+                    if (!UUID.TryParse(rawPrincipalId, out principalId))
+                    {
+                        m_log.ErrorFormat("[OPENSIM]: ID {0} is not a valid UUID", rawPrincipalId);
+                        return;
+                    }
+
                     account
                         = ((UserAccountService)scene.UserAccountService).CreateUser(
-                            regionInfo.ScopeID, first, last, password, email);
+                            regionInfo.ScopeID, principalId, first, last, password, email);
                 }
 //                    }
             }

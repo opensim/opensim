@@ -93,7 +93,7 @@ namespace OpenSim.Services.UserAccountService
                 {
                     MainConsole.Instance.Commands.AddCommand("UserService", false,
                             "create user",
-                            "create user [<first> [<last> [<pass> [<email>]]]]",
+                            "create user [<first> [<last> [<pass> [<email> [<user id>]]]]]",
                             "Create a new user", HandleCreateUser);
 
                     MainConsole.Instance.Commands.AddCommand("UserService", false,
@@ -321,6 +321,7 @@ namespace OpenSim.Services.UserAccountService
             string lastName;
             string password;
             string email;
+            string rawPrincipalId;
 
             List<char> excluded = new List<char>(new char[]{' '});
 
@@ -340,7 +341,16 @@ namespace OpenSim.Services.UserAccountService
                 email = MainConsole.Instance.CmdPrompt("Email", "");
             else email = cmdparams[5];
 
-            CreateUser(UUID.Zero, firstName, lastName, password, email);
+            if (cmdparams.Length < 7)
+                rawPrincipalId = MainConsole.Instance.CmdPrompt("User ID", UUID.Random().ToString());
+            else
+                rawPrincipalId = cmdparams[6];
+
+            UUID principalId = UUID.Zero;
+            if (!UUID.TryParse(rawPrincipalId, out principalId))
+                throw new Exception(string.Format("ID {0} is not a valid UUID", rawPrincipalId));
+
+            CreateUser(UUID.Zero, principalId, firstName, lastName, password, email);
         }
 
         protected void HandleShowAccount(string module, string[] cmdparams)
@@ -453,16 +463,17 @@ namespace OpenSim.Services.UserAccountService
         /// Create a user
         /// </summary>
         /// <param name="scopeID">Allows hosting of multiple grids in a single database.  Normally left as UUID.Zero</param>
+        /// <param name="principalID">ID of the user</param>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <param name="password"></param>
         /// <param name="email"></param>
-        public UserAccount CreateUser(UUID scopeID, string firstName, string lastName, string password, string email)
+        public UserAccount CreateUser(UUID scopeID, UUID principalID, string firstName, string lastName, string password, string email)
         {
             UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
             if (null == account)
             {
-                account = new UserAccount(UUID.Zero, firstName, lastName, email);
+                account = new UserAccount(UUID.Zero, principalID, firstName, lastName, email);
                 if (account.ServiceURLs == null || (account.ServiceURLs != null && account.ServiceURLs.Count == 0))
                 {
                     account.ServiceURLs = new Dictionary<string, object>();
