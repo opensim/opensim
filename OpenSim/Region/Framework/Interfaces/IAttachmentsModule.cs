@@ -28,7 +28,6 @@
 using System;
 using System.Collections.Generic;
 using OpenMetaverse;
-using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
@@ -40,6 +39,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// RezAttachments. This should only be called upon login on the first region.
         /// Attachment rezzings on crossings and TPs are done in a different way.
         /// </summary>
+        /// <param name="sp"></param>
         void RezAttachments(IScenePresence sp);
 
         /// <summary>
@@ -50,17 +50,16 @@ namespace OpenSim.Region.Framework.Interfaces
 
         /// <summary>
         /// Delete all the presence's attachments from the scene
-        /// </summary>
-        /// <param name="sp">
         /// This is done when a root agent leaves/is demoted to child (for instance, on logout, teleport or region cross).
-        /// </param>
+        /// </summary>
+        /// <param name="sp"></param>
         /// <param name="silent"></param>
         void DeleteAttachmentsFromScene(IScenePresence sp, bool silent);
 
         /// <summary>
         /// Attach an object to an avatar
         /// </summary>
-        /// <param name="remoteClient"></param>
+        /// <param name="sp"></param>
         /// <param name="grp"></param>
         /// <param name="AttachmentPt"></param>
         /// <param name="silent"></param>
@@ -80,20 +79,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Rez multiple attachments from a user's inventory
         /// </summary>
         /// <param name="sp"></param>
-        /// <param name="header"></param>
-        /// <param name="objects"></param>
+        /// <param name="rezlist"></param>
         void RezMultipleAttachmentsFromInventory(IScenePresence sp,List<KeyValuePair<UUID, uint>> rezlist);
-
-        /// <summary>
-        /// Detach an object from the avatar.
-        /// </summary>
-        /// <remarks>
-        /// This method is called in response to a client's detach request, so we only update the information in
-        /// inventory
-        /// </remarks>
-        /// <param name="objectLocalID"></param>
-        /// <param name="remoteClient"></param>
-        void DetachObject(uint objectLocalID, IClientAPI remoteClient);
             
         /// <summary>
         /// Detach the given item to the ground.
@@ -105,9 +92,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Detach the given item so that it remains in the user's inventory.
         /// </summary>
-        /// <param name="itemID">/param>
-        /// <param name="remoteClient"></param>
-        void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient);
+        /// <param name="sp">/param>
+        /// <param name="itemID"></param>
+        void DetachSingleAttachmentToInv(IScenePresence sp, UUID itemID);
         
         /// <summary>
         /// Update the position of an attachment.
