@@ -71,21 +71,13 @@ namespace OpenSim.Region.UserStatistics
 
         public virtual void Initialise(Scene scene, IConfigSource config)
         {
-            IConfig cnfg;
-            try
-            {
-                cnfg = config.Configs["WebStats"];
+            IConfig cnfg = config.Configs["WebStats"];
+
+            if (cnfg != null)
                 enabled = cnfg.GetBoolean("enabled", false);
-            } 
-            catch (Exception)
-            {
-                enabled = false;
-            }
             
             if (!enabled)
-            {
                 return;
-            }
 
             lock (m_scene)
             {
@@ -115,16 +107,13 @@ namespace OpenSim.Region.UserStatistics
                     reports.Add("clients.report", clientReport);
                     reports.Add("sessions.report", sessionsReport);
 
-
-
                     ////
                     // Add Your own Reports here (Do Not Modify Lines here Devs!)
                     ////
 
                     ////
                     // End Own reports section
-                    //// 
-
+                    ////
 
                     MainServer.Instance.AddHTTPHandler("/SStats/", HandleStatsRequest);
                     MainServer.Instance.AddHTTPHandler("/CAPS/VS/", HandleUnknownCAPSRequest);
@@ -265,7 +254,6 @@ namespace OpenSim.Region.UserStatistics
                     CreateTables(db);
                 }
             }
-
         }
 
         public void CreateTables(SqliteConnection db)
@@ -276,8 +264,6 @@ namespace OpenSim.Region.UserStatistics
             createcmd.CommandText = SQL_MIGRA_TABLE_CREATE;
             createcmd.ExecuteNonQuery();
         }
-
-
 
         public virtual void PostInitialise()
         {
@@ -376,14 +362,10 @@ namespace OpenSim.Region.UserStatistics
             }
         }
 
-
-
-
         public void OnMakeChildAgent(ScenePresence agent)
         {
             
         }
-
 
         public void OnClientClosed(UUID agentID, Scene scene)
         {
@@ -394,7 +376,6 @@ namespace OpenSim.Region.UserStatistics
                     m_sessions.Remove(agentID);
                 }
             }
-
         }
 
         public string readLogLines(int amount)
@@ -433,7 +414,6 @@ namespace OpenSim.Region.UserStatistics
             fs.Close();
             fs.Dispose();
             return encoding.GetString(buffer);
-
         }
 
         public UUID GetRegionUUIDFromHandle(ulong regionhandle)
@@ -448,6 +428,7 @@ namespace OpenSim.Region.UserStatistics
             }
             return UUID.Zero;
         }
+
         /// <summary>
         /// Callback for a viewerstats cap
         /// </summary>
@@ -522,8 +503,6 @@ namespace OpenSim.Region.UserStatistics
             }
            
             usd = uid.session_data;
-
-            
 
             if (message.Type != OSDType.Map)
                 return new UserSessionID();
@@ -699,7 +678,6 @@ namespace OpenSim.Region.UserStatistics
 
                 }
             }
-
         }
 
         #region SQL
@@ -824,6 +802,7 @@ set session_id=:session_id,
 WHERE session_id=:session_key AND agent_id=:agent_key AND region_id=:region_key";
         #endregion
     }
+
     public static class UserSessionUtil
     {
         public static UserSessionData newUserSessionData()
@@ -941,7 +920,6 @@ WHERE session_id=:session_key AND agent_id=:agent_key AND region_id=:region_key"
             return result / cnt;
         }
 
-
         public static float ArrayMode_f(float[] arr)
         {
             List<float> mode = new List<float>();
@@ -995,9 +973,7 @@ WHERE session_id=:session_key AND agent_id=:agent_key AND region_id=:region_key"
             }
 
             return mode.ToArray()[0];
-
         }
-
 
         public static int ArrayMode_i(int[] arr)
         {
@@ -1052,7 +1028,6 @@ WHERE session_id=:session_key AND agent_id=:agent_key AND region_id=:region_key"
             }
 
             return mode.ToArray()[0];
-
         }
 
         #endregion
@@ -1178,7 +1153,6 @@ WHERE session_id=:session_key AND agent_id=:agent_key AND region_id=:region_key"
         public List<float> _sim_fps;
         public List<int> _agents_in_view;
     }
-
   
     #endregion
 
@@ -1263,5 +1237,4 @@ WHERE session_id=:session_key AND agent_id=:agent_key AND region_id=:region_key"
             m_scriptLinesPerSecond = stats.StatsBlock[20].StatValue;
         }
     }
-
 }
