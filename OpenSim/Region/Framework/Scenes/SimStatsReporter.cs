@@ -452,12 +452,6 @@ namespace OpenSim.Region.Framework.Scenes
             AddOutPackets(outPackets);
             AddunAckedBytes(unAckedBytes);
         }
-        
-        public void AddAgentTime(int ms)
-        {
-            addFrameMS(ms);
-            addAgentMS(ms);
-        }
 
         #endregion
     }

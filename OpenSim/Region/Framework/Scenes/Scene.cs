@@ -183,6 +183,7 @@ namespace OpenSim.Region.Framework.Scenes
 //        private int m_update_land = 1;
         private int m_update_coarse_locations = 50;
 
+        private int agentMS;
         private int frameMS;
         private int physicsMS2;
         private int physicsMS;
@@ -1226,12 +1227,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             int maintc = Util.EnvironmentTickCount();
             int tmpFrameMS = maintc;
-            tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
+            agentMS = tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
 
+            // TODO: ADD AGENT TIME HERE
             // Increment the frame counter
             ++Frame;
             try
             {
+                int tmpAgentMS = Util.EnvironmentTickCount();
+
                 // Check if any objects have reached their targets
                 CheckAtTargets();
 
@@ -1258,6 +1262,8 @@ namespace OpenSim.Region.Framework.Scenes
                     });
                 }
 
+                agentMS = Util.EnvironmentTickCountSubtract(tmpAgentMS);
+
                 int tmpPhysicsMS2 = Util.EnvironmentTickCount();
                 if ((Frame % m_update_physics == 0) && m_physics_enabled)
                     m_sceneGraph.UpdatePreparePhysics();
@@ -1265,7 +1271,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Apply any pending avatar force input to the avatar's velocity
                 if (Frame % m_update_entitymovement == 0)
+                {
+                    tmpAgentMS = Util.EnvironmentTickCount();
                     m_sceneGraph.UpdateScenePresenceMovement();
+                    agentMS += Util.EnvironmentTickCountSubtract(tmpAgentMS);
+                }
 
                 // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
                 // velocity
@@ -1330,6 +1340,7 @@ namespace OpenSim.Region.Framework.Scenes
                 StatsReporter.SetObjects(m_sceneGraph.GetTotalObjectsCount());
                 StatsReporter.SetActiveObjects(m_sceneGraph.GetActiveObjectsCount());
                 StatsReporter.addFrameMS(frameMS);
+                StatsReporter.addAgentMS(agentMS);
                 StatsReporter.addPhysicsMS(physicsMS + physicsMS2);
                 StatsReporter.addOtherMS(otherMS);
                 StatsReporter.SetActiveScripts(m_sceneGraph.GetActiveScriptsCount());
