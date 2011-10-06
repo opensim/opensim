@@ -56,7 +56,7 @@ namespace OpenSim.Services.Connectors
         // Keeps track of concurrent requests for the same asset, so that it's only loaded once.
         // Maps: Asset ID -> Handlers which will be called when the asset has been loaded
         private Dictionary<string, AssetRetrievedEx> m_AssetHandlers = new Dictionary<string, AssetRetrievedEx>();
-
+        private Dictionary<string, string> m_UriMap = new Dictionary<string, string>();
 
         public AssetServicesConnector()
         {
@@ -98,6 +98,34 @@ namespace OpenSim.Services.Connectors
             m_retryTimer = new Timer();
             m_retryTimer.Elapsed += new ElapsedEventHandler(retryCheck);
             m_retryTimer.Interval = 60000;
+
+            Uri serverUri = new Uri(m_ServerURI);
+
+            string groupHost = serverUri.Host;
+
+            for (int i = 0 ; i < 256 ; i++)
+            {
+                string prefix = i.ToString("x2");
+                groupHost = assetConfig.GetString("AssetServerHost_"+prefix, groupHost);
+
+                m_UriMap[prefix] = groupHost;
+                //m_log.DebugFormat("[ASSET]: Using {0} for prefix {1}", groupHost, prefix);
+            }
+        }
+
+        private string MapServer(string id)
+        {
+            UriBuilder serverUri = new UriBuilder(m_ServerURI);
+
+            string prefix = id.Substring(0, 2).ToLower();
+
+            string host = m_UriMap[prefix];
+
+            serverUri.Host = host;
+
+            // m_log.DebugFormat("[ASSET]: Using {0} for host name for prefix {1}", host, prefix);
+
+            return serverUri.Uri.AbsoluteUri;
         }
 
         protected void retryCheck(object source, ElapsedEventArgs e)
@@ -152,7 +180,7 @@ namespace OpenSim.Services.Connectors
 
         public AssetBase Get(string id)
         {
-            string uri = m_ServerURI + "/assets/" + id;
+            string uri = MapServer(id) + "/assets/" + id;
 
             AssetBase asset = null;
             if (m_Cache != null)
@@ -187,7 +215,7 @@ namespace OpenSim.Services.Connectors
                     return fullAsset.Metadata;
             }
 
-            string uri = m_ServerURI + "/assets/" + id + "/metadata";
+            string uri = MapServer(id) + "/assets/" + id + "/metadata";
 
             AssetMetadata asset = SynchronousRestObjectRequester.
                     MakeRequest<int, AssetMetadata>("GET", uri, 0);
@@ -204,7 +232,7 @@ namespace OpenSim.Services.Connectors
                     return fullAsset.Data;
             }
 
-            RestClient rc = new RestClient(m_ServerURI);
+            RestClient rc = new RestClient(MapServer(id));
             rc.AddResourcePath("assets");
             rc.AddResourcePath(id);
             rc.AddResourcePath("data");
@@ -229,7 +257,7 @@ namespace OpenSim.Services.Connectors
 
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
-            string uri = m_ServerURI + "/assets/" + id;
+            string uri = MapServer(id) + "/assets/" + id;
 
             AssetBase asset = null;
             if (m_Cache != null)
@@ -295,6 +323,31 @@ namespace OpenSim.Services.Connectors
 
         public string Store(AssetBase asset)
         {
+            // Have to assign the asset ID here. This isn't likely to
+            // trigger since current callers don't pass emtpy IDs
+            // We need the asset ID to route the request to the proper
+            // cluster member, so we can't have the server assign one.
+            if (asset.ID == string.Empty)
+            {
+                if (asset.FullID == UUID.Zero)
+                {
+                    asset.FullID = UUID.Random();
+                }
+                asset.ID = asset.FullID.ToString();
+            }
+            else if (asset.FullID == UUID.Zero)
+            {
+                UUID uuid = UUID.Zero;
+                if (UUID.TryParse(asset.ID, out uuid))
+                {
+                    asset.FullID = uuid;
+                }
+                else
+                {
+                    asset.FullID = UUID.Random();
+                }
+            }
+
             if (m_Cache != null)
                 m_Cache.Cache(asset);
             if (asset.Temporary || asset.Local)
@@ -302,7 +355,7 @@ namespace OpenSim.Services.Connectors
                 return asset.ID;
             }
 
-            string uri = m_ServerURI + "/assets/";
+            string uri = MapServer(asset.FullID.ToString()) + "/assets/";
 
             string newID = string.Empty;
             try
@@ -379,7 +432,7 @@ namespace OpenSim.Services.Connectors
             }
             asset.Data = data;
 
-            string uri = m_ServerURI + "/assets/" + id;
+            string uri = MapServer(id) + "/assets/" + id;
 
             if (SynchronousRestObjectRequester.
                     MakeRequest<AssetBase, bool>("POST", uri, asset))
@@ -394,7 +447,7 @@ namespace OpenSim.Services.Connectors
 
         public bool Delete(string id)
         {
-            string uri = m_ServerURI + "/assets/" + id;
+            string uri = MapServer(id) + "/assets/" + id;
 
             if (SynchronousRestObjectRequester.
                     MakeRequest<int, bool>("DELETE", uri, 0))
