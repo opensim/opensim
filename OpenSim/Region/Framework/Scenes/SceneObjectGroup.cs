@@ -2397,6 +2397,7 @@ namespace OpenSim.Region.Framework.Scenes
             Quaternion oldRootRotation = linkPart.RotationOffset;
 
             linkPart.OffsetPosition = linkPart.GroupPosition - AbsolutePosition;
+            linkPart.ParentID = m_rootPart.LocalId;
             linkPart.GroupPosition = AbsolutePosition;
             Vector3 axPos = linkPart.OffsetPosition;
 
@@ -3431,13 +3432,16 @@ namespace OpenSim.Region.Framework.Scenes
                 if (prim.UUID != m_rootPart.UUID)
                 {
                     prim.IgnoreUndoUpdate = true;
+
+                    Quaternion NewRot = oldParentRot * prim.RotationOffset;
+                    NewRot = Quaternion.Inverse(axRot) * NewRot;
+                    prim.RotationOffset = NewRot;
+
                     Vector3 axPos = prim.OffsetPosition;
 
                     axPos *= oldParentRot;
                     axPos *= Quaternion.Inverse(axRot);
                     prim.OffsetPosition = axPos;
-
-                    prim.RotationOffset *= Quaternion.Inverse(prim.GetWorldRotation()) * (oldParentRot * prim.RotationOffset);
 
                     prim.IgnoreUndoUpdate = false;
                 }
