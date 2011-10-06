@@ -89,21 +89,21 @@ namespace OpenSim.Region.UserStatistics
                     dbConn.Open();
                     CheckAndUpdateDatabase(dbConn);
 
-                    Default_Report rep = new Default_Report();
                     Prototype_distributor protodep = new Prototype_distributor();
                     Updater_distributor updatedep = new Updater_distributor();
                     ActiveConnectionsAJAX ajConnections = new ActiveConnectionsAJAX();
                     SimStatsAJAX ajSimStats = new SimStatsAJAX();
                     LogLinesAJAX ajLogLines = new LogLinesAJAX();
+                    Default_Report defaultReport = new Default_Report();
                     Clients_report clientReport = new Clients_report();
                     Sessions_Report sessionsReport = new Sessions_Report();
 
-                    reports.Add("", rep);
                     reports.Add("prototype.js", protodep);
                     reports.Add("updater.js", updatedep);
                     reports.Add("activeconnectionsajax.html", ajConnections);
                     reports.Add("simstatsajax.html", ajSimStats);
                     reports.Add("activelogajax.html", ajLogLines);
+                    reports.Add("default.report", defaultReport);
                     reports.Add("clients.report", clientReport);
                     reports.Add("sessions.report", sessionsReport);
 
@@ -186,6 +186,7 @@ namespace OpenSim.Region.UserStatistics
             string strOut = string.Empty;
 
             regpath = regpath.Remove(0, 8);
+            if (regpath.Length == 0) regpath = "default.report";
             if (reports.ContainsKey(regpath))
             {
                 IStatsController rep = reports[regpath];
