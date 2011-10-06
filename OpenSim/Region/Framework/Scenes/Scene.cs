@@ -137,8 +137,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected IDialogModule m_dialogModule;
         protected IEntityTransferModule m_teleportModule;
         protected ICapabilitiesModule m_capsModule;
-        // Central Update Loop
-        protected int m_fps = 10;
 
         /// <summary>
         /// Current scene frame number
@@ -149,8 +147,20 @@ namespace OpenSim.Region.Framework.Scenes
             protected set;
         }
 
-        protected float m_timespan = 0.089f;
-        protected DateTime m_lastupdate = DateTime.UtcNow;
+        /// <summary>
+        /// The minimum length of time in seconds that will be taken for a scene frame.  If the frame takes less time then we
+        /// will sleep for the remaining period.
+        /// </summary>
+        /// <remarks>
+        /// One can tweak this number to experiment.  One current effect of reducing it is to make avatar animations
+        /// occur too quickly (viewer 1) or with even more slide (viewer 2).
+        /// </remarks>
+        protected float m_minFrameTimespan = 0.089f;
+
+        /// <summary>
+        /// The time of the last frame update.
+        /// </summary>
+        protected DateTime m_lastFrameUpdate = DateTime.UtcNow;
 
         // TODO: Possibly stop other classes being able to manipulate this directly.
         private SceneGraph m_sceneGraph;
@@ -173,6 +183,7 @@ namespace OpenSim.Region.Framework.Scenes
 //        private int m_update_land = 1;
         private int m_update_coarse_locations = 50;
 
+        private int agentMS;
         private int frameMS;
         private int physicsMS2;
         private int physicsMS;
@@ -1211,17 +1222,20 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override void Update()
         {        
-            TimeSpan SinceLastFrame = DateTime.UtcNow - m_lastupdate;
+            TimeSpan SinceLastFrame = DateTime.UtcNow - m_lastFrameUpdate;
             float physicsFPS = 0f;
 
             int maintc = Util.EnvironmentTickCount();
             int tmpFrameMS = maintc;
-            tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
+            agentMS = tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
 
+            // TODO: ADD AGENT TIME HERE
             // Increment the frame counter
             ++Frame;
             try
             {
+                int tmpAgentMS = Util.EnvironmentTickCount();
+
                 // Check if any objects have reached their targets
                 CheckAtTargets();
 
@@ -1248,6 +1262,8 @@ namespace OpenSim.Region.Framework.Scenes
                     });
                 }
 
+                agentMS = Util.EnvironmentTickCountSubtract(tmpAgentMS);
+
                 int tmpPhysicsMS2 = Util.EnvironmentTickCount();
                 if ((Frame % m_update_physics == 0) && m_physics_enabled)
                     m_sceneGraph.UpdatePreparePhysics();
@@ -1255,7 +1271,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Apply any pending avatar force input to the avatar's velocity
                 if (Frame % m_update_entitymovement == 0)
+                {
+                    tmpAgentMS = Util.EnvironmentTickCount();
                     m_sceneGraph.UpdateScenePresenceMovement();
+                    agentMS += Util.EnvironmentTickCountSubtract(tmpAgentMS);
+                }
 
                 // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
                 // velocity
@@ -1263,7 +1283,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Frame % m_update_physics == 0)
                 {
                     if (m_physics_enabled)
-                        physicsFPS = m_sceneGraph.UpdatePhysics(Math.Max(SinceLastFrame.TotalSeconds, m_timespan));
+                        physicsFPS = m_sceneGraph.UpdatePhysics(Math.Max(SinceLastFrame.TotalSeconds, m_minFrameTimespan));
                     if (SynchronizeScene != null)
                         SynchronizeScene(this);
                 }
@@ -1320,6 +1340,7 @@ namespace OpenSim.Region.Framework.Scenes
                 StatsReporter.SetObjects(m_sceneGraph.GetTotalObjectsCount());
                 StatsReporter.SetActiveObjects(m_sceneGraph.GetActiveObjectsCount());
                 StatsReporter.addFrameMS(frameMS);
+                StatsReporter.addAgentMS(agentMS);
                 StatsReporter.addPhysicsMS(physicsMS + physicsMS2);
                 StatsReporter.addOtherMS(otherMS);
                 StatsReporter.SetActiveScripts(m_sceneGraph.GetActiveScriptsCount());
@@ -1379,11 +1400,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
             finally
             {
-                m_lastupdate = DateTime.UtcNow;
+                m_lastFrameUpdate = DateTime.UtcNow;
             }
 
             maintc = Util.EnvironmentTickCountSubtract(maintc);
-            maintc = (int)(m_timespan * 1000) - maintc;
+            maintc = (int)(m_minFrameTimespan * 1000) - maintc;
 
             if (maintc > 0)
                 Thread.Sleep(maintc);
