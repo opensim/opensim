@@ -36,7 +36,6 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -45,12 +44,8 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-
-
 namespace OpenSim.Region.Framework.Scenes
 {
-    
-                                      
     public class RegionStatsHandler : IStreamedRequestHandler
     {
         private string osRXStatsURI = String.Empty;
@@ -67,7 +62,6 @@ namespace OpenSim.Region.Framework.Scenes
             regionInfo = region_info;
             osRXStatsURI = Util.SHA1Hash(regionInfo.regionSecret);
             osXStatsURI = Util.SHA1Hash(regionInfo.osSecret);
-  
         }
                     
         public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
@@ -88,7 +82,7 @@ namespace OpenSim.Region.Framework.Scenes
         public string Path
         {
             // This is for the region and is the regionSecret hashed
-            get { return "/" + osRXStatsURI + "/"; }
+            get { return "/" + osRXStatsURI; }
         }
         
         private string Report()
@@ -106,7 +100,6 @@ namespace OpenSim.Region.Framework.Scenes
             strBuffer = OSDParser.SerializeJsonString(args);
 
             return strBuffer;
-            
          }
     }
 }
