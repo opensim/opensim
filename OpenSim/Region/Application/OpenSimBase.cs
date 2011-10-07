@@ -728,7 +728,7 @@ namespace OpenSim
 
             public string Path
             {
-                get { return "/simstatus/"; }
+                get { return "/simstatus"; }
             }
         }
 
@@ -766,7 +766,7 @@ namespace OpenSim
             public string Path
             {
                 // This is for the OpenSimulator instance and is the osSecret hashed
-                get { return "/" + osXStatsURI + "/"; }
+                get { return "/" + osXStatsURI; }
             }
         }
 
@@ -807,7 +807,7 @@ namespace OpenSim
             public string Path
             {
                 // This is for the OpenSimulator instance and is the user provided URI 
-                get { return "/" + osUXStatsURI + "/"; }
+                get { return "/" + osUXStatsURI; }
             }
         }
 
