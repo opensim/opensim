@@ -168,8 +168,12 @@ namespace OpenSim.Region.Framework.Scenes
 
 #region various statistic googly moogly
 
+                // We're going to lie about the FPS because we've been lying since 2008.  The actual FPS is currently
+                // locked at a maximum of 11.  Maybe at some point this can change so that we're not lying.
+                int reportedFPS = m_fps * 5;
+
                 // save the reported value so there is something available for llGetRegionFPS 
-                lastReportedSimFPS = (float)m_fps / statsUpdateFactor;
+                lastReportedSimFPS = reportedFPS / statsUpdateFactor;
 
                 float physfps = ((m_pfps / 1000));
 
@@ -200,7 +204,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[0].StatValue = (Single.IsNaN(m_timeDilation)) ? 0.1f : m_timeDilation ; //((((m_timeDilation + (0.10f * statsUpdateFactor)) /10)  / statsUpdateFactor));
 
                 sb[1].StatID = (uint) Stats.SimFPS;
-                sb[1].StatValue = m_fps/statsUpdateFactor;
+                sb[1].StatValue = reportedFPS / statsUpdateFactor;
 
                 sb[2].StatID = (uint) Stats.PhysicsFPS;
                 sb[2].StatValue = physfps / statsUpdateFactor;
