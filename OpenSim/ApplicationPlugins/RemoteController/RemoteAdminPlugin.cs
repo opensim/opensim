@@ -41,7 +41,6 @@ using OpenMetaverse;
 using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -67,7 +66,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private IConfig m_config;
         private IConfigSource m_configSource;
         private string m_requiredPassword = String.Empty;
-        private List<string> m_accessIP;
+        private HashSet<string> m_accessIP;
 
         private string m_name = "RemoteAdminPlugin";
         private string m_version = "0.0";
@@ -106,7 +105,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     int port = m_config.GetInt("port", 0);
 
                     string accessIP = m_config.GetString("access_ip_addresses", String.Empty);
-                    m_accessIP = new List<string>();
+                    m_accessIP = new HashSet<string>();
                     if (accessIP != String.Empty)
                     {
                         string[] ips = accessIP.Split(new char[] { ',' });
@@ -251,8 +250,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), true);
                     responseData["success"] = true;
                 }
-                response.Value = responseData;
 
+                response.Value = responseData;
             }
             catch (Exception e)
             {
@@ -857,7 +856,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public XmlRpcResponse XmlRpcDeleteRegionMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: DeleteRegion: new request");
-            
+
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
