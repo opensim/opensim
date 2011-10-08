@@ -67,20 +67,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private IConfig m_config;
         private IConfigSource m_configSource;
         private string m_requiredPassword = String.Empty;
+        private List<string> m_accessIP;
 
         private string m_name = "RemoteAdminPlugin";
         private string m_version = "0.0";
-
-        //guard for XmlRpc-related methods
-        private void FailIfRemoteAdminDisabled(string requestName)
-        {
-            if (m_config == null)
-            {
-                string errorMessage = String.Format("[RADMIN] {0}: Remote admin request denied! Please set [RemoteAdmin]enabled=true in OpenSim.ini in order to enable remote admin functionality", requestName);
-                m_log.Error(errorMessage);
-                throw new ApplicationException(errorMessage);
-            }
-        }
 
         public string Version
         {
@@ -114,6 +104,20 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_log.Debug("[RADMIN]: Remote Admin Plugin Enabled");
                     m_requiredPassword = m_config.GetString("access_password", String.Empty);
                     int port = m_config.GetInt("port", 0);
+
+                    string accessIP = m_config.GetString("access_ip_addresses", String.Empty);
+                    m_accessIP = new List<string>();
+                    if (accessIP != String.Empty)
+                    {
+                        string[] ips = accessIP.Split(new char[] { ',' });
+                        foreach (string ip in ips)
+                        {
+                            string current = ip.Trim();
+
+                            if (current != String.Empty)
+                                m_accessIP.Add(current);
+                        }
+                    }
 
                     m_application = openSim;
                     string bind_ip_address = m_config.GetString("bind_ip_address", "0.0.0.0");
@@ -189,6 +193,31 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
         }
 
+        private void FailIfRemoteAdminDisabled(string requestName)
+        {
+            if (m_config == null)
+            {
+                string errorMessage = String.Format("[RADMIN] {0}: Remote admin request denied! Please set [RemoteAdmin] enabled=true in OpenSim.ini in order to enable remote admin functionality", requestName);
+                m_log.Error(errorMessage);
+                throw new ApplicationException(errorMessage);
+            }
+        }
+
+        private void FailIfRemoteAdminNotAllowed(string password, string check_ip_address)
+        {
+            if (m_accessIP.Count > 0 && !m_accessIP.Contains(check_ip_address))
+            {
+                m_log.WarnFormat("[RADMIN]: Unauthorized acess blocked from IP {0}", check_ip_address);
+                throw new Exception("not authorized");
+            }
+
+            if (m_requiredPassword != String.Empty && password != m_requiredPassword)
+            {
+                m_log.WarnFormat("[RADMIN]: Wrong password, blocked access from IP {0}", check_ip_address);
+                throw new Exception("wrong password");
+            }
+        }
+
         public XmlRpcResponse XmlRpcRestartMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
@@ -201,11 +230,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 m_log.Info("[RADMIN]: Request to restart Region.");
                 CheckStringParameters(request, new string[] {"password", "regionID"});
 
-                if (m_requiredPassword != String.Empty &&
-                    (!requestData.Contains("password") || (string) requestData["password"] != m_requiredPassword))
-                {
-                    throw new Exception("wrong password");
-                }
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                 UUID regionID = new UUID((string) requestData["regionID"]);
 
@@ -256,9 +281,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 CheckStringParameters(request, new string[] {"password", "message"});
 
-                if (m_requiredPassword != String.Empty &&
-                    (!requestData.Contains("password") || (string) requestData["password"] != m_requiredPassword))
-                    throw new Exception("wrong password");
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                 string message = (string) requestData["message"];
                 m_log.InfoFormat("[RADMIN]: Broadcasting: {0}", message);
@@ -309,9 +332,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 CheckStringParameters(request, new string[] {"password", "filename", "regionid"});
 
-                if (m_requiredPassword != String.Empty &&
-                    (!requestData.Contains("password") || (string) requestData["password"] != m_requiredPassword))
-                    throw new Exception("wrong password");
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                 string file = (string) requestData["filename"];
                 UUID regionID = (UUID) (string) requestData["regionid"];
@@ -374,9 +395,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 CheckStringParameters(request, new string[] { "password", "filename", "regionid" });
 
-                if (m_requiredPassword != String.Empty &&
-                    (!requestData.Contains("password") || (string)requestData["password"] != m_requiredPassword))
-                    throw new Exception("wrong password");
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                 string file = (string)requestData["filename"];
                 UUID regionID = (UUID)(string)requestData["regionid"];
@@ -424,9 +443,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 Hashtable requestData = (Hashtable) request.Params[0];
 
-                if (m_requiredPassword != String.Empty &&
-                    (!requestData.Contains("password") || (string) requestData["password"] != m_requiredPassword))
-                    throw new Exception("wrong password");
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                 responseData["accepted"] = true;
                 response.Value = responseData;
@@ -578,9 +595,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                                        });
                     CheckIntegerParams(request, new string[] {"region_x", "region_y", "listen_port"});
 
-                    // check password
-                    if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                        (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                    FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                     // check whether we still have space left (iff we are using limits)
                     if (m_regionLimit != 0 && m_application.SceneManager.Scenes.Count >= m_regionLimit)
@@ -842,6 +857,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public XmlRpcResponse XmlRpcDeleteRegionMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: DeleteRegion: new request");
+            
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
@@ -851,6 +867,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
                     CheckStringParameters(request, new string[] {"password", "region_name"});
+
+                    FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                     Scene scene = null;
                     string regionName = (string) requestData["region_name"];
@@ -920,6 +938,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
                     CheckStringParameters(request, new string[] {"password"});
+
+                    FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                     if (requestData.ContainsKey("region_id") &&
                         !String.IsNullOrEmpty((string) requestData["region_id"]))
@@ -1014,6 +1034,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
                     CheckStringParameters(request, new string[] {"password", "region_name"});
+
+                    FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                     Scene scene = null;
                     string regionName = (string) requestData["region_name"];
@@ -1128,9 +1150,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                                        });
                     CheckIntegerParams(request, new string[] {"start_region_x", "start_region_y"});
 
-                    // check password
-                    if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                        (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                    FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                     // do the job
                     string firstName = (string) requestData["user_firstname"];
@@ -1238,6 +1258,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 // check completeness
                 CheckStringParameters(request, new string[] {"password", "user_firstname", "user_lastname"});
 
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
+
                 string firstName = (string) requestData["user_firstname"];
                 string lastName = (string) requestData["user_lastname"];
 
@@ -1322,7 +1344,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       </description></item>
         /// </list>
         /// </remarks>
-
         public XmlRpcResponse XmlRpcUpdateUserAccountMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: UpdateUserAccount: new request");
@@ -1344,9 +1365,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             "password", "user_firstname",
                             "user_lastname"});
 
-                    // check password
-                    if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                        (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                    FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                     // do the job
                     string firstName = (string) requestData["user_firstname"];
@@ -1462,7 +1481,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// file, or pre-existing in the user database.
         /// This should probably get moved into somewhere more core eventually.
         /// </summary>
-
         private void UpdateUserAppearance(Hashtable responseData, Hashtable requestData, UUID userid)
         {
             m_log.DebugFormat("[RADMIN]: updateUserAppearance");
@@ -1544,7 +1562,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// ratified, or an appropriate default value has been adopted. The intended prototype
         /// is known to exist, as is the target avatar.
         /// </summary>
-
         private void EstablishAppearance(UUID destination, UUID source)
         {
             m_log.DebugFormat("[RADMIN]: Initializing inventory for {0} from {1}", destination, source);
@@ -1612,7 +1629,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// worn or attached to the Clothing inventory folder of the receiving avatar.
         /// In parallel the avatar wearables and attachments are updated.
         /// </summary>
-
         private void CopyWearablesAndAttachments(UUID destination, UUID source, AvatarAppearance avatarAppearance)
         {
             IInventoryService inventoryService = m_application.SceneManager.CurrentOrFirstScene.InventoryService;
@@ -1642,7 +1658,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             AvatarWearable[] wearables = avatarAppearance.Wearables;
             AvatarWearable wearable;
 
-            for (int i=0; i<wearables.Length; i++)
+            for (int i = 0; i<wearables.Length; i++)
             {
                 wearable = wearables[i];
                 if (wearable[0].ItemID != UUID.Zero)
@@ -1745,15 +1761,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     }
                 }
             }
-
-
         }
 
         /// <summary>
         /// This method is called by establishAppearance to copy inventory folders to make
         /// copies of Clothing and Bodyparts inventory folders and attaches worn attachments
         /// </summary>
-
         private void CopyInventoryFolders(UUID destination, UUID source, AssetType assetType, Dictionary<UUID,UUID> inventoryMap,
                                           AvatarAppearance avatarAppearance)
         {
@@ -1788,9 +1801,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 destinationFolder = new InventoryFolderBase();
                 destinationFolder.ID       = UUID.Random();
-                if (assetType == AssetType.Clothing) {
+                if (assetType == AssetType.Clothing)
+                {
                     destinationFolder.Name  = "Clothing";
-                } else {
+                }
+                else
+                {
                     destinationFolder.Name  = "Body Parts";
                 }
                 destinationFolder.Owner    = destination;
@@ -1806,7 +1822,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             foreach (InventoryFolderBase folder in folders)
             {
-
                 extraFolder = new InventoryFolderBase();
                 extraFolder.ID = UUID.Random();
                 extraFolder.Name = folder.Name;
@@ -1864,7 +1879,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// <summary>
         /// Apply next owner permissions.
         /// </summary>
-
         private void ApplyNextOwnerPermissions(InventoryItemBase item)
         {
             if (item.InvType == (int)InventoryType.Object && (item.CurrentPermissions & 7) != 0)
@@ -2257,18 +2271,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
 
-                    // check completeness
-                    foreach (string parameter in new string[] {"password", "filename"})
-                    {
-                        if (!requestData.Contains(parameter))
-                            throw new Exception(String.Format("missing parameter {0}", parameter));
-                        if (String.IsNullOrEmpty((string) requestData[parameter]))
-                            throw new Exception(String.Format("parameter {0} is empty", parameter));
-                    }
+                    CheckStringParameters(request, new string[] {
+                            "password", "filename"});
 
-                    // check password
-                    if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                        (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                    FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                     string filename = (string) requestData["filename"];
                     Scene scene = null;
@@ -2374,18 +2380,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 Hashtable requestData = (Hashtable) request.Params[0];
 
-                // check completeness
-                foreach (string p in new string[] {"password", "filename"})
-                {
-                    if (!requestData.Contains(p))
-                        throw new Exception(String.Format("missing parameter {0}", p));
-                    if (String.IsNullOrEmpty((string) requestData[p]))
-                        throw new Exception(String.Format("parameter {0} is empty"));
-                }
+                CheckStringParameters(request, new string[] {
+                            "password", "filename"});
 
-                // check password
-                if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                    (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                 string filename = (string) requestData["filename"];
                 Scene scene = null;
@@ -2431,11 +2429,16 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     scene.EventManager.OnOarFileSaved += RemoteAdminOarSaveCompleted;
                     archiver.ArchiveRegion(filename, options);
-                    lock (m_saveOarLock) Monitor.Wait(m_saveOarLock,5000);
+
+                    lock (m_saveOarLock)
+                        Monitor.Wait(m_saveOarLock,5000);
+
                     scene.EventManager.OnOarFileSaved -= RemoteAdminOarSaveCompleted;
                 }
                 else
+                {
                     throw new Exception("Archiver module not present for scene");
+                }
 
                 responseData["saved"] = true;
 
@@ -2476,18 +2479,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
 
-                    // check completeness
-                    foreach (string p in new string[] {"password", "filename"})
-                    {
-                        if (!requestData.Contains(p))
-                            throw new Exception(String.Format("missing parameter {0}", p));
-                        if (String.IsNullOrEmpty((string) requestData[p]))
-                            throw new Exception(String.Format("parameter {0} is empty"));
-                    }
+                    CheckStringParameters(request, new string[] {
+                            "password", "filename"});
 
-                    // check password
-                    if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                        (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                    FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                     string filename = (string) requestData["filename"];
                     if (requestData.Contains("region_uuid"))
@@ -2495,6 +2490,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         UUID region_uuid = (UUID) (string) requestData["region_uuid"];
                         if (!m_application.SceneManager.TrySetCurrentScene(region_uuid))
                             throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+
                         m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_uuid.ToString());
                     }
                     else if (requestData.Contains("region_name"))
@@ -2502,6 +2498,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         string region_name = (string) requestData["region_name"];
                         if (!m_application.SceneManager.TrySetCurrentScene(region_name))
                             throw new Exception(String.Format("failed to switch to region {0}", region_name));
+
                         m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_name);
                     }
                     else throw new Exception("neither region_name nor region_uuid given");
@@ -2560,18 +2557,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 Hashtable requestData = (Hashtable) request.Params[0];
 
-                // check completeness
-                foreach (string p in new string[] {"password", "filename"})
-                {
-                    if (!requestData.Contains(p))
-                        throw new Exception(String.Format("missing parameter {0}", p));
-                    if (String.IsNullOrEmpty((string) requestData[p]))
-                        throw new Exception(String.Format("parameter {0} is empty"));
-                }
+                CheckStringParameters(request, new string[] {
+                            "password", "filename"});
 
-                // check password
-                if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                    (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                 string filename = (string) requestData["filename"];
                 if (requestData.Contains("region_uuid"))
@@ -2646,17 +2635,17 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 Hashtable requestData = (Hashtable) request.Params[0];
 
-                // check completeness
-                if (!requestData.Contains("password"))
-                    throw new Exception(String.Format("missing required parameter"));
-                if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                    (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                CheckStringParameters(request, new string[] {
+                            "password"});
+
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                 if (requestData.Contains("region_uuid"))
                 {
                     UUID region_uuid = (UUID) (string) requestData["region_uuid"];
                     if (!m_application.SceneManager.TrySetCurrentScene(region_uuid))
                         throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+
                     m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_uuid.ToString());
                 }
                 else if (requestData.Contains("region_name"))
@@ -2664,6 +2653,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     string region_name = (string) requestData["region_name"];
                     if (!m_application.SceneManager.TrySetCurrentScene(region_name))
                         throw new Exception(String.Format("failed to switch to region {0}", region_name));
+
                     m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_name);
                 }
                 else throw new Exception("neither region_name nor region_uuid given");
@@ -2685,6 +2675,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
 
             m_log.Info("[RADMIN]: Query XML Administrator Request complete");
+
             return response;
         }
 
@@ -2703,14 +2694,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 Hashtable requestData = (Hashtable) request.Params[0];
 
-                // check completeness
-                if (!requestData.Contains("password"))
-                    throw new Exception(String.Format("missing required parameter"));
-                if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                    (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                CheckStringParameters(request, new string[] {
+                            "password", "command"});
 
-                if (!requestData.Contains("command"))
-                    throw new Exception(String.Format("missing required parameter"));
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
+
                 MainConsole.Instance.RunCommand(requestData["command"].ToString());
 
                 response.Value = responseData;
@@ -2744,10 +2732,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 Hashtable requestData = (Hashtable) request.Params[0];
 
-                if (!requestData.Contains("password"))
-                    throw new Exception(String.Format("missing required parameter"));
-                if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                    (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                CheckStringParameters(request, new string[] {
+                            "password"});
+
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                 if (requestData.Contains("region_uuid"))
                 {
@@ -2761,12 +2749,14 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     string region_name = (string) requestData["region_name"];
                     if (!m_application.SceneManager.TrySetCurrentScene(region_name))
                         throw new Exception(String.Format("failed to switch to region {0}", region_name));
+
                     m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_name);
                 }
                 else throw new Exception("neither region_name nor region_uuid given");
 
                 Scene scene = m_application.SceneManager.CurrentScene;
                 scene.RegionInfo.EstateSettings.EstateAccess = new UUID[]{};
+
                 if (scene.RegionInfo.Persistent)
                     scene.RegionInfo.EstateSettings.Save();
             }
@@ -2801,10 +2791,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 Hashtable requestData = (Hashtable) request.Params[0];
 
-                if (!requestData.Contains("password"))
-                    throw new Exception(String.Format("missing required parameter"));
-                if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                    (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                CheckStringParameters(request, new string[] {
+                        "password"});
+
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                 if (requestData.Contains("region_uuid"))
                 {
@@ -2888,10 +2878,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 Hashtable requestData = (Hashtable) request.Params[0];
 
-                if (!requestData.Contains("password"))
-                    throw new Exception(String.Format("missing required parameter"));
-                if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                    (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                CheckStringParameters(request, new string[] {
+                            "password"});
+
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                 if (requestData.Contains("region_uuid"))
                 {
@@ -2975,10 +2965,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 Hashtable requestData = (Hashtable) request.Params[0];
 
-                if (!requestData.Contains("password"))
-                    throw new Exception(String.Format("missing required parameter"));
-                if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                    (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                CheckStringParameters(request, new string[] {
+                            "password"});
+
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
 
                 if (requestData.Contains("region_uuid"))
                 {
@@ -3192,7 +3182,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 bool success = false;
                 if (authenticationService != null)
                     success = authenticationService.SetPassword(account.PrincipalID, password);
-                if (!success) {
+
+                if (!success)
+                {
                     m_log.WarnFormat("[RADMIN]: Unable to set password for account {0} {1}.",
                        firstName, lastName);
                     return false;
