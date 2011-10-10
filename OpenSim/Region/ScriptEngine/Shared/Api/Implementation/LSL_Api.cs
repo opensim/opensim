@@ -5925,7 +5925,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llGetRegionFPS()
         {
             m_host.AddScriptLPS(1);
-            return World.StatsReporter.getLastReportedSimFPS();
+            return World.StatsReporter.LastReportedSimFPS;
         }
 
 

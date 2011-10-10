@@ -78,6 +78,19 @@ namespace OpenSim.Region.Framework.Scenes
             UnAckedBytes = 24,
         }
 
+        /// <summary>
+        /// This is for llGetRegionFPS
+        /// </summary>
+        public float LastReportedSimFPS
+        {
+            get { return lastReportedSimFPS; }
+        }
+
+        public float[] LastReportedSimStats
+        {
+            get { return lastReportedSimStats; }
+        }
+
         // Sending a stats update every 3 seconds-
         private int statsUpdatesEveryMS = 3000;
         private float statsUpdateFactor = 0;
@@ -435,19 +448,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void SetActiveScripts(int count)
         {
             m_activeScripts = count;
-        }
-
-        /// <summary>
-        /// This is for llGetRegionFPS
-        /// </summary>
-        public float getLastReportedSimFPS()
-        {
-            return lastReportedSimFPS;
-        }
-        
-        public float[] getLastReportedSimStats()
-        {
-            return lastReportedSimStats;
         }
 
         public void AddPacketsStats(int inPackets, int outPackets, int unAckedBytes)
