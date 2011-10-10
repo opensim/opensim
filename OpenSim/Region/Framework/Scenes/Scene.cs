@@ -513,19 +513,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_sceneGraph.m_syncRoot; }
         }
 
-        /// <summary>
-        /// This is for llGetRegionFPS
-        /// </summary>
-        public float SimulatorFPS
-        {
-            get { return StatsReporter.getLastReportedSimFPS(); }
-        }
-        
-        public float[] SimulatorStats
-        {
-            get { return StatsReporter.getLastReportedSimStats(); }
-        }
-
         public string DefaultScriptEngine
         {
             get { return m_defaultScriptEngine; }
