@@ -41,12 +41,17 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring.Monitors
 
         #region Implementation of IMonitor
 
+        public string GetName()
+        {
+            return "LastFrameTimeMonitor";
+        }
+
         public double GetValue()
         {
             return Environment.TickCount - m_scene.MonitorLastFrameTick;
         }
 
-        public string GetName()
+        public string GetFriendlyName()
         {
             return "Last Completed Frame At";
         }

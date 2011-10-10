@@ -40,12 +40,17 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring.Monitors
 
         #region Implementation of IMonitor
 
+        public string GetName()
+        {
+            return "TotalFrameMonitor";
+        }
+
         public double GetValue()
         {
             return m_scene.MonitorFrameTime;
         }
 
-        public string GetName()
+        public string GetFriendlyName()
         {
             return "Total Frame Time";
         }

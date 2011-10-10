@@ -32,12 +32,17 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring.Monitors
     {
         #region Implementation of IMonitor
 
+        public string GetName()
+        {
+            return "ThreadCountMonitor";
+        }
+
         public double GetValue()
         {
             return System.Diagnostics.Process.GetCurrentProcess().Threads.Count;
         }
 
-        public string GetName()
+        public string GetFriendlyName()
         {
             return "Total Threads";
         }

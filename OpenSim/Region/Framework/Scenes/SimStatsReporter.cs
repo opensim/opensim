@@ -52,7 +52,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private YourStatsAreWrong handlerStatsIncorrect = null;
 
-        private enum Stats : uint
+        public enum Stats : uint
         {
             TimeDilation = 0,
             SimFPS = 1,

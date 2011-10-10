@@ -29,8 +29,31 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
 {
     interface IMonitor
     {
-        double GetValue();
+        /// <summary>
+        /// Name of the monitor.
+        /// </summary>
+        /// <remarks>
+        /// This is the name used in XML.
+        /// </remarks>
+        /// <returns></returns>
         string GetName();
-        string GetFriendlyValue(); // Convert to readable numbers
+
+        /// <summary>
+        /// Value of this monitor
+        /// </summary>
+        /// <returns></returns>
+        double GetValue();
+
+        /// <summary>
+        /// Human-readable name of the monitor
+        /// </summary>
+        /// <returns></returns>
+        string GetFriendlyName();
+
+        /// <summary>
+        /// Human readable value.
+        /// </summary>
+        /// <returns></returns>
+        string GetFriendlyValue();
     }
 }
