@@ -41,16 +41,48 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
 {
     public class MonitorModule : IRegionModule 
     {
+        /// <summary>
+        /// Is this module enabled?
+        /// </summary>
+        public bool Enabled { get; private set; }
+
         private Scene m_scene;
         private readonly List<IMonitor> m_monitors = new List<IMonitor>();
         private readonly List<IAlert> m_alerts = new List<IAlert>();
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        #region Implementation of IRegionModule
+
+        public MonitorModule()
+        {
+            Enabled = true;
+        }
+
+        public void Initialise(Scene scene, IConfigSource source)
+        {
+            IConfig cnfg = source.Configs["Monitoring"];
+
+            if (cnfg != null)
+                Enabled = cnfg.GetBoolean("Enabled", true);
+            
+            if (!Enabled)
+                return;
+
+            m_scene = scene;
+
+            m_scene.AddCommand(this, "monitor report",
+                               "monitor report",
+                               "Returns a variety of statistics about the current region and/or simulator",
+                               DebugMonitors);
+
+            MainServer.Instance.AddHTTPHandler("/monitorstats/" + m_scene.RegionInfo.RegionID, StatsPage);
+        }
+
         public void DebugMonitors(string module, string[] args)
         {
             foreach (IMonitor monitor in m_monitors)
             {
-                m_log.Info("[MonitorModule] " + m_scene.RegionInfo.RegionName + " reports " + monitor.GetName() + " = " + monitor.GetFriendlyValue());
+                m_log.Info("[MonitorModule]: " + m_scene.RegionInfo.RegionName + " reports " + monitor.GetName() + " = " + monitor.GetFriendlyValue());
             }
         }
 
@@ -60,20 +92,6 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             {
                 alert.Test();
             }
-        }
-
-        #region Implementation of IRegionModule
-
-        public void Initialise(Scene scene, IConfigSource source)
-        {
-            m_scene = scene;
-
-            m_scene.AddCommand(this, "monitor report",
-                               "monitor report",
-                               "Returns a variety of statistics about the current region and/or simulator",
-                               DebugMonitors);
-
-            MainServer.Instance.AddHTTPHandler("/monitorstats/" + m_scene.RegionInfo.RegionID, StatsPage);
         }
 
         public Hashtable StatsPage(Hashtable request)
@@ -133,6 +151,9 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
 
         public void PostInitialise()
         {
+            if (!Enabled)
+                return;
+
             m_monitors.Add(new AgentCountMonitor(m_scene));
             m_monitors.Add(new ChildAgentCountMonitor(m_scene));
             m_monitors.Add(new GCMemoryMonitor());
@@ -161,7 +182,6 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
 
         public void Close()
         {
-            
         }
 
         public string Name
