@@ -251,7 +251,6 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             public string BodyData;
             public string ContentType;
             public byte FrontAlpha = 255;
-            public UUID LastAssetID;
             public string Params;
             public UUID PrimID;
             public bool SetNewFrontAlpha = false;
@@ -264,7 +263,6 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
             public DynamicTextureUpdater()
             {
-                LastAssetID = UUID.Zero;
                 UpdateTimer = 0;
                 BodyData = null;
             }
@@ -307,21 +305,21 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 }
 
                 // Create a new asset for user
-                AssetBase asset = new AssetBase(UUID.Random(), "DynamicImage" + Util.RandomClass.Next(1, 10000), (sbyte)AssetType.Texture,
-                    scene.RegionInfo.RegionID.ToString());
+                AssetBase asset
+                    = new AssetBase(
+                        UUID.Random(), "DynamicImage" + Util.RandomClass.Next(1, 10000), (sbyte)AssetType.Texture,
+                        scene.RegionInfo.RegionID.ToString());
                 asset.Data = assetData;
                 asset.Description = String.Format("URL image : {0}", Url);
                 asset.Local = false;
                 asset.Temporary = ((Disp & DISP_TEMP) != 0);
                 scene.AssetService.Store(asset);
-//                scene.CommsManager.AssetCache.AddAsset(asset);
 
                 IJ2KDecoder cacheLayerDecode = scene.RequestModuleInterface<IJ2KDecoder>();
                 if (cacheLayerDecode != null)
                 {
                     cacheLayerDecode.Decode(asset.FullID, asset.Data);
                     cacheLayerDecode = null;
-                    LastAssetID = asset.FullID;
                 }
 
                 UUID oldID = UUID.Zero;
