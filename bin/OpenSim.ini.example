@@ -149,9 +149,11 @@
 
     ;; Choose one of the physics engines below
     ;; OpenDynamicsEngine is by some distance the most developed physics engine
+    ;; BulletSim is incomplete and experimental but in active development
     ;; basicphysics effectively does not model physics at all, making all objects phantom
     ;; Default is OpenDynamicsEngine
     ; physics = OpenDynamicsEngine
+    ; physics = BulletSim
     ; physics = basicphysics
     ; physics = POS
 
