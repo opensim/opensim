@@ -804,7 +804,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (av.LinkedPrim == m_uuid)
                             {
                                 Vector3 offset = (m_offsetPosition - oldpos);
-                                av.OffsetPosition += offset;
+                                av.AbsolutePosition += offset;
                                 av.SendAvatarDataToAllAgents();
                             }
                         }

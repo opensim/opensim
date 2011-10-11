@@ -492,7 +492,9 @@ namespace OpenSim.Region.Framework.Scenes
                 PhysicsActor actor = m_physicsActor;
 //                if (actor != null)
                 if ((actor != null) && (m_parentID == 0))   // KF Do NOT update m_pos here if Av is sitting!
+				{
                     m_pos = actor.Position;
+                }
                 else
                 {
                     // Obtain the correct position of a seated avatar.
@@ -540,16 +542,20 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                if (m_parentID == 0)   // KF Do NOT update m_pos here if Av is sitting!
+//				Changed this to update unconditionally to make npose work
+//                if (m_parentID == 0)   // KF Do NOT update m_pos here if Av is sitting!
                     m_pos = value;
                 m_parentPosition = Vector3.Zero;
+
+//                m_log.DebugFormat(
+//                    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
+//                    Scene.RegionInfo.RegionName, Name, m_pos);
             }
         }
 
         public Vector3 OffsetPosition
         {
             get { return m_pos; }
-            set { m_pos = value; }
         }
 
         /// <summary>
@@ -582,6 +588,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_velocity = value;
+
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: In {0} set velocity of {1} to {2}",
+//                    Scene.RegionInfo.RegionName, Name, m_velocity);
             }
         }
 

@@ -7481,7 +7481,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
                         LSL_Vector v;
                         v = rules.GetVector3Item(idx++);
-                        av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
+                        av.AbsolutePosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
                         av.SendAvatarDataToAllAgents();
 
                         break;
