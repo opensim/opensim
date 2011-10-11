@@ -60,6 +60,8 @@ namespace OpenSim.Framework.RegionLoader.Web
             {
                 IConfig startupConfig = (IConfig) m_configSource.Configs["Startup"];
                 string url = startupConfig.GetString("regionload_webserver_url", String.Empty).Trim();
+                bool allowRegionless = startupConfig.GetBoolean("allow_regionless", false);
+
                 if (url == String.Empty)
                 {
                     m_log.Error("[WEBLOADER]: Unable to load webserver URL - URL was empty.");
@@ -67,39 +69,60 @@ namespace OpenSim.Framework.RegionLoader.Web
                 }
                 else
                 {
-                    while (tries > 0)
-                    {
-                        HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(url);
-                        webRequest.Timeout = 30000; //30 Second Timeout
-                        m_log.Debug("[WEBLOADER]: Sending Download Request...");
-                        HttpWebResponse webResponse = (HttpWebResponse) webRequest.GetResponse();
-                        m_log.Debug("[WEBLOADER]: Downloading Region Information From Remote Server...");
-                        StreamReader reader = new StreamReader(webResponse.GetResponseStream());
-                        string xmlSource = String.Empty;
-                        string tempStr = reader.ReadLine();
-                        while (tempStr != null)
-                        {
-                            xmlSource = xmlSource + tempStr;
-                            tempStr = reader.ReadLine();
-                        }
-                        m_log.Debug("[WEBLOADER]: Done downloading region information from server. Total Bytes: " +
-                                    xmlSource.Length);
-                        XmlDocument xmlDoc = new XmlDocument();
-                        xmlDoc.LoadXml(xmlSource);
-                        if (xmlDoc.FirstChild.Name == "Regions")
-                        {
-                            RegionInfo[] regionInfos = new RegionInfo[xmlDoc.FirstChild.ChildNodes.Count];
-                            int i;
-                            for (i = 0; i < xmlDoc.FirstChild.ChildNodes.Count; i++)
-                            {
-                                m_log.Debug(xmlDoc.FirstChild.ChildNodes[i].OuterXml);
-                                regionInfos[i] =
-                                    new RegionInfo("REGION CONFIG #" + (i + 1), xmlDoc.FirstChild.ChildNodes[i],false,m_configSource);
-                            }
+					while(tries > 0)
+					{
+						RegionInfo[] regionInfos = new RegionInfo[] {};
+						int regionCount = 0;
+						HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(url);
+						webRequest.Timeout = 30000; //30 Second Timeout
+						m_log.DebugFormat("[WEBLOADER]: Sending download request to {0}", url);
 
-                            if (i > 0)
-                                return regionInfos;
-                        }
+						try
+						{
+							HttpWebResponse webResponse = (HttpWebResponse) webRequest.GetResponse();
+							m_log.Debug("[WEBLOADER]: Downloading region information...");
+							StreamReader reader = new StreamReader(webResponse.GetResponseStream());
+							string xmlSource = String.Empty;
+							string tempStr = reader.ReadLine();
+							while (tempStr != null)
+							{
+								xmlSource = xmlSource + tempStr;
+								tempStr = reader.ReadLine();
+							}
+							m_log.Debug("[WEBLOADER]: Done downloading region information from server. Total Bytes: " +
+										xmlSource.Length);
+							XmlDocument xmlDoc = new XmlDocument();
+							xmlDoc.LoadXml(xmlSource);
+							if (xmlDoc.FirstChild.Name == "Regions")
+							{
+								regionCount = xmlDoc.FirstChild.ChildNodes.Count;
+		
+								if (regionCount > 0)
+								{
+									regionInfos = new RegionInfo[regionCount];
+									int i;
+									for (i = 0; i < xmlDoc.FirstChild.ChildNodes.Count; i++)
+									{
+										m_log.Debug(xmlDoc.FirstChild.ChildNodes[i].OuterXml);
+										regionInfos[i] =
+											new RegionInfo("REGION CONFIG #" + (i + 1), xmlDoc.FirstChild.ChildNodes[i],false,m_configSource);
+									}
+								}
+							}
+						}
+						catch (WebException ex)
+						{
+							if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.NotFound)
+							{
+								if (!allowRegionless)
+									throw ex;
+							}
+							else
+								throw ex;
+						}
+
+						if (regionCount > 0 | allowRegionless)
+							return regionInfos;
 
                         m_log.Debug("[WEBLOADER]: Request yielded no regions.");
                         tries--;
@@ -108,8 +131,10 @@ namespace OpenSim.Framework.RegionLoader.Web
                             m_log.Debug("[WEBLOADER]: Retrying");
                             System.Threading.Thread.Sleep(wait);
                         }
-                    }
-                    return null;
+					}
+
+					m_log.Error("[WEBLOADER]: No region configs were available.");
+					return null;
                 }
             }
         }
