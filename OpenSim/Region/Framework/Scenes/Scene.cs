@@ -896,6 +896,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (dm != null)
                 m_eventManager.OnPermissionError += dm.SendAlertToUser;
+
+            m_eventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
         }
 
         public override string GetSimulatorVersion()
@@ -5396,7 +5398,7 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
-        public void StartTimerWatchdog()
+		public void StartTimerWatchdog()
         {
             m_timerWatchdog.Interval = 1000;
             m_timerWatchdog.Elapsed += TimerWatchdog;
@@ -5407,6 +5409,70 @@ namespace OpenSim.Region.Framework.Scenes
         public void TimerWatchdog(object sender, ElapsedEventArgs e)
         {
             CheckHeartbeat();
+		}
+
+        /// This method deals with movement when an avatar is automatically moving (but this is distinct from the
+        /// autopilot that moves an avatar to a sit target!.
+        /// </summary>
+        /// <remarks>
+        /// This is not intended as a permament location for this method.
+        /// </remarks>
+        /// <param name="presence"></param>
+        private void HandleOnSignificantClientMovement(ScenePresence presence)
+        {
+            if (presence.MovingToTarget)
+            {
+                double distanceToTarget = Util.GetDistanceTo(presence.AbsolutePosition, presence.MoveToPositionTarget);
+//                            m_log.DebugFormat(
+//                                "[SCENE]: Abs pos of {0} is {1}, target {2}, distance {3}",
+//                                presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget, distanceToTarget);
+
+                // Check the error term of the current position in relation to the target position
+                if (distanceToTarget <= ScenePresence.SIGNIFICANT_MOVEMENT)
+                {
+                    // We are close enough to the target
+//                        m_log.DebugFormat("[SCENEE]: Stopping autopilot of  {0}", presence.Name);
+
+                    presence.Velocity = Vector3.Zero;
+                    presence.AbsolutePosition = presence.MoveToPositionTarget;
+                    presence.ResetMoveToTarget();
+
+                    if (presence.PhysicsActor.Flying)
+                    {
+                        // A horrible hack to stop the avatar dead in its tracks rather than having them overshoot
+                        // the target if flying.
+                        // We really need to be more subtle (slow the avatar as it approaches the target) or at
+                        // least be able to set collision status once, rather than 5 times to give it enough
+                        // weighting so that that PhysicsActor thinks it really is colliding.
+                        for (int i = 0; i < 5; i++)
+                            presence.PhysicsActor.IsColliding = true;
+
+//                            Vector3 targetPos = presence.MoveToPositionTarget;
+//                            if (m_avatars[presence.UUID].LandAtTarget)
+//                                presence.PhysicsActor.Flying = false;
+
+//                            float terrainHeight = (float)presence.Scene.Heightmap[(int)targetPos.X, (int)targetPos.Y];
+//                            if (targetPos.Z - terrainHeight < 0.2)
+//                            {
+//                                presence.PhysicsActor.Flying = false;
+//                            }
+                    }
+
+//                        m_log.DebugFormat(
+//                            "[SCENE]: AgentControlFlags {0}, MovementFlag {1} for {2}",
+//                            presence.AgentControlFlags, presence.MovementFlag, presence.Name);
+                }
+                else
+                {
+//                        m_log.DebugFormat(
+//                            "[SCENE]: Updating npc {0} at {1} for next movement to {2}",
+//                            presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget);
+
+                    Vector3 agent_control_v3 = new Vector3();
+                    presence.HandleMoveToTargetUpdate(ref agent_control_v3);
+                    presence.AddNewMovement(agent_control_v3);
+                }
+            }
         }
     }
 }

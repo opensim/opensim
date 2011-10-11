@@ -53,7 +53,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             if (config != null && config.GetBoolean("Enabled", false))
             {
                 scene.RegisterModuleInterface<INPCModule>(this);
-                scene.EventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
+//                scene.EventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
             }
         }
 
