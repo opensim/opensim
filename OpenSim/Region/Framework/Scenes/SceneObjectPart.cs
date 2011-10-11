@@ -1769,20 +1769,6 @@ namespace OpenSim.Region.Framework.Scenes
                     Name, LocalId, id);
         }
 
-        public static SceneObjectPart Create()
-        {
-            SceneObjectPart part = new SceneObjectPart();
-            part.UUID = UUID.Random();
-
-            PrimitiveBaseShape shape = PrimitiveBaseShape.Create();
-            part.Shape = shape;
-
-            part.Name = "Object";
-            part._ownerID = UUID.Random();
-
-            return part;
-        }
-
         /// <summary>
         /// Do a physics property update for a NINJA joint.
         /// </summary>
