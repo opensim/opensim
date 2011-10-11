@@ -48,11 +48,13 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
         public RegionInfo[] LoadRegions()
         {
             string regionConfigPath = Path.Combine(Util.configDir(), "Regions");
+            bool allowRegionless = false;
 
             try
             {
                 IConfig startupConfig = (IConfig)m_configSource.Configs["Startup"];
                 regionConfigPath = startupConfig.GetString("regionload_regionsdir", regionConfigPath).Trim();
+                allowRegionless = startupConfig.GetBoolean("allow_regionless", false);
             }
             catch (Exception)
             {
@@ -68,7 +70,7 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
             string[] iniFiles = Directory.GetFiles(regionConfigPath, "*.ini");
 
             // Create an empty Regions.ini if there are no existing config files.
-            if (configFiles.Length == 0 && iniFiles.Length == 0)
+            if (!allowRegionless && configFiles.Length == 0 && iniFiles.Length == 0)
             {                
                 new RegionInfo("DEFAULT REGION CONFIG", Path.Combine(regionConfigPath, "Regions.ini"), false, m_configSource);
                 iniFiles = Directory.GetFiles(regionConfigPath, "*.ini");

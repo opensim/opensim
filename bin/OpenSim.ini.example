@@ -71,6 +71,11 @@
     ;; in a <Regions> tag.
     ; regionload_webserver_url = "http://example.com/regions.xml";
 
+    ;# {allow_regionless} {} {Allow simulator to start up with no regions configured.} {true false} false
+    ;; Allow the simulator to start up if there are no region configuration available
+    ;; from the selected region_info_source.
+    ; allow_regionless = false
+
     ;# {NonPhysicalPrimMax} {} {Maximum size of nonphysical prims?} {} 256
     ;; Maximum size for non-physical prims.  Affects resizing of existing prims.  This can be overriden in the region config file (as NonphysicalPrimMax!).
     ; NonPhysicalPrimMax = 256
@@ -149,14 +154,13 @@
 
     ;; Choose one of the physics engines below
     ;; OpenDynamicsEngine is by some distance the most developed physics engine
-    ;; basicphysics effectively does not model physics at all, making all
-    ;; objects phantom
-    ;; The Bullet plugins do not work properly right now.  A better Bullet plugin is on the way.
+    ;; BulletSim is incomplete and experimental but in active development
+    ;; basicphysics effectively does not model physics at all, making all objects phantom
     ;; Default is OpenDynamicsEngine
     ; physics = OpenDynamicsEngine
+    ; physics = BulletSim
     ; physics = basicphysics
     ; physics = POS
-    ; physics = modified_BulletX
 
     ;# {permissionmodules} {} {Permission modules to use (may specify multiple modules, separated by space} {} DefaultPermissionsModule
     ;; Permission modules to use, separated by space.
@@ -218,6 +222,13 @@
     ;; The email module requires some configuration. It needs an SMTP
     ;; server to send mail through.
     ; emailmodule = DefaultEmailModule
+
+    ; Controls whether previously compiled scripts are deleted on sim restart. If you disable this 
+    ; then startup will be faster since scripts won't need to be recompiled. However, then it becomes your responsibility to delete the
+    ; compiled scripts if you're recompiling OpenSim from source code and internal interfaces used
+    ; by scripts have changed.
+    ; Default is false
+    ; DeleteScriptsOnStartup = true
 
 
 [SMTP]
@@ -589,6 +600,25 @@
     ;; VeryHigh, Severe
     OSFunctionThreatLevel = VeryLow
 
+    ; OS Functions enable/disable
+    ; For each function, you can add one line, as shown
+    ; The default for all functions allows them if below threat level
+
+    ; true allows the use of the function unconditionally
+    ; Allow_osSetRegionWaterHeight = true
+    
+    ; false disables the function completely
+    ; Allow_osSetRegionWaterHeight = false
+    
+    ; Comma separated list of UUIDS allows the function for that list of UUIDS
+    ; Allow_osSetRegionWaterHeight = 888760cb-a3cf-43ac-8ea4-8732fd3ee2bb
+
+    ; You can also use script creators as the uuid
+    ; Creators_osSetRegionWaterHeight = <uuid>, ...
+
+    ; If both Allow_ and Creators_ are given, effective permissions
+    ; are the union of the two.
+
     ;; Time a script can spend in an event handler before it is interrupted
     ; EventLimit = 30
 
@@ -740,7 +770,7 @@
     ;; "config-include/StandaloneCommon.ini.example" to "config-include/StandaloneCommon.ini" before
     ;; editing it to set the database and backend services that OpenSim will use.
     ;;
-    Include-Architecture = "config-include/Standalone.ini"
+    ; Include-Architecture = "config-include/Standalone.ini"
     ; Include-Architecture = "config-include/StandaloneHypergrid.ini"
     ; Include-Architecture = "config-include/Grid.ini"
     ; Include-Architecture = "config-include/GridHypergrid.ini"

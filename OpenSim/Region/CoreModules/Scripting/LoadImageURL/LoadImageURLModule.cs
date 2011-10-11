@@ -112,10 +112,13 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         public void PostInitialise()
         {
-            m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
-            if (m_textureManager != null)
+            if (m_scene != null)
             {
-                m_textureManager.RegisterRender(GetContentType(), this);
+                m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
+                if (m_textureManager != null)
+                {
+                    m_textureManager.RegisterRender(GetContentType(), this);
+                }
             }
         }
 

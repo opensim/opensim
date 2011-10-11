@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -89,6 +89,11 @@ namespace OpenSim.Services.Connectors
         public EstateSettings LoadEstateSettings(int estateID)
         {
             return m_database.LoadEstateSettings(estateID);
+        }
+
+        public EstateSettings CreateNewEstate()
+        {
+            return m_database.CreateNewEstate();
         }
         
         public List<EstateSettings> LoadEstateSettingsAll()

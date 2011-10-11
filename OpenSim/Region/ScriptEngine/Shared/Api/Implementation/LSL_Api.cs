@@ -2116,15 +2116,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 face = 0;
             }
+
             if (face >= 0 && face < GetNumberOfSides(part))
             {
                 Primitive.TextureEntryFace texface;
                 texface = tex.GetFace((uint)face);
-                return texface.TextureID.ToString();
+                string texture = texface.TextureID.ToString();
+
+                lock (part.TaskInventory)
+                {
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
+                    {
+                        if (inv.Value.AssetID == texface.TextureID)
+                        {
+                            texture = inv.Value.Name.ToString();
+                            break;
+                        }
+                    }
+                }
+
+                return texture;
             }
             else
             {
-                return String.Empty;
+                return UUID.Zero.ToString();
             }
         }
 
@@ -3250,10 +3265,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 SceneObjectGroup grp = m_host.ParentGroup;
 
                 ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
-                if (presence.Scene.AttachmentsModule != null)
-                {
-                    presence.Scene.AttachmentsModule.AttachObject(presence.ControllingClient, grp, (uint)attachment, false);
-                }
+
+                IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+                if (attachmentsModule != null)
+                    attachmentsModule.AttachObject(presence, grp, (uint)attachment, false);
             }
         }
 
@@ -3301,7 +3316,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
             if (attachmentsModule != null)
-                attachmentsModule.DetachSingleAttachmentToInv(itemID, presence.ControllingClient);
+                attachmentsModule.DetachSingleAttachmentToInv(presence, itemID);
         }
 
         public void llTakeCamera(string avatar)
@@ -3953,7 +3968,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             parentPrim.ScheduleGroupForFullUpdate();
 
             if (client != null)
-                parentPrim.GetProperties(client);
+                parentPrim.SendPropertiesToClient(client);
 
             ScriptSleep(1000);
         }
@@ -4104,6 +4119,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetLinkKey(int linknum)
         {
             m_host.AddScriptLPS(1);
+            List<UUID> keytable = new List<UUID>();
+            // parse for sitting avatare-uuids
+            World.ForEachScenePresence(delegate(ScenePresence presence)
+            {
+                if (!presence.IsChildAgent && presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
+                    keytable.Add(presence.UUID);
+            });
+
+            int totalprims = m_host.ParentGroup.PrimCount + keytable.Count;
+            if (linknum > m_host.ParentGroup.PrimCount && linknum <= totalprims)
+            {
+                return keytable[totalprims - linknum].ToString();
+            }
+
+            if (linknum == 1 && m_host.ParentGroup.PrimCount == 1 && keytable.Count == 1)
+            {
+                return m_host.UUID.ToString();
+            }
+
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
             if (part != null)
             {
@@ -4160,6 +4194,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetLinkName(int linknum)
         {
             m_host.AddScriptLPS(1);
+            // parse for sitting avatare-names
+            List<String> nametable = new List<String>();
+            World.ForEachScenePresence(delegate(ScenePresence presence)
+            {
+                if (!presence.IsChildAgent && presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
+                    nametable.Add(presence.ControllingClient.Name);
+            });
+
+            int totalprims = m_host.ParentGroup.PrimCount + nametable.Count;
+            if (totalprims > m_host.ParentGroup.PrimCount)
+            {
+                // sitting Avatar-Name with negativ linknum / SinglePrim
+                if (linknum < 0 && m_host.ParentGroup.PrimCount == 1 && nametable.Count == 1)
+                    return nametable[0];
+                // Prim-Name / SinglePrim Sitting Avatar
+                if (linknum == 1 && m_host.ParentGroup.PrimCount == 1 && nametable.Count == 1)
+                    return m_host.Name;
+                // LinkNumber > of Real PrimSet = AvatarName
+                if (linknum > m_host.ParentGroup.PrimCount && linknum <= totalprims)
+                    return nametable[totalprims - linknum];
+            }
 
             // simplest case, this prims link number
             if (m_host.LinkNum == linknum)
@@ -4173,6 +4228,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                     return UUID.Zero.ToString();
             }
+
             // Link set
             SceneObjectPart part = null;
             if (m_host.LinkNum == 1) // this is the Root prim
@@ -4619,8 +4675,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llCollisionSound(string impact_sound, double impact_volume)
         {
-
             m_host.AddScriptLPS(1);
+            
             // TODO: Parameter check logic required.
             UUID soundId = UUID.Zero;
             if (!UUID.TryParse(impact_sound, out soundId))
@@ -6756,6 +6812,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_host.GetAvatarOnSitTarget().ToString();
         }
 
+        // http://wiki.secondlife.com/wiki/LlAvatarOnLinkSitTarget
+        public LSL_String llAvatarOnLinkSitTarget(int linknum)
+        {
+            m_host.AddScriptLPS(1);
+            if(linknum == ScriptBaseClass.LINK_SET || 
+                linknum == ScriptBaseClass.LINK_ALL_CHILDREN ||
+                linknum == ScriptBaseClass.LINK_ALL_OTHERS) return UUID.Zero.ToString();
+           
+            List<SceneObjectPart> parts = GetLinkParts(linknum);
+            if (parts.Count == 0) return UUID.Zero.ToString(); 
+            return parts[0].SitTargetAvatar.ToString();
+        }
+
+
         public void llAddToLandPassList(string avatar, double hours)
         {
             m_host.AddScriptLPS(1);
@@ -7481,7 +7551,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
                         LSL_Vector v;
                         v = rules.GetVector3Item(idx++);
-                        av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
+                        av.AbsolutePosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
                         av.SendAvatarDataToAllAgents();
 
                         break;

@@ -172,11 +172,12 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// <summary>
         /// Update an inventory item with data that has been received through a
         /// transaction.
-        ///
+        /// </summary>
+        /// <remarks>
         /// This is called when clothing or body parts are updated (for
         /// instance, with new textures or colours). It may also be called in
         /// other situations.
-        /// </summary>
+        /// </remarks>
         /// <param name="remoteClient"></param>
         /// <param name="transactionID"></param>
         /// <param name="item"></param>
@@ -184,14 +185,12 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 UUID transactionID, InventoryItemBase item)
         {
 //            m_log.DebugFormat(
-//                "[TRANSACTIONS MANAGER] Called HandleItemUpdateFromTransaction with item {0}",
+//                "[ASSET TRANSACTION MODULE]: Called HandleItemUpdateFromTransaction with item {0}",
 //                item.Name);
 
-            AgentAssetTransactions transactions =
-                    GetUserTransactions(remoteClient.AgentId);
+            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
 
-            transactions.RequestUpdateInventoryItem(remoteClient,
-                    transactionID, item);
+            transactions.RequestUpdateInventoryItem(remoteClient, transactionID, item);
         }
 
         /// <summary>
@@ -255,11 +254,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 }
             }
 
-            AgentAssetTransactions transactions =
-                    GetUserTransactions(remoteClient.AgentId);
-
-            AssetXferUploader uploader =
-                    transactions.RequestXferUploader(transaction);
+            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
+            AssetXferUploader uploader = transactions.RequestXferUploader(transaction, assetID);
 
             if (uploader != null)
             {
@@ -279,9 +275,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         public void HandleXfer(IClientAPI remoteClient, ulong xferID,
                 uint packetID, byte[] data)
         {
-            //m_log.Debug("xferID: " + xferID + "  packetID: " + packetID + "  data!");
-            AgentAssetTransactions transactions =
-                    GetUserTransactions(remoteClient.AgentId);
+//            m_log.Debug("xferID: " + xferID + "  packetID: " + packetID + "  data length " + data.Length);
+            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
 
             transactions.HandleXfer(xferID, packetID, data);
         }

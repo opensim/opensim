@@ -101,7 +101,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
 
             part.ParentGroup.HasGroupChanged = true;
 
-            part.GetProperties(client);
+            part.SendPropertiesToClient(client);
         }
 
         public bool BuyObject(IClientAPI remoteClient, UUID categoryID, uint localID, byte saleType, int salePrice)
@@ -142,7 +142,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 part.SalePrice = 10;
 
                 group.HasGroupChanged = true;
-                part.GetProperties(remoteClient);
+                part.SendPropertiesToClient(remoteClient);
                 part.TriggerScriptChangedEvent(Changed.OWNER);
                 group.ResumeScripts();
                 part.ScheduleFullUpdate();

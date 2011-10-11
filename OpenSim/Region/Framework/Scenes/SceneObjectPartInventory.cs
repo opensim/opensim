@@ -988,11 +988,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool CreateInventoryFileName()
         {
+//            m_log.DebugFormat(
+//                "[PRIM INVENTORY]: Creating inventory file for {0} {1} {2}, serial {3}",
+//                m_part.Name, m_part.UUID, m_part.LocalId, m_inventorySerial);
+
             if (m_inventoryFileName == String.Empty ||
                 m_inventoryFileNameSerial < m_inventorySerial)
             {
                 m_inventoryFileName = "inventory_" + UUID.Random().ToString() + ".tmp";
                 m_inventoryFileNameSerial = m_inventorySerial;
+
                 return true;
             }
 
@@ -1025,6 +1030,12 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+			if (m_items.Count == 0) // No inventory
+			{
+				client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+				return;
+			}
+    
             if (!changed)
             {
                 if (m_inventoryFileData.Length > 2)
@@ -1096,10 +1107,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_inventoryFileData.Length > 2)
             {
                 xferManager.AddNewFile(m_inventoryFileName, m_inventoryFileData);
+				client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
+						Util.StringToBytes256(m_inventoryFileName));
+				return;
             }
 
-            client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
-                    Util.StringToBytes256(m_inventoryFileName));
+			client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
         }
 
         /// <summary>

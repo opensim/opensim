@@ -27,8 +27,8 @@
 
 using System;
 using System.Xml;
+using System.Collections.Generic;
 using OpenMetaverse;
-using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
@@ -40,6 +40,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// RezAttachments. This should only be called upon login on the first region.
         /// Attachment rezzings on crossings and TPs are done in a different way.
         /// </summary>
+        /// <param name="sp"></param>
         void RezAttachments(IScenePresence sp);
 
         /// <summary>
@@ -50,43 +51,21 @@ namespace OpenSim.Region.Framework.Interfaces
 
         /// <summary>
         /// Delete all the presence's attachments from the scene
-        /// </summary>
-        /// <param name="sp">
         /// This is done when a root agent leaves/is demoted to child (for instance, on logout, teleport or region cross).
-        /// </param>
+        /// </summary>
+        /// <param name="sp"></param>
         /// <param name="silent"></param>
         void DeleteAttachmentsFromScene(IScenePresence sp, bool silent);
 
         /// <summary>
-        /// Attach an object to an avatar from the world.
-        /// </summary>
-        /// <param name="controllingClient"></param>
-        /// <param name="localID"></param>
-        /// <param name="attachPoint"></param>
-        /// <param name="rot"></param>
-        /// <param name="silent"></param>
-        void AttachObject(
-            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent);
-
-        /// <summary>
         /// Attach an object to an avatar
         /// </summary>
-        /// <param name="remoteClient"></param>
+        /// <param name="sp"></param>
         /// <param name="grp"></param>
         /// <param name="AttachmentPt"></param>
         /// <param name="silent"></param>
         /// <returns>true if the object was successfully attached, false otherwise</returns>
-        bool AttachObject(
-            IClientAPI remoteClient, SceneObjectGroup grp, uint AttachmentPt, bool silent);
-
-        /// <summary>
-        /// Rez an attachment from user inventory and change inventory status to match.
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="itemID"></param>
-        /// <param name="AttachmentPt"></param>
-        /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
-        ISceneEntity RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
+        bool AttachObject(IScenePresence sp, SceneObjectGroup grp, uint AttachmentPt, bool silent);
 
         /// <summary>
         /// Rez an attachment from user inventory and change inventory status to match.
@@ -95,51 +74,32 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="itemID"></param>
         /// <param name="AttachmentPt"></param>
         /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
-        ISceneEntity RezSingleAttachmentFromInventory(ScenePresence sp, UUID itemID, uint AttachmentPt);
+        ISceneEntity RezSingleAttachmentFromInventory(IScenePresence sp, UUID itemID, uint AttachmentPt);
 
         // Same as above, but also load script states from a separate doc
         ISceneEntity RezSingleAttachmentFromInventory(
-            IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus, XmlDocument doc);
+            IScenePresence presence, UUID itemID, uint AttachmentPt, bool updateInventoryStatus, XmlDocument doc);
 
         /// <summary>
         /// Rez multiple attachments from a user's inventory
         /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="header"></param>
-        /// <param name="objects"></param>
-        void RezMultipleAttachmentsFromInventory(
-            IClientAPI remoteClient,
-            RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
-            RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects);
-
-        /// <summary>
-        /// Detach an object from the avatar.
-        /// </summary>
-        /// <remarks>
-        /// This method is called in response to a client's detach request, so we only update the information in
-        /// inventory
-        /// </remarks>
-        /// <param name="objectLocalID"></param>
-        /// <param name="remoteClient"></param>
-        void DetachObject(uint objectLocalID, IClientAPI remoteClient);
+        /// <param name="sp"></param>
+        /// <param name="rezlist"></param>
+        void RezMultipleAttachmentsFromInventory(IScenePresence sp,List<KeyValuePair<UUID, uint>> rezlist);
             
         /// <summary>
         /// Detach the given item to the ground.
         /// </summary>
+        /// <param name="sp"></param>
         /// <param name="objectLocalID"></param>
-        /// <param name="remoteClient"></param>
-        void DetachSingleAttachmentToGround(uint objectLocalID, IClientAPI remoteClient);
+        void DetachSingleAttachmentToGround(IScenePresence sp, uint objectLocalID);
 
         /// <summary>
         /// Detach the given item so that it remains in the user's inventory.
         /// </summary>
-        /// <param name="itemID">
-        /// A <see cref="UUID"/>
-        /// </param>
-        /// <param name="remoteClient">
-        /// A <see cref="IClientAPI"/>
-        /// </param>
-        void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient);
+        /// <param name="sp">/param>
+        /// <param name="itemID"></param>
+        void DetachSingleAttachmentToInv(IScenePresence sp, UUID itemID);
         
         /// Update the position of an attachment.
         /// </summary>

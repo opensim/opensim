@@ -8,6 +8,7 @@
 <target name="distbin">
   <copy file="bin/OpenSim.ini.example" tofile="bin/OpenSim.ini"/>
   <copy file="bin/config-include/StandaloneCommon.ini.example" tofile="bin/config-include/StandaloneCommon.ini"/>
+  <copy file="bin/config-include/FlotsamCache.ini.example" tofile="bin/config-include/FlotsamCache.ini"/>
   <delete dir="${distbindir}"/>
   <copy todir="${distbindir}">
     <fileset>

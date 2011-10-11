@@ -225,6 +225,8 @@ namespace OpenSim.Framework
         /// </summary>
         public virtual void ResetAppearance()
         {
+//            m_log.WarnFormat("[AVATAR APPEARANCE]: Reset appearance");
+            
             m_serial = 0;
 
             SetDefaultTexture();

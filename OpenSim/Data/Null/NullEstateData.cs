@@ -84,6 +84,11 @@ namespace OpenSim.Data.Null
         {
             return new EstateSettings();
         }
+
+        public EstateSettings CreateNewEstate()
+        {
+            return new EstateSettings();
+        }
         
         public List<EstateSettings> LoadEstateSettingsAll()
         {

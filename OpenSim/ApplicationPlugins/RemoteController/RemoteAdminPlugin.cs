@@ -844,21 +844,30 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         }
                         
                         // Create a new estate with the name provided
-                        region.EstateSettings = m_application.EstateDataService.LoadEstateSettings(region.RegionID, true);
+                        region.EstateSettings = m_application.EstateDataService.CreateNewEstate();
 
                         region.EstateSettings.EstateName = (string) requestData["estate_name"];
                         region.EstateSettings.EstateOwner = userID;
                         // Persistence does not seem to effect the need to save a new estate
                         region.EstateSettings.Save();
+
+                        if (!m_application.EstateDataService.LinkRegion(region.RegionID, (int) region.EstateSettings.EstateID))
+                            throw new Exception("Failed to join estate.");
                     }
                     else
                     {
                         int estateID = estateIDs[0];
 
-                        region.EstateSettings = m_application.EstateDataService.LoadEstateSettings(estateID);
+                        region.EstateSettings = m_application.EstateDataService.LoadEstateSettings(region.RegionID, false);
 
-                        if (!m_application.EstateDataService.LinkRegion(region.RegionID, estateID))
-                            throw new Exception("Failed to join estate.");
+                        if (region.EstateSettings.EstateID != estateID)
+                        {
+                            // The region is already part of an estate, but not the one we want.
+                            region.EstateSettings = m_application.EstateDataService.LoadEstateSettings(estateID);
+
+                            if (!m_application.EstateDataService.LinkRegion(region.RegionID, estateID))
+                                throw new Exception("Failed to join estate.");
+                        }
                     }
                     
                     // Create the region and perform any initial initialization
@@ -2434,10 +2443,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>UUID of the region</description></item>
         /// <item><term>region_name</term>
         ///       <description>region name</description></item>
-        ///       <item><term>profile</term>
+        /// <item><term>profile</term>
         ///       <description>profile url</description></item>
         /// <item><term>noassets</term>
         ///       <description>true if no assets should be saved</description></item>
+        /// <item><term>perm</term>
+        ///       <description>C and/or T</description></item>
         /// </list>
         ///
         /// <code>region_uuid</code> takes precedence over
@@ -2510,6 +2521,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (requestData["noassets"] == "true")
                 {
                     options["noassets"] = (string)requestData["noassets"] ;
+                }
+
+                if (requestData.Contains("perm"))
+                {
+                    options["checkPermissions"] = (string)requestData["perm"];
                 }
 
                 IRegionArchiverModule archiver = scene.RequestModuleInterface<IRegionArchiverModule>();

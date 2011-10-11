@@ -55,6 +55,14 @@ namespace OpenSim.Region.Framework.Interfaces
         EstateSettings LoadEstateSettings(int estateID);
         
         /// <summary>
+        /// Create a new estate.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="EstateSettings"/>
+        /// </returns>
+        EstateSettings CreateNewEstate();
+
+        /// <summary>
         /// Load/Get all estate settings.
         /// </summary>
         /// <returns>An empty list if no estates were found.</returns>

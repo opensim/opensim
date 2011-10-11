@@ -233,6 +233,7 @@ namespace OpenSim.Tools.Configger
                     config = defaultConfig.AddConfig("Startup");
 
                 config.Set("region_info_source", "filesystem");
+                config.Set("allow_regionless", false);
 
                 config.Set("gridmode", false);
                 config.Set("physics", "OpenDynamicsEngine");

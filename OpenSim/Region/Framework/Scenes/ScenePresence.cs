@@ -71,7 +71,7 @@ namespace OpenSim.Region.Framework.Scenes
     {
 //        ~ScenePresence()
 //        {
-//            m_log.Debug("[ScenePresence] Destructor called");
+//            m_log.Debug("[SCENE PRESENCE] Destructor called");
 //        }
         
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -191,8 +191,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Quaternion m_bodyRot = Quaternion.Identity;
 
-        private Quaternion m_bodyRotPrevious = Quaternion.Identity;
-
         private const int LAND_VELOCITYMAG_MAX = 12;
 
         public bool IsRestrictedToRegion;
@@ -237,6 +235,11 @@ namespace OpenSim.Region.Framework.Scenes
         public bool MovingToTarget { get; private set; }
         public Vector3 MoveToPositionTarget { get; private set; }
         private Quaternion m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Controls whether an avatar automatically moving to a target will land when it gets there (if flying).
+        /// </summary>
+        public bool LandAtTarget { get; private set; }
 
         private bool m_followCamAuto;
 
@@ -492,7 +495,13 @@ namespace OpenSim.Region.Framework.Scenes
                 PhysicsActor actor = m_physicsActor;
 //                if (actor != null)
                 if ((actor != null) && (m_parentID == 0))   // KF Do NOT update m_pos here if Av is sitting!
+				{
                     m_pos = actor.Position;
+
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: Set position {0} for {1} in {2} via getting AbsolutePosition!",
+//                        m_pos, Name, Scene.RegionInfo.RegionName);
+                }
                 else
                 {
                     // Obtain the correct position of a seated avatar.
@@ -536,20 +545,28 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        m_log.Error("[SCENEPRESENCE]: ABSOLUTE POSITION " + e.Message);
+                        m_log.Error("[SCENE PRESENCE]: ABSOLUTE POSITION " + e.Message);
                     }
                 }
 
-                if (m_parentID == 0)   // KF Do NOT update m_pos here if Av is sitting!
+//				Changed this to update unconditionally to make npose work
+//                if (m_parentID == 0)   // KF Do NOT update m_pos here if Av is sitting!
                     m_pos = value;
                 m_parentPosition = Vector3.Zero;
+
+//                m_log.DebugFormat(
+//                    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
+//                    Scene.RegionInfo.RegionName, Name, m_pos);
             }
         }
 
+        /// <summary>
+        /// If sitting, returns the offset position from the prim the avatar is sitting on.
+        /// Otherwise, returns absolute position in the scene.
+        /// </summary>
         public Vector3 OffsetPosition
         {
             get { return m_pos; }
-            set { m_pos = value; }
         }
 
         /// <summary>
@@ -561,7 +578,13 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 PhysicsActor actor = m_physicsActor;
                 if (actor != null)
+                {
                     m_velocity = actor.Velocity;
+
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: Set velocity {0} for {1} in {2} via getting Velocity!",
+//                        m_velocity, Name, Scene.RegionInfo.RegionName);
+                }
 
                 return m_velocity;
             }
@@ -577,11 +600,15 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        m_log.Error("[SCENEPRESENCE]: VELOCITY " + e.Message);
+                        m_log.Error("[SCENE PRESENCE]: VELOCITY " + e.Message);
                     }
                 }
 
                 m_velocity = value;
+
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: In {0} set velocity of {1} to {2}",
+//                    Scene.RegionInfo.RegionName, Name, m_velocity);
             }
         }
 
@@ -618,12 +645,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
                 }
             }
-        }
-
-        public Quaternion PreviousRotation
-        {
-            get { return m_bodyRotPrevious; }
-            set { m_bodyRotPrevious = value; }
         }
 
         /// <summary>
@@ -1126,7 +1147,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Animator.ResetAnimations();
 
 //            m_log.DebugFormat(
-//                 "[SCENEPRESENCE]: Downgrading root agent {0}, {1} to a child agent in {2}",
+//                 "[SCENE PRESENCE]: Downgrading root agent {0}, {1} to a child agent in {2}",
 //                 Name, UUID, m_scene.RegionInfo.RegionName);
 
             // Don't zero out the velocity since this can cause problems when an avatar is making a region crossing,
@@ -1302,7 +1323,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_callbackURI = null;
             }
 
-            //m_log.DebugFormat("Completed movement");
+            //m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
 
             m_controllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
             SendInitialData();
@@ -1813,7 +1834,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// This is to allow movement to targets that are known to be on an elevated platform with a continuous path
         /// from start to finish.
         /// </param>
-        public void MoveToTarget(Vector3 pos, bool noFly)
+        /// <param name="landAtTarget">
+        /// If true and the avatar starts flying during the move then land at the target.
+        /// </param>
+        public void MoveToTarget(Vector3 pos, bool noFly, bool landAtTarget)
         {
             m_log.DebugFormat(
                 "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
@@ -1839,7 +1863,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Fudge factor.  It appears that if one clicks "go here" on a piece of ground, the go here request is
             // always slightly higher than the actual terrain height.
-            // FIXME: This constrains NOC movements as well, so should be somewhere else.
+            // FIXME: This constrains NPC movements as well, so should be somewhere else.
             if (pos.Z - terrainHeight < 0.2)
                 pos.Z = terrainHeight;
 
@@ -1852,8 +1876,24 @@ namespace OpenSim.Region.Framework.Scenes
             else if (pos.Z > terrainHeight)
                 PhysicsActor.Flying = true;
 
+            LandAtTarget = landAtTarget;
             MovingToTarget = true;
             MoveToPositionTarget = pos;
+
+            // Rotate presence around the z-axis to point in same direction as movement.
+            // Ignore z component of vector
+            Vector3 localVectorToTarget3D = pos - AbsolutePosition;
+            Vector3 localVectorToTarget2D = new Vector3((float)(localVectorToTarget3D.X), (float)(localVectorToTarget3D.Y), 0f);
+
+//            m_log.DebugFormat("[SCENE PRESENCE]: Local vector to target is {0}", localVectorToTarget2D);
+
+            // Calculate the yaw.
+            Vector3 angle = new Vector3(0, 0, (float)(Math.Atan2(localVectorToTarget2D.Y, localVectorToTarget2D.X)));
+
+//            m_log.DebugFormat("[SCENE PRESENCE]: Angle is {0}", angle);
+
+            Rotation = Quaternion.CreateFromEulers(angle);
+//            m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, Rotation);
 
             Vector3 agent_control_v3 = new Vector3();
             HandleMoveToTargetUpdate(ref agent_control_v3);
@@ -2744,7 +2784,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 pos = m_pos;
                 pos.Z += m_appearance.HipOffset;
 
-                //m_log.DebugFormat("[SCENEPRESENCE]: TerseUpdate: Pos={0} Rot={1} Vel={2}", m_pos, m_bodyRot, m_velocity);
+                //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, m_bodyRot, m_velocity);
 
                 remoteClient.SendPrimUpdate(
                     this,
@@ -2831,6 +2871,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private void SendInitialData()
         {
+            //m_log.DebugFormat("[SCENE PRESENCE] SendInitialData: {0} ({1})", Name, UUID);
             // Moved this into CompleteMovement to ensure that m_appearance is initialized before
             // the inventory arrives
             // m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
@@ -2875,10 +2916,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendAvatarDataToAllAgents()
         {
+            //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAllAgents: {0} ({1})", Name, UUID);
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
             {
-                m_log.Warn("[SCENEPRESENCE] attempt to send avatar data from a child agent");
+                m_log.Warn("[SCENE PRESENCE] attempt to send avatar data from a child agent");
                 return;
             }
             
@@ -2928,7 +2970,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="avatar"></param>
         public void SendAvatarDataToAgent(ScenePresence avatar)
         {
-//            m_log.WarnFormat("[SP] Send avatar data from {0} to {1}",m_uuid,avatar.ControllingClient.AgentId);
+            //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAgent from {0} ({1}) to {2} ({3})", Name, UUID, avatar.Name, avatar.UUID);
 
             avatar.ControllingClient.SendAvatarDataImmediate(this);
             if (Animator != null)
@@ -2941,10 +2983,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendAppearanceToAllOtherAgents()
         {
+            m_log.DebugFormat("[SCENE PRESENCE] SendAppearanceToAllOtherAgents: {0} ({1})", Name, UUID);
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
             {
-                m_log.Warn("[SCENEPRESENCE] attempt to send avatar data from a child agent");
+                m_log.Warn("[SCENE PRESENCE] attempt to send avatar data from a child agent");
                 return;
             }
             
@@ -2970,6 +3013,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendOtherAgentsAppearanceToMe()
         {
+            //m_log.DebugFormat("[SCENE PRESENCE] SendOtherAgentsAppearanceToMe: {0} ({1})", Name, UUID);
             m_perfMonMS = Util.EnvironmentTickCount();
 
             int count = 0;
@@ -3618,7 +3662,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Handles part of the PID controller function for moving an avatar.
         /// </summary>
-        public override void UpdateMovement()
+        public void UpdateMovement()
         {
             if (m_forceToApply.HasValue)
             {
@@ -3637,6 +3681,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void AddToPhysicalScene(bool isFlying)
         {
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Adding physics actor for {0}, ifFlying = {1} in {2}",
+//                Name, isFlying, Scene.RegionInfo.RegionName);
+
             if (m_appearance.AvatarHeight == 0)
                 m_appearance.SetHeight();
 

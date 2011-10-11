@@ -26,8 +26,10 @@
  */
 
 using System;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
+using log4net;
 using OpenSim.Framework;
 using OpenMetaverse;
 
@@ -35,6 +37,8 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public abstract class EntityBase : ISceneEntity
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The scene to which this entity belongs
         /// </summary>
@@ -71,12 +75,15 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_pos;
 
         /// <summary>
-        ///
+        /// Absolute position of this entity in a scene.
         /// </summary>
         public virtual Vector3 AbsolutePosition
         {
             get { return m_pos; }
-            set { m_pos = value; }
+            set
+            {
+                m_pos = value;
+            }
         }
 
         protected Vector3 m_velocity;
@@ -106,11 +113,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_name = "(basic entity)";
         }
-
-        /// <summary>
-        ///
-        /// </summary>
-        public abstract void UpdateMovement();
 
         /// <summary>
         /// Performs any updates that need to be done at each frame, as opposed to immediately.

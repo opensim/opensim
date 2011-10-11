@@ -45,7 +45,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IUserAccountService m_UserService;
+        /// <summary>
+        /// This is not on the IUserAccountService.  It's only being used so that standalone scenes can punch through
+        /// to a local UserAccountService when setting up an estate manager.
+        /// </summary>
+        public IUserAccountService UserAccountService { get; private set; }
+
         private UserAccountCache m_Cache;
 
         private bool m_Enabled = false;
@@ -86,9 +91,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                     }
 
                     Object[] args = new Object[] { source };
-                    m_UserService = ServerUtils.LoadPlugin<IUserAccountService>(serviceDll, args);
+                    UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(serviceDll, args);
 
-                    if (m_UserService == null)
+                    if (UserAccountService == null)
                     {
                         m_log.ErrorFormat(
                             "[LOCAL USER ACCOUNT SERVICE CONNECTOR]: Cannot load user account service specified as {0}", serviceDll);
@@ -119,7 +124,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             if (!m_Enabled)
                 return;
 
-            scene.RegisterModuleInterface<IUserAccountService>(m_UserService);
+            // FIXME: Why do we bother setting this module and caching up if we just end up registering the inner
+            // user account service?!
+            scene.RegisterModuleInterface<IUserAccountService>(UserAccountService);
             scene.RegisterModuleInterface<IUserAccountCacheModule>(m_Cache);
         }
 
@@ -148,7 +155,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             if (inCache)
                 return account;
 
-            account = m_UserService.GetUserAccount(scopeID, userID);
+            account = UserAccountService.GetUserAccount(scopeID, userID);
             m_Cache.Cache(userID, account);
 
             return account;
@@ -161,7 +168,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             if (inCache)
                 return account;
 
-            account = m_UserService.GetUserAccount(scopeID, firstName, lastName);
+            account = UserAccountService.GetUserAccount(scopeID, firstName, lastName);
             if (account != null)
                 m_Cache.Cache(account.PrincipalID, account);
 
@@ -170,7 +177,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public UserAccount GetUserAccount(UUID scopeID, string Email)
         {
-            return m_UserService.GetUserAccount(scopeID, Email);
+            return UserAccountService.GetUserAccount(scopeID, Email);
         }
 
         public List<UserAccount> GetUserAccountsWhere(UUID scopeID, string query)
@@ -180,17 +187,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public List<UserAccount> GetUserAccounts(UUID scopeID, string query)
         {
-            return m_UserService.GetUserAccounts(scopeID, query);
+            return UserAccountService.GetUserAccounts(scopeID, query);
         }
 
         // Update all updatable fields
         //
         public bool StoreUserAccount(UserAccount data)
         {
-            return m_UserService.StoreUserAccount(data);
+            return UserAccountService.StoreUserAccount(data);
         }
 
         #endregion
-
     }
 }

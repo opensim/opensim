@@ -64,15 +64,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             scene.RegisterModuleInterface<IAvatarFactory>(this);
             scene.EventManager.OnNewClient += NewClient;
 
-            if (config != null)
+            IConfig sconfig = config.Configs["Startup"];
+            if (sconfig != null)
             {
-                IConfig sconfig = config.Configs["Startup"];
-                if (sconfig != null)
-                {
-                    m_savetime = Convert.ToInt32(sconfig.GetString("DelayBeforeAppearanceSave",Convert.ToString(m_savetime)));
-                    m_sendtime = Convert.ToInt32(sconfig.GetString("DelayBeforeAppearanceSend",Convert.ToString(m_sendtime)));
-                    // m_log.InfoFormat("[AVFACTORY] configured for {0} save and {1} send",m_savetime,m_sendtime);
-                }
+                m_savetime = Convert.ToInt32(sconfig.GetString("DelayBeforeAppearanceSave",Convert.ToString(m_savetime)));
+                m_sendtime = Convert.ToInt32(sconfig.GetString("DelayBeforeAppearanceSend",Convert.ToString(m_sendtime)));
+                // m_log.InfoFormat("[AVFACTORY] configured for {0} save and {1} send",m_savetime,m_sendtime);
             }
 
             if (m_scene == null)
@@ -211,8 +208,17 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 // Process the visual params, this may change height as well
                 if (visualParams != null)
                 {
+//                    string[] visualParamsStrings = new string[visualParams.Length];
+//                    for (int i = 0; i < visualParams.Length; i++)
+//                        visualParamsStrings[i] = visualParams[i].ToString();
+//                    m_log.DebugFormat(
+//                        "[AVFACTORY]: Setting visual params for {0} to {1}",
+//                        client.Name, string.Join(", ", visualParamsStrings));
+
+                    float oldHeight = sp.Appearance.AvatarHeight;
                     changed = sp.Appearance.SetVisualParams(visualParams);
-                    if (sp.Appearance.AvatarHeight > 0)
+
+                    if (sp.Appearance.AvatarHeight != oldHeight && sp.Appearance.AvatarHeight > 0)
                         sp.SetHeight(sp.Appearance.AvatarHeight);
                 }
 
@@ -416,6 +422,13 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             // m_log.WarnFormat("[AVFACTORY] avatar {0} save appearance",agentid);
 
+            // This could take awhile since it needs to pull inventory
+            // We need to do it at the point of save so that there is a sufficient delay for any upload of new body part/shape
+            // assets and item asset id changes to complete.
+            // I don't think we need to worry about doing this within m_setAppearanceLock since the queueing avoids
+            // multiple save requests.
+            SetAppearanceAssets(sp.UUID, sp.Appearance);
+
             m_scene.AvatarService.SetAppearance(agentid, sp.Appearance);
         }
 
@@ -467,7 +480,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 return;
             }
 
-            // m_log.WarnFormat("[AVFACTORY]: Received request for wearables of {0}", client.AgentId);
+//            m_log.DebugFormat("[AVFACTORY]: Received request for wearables of {0}", client.Name);
 
             client.SendWearables(sp.Appearance.Wearables, sp.Appearance.Serial++);
         }
@@ -502,9 +515,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             avatAppearance.GetAssetsFrom(sp.Appearance);
 
-            // This could take awhile since it needs to pull inventory
-            SetAppearanceAssets(sp.UUID, ref avatAppearance);
-
             lock (m_setAppearanceLock)
             {
                 // Update only those fields that we have changed. This is important because the viewer
@@ -538,7 +548,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             return true;
         }
 
-        private void SetAppearanceAssets(UUID userID, ref AvatarAppearance appearance)
+        private void SetAppearanceAssets(UUID userID, AvatarAppearance appearance)
         {
             IInventoryService invService = m_scene.InventoryService;
 

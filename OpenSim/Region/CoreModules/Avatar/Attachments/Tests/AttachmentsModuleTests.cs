@@ -106,7 +106,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, attName).ParentGroup;
 
-            m_attMod.AttachObject(m_presence.ControllingClient, so, (uint)AttachmentPoint.Chest, false);
+            m_attMod.AttachObject(m_presence, so, (uint)AttachmentPoint.Chest, false);
 
             // Check status on scene presence
             Assert.That(m_presence.HasAttachments(), Is.True);
@@ -140,7 +140,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 scene, attName, attItemId, attAssetId, m_presence.UUID, InventoryType.Object);
 
             m_attMod.RezSingleAttachmentFromInventory(
-                m_presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
+                m_presence, attItemId, (uint)AttachmentPoint.Chest);
 
             // Check scene presence status
             Assert.That(m_presence.HasAttachments(), Is.True);
@@ -174,8 +174,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 scene, attName, attItemId, attAssetId, m_presence.UUID, InventoryType.Object);
 
             ISceneEntity so = m_attMod.RezSingleAttachmentFromInventory(
-                m_presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
-            m_attMod.DetachSingleAttachmentToGround(so.LocalId, m_presence.ControllingClient);
+                m_presence, attItemId, (uint)AttachmentPoint.Chest);
+            m_attMod.DetachSingleAttachmentToGround(m_presence, so.LocalId);
 
             // Check scene presence status
             Assert.That(m_presence.HasAttachments(), Is.False);
@@ -208,8 +208,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 scene, attName, attItemId, attAssetId, m_presence.UUID, InventoryType.Object);
 
             m_attMod.RezSingleAttachmentFromInventory(
-                m_presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
-            m_attMod.DetachSingleAttachmentToInv(attItemId, m_presence.ControllingClient);
+                m_presence, attItemId, (uint)AttachmentPoint.Chest);
+            m_attMod.DetachSingleAttachmentToInv(m_presence, attItemId);
 
             // Check status on scene presence
             Assert.That(m_presence.HasAttachments(), Is.False);

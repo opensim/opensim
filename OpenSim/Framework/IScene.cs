@@ -33,15 +33,12 @@ namespace OpenSim.Framework
 {
     public delegate void restart(RegionInfo thisRegion);
 
-    //public delegate void regionup (RegionInfo thisRegion);
-
     public enum RegionStatus : int
     {
         Down = 0,
         Up = 1,
         Crashed = 2,
         Starting = 3,
-        SlaveScene = 4
     };
             
     /// <value>

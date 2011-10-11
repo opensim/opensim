@@ -929,25 +929,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             UUID sessionID = useCircuitCode.CircuitCode.SessionID;
             uint circuitCode = useCircuitCode.CircuitCode.Code;
 
-            if (m_scene.RegionStatus != RegionStatus.SlaveScene)
+            AuthenticateResponse sessionInfo;
+            if (IsClientAuthorized(useCircuitCode, out sessionInfo))
             {
-                AuthenticateResponse sessionInfo;
-                if (IsClientAuthorized(useCircuitCode, out sessionInfo))
-                {
-                    AddClient(circuitCode, agentID, sessionID, remoteEndPoint, sessionInfo);
-                }
-                else
-                {
-                    // Don't create circuits for unauthorized clients
-                    m_log.WarnFormat(
-                        "[LLUDPSERVER]: Connection request for client {0} connecting with unnotified circuit code {1} from {2}",
-                        useCircuitCode.CircuitCode.ID, useCircuitCode.CircuitCode.Code, remoteEndPoint);
-                }
+                AddClient(circuitCode, agentID, sessionID, remoteEndPoint, sessionInfo);
             }
             else
             {
-                // Slave regions don't accept new clients
-                m_log.Debug("[LLUDPSERVER]: Slave region " + m_scene.RegionInfo.RegionName + " ignoring UseCircuitCode packet");
+                // Don't create circuits for unauthorized clients
+                m_log.WarnFormat(
+                    "[LLUDPSERVER]: Connection request for client {0} connecting with unnotified circuit code {1} from {2}",
+                    useCircuitCode.CircuitCode.ID, useCircuitCode.CircuitCode.Code, remoteEndPoint);
             }
         }
 

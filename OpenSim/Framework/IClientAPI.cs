@@ -53,8 +53,7 @@ namespace OpenSim.Framework
 
     public delegate ISceneEntity RezSingleAttachmentFromInv(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
 
-    public delegate void RezMultipleAttachmentsFromInv(IClientAPI remoteClient, RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
-                                                       RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects);
+    public delegate void RezMultipleAttachmentsFromInv(IClientAPI remoteClient, List<KeyValuePair<UUID, uint>> rezlist );
 
     public delegate void ObjectAttach(
         IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent);
@@ -940,7 +939,7 @@ namespace OpenSim.Framework
         event ScriptReset OnScriptReset;
         event GetScriptRunning OnGetScriptRunning;
         event SetScriptRunning OnSetScriptRunning;
-        event Action<Vector3, bool> OnAutoPilotGo;
+        event Action<Vector3, bool, bool> OnAutoPilotGo;
 
         event TerrainUnacked OnUnackedTerrain;
         event ActivateGesture OnActivateGesture;
