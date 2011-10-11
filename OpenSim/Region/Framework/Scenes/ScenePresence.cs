@@ -3661,6 +3661,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void AddToPhysicalScene(bool isFlying)
         {
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Adding physics actor for {0}, ifFlying = {1} in {2}",
+//                Name, isFlying, Scene.RegionInfo.RegionName);
+
             if (m_appearance.AvatarHeight == 0)
                 m_appearance.SetHeight();
 

@@ -211,8 +211,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 // Process the visual params, this may change height as well
                 if (visualParams != null)
                 {
+                    float oldHeight = sp.Appearance.AvatarHeight;
                     changed = sp.Appearance.SetVisualParams(visualParams);
-                    if (sp.Appearance.AvatarHeight > 0)
+
+                    if (sp.Appearance.AvatarHeight != oldHeight && sp.Appearance.AvatarHeight > 0)
                         sp.SetHeight(sp.Appearance.AvatarHeight);
                 }
 
