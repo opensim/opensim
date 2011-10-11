@@ -1863,7 +1863,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Fudge factor.  It appears that if one clicks "go here" on a piece of ground, the go here request is
             // always slightly higher than the actual terrain height.
-            // FIXME: This constrains NOC movements as well, so should be somewhere else.
+            // FIXME: This constrains NPC movements as well, so should be somewhere else.
             if (pos.Z - terrainHeight < 0.2)
                 pos.Z = terrainHeight;
 
@@ -1878,6 +1878,21 @@ namespace OpenSim.Region.Framework.Scenes
 
             MovingToTarget = true;
             MoveToPositionTarget = pos;
+
+            // Rotate presence around the z-axis to point in same direction as movement.
+            // Ignore z component of vector
+            Vector3 localVectorToTarget3D = pos - AbsolutePosition;
+            Vector3 localVectorToTarget2D = new Vector3((float)(localVectorToTarget3D.X), (float)(localVectorToTarget3D.Y), 0f);
+
+//            m_log.DebugFormat("[SCENE PRESENCE]: Local vector to target is {0}", localVectorToTarget2D);
+
+            // Calculate the yaw.
+            Vector3 angle = new Vector3(0, 0, (float)(Math.Atan2(localVectorToTarget2D.Y, localVectorToTarget2D.X)));
+
+//            m_log.DebugFormat("[SCENE PRESENCE]: Angle is {0}", angle);
+
+            Rotation = Quaternion.CreateFromEulers(angle);
+//            m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, Rotation);
 
             Vector3 agent_control_v3 = new Vector3();
             HandleMoveToTargetUpdate(ref agent_control_v3);

@@ -182,18 +182,21 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             scene.Update();
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 
-            Vector3 targetPos = startPos + new Vector3(0, 0, 10);
+            Vector3 targetPos = startPos + new Vector3(0, 10, 0);
             npcModule.MoveToTarget(npc.UUID, scene, targetPos, false, false);
 
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
+            //Assert.That(npc.Rotation, Is.EqualTo(new Quaternion(0, 0, 0.7071068f, 0.7071068f)));
+            Assert.That(
+                npc.Rotation, new QuaternionToleranceConstraint(new Quaternion(0, 0, 0.7071068f, 0.7071068f), 0.000001));
 
             scene.Update();
 
             // We should really check the exact figure.
             Assert.That(npc.AbsolutePosition.X, Is.EqualTo(startPos.X));
-            Assert.That(npc.AbsolutePosition.Y, Is.EqualTo(startPos.Y));
-            Assert.That(npc.AbsolutePosition.Z, Is.GreaterThan(startPos.Z));
-            Assert.That(npc.AbsolutePosition.Z, Is.LessThan(targetPos.Z));
+            Assert.That(npc.AbsolutePosition.Y, Is.GreaterThan(startPos.Y));
+            Assert.That(npc.AbsolutePosition.Z, Is.EqualTo(startPos.Z));
+            Assert.That(npc.AbsolutePosition.Z, Is.LessThan(targetPos.X));
 
             for (int i = 0; i < 10; i++)
                 scene.Update();
@@ -207,6 +210,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             startPos = npc.AbsolutePosition;
             targetPos = startPos + new Vector3(10, 0, 0);
             npcModule.MoveToTarget(npc.UUID, scene, targetPos, false, false);
+
+            Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
+//            Assert.That(npc.Rotation, Is.EqualTo(new Quaternion(0, 0, 0, 1)));
+            Assert.That(
+                npc.Rotation, new QuaternionToleranceConstraint(new Quaternion(0, 0, 0, 1), 0.000001));
 
             scene.Update();
 
