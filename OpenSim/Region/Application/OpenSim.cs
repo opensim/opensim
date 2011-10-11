@@ -210,10 +210,6 @@ namespace OpenSim
         /// </summary>
         private void RegisterConsoleCommands()
         {
-            m_console.Commands.AddCommand("region", false, "clear assets",
-                                          "clear assets",
-                                          "Clear the asset cache", HandleClearAssets);
-
             m_console.Commands.AddCommand("region", false, "force update",
                                           "force update",
                                           "Force the update of all objects on clients",
@@ -507,11 +503,6 @@ namespace OpenSim
                     m_log.Info("[!]" + currentLine);
                 }
             }
-        }
-
-        private void HandleClearAssets(string module, string[] args)
-        {
-            MainConsole.Instance.Output("Not implemented.");
         }
 
         /// <summary>
