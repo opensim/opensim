@@ -1107,10 +1107,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_inventoryFileData.Length > 2)
             {
                 xferManager.AddNewFile(m_inventoryFileName, m_inventoryFileData);
+				client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
+						Util.StringToBytes256(m_inventoryFileName));
+				return;
             }
 
-            client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
-                    Util.StringToBytes256(m_inventoryFileName));
+			client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
         }
 
         /// <summary>

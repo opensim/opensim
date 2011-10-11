@@ -4173,8 +4173,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             while (updatesThisCall < m_maxUpdates)
             {
                 lock (m_entityProps.SyncRoot)
-                        if (!m_entityProps.TryDequeue(out iupdate, out timeinqueue))
-                            break;
+                    if (!m_entityProps.TryDequeue(out iupdate, out timeinqueue))
+                        break;
 
                 ObjectPropertyUpdate update = (ObjectPropertyUpdate)iupdate;
                 if (update.SendFamilyProps)

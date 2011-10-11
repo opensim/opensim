@@ -1357,8 +1357,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion Public Properties with only Get
 
-        #region Private Methods
-
         private uint ApplyMask(uint val, bool set, uint mask)
         {
             if (set)
@@ -1371,14 +1369,35 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private void SendObjectPropertiesToClient(UUID AgentID)
+        /// <summary>
+        /// Clear all pending updates of parts to clients
+        /// </summary>
+        private void ClearUpdateSchedule()
+        {
+            m_updateFlag = 0;
+        }
+
+        /// <summary>
+        /// Send this part's properties (name, description, inventory serial, base mask, etc.) to a client
+        /// </summary>
+        /// <param name="client"></param>
+        public void SendPropertiesToClient(IClientAPI client)
+        {
+            client.SendObjectPropertiesReply(this);
+        }
+
+        /// <summary>
+        /// For the scene object group to which this part belongs, send that scene object's root part properties to a client.
+        /// </summary>
+        /// <param name="AgentID"></param>
+        private void SendRootPartPropertiesToClient(UUID AgentID)
         {
             m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
             {
                 // Ugly reference :(
                 if (avatar.UUID == AgentID)
                 {
-                    m_parentGroup.GetProperties(avatar.ControllingClient);
+                    m_parentGroup.SendPropertiesToClient(avatar.ControllingClient);
                 }
             });
         }
@@ -1406,8 +1425,6 @@ namespace OpenSim.Region.Framework.Scenes
         //         }
         //     }
         // }
-
-        #endregion Private Methods
 
         #region Public Methods
 
@@ -2075,11 +2092,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return PhysActor.Force;
             else
                 return Vector3.Zero;
-        }
-
-        public void GetProperties(IClientAPI client)
-        {
-            client.SendObjectPropertiesReply(this);
         }
 
         /// <summary>
@@ -3500,7 +3512,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             _groupID = groupID;
             if (client != null)
-                GetProperties(client);
+                SendPropertiesToClient(client);
             m_updateFlag = 2;
         }
 
@@ -4320,10 +4332,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                         break;
                 }
+
                 SendFullUpdateToAllClients();
 
-                SendObjectPropertiesToClient(AgentID);
-
+                SendRootPartPropertiesToClient(AgentID);
             }
         }
 

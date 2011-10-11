@@ -261,7 +261,7 @@ namespace OpenSim.Region.Framework.Scenes
             item.AssetID = asset.FullID;
             group.UpdateInventoryItem(item);
             
-            part.GetProperties(remoteClient);
+            part.SendPropertiesToClient(remoteClient);
 
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
             ArrayList errors = new ArrayList();
@@ -1005,7 +1005,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 group.RemoveInventoryItem(localID, itemID);
-                part.GetProperties(remoteClient);
+                part.SendPropertiesToClient(remoteClient);
             }
         }
 
@@ -1283,7 +1283,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (TryGetScenePresence(srcTaskItem.OwnerID, out avatar))
             {
-                destPart.GetProperties(avatar.ControllingClient);
+                destPart.SendPropertiesToClient(avatar.ControllingClient);
             }
         }
 
@@ -1446,7 +1446,7 @@ namespace OpenSim.Region.Framework.Scenes
                             m_log.InfoFormat(
                                 "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}",
                                 item.Name, primLocalID, remoteClient.Name);
-                            part.GetProperties(remoteClient);
+                            part.SendPropertiesToClient(remoteClient);
                             if (!Permissions.BypassPermissions())
                             {
                                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
@@ -1534,7 +1534,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (part.Inventory.UpdateInventoryItem(itemInfo))
                     {
-                        part.GetProperties(remoteClient);
+                        part.SendPropertiesToClient(remoteClient);
                     }
                 }
             }
@@ -1586,7 +1586,7 @@ namespace OpenSim.Region.Framework.Scenes
                         //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
                         //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
                         //                                         item.inventoryName, localID, remoteClient.Name);
-                        part.GetProperties(remoteClient);
+                        part.SendPropertiesToClient(remoteClient);
                         part.ParentGroup.ResumeScripts();
                     }
                     else
@@ -1644,7 +1644,7 @@ namespace OpenSim.Region.Framework.Scenes
                 taskItem.AssetID = asset.FullID;
 
                 part.Inventory.AddInventoryItem(taskItem, false);
-                part.GetProperties(remoteClient);
+                part.SendPropertiesToClient(remoteClient);
 
                 part.Inventory.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 0);
                 part.ParentGroup.ResumeScripts();
@@ -1758,7 +1758,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (TryGetScenePresence(srcTaskItem.OwnerID, out avatar))
             {
-                destPart.GetProperties(avatar.ControllingClient);
+                destPart.SendPropertiesToClient(avatar.ControllingClient);
             }
         }
 
@@ -2217,7 +2217,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart part = GetSceneObjectPart(localID);
 	            if (part == null)
 	                continue;
-                part.GetProperties(remoteClient);
+                part.SendPropertiesToClient(remoteClient);
             }
         }
 
