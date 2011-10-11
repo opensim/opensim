@@ -3662,7 +3662,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Handles part of the PID controller function for moving an avatar.
         /// </summary>
-        public override void UpdateMovement()
+        public void UpdateMovement()
         {
             if (m_forceToApply.HasValue)
             {
