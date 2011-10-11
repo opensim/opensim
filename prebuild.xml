@@ -2083,34 +2083,6 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Region.Examples.SimpleModule" path="OpenSim/Region/Examples/SimpleModule" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-
-      <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
-      <Reference name="OpenMetaverse" path="../../../../bin/"/>
-      <Reference name="System"/>
-      <Reference name="System.Core"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="Nini" path="../../../../bin/"/>
-      <Reference name="log4net" path="../../../../bin/"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-
     <!-- Data Base Modules -->
     <Project frameworkVersion="v3_5" name="OpenSim.Data.MySQL" path="OpenSim/Data/MySQL" type="Library">
       <Configuration name="Debug">
