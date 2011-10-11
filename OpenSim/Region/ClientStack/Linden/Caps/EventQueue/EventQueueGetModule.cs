@@ -179,9 +179,10 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 Queue<OSD> queue = GetQueue(avatarID);
                 if (queue != null)
-                    queue.Enqueue(ev);
+                    lock (queue)
+                        queue.Enqueue(ev);
             } 
-            catch(NullReferenceException e)
+            catch (NullReferenceException e)
             {
                 m_log.Error("[EVENTQUEUE] Caught exception: " + e);
                 return false;
@@ -338,12 +339,8 @@ namespace OpenSim.Region.ClientStack.Linden
             Queue<OSD> queue = GetQueue(agentID);
             if (queue != null)
                 lock (queue)
-                {
-                    if (queue.Count > 0)
-                        return true;
-                    else
-                        return false;
-                }
+                    return queue.Count > 0;
+
             return false;
         }
 
@@ -357,8 +354,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     return NoEvents(requestID, pAgentId);
                 element = queue.Dequeue(); // 15s timeout
             }
-
-
 
             int thisID = 0;
             lock (m_ids)
@@ -431,7 +426,10 @@ namespace OpenSim.Region.ClientStack.Linden
 //            }
 
             Queue<OSD> queue = TryGetQueue(agentID);
-            OSD element = queue.Dequeue(); // 15s timeout
+            OSD element;
+
+            lock (queue)
+                element = queue.Dequeue(); // 15s timeout
 
             Hashtable responsedata = new Hashtable();
             
@@ -470,10 +468,14 @@ namespace OpenSim.Region.ClientStack.Linden
             else
             {
                 array.Add(element);
-                while (queue.Count > 0)
+
+                lock (queue)
                 {
-                    array.Add(queue.Dequeue());
-                    thisID++;
+                    while (queue.Count > 0)
+                    {
+                        array.Add(queue.Dequeue());
+                        thisID++;
+                    }
                 }
             }
 
@@ -520,6 +522,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         AvatarID = m_QueueUUIDAvatarMapping[capUUID];
                     }
                 }
+                
                 if (AvatarID != UUID.Zero)
                 {
                     return ProcessQueue(request, AvatarID, m_scene.CapsModule.GetCapsForUser(AvatarID));
