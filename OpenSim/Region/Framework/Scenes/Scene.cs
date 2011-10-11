@@ -5447,10 +5447,10 @@ namespace OpenSim.Region.Framework.Scenes
                         for (int i = 0; i < 5; i++)
                             presence.PhysicsActor.IsColliding = true;
 
-//                            Vector3 targetPos = presence.MoveToPositionTarget;
-//                            if (m_avatars[presence.UUID].LandAtTarget)
-//                                presence.PhysicsActor.Flying = false;
+                        if (presence.LandAtTarget)
+                            presence.PhysicsActor.Flying = false;
 
+//                            Vector3 targetPos = presence.MoveToPositionTarget;
 //                            float terrainHeight = (float)presence.Scene.Heightmap[(int)targetPos.X, (int)targetPos.Y];
 //                            if (targetPos.Z - terrainHeight < 0.2)
 //                            {

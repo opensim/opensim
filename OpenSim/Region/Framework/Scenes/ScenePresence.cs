@@ -236,6 +236,11 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 MoveToPositionTarget { get; private set; }
         private Quaternion m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
+        /// <summary>
+        /// Controls whether an avatar automatically moving to a target will land when it gets there (if flying).
+        /// </summary>
+        public bool LandAtTarget { get; private set; }
+
         private bool m_followCamAuto;
 
         private int m_movementUpdateCount;
@@ -1829,7 +1834,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// This is to allow movement to targets that are known to be on an elevated platform with a continuous path
         /// from start to finish.
         /// </param>
-        public void MoveToTarget(Vector3 pos, bool noFly)
+        /// <param name="landAtTarget">
+        /// If true and the avatar starts flying during the move then land at the target.
+        /// </param>
+        public void MoveToTarget(Vector3 pos, bool noFly, bool landAtTarget)
         {
             m_log.DebugFormat(
                 "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
@@ -1868,6 +1876,7 @@ namespace OpenSim.Region.Framework.Scenes
             else if (pos.Z > terrainHeight)
                 PhysicsActor.Flying = true;
 
+            LandAtTarget = landAtTarget;
             MovingToTarget = true;
             MoveToPositionTarget = pos;
 
