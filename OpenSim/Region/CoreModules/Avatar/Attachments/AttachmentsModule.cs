@@ -368,8 +368,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void RezMultipleAttachmentsFromInventory(
             IClientAPI remoteClient, 
-            RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
-            RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects)
+            List<KeyValuePair<UUID, uint>> rezlist)
         {
             if (!Enabled)
                 return;
@@ -388,9 +387,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             {
 //                m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing multiple attachments from inventory for {0}", sp.Name);
 
-                foreach (RezMultipleAttachmentsFromInvPacket.ObjectDataBlock obj in objects)
+                foreach (KeyValuePair<UUID, uint> rez in rezlist)
                 {
-                    RezSingleAttachmentFromInventory(sp, obj.ItemID, obj.AttachmentPt);
+                    RezSingleAttachmentFromInventory(sp, rez.Key, rez.Value);
                 }
             }
         }

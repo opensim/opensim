@@ -27,6 +27,7 @@
 
 using System;
 using System.Xml;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -109,8 +110,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="objects"></param>
         void RezMultipleAttachmentsFromInventory(
             IClientAPI remoteClient,
-            RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
-            RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects);
+            List<KeyValuePair<UUID, uint>> rezlist);
 
         /// <summary>
         /// Detach an object from the avatar.
