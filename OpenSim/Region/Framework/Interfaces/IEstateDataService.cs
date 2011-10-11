@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -48,6 +48,14 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="estateID"></param>
         /// <returns></returns>        
         EstateSettings LoadEstateSettings(int estateID);
+
+        /// <summary>
+        /// Create a new estate.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="EstateSettings"/>
+        /// </returns>
+        EstateSettings CreateNewEstate();
         
         /// <summary>
         /// Load/Get all estate settings.
