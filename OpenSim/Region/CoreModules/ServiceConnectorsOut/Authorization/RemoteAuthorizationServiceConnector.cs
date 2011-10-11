@@ -141,11 +141,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             
             if (scene != null)
             {
+                string mail = String.Empty;
+                
                 UserAccount account = scene.UserAccountService.GetUserAccount(UUID.Zero, new UUID(userID));
+
+                //if account not found, we assume its a foreign visitor from HG, else use account data...
+                if (account != null)
+                {
+                    mail = account.Email;
+                    firstName = account.FirstName;
+                    lastName = account.LastName;
+                }
 
                 isAuthorized
                     = IsAuthorizedForRegion(
-                        userID, firstName, lastName, account.Email, scene.RegionInfo.RegionName, regionID, out message);
+                        userID, firstName, lastName, mail, scene.RegionInfo.RegionName, regionID, out message);
             }
             else
             {
