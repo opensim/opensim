@@ -500,6 +500,14 @@ namespace OpenSim
             return clientServer;
         }
 
+        /// <summary>
+        /// Try to set up the estate owner for the given scene.
+        /// </summary>
+        /// <remarks>
+        /// The involves asking the user for information about the user on the console.  If the user does not already
+        /// exist then it is created.
+        /// </remarks>
+        /// <param name="scene"></param>
         private void SetUpEstateOwner(Scene scene)
         {
             RegionInfo regionInfo = scene.RegionInfo;
@@ -531,8 +539,9 @@ namespace OpenSim
                     string password = MainConsole.Instance.PasswdPrompt("Password");
                     string email = MainConsole.Instance.CmdPrompt("Email", "");
 
-                    // TODO: Where do we put m_regInfo.ScopeID?
-                    account = ((UserAccountService)scene.UserAccountService).CreateUser(first, last, password, email);
+                    account
+                        = ((UserAccountService)scene.UserAccountService).CreateUser(
+                            regionInfo.ScopeID, first, last, password, email);
                 }
 //                    }
             }
