@@ -191,8 +191,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Quaternion m_bodyRot = Quaternion.Identity;
 
-        private Quaternion m_bodyRotPrevious = Quaternion.Identity;
-
         private const int LAND_VELOCITYMAG_MAX = 12;
 
         public bool IsRestrictedToRegion;
@@ -642,12 +640,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
                 }
             }
-        }
-
-        public Quaternion PreviousRotation
-        {
-            get { return m_bodyRotPrevious; }
-            set { m_bodyRotPrevious = value; }
         }
 
         /// <summary>
