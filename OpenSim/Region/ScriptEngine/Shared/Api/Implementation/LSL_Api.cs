@@ -2116,11 +2116,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 face = 0;
             }
+
             if (face >= 0 && face < GetNumberOfSides(part))
             {
                 Primitive.TextureEntryFace texface;
                 texface = tex.GetFace((uint)face);
-                return texface.TextureID.ToString();
+                string texture = texface.TextureID.ToString();
+
+                lock (part.TaskInventory)
+                {
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
+                    {
+                        if (inv.Value.AssetID == texface.TextureID)
+                        {
+                            texture = inv.Value.Name.ToString();
+                            break;
+                        }
+                    }
+                }
+
+                return texture;
             }
             else
             {
