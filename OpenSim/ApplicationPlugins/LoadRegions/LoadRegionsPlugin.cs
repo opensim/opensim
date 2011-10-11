@@ -186,35 +186,5 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
             return true;
         }
-
-        public void LoadRegionFromConfig(OpenSimBase openSim, ulong regionhandle)
-        {
-            m_log.Info("[LOADREGIONS]: Load Regions addin being initialised");
-
-            IRegionLoader regionLoader;
-            if (openSim.ConfigSource.Source.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
-            {
-                m_log.Info("[LOADREGIONS]: Loading Region Info from filesystem");
-                regionLoader = new RegionLoaderFileSystem();
-            }
-            else
-            {
-                m_log.Info("[LOADREGIONS]: Loading Region Info from web");
-                regionLoader = new RegionLoaderWebServer();
-            }
-
-            regionLoader.SetIniConfigSource(openSim.ConfigSource.Source);
-            RegionInfo[] regionsToLoad = regionLoader.LoadRegions();
-            for (int i = 0; i < regionsToLoad.Length; i++)
-            {
-                if (regionhandle == regionsToLoad[i].RegionHandle)
-                {
-                    IScene scene;
-                    m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " +
-                                Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-                    openSim.CreateRegion(regionsToLoad[i], true, out scene);
-                }
-            }
-        }
     }
 }
