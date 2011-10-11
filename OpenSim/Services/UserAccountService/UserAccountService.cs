@@ -28,14 +28,14 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using log4net;
 using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Data;
+using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Console;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
-
-using OpenMetaverse;
-using log4net;
 
 namespace OpenSim.Services.UserAccountService
 {
@@ -44,10 +44,16 @@ namespace OpenSim.Services.UserAccountService
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static UserAccountService m_RootInstance;
 
+        /// <summary>
+        /// Should we create default entries (minimum body parts/clothing, avatar wearable entries) for a new avatar?
+        /// </summary>
+        private bool m_CreateDefaultAvatarEntries;
+
         protected IGridService m_GridService;
         protected IAuthenticationService m_AuthenticationService;
         protected IGridUserService m_GridUserService;
         protected IInventoryService m_InventoryService;
+        protected IAvatarService m_AvatarService;
 
         public UserAccountService(IConfigSource config)
             : base(config)
@@ -77,6 +83,12 @@ namespace OpenSim.Services.UserAccountService
                 if (invServiceDll != string.Empty)
                     m_InventoryService = LoadPlugin<IInventoryService>(invServiceDll, new Object[] { config });
 
+                string avatarServiceDll = userConfig.GetString("AvatarService", string.Empty);
+                if (avatarServiceDll != string.Empty)
+                    m_AvatarService = LoadPlugin<IAvatarService>(avatarServiceDll, new Object[] { config });
+
+                m_CreateDefaultAvatarEntries = userConfig.GetBoolean("CreateDefaultAvatarEntries", false);
+
                 if (MainConsole.Instance != null)
                 {
                     MainConsole.Instance.Commands.AddCommand("UserService", false,
@@ -102,9 +114,7 @@ namespace OpenSim.Services.UserAccountService
                             "show account <first> <last>",
                             "Show account details for the given user", HandleShowAccount);
                 }
-
             }
-
         }
 
         #region IUserAccountService
@@ -512,18 +522,146 @@ namespace OpenSim.Services.UserAccountService
                     {
                         success = m_InventoryService.CreateUserInventory(account.PrincipalID);
                         if (!success)
+                        {
                             m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to create inventory for account {0} {1}.",
                                 firstName, lastName);
+                        }
+                        else if (m_CreateDefaultAvatarEntries)
+                        {
+                            CreateDefaultAppearanceEntries(account.PrincipalID);
+                        }
                     }
 
                     m_log.InfoFormat("[USER ACCOUNT SERVICE]: Account {0} {1} created successfully", firstName, lastName);
-                } else {
+                }
+                else
+                {
                     m_log.ErrorFormat("[USER ACCOUNT SERVICE]: Account creation failed for account {0} {1}", firstName, lastName);
                 }
             }
             else
             {
                 m_log.ErrorFormat("[USER ACCOUNT SERVICE]: A user with the name {0} {1} already exists!", firstName, lastName);
+            }
+        }
+
+        private void CreateDefaultAppearanceEntries(UUID principalID)
+        {
+            m_log.DebugFormat("[USER ACCOUNT SERVICE]: Creating default appearance items for {0}", principalID);
+
+            InventoryFolderBase bodyPartsFolder = m_InventoryService.GetFolderForType(principalID, AssetType.Bodypart);
+
+            InventoryItemBase eyes = new InventoryItemBase(UUID.Random(), principalID);
+            eyes.AssetID = new UUID("4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7");
+            eyes.Name = "Default Eyes";
+            eyes.CreatorId = principalID.ToString();
+            eyes.AssetType = (int)AssetType.Bodypart;
+            eyes.InvType = (int)InventoryType.Wearable;
+            eyes.Folder = bodyPartsFolder.ID;
+            eyes.BasePermissions = (uint)PermissionMask.All;
+            eyes.CurrentPermissions = (uint)PermissionMask.All;
+            eyes.EveryOnePermissions = (uint)PermissionMask.All;
+            eyes.GroupPermissions = (uint)PermissionMask.All;
+            eyes.NextPermissions = (uint)PermissionMask.All;
+            eyes.Flags = (uint)WearableType.Eyes;
+            m_InventoryService.AddItem(eyes);
+
+            InventoryItemBase shape = new InventoryItemBase(UUID.Random(), principalID);
+            shape.AssetID = AvatarWearable.DEFAULT_BODY_ASSET;
+            shape.Name = "Default Shape";
+            shape.CreatorId = principalID.ToString();
+            shape.AssetType = (int)AssetType.Bodypart;
+            shape.InvType = (int)InventoryType.Wearable;
+            shape.Folder = bodyPartsFolder.ID;
+            shape.BasePermissions = (uint)PermissionMask.All;
+            shape.CurrentPermissions = (uint)PermissionMask.All;
+            shape.EveryOnePermissions = (uint)PermissionMask.All;
+            shape.GroupPermissions = (uint)PermissionMask.All;
+            shape.NextPermissions = (uint)PermissionMask.All;
+            shape.Flags = (uint)WearableType.Shape;
+            m_InventoryService.AddItem(shape);
+
+            InventoryItemBase skin = new InventoryItemBase(UUID.Random(), principalID);
+            skin.AssetID = AvatarWearable.DEFAULT_SKIN_ASSET;
+            skin.Name = "Default Skin";
+            skin.CreatorId = principalID.ToString();
+            skin.AssetType = (int)AssetType.Bodypart;
+            skin.InvType = (int)InventoryType.Wearable;
+            skin.Folder = bodyPartsFolder.ID;
+            skin.BasePermissions = (uint)PermissionMask.All;
+            skin.CurrentPermissions = (uint)PermissionMask.All;
+            skin.EveryOnePermissions = (uint)PermissionMask.All;
+            skin.GroupPermissions = (uint)PermissionMask.All;
+            skin.NextPermissions = (uint)PermissionMask.All;
+            skin.Flags = (uint)WearableType.Skin;
+            m_InventoryService.AddItem(skin);
+
+            InventoryItemBase hair = new InventoryItemBase(UUID.Random(), principalID);
+            hair.AssetID = AvatarWearable.DEFAULT_HAIR_ASSET;
+            hair.Name = "Default Hair";
+            hair.CreatorId = principalID.ToString();
+            hair.AssetType = (int)AssetType.Bodypart;
+            hair.InvType = (int)InventoryType.Wearable;
+            hair.Folder = bodyPartsFolder.ID;
+            hair.BasePermissions = (uint)PermissionMask.All;
+            hair.CurrentPermissions = (uint)PermissionMask.All;
+            hair.EveryOnePermissions = (uint)PermissionMask.All;
+            hair.GroupPermissions = (uint)PermissionMask.All;
+            hair.NextPermissions = (uint)PermissionMask.All;
+            hair.Flags = (uint)WearableType.Hair;
+            m_InventoryService.AddItem(hair);
+
+            InventoryFolderBase clothingFolder = m_InventoryService.GetFolderForType(principalID, AssetType.Clothing);
+
+            InventoryItemBase shirt = new InventoryItemBase(UUID.Random(), principalID);
+            shirt.AssetID = AvatarWearable.DEFAULT_SHIRT_ASSET;
+            shirt.Name = "Default Shirt";
+            shirt.CreatorId = principalID.ToString();
+            shirt.AssetType = (int)AssetType.Clothing;
+            shirt.InvType = (int)InventoryType.Wearable;
+            shirt.Folder = clothingFolder.ID;
+            shirt.BasePermissions = (uint)PermissionMask.All;
+            shirt.CurrentPermissions = (uint)PermissionMask.All;
+            shirt.EveryOnePermissions = (uint)PermissionMask.All;
+            shirt.GroupPermissions = (uint)PermissionMask.All;
+            shirt.NextPermissions = (uint)PermissionMask.All;
+            shirt.Flags = (uint)WearableType.Shirt;
+            m_InventoryService.AddItem(shirt);
+
+            InventoryItemBase pants = new InventoryItemBase(UUID.Random(), principalID);
+            pants.AssetID = AvatarWearable.DEFAULT_PANTS_ASSET;
+            pants.Name = "Default Pants";
+            pants.CreatorId = principalID.ToString();
+            pants.AssetType = (int)AssetType.Clothing;
+            pants.InvType = (int)InventoryType.Wearable;
+            pants.Folder = clothingFolder.ID;
+            pants.BasePermissions = (uint)PermissionMask.All;
+            pants.CurrentPermissions = (uint)PermissionMask.All;
+            pants.EveryOnePermissions = (uint)PermissionMask.All;
+            pants.GroupPermissions = (uint)PermissionMask.All;
+            pants.NextPermissions = (uint)PermissionMask.All;
+            pants.Flags = (uint)WearableType.Pants;
+            m_InventoryService.AddItem(pants);
+
+            if (m_AvatarService != null)
+            {
+                m_log.DebugFormat("[USER ACCOUNT SERVICE]: Creating default avatar entries for {0}", principalID);
+
+                AvatarWearable[] wearables = new AvatarWearable[6];
+                wearables[AvatarWearable.EYES] = new AvatarWearable(eyes.ID, eyes.AssetID);
+                wearables[AvatarWearable.BODY] = new AvatarWearable(shape.ID, shape.AssetID);
+                wearables[AvatarWearable.SKIN] = new AvatarWearable(skin.ID, skin.AssetID);
+                wearables[AvatarWearable.HAIR] = new AvatarWearable(hair.ID, hair.AssetID);
+                wearables[AvatarWearable.SHIRT] = new AvatarWearable(shirt.ID, shirt.AssetID);
+                wearables[AvatarWearable.PANTS] = new AvatarWearable(pants.ID, pants.AssetID);
+
+                AvatarAppearance ap = new AvatarAppearance();
+                for (int i = 0; i < 6; i++)
+                {
+                    ap.SetWearable(i, wearables[i]);
+                }
+
+                m_AvatarService.SetAppearance(principalID, ap);
             }
         }
     }

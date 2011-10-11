@@ -4,7 +4,7 @@
     <Key Name="assetID" Value="d342e6c0-b9d2-11dc-95ff-0800200c9a66"/>
     <Key Name="name" Value="Hair"/>
     <Key Name="assetType" Value="13" />
-    <Key Name="fileName" Value="newhair.dat"/>
+    <Key Name="fileName" Value="base_hair.dat"/>
   </Section>
 
   <Section Name="Skin">
@@ -34,6 +34,14 @@
     <Key Name="assetType" Value="13" />
     <Key Name="fileName" Value="base_shape.dat"/>
   </Section>
+
+  <Section Name="Eyes">
+    <Key Name="assetID" Value="4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7"/>
+    <Key Name="name" Value="Eyes"/>
+    <Key Name="assetType" Value="13" />
+    <Key Name="fileName" Value="base_eyes.dat"/>
+  </Section>
+
 <!--
   <Section Name="Jim Shape">
     <Key Name="assetID" Value="66c41e39-38f9-f75a-024e-585989bfab74"/>
