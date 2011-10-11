@@ -3265,10 +3265,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 SceneObjectGroup grp = m_host.ParentGroup;
 
                 ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
-                if (presence.Scene.AttachmentsModule != null)
-                {
-                    presence.Scene.AttachmentsModule.AttachObject(presence.ControllingClient, grp, (uint)attachment, false);
-                }
+
+                IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+                if (attachmentsModule != null)
+                    attachmentsModule.AttachObject(presence, grp, (uint)attachment, false);
             }
         }
 

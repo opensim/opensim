@@ -2528,9 +2528,7 @@ namespace OpenSim.Region.Framework.Scenes
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                     
                     if (AttachmentsModule != null)
-                        AttachmentsModule.AttachObject(sp.ControllingClient, grp, 0, false);
-
-                    m_log.DebugFormat("[SCENE]: Attachment {0} arrived and scene presence was found, attaching", sceneObject.UUID);
+                        AttachmentsModule.AttachObject(sp, grp, 0, false);
                 }
                 else
                 {

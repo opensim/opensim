@@ -132,11 +132,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             UUID attAssetId = TestHelpers.ParseTail(0x3);
             string attName = "att";
 
-            UserInventoryHelpers.CreateInventoryItem(
-                scene, attName, attItemId, attAssetId, sp.UUID, InventoryType.Object);
+            UserInventoryHelpers.CreateInventoryItem(scene, attName, attItemId, attAssetId, sp.UUID, InventoryType.Object);
 
-            am.RezSingleAttachmentFromInventory(
-                sp.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
+            am.RezSingleAttachmentFromInventory(sp, attItemId, (uint)AttachmentPoint.Chest);
 
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
             UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, sp.Appearance);
