@@ -203,6 +203,14 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             m_monitors.Add(
                 new GenericMonitor(
                     m_scene,
+                    "ObjectUpdatesPerSecondMonitor",
+                    "Object Updates",
+                    m => m.Scene.StatsReporter.LastReportedObjectUpdates,
+                    m => string.Format("{0} per second", m.GetValue())));
+
+            m_monitors.Add(
+                new GenericMonitor(
+                    m_scene,
                     "ActiveObjectCountMonitor",
                     "Active Objects",
                     m => m.Scene.StatsReporter.LastReportedSimStats[7],
