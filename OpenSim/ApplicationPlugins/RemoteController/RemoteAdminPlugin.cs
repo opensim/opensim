@@ -2443,10 +2443,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>UUID of the region</description></item>
         /// <item><term>region_name</term>
         ///       <description>region name</description></item>
-        ///       <item><term>profile</term>
+        /// <item><term>profile</term>
         ///       <description>profile url</description></item>
         /// <item><term>noassets</term>
         ///       <description>true if no assets should be saved</description></item>
+        /// <item><term>perm</term>
+        ///       <description>C and/or T</description></item>
         /// </list>
         ///
         /// <code>region_uuid</code> takes precedence over
@@ -2519,6 +2521,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (requestData["noassets"] == "true")
                 {
                     options["noassets"] = (string)requestData["noassets"] ;
+                }
+
+                if (requestData.Contains("perm"))
+                {
+                    options["checkPermissions"] = (string)requestData["perm"];
                 }
 
                 IRegionArchiverModule archiver = scene.RequestModuleInterface<IRegionArchiverModule>();
