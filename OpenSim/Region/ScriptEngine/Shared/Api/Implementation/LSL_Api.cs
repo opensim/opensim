@@ -6756,6 +6756,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_host.GetAvatarOnSitTarget().ToString();
         }
 
+        // http://wiki.secondlife.com/wiki/LlAvatarOnLinkSitTarget
+        public LSL_String llAvatarOnLinkSitTarget(int linknum)
+        {
+            m_host.AddScriptLPS(1);
+            if(linknum == ScriptBaseClass.LINK_SET || 
+                linknum == ScriptBaseClass.LINK_ALL_CHILDREN ||
+                linknum == ScriptBaseClass.LINK_ALL_OTHERS) return UUID.Zero.ToString();
+           
+            List<SceneObjectPart> parts = GetLinkParts(linknum);
+            if (parts.Count == 0) return UUID.Zero.ToString(); 
+            return parts[0].SitTargetAvatar.ToString();
+        }
+
+
         public void llAddToLandPassList(string avatar, double hours)
         {
             m_host.AddScriptLPS(1);
