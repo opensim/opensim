@@ -553,6 +553,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// If sitting, returns the offset position from the prim the avatar is sitting on.
+        /// Otherwise, returns absolute position in the scene.
+        /// </summary>
         public Vector3 OffsetPosition
         {
             get { return m_pos; }
