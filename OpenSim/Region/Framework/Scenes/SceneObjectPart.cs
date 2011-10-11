@@ -3053,6 +3053,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup.IsDeleted)
                 return;
 
+            if (ParentGroup.IsAttachment && (ParentGroup.AttachedAvatar != remoteClient.AgentId) &&
+                (ParentGroup.AttachmentPoint >= 31) && (ParentGroup.AttachmentPoint <= 38))
+                return;
+
             clientFlags &= ~(uint) PrimFlags.CreateSelected;
 
             if (remoteClient.AgentId == _ownerID)
@@ -4842,7 +4846,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup.IsDeleted)
                 return;
 
-            if (ParentGroup.IsAttachment && ParentGroup.RootPart != this)
+            if (ParentGroup.IsAttachment && ((ParentGroup.RootPart != this) ||
+                ((ParentGroup.AttachedAvatar != remoteClient.AgentId) && (ParentGroup.AttachmentPoint >= 31) && (ParentGroup.AttachmentPoint <= 38))))
                 return;
             
             // Causes this thread to dig into the Client Thread Data.
