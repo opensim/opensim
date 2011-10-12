@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                                "Returns a variety of statistics about the current region and/or simulator",
                                DebugMonitors);
 
-            MainServer.Instance.AddHTTPHandler("/monitorstats/" + m_scene.RegionInfo.RegionID + "/", StatsPage);
+            MainServer.Instance.AddHTTPHandler("/monitorstats/" + m_scene.RegionInfo.RegionID, StatsPage);
         }
 
         public Hashtable StatsPage(Hashtable request)
