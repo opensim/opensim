@@ -3625,7 +3625,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         private void ResendPrimUpdates(List<EntityUpdate> updates, OutgoingPacket oPacket)
         {
-            // m_log.WarnFormat("[CLIENT] resending prim update {0}",updates[0].UpdateTime);
+            // m_log.WarnFormat("[CLIENT] resending prim updates {0}, packet sequence number {1}", updates[0].UpdateTime, oPacket.SequenceNumber);
 
             // Remove the update packet from the list of packets waiting for acknowledgement
             // because we are requeuing the list of updates. They will be resent in new packets

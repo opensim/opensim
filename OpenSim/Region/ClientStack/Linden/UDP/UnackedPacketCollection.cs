@@ -164,6 +164,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
+                //if (expiredPackets != null)
+                //   m_log.DebugFormat("[UNACKED PACKET COLLECTION]: Found {0} expired packets on timeout of {1}", expiredPackets.Count, timeoutMS);
+
             return expiredPackets;
         }
 
@@ -179,6 +182,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             PendingAck pendingAcknowledgement;
             while (m_pendingAcknowledgements.TryDequeue(out pendingAcknowledgement))
             {
+                //m_log.DebugFormat("[UNACKED PACKET COLLECTION]: Processing ack {0}", pendingAcknowledgement.SequenceNumber);
                 OutgoingPacket ackedPacket;
                 if (m_packets.TryGetValue(pendingAcknowledgement.SequenceNumber, out ackedPacket))
                 {
@@ -200,6 +204,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             if (rtt > 0)
                                 ackedPacket.Client.UpdateRoundTrip(rtt);
                         }
+                    }
+                    else
+                    {
+                         //m_log.WarnFormat("[UNACKED PACKET COLLECTION]: Could not find packet with sequence number {0} to ack", pendingAcknowledgement.SequenceNumber);
                     }
                 }
             }
