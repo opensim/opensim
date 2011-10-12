@@ -955,10 +955,8 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendPrimUpdates()
         {
             m_sceneViewer.SendPrimUpdates();
-            m_perfMonMS = Util.EnvironmentTickCount();
 
             SceneViewer.SendPrimUpdates();
-
         }
 
         #region Status Methods
@@ -2865,7 +2863,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendCoarseLocationsDefault(UUID sceneId, ScenePresence p, List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
         {
-            m_perfMonMS = Util.EnvironmentTickCount();
             ControllingClient.SendCoarseLocationUpdate(avatarUUIDs, coarseLocations);
         }
 
