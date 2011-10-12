@@ -2470,7 +2470,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Moderate, "osGetRegionStats");
             m_host.AddScriptLPS(1);
             LSL_List ret = new LSL_List();
-            float[] stats = World.StatsReporter.getLastReportedSimStats();
+            float[] stats = World.StatsReporter.LastReportedSimStats;
             
             for (int i = 0; i < 21; i++)
             {
