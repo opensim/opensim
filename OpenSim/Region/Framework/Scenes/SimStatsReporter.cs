@@ -86,6 +86,15 @@ namespace OpenSim.Region.Framework.Scenes
             get { return lastReportedSimFPS; }
         }
 
+        /// <summary>
+        /// Number of object updates performed in the last stats cycle
+        /// </summary>
+        /// <remarks>
+        /// This isn't sent out to the client but it is very useful data to detect whether viewers are being sent a
+        /// large number of object updates.
+        /// </remarks>
+        public float LastReportedObjectUpdates { get; private set; }
+
         public float[] LastReportedSimStats
         {
             get { return lastReportedSimStats; }
@@ -100,7 +109,16 @@ namespace OpenSim.Region.Framework.Scenes
         private float lastReportedSimFPS = 0;
         private float[] lastReportedSimStats = new float[21];
         private float m_pfps = 0;
+
+        /// <summary>
+        /// Number of agent updates requested in this stats cycle
+        /// </summary>
         private int m_agentUpdates = 0;
+
+        /// <summary>
+        /// Number of object updates requested in this stats cycle
+        /// </summary>
+        private int m_objectUpdates;
 
         private int m_frameMS = 0;
         private int m_netMS = 0;
@@ -291,6 +309,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     handlerSendStatResult(simStats);
                 }
+
+                // Extra statistics that aren't currently sent to clients
+                LastReportedObjectUpdates = m_objectUpdates / statsUpdateFactor;
+
                 resetvalues();
             }
         }
@@ -301,6 +323,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_fps = 0;
             m_pfps = 0;
             m_agentUpdates = 0;
+            m_objectUpdates = 0;
             //m_inPacketsPerSecond = 0;
             //m_outPacketsPerSecond = 0;
             m_unAckedBytes = 0;
@@ -380,6 +403,11 @@ namespace OpenSim.Region.Framework.Scenes
         public void AddPhysicsFPS(float frames)
         {
             m_pfps += frames;
+        }
+
+        public void AddObjectUpdates(int numUpdates)
+        {
+            m_objectUpdates += numUpdates;
         }
 
         public void AddAgentUpdates(int numUpdates)
