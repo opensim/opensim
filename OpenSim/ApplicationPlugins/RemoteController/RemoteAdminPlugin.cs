@@ -193,16 +193,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
         }
 
-        private void FailIfRemoteAdminDisabled(string requestName)
-        {
-            if (m_config == null)
-            {
-                string errorMessage = String.Format("[RADMIN] {0}: Remote admin request denied! Please set [RemoteAdmin] enabled=true in OpenSim.ini in order to enable remote admin functionality", requestName);
-                m_log.Error(errorMessage);
-                throw new ApplicationException(errorMessage);
-            }
-        }
-
         private void FailIfRemoteAdminNotAllowed(string password, string check_ip_address)
         {
             if (m_accessIP.Count > 0 && !m_accessIP.Contains(check_ip_address))
@@ -463,7 +453,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         }
 
         public XmlRpcResponse XmlRpcSaveHeightmapMethod(XmlRpcRequest request, IPEndPoint remoteClient)
-
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -673,8 +662,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public XmlRpcResponse XmlRpcCreateRegionMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: CreateRegion: new request");
-
-            FailIfRemoteAdminDisabled("CreateRegion");
 
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -1031,6 +1018,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public XmlRpcResponse XmlRpcCloseRegionMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: CloseRegion: new request");
+
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
             Scene scene = null;
@@ -1234,8 +1222,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: CreateUser: new request");
 
-            FailIfRemoteAdminDisabled("CreateUser");
-
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
@@ -1349,8 +1335,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: UserExists: new request");
 
-            FailIfRemoteAdminDisabled("UserExists");
-
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
@@ -1451,8 +1435,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: UpdateUserAccount: new request");
             m_log.Warn("[RADMIN]: This method needs update for 0.7");
-
-            FailIfRemoteAdminDisabled("UpdateUserAccount");
 
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -2363,8 +2345,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: Received Load OAR Administrator Request");
 
-            FailIfRemoteAdminDisabled("Load OAR");
-
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
@@ -2474,8 +2454,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: Received Save OAR Administrator Request");
 
-            FailIfRemoteAdminDisabled("Save OAR");
-
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
@@ -2571,8 +2549,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: Received Load XML Administrator Request");
 
-            FailIfRemoteAdminDisabled("Load XML");
-
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
@@ -2651,8 +2627,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: Received Save XML Administrator Request");
 
-            FailIfRemoteAdminDisabled("Save XML");
-
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
@@ -2727,8 +2701,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: Received Query XML Administrator Request");
 
-            FailIfRemoteAdminDisabled("Query XML");
-
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
@@ -2790,8 +2762,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: Received Command XML Administrator Request");
 
-            FailIfRemoteAdminDisabled("Command XML");
-
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
@@ -2827,8 +2797,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public XmlRpcResponse XmlRpcAccessListClear(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: Received Access List Clear Request");
-
-            FailIfRemoteAdminDisabled("Access List Clear");
 
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -2886,8 +2854,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public XmlRpcResponse XmlRpcAccessListAdd(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: Received Access List Add Request");
-
-            FailIfRemoteAdminDisabled("Access List Add");
 
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
@@ -2974,8 +2940,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: Received Access List Remove Request");
 
-            FailIfRemoteAdminDisabled("Access List Remove");
-
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
@@ -3060,8 +3024,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public XmlRpcResponse XmlRpcAccessListList(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: Received Access List List Request");
-
-            FailIfRemoteAdminDisabled("Access List List");
 
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
