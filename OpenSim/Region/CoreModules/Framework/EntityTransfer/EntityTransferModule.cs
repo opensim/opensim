@@ -352,7 +352,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 // the avatar.Close below will clear the child region list. We need this below for (possibly)
                 // closing the child agents, so save it here (we need a copy as it is Clear()-ed).
-                //List<ulong> childRegions = new List<ulong>(avatar.GetKnownRegionList());
+                //List<ulong> childRegions = avatar.KnownRegionHandles;
                 // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
                 // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
                 // once we reach here...

@@ -243,11 +243,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-
-        // neighbouring regions we have enabled a child agent in
-        // holds the seed cap for the child agent in that region
-        private Dictionary<ulong, string> m_knownChildRegions = new Dictionary<ulong, string>();
-
         /// <summary>
         /// Copy of the script states while the agent is in transit. This state may
         /// need to be placed back in case of transfer fail.
@@ -697,29 +692,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_health; }
             set { m_health = value; }
-        }
-
-        /// <summary>
-        /// These are the region handles known by the avatar.
-        /// </summary>
-        public List<ulong> KnownChildRegionHandles
-        {
-            get 
-            {
-                if (m_knownChildRegions.Count == 0) 
-                    return new List<ulong>();
-                else
-                    return new List<ulong>(m_knownChildRegions.Keys); 
-            }
-        }
-
-        public Dictionary<ulong, string> KnownRegions
-        {
-            get { return m_knownChildRegions; }
-            set 
-            {
-                m_knownChildRegions = value; 
-            }
         }
 
         private ISceneViewer m_sceneViewer;
@@ -1255,6 +1227,10 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.StopFlying(this);
         }
 
+        // neighbouring regions we have enabled a child agent in
+        // holds the seed cap for the child agent in that region
+        private Dictionary<ulong, string> m_knownChildRegions = new Dictionary<ulong, string>();
+
         public void AddNeighbourRegion(ulong regionHandle, string cap)
         {
             lock (m_knownChildRegions)
@@ -1272,11 +1248,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_knownChildRegions)
             {
-                if (m_knownChildRegions.ContainsKey(regionHandle))
-                {
-                    m_knownChildRegions.Remove(regionHandle);
-                   //m_log.Debug(" !!! removing known region {0} in {1}. Count = {2}", regionHandle, Scene.RegionInfo.RegionName, m_knownChildRegions.Count);
-                }
+                // Checking ContainsKey is redundant as Remove works either way and returns a bool
+                // This is here to allow the Debug output to be conditional on removal
+                //if (m_knownChildRegions.ContainsKey(regionHandle))
+                //    m_log.DebugFormat(" !!! removing known region {0} in {1}. Count = {2}", regionHandle, Scene.RegionInfo.RegionName, m_knownChildRegions.Count);
+                m_knownChildRegions.Remove(regionHandle);
             }
         }
 
@@ -1289,9 +1265,37 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public List<ulong> GetKnownRegionList()
+        public Dictionary<ulong, string> KnownRegions
         {
-            return new List<ulong>(m_knownChildRegions.Keys);
+            get
+            {
+                lock (m_knownChildRegions)
+                    return new Dictionary<ulong, string>(m_knownChildRegions);
+            }
+            set
+            {
+                // Replacing the reference is atomic but we still need to lock on
+                // the original dictionary object which may be in use elsewhere
+                lock (m_knownChildRegions)
+                    m_knownChildRegions = value;
+            }
+        }
+
+        public List<ulong> KnownRegionHandles
+        {
+            get
+            {
+                return new List<ulong>(KnownRegions.Keys);
+            }
+        }
+
+        public int KnownRegionCount
+        {
+            get
+            {
+                lock (m_knownChildRegions)
+                    return m_knownChildRegions.Count;
+            }
         }
 
         #endregion
@@ -3082,7 +3086,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Throttles 
                 float multiplier = 1;
-                int childRegions = m_knownChildRegions.Count;
+                int childRegions = KnownRegionCount;
                 if (childRegions != 0)
                     multiplier = 1f / childRegions;
 
@@ -3335,29 +3339,27 @@ namespace OpenSim.Region.Framework.Scenes
         public void CloseChildAgents(uint newRegionX, uint newRegionY)
         {
             List<ulong> byebyeRegions = new List<ulong>();
+            List<ulong> knownRegions = KnownRegionHandles;
             m_log.DebugFormat(
                 "[SCENE PRESENCE]: Closing child agents. Checking {0} regions in {1}", 
-                m_knownChildRegions.Keys.Count, Scene.RegionInfo.RegionName);
+                knownRegions.Count, Scene.RegionInfo.RegionName);
             //DumpKnownRegions();
 
-            lock (m_knownChildRegions)
+            foreach (ulong handle in knownRegions)
             {
-                foreach (ulong handle in m_knownChildRegions.Keys)
+                // Don't close the agent on this region yet
+                if (handle != Scene.RegionInfo.RegionHandle)
                 {
-                    // Don't close the agent on this region yet
-                    if (handle != Scene.RegionInfo.RegionHandle)
-                    {
-                        uint x, y;
-                        Utils.LongToUInts(handle, out x, out y);
-                        x = x / Constants.RegionSize;
-                        y = y / Constants.RegionSize;
+                    uint x, y;
+                    Utils.LongToUInts(handle, out x, out y);
+                    x = x / Constants.RegionSize;
+                    y = y / Constants.RegionSize;
 
-                        //m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
-                        //m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
-                        if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY))
-                        {
-                            byebyeRegions.Add(handle);
-                        }
+                    //m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
+                    //m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
+                    if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY))
+                    {
+                        byebyeRegions.Add(handle);
                     }
                 }
             }
@@ -3475,7 +3477,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Throttles 
             float multiplier = 1;
-            int childRegions = m_knownChildRegions.Count;
+            int childRegions = KnownRegionCount;
             if (childRegions != 0)
                 multiplier = 1f / childRegions;
 
@@ -3940,11 +3942,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (!IsChildAgent)
                 m_scene.AttachmentsModule.DeleteAttachmentsFromScene(this, false);
-            
-            lock (m_knownChildRegions)
-            {
-                m_knownChildRegions.Clear();
-            }
+
+            // Clear known regions
+            KnownRegions = new Dictionary<ulong, string>();
 
             lock (m_reprioritization_timer)
             {

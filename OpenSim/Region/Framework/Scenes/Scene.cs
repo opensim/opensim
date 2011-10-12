@@ -1136,8 +1136,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Kick all ROOT agents with the message, 'The simulator is going down'
             ForEachScenePresence(delegate(ScenePresence avatar)
                                  {
-                                     if (avatar.KnownChildRegionHandles.Contains(RegionInfo.RegionHandle))
-                                         avatar.KnownChildRegionHandles.Remove(RegionInfo.RegionHandle);
+                                     avatar.RemoveNeighbourRegion(RegionInfo.RegionHandle);
 
                                      if (!avatar.IsChildAgent)
                                          avatar.ControllingClient.Kick("The simulator is going down.");
@@ -3226,13 +3225,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (closeChildAgents && !avatar.IsChildAgent)
                     {
-                        //List<ulong> childknownRegions = new List<ulong>();
-                        //List<ulong> ckn = avatar.KnownChildRegionHandles;
-                        //for (int i = 0; i < ckn.Count; i++)
-                        //{
-                        //    childknownRegions.Add(ckn[i]);
-                        //}
-                        List<ulong> regions = new List<ulong>(avatar.KnownChildRegionHandles);
+                        List<ulong> regions = avatar.KnownRegionHandles;
                         regions.Remove(RegionInfo.RegionHandle);
                         m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
                     }
@@ -3313,7 +3306,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     for (int i = 0; i < regionslst.Count; i++)
                     {
-                        av.KnownChildRegionHandles.Remove(regionslst[i]);
+                        av.RemoveNeighbourRegion(regionslst[i]);
                     }
                 }
             }
@@ -3827,7 +3820,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (RegionSecret == loggingOffUser.ControllingClient.SecureSessionId || (parsedsecret && RegionSecret == localRegionSecret))
                 {
-                    m_sceneGridService.SendCloseChildAgentConnections(loggingOffUser.UUID, new List<ulong>(loggingOffUser.KnownRegions.Keys));
+                    m_sceneGridService.SendCloseChildAgentConnections(loggingOffUser.UUID, loggingOffUser.KnownRegionHandles);
                     loggingOffUser.ControllingClient.Kick(message);
                     // Give them a second to receive the message!
                     Thread.Sleep(1000);

@@ -217,9 +217,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             presence.AddNeighbourRegion(region2, cap);
             presence.AddNeighbourRegion(region3, cap);
 
-            List<ulong> neighbours = presence.GetKnownRegionList();
-
-            Assert.That(neighbours.Count, Is.EqualTo(2));
+            Assert.That(presence.KnownRegionCount, Is.EqualTo(2));
         }
 
         [Test]
@@ -230,8 +228,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             ScenePresence presence = scene.GetScenePresence(agent1);
             presence.RemoveNeighbourRegion(region3);
 
-            List<ulong> neighbours = presence.GetKnownRegionList();
-            Assert.That(neighbours.Count,Is.EqualTo(1));
+            Assert.That(presence.KnownRegionCount,Is.EqualTo(1));
             /*
             presence.MakeChildAgent;
             presence.MakeRootAgent;

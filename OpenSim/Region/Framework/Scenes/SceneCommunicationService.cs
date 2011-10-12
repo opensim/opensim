@@ -225,7 +225,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 uint x = 0, y = 0;
                 List<string> simulatorList = new List<string>();
-                foreach (ulong regionHandle in presence.KnownChildRegionHandles)
+                foreach (ulong regionHandle in presence.KnownRegionHandles)
                 {
                     if (regionHandle != m_regionInfo.RegionHandle)
                     {
