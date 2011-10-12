@@ -2651,8 +2651,6 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                     //base.TriggerPhysicsBasedRestart();
                 //}
 
-                int i = 0;
-
                 // Figure out the Frames Per Second we're going at.
                 //(step_time == 0.004f, there's 250 of those per second.   Times the step time/step size
 
@@ -2810,7 +2808,6 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                     }
 
                     step_time -= ODE_STEPSIZE;
-                    i++;
                         //}
                         //else
                         //{
