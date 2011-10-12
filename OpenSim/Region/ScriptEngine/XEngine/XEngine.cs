@@ -271,6 +271,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             lock (m_Scripts)
             {
+                m_log.InfoFormat(
+                    "[XEngine]: Shutting down {0} scripts in {1}", m_Scripts.Count, m_Scene.RegionInfo.RegionName);
+
                 foreach (IScriptInstance instance in m_Scripts.Values)
                 {
                     // Force a final state save
@@ -1008,7 +1011,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             IScriptInstance instance = (ScriptInstance) parms;
             
-            //m_log.DebugFormat("[XENGINE]: Processing event for {0}", instance);
+            //m_log.DebugFormat("[XEngine]: Processing event for {0}", instance);
 
             return instance.EventProcessor();
         }

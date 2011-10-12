@@ -678,7 +678,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         m_CollisionInQueue = false;
                 }
                 
-                //m_log.DebugFormat("[XENGINE]: Processing event {0} for {1}", data.EventName, this);
+                //m_log.DebugFormat("[XEngine]: Processing event {0} for {1}", data.EventName, this);
 
                 m_DetectParams = data.DetectParams;
 
