@@ -206,7 +206,6 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_firstHeartbeat = true;
 
         private object m_deleting_scene_object = new object();
-        private object m_cleaningAttachments = new object();
 
         private bool m_cleaningTemps = false;
         
@@ -5080,41 +5079,6 @@ namespace OpenSim.Region.Framework.Scenes
                     throw new Exception(error);
             }
         }
-
-//        public void CleanDroppedAttachments()
-//        {
-//            List<SceneObjectGroup> objectsToDelete =
-//                    new List<SceneObjectGroup>();
-//
-//            lock (m_cleaningAttachments)
-//            {
-//                ForEachSOG(delegate (SceneObjectGroup grp)
-//                        {
-//                            if (grp.RootPart.Shape.PCode == 0 && grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
-//                            {
-//                                UUID agentID = grp.OwnerID;
-//                                if (agentID == UUID.Zero)
-//                                {
-//                                    objectsToDelete.Add(grp);
-//                                    return;
-//                                }
-//
-//                                ScenePresence sp = GetScenePresence(agentID);
-//                                if (sp == null)
-//                                {
-//                                    objectsToDelete.Add(grp);
-//                                    return;
-//                                }
-//                            }
-//                        });
-//            }
-//
-//            foreach (SceneObjectGroup grp in objectsToDelete)
-//            {
-//                m_log.InfoFormat("[SCENE]: Deleting dropped attachment {0} of user {1}", grp.UUID, grp.OwnerID);
-//                DeleteSceneObject(grp, true);
-//            }
-//        }
 
         // This method is called across the simulation connector to
         // determine if a given agent is allowed in this region
