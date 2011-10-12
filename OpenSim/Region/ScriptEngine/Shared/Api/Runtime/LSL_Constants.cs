@@ -513,6 +513,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PARCEL_DETAILS_GROUP = 3;
         public const int PARCEL_DETAILS_AREA = 4;
         public const int PARCEL_DETAILS_ID = 5;
+        public const int PARCEL_DETAILS_SEE_AVATARS = 6; // not implemented
+
+        //osSetParcelDetails
+        public const int PARCEL_DETAILS_CLAIMDATE = 10;
 
         // constants for llSetClickAction
         public const int CLICK_ACTION_NONE = 0;
