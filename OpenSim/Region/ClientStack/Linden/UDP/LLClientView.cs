@@ -4220,11 +4220,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 // Pass in the delegate so that if this packet needs to be resent, we send the current properties
                 // of the object rather than the properties when the packet was created
-                OutPacket(packet, ThrottleOutPacketType.Task, true,
-                          delegate(OutgoingPacket oPacket)
-                          {
-                              ResendPropertyUpdates(updates, oPacket);
-                          });
+                // HACK : Remove intelligent resending until it's fixed in core
+                //OutPacket(packet, ThrottleOutPacketType.Task, true,
+                //          delegate(OutgoingPacket oPacket)
+                //          {
+                //              ResendPropertyUpdates(updates, oPacket);
+                //          });
+                OutPacket(packet, ThrottleOutPacketType.Task, true);
 
                 // pbcnt += blocks.Count;
                 // ppcnt++;
@@ -4250,11 +4252,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // of the object rather than the properties when the packet was created
                     List<ObjectPropertyUpdate> updates = new List<ObjectPropertyUpdate>();
                     updates.Add(familyUpdates.Value[i]);
-                    OutPacket(packet, ThrottleOutPacketType.Task, true,
-                              delegate(OutgoingPacket oPacket)
-                              {
-                                  ResendPropertyUpdates(updates, oPacket);
-                              });
+                    // HACK : Remove intelligent resending until it's fixed in core
+                    //OutPacket(packet, ThrottleOutPacketType.Task, true,
+                    //          delegate(OutgoingPacket oPacket)
+                    //          {
+                    //              ResendPropertyUpdates(updates, oPacket);
+                    //          });
+                    OutPacket(packet, ThrottleOutPacketType.Task, true);
 
                     // fpcnt++;
                     // fbcnt++;
