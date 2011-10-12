@@ -782,7 +782,16 @@ namespace OpenSim.Region.Framework.Scenes
         public bool IsInTransit
         {
             get { return m_inTransit; }
-            private set { m_inTransit = value; }
+            set { 
+                if(value)
+                {
+                    if ((PhysicsActor != null) && PhysicsActor.Flying)
+                        m_AgentControlFlags |= AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+                    else if ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0)
+                        m_AgentControlFlags &= ~AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+                }
+                m_inTransit = value;
+            }
         }
 
         private float m_speedModifier = 1.0f;
@@ -3296,16 +3305,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 return m_scene.CrossAgentToNewRegion(this, false);
             }
-        }
-
-        public void InTransit()
-        {
-            IsInTransit = true;
-
-            if ((PhysicsActor != null) && PhysicsActor.Flying)
-                m_AgentControlFlags |= AgentManager.ControlFlags.AGENT_CONTROL_FLY;
-            else if ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0)
-                m_AgentControlFlags &= ~AgentManager.ControlFlags.AGENT_CONTROL_FLY;
         }
 
         public void NotInTransit()
