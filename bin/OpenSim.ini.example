@@ -223,7 +223,7 @@
     ;; server to send mail through.
     ; emailmodule = DefaultEmailModule
 
-    ;# {DeleteScriptsOnRestart} {} {Delete compiled script DLLs on restart?} (true false) true
+    ;# {DeleteScriptsOnStartup} {} {Delete previously compiled script DLLs on startup?} (true false) true
     ;; Controls whether previously compiled scripts DLLs are deleted on sim restart. If you set this to false
     ;; then startup will be considerably faster since scripts won't need to be recompiled. However, then it becomes your responsibility to delete the
     ;; compiled scripts if you're recompiling OpenSim from source code and internal interfaces used
