@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
@@ -76,6 +77,8 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                                DebugMonitors);
 
             MainServer.Instance.AddHTTPHandler("/monitorstats/" + m_scene.RegionInfo.RegionID, StatsPage);
+            MainServer.Instance.AddHTTPHandler(
+                "/monitorstats/" + Uri.EscapeDataString(m_scene.RegionInfo.RegionName), StatsPage);
         }
 
         public void DebugMonitors(string module, string[] args)
