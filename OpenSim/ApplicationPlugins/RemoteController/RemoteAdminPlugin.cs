@@ -3222,7 +3222,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             UserAccount account = userAccountService.GetUserAccount(scopeID, firstName, lastName);
             if (null == account)
             {
-                account = new UserAccount(scopeID, firstName, lastName, email);
+                account = new UserAccount(scopeID, UUID.Random(), firstName, lastName, email);
                 if (account.ServiceURLs == null || (account.ServiceURLs != null && account.ServiceURLs.Count == 0))
                 {
                     account.ServiceURLs = new Dictionary<string, object>();
