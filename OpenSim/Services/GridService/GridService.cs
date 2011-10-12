@@ -107,8 +107,10 @@ namespace OpenSim.Services.GridService
         public string RegisterRegion(UUID scopeID, GridRegion regionInfos)
         {
             IConfig gridConfig = m_config.Configs["GridService"];
-            // First Check for invalidate NULL-UUID, if true fast quit 
-            if (regionInfos.RegionID == UUID.Zero) return "Invalidate RegionID - can not be UUID-NULL";            
+
+            if (regionInfos.RegionID == UUID.Zero)
+                return "Invalid RegionID - cannot be zero UUID";
+
             // This needs better sanity testing. What if regionInfo is registering in
             // overlapping coords?
             RegionData region = m_Database.Get(regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
