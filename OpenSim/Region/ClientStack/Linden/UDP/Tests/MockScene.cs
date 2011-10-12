@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
@@ -52,14 +53,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public override void Update() {}
         public override void LoadWorldMap() {}
         
-        public override void AddNewClient(IClientAPI client) 
+        public override void AddNewClient(IClientAPI client, PresenceType type)
         {
             client.OnObjectName += RecordObjectNameCall;
         }
         
-        public override void RemoveClient(UUID agentID) {}
-        public override void CloseAllAgents(uint circuitcode) {}
+        public override void RemoveClient(UUID agentID, bool someReason) {}
+//        public override void CloseAllAgents(uint circuitcode) {}
+        public override bool CheckClient(UUID clientId, IPEndPoint endPoint) { return true; }
         public override void OtherRegionUp(GridRegion otherRegion) {  }
+
+        public override bool TryGetScenePresence(UUID uuid, out ScenePresence sp) { sp = null; return false; }
             
         /// <summary>
         /// Doesn't really matter what the call is - we're using this to test that a packet has actually been received

@@ -27,7 +27,6 @@
 
 using Nini.Config;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -42,65 +41,65 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
     [TestFixture]
     public class PacketHandlerTests
     {
-        [Test]
-        /// <summary>
-        /// More a placeholder, really
-        /// </summary>
-        public void InPacketTest()
-        {
-            TestHelper.InMethod();
-
-            AgentCircuitData agent = new AgentCircuitData();
-            agent.AgentID = UUID.Random();
-            agent.firstname = "testfirstname";
-            agent.lastname = "testlastname";
-            agent.SessionID = UUID.Zero;
-            agent.SecureSessionID = UUID.Zero;
-            agent.circuitcode = 123;
-            agent.BaseFolder = UUID.Zero;
-            agent.InventoryFolder = UUID.Zero;
-            agent.startpos = Vector3.Zero;
-            agent.CapsPath = "http://wibble.com";
-            
-            TestLLUDPServer testLLUDPServer;
-            TestLLPacketServer testLLPacketServer;
-            AgentCircuitManager acm;
-            IScene scene = new MockScene();
-            SetupStack(scene, out testLLUDPServer, out testLLPacketServer, out acm);
-            
-            TestClient testClient = new TestClient(agent, scene);
-            
-            LLPacketHandler packetHandler 
-                = new LLPacketHandler(testClient, testLLPacketServer, new ClientStackUserSettings());
-            
-            packetHandler.InPacket(new AgentAnimationPacket());
-            LLQueItem receivedPacket = packetHandler.PacketQueue.Dequeue();
-            
-            Assert.That(receivedPacket, Is.Not.Null);
-            Assert.That(receivedPacket.Incoming, Is.True);
-            Assert.That(receivedPacket.Packet, Is.TypeOf(typeof(AgentAnimationPacket)));
-        }
-        
-        /// <summary>
-        /// Add a client for testing
-        /// </summary>
-        /// <param name="scene"></param>
-        /// <param name="testLLUDPServer"></param>
-        /// <param name="testPacketServer"></param>
-        /// <param name="acm">Agent circuit manager used in setting up the stack</param>
-        protected void SetupStack(
-            IScene scene, out TestLLUDPServer testLLUDPServer, out TestLLPacketServer testPacketServer, 
-            out AgentCircuitManager acm)
-        {
-            IConfigSource configSource = new IniConfigSource();
-            ClientStackUserSettings userSettings = new ClientStackUserSettings();
-            testLLUDPServer = new TestLLUDPServer();
-            acm = new AgentCircuitManager();
-                                    
-            uint port = 666;
-            testLLUDPServer.Initialise(null, ref port, 0, false, configSource, acm);
-            testPacketServer = new TestLLPacketServer(testLLUDPServer, userSettings);
-            testLLUDPServer.LocalScene = scene;
-        }
+//        [Test]
+//        /// <summary>
+//        /// More a placeholder, really
+//        /// </summary>
+//        public void InPacketTest()
+//        {
+//            TestHelper.InMethod();
+//
+//            AgentCircuitData agent = new AgentCircuitData();
+//            agent.AgentID = UUID.Random();
+//            agent.firstname = "testfirstname";
+//            agent.lastname = "testlastname";
+//            agent.SessionID = UUID.Zero;
+//            agent.SecureSessionID = UUID.Zero;
+//            agent.circuitcode = 123;
+//            agent.BaseFolder = UUID.Zero;
+//            agent.InventoryFolder = UUID.Zero;
+//            agent.startpos = Vector3.Zero;
+//            agent.CapsPath = "http://wibble.com";
+//            
+//            TestLLUDPServer testLLUDPServer;
+//            TestLLPacketServer testLLPacketServer;
+//            AgentCircuitManager acm;
+//            IScene scene = new MockScene();
+//            SetupStack(scene, out testLLUDPServer, out testLLPacketServer, out acm);
+//
+//            TestClient testClient = new TestClient(agent, scene);
+//            
+//            LLPacketHandler packetHandler
+//                = new LLPacketHandler(testClient, testLLPacketServer, new ClientStackUserSettings());
+//
+//            packetHandler.InPacket(new AgentAnimationPacket());
+//            LLQueItem receivedPacket = packetHandler.PacketQueue.Dequeue();
+//
+//            Assert.That(receivedPacket, Is.Not.Null);
+//            Assert.That(receivedPacket.Incoming, Is.True);
+//            Assert.That(receivedPacket.Packet, Is.TypeOf(typeof(AgentAnimationPacket)));
+//        }
+//
+//        /// <summary>
+//        /// Add a client for testing
+//        /// </summary>
+//        /// <param name="scene"></param>
+//        /// <param name="testLLUDPServer"></param>
+//        /// <param name="testPacketServer"></param>
+//        /// <param name="acm">Agent circuit manager used in setting up the stack</param>
+//        protected void SetupStack(
+//            IScene scene, out TestLLUDPServer testLLUDPServer, out TestLLPacketServer testPacketServer, 
+//            out AgentCircuitManager acm)
+//        {
+//            IConfigSource configSource = new IniConfigSource();
+//            ClientStackUserSettings userSettings = new ClientStackUserSettings();
+//            testLLUDPServer = new TestLLUDPServer();
+//            acm = new AgentCircuitManager();
+//                                    
+//            uint port = 666;
+//            testLLUDPServer.Initialise(null, ref port, 0, false, configSource, acm);
+//            testPacketServer = new TestLLPacketServer(testLLUDPServer, userSettings);
+//            testLLUDPServer.LocalScene = scene;
+//        }
     }
 }
