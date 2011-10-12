@@ -717,16 +717,6 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                                 // Delete tree and alert clients (not silent)
                                 m_scene.DeleteSceneObject(selectedTree.ParentGroup, false);
                                 copse.m_trees.Remove(selectedTree.ParentGroup.UUID);
-<<<<<<< HEAD:OpenSim/Region/OptionalModules/World/TreePopulator/TreePopulatorModule.cs
-
-                                m_scene.ForEachClient(delegate(IClientAPI controller)
-                                                          {
-                                                              controller.SendKillObject(m_scene.RegionInfo.RegionHandle,
-                                                                                        new List<uint>() { selectedTree.LocalId });
-                                                          });
-
-=======
->>>>>>> 146322eb34c15a5722cfe42dd012821ddf441fe6:OpenSim/Region/OptionalModules/World/TreePopulator/TreePopulatorModule.cs
                                 break;
                             }
                         }
