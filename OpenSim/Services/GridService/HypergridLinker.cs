@@ -102,6 +102,13 @@ namespace OpenSim.Services.GridService
 
         public HypergridLinker(IConfigSource config, GridService gridService, IRegionData db)
         {
+            IConfig modulesConfig = config.Configs["Modules"];
+			if (modulesConfig == null)
+				return;
+
+			if (modulesConfig.GetString("HypergridLinker", "") != "HypergridLinker")
+				return;
+
             m_log.DebugFormat("[HYPERGRID LINKER]: Starting with db {0}", db.GetType());
 
             m_Database = db;
