@@ -44,6 +44,23 @@ namespace OpenSim.Services.Interfaces
             PrincipalID = principalID;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OpenSim.Services.Interfaces.UserAccount"/> class.
+        /// This method is used by externasl/3rd party management applications that need us to create a
+        /// random UUID for the new user.
+        /// </summary>
+        /// <param name='scopeID'>
+        /// Scope I.
+        /// </param>
+        /// <param name='firstName'>
+        /// First name.
+        /// </param>
+        /// <param name='lastName'>
+        /// Last name.
+        /// </param>
+        /// <param name='email'>
+        /// Email.
+        /// </param>
         public UserAccount(UUID scopeID, string firstName, string lastName, string email)
         {
             PrincipalID = UUID.Random();
