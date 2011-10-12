@@ -26,33 +26,55 @@
  */
 
 using System;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Framework.Monitoring.Monitors
 {
-    class PWSMemoryMonitor : IMonitor
+    class GenericMonitor : IMonitor
     {
-        #region Implementation of IMonitor
+        public Scene Scene { get; private set; }
+        public string Name { get; private set; }
+        public string FriendlyName { get; private set; }
 
-        public string GetName()
+        private readonly Func<GenericMonitor, double> m_getValueAction;
+        private readonly Func<GenericMonitor, string> m_getFriendlyValueAction;
+
+        public GenericMonitor(
+            Scene scene,
+            string name,
+            string friendlyName,
+            Func<GenericMonitor, double> getValueAction,
+            Func<GenericMonitor, string> getFriendlyValueAction)
         {
-            return "PWSMemoryMonitor";
+            Scene = scene;
+            Name = name;
+            FriendlyName = name;
+            m_getFriendlyValueAction = getFriendlyValueAction;
+            m_getValueAction = getValueAction;
         }
 
         public double GetValue()
         {
-            return System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64;
+            return m_getValueAction(this);
+        }
+
+        public string GetName()
+        {
+            return Name;
         }
 
         public string GetFriendlyName()
         {
-            return "Private Working Set Memory";
+            return FriendlyName;
         }
 
         public string GetFriendlyValue()
         {
-            return (int)(GetValue() / (1024 * 1024)) + "MB (Global)";
+            return m_getFriendlyValueAction(this);
         }
-
-        #endregion
     }
 }
+
+
+
+

@@ -33,12 +33,17 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring.Monitors
     {
         #region Implementation of IMonitor
 
+        public string GetName()
+        {
+            return "GCMemoryMonitor";
+        }
+
         public double GetValue()
         {
             return GC.GetTotalMemory(false);
         }
 
-        public string GetName()
+        public string GetFriendlyName()
         {
             return "GC Reported Memory";
         }

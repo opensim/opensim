@@ -40,12 +40,17 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring.Monitors
 
         #region Implementation of IMonitor
 
+        public string GetName()
+        {
+            return "ChildAgentCountMonitor";
+        }
+
         public double GetValue()
         {
             return m_scene.SceneGraph.GetChildAgentCount();
         }
 
-        public string GetName()
+        public string GetFriendlyName()
         {
             return "Child Agent Count";
         }
