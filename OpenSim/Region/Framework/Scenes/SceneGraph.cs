@@ -180,6 +180,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Update the position of all the scene presences.
+        /// </summary>
+        /// <remarks>
+        /// Called only from the main scene loop.
+        /// </remarks>
         protected internal void UpdatePresences()
         {
             ForEachScenePresence(delegate(ScenePresence presence)
