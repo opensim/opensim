@@ -1907,6 +1907,7 @@
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="Mono.Addins" path="../../../bin/"/>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="System.Xml"/>
       <Reference name="OpenMetaverse" path="../../../bin/"/>
       <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
