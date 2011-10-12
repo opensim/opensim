@@ -380,13 +380,8 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                     if (m_scene.Entities.ContainsKey(tree))
                     {
                         SceneObjectPart selectedTree = ((SceneObjectGroup)m_scene.Entities[tree]).RootPart;
-
+                        // Delete tree and alert clients (not silent)
                         m_scene.DeleteSceneObject(selectedTree.ParentGroup, false);
-                        m_scene.ForEachClient(delegate(IClientAPI controller)
-                        {
-                            controller.SendKillObject(m_scene.RegionInfo.RegionHandle,
-                                                      new List<uint>() { selectedTree.LocalId });
-                        });
                     }
                     else
                     {
@@ -719,9 +714,10 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
                             if (Util.RandomClass.NextDouble() < killLikelyhood)
                             {
-
+                                // Delete tree and alert clients (not silent)
                                 m_scene.DeleteSceneObject(selectedTree.ParentGroup, false);
                                 copse.m_trees.Remove(selectedTree.ParentGroup.UUID);
+<<<<<<< HEAD:OpenSim/Region/OptionalModules/World/TreePopulator/TreePopulatorModule.cs
 
                                 m_scene.ForEachClient(delegate(IClientAPI controller)
                                                           {
@@ -729,6 +725,8 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                                                                                         new List<uint>() { selectedTree.LocalId });
                                                           });
 
+=======
+>>>>>>> 146322eb34c15a5722cfe42dd012821ddf441fe6:OpenSim/Region/OptionalModules/World/TreePopulator/TreePopulatorModule.cs
                                 break;
                             }
                         }
