@@ -406,6 +406,7 @@
     ; access_password = ""
 
     ;# List the IP addresses allowed to call RemoteAdmin
+    ;; If access_ip_addresses isn't set, then all IP addresses can access RemoteAdmin.
     ;; access_ip_addresses = 0.0.0.0, 0.0.0.0 ...
     ; access_ip_addresses =
 
