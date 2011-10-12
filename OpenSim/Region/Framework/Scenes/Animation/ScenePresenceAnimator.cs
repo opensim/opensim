@@ -404,25 +404,19 @@ TrySetMovementAnimation("STAND");
                 else if (m_scenePresence.SetAlwaysRun)
                     return "RUN";
                 else
-                {
-                    // Not walking
-                    if (move.Z < 0)
-                        return "CROUCH";
-                    else if (heldTurnLeft)
-                        return "TURNLEFT";
-                    else if (heldTurnRight)
-                        return "TURNRIGHT";
-                    else
-                        return "WALK";
-                }
+                    return "WALK";
             }
 // rm for jumping            else
             else if (!m_jumping)    // add for jumping
             {
                 m_falling = false;      // Add for falling
                 // Not walking
-                if (move.Z < 0f)
+                if (move.Z < 0)
                     return "CROUCH";
+                else if (heldTurnLeft)
+                    return "TURNLEFT";
+                else if (heldTurnRight)
+                    return "TURNRIGHT";
                 else
                     return "STAND";
             }
