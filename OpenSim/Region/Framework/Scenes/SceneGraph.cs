@@ -188,6 +188,11 @@ namespace OpenSim.Region.Framework.Scenes
             });
         }
 
+        /// <summary>
+        /// Perform a physics frame update.
+        /// </summary>
+        /// <param name="elapsed"></param>
+        /// <returns></returns>
         protected internal float UpdatePhysics(double elapsed)
         {
             lock (m_syncRoot)
