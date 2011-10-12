@@ -540,7 +540,7 @@ namespace OpenSim
                     string password = MainConsole.Instance.PasswdPrompt("Password");
                     string email = MainConsole.Instance.CmdPrompt("Email", "");
 
-                    string rawPrincipalId = MainConsole.Instance.CmdPrompt("ID", UUID.Random().ToString());
+                    string rawPrincipalId = MainConsole.Instance.CmdPrompt("User ID", UUID.Random().ToString());
         
                     UUID principalId = UUID.Zero;
                     if (!UUID.TryParse(rawPrincipalId, out principalId))
