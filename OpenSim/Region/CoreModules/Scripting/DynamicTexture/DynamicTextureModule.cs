@@ -194,6 +194,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 RenderPlugins[contentType].AsyncConvertData(updater.UpdaterID, data, extraParams);
                 return updater.UpdaterID;
             }
+            
             return UUID.Zero;
         }
 
