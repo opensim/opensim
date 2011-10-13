@@ -155,7 +155,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// One can tweak this number to experiment.  One current effect of reducing it is to make avatar animations
         /// occur too quickly (viewer 1) or with even more slide (viewer 2).
         /// </remarks>
-        protected float m_minFrameTimespan = 0.089f;
+        public float MinFrameTime { get; private set; }
 
         /// <summary>
         /// The time of the last frame update.
@@ -533,6 +533,7 @@ namespace OpenSim.Region.Framework.Scenes
                      bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
         {
             m_config = config;
+            MinFrameTime = 0.089f;
 
             Random random = new Random();
             
@@ -1268,7 +1269,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Frame % m_update_physics == 0)
                 {
                     if (m_physics_enabled)
-                        physicsFPS = m_sceneGraph.UpdatePhysics(Math.Max(SinceLastFrame.TotalSeconds, m_minFrameTimespan));
+                        physicsFPS = m_sceneGraph.UpdatePhysics(Math.Max(SinceLastFrame.TotalSeconds, MinFrameTime));
                     if (SynchronizeScene != null)
                         SynchronizeScene(this);
                 }
@@ -1389,7 +1390,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             maintc = Util.EnvironmentTickCountSubtract(maintc);
-            maintc = (int)(m_minFrameTimespan * 1000) - maintc;
+            maintc = (int)(MinFrameTime * 1000) - maintc;
 
             if (maintc > 0)
                 Thread.Sleep(maintc);
