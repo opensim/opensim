@@ -162,17 +162,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected DateTime m_lastFrameUpdate = DateTime.UtcNow;
 
-        // TODO: Possibly stop other classes being able to manipulate this directly.
-        private SceneGraph m_sceneGraph;
-        private volatile int m_bordersLocked;
-//        private int m_RestartTimerCounter;
-        private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
-//        private int m_incrementsof15seconds;
-        private volatile bool m_backingup;
-        private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
-        private Dictionary<UUID, SceneObjectGroup> m_groupsWithTargets = new Dictionary<UUID, SceneObjectGroup>();
-        private Object m_heartbeatLock = new Object();
-
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
         private int m_update_objects = 1;
@@ -196,6 +185,24 @@ namespace OpenSim.Region.Framework.Scenes
         private int landMS;
         private int lastCompletedFrame;
 
+        /// <summary>
+        /// Signals whether temporary objects are currently being cleaned up.  Needed because this is launched
+        /// asynchronously from the update loop.
+        /// </summary>
+        private bool m_cleaningTemps = false;
+
+        private Object m_heartbeatLock = new Object();
+
+        // TODO: Possibly stop other classes being able to manipulate this directly.
+        private SceneGraph m_sceneGraph;
+        private volatile int m_bordersLocked;
+//        private int m_RestartTimerCounter;
+        private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
+//        private int m_incrementsof15seconds;
+        private volatile bool m_backingup;
+        private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
+        private Dictionary<UUID, SceneObjectGroup> m_groupsWithTargets = new Dictionary<UUID, SceneObjectGroup>();
+
         private bool m_physics_enabled = true;
         private bool m_scripts_enabled = true;
         private string m_defaultScriptEngine;
@@ -207,8 +214,6 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_firstHeartbeat = true;
 
         private object m_deleting_scene_object = new object();
-
-        private bool m_cleaningTemps = false;
         
         private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
         private bool m_reprioritizationEnabled = true;
@@ -219,8 +224,6 @@ namespace OpenSim.Region.Framework.Scenes
         private Timer m_mapGenerationTimer = new Timer();
         private bool m_generateMaptiles;
         private bool m_useBackup = true;
-
-//        private Dictionary<UUID, string[]> m_UserNamesCache = new Dictionary<UUID, string[]>();
 
         #endregion Fields
 
@@ -645,10 +648,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_physics_enabled = !RegionInfo.RegionSettings.DisablePhysics;
 
-            StatsReporter = new SimStatsReporter(this);
-            StatsReporter.OnSendStatsResult += SendSimStatsPackets;
-            StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
-
             // Old
             /*
             m_simulatorVersion = simulatorVersion
@@ -741,6 +740,17 @@ namespace OpenSim.Region.Framework.Scenes
                         RegionInfo.RegionSettings.TerrainImageID = tileID;
                     }
                 }
+
+                MinFrameTime              = startupConfig.GetFloat( "MinFrameTime",                      MinFrameTime);
+                m_update_backup           = startupConfig.GetInt(   "UpdateStorageEveryNFrames",         m_update_backup);
+                m_update_coarse_locations = startupConfig.GetInt(   "UpdateCoarseLocationsEveryNFrames", m_update_coarse_locations);
+                m_update_entitymovement   = startupConfig.GetInt(   "UpdateEntityMovementEveryNFrames",  m_update_entitymovement);
+                m_update_events           = startupConfig.GetInt(   "UpdateEventsEveryNFrames",          m_update_events);
+                m_update_objects          = startupConfig.GetInt(   "UpdateObjectsEveryNFrames",         m_update_objects);
+                m_update_physics          = startupConfig.GetInt(   "UpdatePhysicsEveryNFrames",         m_update_physics);
+                m_update_presences        = startupConfig.GetInt(   "UpdateAgentsEveryNFrames",          m_update_presences);
+                m_update_terrain          = startupConfig.GetInt(   "UpdateTerrainEveryNFrames",         m_update_terrain);
+                m_update_temp_cleaning    = startupConfig.GetInt(   "UpdateTempCleaningEveryNFrames",    m_update_temp_cleaning);
             }
             catch
             {
@@ -778,6 +788,10 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.Info("[SCENE]: Using the " + m_priorityScheme + " prioritization scheme");
 
             #endregion Interest Management
+
+            StatsReporter = new SimStatsReporter(this);
+            StatsReporter.OnSendStatsResult += SendSimStatsPackets;
+            StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;            
         }
 
         /// <summary>
