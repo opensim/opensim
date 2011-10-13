@@ -4744,6 +4744,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 position = presence.OffsetPosition;
                 velocity = presence.Velocity;
                 acceleration = Vector3.Zero;
+
+                // Interestingly, sending this to non-zero will cause the client's avatar to start moving & accelerating
+                // in that direction, even though we don't model this on the server.  Implementing this in the future
+                // may improve movement smoothness.
+//                acceleration = new Vector3(1, 0, 0);
+                
                 angularVelocity = Vector3.Zero;
                 rotation = presence.Rotation;
 

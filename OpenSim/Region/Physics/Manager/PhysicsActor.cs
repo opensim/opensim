@@ -202,10 +202,18 @@ namespace OpenSim.Region.Physics.Manager
 
         public virtual void SetMaterial (int material)
         {
-            
         }
 
+        /// <summary>
+        /// Position of this actor.
+        /// </summary>
+        /// <remarks>
+        /// Setting this directly moves the actor to a given position.
+        /// Getting this retrieves the position calculated by physics scene updates, using factors such as velocity and
+        /// collisions.
+        /// </remarks>
         public abstract Vector3 Position { get; set; }
+
         public abstract float Mass { get; }
         public abstract Vector3 Force { get; set; }
 
@@ -215,11 +223,24 @@ namespace OpenSim.Region.Physics.Manager
         public abstract void VehicleRotationParam(int param, Quaternion rotation);
         public abstract void VehicleFlags(int param, bool remove);
 
-        public abstract void SetVolumeDetect(int param);    // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more
+        /// <summary>
+        /// Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more
+        /// </summary>
+        public abstract void SetVolumeDetect(int param);
 
         public abstract Vector3 GeometricCenter { get; }
         public abstract Vector3 CenterOfMass { get; }
+
+        /// <summary>
+        /// Velocity of this actor.
+        /// </summary>
+        /// <remarks>
+        /// Setting this provides a target velocity for physics scene updates.
+        /// Getting this returns the velocity calculated by physics scene updates, using factors such as target velocity,
+        /// time to accelerate and collisions.
+        /// </remarks>
         public abstract Vector3 Velocity { get; set; }
+
         public abstract Vector3 Torque { get; set; }
         public abstract float CollisionScore { get; set;}
         public abstract Vector3 Acceleration { get; }

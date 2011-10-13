@@ -886,7 +886,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.BodyAddForce(Body, force.X, force.Y, force.Z);
                 //d.BodySetRotation(Body, ref m_StandUpRotation);
                 //standupStraight();
-
             }
         }
 
@@ -901,7 +900,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="timeStep"></param>
         /// <param name="defects">
         /// If there is something wrong with the character (e.g. its position is non-finite)
-        /// then it is added to this list.  The ODE structures associated with it are also destroyed.</param>
+        /// then it is added to this list.  The ODE structures associated with it are also destroyed.
+        /// </param>
         public void Move(float timeStep, List<OdeCharacter> defects)
         {
             //  no lock; for now it's only called from within Simulate()
@@ -966,7 +966,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     d.Vector3 pos = d.BodyGetPosition(Body);
                     vec.X = (_target_velocity.X - vel.X) * (PID_D) + (_zeroPosition.X - pos.X) * (PID_P * 2);
-                    vec.Y = (_target_velocity.Y - vel.Y)*(PID_D) + (_zeroPosition.Y - pos.Y)* (PID_P * 2);
+                    vec.Y = (_target_velocity.Y - vel.Y) * (PID_D) + (_zeroPosition.Y - pos.Y)* (PID_P * 2);
                     if (flying)
                     {
                         vec.Z = (_target_velocity.Z - vel.Z) * (PID_D) + (_zeroPosition.Z - pos.Z) * PID_P;
@@ -995,6 +995,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // we're in mid air suspended
                     vec.X = ((_target_velocity.X / movementdivisor) - vel.X) * (PID_D / 6);
                     vec.Y = ((_target_velocity.Y / movementdivisor) - vel.Y) * (PID_D / 6);
+
+//                    m_log.DebugFormat(
+//                        "[ODE CHARACTER]: !m_iscolliding && flying, vec {0}, _target_velocity {1}, movementdivisor {2}, vel {3}",
+//                        vec, _target_velocity, movementdivisor, vel);
                 }
 
                 if (m_iscolliding && !flying && _target_velocity.Z > 0.0f)
@@ -1020,11 +1024,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // d.Vector3 pos = d.BodyGetPosition(Body);
                     if (_target_velocity.X > 0)
                     {
-                        vec.X = ((_target_velocity.X - vel.X)/1.2f)*PID_D;
+                        vec.X = ((_target_velocity.X - vel.X) / 1.2f) * PID_D;
                     }
                     if (_target_velocity.Y > 0)
                     {
-                        vec.Y = ((_target_velocity.Y - vel.Y)/1.2f)*PID_D;
+                        vec.Y = ((_target_velocity.Y - vel.Y) / 1.2f) * PID_D;
                     }
                 }
 
@@ -1167,7 +1171,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// Used internally to destroy the ODE structures associated with this character.
         /// </summary>
-        public void DestroyOdeStructures()
+        private void DestroyOdeStructures()
         {
             // destroy avatar capsule and related ODE data
             if (Amotor != IntPtr.Zero)
