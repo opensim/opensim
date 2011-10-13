@@ -75,8 +75,25 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void Initialise(IMesher meshmerizer, IConfigSource config);
 
+        /// <summary>
+        /// Add an avatar
+        /// </summary>
+        /// <param name="avName"></param>
+        /// <param name="position"></param>
+        /// <param name="size"></param>
+        /// <param name="isFlying"></param>
+        /// <returns></returns>
         public abstract PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying);
 
+        /// <summary>
+        /// Add an avatar
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="avName"></param>
+        /// <param name="position"></param>
+        /// <param name="size"></param>
+        /// <param name="isFlying"></param>
+        /// <returns></returns>
         public virtual PhysicsActor AddAvatar(uint localID, string avName, Vector3 position, Vector3 size, bool isFlying)
         {
             PhysicsActor ret = AddAvatar(avName, position, size, isFlying);
@@ -84,10 +101,14 @@ namespace OpenSim.Region.Physics.Manager
             return ret;
         }
 
+        /// <summary>
+        /// Remove an avatar.
+        /// </summary>
+        /// <param name="actor"></param>
         public abstract void RemoveAvatar(PhysicsActor actor);
 
         /// <summary>
-        /// Remove a prim from the physics scene.
+        /// Remove a prim.
         /// </summary>
         /// <param name="prim"></param>
         public abstract void RemovePrim(PhysicsActor prim);
