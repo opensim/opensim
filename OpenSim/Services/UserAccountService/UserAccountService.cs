@@ -62,58 +62,56 @@ namespace OpenSim.Services.UserAccountService
             if (userConfig == null)
                 throw new Exception("No UserAccountService configuration");
 
+            m_RootInstance = this;
+            string gridServiceDll = userConfig.GetString("GridService", string.Empty);
+            if (gridServiceDll != string.Empty)
+                m_GridService = LoadPlugin<IGridService>(gridServiceDll, new Object[] { config });
+
+            string authServiceDll = userConfig.GetString("AuthenticationService", string.Empty);
+            if (authServiceDll != string.Empty)
+                m_AuthenticationService = LoadPlugin<IAuthenticationService>(authServiceDll, new Object[] { config });
+
+            string presenceServiceDll = userConfig.GetString("GridUserService", string.Empty);
+            if (presenceServiceDll != string.Empty)
+                m_GridUserService = LoadPlugin<IGridUserService>(presenceServiceDll, new Object[] { config });
+
+            string invServiceDll = userConfig.GetString("InventoryService", string.Empty);
+            if (invServiceDll != string.Empty)
+                m_InventoryService = LoadPlugin<IInventoryService>(invServiceDll, new Object[] { config });
+
+            string avatarServiceDll = userConfig.GetString("AvatarService", string.Empty);
+            if (avatarServiceDll != string.Empty)
+                m_AvatarService = LoadPlugin<IAvatarService>(avatarServiceDll, new Object[] { config });
+
+            m_CreateDefaultAvatarEntries = userConfig.GetBoolean("CreateDefaultAvatarEntries", false);
+
             // In case there are several instances of this class in the same process,
             // the console commands are only registered for the root instance
-            if (m_RootInstance == null)
+            if (m_RootInstance == null && MainConsole.Instance != null)
             {
                 m_RootInstance = this;
-                string gridServiceDll = userConfig.GetString("GridService", string.Empty);
-                if (gridServiceDll != string.Empty)
-                    m_GridService = LoadPlugin<IGridService>(gridServiceDll, new Object[] { config });
+                MainConsole.Instance.Commands.AddCommand("UserService", false,
+                        "create user",
+                        "create user [<first> [<last> [<pass> [<email> [<user id>]]]]]",
+                        "Create a new user", HandleCreateUser);
 
-                string authServiceDll = userConfig.GetString("AuthenticationService", string.Empty);
-                if (authServiceDll != string.Empty)
-                    m_AuthenticationService = LoadPlugin<IAuthenticationService>(authServiceDll, new Object[] { config });
+                MainConsole.Instance.Commands.AddCommand("UserService", false,
+                        "reset user password",
+                        "reset user password [<first> [<last> [<password>]]]",
+                        "Reset a user password", HandleResetUserPassword);
 
-                string presenceServiceDll = userConfig.GetString("GridUserService", string.Empty);
-                if (presenceServiceDll != string.Empty)
-                    m_GridUserService = LoadPlugin<IGridUserService>(presenceServiceDll, new Object[] { config });
+                MainConsole.Instance.Commands.AddCommand("UserService", false,
+                        "set user level",
+                        "set user level [<first> [<last> [<level>]]]",
+                        "Set user level. If >= 200 and 'allow_grid_gods = true' in OpenSim.ini, "
+                            + "this account will be treated as god-moded. "
+                            + "It will also affect the 'login level' command. ",
+                        HandleSetUserLevel);
 
-                string invServiceDll = userConfig.GetString("InventoryService", string.Empty);
-                if (invServiceDll != string.Empty)
-                    m_InventoryService = LoadPlugin<IInventoryService>(invServiceDll, new Object[] { config });
-
-                string avatarServiceDll = userConfig.GetString("AvatarService", string.Empty);
-                if (avatarServiceDll != string.Empty)
-                    m_AvatarService = LoadPlugin<IAvatarService>(avatarServiceDll, new Object[] { config });
-
-                m_CreateDefaultAvatarEntries = userConfig.GetBoolean("CreateDefaultAvatarEntries", false);
-
-                if (MainConsole.Instance != null)
-                {
-                    MainConsole.Instance.Commands.AddCommand("UserService", false,
-                            "create user",
-                            "create user [<first> [<last> [<pass> [<email> [<user id>]]]]]",
-                            "Create a new user", HandleCreateUser);
-
-                    MainConsole.Instance.Commands.AddCommand("UserService", false,
-                            "reset user password",
-                            "reset user password [<first> [<last> [<password>]]]",
-                            "Reset a user password", HandleResetUserPassword);
-
-                    MainConsole.Instance.Commands.AddCommand("UserService", false,
-                            "set user level",
-                            "set user level [<first> [<last> [<level>]]]",
-                            "Set user level. If >= 200 and 'allow_grid_gods = true' in OpenSim.ini, "
-                                + "this account will be treated as god-moded. "
-                                + "It will also affect the 'login level' command. ",
-                            HandleSetUserLevel);
-
-                    MainConsole.Instance.Commands.AddCommand("UserService", false,
-                            "show account",
-                            "show account <first> <last>",
-                            "Show account details for the given user", HandleShowAccount);
-                }
+                MainConsole.Instance.Commands.AddCommand("UserService", false,
+                        "show account",
+                        "show account <first> <last>",
+                        "Show account details for the given user", HandleShowAccount);
             }
         }
 
