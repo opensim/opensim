@@ -269,6 +269,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void RemoveRegion(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
             lock (m_Scripts)
             {
                 m_log.InfoFormat(
@@ -351,6 +354,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void Close()
         {
+            if (!m_Enabled)
+                return;
+            
             lock (m_ScriptEngines)
             {
                 if (m_ScriptEngines.Contains(this))
