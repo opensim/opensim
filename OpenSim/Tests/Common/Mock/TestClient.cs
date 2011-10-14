@@ -645,7 +645,7 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public void SendPrimUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
+        public void SendEntityUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
         }
 

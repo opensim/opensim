@@ -1062,7 +1062,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         }
 
-        public void SendPrimUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
+        public void SendEntityUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
 
         }

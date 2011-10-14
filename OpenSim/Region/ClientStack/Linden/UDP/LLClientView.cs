@@ -3592,7 +3592,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Generate one of the object update packets based on PrimUpdateFlags
         /// and broadcast the packet to clients
         /// </summary>
-        public void SendPrimUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
+        public void SendEntityUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
             //double priority = m_prioritizer.GetUpdatePriority(this, entity);
             uint priority = m_prioritizer.GetUpdatePriority(this, entity);
