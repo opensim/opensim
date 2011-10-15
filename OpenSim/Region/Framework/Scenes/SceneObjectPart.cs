@@ -1551,7 +1551,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="m_physicalPrim"></param>
         public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive, bool m_physicalPrim)
         {
-//            m_log.DebugFormat("[SCENE OBJECT PART]: Applying physics to {0} {1} {2}", Name, LocalId, UUID);
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT PART]: Applying physics to {0} {1}, m_physicalPrim {2}",
+//                Name, LocalId, UUID, m_physicalPrim);
 
             bool isPhysical = (((rootObjectFlags & (uint) PrimFlags.Physics) != 0) && m_physicalPrim);
             bool isPhantom = ((rootObjectFlags & (uint) PrimFlags.Phantom) != 0);
@@ -1816,6 +1818,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="isNew"></param>
         public void DoPhysicsPropertyUpdate(bool UsePhysics, bool isNew)
         {
+            if (!ParentGroup.Scene.m_physicalPrim && UsePhysics)
+                return;
+
             if (IsJoint())
             {
                 DoPhysicsPropertyUpdateForNinjaJoint(UsePhysics, isNew);
