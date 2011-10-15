@@ -185,7 +185,6 @@ namespace OpenSim.Region.Physics.Manager
         public virtual Vector3 GetJointAxis(PhysicsJoint joint)
         { return Vector3.Zero; }
 
-
         public abstract void AddPhysicsActorTaint(PhysicsActor prim);
 
         public abstract float Simulate(float timeStep);

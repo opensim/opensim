@@ -326,7 +326,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// Set a new geometry for this prim.
         /// </summary>
         /// <param name="geom"></param>
-        public void SetGeom(IntPtr geom)
+        private void SetGeom(IntPtr geom)
         {
             prim_geom = geom;
 //Console.WriteLine("SetGeom to " + prim_geom + " for " + Name);
@@ -351,7 +351,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             //m_log.Warn("Setting Geom to: " + prim_geom);
         }
 
-        public void enableBodySoft()
+        private void enableBodySoft()
         {
             if (!childPrim)
             {
@@ -366,7 +366,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public void disableBodySoft()
+        private void disableBodySoft()
         {
             m_disabled = true;
 
@@ -379,7 +379,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// Make a prim subject to physics.
         /// </summary>
-        public void enableBody()
+        private void enableBody()
         {
             // Don't enable this body if we're a child prim
             // this should be taken care of in the parent function not here
@@ -423,7 +423,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_vehicle.Enable(Body, _parent_scene);
                 }
 
-                _parent_scene.addActivePrim(this);
+                _parent_scene.ActivatePrim(this);
             }
         }
 
@@ -741,7 +741,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         #endregion
 
-        public void setMass()
+        private void setMass()
         {
             if (Body != (IntPtr) 0)
             {
@@ -757,7 +757,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// Stop a prim from being subject to physics.
         /// </summary>
-        public void disableBody()
+        internal void disableBody()
         {
             //this kills the body so things like 'mesh' can re-create it.
             lock (this)
@@ -766,7 +766,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (Body != IntPtr.Zero)
                     {
-                        _parent_scene.remActivePrim(this);
+                        _parent_scene.DeactivatePrim(this);
                         m_collisionCategories &= ~CollisionCategories.Body;
                         m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
 
@@ -783,7 +783,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 foreach (OdePrim prm in childrenPrim)
                                 {
-                                    _parent_scene.remActivePrim(prm);
+                                    _parent_scene.DeactivatePrim(prm);
                                     prm.Body = IntPtr.Zero;
                                 }
                             }
@@ -793,7 +793,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    _parent_scene.remActivePrim(this);
+                    _parent_scene.DeactivatePrim(this);
                     
                     m_collisionCategories &= ~CollisionCategories.Body;
                     m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
@@ -814,7 +814,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private static Dictionary<IMesh, IntPtr> m_MeshToTriMeshMap = new Dictionary<IMesh, IntPtr>();
 
-        public void setMesh(OdeScene parent_scene, IMesh mesh)
+        private void setMesh(OdeScene parent_scene, IMesh mesh)
         {
 //            m_log.DebugFormat("[ODE PRIM]: Setting mesh on {0} to {1}", Name, mesh);
 
@@ -884,73 +884,73 @@ namespace OpenSim.Region.Physics.OdePlugin
            // }
         }
 
-        public void ProcessTaints(float timestep)
+        internal void ProcessTaints()
         {
 #if SPAM
 Console.WriteLine("ZProcessTaints for " + Name);
 #endif
             if (m_taintadd)
             {
-                changeadd(timestep);
+                changeadd();
             }
             
             if (prim_geom != IntPtr.Zero)
             {
                  if (!_position.ApproxEquals(m_taintposition, 0f))
-                     changemove(timestep);
+                     changemove();
 
                  if (m_taintrot != _orientation)
                  {
                     if (childPrim && IsPhysical)    // For physical child prim...
                     {
-                        rotate(timestep);
+                        rotate();
                         // KF: ODE will also rotate the parent prim!
                         // so rotate the root back to where it was
                         OdePrim parent = (OdePrim)_parent;
-                        parent.rotate(timestep);
+                        parent.rotate();
                     }
                     else
                     {
                         //Just rotate the prim
-                        rotate(timestep);
+                        rotate();
                     }
                 }
             
                 if (m_taintPhysics != IsPhysical && !(m_taintparent != _parent))
-                    changePhysicsStatus(timestep);
+                    changePhysicsStatus();
 
                 if (!_size.ApproxEquals(m_taintsize, 0f))
-                    changesize(timestep);
+                    changesize();
 
                 if (m_taintshape)
-                    changeshape(timestep);
+                    changeshape();
 
                 if (m_taintforce)
-                    changeAddForce(timestep);
+                    changeAddForce();
 
                 if (m_taintaddangularforce)
-                    changeAddAngularForce(timestep);
+                    changeAddAngularForce();
 
                 if (!m_taintTorque.ApproxEquals(Vector3.Zero, 0.001f))
-                    changeSetTorque(timestep);
+                    changeSetTorque();
 
                 if (m_taintdisable)
-                    changedisable(timestep);
+                    changedisable();
 
                 if (m_taintselected != m_isSelected)
-                    changeSelectedStatus(timestep);
+                    changeSelectedStatus();
 
                 if (!m_taintVelocity.ApproxEquals(Vector3.Zero, 0.001f))
-                    changevelocity(timestep);
+                    changevelocity();
 
                 if (m_taintparent != _parent)
-                    changelink(timestep);
+                    changelink();
 
                 if (m_taintCollidesWater != m_collidesWater)
-                    changefloatonwater(timestep);
+                    changefloatonwater();
 
                 if (!m_angularlock.ApproxEquals(m_taintAngularLock,0f))
-                    changeAngularLock(timestep);
+                    changeAngularLock();
             }
             else
             {
@@ -958,7 +958,10 @@ Console.WriteLine("ZProcessTaints for " + Name);
             }
         }
 
-        private void changeAngularLock(float timestep)
+        /// <summary>
+        /// Change prim in response to an angular lock taint.
+        /// </summary>
+        private void changeAngularLock()
         {
             // do we have a Physical object?
             if (Body != IntPtr.Zero)
@@ -983,11 +986,15 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     }
                 }
             }
+
             // Store this for later in case we get turned into a separate body
             m_angularlock = m_taintAngularLock;
         }
 
-        private void changelink(float timestep)
+        /// <summary>
+        /// Change prim in response to a link taint.
+        /// </summary>
+        private void changelink()
         {
             // If the newly set parent is not null
             // create link
@@ -1042,7 +1049,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
         /// Add a child prim to this parent prim.
         /// </summary>
         /// <param name="prim">Child prim</param>
-        public void AddChildPrim(OdePrim prim)
+        private void AddChildPrim(OdePrim prim)
         {
 //Console.WriteLine("AddChildPrim  " + Name);
             if (this.m_localID != prim.m_localID)
@@ -1134,7 +1141,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                                     prm.createAMotor(m_angularlock);
                                 }
                                 prm.Body = Body;
-                                _parent_scene.addActivePrim(prm);
+                                _parent_scene.ActivatePrim(prm);
                             }
 
                             m_collisionCategories |= CollisionCategories.Body;
@@ -1179,7 +1186,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                             if (m_vehicle.Type != Vehicle.TYPE_NONE)
                                 m_vehicle.Enable(Body, _parent_scene);
 
-                            _parent_scene.addActivePrim(this);
+                            _parent_scene.ActivatePrim(this);
                         }
                     }
                 }
@@ -1206,7 +1213,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
 
             if (Body != IntPtr.Zero)
             {
-                _parent_scene.remActivePrim(this);
+                _parent_scene.DeactivatePrim(this);
             }
 
             lock (childrenPrim)
@@ -1245,7 +1252,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
 
             if (Body != IntPtr.Zero)
             {
-                _parent_scene.remActivePrim(this);
+                _parent_scene.DeactivatePrim(this);
             }
 
             lock (childrenPrim)
@@ -1258,7 +1265,10 @@ Console.WriteLine("ZProcessTaints for " + Name);
             }
         }
 
-        private void changeSelectedStatus(float timestep)
+        /// <summary>
+        /// Change prim in response to a selection taint.
+        /// </summary>
+        private void changeSelectedStatus()
         {
             if (m_taintselected)
             {
@@ -1338,7 +1348,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
             m_isSelected = m_taintselected;
         }//end changeSelectedStatus
 
-        public void ResetTaints()
+        internal void ResetTaints()
         {
             m_taintposition = _position;
             m_taintrot = _orientation;
@@ -1356,7 +1366,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
         /// </summary>
         /// <param name="m_targetSpace"></param>
         /// <param name="mesh">If null, then a mesh is used that is based on the profile shape data.</param>
-        public void CreateGeom(IntPtr m_targetSpace, IMesh mesh)
+        private void CreateGeom(IntPtr m_targetSpace, IMesh mesh)
         {
 #if SPAM
 Console.WriteLine("CreateGeom:");
@@ -1442,7 +1452,7 @@ Console.WriteLine("CreateGeom:");
         /// <param name="m_targetSpace"></param>
         /// <param name="mesh">If null, then a mesh is used that is based on the profile shape data.</param>
         /// <returns>true if the geom was successfully removed, false if it was already gone or the remove failed.</returns>
-        public bool RemoveGeom()
+        internal bool RemoveGeom()
         {
             if (prim_geom != IntPtr.Zero)
             {
@@ -1468,8 +1478,10 @@ Console.WriteLine("CreateGeom:");
                 return false;
             }
         }
-
-        public void changeadd(float timestep)
+        /// <summary>
+        /// Add prim in response to an add taint.
+        /// </summary>
+        private void changeadd()
         {
             int[] iprimspaceArrItem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
             IntPtr targetspace = _parent_scene.calculateSpaceForGeom(_position);
@@ -1513,12 +1525,15 @@ Console.WriteLine("changeadd 1");
                 }
             }
 
-            changeSelectedStatus(timestep);
+            changeSelectedStatus();
 
             m_taintadd = false;
         }
 
-        public void changemove(float timestep)
+        /// <summary>
+        /// Move prim in response to a move taint.
+        /// </summary>
+        private void changemove()
         {
             if (IsPhysical)
             {
@@ -1589,13 +1604,13 @@ Console.WriteLine(" JointCreateFixed");
                 }
             }
 
-            changeSelectedStatus(timestep);
+            changeSelectedStatus();
 
             resetCollisionAccounting();
             m_taintposition = _position;
         }
 
-        public void Move(float timestep)
+        internal void Move(float timestep)
         {
             float fx = 0;
             float fy = 0;
@@ -1842,7 +1857,7 @@ Console.WriteLine(" JointCreateFixed");
             }
         }
 
-        public void rotate(float timestep)
+        private void rotate()
         {
             d.Quaternion myrot = new d.Quaternion();
             myrot.X = _orientation.X;
@@ -1876,7 +1891,10 @@ Console.WriteLine(" JointCreateFixed");
             m_disabled = false;
         }
 
-        public void changedisable(float timestep)
+        /// <summary>
+        /// Change prim in response to a disable taint.
+        /// </summary>
+        private void changedisable()
         {
             m_disabled = true;
             if (Body != IntPtr.Zero)
@@ -1888,7 +1906,10 @@ Console.WriteLine(" JointCreateFixed");
             m_taintdisable = false;
         }
 
-        public void changePhysicsStatus(float timestep)
+        /// <summary>
+        /// Change prim in response to a physics status taint
+        /// </summary>
+        private void changePhysicsStatus()
         {
             if (IsPhysical)
             {
@@ -1896,7 +1917,7 @@ Console.WriteLine(" JointCreateFixed");
                 {
                     if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
                     {
-                        changeshape(2f);
+                        changeshape();
                     }
                     else
                     {
@@ -1913,7 +1934,7 @@ Console.WriteLine(" JointCreateFixed");
                         RemoveGeom();
 
 //Console.WriteLine("changePhysicsStatus for " + Name);
-                        changeadd(2f);
+                        changeadd();
                     }
 
                     if (childPrim)
@@ -1931,13 +1952,16 @@ Console.WriteLine(" JointCreateFixed");
                 }
             }
 
-            changeSelectedStatus(timestep);
+            changeSelectedStatus();
 
             resetCollisionAccounting();
             m_taintPhysics = IsPhysical;
         }
 
-        public void changesize(float timestamp)
+        /// <summary>
+        /// Change prim in response to a size taint.
+        /// </summary>
+        private void changesize()
         {
 #if SPAM
             m_log.DebugFormat("[ODE PRIM]: Called changesize");
@@ -2007,7 +2031,8 @@ Console.WriteLine(" JointCreateFixed");
                 d.BodyEnable(Body);
             }
 
-            changeSelectedStatus(timestamp);
+            changeSelectedStatus();
+
             if (childPrim)
             {
                 if (_parent is OdePrim)
@@ -2020,7 +2045,11 @@ Console.WriteLine(" JointCreateFixed");
             m_taintsize = _size;
         }
 
-        public void changefloatonwater(float timestep)
+        /// <summary>
+        /// Change prim in response to a float on water taint.
+        /// </summary>
+        /// <param name="timestep"></param>
+        private void changefloatonwater()
         {
             m_collidesWater = m_taintCollidesWater;
 
@@ -2038,7 +2067,10 @@ Console.WriteLine(" JointCreateFixed");
             }
         }
 
-        public void changeshape(float timestamp)
+        /// <summary>
+        /// Change prim in response to a shape taint.
+        /// </summary>
+        private void changeshape()
         {
             // Cleanup of old prim geometry and Bodies
             if (IsPhysical && Body != IntPtr.Zero)
@@ -2101,7 +2133,8 @@ Console.WriteLine(" JointCreateFixed");
                 }
             }
 
-            changeSelectedStatus(timestamp);
+            changeSelectedStatus();
+
             if (childPrim)
             {
                 if (_parent is OdePrim)
@@ -2115,7 +2148,10 @@ Console.WriteLine(" JointCreateFixed");
             m_taintshape = false;
         }
 
-        public void changeAddForce(float timestamp)
+        /// <summary>
+        /// Change prim in response to an add force taint.
+        /// </summary>
+        private void changeAddForce()
         {
             if (!m_isSelected)
             {
@@ -2163,7 +2199,10 @@ Console.WriteLine(" JointCreateFixed");
             m_taintforce = false;
         }
 
-        public void changeSetTorque(float timestamp)
+        /// <summary>
+        /// Change prim in response to a torque taint.
+        /// </summary>
+        private void changeSetTorque()
         {
             if (!m_isSelected)
             {
@@ -2176,7 +2215,10 @@ Console.WriteLine(" JointCreateFixed");
             m_taintTorque = Vector3.Zero;
         }
 
-        public void changeAddAngularForce(float timestamp)
+        /// <summary>
+        /// Change prim in response to an angular force taint.
+        /// </summary>
+        private void changeAddAngularForce()
         {
             if (!m_isSelected)
             {
@@ -2204,7 +2246,10 @@ Console.WriteLine(" JointCreateFixed");
             m_taintaddangularforce = false;
         }
 
-        private void changevelocity(float timestep)
+        /// <summary>
+        /// Change prim in response to a velocity taint.
+        /// </summary>
+        private void changevelocity()
         {
             if (!m_isSelected)
             {
@@ -2219,10 +2264,11 @@ Console.WriteLine(" JointCreateFixed");
                 
                 //resetCollisionAccounting();
             }
+
             m_taintVelocity = Vector3.Zero;
         }
 
-        public void setPrimForRemoval()
+        internal void setPrimForRemoval()
         {
             m_taintremove = true;
         }
@@ -2438,16 +2484,13 @@ Console.WriteLine(" JointCreateFixed");
             set
             {
                 if (QuaternionIsFinite(value))
-                {
                     _orientation = value;
-                }
                 else
                     m_log.WarnFormat("[PHYSICS]: Got NaN quaternion Orientation from Scene in Object {0}", Name);
-
             }
         }
 
-        internal static bool QuaternionIsFinite(Quaternion q)
+        private static bool QuaternionIsFinite(Quaternion q)
         {
             if (Single.IsNaN(q.X) || Single.IsInfinity(q.X))
                 return false;
@@ -2463,12 +2506,6 @@ Console.WriteLine(" JointCreateFixed");
         public override Vector3 Acceleration
         {
             get { return _acceleration; }
-        }
-
-
-        public void SetAcceleration(Vector3 accel)
-        {
-            _acceleration = accel;
         }
 
         public override void AddForce(Vector3 force, bool pushforce)
@@ -2574,7 +2611,7 @@ Console.WriteLine(" JointCreateFixed");
             }
         }
 
-        public void UpdatePositionAndVelocity()
+        internal void UpdatePositionAndVelocity()
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
             if (_parent == null)
@@ -2943,7 +2980,7 @@ Console.WriteLine(" JointCreateFixed");
             d.JointSetAMotorParam(Amotor, (int)dParam.FMax, Mass * 50f);//
         }
 
-        public Matrix4 FromDMass(d.Mass pMass)
+        private Matrix4 FromDMass(d.Mass pMass)
         {
             Matrix4 obj;
             obj.M11 = pMass.I.M00;
@@ -2965,7 +3002,7 @@ Console.WriteLine(" JointCreateFixed");
             return obj;
         }
 
-        public d.Mass FromMatrix4(Matrix4 pMat, ref d.Mass obj)
+        private d.Mass FromMatrix4(Matrix4 pMat, ref d.Mass obj)
         {
             obj.I.M00 = pMat[0, 0];
             obj.I.M01 = pMat[0, 1];
@@ -3153,6 +3190,7 @@ Console.WriteLine(" JointCreateFixed");
                     break;
             }
         }
+
         private static float determinant3x3(Matrix4 pMat)
         {
             float det = 0;
