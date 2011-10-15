@@ -659,7 +659,7 @@ namespace OpenSim
 
             return new Scene(
                 regionInfo, circuitManager, sceneGridService,
-                simDataService, estateDataService, m_moduleLoader, false, m_configSettings.PhysicalPrim,
+                simDataService, estateDataService, m_moduleLoader, false,
                 m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }
         

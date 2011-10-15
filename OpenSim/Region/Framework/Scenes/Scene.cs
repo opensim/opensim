@@ -73,8 +73,12 @@ namespace OpenSim.Region.Framework.Scenes
         public List<Border> SouthBorders = new List<Border>();
         public List<Border> WestBorders = new List<Border>();
 
-        /// <summary>Are we applying physics to any of the prims in this scene?</summary>
+        /// <summary>
+        /// Controls whether physics can be applied to prims.  Even if false, prims still have entries in a
+        /// PhysicsScene in order to perform collision detection
+        /// </summary>
         public bool m_physicalPrim;
+
         public float m_maxNonphys = 256;
         public float m_maxPhys = 10;
         public bool m_clampPrimSize;
@@ -533,7 +537,7 @@ namespace OpenSim.Region.Framework.Scenes
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
                      SceneCommunicationService sceneGridService,
                      ISimulationDataService simDataService, IEstateDataService estateDataService,
-                     ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
+                     ModuleLoader moduleLoader, bool dumpAssetsToFile,
                      bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
             : this(regInfo)
         {
@@ -550,8 +554,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_EstateDataService = estateDataService;
             m_regionHandle = m_regInfo.RegionHandle;
             m_regionName = m_regInfo.RegionName;
-
-            m_physicalPrim = physicalPrim;
+            
             m_seeIntoRegionFromNeighbor = SeeIntoRegionFromNeighbor;
 
             m_asyncSceneObjectDeleter = new AsyncSceneObjectGroupDeleter(this);
@@ -675,6 +678,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
                 // TODO: Change default to true once the feature is supported
                 m_usePreJump = startupConfig.GetBoolean("enableprejump", false);
+
+                m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
 
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", m_maxNonphys);
                 if (RegionInfo.NonphysPrimMax > 0)

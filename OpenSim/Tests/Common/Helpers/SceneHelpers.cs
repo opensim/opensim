@@ -108,7 +108,7 @@ namespace OpenSim.Tests.Common
             IConfigSource configSource = new IniConfigSource();
 
             TestScene testScene = new TestScene(
-                regInfo, acm, scs, simDataService, estateDataService, null, false, false, false, configSource, null);
+                regInfo, acm, scs, simDataService, estateDataService, null, false, false, configSource, null);
 
             IRegionModule godsModule = new GodsModule();
             godsModule.Initialise(testScene, new IniConfigSource());

@@ -129,20 +129,15 @@ namespace OpenSim.Region.Framework.Scenes
         #region Fields
 
         public bool AllowedDrop;
-
         
         public bool DIE_AT_EDGE;
-
         
         public bool RETURN_AT_EDGE;
-
         
         public bool BlockGrab;
 
-        
         public bool StatusSandbox;
 
-        
         public Vector3 StatusSandboxPos;
 
         [XmlIgnore]
@@ -165,41 +160,29 @@ namespace OpenSim.Region.Framework.Scenes
         //        for SL compatibility it should be persisted though (set sound / displaytext / particlesystem, kill script)
         
         public UUID Sound;
-        
-        
-        public byte SoundFlags;
-        
-        
-        public double SoundGain;
-        
-        
-        public double SoundRadius;
-        
-        
-        public uint TimeStampFull;
-        
-        
-        public uint TimeStampLastActivity; // Will be used for AutoReturn
-        
-        
-        public uint TimeStampTerse;
 
+        public byte SoundFlags;
+
+        public double SoundGain;
+
+        public double SoundRadius;
+
+        public uint TimeStampFull;
+
+        public uint TimeStampLastActivity; // Will be used for AutoReturn
+
+        public uint TimeStampTerse;
         
         public UUID FromItemID;
 
-        
         public UUID FromFolderID;
 
-        
         public int STATUS_ROTATE_X;
 
-        
         public int STATUS_ROTATE_Y;
 
-        
         public int STATUS_ROTATE_Z;
-        
-        
+
         private Dictionary<int, string> m_CollisionFilter = new Dictionary<int, string>();
                
         /// <value>
@@ -216,35 +199,26 @@ namespace OpenSim.Region.Framework.Scenes
 
         public scriptEvents AggregateScriptEvents;
 
-        
         public Vector3 AttachedPos;
 
-        
         public Vector3 RotationAxis = Vector3.One;
 
-        
         public bool VolumeDetectActive; // XmlIgnore set to avoid problems with persistance until I come to care for this
                                         // Certainly this must be a persistant setting finally
 
-        
         public bool IsWaitingForFirstSpinUpdatePacket;
 
-        
         public Quaternion SpinOldOrientation = Quaternion.Identity;
 
-        
         public Quaternion m_APIDTarget = Quaternion.Identity;
 
-        
         public float m_APIDDamp = 0;
-
         
         public float m_APIDStrength = 0;
 
         /// <summary>
         /// This part's inventory
-        /// </summary>
-        
+        /// </summary>        
         public IEntityInventory Inventory
         {
             get { return m_inventory; }
