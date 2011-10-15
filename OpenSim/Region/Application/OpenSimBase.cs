@@ -660,7 +660,7 @@ namespace OpenSim
             return new Scene(
                 regionInfo, circuitManager, sceneGridService,
                 simDataService, estateDataService, m_moduleLoader, false,
-                m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
+                m_config.Source, m_version);
         }
         
         protected void ShutdownClientServer(RegionInfo whichRegion)
