@@ -2023,8 +2023,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else if (part.PhysActor != null)
                 {
-                    PhysicsScene.RemovePrim(part.PhysActor);
-                    part.PhysActor = null;
+                    part.RemoveFromPhysics();
                 }
             }
             

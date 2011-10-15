@@ -530,10 +530,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             so.AttachedAvatar = sp.UUID;
 
             if (so.RootPart.PhysActor != null)
-            {
-                m_scene.PhysicsScene.RemovePrim(so.RootPart.PhysActor);
-                so.RootPart.PhysActor = null;
-            }
+                so.RootPart.RemoveFromPhysics();
 
             so.AbsolutePosition = attachOffset;
             so.RootPart.AttachedPos = attachOffset;
