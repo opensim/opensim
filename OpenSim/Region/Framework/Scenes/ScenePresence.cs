@@ -1860,11 +1860,12 @@ namespace OpenSim.Region.Framework.Scenes
                                     4); // PERMISSION_TAKE_CONTROLS
                             }
                         }
-
                     }
+
                     // Reset sit target.
-                    if (part.GetAvatarOnSitTarget() == UUID)
+                    if (part.SitTargetAvatar == UUID)
                         part.SitTargetAvatar = UUID.Zero;
+
                     part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
 
                     ParentPosition = part.GetWorldPosition();
@@ -1913,7 +1914,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Is a sit target available?
                 Vector3 avSitOffSet = part.SitTargetPosition;
                 Quaternion avSitOrientation = part.SitTargetOrientation;
-                UUID avOnTargetAlready = part.GetAvatarOnSitTarget();
+                UUID avOnTargetAlready = part.SitTargetAvatar;
 
                 bool SitTargetUnOccupied = (!(avOnTargetAlready != UUID.Zero));
                 bool SitTargetisSet =
@@ -1950,7 +1951,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Is a sit target available?
                 Vector3 avSitOffSet = part.SitTargetPosition;
                 Quaternion avSitOrientation = part.SitTargetOrientation;
-                UUID avOnTargetAlready = part.GetAvatarOnSitTarget();
+                UUID avOnTargetAlready = part.SitTargetAvatar;
 
                 bool SitTargetUnOccupied = (!(avOnTargetAlready != UUID.Zero));
                 bool SitTargetisSet =
@@ -2278,7 +2279,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (part != null)
                 {
-                    if (part.GetAvatarOnSitTarget() == UUID)
+                    if (part.SitTargetAvatar == UUID)
                     {
                         Vector3 sitTargetPos = part.SitTargetPosition;
                         Quaternion sitTargetOrient = part.SitTargetOrientation;

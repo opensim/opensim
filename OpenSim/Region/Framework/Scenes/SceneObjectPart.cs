@@ -1220,6 +1220,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// ID of the avatar that is sat on us.  If there is no such avatar then is UUID.Zero
+        /// </summary>
         public UUID SitTargetAvatar
         {
             get { return m_sitTargetAvatar; }
@@ -1884,11 +1887,6 @@ namespace OpenSim.Region.Framework.Scenes
                 part.ResetExpire();
 
             return part;
-        }
-
-        public UUID GetAvatarOnSitTarget()
-        {
-            return m_sitTargetAvatar;
         }
 
         public bool GetDieAtEdge()
