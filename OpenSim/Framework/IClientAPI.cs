@@ -1006,11 +1006,11 @@ namespace OpenSim.Framework
         event MuteListEntryRemove OnRemoveMuteListEntry;
         event GodlikeMessage onGodlikeMessage;
         event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
-        
+
         /// <summary>
         /// Set the debug level at which packet output should be printed to console.
         /// </summary>
-        void SetDebugPacketLevel(int newDebug);
+        int DebugPacketLevel { get; set; }
 
         void InPacket(object NewPack);
         void ProcessInPacket(Packet NewPack);

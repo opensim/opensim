@@ -866,10 +866,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
 #pragma warning restore 67
 
-        public void SetDebugPacketLevel(int newDebug)
-        {
-            
-        }
+        public int DebugPacketLevel { get; set; }
 
         public void InPacket(object NewPack)
         {

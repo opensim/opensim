@@ -873,9 +873,7 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public void SetDebugPacketLevel(int newDebug)
-        {
-        }
+        public int DebugPacketLevel { get; set; }
 
         public void InPacket(object NewPack)
         {
