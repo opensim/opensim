@@ -11617,7 +11617,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     logPacket = false;
 
                 if (logPacket)
-                    m_log.DebugFormat("[CLIENT]: Packet OUT {0}", packet.Type);
+                    m_log.DebugFormat("[CLIENT]: Packet OUT {0} to {1}", packet.Type, Name);
             }
             
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting, method);
@@ -11672,7 +11672,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     outputPacket = false;
 
                 if (outputPacket)
-                    m_log.DebugFormat("[CLIENT]: Packet IN {0}", packet.Type);
+                    m_log.DebugFormat("[CLIENT]: Packet IN {0} from {1}", packet.Type, Name);
             }
 
             if (!ProcessPacketMethod(packet))
