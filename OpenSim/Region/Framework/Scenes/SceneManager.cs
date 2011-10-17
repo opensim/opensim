@@ -452,14 +452,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// console.
         /// </summary>
         /// <param name="newDebug"></param>
-        public void SetDebugPacketLevelOnCurrentScene(int newDebug)
+        /// <param name="name">Name of avatar to debug</param>
+        public void SetDebugPacketLevelOnCurrentScene(int newDebug, string name)
         {
             ForEachCurrentScene(
                 delegate(Scene scene)
                 {
                     scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
                     {
-                        if (!scenePresence.IsChildAgent)
+                        if (!scenePresence.IsChildAgent && (name == null || scenePresence.Name == name))
                         {
                             m_log.DebugFormat("Packet debug for {0} {1} set to {2}",
                                               scenePresence.Firstname,
