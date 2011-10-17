@@ -1220,14 +1220,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        
         public UUID SitTargetAvatar
         {
             get { return m_sitTargetAvatar; }
             set { m_sitTargetAvatar = value; }
         }
 
-        
         public virtual UUID RegionID
         {
             get

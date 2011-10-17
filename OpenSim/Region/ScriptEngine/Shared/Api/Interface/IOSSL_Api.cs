@@ -178,6 +178,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osNpcSetRot(LSL_Key npc, rotation rot);
         void osNpcStopMoveToTarget(LSL_Key npc);
         void osNpcSay(key npc, string message);
+        void osNpcSit(key npc, key target, int options);
         void osNpcRemove(key npc);
 
         LSL_Key osOwnerSaveAppearance(string notecard);
