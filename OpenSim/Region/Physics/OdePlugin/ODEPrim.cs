@@ -2378,6 +2378,8 @@ Console.WriteLine(" JointCreateFixed");
 
         public override void SetVolumeDetect(int param)
         {
+            // We have to lock the scene here so that an entire simulate loop either uses volume detect for all
+            // possible collisions with this prim or for none of them.
             lock (_parent_scene.OdeLock)
             {
                 m_isVolumeDetect = (param != 0);
