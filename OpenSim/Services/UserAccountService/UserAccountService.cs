@@ -505,8 +505,10 @@ namespace OpenSim.Services.UserAccountService
                                firstName, lastName);
                     }
                     else
+                    {
                         m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to retrieve home region for account {0} {1}.",
                            firstName, lastName);
+                    }
 
                     if (m_InventoryService != null)
                     {
@@ -516,13 +518,19 @@ namespace OpenSim.Services.UserAccountService
                             m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to create inventory for account {0} {1}.",
                                 firstName, lastName);
                         }
-                        else if (m_CreateDefaultAvatarEntries)
+                        else
                         {
-                            CreateDefaultAppearanceEntries(account.PrincipalID);
+                            m_log.DebugFormat(
+                                "[USER ACCOUNT SERVICE]; Created user inventory for {0} {1}", firstName, lastName);
                         }
+
+                        if (m_CreateDefaultAvatarEntries)
+                            CreateDefaultAppearanceEntries(account.PrincipalID);
                     }
 
-                    m_log.InfoFormat("[USER ACCOUNT SERVICE]: Account {0} {1} created successfully", firstName, lastName);
+                    m_log.InfoFormat(
+                        "[USER ACCOUNT SERVICE]: Account {0} {1} {2} created successfully",
+                        firstName, lastName, account.PrincipalID);
                 }
                 else
                 {

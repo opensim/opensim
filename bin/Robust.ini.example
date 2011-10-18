@@ -149,13 +149,17 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
     InventoryService = "OpenSim.Services.InventoryService.dll:XInventoryService"
-    ; AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
+    AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
 
     ;; This switch creates the minimum set of body parts and avatar entries for a viewer 2 
     ;; to show a default "Ruth" avatar rather than a cloud for a newly created user.
     ;; Default is false
     ;; If you enable this you will also need to uncomment the AvatarService line above
     ; CreateDefaultAvatarEntries = false
+
+    ;; Allow the service to process HTTP create user calls.
+    ;; Default is false.
+    ; AllowCreateUser = false
 
 
 [GridUserService]
