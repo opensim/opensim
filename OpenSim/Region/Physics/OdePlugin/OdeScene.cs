@@ -3444,6 +3444,9 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
 
         private void SetTerrain(float[] heightMap, Vector3 pOffset)
         {
+            int startTime = Util.EnvironmentTickCount();
+            m_log.DebugFormat("[PHYSICS]: Setting terrain for {0}", Name);
+
             // this._heightmap[i] = (double)heightMap[i];
             // dbm (danx0r) -- creating a buffer zone of one extra sample all around
             //_origheightmap = heightMap;
@@ -3565,6 +3568,9 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 RegionTerrain.Add(pOffset, GroundGeom, GroundGeom);
                 TerrainHeightFieldHeights.Add(GroundGeom,_heightmap);
             }
+
+            m_log.DebugFormat(
+                "[PHYSICS]: Setting terrain for {0} took {1}ms", Name, Util.EnvironmentTickCountSubtract(startTime));
         }
 
         public override void DeleteTerrain()
