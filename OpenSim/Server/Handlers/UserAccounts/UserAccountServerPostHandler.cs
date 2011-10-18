@@ -144,6 +144,12 @@ namespace OpenSim.Server.Handlers.UserAccounts
                 if (UUID.TryParse(request["UserID"].ToString(), out userID))
                     account = m_UserAccountService.GetUserAccount(scopeID, userID);
             }
+            else if (request.ContainsKey("PrincipalID") && request["PrincipalID"] != null)
+            {
+                UUID userID;
+                if (UUID.TryParse(request["PrincipalID"].ToString(), out userID))
+                    account = m_UserAccountService.GetUserAccount(scopeID, userID);
+            }
             else if (request.ContainsKey("Email") && request["Email"] != null)
             {
                 account = m_UserAccountService.GetUserAccount(scopeID, request["Email"].ToString());
