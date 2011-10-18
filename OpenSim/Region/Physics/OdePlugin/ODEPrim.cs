@@ -1494,29 +1494,24 @@ Console.WriteLine("CreateGeom:");
                // m_log.Debug(m_localID);
             }
 
-            lock (_parent_scene.OdeLock)
-            {
 #if SPAM
 Console.WriteLine("changeadd 1");
 #endif
-                CreateGeom(m_targetSpace, mesh);
+            CreateGeom(m_targetSpace, mesh);
 
-                if (prim_geom != IntPtr.Zero)
-                {
-                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                    d.Quaternion myrot = new d.Quaternion();
-                    myrot.X = _orientation.X;
-                    myrot.Y = _orientation.Y;
-                    myrot.Z = _orientation.Z;
-                    myrot.W = _orientation.W;
-                    d.GeomSetQuaternion(prim_geom, ref myrot);
-                }
-
-                if (IsPhysical && Body == IntPtr.Zero)
-                {
-                    enableBody();
-                }
+            if (prim_geom != IntPtr.Zero)
+            {
+                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                d.Quaternion myrot = new d.Quaternion();
+                myrot.X = _orientation.X;
+                myrot.Y = _orientation.Y;
+                myrot.Z = _orientation.Z;
+                myrot.W = _orientation.W;
+                d.GeomSetQuaternion(prim_geom, ref myrot);
             }
+
+            if (IsPhysical && Body == IntPtr.Zero)
+                enableBody();
 
             changeSelectedStatus();
 
