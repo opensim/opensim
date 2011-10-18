@@ -48,13 +48,7 @@ namespace OpenSim.Region.Physics.OdePlugin
     {
         //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private CollisionLocker m_ode;
         private OdeScene m_scene;
-
-        public OdePlugin()
-        {
-            m_ode = new CollisionLocker();
-        }
 
         public bool Init()
         {
@@ -69,7 +63,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // http://opensimulator.org/mantis/view.php?id=2750).
                 d.InitODE();
                 
-                m_scene = new OdeScene(m_ode, sceneIdentifier);
+                m_scene = new OdeScene(sceneIdentifier);
             }
             return (m_scene);
         }
