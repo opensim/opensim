@@ -51,6 +51,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
         private IUserAccountService m_UserAccountService;
         private bool m_AllowCreateUser = false;
+        private bool m_AllowSetAccount = false;
 
         public UserAccountServerPostHandler(IUserAccountService service)
             : this(service, null) {}
@@ -61,7 +62,10 @@ namespace OpenSim.Server.Handlers.UserAccounts
             m_UserAccountService = service;
 
             if (config != null)
+            {
                 m_AllowCreateUser = config.GetBoolean("AllowCreateUser", m_AllowCreateUser);
+                m_AllowSetAccount = config.GetBoolean("AllowSetAccount", m_AllowSetAccount);
+            }
         }
 
         public override byte[] Handle(string path, Stream requestData,
@@ -99,8 +103,12 @@ namespace OpenSim.Server.Handlers.UserAccounts
                     case "getaccounts":
                         return GetAccounts(request);
                     case "setaccount":
-                        return StoreAccount(request);
+                        if (m_AllowSetAccount)
+                            return StoreAccount(request);
+                        else
+                            break;
                 }
+                
                 m_log.DebugFormat("[USER SERVICE HANDLER]: unknown method request: {0}", method);
             }
             catch (Exception e)
@@ -193,8 +201,56 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
         byte[] StoreAccount(Dictionary<string, object> request)
         {
-            // No can do. No changing user accounts from remote sims
-            return FailureResult();
+            UUID principalID = UUID.Zero;
+            if (!(request.ContainsKey("UserID") && UUID.TryParse(request["UserID"].ToString(), out principalID)))
+                return FailureResult();
+
+            UUID scopeID = UUID.Zero;
+            if (request.ContainsKey("ScopeID") && !UUID.TryParse(request["ScopeID"].ToString(), out scopeID))
+                return FailureResult();
+
+            UserAccount existingAccount = m_UserAccountService.GetUserAccount(scopeID, principalID);
+            if (existingAccount == null)
+                return FailureResult();
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            if (request.ContainsKey("FirstName"))
+                existingAccount.FirstName = request["FirstName"].ToString();
+
+            if (request.ContainsKey("LastName"))
+                existingAccount.LastName = request["LastName"].ToString();
+
+            if (request.ContainsKey("Email"))
+                existingAccount.Email = request["Email"].ToString();
+
+            int created = 0;
+            if (request.ContainsKey("Created") && int.TryParse(request["Created"].ToString(), out created))
+                existingAccount.Created = created;
+
+            int userLevel = 0;
+            if (request.ContainsKey("UserLevel") && int.TryParse(request["UserLevel"].ToString(), out userLevel))
+                existingAccount.UserFlags = userLevel;
+
+            int userFlags = 0;
+            if (request.ContainsKey("UserFlags") && int.TryParse(request["UserFlags"].ToString(), out userFlags))
+                existingAccount.UserFlags = userFlags;
+
+            if (request.ContainsKey("UserTitle"))
+                existingAccount.UserTitle = request["UserTitle"].ToString();
+
+            if (!m_UserAccountService.StoreUserAccount(existingAccount))
+            {
+                m_log.ErrorFormat(
+                    "[USER ACCOUNT SERVER POST HANDLER]: Account store failed for account {0} {1} {2}",
+                    existingAccount.FirstName, existingAccount.LastName, existingAccount.PrincipalID);
+
+                return FailureResult();
+            }
+
+            result["result"] = existingAccount.ToKeyValuePairs();
+
+            return ResultToBytes(result);
         }
 
         byte[] CreateUser(Dictionary<string, object> request)
