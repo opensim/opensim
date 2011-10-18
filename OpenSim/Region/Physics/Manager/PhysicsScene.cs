@@ -58,6 +58,11 @@ namespace OpenSim.Region.Physics.Manager
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Name of this scene.  Useful in debug messages to distinguish one OdeScene instance from another.
+        /// </summary>
+        public string Name { get; protected set; }
+
         // The only thing that should register for this event is the SceneGraph
         // Anything else could cause problems.
 
