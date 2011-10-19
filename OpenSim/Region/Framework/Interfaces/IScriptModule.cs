@@ -41,12 +41,16 @@ namespace OpenSim.Region.Framework.Interfaces
         bool PostScriptEvent(UUID itemID, string name, Object[] args);
         bool PostObjectEvent(UUID itemID, string name, Object[] args);
 
-        // Suspend ALL scripts in a given scene object. The item ID
-        // is the UUID of a SOG, and the method acts on all contained
-        // scripts. This is different from the suspend/resume that
-        // can be issued by a client.
-        //
+        /// <summary>
+        /// Suspends a script.
+        /// </summary>
+        /// <param name="itemID">The item ID of the script.</param>
         void SuspendScript(UUID itemID);
+
+        /// <summary>
+        /// Resumes a script.
+        /// </summary>
+        /// <param name="itemID">The item ID of the script.</param>
         void ResumeScript(UUID itemID);
 
         ArrayList GetScriptErrors(UUID itemID);
