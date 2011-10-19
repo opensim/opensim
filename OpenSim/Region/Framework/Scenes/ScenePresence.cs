@@ -2782,17 +2782,17 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_scene.TestBorderCross(pos2, Cardinals.S))
                     {
                         needsTransit = true;
-                        neighbor = HaveNeighbor(Cardinals.SW, ref fix);
+                        neighbor = m_scene.HaveNeighbor(Cardinals.SW, ref fix);
                     }
                     else if (m_scene.TestBorderCross(pos2, Cardinals.N))
                     {
                         needsTransit = true;
-                        neighbor = HaveNeighbor(Cardinals.NW, ref fix);
+                        neighbor = m_scene.HaveNeighbor(Cardinals.NW, ref fix);
                     }
                     else
                     {
                         needsTransit = true;
-                        neighbor = HaveNeighbor(Cardinals.W, ref fix);
+                        neighbor = m_scene.HaveNeighbor(Cardinals.W, ref fix);
                     }
                 }
                 else if (m_scene.TestBorderCross(pos2, Cardinals.E))
@@ -2800,28 +2800,28 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_scene.TestBorderCross(pos2, Cardinals.S))
                     {
                         needsTransit = true;
-                        neighbor = HaveNeighbor(Cardinals.SE, ref fix);
+                        neighbor = m_scene.HaveNeighbor(Cardinals.SE, ref fix);
                     }
                     else if (m_scene.TestBorderCross(pos2, Cardinals.N))
                     {
                         needsTransit = true;
-                        neighbor = HaveNeighbor(Cardinals.NE, ref fix);
+                        neighbor = m_scene.HaveNeighbor(Cardinals.NE, ref fix);
                     }
                     else
                     {
                         needsTransit = true;
-                        neighbor = HaveNeighbor(Cardinals.E, ref fix);
+                        neighbor = m_scene.HaveNeighbor(Cardinals.E, ref fix);
                     }
                 }
                 else if (m_scene.TestBorderCross(pos2, Cardinals.S))
                 {
                     needsTransit = true;
-                    neighbor = HaveNeighbor(Cardinals.S, ref fix);
+                    neighbor = m_scene.HaveNeighbor(Cardinals.S, ref fix);
                 }
                 else if (m_scene.TestBorderCross(pos2, Cardinals.N))
                 {
                     needsTransit = true;
-                    neighbor = HaveNeighbor(Cardinals.N, ref fix);
+                    neighbor = m_scene.HaveNeighbor(Cardinals.N, ref fix);
                 }
 
                 // Makes sure avatar does not end up outside region
@@ -2894,46 +2894,6 @@ namespace OpenSim.Region.Framework.Scenes
                 pos2.Z = pos2.Z + (vel.Z * timeStep);
                 m_pos = pos2;
             }
-        }
-
-        /// <summary>
-        /// Checks whether this region has a neighbour in the given direction.
-        /// </summary>
-        /// <param name="car"></param>
-        /// <param name="fix"></param>
-        /// <returns>
-        /// An integer which represents a compass point.  N == 1, going clockwise until we reach NW == 8.
-        /// Returns a positive integer if there is a region in that direction, a negative integer if not.
-        /// </returns>
-        protected int HaveNeighbor(Cardinals car, ref int[] fix)
-        {
-            uint neighbourx = m_scene.RegionInfo.RegionLocX;
-            uint neighboury = m_scene.RegionInfo.RegionLocY;
-
-            int dir = (int)car;
-
-            if (dir > 1 && dir < 5) //Heading East
-                neighbourx++;
-            else if (dir > 5) // Heading West
-                neighbourx--;
-
-            if (dir < 3 || dir == 8) // Heading North
-                neighboury++;
-            else if (dir > 3 && dir < 7) // Heading Sout
-                neighboury--;
-
-            int x = (int)(neighbourx * Constants.RegionSize);
-            int y = (int)(neighboury * Constants.RegionSize);
-            GridRegion neighbourRegion = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, x, y);
-
-            if (neighbourRegion == null)
-            {
-                fix[0] = (int)(m_scene.RegionInfo.RegionLocX - neighbourx);
-                fix[1] = (int)(m_scene.RegionInfo.RegionLocY - neighboury);
-                return dir * (-1);
-            }
-            else
-                return dir;
         }
 
         /// <summary>
