@@ -41,6 +41,7 @@ using log4net;
 using Nini.Config;
 using Amib.Threading;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
@@ -264,6 +265,33 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 OnScriptRemoved += m_XmlRpcRouter.ScriptRemoved;
                 OnObjectRemoved += m_XmlRpcRouter.ObjectRemoved;
+            }
+
+            MainConsole.Instance.Commands.AddCommand(
+                "scripts", false, "scripts show", "scripts show", "Show script information",
+                "Show information on all scripts known to the script engine", HandleShowScripts);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "scripts", false, "show scripts", "show scripts", "Show script information",
+                "Synonym for scripts show command", HandleShowScripts);
+        }
+
+        public void HandleShowScripts(string module, string[] cmdparams)
+        {
+            lock (m_Scripts)
+            {
+                MainConsole.Instance.OutputFormat(
+                    "Showing {0} scripts in {1}", m_Scripts.Count, m_Scene.RegionInfo.RegionName);
+
+                foreach (IScriptInstance instance in m_Scripts.Values)
+                {
+                    SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
+
+                    MainConsole.Instance.OutputFormat(
+                        "{0}.{1}, script UUID {2}, prim UUID {3} @ {4}",
+                        instance.PrimName, instance.ScriptName, instance.AssetID, instance.ObjectID,
+                        sop.AbsolutePosition, m_Scene.RegionInfo.RegionName);
+                }
             }
         }
 
