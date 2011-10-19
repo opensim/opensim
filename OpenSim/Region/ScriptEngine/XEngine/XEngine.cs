@@ -946,7 +946,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (!m_Scripts.ContainsKey(itemID))
                     return;
 
-                instance=m_Scripts[itemID];
+                instance = m_Scripts[itemID];
                 m_Scripts.Remove(itemID);
             }
 
