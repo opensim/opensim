@@ -59,9 +59,14 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     public interface IScriptInstance
     {
         /// <summary>
-        /// Is this script currently running?
+        /// Is the script currently running?
         /// </summary>
         bool Running { get; set; }
+
+        /// <summary>
+        /// Is the script suspended?
+        /// </summary>
+        bool Suspended { get; set; }
 
         bool ShuttingDown { get; set; }
         string State { get; set; }

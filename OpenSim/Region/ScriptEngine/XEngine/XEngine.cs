@@ -286,11 +286,29 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 foreach (IScriptInstance instance in m_Scripts.Values)
                 {
                     SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
+                    string status;
+
+                    if (instance.ShuttingDown)
+                    {
+                        status = "shutting down";
+                    }
+                    else if (instance.Suspended)
+                    {
+                        status = "suspended";
+                    }
+                    else if (!instance.Running)
+                    {
+                        status = "stopped";
+                    }
+                    else
+                    {
+                        status = "running";
+                    }
 
                     MainConsole.Instance.OutputFormat(
-                        "{0}.{1}, script UUID {2}, prim UUID {3} @ {4}",
+                        "{0}.{1}, script UUID {2}, prim UUID {3} @ {4} ({5})",
                         instance.PrimName, instance.ScriptName, instance.AssetID, instance.ObjectID,
-                        sop.AbsolutePosition, m_Scene.RegionInfo.RegionName);
+                        sop.AbsolutePosition, status);
                 }
             }
         }
