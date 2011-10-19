@@ -274,6 +274,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             MainConsole.Instance.Commands.AddCommand(
                 "scripts", false, "show scripts", "show scripts", "Show script information",
                 "Synonym for scripts show command", HandleShowScripts);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "scripts", false, "scripts suspend", "scripts suspend", "Suspend all scripts",
+                "Suspends all currently running scripts.  This only suspends event delivery, it will not suspend a"
+                    + " script that is currently processing an event.",
+                HandleSuspendScripts);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "scripts", false, "scripts resume", "scripts resume", "Resume all scripts",
+                "Resumes all currently suspended scripts", HandleResumeScripts);
         }
 
         public void HandleShowScripts(string module, string[] cmdparams)
@@ -309,6 +319,44 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         "{0}.{1}, item UUID {2}, prim UUID {3} @ {4} ({5})",
                         instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID,
                         sop.AbsolutePosition, status);
+                }
+            }
+        }
+
+        public void HandleSuspendScripts(string module, string[] cmdparams)
+        {
+            lock (m_Scripts)
+            {
+                foreach (IScriptInstance instance in m_Scripts.Values)
+                {
+                    if (!instance.Suspended)
+                    {
+                        instance.Suspend();
+
+                        SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
+                        MainConsole.Instance.OutputFormat(
+                            "Suspended {0}.{1}, item UUID {2}, prim UUID {3} @ {4}",
+                            instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID, sop.AbsolutePosition);
+                    }
+                }
+            }
+        }
+
+        public void HandleResumeScripts(string module, string[] cmdparams)
+        {
+            lock (m_Scripts)
+            {
+                foreach (IScriptInstance instance in m_Scripts.Values)
+                {
+                    if (instance.Suspended)
+                    {
+                        instance.Resume();
+
+                        SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
+                        MainConsole.Instance.OutputFormat(
+                            "Resumed {0}.{1}, item UUID {2}, prim UUID {3} @ {4}",
+                            instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID, sop.AbsolutePosition);
+                    }
                 }
             }
         }
@@ -841,7 +889,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     
                     m_log.DebugFormat(
                         "[XEngine] Loaded script {0}.{1}, item UUID {2}, prim UUID {3} @ {4}.{5}",
-                        part.ParentGroup.RootPart.Name, item.Name, itemID, part.UUID, 
+                        part.ParentGroup.RootPart.Name, item.Name, itemID, part.UUID,
                         part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.RegionInfo.RegionName);
 
                     if (presence != null)
