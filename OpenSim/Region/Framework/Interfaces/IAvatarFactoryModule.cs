@@ -31,8 +31,11 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IAvatarFactory
+    public interface IAvatarFactoryModule
     {
+
+        void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams);
+
         /// <summary>
         /// Send the appearance of an avatar to others in the scene.
         /// </summary>
@@ -57,7 +60,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns>true if a valid agent was found, false otherwise</returns>
         bool SaveBakedTextures(UUID agentId);
 
-        bool ValidateBakedTextureCache(IClientAPI client);
+        bool ValidateBakedTextureCache(IScenePresence sp);
         void QueueAppearanceSend(UUID agentid);
         void QueueAppearanceSave(UUID agentid);
     }

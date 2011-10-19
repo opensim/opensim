@@ -2538,7 +2538,7 @@ namespace OpenSim.Region.Framework.Scenes
             // We have an appearance but we may not have the baked textures. Check the asset cache 
             // to see if all the baked textures are already here. 
             if (m_scene.AvatarFactory != null)
-                cachedappearance = m_scene.AvatarFactory.ValidateBakedTextureCache(ControllingClient);
+                cachedappearance = m_scene.AvatarFactory.ValidateBakedTextureCache(this);
             
             // If we aren't using a cached appearance, then clear out the baked textures
             if (!cachedappearance)

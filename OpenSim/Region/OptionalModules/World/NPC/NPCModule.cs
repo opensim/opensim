@@ -84,7 +84,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             sp.Appearance = npcAppearance;
             scene.AttachmentsModule.RezAttachments(sp);
 
-            IAvatarFactory module = scene.RequestModuleInterface<IAvatarFactory>();
+            IAvatarFactoryModule module = scene.RequestModuleInterface<IAvatarFactoryModule>();
             module.SendAppearance(sp.UUID);
 
             return true;

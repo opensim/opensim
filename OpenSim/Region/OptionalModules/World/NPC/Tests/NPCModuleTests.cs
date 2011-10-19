@@ -106,7 +106,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             // ScenePresence.SendInitialData() to reset our entire appearance.
             scene.AssetService.Store(AssetHelpers.CreateAsset(originalFace8TextureId));
 
-            afm.SetAppearanceFromClient(sp.ControllingClient, originalTe, null);
+            afm.SetAppearance(sp, originalTe, null);
 
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
             UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, sp.Appearance);

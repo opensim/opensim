@@ -2405,7 +2405,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected LSL_Key SaveAppearanceToNotecard(ScenePresence sp, string notecard)
         {
-            IAvatarFactory appearanceModule = World.RequestModuleInterface<IAvatarFactory>();
+            IAvatarFactoryModule appearanceModule = World.RequestModuleInterface<IAvatarFactoryModule>();
 
             if (appearanceModule != null)
             {

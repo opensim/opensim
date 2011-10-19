@@ -55,15 +55,13 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             AvatarFactoryModule afm = new AvatarFactoryModule();
             TestScene scene = SceneHelpers.SetupScene();
             SceneHelpers.SetupSceneModules(scene, afm);
-            IClientAPI tc = SceneHelpers.AddScenePresence(scene, userId).ControllingClient;
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, userId);
 
             byte[] visualParams = new byte[AvatarAppearance.VISUALPARAM_COUNT];
             for (byte i = 0; i < visualParams.Length; i++)
                 visualParams[i] = i;
 
-            afm.SetAppearanceFromClient(tc, new Primitive.TextureEntry(TestHelpers.ParseTail(0x10)), visualParams);
-
-            ScenePresence sp = scene.GetScenePresence(userId);
+            afm.SetAppearance(sp, new Primitive.TextureEntry(TestHelpers.ParseTail(0x10)), visualParams);
 
             // TODO: Check baked texture
             Assert.AreEqual(visualParams, sp.Appearance.VisualParams);
@@ -85,7 +83,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             AvatarFactoryModule afm = new AvatarFactoryModule();
             TestScene scene = SceneHelpers.SetupScene(assetCache);
             SceneHelpers.SetupSceneModules(scene, afm);
-            IClientAPI tc = SceneHelpers.AddScenePresence(scene, userId).ControllingClient;
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, userId);
 
             // TODO: Use the actual BunchOfCaps functionality once we slot in the CapabilitiesModules
             AssetBase uploadedAsset;
@@ -104,7 +102,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             Primitive.TextureEntryFace eyesFace = bakedTextureEntry.CreateFace(eyesFaceIndex);
             eyesFace.TextureID = eyesTextureId;
 
-            afm.SetAppearanceFromClient(tc, bakedTextureEntry, visualParams);
+            afm.SetAppearance(sp, bakedTextureEntry, visualParams);
             afm.SaveBakedTextures(userId);
 //            Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures = afm.GetBakedTextureFaces(userId);
 

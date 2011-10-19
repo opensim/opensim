@@ -51,7 +51,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);                
         
         protected Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
-        protected IAvatarFactory m_avatarFactory;
+        protected IAvatarFactoryModule m_avatarFactory;
         
         public string Name { get { return "Appearance Information Module"; } }        
         
@@ -106,14 +106,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
             {   
                 foreach (Scene scene in m_scenes.Values)
                 {
-                    scene.ForEachClient(
-                        delegate(IClientAPI client)
+                    scene.ForEachScenePresence(
+                        delegate(ScenePresence sp)
                         {
-                            if (client is LLClientView && !((LLClientView)client).ChildAgentStatus())
+                            if (sp.ControllingClient is LLClientView && !((LLClientView)sp.ControllingClient).ChildAgentStatus())
                             {
-                                bool bakedTextureValid = scene.AvatarFactory.ValidateBakedTextureCache(client);
+                                bool bakedTextureValid = scene.AvatarFactory.ValidateBakedTextureCache(sp);
                                 MainConsole.Instance.OutputFormat(
-                                    "{0} baked appearance texture is {1}", client.Name, bakedTextureValid ? "OK" : "corrupt");
+                                    "{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "corrupt");
                             }
                         });
                 }
