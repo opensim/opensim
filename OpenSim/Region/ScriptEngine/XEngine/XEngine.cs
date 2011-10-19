@@ -278,12 +278,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             MainConsole.Instance.Commands.AddCommand(
                 "scripts", false, "scripts suspend", "scripts suspend", "Suspend all scripts",
                 "Suspends all currently running scripts.  This only suspends event delivery, it will not suspend a"
-                    + " script that is currently processing an event.",
+                    + " script that is currently processing an event.\n"
+                    + "Suspended scripts will continue to accumulate events but won't process them.",
                 HandleSuspendScripts);
 
             MainConsole.Instance.Commands.AddCommand(
                 "scripts", false, "scripts resume", "scripts resume", "Resume all scripts",
-                "Resumes all currently suspended scripts", HandleResumeScripts);
+                "Resumes all currently suspended scripts.\n"
+                    + "Resumed scripts will process all events accumulated whilst suspended.",
+                HandleResumeScripts);
         }
 
         public void HandleShowScripts(string module, string[] cmdparams)
