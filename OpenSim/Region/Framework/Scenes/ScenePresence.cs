@@ -2914,11 +2914,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void NotInTransit()
-        {
-            IsInTransit = false;
-        }
-
         public void RestoreInCurrentScene()
         {
             AddToPhysicalScene(false); // not exactly false
