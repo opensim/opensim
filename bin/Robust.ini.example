@@ -129,6 +129,10 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
 
+    ;; Allow the service to process HTTP setpassword calls.
+    ;; Default is false.
+    ; AllowSetPassword = false
+
 [OpenIdService]
     ; for the server connector
     AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
@@ -156,11 +160,11 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ;; Default is false
     ; CreateDefaultAvatarEntries = false
 
-    ;; Allow the service to process HTTP create user calls.
+    ;; Allow the service to process HTTP createuser calls.
     ;; Default is false.
     ; AllowCreateUser = false
 
-    ;; Allow the service to process HTTP set account calls.
+    ;; Allow the service to process HTTP setaccount calls.
     ;; Default is false.
     ; AllowSetAccount = false
 
