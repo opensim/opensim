@@ -2703,6 +2703,19 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 direc = vec * Rotation;
             direc.Normalize();
 
+            if (PhysicsActor.Flying != m_flyingOld)                // add for fly velocity control
+            {
+                m_flyingOld = PhysicsActor.Flying;                 // add for fly velocity control
+                if (!PhysicsActor.Flying)
+                    m_wasFlying = true;      // add for fly velocity control
+            }
+
+            if (PhysicsActor.IsColliding == true)
+                m_wasFlying = false;        // add for fly velocity control
+
+            if ((vec.Z == 0f) && !PhysicsActor.Flying)
+                direc.Z = 0f; // Prevent camera WASD up.
+
             direc *= 0.03f * 128f * SpeedModifier;
 
             if (PhysicsActor != null)
@@ -2720,6 +2733,10 @@ namespace OpenSim.Region.Framework.Scenes
                     //    StopFlying();
                     //    m_log.Info("[AGENT]: Stop Flying");
                     //}
+                }
+                if (Animator.m_falling && m_wasFlying)    // if falling from flying, disable motion add
+                {
+                    direc *= 0.0f;
                 }
                 else if (!PhysicsActor.Flying && PhysicsActor.IsColliding)
                 {

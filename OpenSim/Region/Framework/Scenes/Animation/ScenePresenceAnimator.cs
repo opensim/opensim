@@ -42,7 +42,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
     /// </summary>
     public class ScenePresenceAnimator
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public AnimationSet Animations
         {
@@ -181,8 +181,8 @@ TrySetMovementAnimation("STAND");
             bool heldBack = ((controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG || (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG);
             bool heldLeft = ((controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS) == AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS || (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS) == AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS);
             bool heldRight = ((controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG || (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG);
-            bool heldTurnLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT;
-            bool heldTurnRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT;
+            //bool heldTurnLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT;
+            //bool heldTurnRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT;
             bool heldUp = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) == AgentManager.ControlFlags.AGENT_CONTROL_UP_POS;
             bool heldDown = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG;
             //bool flying = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) == AgentManager.ControlFlags.AGENT_CONTROL_FLY;
@@ -413,10 +413,10 @@ TrySetMovementAnimation("STAND");
                 // Not walking
                 if (move.Z < 0)
                     return "CROUCH";
-                else if (heldTurnLeft)
-                    return "TURNLEFT";
-                else if (heldTurnRight)
-                    return "TURNRIGHT";
+//                else if (heldTurnLeft)
+//                    return "TURNLEFT";
+//                else if (heldTurnRight)
+//                    return "TURNRIGHT";
                 else
                     return "STAND";
             }
