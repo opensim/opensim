@@ -2811,16 +2811,14 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                             }
                         }
 
-                        //if (m_global_contactcount > 5)
-                        //{
-                        //    m_log.DebugFormat("[PHYSICS]: Contacts:{0}", m_global_contactcount);
-                        //}
+//                        if (m_global_contactcount > 0)
+//                            m_log.DebugFormat(
+//                                "[PHYSICS]: Collision contacts to process this frame = {0}", m_global_contactcount);
 
                         m_global_contactcount = 0;
                         
                         d.WorldQuickStep(world, ODE_STEPSIZE);
                         d.JointGroupEmpty(contactgroup);
-                        //ode.dunlock(world);
                     }
                     catch (Exception e)
                     {
