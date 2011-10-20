@@ -883,15 +883,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// Called from Simulate
         /// This is the avatar's movement control + PID Controller
         /// </summary>
-        /// <param name="timeStep"></param>
         /// <param name="defects">
         /// If there is something wrong with the character (e.g. its position is non-finite)
         /// then it is added to this list.  The ODE structures associated with it are also destroyed.
         /// </param>
-        public void Move(float timeStep, List<OdeCharacter> defects)
+        internal void Move(List<OdeCharacter> defects)
         {
             //  no lock; for now it's only called from within Simulate()
-
+            
             // If the PID Controller isn't active then we set our force
             // calculating base velocity to the current position
 
