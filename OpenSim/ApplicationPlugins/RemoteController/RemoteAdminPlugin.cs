@@ -329,28 +329,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 responseData["accepted"] = true;
 
-                Scene region = null;
+                LoadHeightmap(file, regionID);
 
-                if (!m_application.SceneManager.TryGetScene(regionID, out region))
-                    throw new Exception("1: unable to get a scene with that name");
-
-                ITerrainModule terrainModule = region.RequestModuleInterface<ITerrainModule>();
-                if (null == terrainModule) throw new Exception("terrain module not available");
-                if (Uri.IsWellFormedUriString(file, UriKind.Absolute))
-                {
-                    m_log.Info("[RADMIN]: Terrain path is URL");
-                    Uri result;
-                    if (Uri.TryCreate(file, UriKind.RelativeOrAbsolute, out result))
-                    {
-                        // the url is valid
-                        string fileType = file.Substring(file.LastIndexOf('/') + 1);
-                        terrainModule.LoadFromStream(fileType, result);
-                    }
-                }
-                else
-                {
-                    terrainModule.LoadFromFile(file);
-                }
                 responseData["success"] = false;
 
                 response.Value = responseData;
@@ -791,6 +771,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             parcel.LandData.Flags |= (uint) ParcelFlags.UseEstateVoiceChan;
                             ((Scene)newScene).LandChannel.UpdateLandObject(parcel.LandData.LocalID, parcel.LandData);
                         }
+                    }
+
+                    //Load Heightmap if specified to new region
+                    if (requestData.Contains("heightmap_file"))
+                    {
+                        LoadHeightmap((string)requestData["heightmap_file"], region.RegionID);
                     }
 
                     responseData["success"] = true;
@@ -3157,6 +3143,40 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 m_log.ErrorFormat("[RADMIN]: No such user");
                 return false;
             }
+        }
+        private bool LoadHeightmap(string file, UUID regionID)
+        {
+            m_log.InfoFormat("[RADMIN]: Terrain Loading: {0}", file);
+
+            Scene region = null;
+
+            if (!m_application.SceneManager.TryGetScene(regionID, out region))
+            {
+                m_log.InfoFormat("[RADMIN]: unable to get a scene with that name: {0}", regionID.ToString());
+                return false;
+            }
+
+            ITerrainModule terrainModule = region.RequestModuleInterface<ITerrainModule>();
+            if (null == terrainModule) throw new Exception("terrain module not available");
+            if (Uri.IsWellFormedUriString(file, UriKind.Absolute))
+            {
+                m_log.Info("[RADMIN]: Terrain path is URL");
+                Uri result;
+                if (Uri.TryCreate(file, UriKind.RelativeOrAbsolute, out result))
+                {
+                    // the url is valid
+                    string fileType = file.Substring(file.LastIndexOf('/') + 1);
+                    terrainModule.LoadFromStream(fileType, result);
+                }
+            }
+            else
+            {
+                terrainModule.LoadFromFile(file);
+            }
+
+            m_log.Info("[RADMIN]: Load height maps request complete");
+
+            return true;
         }
     }
 }
