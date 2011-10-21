@@ -86,11 +86,18 @@ namespace OpenSim.Tests.Common
             AssetBase asset = null;
 
             if (type == InventoryType.Notecard)
-                asset = AssetHelpers.CreateNotecardAsset(scene, userId);
+            {
+                asset = AssetHelpers.CreateNotecardAsset();
+                asset.CreatorID = userId.ToString();
+            }
             else if (type == InventoryType.Object)
+            {
                 asset = AssetHelpers.CreateAsset(assetId, SceneHelpers.CreateSceneObject(1, userId));
+            }
             else
+            {
                 throw new Exception(string.Format("Inventory type {0} not supported", type));
+            }
 
             scene.AssetService.Store(asset);
 
