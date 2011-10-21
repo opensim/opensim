@@ -27,6 +27,7 @@
 
 using System.Text;
 using OpenMetaverse;
+using OpenMetaverse.Assets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
@@ -130,7 +131,11 @@ namespace OpenSim.Tests.Common
         /// </summary>
         public static AssetBase CreateAsset(UUID assetUuid, AssetType assetType, string data, UUID creatorID)
         {
-            return CreateAsset(assetUuid, assetType, Encoding.ASCII.GetBytes(data), creatorID);
+            AssetNotecard anc = new AssetNotecard();
+            anc.BodyText = "data";
+            anc.Encode();
+
+            return CreateAsset(assetUuid, assetType, anc.AssetData, creatorID);
         }
         
         /// <summary>
