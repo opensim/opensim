@@ -86,7 +86,7 @@ namespace OpenSim.Tests.Common
             AssetBase asset = null;
 
             if (type == InventoryType.Notecard)
-                asset = AssetHelpers.CreateAsset(scene, userId);
+                asset = AssetHelpers.CreateNotecardAsset(scene, userId);
             else if (type == InventoryType.Object)
                 asset = AssetHelpers.CreateAsset(assetId, SceneHelpers.CreateSceneObject(1, userId));
             else
