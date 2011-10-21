@@ -187,7 +187,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected ulong crossingFromRegion;
 
         private readonly Vector3[] Dir_Vectors = new Vector3[11];
-        private bool m_isNudging = false;
 
 
         protected Timer m_reprioritization_timer;
@@ -903,24 +902,6 @@ namespace OpenSim.Region.Framework.Scenes
             return vector;
         }
         
-        private bool[] GetDirectionIsNudge()
-        {
-            bool[] isNudge = new bool[11];
-            isNudge[0] = false; //FORWARD
-            isNudge[1] = false; //BACK
-            isNudge[2] = false; //LEFT
-            isNudge[3] = false; //RIGHT
-            isNudge[4] = false; //UP
-            isNudge[5] = false; //DOWN
-            isNudge[6] = true; //FORWARD_NUDGE
-            isNudge[7] = true; //BACK_NUDGE
-            isNudge[8] = true; //LEFT_NUDGE
-            isNudge[9] = true; //RIGHT_NUDGE
-            isNudge[10] = true; //DOWN_Nudge
-            return isNudge;
-        }
-
-
         #endregion
 
         public uint GenerateClientFlags(UUID ObjectID)
@@ -1535,6 +1516,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
             {
+                m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
+                Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+
                 // TODO: This doesn't prevent the user from walking yet.
                 // Setting parent ID would fix this, if we knew what value
                 // to use.  Or we could add a m_isSitting variable.
@@ -3736,7 +3720,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             CollisionPlane = Vector4.UnitW;
 
-			if (m_lastColCount != coldata.Count)
+            // No collisions at all means we may be flying. Update always
+            // to make falling work
+			if (m_lastColCount != coldata.Count || coldata.Count == 0)
 			{	
 				m_updateCount = UPDATE_COUNT;
 				m_lastColCount = coldata.Count;
