@@ -62,12 +62,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// Used as a temporary store of an asset which represents an object.  This can be a null if no appropriate
         /// asset was found by the asset service.
         /// </summary>
-        protected AssetBase m_requestedObjectAsset;
+        private AssetBase m_requestedObjectAsset;
 
         /// <summary>
         /// Signal whether we are currently waiting for the asset service to deliver an asset.
         /// </summary>
-        protected bool m_waitingForObjectAsset;
+        private bool m_waitingForObjectAsset;
                 
         public UuidGatherer(IAssetService assetCache)
         {
@@ -103,9 +103,13 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     GetGestureAssetUuids(assetUuid, assetUuids);
                 }
+                else if (AssetType.Notecard == assetType)
+                {
+                    GetTextEmbeddedAssetUuids(assetUuid, assetUuids);
+                }
                 else if (AssetType.LSLText == assetType)
                 {
-                    GetScriptAssetUuids(assetUuid, assetUuids);
+                    GetTextEmbeddedAssetUuids(assetUuid, assetUuids);
                 }
                 else if (AssetType.Object == assetType)
                 {
@@ -194,7 +198,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// The callback made when we request the asset for an object from the asset service.
         /// </summary>
-        protected void AssetReceived(string id, Object sender, AssetBase asset)
+        private void AssetReceived(string id, Object sender, AssetBase asset)
         {
             lock (this)
             {
@@ -238,23 +242,25 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="scriptUuid"></param>
         /// <param name="assetUuids">Dictionary in which to record the references</param>
-        protected void GetScriptAssetUuids(UUID scriptUuid, IDictionary<UUID, AssetType> assetUuids)
+        private void GetTextEmbeddedAssetUuids(UUID embeddingAssetId, IDictionary<UUID, AssetType> assetUuids)
         {
-            AssetBase scriptAsset = GetAsset(scriptUuid);
+            m_log.DebugFormat("[ASSET GATHERER]: Getting assets for asset {0}", embeddingAssetId);
 
-            if (null != scriptAsset)
+            AssetBase embeddingAsset = GetAsset(embeddingAssetId);
+
+            if (null != embeddingAsset)
             {
-                string script = Utils.BytesToString(scriptAsset.Data);
-                //m_log.DebugFormat("[ARCHIVER]: Script {0}", script);
-                MatchCollection uuidMatches = Util.UUIDPattern.Matches(script);
-                //m_log.DebugFormat("[ARCHIVER]: Found {0} matches in script", uuidMatches.Count);
+                string script = Utils.BytesToString(embeddingAsset.Data);
+                m_log.DebugFormat("[ARCHIVER]: Script {0}", script);
+                MatchCollection uuidMatches = Util.PermissiveUUIDPattern.Matches(script);
+                m_log.DebugFormat("[ARCHIVER]: Found {0} matches in text", uuidMatches.Count);
 
                 foreach (Match uuidMatch in uuidMatches)
                 {
                     UUID uuid = new UUID(uuidMatch.Value);
-                    //m_log.DebugFormat("[ARCHIVER]: Recording {0} in script", uuid);
+                    m_log.DebugFormat("[ARCHIVER]: Recording {0} in text", uuid);
 
-                    // Assume AssetIDs embedded in scripts are textures
+                    // Assume AssetIDs embedded are textures.
                     assetUuids[uuid] = AssetType.Texture;
                 }
             }
@@ -265,7 +271,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="wearableAssetUuid"></param>
         /// <param name="assetUuids">Dictionary in which to record the references</param>
-        protected void GetWearableAssetUuids(UUID wearableAssetUuid, IDictionary<UUID, AssetType> assetUuids)
+        private void GetWearableAssetUuids(UUID wearableAssetUuid, IDictionary<UUID, AssetType> assetUuids)
         {
             AssetBase assetBase = GetAsset(wearableAssetUuid);
 
@@ -292,7 +298,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="sceneObject"></param>
         /// <param name="assetUuids"></param>
-        protected void GetSceneObjectAssetUuids(UUID sceneObjectUuid, IDictionary<UUID, AssetType> assetUuids)
+        private void GetSceneObjectAssetUuids(UUID sceneObjectUuid, IDictionary<UUID, AssetType> assetUuids)
         {
             AssetBase objectAsset = GetAsset(sceneObjectUuid);
 
@@ -321,7 +327,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="gestureUuid"></param>
         /// <param name="assetUuids"></param>
-        protected void GetGestureAssetUuids(UUID gestureUuid, IDictionary<UUID, AssetType> assetUuids)
+        private void GetGestureAssetUuids(UUID gestureUuid, IDictionary<UUID, AssetType> assetUuids)
         {
             AssetBase assetBase = GetAsset(gestureUuid);
             if (null == assetBase)

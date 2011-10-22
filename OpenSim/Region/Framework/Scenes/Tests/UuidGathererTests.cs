@@ -85,5 +85,31 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // We count the uuid as gathered even if the asset itself is missing.
             Assert.That(foundAssetUuids.Count, Is.EqualTo(1));
         }
+
+        [Test]
+        public void TestNotecardAsset()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID ownerId = TestHelpers.ParseTail(0x10);
+            UUID soAssetId = TestHelpers.ParseTail(0x20);
+            UUID ncAssetId = TestHelpers.ParseTail(0x30);
+
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, ownerId);
+            AssetBase soAsset = AssetHelpers.CreateAsset(soAssetId, so);
+            m_assetService.Store(soAsset);
+
+            AssetBase ncAsset = AssetHelpers.CreateNotecardAsset(ncAssetId, soAssetId.ToString());
+            m_assetService.Store(ncAsset);
+
+            IDictionary<UUID, AssetType> foundAssetUuids = new Dictionary<UUID, AssetType>();
+            m_uuidGatherer.GatherAssetUuids(ncAssetId, AssetType.Notecard, foundAssetUuids);
+
+            // We count the uuid as gathered even if the asset itself is corrupt.
+            Assert.That(foundAssetUuids.Count, Is.EqualTo(2));
+            Assert.That(foundAssetUuids.ContainsKey(ncAssetId));
+            Assert.That(foundAssetUuids.ContainsKey(soAssetId));
+        }
     }
 }

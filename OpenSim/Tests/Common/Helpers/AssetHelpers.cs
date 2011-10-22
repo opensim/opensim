@@ -47,13 +47,24 @@ namespace OpenSim.Tests.Common
         }
 
         /// <summary>
-        /// Create a notecard asset with a random uuid and dummy text.
+        /// Create a notecard asset with dummy text and a random owner.
         /// </summary>
         /// <param name="assetId">/param>
         /// <returns></returns>
-        public static AssetBase CreateNotecardAsset(UUID id)
+        public static AssetBase CreateNotecardAsset(UUID assetId)
         {
-            return CreateAsset(id, AssetType.Notecard, "hello", UUID.Random());
+            return CreateNotecardAsset(assetId, "hello");
+        }
+
+        /// <summary>
+        /// Create a notecard asset with a random owner.
+        /// </summary>
+        /// <param name="assetId">/param>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static AssetBase CreateNotecardAsset(UUID assetId, string text)
+        {
+            return CreateAsset(assetId, AssetType.Notecard, text, UUID.Random());
         }
         
 //        /// <summary>
