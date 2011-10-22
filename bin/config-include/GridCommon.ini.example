@@ -1,3 +1,5 @@
+; This is the main configuration file for an instance of OpenSim running in grid mode
+
 [DatabaseService]
     ;
     ; ### Choose the DB
