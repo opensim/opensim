@@ -24,21 +24,39 @@
     ;StorageProvider = "OpenSim.Data.MSSQL.dll"
     ;ConnectionString = "Server=localhost\SQLEXPRESS;Database=opensim;User Id=opensim; password=***;"
 
-[AssetService]
+[Modules]
+    ;; Choose one cache module and the corresponding config file, if it exists.
+    ;; Copy the config .example file into your own .ini file and adapt that.
+    ;; We recommend the use of the FlotsamAssetCache since this is most actively maintained.
 
+    AssetCaching = "FlotsamAssetCache"
+    Include-FlotsamCache = "config-include/FlotsamCache.ini"
+
+    ;AssetCaching = "CenomeMemoryAssetCache"
+    ;Include-CenomeCache = "config-include/CenomeCache.ini"
+
+    ;AssetCaching = "GlynnTuckerAssetCache"
+
+    ;; Optionally, the port for the LLProxyLoginModule module can be changed
+    ;Setup_LLProxyLoginModule = "9090/"
+
+    ;; Authorization is not on by default, as it depends on external php
+    ;AuthorizationServices = "RemoteAuthorizationServicesConnector"
+
+[AssetService]
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
 
     ;
     ; Change this to your grid-wide asset server.  Do not add a slash to the end of any of these addresses.
     ;
-    AssetServerURI = "http://myassetserver.com:8003"
+    AssetServerURI = "http://mygridserver.com:8003"
 
 [InventoryService]
     ;
     ; Change this to your grid-wide inventory server
     ;
-    InventoryServerURI = "http://myinventoryserver.com:8003"
+    InventoryServerURI = "http://mygridserver.com:8003"
 
 [GridService]
     ;
@@ -120,23 +138,3 @@
 
 [MapImageService]
    	MapImageServerURI = "http://mygridserver.com:8003"
-
-[Modules]
-    ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
-    ;; Copy the config .example file into your own .ini file and change configs there
-    ;; We recommend the use of the FlotsamAssetCache since this is most actively maintained.
-
-    AssetCaching = "FlotsamAssetCache"
-    Include-FlotsamCache = "config-include/FlotsamCache.ini"
-
-    ;AssetCaching = "CenomeMemoryAssetCache"
-    ;Include-CenomeCache = "config-include/CenomeCache.ini"
-
-    ;AssetCaching = "GlynnTuckerAssetCache"
-
-    ;; Optionally, the port for the LLProxyLoginModule module can be changed
-
-    ;Setup_LLProxyLoginModule = "9090/"
-
-    ;; Authorization is not on by default, as it depends on external php
-    ;AuthorizationServices = "RemoteAuthorizationServicesConnector"
