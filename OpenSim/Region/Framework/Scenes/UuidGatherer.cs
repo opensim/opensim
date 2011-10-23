@@ -244,21 +244,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="assetUuids">Dictionary in which to record the references</param>
         private void GetTextEmbeddedAssetUuids(UUID embeddingAssetId, IDictionary<UUID, AssetType> assetUuids)
         {
-            m_log.DebugFormat("[ASSET GATHERER]: Getting assets for asset {0}", embeddingAssetId);
+//            m_log.DebugFormat("[ASSET GATHERER]: Getting assets for uuid references in asset {0}", embeddingAssetId);
 
             AssetBase embeddingAsset = GetAsset(embeddingAssetId);
 
             if (null != embeddingAsset)
             {
                 string script = Utils.BytesToString(embeddingAsset.Data);
-                m_log.DebugFormat("[ARCHIVER]: Script {0}", script);
+//                m_log.DebugFormat("[ARCHIVER]: Script {0}", script);
                 MatchCollection uuidMatches = Util.PermissiveUUIDPattern.Matches(script);
-                m_log.DebugFormat("[ARCHIVER]: Found {0} matches in text", uuidMatches.Count);
+//                m_log.DebugFormat("[ARCHIVER]: Found {0} matches in text", uuidMatches.Count);
 
                 foreach (Match uuidMatch in uuidMatches)
                 {
                     UUID uuid = new UUID(uuidMatch.Value);
-                    m_log.DebugFormat("[ARCHIVER]: Recording {0} in text", uuid);
+//                    m_log.DebugFormat("[ARCHIVER]: Recording {0} in text", uuid);
 
                     // Assume AssetIDs embedded are textures.
                     assetUuids[uuid] = AssetType.Texture;
