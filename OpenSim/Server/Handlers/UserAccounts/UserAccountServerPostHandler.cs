@@ -356,7 +356,5 @@ namespace OpenSim.Server.Handlers.UserAccounts
             UTF8Encoding encoding = new UTF8Encoding();
             return encoding.GetBytes(xmlString);
         }
-
-
     }
 }

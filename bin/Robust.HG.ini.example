@@ -146,6 +146,14 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     LocalServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     ; Realm = "useraccounts"
 
+    ;; Allow the service to process HTTP getauthinfo calls.
+    ;; Default is false.
+    ; AllowGetAuthInfo = false
+
+    ;; Allow the service to process HTTP setauthinfo calls.
+    ;; Default is false.
+    ; AllowSetAuthInfo = false
+
     ;; Allow the service to process HTTP setpassword calls.
     ;; Default is false.
     ; AllowSetPassword = false

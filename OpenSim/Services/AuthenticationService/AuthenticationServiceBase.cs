@@ -30,9 +30,10 @@ using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using System.Reflection;
-using OpenSim.Services.Base;
 using OpenSim.Data;
 using OpenSim.Framework;
+using OpenSim.Services.Base;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Services.AuthenticationService
 {
@@ -124,6 +125,50 @@ namespace OpenSim.Services.AuthenticationService
             }
 
             m_log.InfoFormat("[AUTHENTICATION DB]: Set password for principalID {0}", principalID);
+            return true;
+        }
+
+        public virtual AuthInfo GetAuthInfo(UUID principalID)
+        {
+            AuthenticationData data = m_Database.Get(principalID);
+
+            if (data == null)
+            {
+                return null;
+            }
+            else
+            {
+                AuthInfo info
+                    = new AuthInfo()
+                        {
+                            PrincipalID = data.PrincipalID,
+                            AccountType = data.Data["accountType"] as string,
+                            PasswordHash = data.Data["passwordHash"] as string,
+                            PasswordSalt = data.Data["passwordSalt"] as string,
+                            WebLoginKey = data.Data["webLoginKey"] as string
+                        };
+
+                return info;
+            }
+        }
+
+        public virtual bool SetAuthInfo(AuthInfo info)
+        {
+            AuthenticationData auth = new AuthenticationData();
+            auth.PrincipalID = info.PrincipalID;
+            auth.Data = new System.Collections.Generic.Dictionary<string, object>();
+            auth.Data["accountType"] = info.AccountType;
+            auth.Data["webLoginKey"] = info.WebLoginKey;
+            auth.Data["passwordHash"] = info.PasswordHash;
+            auth.Data["passwordSalt"] = info.PasswordSalt;
+
+            if (!m_Database.Store(auth))
+            {
+                m_log.ErrorFormat("[AUTHENTICATION DB]: Failed to store authentication info.");
+                return false;
+            }
+
+            m_log.DebugFormat("[AUTHENTICATION DB]: Set authentication info for principalID {0}", info.PrincipalID);
             return true;
         }
         
