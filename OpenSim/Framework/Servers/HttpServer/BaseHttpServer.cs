@@ -1815,9 +1815,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             lock (m_pollHandlers)
             {
-                if (m_pollHandlers.ContainsKey(httpMethod))
+                if (m_pollHandlers.ContainsKey(path))
                 {
-                    m_pollHandlers.Remove(httpMethod);
+                    m_pollHandlers.Remove(path);
                 }
             }
 

@@ -204,7 +204,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void ClientClosed(UUID AgentID, Scene scene)
         {
-            //m_log.DebugFormat("[EVENTQUEUE]: Closed client {0} in region {1}", AgentID, m_scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[EVENTQUEUE]: Closed client {0} in region {1}", AgentID, m_scene.RegionInfo.RegionName);
 
             int count = 0;
             while (queues.ContainsKey(AgentID) && queues[AgentID].Count > 0 && count++ < 5)
@@ -216,11 +216,13 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 queues.Remove(AgentID);
             }
+
             List<UUID> removeitems = new List<UUID>();
             lock (m_AvatarQueueUUIDMapping)
             {
                 foreach (UUID ky in m_AvatarQueueUUIDMapping.Keys)
                 {
+//                    m_log.DebugFormat("[EVENTQUEUE]: Found key {0} in m_AvatarQueueUUIDMapping while looking for {1}", ky, AgentID);
                     if (ky == AgentID)
                     {
                         removeitems.Add(ky);
@@ -229,11 +231,13 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 foreach (UUID ky in removeitems)
                 {
+                    UUID eventQueueGetUuid = m_AvatarQueueUUIDMapping[ky];
                     m_AvatarQueueUUIDMapping.Remove(ky);
-                    MainServer.Instance.RemovePollServiceHTTPHandler("","/CAPS/EQG/" + ky.ToString() + "/");
-                }
 
+                    MainServer.Instance.RemovePollServiceHTTPHandler("","/CAPS/EQG/" + eventQueueGetUuid.ToString() + "/");
+                }
             }
+
             UUID searchval = UUID.Zero;
 
             removeitems.Clear();
@@ -252,7 +256,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 foreach (UUID ky in removeitems)
                     m_QueueUUIDAvatarMapping.Remove(ky);
-
             }
         }
 
