@@ -112,6 +112,11 @@
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.serialization.tests)==0}" /> 
 
+  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.region.clientstack.lindencaps.tests">
+    <arg value="./bin/OpenSim.Region.ClientStack.LindenCaps.Tests.dll" />
+  </exec>
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.clientstack.lindencaps.tests)==0}" /> 
+
 <!--
   <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.region.clientstack.lindenudp.tests">
     <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />

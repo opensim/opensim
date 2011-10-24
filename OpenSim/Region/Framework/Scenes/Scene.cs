@@ -2561,7 +2561,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (aCircuit.child == false)
                 {
                     sp.IsChildAgent = false;
-                    Util.FireAndForget(delegate(object o) { AttachmentsModule.RezAttachments(sp); });
+
+                    if (AttachmentsModule != null)
+                        Util.FireAndForget(delegate(object o) { AttachmentsModule.RezAttachments(sp); });
                 }
             }
 
