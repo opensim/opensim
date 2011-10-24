@@ -303,12 +303,10 @@
     <arg value="-xml=test-results/OpenSim.Framework.Servers.Tests.dll-Results.xml" />
   </exec>
 
-<!--
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.clientstack.lindenudp.tests">
     <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Region.ClientStack.LindenUDP.Tests.dll-Results.xml" />
   </exec>
--->
 
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.scriptengine.tests">
     <arg value="./bin/OpenSim.Region.ScriptEngine.Tests.dll" />
