@@ -1814,12 +1814,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public void RemovePollServiceHTTPHandler(string httpMethod, string path)
         {
             lock (m_pollHandlers)
-            {
-                if (m_pollHandlers.ContainsKey(path))
-                {
-                    m_pollHandlers.Remove(path);
-                }
-            }
+                m_pollHandlers.Remove(path);
 
             RemoveHTTPHandler(httpMethod, path);
         }
@@ -1843,12 +1838,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public void RemoveXmlRPCHandler(string method)
         {
             lock (m_rpcHandlers)
-            {
-                if (m_rpcHandlers.ContainsKey(method))
-                {
-                    m_rpcHandlers.Remove(method);
-                }
-            }
+                m_rpcHandlers.Remove(method);
         }
 
         public bool RemoveLLSDHandler(string path, LLSDMethod handler)
