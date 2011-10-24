@@ -1486,6 +1486,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             #endregion Inputs
 
+            // Make anims work for client side autopilot
+            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0)
+                m_updateCount = UPDATE_COUNT;
+
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
@@ -1856,9 +1860,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </param>
         public void MoveToTarget(Vector3 pos, bool noFly, bool landAtTarget)
         {
-            m_log.DebugFormat(
-                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
-                Name, pos, m_scene.RegionInfo.RegionName);
+            if (SitGround)
+                StandUp();
+
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
+//                Name, pos, m_scene.RegionInfo.RegionName);
 
             if (pos.X < 0 || pos.X >= Constants.RegionSize
                 || pos.Y < 0 || pos.Y >= Constants.RegionSize
@@ -1884,9 +1891,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (pos.Z - terrainHeight < 0.2)
                 pos.Z = terrainHeight;
 
-            m_log.DebugFormat(
-                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
-                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
+//                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
 
             if (noFly)
                 PhysicsActor.Flying = false;
@@ -1922,7 +1929,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ResetMoveToTarget()
         {
-            m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
+//            m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
 
             MovingToTarget = false;
             MoveToPositionTarget = Vector3.Zero;
@@ -2061,7 +2068,8 @@ namespace OpenSim.Region.Framework.Scenes
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
             }
-            Animator.TrySetMovementAnimation("STAND");
+
+            Animator.UpdateMovementAnimations();
         }
 
         private SceneObjectPart FindNextAvailableSitTarget(UUID targetID)
