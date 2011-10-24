@@ -5360,16 +5360,38 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            ScenePresence presence = GetScenePresence(agentID);
+            IClientAPI client = null;
+            AgentCircuitData aCircuit = null;
+
+            if (presence != null)
+            {
+                client = presence.ControllingClient;
+                if (client != null)
+                    aCircuit = client.RequestClientInfo();
+            }
+
+            // We may be called before there is a presence or a client.
+            // Fake AgentCircuitData to keep IAuthorizationModule smiling
+            if (client == null)
+            {
+                aCircuit = new AgentCircuitData();
+                aCircuit.AgentID = agentID;
+                aCircuit.firstname = String.Empty;
+                aCircuit.lastname = String.Empty;
+            }
+
             try
             {
-                if (!AuthorizeUser(GetScenePresence(agentID).ControllingClient.RequestClientInfo(), out reason))
+                if (!AuthorizeUser(aCircuit, out reason))
                 {
                     // m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
                     return false;
                 }
             }
-            catch
+            catch (Exception e)
             {
+                m_log.DebugFormat("[SCENE]: Exception authorizing agent: {0} "+ e.StackTrace, e.Message);
                 return false;
             }
 
