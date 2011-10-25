@@ -178,7 +178,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
-        private int m_update_objects = 1; // Update objects which have scheduled themselves for updates
+        private int m_update_objects = 1;
+        private int m_update_temp_cleaning = 1000;
         private int m_update_presences = 1; // Update scene presence movements
         private int m_update_events = 1;
         private int m_update_backup = 200;
@@ -1212,9 +1213,8 @@ namespace OpenSim.Region.Framework.Scenes
             int tmpFrameMS = maintc;
             agentMS = tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
 
-            // TODO: ADD AGENT TIME HERE
-            // Increment the frame counter
             ++Frame;
+
             try
             {
                 int tmpAgentMS = Util.EnvironmentTickCount();
@@ -1273,7 +1273,7 @@ namespace OpenSim.Region.Framework.Scenes
                 physicsMS = Util.EnvironmentTickCountSubtract(tmpPhysicsMS);
 
                 // Delete temp-on-rez stuff
-                if (Frame % 1000 == 0 && !m_cleaningTemps)
+                if (Frame % m_update_temp_cleaning == 0 && !m_cleaningTemps)
                 {
                     int tmpTempOnRezMS = Util.EnvironmentTickCount();
                     m_cleaningTemps = true;
