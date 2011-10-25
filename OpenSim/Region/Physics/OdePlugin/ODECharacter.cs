@@ -39,7 +39,6 @@ namespace OpenSim.Region.Physics.OdePlugin
     /// <summary>
     /// Various properties that ODE uses for AMotors but isn't exposed in ODE.NET so we must define them ourselves.
     /// </summary>
-
     public enum dParam : int
     {
         LowStop = 0,
@@ -64,6 +63,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         StopERP3 = 7 + 512,
         StopCFM3 = 8 + 512
     }
+
     public class OdeCharacter : PhysicsActor
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -107,9 +107,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         public bool m_tainted_isPhysical = false; // set when the physical status is tainted (false=not existing in physics engine, true=existing)
         public float MinimumGroundFlightOffset = 3f;
 
-        private float m_tainted_CAPSULE_LENGTH; // set when the capsule length changes. 
-        private float m_tiltMagnitudeWhenProjectedOnXYPlane = 0.1131371f; // used to introduce a fixed tilt because a straight-up capsule falls through terrain, probably a bug in terrain collider
+        private float m_tainted_CAPSULE_LENGTH; // set when the capsule length changes.
 
+        /// <summary>
+        /// Used to introduce a fixed tilt because a straight-up capsule falls through terrain, probably a bug in terrain collider
+        /// </summary>
+        private float m_tiltMagnitudeWhenProjectedOnXYPlane = 0.1131371f;
 
         private float m_buoyancy = 0f;
 
@@ -891,12 +894,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
         }
 
-
         /// <summary>
         /// Called from Simulate
         /// This is the avatar's movement control + PID Controller
         /// </summary>
         /// <param name="timeStep"></param>
+        /// <param name="defects">
+        /// If there is something wrong with the character (e.g. its position is non-finite)
+        /// then it is added to this list.  The ODE structures associated with it are also destroyed.</param>
         public void Move(float timeStep, List<OdeCharacter> defects)
         {
             //  no lock; for now it's only called from within Simulate()
@@ -918,36 +923,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             
             if (!localPos.IsFinite())
             {
-
                 m_log.Warn("[PHYSICS]: Avatar Position is non-finite!");
+
                 defects.Add(this);
                 // _parent_scene.RemoveCharacter(this);
 
-                // destroy avatar capsule and related ODE data
-                if (Amotor != IntPtr.Zero)
-                {
-                    // Kill the Amotor
-                    d.JointDestroy(Amotor);
-                    Amotor = IntPtr.Zero;
-                }
-
-                //kill the Geometry
-                _parent_scene.waitForSpaceUnlock(_parent_scene.space);
-
-                if (Body != IntPtr.Zero)
-                {
-                    //kill the body
-                    d.BodyDestroy(Body);
-
-                    Body = IntPtr.Zero;
-                }
-
-                if (Shell != IntPtr.Zero)
-                {
-                    d.GeomDestroy(Shell);
-                    _parent_scene.geom_name_map.Remove(Shell);
-                    Shell = IntPtr.Zero;
-                }
+                DestroyOdeStructures();
 
                 return;
             }
@@ -975,6 +956,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _zeroFlag = true;
                     _zeroPosition = d.BodyGetPosition(Body);
                 }
+
                 if (m_pidControllerActive)
                 {
                     // We only want to deactivate the PID Controller if we think we want to have our surrogate
@@ -1005,14 +987,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else if (m_iscolliding && flying)
                 {
                     // We're flying and colliding with something
-                    vec.X = ((_target_velocity.X/movementdivisor) - vel.X)*(PID_D / 16);
-                    vec.Y = ((_target_velocity.Y/movementdivisor) - vel.Y)*(PID_D / 16);
+                    vec.X = ((_target_velocity.X / movementdivisor) - vel.X) * (PID_D / 16);
+                    vec.Y = ((_target_velocity.Y / movementdivisor) - vel.Y) * (PID_D / 16);
                 }
                 else if (!m_iscolliding && flying)
                 {
                     // we're in mid air suspended
-                    vec.X = ((_target_velocity.X / movementdivisor) - vel.X) * (PID_D/6);
-                    vec.Y = ((_target_velocity.Y / movementdivisor) - vel.Y) * (PID_D/6);
+                    vec.X = ((_target_velocity.X / movementdivisor) - vel.X) * (PID_D / 6);
+                    vec.Y = ((_target_velocity.Y / movementdivisor) - vel.Y) * (PID_D / 6);
                 }
 
                 if (m_iscolliding && !flying && _target_velocity.Z > 0.0f)
@@ -1023,11 +1005,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     vec.Z = (_target_velocity.Z - vel.Z)*PID_D + (_zeroPosition.Z - pos.Z)*PID_P;
                     if (_target_velocity.X > 0)
                     {
-                        vec.X = ((_target_velocity.X - vel.X)/1.2f)*PID_D;
+                        vec.X = ((_target_velocity.X - vel.X) / 1.2f) * PID_D;
                     }
                     if (_target_velocity.Y > 0)
                     {
-                        vec.Y = ((_target_velocity.Y - vel.Y)/1.2f)*PID_D;
+                        vec.Y = ((_target_velocity.Y - vel.Y) / 1.2f) * PID_D;
                     }
                 }
                 else if (!m_iscolliding && !flying)
@@ -1051,9 +1033,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     vec.Z = (_target_velocity.Z - vel.Z) * (PID_D);
                 }
             }
+
             if (flying)
             {
-                vec.Z += ((-1 * _parent_scene.gravityz)*m_mass);
+                vec.Z += ((-1 * _parent_scene.gravityz) * m_mass);
 
                 //Added for auto fly height. Kitto Flora
                 //d.Vector3 pos = d.BodyGetPosition(Body);
@@ -1065,13 +1048,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 // end add Kitto Flora
             }
+
             if (vec.IsFinite())
             {
                 doForce(vec);
+
                 if (!_zeroFlag)
-                {
-                  AlignAvatarTiltWithCurrentDirectionOfMovement(vec);
-                }
+                    AlignAvatarTiltWithCurrentDirectionOfMovement(vec);
             }
             else
             {
@@ -1079,30 +1062,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_log.Warn("[PHYSICS]: Avatar Position is non-finite!");
                 defects.Add(this);
                 // _parent_scene.RemoveCharacter(this);
-                // destroy avatar capsule and related ODE data
-                if (Amotor != IntPtr.Zero)
-                {
-                    // Kill the Amotor
-                    d.JointDestroy(Amotor);
-                    Amotor = IntPtr.Zero;
-                }
-                //kill the Geometry
-                _parent_scene.waitForSpaceUnlock(_parent_scene.space);
 
-                if (Body != IntPtr.Zero)
-                {
-                    //kill the body
-                    d.BodyDestroy(Body);
-
-                    Body = IntPtr.Zero;
-                }
-
-                if (Shell != IntPtr.Zero)
-                {
-                    d.GeomDestroy(Shell);
-                    _parent_scene.geom_name_map.Remove(Shell);
-                    Shell = IntPtr.Zero;
-                }
+                DestroyOdeStructures();
             }
         }
 
@@ -1125,7 +1086,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 base.RaiseOutOfBounds(_position); // Tells ScenePresence that there's a problem!
                 m_log.WarnFormat("[ODEPLUGIN]: Avatar Null reference for Avatar {0}, physical actor {1}", m_name, m_uuid);
             }
-            
 
             //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
             if (vec.X < 0.0f) vec.X = 0.0f;
@@ -1204,6 +1164,38 @@ namespace OpenSim.Region.Physics.OdePlugin
             _parent_scene.AddPhysicsActorTaint(this);
         }
 
+        /// <summary>
+        /// Used internally to destroy the ODE structures associated with this character.
+        /// </summary>
+        public void DestroyOdeStructures()
+        {
+            // destroy avatar capsule and related ODE data
+            if (Amotor != IntPtr.Zero)
+            {
+                // Kill the Amotor
+                d.JointDestroy(Amotor);
+                Amotor = IntPtr.Zero;
+            }
+
+            //kill the Geometry
+            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+
+            if (Body != IntPtr.Zero)
+            {
+                //kill the body
+                d.BodyDestroy(Body);
+
+                Body = IntPtr.Zero;
+            }
+
+            if (Shell != IntPtr.Zero)
+            {
+                d.GeomDestroy(Shell);
+                _parent_scene.geom_name_map.Remove(Shell);
+                Shell = IntPtr.Zero;
+            }
+        }
+
         public override void CrossingFailure()
         {
         }
@@ -1272,7 +1264,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void ProcessTaints(float timestep)
         {
-
             if (m_tainted_isPhysical != m_isPhysical)
             {
                 if (m_tainted_isPhysical)
@@ -1294,31 +1285,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
                 {
                     _parent_scene.RemoveCharacter(this);
-                    // destroy avatar capsule and related ODE data
-                    if (Amotor != IntPtr.Zero)
-                    {
-                        // Kill the Amotor
-                        d.JointDestroy(Amotor);
-                        Amotor = IntPtr.Zero;
-                    }
-                    //kill the Geometry
-                    _parent_scene.waitForSpaceUnlock(_parent_scene.space);
-
-                    if (Body != IntPtr.Zero)
-                    {
-                        //kill the body
-                        d.BodyDestroy(Body);
-
-                        Body = IntPtr.Zero;
-                    }
-
-                    if (Shell != IntPtr.Zero)
-                    {
-                        d.GeomDestroy(Shell);
-                        _parent_scene.geom_name_map.Remove(Shell);
-                        Shell = IntPtr.Zero;
-                    }
-
+                    DestroyOdeStructures();
                 }
 
                 m_isPhysical = m_tainted_isPhysical;
