@@ -146,9 +146,9 @@ namespace OpenSim.Framework.Tests
             Assert.IsFalse(Util.isUUID("FOOBAR67-89ab-Cdef-0123-456789AbCdEf"),
                            "UUIDs with non-hex characters are recognized as correct UUIDs.");
             Assert.IsFalse(Util.isUUID("01234567"),
-                           "Too short UUIDs are regognized as correct UUIDs.");
+                           "Too short UUIDs are recognized as correct UUIDs.");
             Assert.IsFalse(Util.isUUID("01234567-89ab-Cdef-0123-456789AbCdEf0"),
-                           "Too long UUIDs are regognized as correct UUIDs.");
+                           "Too long UUIDs are recognized as correct UUIDs.");
             Assert.IsFalse(Util.isUUID("01234567-89ab-Cdef-0123+456789AbCdEf"),
                           "UUIDs with wrong format are recognized as correct UUIDs.");
         }

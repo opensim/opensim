@@ -46,7 +46,6 @@ using System.Threading;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
-// using BclExtras;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using Amib.Threading;
@@ -91,8 +90,10 @@ namespace OpenSim.Framework
         private static readonly DateTime unixEpoch =
             DateTime.ParseExact("1970-01-01 00:00:00 +0", "yyyy-MM-dd hh:mm:ss z", DateTimeFormatInfo.InvariantInfo).ToUniversalTime();
 
-        public static readonly Regex UUIDPattern 
-            = new Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+        private static readonly string rawUUIDPattern
+            = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
+        public static readonly Regex PermissiveUUIDPattern = new Regex(rawUUIDPattern);
+        public static readonly Regex UUIDPattern = new Regex(string.Format("^{0}$", rawUUIDPattern));
 
         public static FireAndForgetMethod DefaultFireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
         public static FireAndForgetMethod FireAndForgetMethod = DefaultFireAndForgetMethod;
