@@ -78,17 +78,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 _acceleration;
         private Vector3 m_rotationalVelocity;
         private float m_mass = 80f;
-        public float m_density = 60f;
+        private float m_density = 60f;
         private bool m_pidControllerActive = true;
-        public float PID_D = 800.0f;
-        public float PID_P = 900.0f;
+        private float PID_D = 800.0f;
+        private float PID_P = 900.0f;
         //private static float POSTURE_SERVO = 10000.0f;
-        public float CAPSULE_RADIUS = 0.37f;
-        public float CAPSULE_LENGTH = 2.140599f;
-        public float m_tensor = 3800000f;
-        public float heightFudgeFactor = 0.52f;
-        public float walkDivisor = 1.3f;
-        public float runDivisor = 0.8f;
+        private float CAPSULE_RADIUS = 0.37f;
+        private float CAPSULE_LENGTH = 2.140599f;
+        private float m_tensor = 3800000f;
+        private float heightFudgeFactor = 0.52f;
+        private float walkDivisor = 1.3f;
+        private float runDivisor = 0.8f;
         private bool flying = false;
         private bool m_iscolliding = false;
         private bool m_iscollidingGround = false;
@@ -100,12 +100,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_hackSentFly = false;
         private int m_requestedUpdateFrequency = 0;
         private Vector3 m_taintPosition = Vector3.Zero;
-        public uint m_localID = 0;
-        public bool m_returnCollisions = false;
+        internal uint m_localID = 0;
         // taints and their non-tainted counterparts
-        public bool m_isPhysical = false; // the current physical status
-        public bool m_tainted_isPhysical = false; // set when the physical status is tainted (false=not existing in physics engine, true=existing)
-        public float MinimumGroundFlightOffset = 3f;
+        private bool m_isPhysical = false; // the current physical status
+        private bool m_tainted_isPhysical = false; // set when the physical status is tainted (false=not existing in physics engine, true=existing)
+        internal float MinimumGroundFlightOffset = 3f;
 
         private float m_tainted_CAPSULE_LENGTH; // set when the capsule length changes.
 
@@ -132,19 +131,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                         | CollisionCategories.Body
                                                         | CollisionCategories.Character
                                                         | CollisionCategories.Land);
-        public IntPtr Body = IntPtr.Zero;
+        internal IntPtr Body = IntPtr.Zero;
         private OdeScene _parent_scene;
-        public IntPtr Shell = IntPtr.Zero;
-        public IntPtr Amotor = IntPtr.Zero;
-        public d.Mass ShellMass;
-        public bool collidelock = false;
+        internal IntPtr Shell = IntPtr.Zero;
+        internal IntPtr Amotor = IntPtr.Zero;
+        private d.Mass ShellMass;
 
-        public int m_eventsubscription = 0;
+        private int m_eventsubscription = 0;
         private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
 
         // unique UUID of this character object
-        public UUID m_uuid;
-        public bool bad = false;
+        internal UUID m_uuid { get; private set; }
+        internal bool bad = false;
 
         public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, CollisionLocker dode, Vector3 size, float pid_d, float pid_p, float capsule_radius, float tensor, float density, float height_fudge_factor, float walk_divisor, float rundivisor)
         {
@@ -680,20 +678,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return m_density*AVvolume;
             }
         }
-        public override void link(PhysicsActor obj)
-        {
 
-        }
+        public override void link(PhysicsActor obj) {}
 
-        public override void delink()
-        {
+        public override void delink() {}
 
-        }
-
-        public override void LockAngularMotion(Vector3 axis)
-        {
-
-        }
+        public override void LockAngularMotion(Vector3 axis) {}
 
 //      This code is very useful. Written by DanX0r. We're just not using it right now.
 //      Commented out to prevent a warning.
@@ -732,27 +722,22 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void VehicleFloatParam(int param, float value)
         {
-
         }
 
         public override void VehicleVectorParam(int param, Vector3 value)
         {
-
         }
 
         public override void VehicleRotationParam(int param, Quaternion rotation)
         {
-
         }
 
         public override void VehicleFlags(int param, bool remove)
         {
-
         }
 
         public override void SetVolumeDetect(int param)
         {
-
         }
 
         public override Vector3 CenterOfMass
@@ -772,13 +757,15 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override Vector3 Velocity
         {
-            get {
+            get
+            {
                 // There's a problem with Vector3.Zero! Don't Use it Here!
                 if (_zeroFlag)
                     return Vector3.Zero;
                 m_lastUpdateSent = false;
                 return _velocity;
             }
+
             set
             {
                 if (value.IsFinite())
@@ -872,7 +859,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void AddAngularForce(Vector3 force, bool pushforce)
         {
-
         }
 
         /// <summary>
@@ -881,12 +867,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="force"></param>
         public void doForce(Vector3 force)
         {
-            if (!collidelock)
-            {
-                d.BodyAddForce(Body, force.X, force.Y, force.Z);
-                //d.BodySetRotation(Body, ref m_StandUpRotation);
-                //standupStraight();
-            }
+            d.BodyAddForce(Body, force.X, force.Y, force.Z);
+            //d.BodySetRotation(Body, ref m_StandUpRotation);
+            //standupStraight();
         }
 
         public override void SetMomentum(Vector3 momentum)
@@ -1074,7 +1057,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// Updates the reported position and velocity.  This essentially sends the data up to ScenePresence.
         /// </summary>
-        public void UpdatePositionAndVelocity()
+        internal void UpdatePositionAndVelocity()
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
             d.Vector3 vec;
@@ -1162,7 +1145,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// Cleanup the things we use in the scene.
         /// </summary>
-        public void Destroy()
+        internal void Destroy()
         {
             m_tainted_isPhysical = false;
             _parent_scene.AddPhysicsActorTaint(this);
@@ -1235,7 +1218,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_eventsubscription = 0;
         }
 
-        public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
+        internal void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
             if (m_eventsubscription > 0)
             {
@@ -1246,7 +1229,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public void SendCollisions()
+        internal void SendCollisions()
         {
             if (m_eventsubscription > m_requestedUpdateFrequency)
             {
@@ -1266,7 +1249,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             return false;
         }
 
-        public void ProcessTaints(float timestep)
+        internal void ProcessTaints()
         {
             if (m_tainted_isPhysical != m_isPhysical)
             {
