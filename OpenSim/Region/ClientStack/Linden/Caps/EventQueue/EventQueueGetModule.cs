@@ -102,7 +102,6 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 m_gConfig = null;
             }
-        
         }
 
         private void ReadConfigAndPopulate(Scene scene, IConfig startupConfig, string p)
