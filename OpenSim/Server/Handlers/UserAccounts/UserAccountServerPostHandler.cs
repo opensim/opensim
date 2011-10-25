@@ -108,7 +108,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
                         else
                             break;
                 }
-                
+
                 m_log.DebugFormat("[USER SERVICE HANDLER]: unknown method request: {0}", method);
             }
             catch (Exception e)
@@ -202,7 +202,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
         byte[] StoreAccount(Dictionary<string, object> request)
         {
             UUID principalID = UUID.Zero;
-            if (!(request.ContainsKey("UserID") && UUID.TryParse(request["UserID"].ToString(), out principalID)))
+            if (!(request.ContainsKey("PrincipalID") && UUID.TryParse(request["PrincipalID"].ToString(), out principalID)))
                 return FailureResult();
 
             UUID scopeID = UUID.Zero;
@@ -268,7 +268,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
                 return FailureResult();
 
             UUID principalID = UUID.Random();
-            if (request.ContainsKey("UserID") && !UUID.TryParse(request["UserID"].ToString(), out principalID))
+            if (request.ContainsKey("PrincipalID") && !UUID.TryParse(request["PrincipalID"].ToString(), out principalID))
                 return FailureResult();
 
             string firstName = request["FirstName"].ToString();
