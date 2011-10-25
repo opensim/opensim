@@ -49,7 +49,7 @@ namespace OpenSim.Tests.Common
         /// <summary>
         /// Create a notecard asset with a random uuid and dummy text.
         /// </summary>
-        /// <param name="creatorId">/param>
+        /// <param name="assetId">/param>
         /// <returns></returns>
         public static AssetBase CreateNotecardAsset(UUID id)
         {
