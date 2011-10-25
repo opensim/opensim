@@ -128,7 +128,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_taintPhysics;
         private bool m_collidesLand = true;
         private bool m_collidesWater;
-        public bool m_returnCollisions;
 
         // Default we're a Geometry
         private CollisionCategories m_collisionCategories = (CollisionCategories.Geom);
@@ -136,16 +135,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         // Default, Collide with Other Geometries, spaces and Bodies
         private CollisionCategories m_collisionFlags = m_default_collisionFlags;
 
-        public bool m_taintremove;
-        public bool m_taintdisable;
-        public bool m_disabled;
-        public bool m_taintadd;
-        public bool m_taintselected;
-        public bool m_taintCollidesWater;
+        public bool m_taintremove { get; private set; }
+        public bool m_taintdisable { get; private set; }
+        internal bool m_disabled;
+        public bool m_taintadd { get; private set; }
+        public bool m_taintselected { get; private set; }
+        public bool m_taintCollidesWater { get; private set; }
 
-        public uint m_localID;
+        public uint m_localID { get; private set; }
 
-        //public GCHandle gc;
         private CollisionLocker ode;
 
         private bool m_taintforce = false;
@@ -162,8 +160,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         public IntPtr m_targetSpace = IntPtr.Zero;
 
-        public IntPtr prim_geom;
-        public IntPtr _triMeshData;
+        public IntPtr prim_geom { get; private set; }
+        public IntPtr _triMeshData { get; private set; }
 
         private IntPtr _linkJointGroup = IntPtr.Zero;
         private PhysicsActor _parent;
@@ -178,28 +176,28 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private bool m_throttleUpdates;
         private int throttleCounter;
-        public int m_interpenetrationcount;
-        public float m_collisionscore;
-        public int m_roundsUnderMotionThreshold;
+        public int m_interpenetrationcount { get; private set; }
+        internal float m_collisionscore;
+        public int m_roundsUnderMotionThreshold { get; private set; }
         private int m_crossingfailures;
 
-        public bool outofBounds;
+        public bool outofBounds { get; private set; }
         private float m_density = 10.000006836f; // Aluminum g/cm3;
 
-        public bool _zeroFlag;
+        public bool _zeroFlag { get; private set; }
         private bool m_lastUpdateSent;
 
         public IntPtr Body = IntPtr.Zero;
         public String Name { get; private set; }
         private Vector3 _target_velocity;
-        public d.Mass pMass;
+        private d.Mass pMass;
 
-        public int m_eventsubscription;
+        private int m_eventsubscription;
         private CollisionEventUpdate CollisionEventsThisFrame;
 
         private IntPtr m_linkJoint = IntPtr.Zero;
 
-        public volatile bool childPrim;
+        internal volatile bool childPrim;
 
         private ODEDynamics m_vehicle;
 
