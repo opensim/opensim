@@ -1033,6 +1033,7 @@ namespace OpenSim.Region.Framework.Scenes
 			if (m_items.Count == 0) // No inventory
 			{
 				client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                Items.LockItemsForRead(false);
 				return;
 			}
     
