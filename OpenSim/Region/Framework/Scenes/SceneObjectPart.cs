@@ -1641,6 +1641,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.ErrorFormat("[SCENE]: caught exception meshing object {0}. Object set to phantom.", m_uuid);
                         PhysActor = null;
                     }
+
                     // Basic Physics returns null..  joy joy joy.
                     if (PhysActor != null)
                     {
@@ -4454,12 +4455,9 @@ namespace OpenSim.Region.Framework.Scenes
                 || (Shape.PathCurve == (byte)Extrusion.Flexible)) // note: this may have been changed above in the case of joints
             {
                 AddFlag(PrimFlags.Phantom);
+
                 if (PhysActor != null)
-                {
-                    m_parentGroup.Scene.PhysicsScene.RemovePrim(PhysActor);
-                    /// that's not wholesome.  Had to make Scene public
-                    PhysActor = null;
-                }
+                    RemoveFromPhysics();
             }
             else // Not phantom
             {
@@ -4571,6 +4569,20 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Updated PrimFlags on {0} {1} to {2}", Name, LocalId, Flags);
+        }
+
+        /// <summary>
+        /// This removes the part from physics
+        /// </summary>
+        /// <remarks>
+        /// This isn't the same as turning off physical, since even without being physical the prim has a physics
+        /// representation for collision detection.  Rather, this would be used in situations such as making a prim
+        /// phantom.
+        /// </remarks>
+        public void RemoveFromPhysics()
+        {
+            ParentGroup.Scene.PhysicsScene.RemovePrim(PhysActor);
+            PhysActor = null;
         }
 
         public void UpdateRotation(Quaternion rot)
