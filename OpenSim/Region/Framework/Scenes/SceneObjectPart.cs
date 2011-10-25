@@ -4389,9 +4389,7 @@ namespace OpenSim.Region.Framework.Scenes
             bool wasVD = VolumeDetectActive;
 
             if ((UsePhysics == wasUsingPhysics) && (wasTemporary == SetTemporary) && (wasPhantom == SetPhantom) && (SetVD == wasVD))
-            {
                 return;
-            }
 
             // Special cases for VD. VD can only be called from a script 
             // and can't be combined with changes to other states. So we can rely
@@ -4505,8 +4503,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else // it already has a physical representation
                 {
-                    PhysActor.IsPhysical = UsePhysics;
-
                     DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status. If it's phantom this will remove the prim
 
                     if (!m_parentGroup.IsDeleted)
