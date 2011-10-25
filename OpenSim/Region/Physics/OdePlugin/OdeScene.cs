@@ -2793,9 +2793,6 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                         {
                             foreach (PhysicsActor obj in _collisionEventPrim)
                             {
-                                if (obj == null)
-                                    continue;
-
 //                                m_log.DebugFormat("[PHYSICS]: Assessing {0} for collision events", obj.SOPName);
 
                                 switch ((ActorTypes)obj.PhysicsActorType)
