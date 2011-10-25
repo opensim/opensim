@@ -66,47 +66,29 @@ namespace OpenSim.Region.Physics.Manager
         }
     }
 
+    /// <summary>
+    /// Used to pass collision information to OnCollisionUpdate listeners.
+    /// </summary>
     public class CollisionEventUpdate : EventArgs
     {
-        // Raising the event on the object, so don't need to provide location..  further up the tree knows that info.
-
         /// <summary>
         /// Number of collision events in this update.
         /// </summary>
         public int Count { get { return m_objCollisionList.Count; } }
 
-        public int m_colliderType;
-        public int m_GenericStartEnd;
-        //public uint m_LocalID;
-        public Dictionary<uint, ContactPoint> m_objCollisionList = new Dictionary<uint, ContactPoint>();
+        public Dictionary<uint, ContactPoint> m_objCollisionList;
 
-        public CollisionEventUpdate(uint localID, int colliderType, int GenericStartEnd, Dictionary<uint, ContactPoint> objCollisionList)
+        public CollisionEventUpdate(Dictionary<uint, ContactPoint> objCollisionList)
         {
-            m_colliderType = colliderType;
-            m_GenericStartEnd = GenericStartEnd;
             m_objCollisionList = objCollisionList;
         }
 
         public CollisionEventUpdate()
         {
-            m_colliderType = (int) ActorTypes.Unknown;
-            m_GenericStartEnd = 1;
             m_objCollisionList = new Dictionary<uint, ContactPoint>();
         }
 
-        public int collidertype
-        {
-            get { return m_colliderType; }
-            set { m_colliderType = value; }
-        }
-
-        public int GenericStartEnd
-        {
-            get { return m_GenericStartEnd; }
-            set { m_GenericStartEnd = value; }
-        }
-
-        public void addCollider(uint localID, ContactPoint contact)
+        public void AddCollider(uint localID, ContactPoint contact)
         {
             if (!m_objCollisionList.ContainsKey(localID))
             {

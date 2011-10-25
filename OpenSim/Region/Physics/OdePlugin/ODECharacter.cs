@@ -1227,7 +1227,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //                m_log.DebugFormat(
 //                    "[PHYSICS]: Adding collision event for {0}, collidedWith {1}, contact {2}", "", CollidedWith, contact);
 
-                CollisionEventsThisFrame.addCollider(CollidedWith, contact);
+                CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
             }
         }
 

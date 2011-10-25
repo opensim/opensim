@@ -3020,7 +3020,7 @@ Console.WriteLine(" JointCreateFixed");
 
         public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
-            CollisionEventsThisFrame.addCollider(CollidedWith, contact);
+            CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
         }
 
         public void SendCollisions()

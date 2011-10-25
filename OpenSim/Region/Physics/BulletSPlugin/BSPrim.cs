@@ -1350,7 +1350,7 @@ public sealed class BSPrim : PhysicsActor
         // create the event for the collision
         Dictionary<uint, ContactPoint> contactPoints = new Dictionary<uint, ContactPoint>();
         contactPoints.Add(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
-        CollisionEventUpdate args = new CollisionEventUpdate(LocalID, (int)type, 1, contactPoints);
+        CollisionEventUpdate args = new CollisionEventUpdate(contactPoints);
         base.SendCollisionUpdate(args);
     }
 }
