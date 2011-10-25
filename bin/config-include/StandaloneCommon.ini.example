@@ -1,4 +1,4 @@
-; This is the main configuration file for standalone OpenSim instances
+; This is the main configuration file for an instance of OpenSim running in standalone mode
 
 [DatabaseService]
     ;
@@ -24,6 +24,22 @@
     ;StorageProvider = "OpenSim.Data.MSSQL.dll"
     ;ConnectionString = "Server=localhost\SQLEXPRESS;Database=opensim;User Id=opensim; password=***;"
 
+[Modules]
+    ;; Choose one cache module and the corresponding config file, if it exists.
+    ;; Copy the config .example file into your own .ini file and alter that
+    ;; We recommend the use of the FlotsamAssetCache since this is most actively maintained.
+
+    AssetCaching = "FlotsamAssetCache"
+    Include-FlotsamCache = "config-include/FlotsamCache.ini"
+
+    ;AssetCaching = "CenomeMemoryAssetCache"
+    ;Include-CenomeCache = "config-include/CenomeCache.ini"
+
+    ;AssetCaching = "GlynnTuckerAssetCache"
+
+    ;; Authorization is not on by default, as it depends on external php
+    ;AuthorizationServices = "LocalAuthorizationServicesConnector"
+
 [AssetService]
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
@@ -41,22 +57,6 @@
     ;; If you want to protect your assets from being copied by foreign visitors
     ;; uncomment the next line. You may want to do this on sims that have licensed content.
     ; OutboundPermission = False
-
-[Modules]
-    ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
-    ;; Copy the config .example file into your own .ini file and change configs there
-    ;; We recommend the use of the FlotsamAssetCache since this is most actively maintained.
-
-    AssetCaching = "FlotsamAssetCache"
-    Include-FlotsamCache = "config-include/FlotsamCache.ini"
-
-    ;AssetCaching = "GlynnTuckerAssetCache"
-
-    ; AssetCaching = "CenomeMemoryAssetCache"
-    ; Include-CenomeCache = "config-include/CenomeCache.ini"
-
-    ;; Authorization is not on by default, as it depends on external php
-    ;AuthorizationServices = "LocalAuthorizationServicesConnector"
 
 [GridService]
     ;; For in-memory region storage (default)
