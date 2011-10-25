@@ -67,11 +67,8 @@ namespace OpenSim.Server.Handlers.Grid
             _info["platform"] = "OpenSim";
             try
             {
-                IConfig startupCfg = configSource.Configs["Startup"];
                 IConfig gridCfg = configSource.Configs["GridInfoService"];
                 IConfig netCfg = configSource.Configs["Network"];
-
-                bool grid = startupCfg.GetBoolean("gridmode", false);
 
                 if (null != gridCfg)
                 {
@@ -82,16 +79,11 @@ namespace OpenSim.Server.Handlers.Grid
                 }
                 else if (null != netCfg)
                 {
-                    if (grid)
-                        _info["login"] 
-                            = netCfg.GetString(
-                                "user_server_url", "http://127.0.0.1:" + ConfigSettings.DefaultUserServerHttpPort.ToString());
-                    else
-                        _info["login"] 
-                            = String.Format(
-                                "http://127.0.0.1:{0}/", 
-                                netCfg.GetString(
-                                    "http_listener_port", ConfigSettings.DefaultRegionHttpPort.ToString()));
+                    _info["login"]
+                        = String.Format(
+                            "http://127.0.0.1:{0}/", 
+                            netCfg.GetString(
+                                "http_listener_port", ConfigSettings.DefaultRegionHttpPort.ToString()));
                     
                     IssueWarning();
                 }

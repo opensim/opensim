@@ -37,13 +37,6 @@ namespace OpenSim.Framework
         public bool   PhysicalPrim                  { get; set; }
         public string LibrariesXMLFile              { get; set; }
 
-        public const uint DefaultAssetServerHttpPort = 8003;
         public const uint DefaultRegionHttpPort = 9000;
-        public const uint DefaultUserServerHttpPort = 8002;
-        public const bool DefaultUserServerHttpSSL = false;
-        public const uint DefaultMessageServerHttpPort = 8006;
-        public const bool DefaultMessageServerHttpSSL = false;
-        public const uint DefaultGridServerHttpPort = 8003;
-        public const uint DefaultInventoryServerHttpPort = 8003;
     }
 }

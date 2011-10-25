@@ -147,7 +147,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 //        /// <summary>
 //        /// Test adding a client to the stack
 //        /// </summary>
-//        [Test, LongRunning]
+//        [Test]
 //        public void TestAddClient()
 //        {
 //            TestHelper.InMethod();

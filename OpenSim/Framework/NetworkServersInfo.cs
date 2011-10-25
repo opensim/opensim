@@ -32,19 +32,9 @@ namespace OpenSim.Framework
 {
     public class NetworkServersInfo
     {
-        public string AssetSendKey = String.Empty;
-        public string AssetURL = "http://127.0.0.1:" + ConfigSettings.DefaultAssetServerHttpPort.ToString() + "/";
-
-        public string GridRecvKey = String.Empty;
-        public string GridSendKey = String.Empty;
-        public string GridURL = String.Empty;
         public uint HttpListenerPort = ConfigSettings.DefaultRegionHttpPort;
-        public string InventoryURL = String.Empty;
         public bool secureInventoryServer = false;
         public bool isSandbox;
-        public string UserRecvKey = String.Empty;
-        public string UserSendKey = String.Empty;
-        public string UserURL = String.Empty;
         public bool HttpUsesSSL = false;
         public string HttpSSLCN = "";
         public uint httpSSLPort = 9001;
@@ -55,8 +45,6 @@ namespace OpenSim.Framework
         public string cert_path = String.Empty;
         public string cert_pass = String.Empty;
 
-        public string MessagingURL = String.Empty;
-
         public NetworkServersInfo()
         {
         }
@@ -65,33 +53,14 @@ namespace OpenSim.Framework
         {
         }
 
-
         public void loadFromConfiguration(IConfigSource config)
         {
-
             HttpListenerPort =
                 (uint) config.Configs["Network"].GetInt("http_listener_port", (int) ConfigSettings.DefaultRegionHttpPort);
             httpSSLPort =
                 (uint)config.Configs["Network"].GetInt("http_listener_sslport", ((int)ConfigSettings.DefaultRegionHttpPort+1));
             HttpUsesSSL = config.Configs["Network"].GetBoolean("http_listener_ssl", false);
             HttpSSLCN = config.Configs["Network"].GetString("http_listener_cn", "localhost");
-            GridURL =
-                config.Configs["Network"].GetString("grid_server_url",
-                                                    "http://127.0.0.1:" + ConfigSettings.DefaultGridServerHttpPort.ToString());
-            GridSendKey = config.Configs["Network"].GetString("grid_send_key", "null");
-            GridRecvKey = config.Configs["Network"].GetString("grid_recv_key", "null");
-            UserURL =
-                config.Configs["Network"].GetString("user_server_url",
-                                                    "http://127.0.0.1:" + ConfigSettings.DefaultUserServerHttpPort.ToString());
-            UserSendKey = config.Configs["Network"].GetString("user_send_key", "null");
-            UserRecvKey = config.Configs["Network"].GetString("user_recv_key", "null");
-            AssetURL = config.Configs["Network"].GetString("asset_server_url", AssetURL);
-            InventoryURL = config.Configs["Network"].GetString("inventory_server_url",
-                                                               "http://127.0.0.1:" +
-                                                               ConfigSettings.DefaultInventoryServerHttpPort.ToString());
-            secureInventoryServer = config.Configs["Network"].GetBoolean("secure_inventory_server", true);
-
-            MessagingURL = config.Configs["Network"].GetString("messaging_server_url", string.Empty);
 
             // "Out of band management https"
             ssl_listener = config.Configs["Network"].GetBoolean("https_listener",false);
