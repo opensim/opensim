@@ -31,13 +31,8 @@ namespace OpenSim.Framework
     {
         public string PhysicsEngine                 { get; set; }
         public string MeshEngineName                { get; set; }
-        public bool   See_into_region_from_neighbor { get; set; }
         public string StorageDll                    { get; set; }
         public string ClientstackDll                { get; set; }
-
-
-        public bool   PhysicalPrim                  { get; set; }
-
         public string LibrariesXMLFile              { get; set; }
 
         public const uint DefaultRegionHttpPort = 9000;

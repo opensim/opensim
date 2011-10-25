@@ -557,7 +557,7 @@ namespace OpenSim.Region.Framework.Scenes
                      SceneCommunicationService sceneGridService,
                      ISimulationDataService simDataService, IEstateDataService estateDataService,
                      ModuleLoader moduleLoader, bool dumpAssetsToFile,
-                     bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
+                     IConfigSource config, string simulatorVersion)
             : this(regInfo)
         {
             m_config = config;
@@ -576,8 +576,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_lastUpdate = Util.EnvironmentTickCount();
             m_lastIncoming = 0;
             m_lastOutgoing = 0;
-
-            m_seeIntoRegionFromNeighbor = SeeIntoRegionFromNeighbor;
 
             m_asyncSceneObjectDeleter = new AsyncSceneObjectGroupDeleter(this);
             m_asyncSceneObjectDeleter.Enabled = true;
@@ -727,6 +725,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_clampPrimSize = true;
                 }
 
+                m_seeIntoRegionFromNeighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor", true);
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
                 m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
                 m_dontPersistBefore =
