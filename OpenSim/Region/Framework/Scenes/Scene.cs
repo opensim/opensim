@@ -138,7 +138,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
-        protected IAvatarFactory m_AvatarFactory;
+        protected IAvatarFactoryModule m_AvatarFactory;
         protected IConfigSource m_config;
         protected IRegionSerialiserModule m_serialiser;
         protected IDialogModule m_dialogModule;
@@ -463,7 +463,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public IAttachmentsModule AttachmentsModule { get; set; }
 
-        public IAvatarFactory AvatarFactory
+        public IAvatarFactoryModule AvatarFactory
         {
             get { return m_AvatarFactory; }
         }
@@ -1183,7 +1183,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_xmlrpcModule = RequestModuleInterface<IXMLRPC>();
             m_worldCommModule = RequestModuleInterface<IWorldComm>();
             XferManager = RequestModuleInterface<IXfer>();
-            m_AvatarFactory = RequestModuleInterface<IAvatarFactory>();
+            m_AvatarFactory = RequestModuleInterface<IAvatarFactoryModule>();
             AttachmentsModule = RequestModuleInterface<IAttachmentsModule>();
             m_serialiser = RequestModuleInterface<IRegionSerialiserModule>();
             m_dialogModule = RequestModuleInterface<IDialogModule>();

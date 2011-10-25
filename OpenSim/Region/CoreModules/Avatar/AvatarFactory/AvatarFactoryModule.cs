@@ -42,7 +42,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 {
-    public class AvatarFactoryModule : IAvatarFactory, IRegionModule
+    public class AvatarFactoryModule : IAvatarFactoryModule, IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene = null;
@@ -57,12 +57,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         private object m_setAppearanceLock = new object();
 
-        #region RegionModule Members
+        #region IRegionModule
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            scene.RegisterModuleInterface<IAvatarFactory>(this);
-            scene.EventManager.OnNewClient += NewClient;
+            scene.RegisterModuleInterface<IAvatarFactoryModule>(this);
+            scene.EventManager.OnNewClient += SubscribeToClientEvents;
 
             IConfig sconfig = config.Configs["Startup"];
             if (sconfig != null)
@@ -98,104 +98,26 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             get { return false; }
         }
 
-        public void NewClient(IClientAPI client)
+        private void SubscribeToClientEvents(IClientAPI client)
         {
-            client.OnRequestWearables += SendWearables;
-            client.OnSetAppearance += SetAppearanceFromClient;
-            client.OnAvatarNowWearing += AvatarIsWearing;
-        }
-
-        public void RemoveClient(IClientAPI client)
-        {
-            // client.OnAvatarNowWearing -= AvatarIsWearing;
+            client.OnRequestWearables += Client_OnRequestWearables;
+            client.OnSetAppearance += Client_OnSetAppearance;
+            client.OnAvatarNowWearing += Client_OnAvatarNowWearing;
         }
 
         #endregion
 
-        /// <summary>
-        /// Check for the existence of the baked texture assets.
-        /// </summary>
-        /// <param name="client"></param>
-        public bool ValidateBakedTextureCache(IClientAPI client)
-        {
-            return ValidateBakedTextureCache(client, true);
-        }
+        #region IAvatarFactoryModule
 
         /// <summary>
-        /// Check for the existence of the baked texture assets. Request a rebake
-        /// unless checkonly is true.
+        /// Set appearance data (texture asset IDs and slider settings) 
         /// </summary>
-        /// <param name="client"></param>
-        /// <param name="checkonly"></param>
-        private bool ValidateBakedTextureCache(IClientAPI client, bool checkonly)
-        {
-            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
-            if (sp == null)
-            {
-                m_log.WarnFormat("[AVFACTORY]: SetAppearance unable to find presence for {0}", client.AgentId);
-                return false;
-            }
-
-            bool defonly = true; // are we only using default textures
-
-            // Process the texture entry
-            for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
-            {
-                int idx = AvatarAppearance.BAKE_INDICES[i];
-                Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[idx];
-
-                // if there is no texture entry, skip it
-                if (face == null)
-                    continue;
-
-//                m_log.DebugFormat(
-//                    "[AVFACTORY]: Looking for texture {0}, id {1} for {2} {3}",
-//                    face.TextureID, idx, client.Name, client.AgentId);
-
-                // if the texture is one of the "defaults" then skip it
-                // this should probably be more intelligent (skirt texture doesnt matter
-                // if the avatar isnt wearing a skirt) but if any of the main baked 
-                // textures is default then the rest should be as well
-                if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
-                    continue;
-                
-                defonly = false; // found a non-default texture reference
-
-                if (!CheckBakedTextureAsset(client, face.TextureID, idx))
-                {
-                    // the asset didn't exist if we are only checking, then we found a bad
-                    // one and we're done otherwise, ask for a rebake
-                    if (checkonly)
-                        return false;
-
-                    m_log.InfoFormat("[AVFACTORY]: missing baked texture {0}, requesting rebake", face.TextureID);
-                    
-                    client.SendRebakeAvatarTextures(face.TextureID);
-                }
-            }
-
-            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0}", client.AgentId);
-
-            // If we only found default textures, then the appearance is not cached
-            return (defonly ? false : true);
-        }
-
-        /// <summary>
-        /// Set appearance data (texture asset IDs and slider settings) received from the client
-        /// </summary>
-        /// <param name="client"></param>
+        /// <param name="sp"></param>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>
-        public void SetAppearanceFromClient(IClientAPI client, Primitive.TextureEntry textureEntry, byte[] visualParams)
+        public void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams)
         {
-            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
-            if (sp == null)
-            {
-                m_log.WarnFormat("[AVFACTORY]: SetAppearance unable to find presence for {0}", client.AgentId);
-                return;
-            }
-
-//            m_log.InfoFormat("[AVFACTORY]: start SetAppearance for {0}", client.AgentId);
+            //            m_log.InfoFormat("[AVFACTORY]: start SetAppearance for {0}", client.AgentId);
 
             // TODO: This is probably not necessary any longer, just assume the
             // textureEntry set implies that the appearance transaction is complete
@@ -208,18 +130,18 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 // Process the visual params, this may change height as well
                 if (visualParams != null)
                 {
-//                    string[] visualParamsStrings = new string[visualParams.Length];
-//                    for (int i = 0; i < visualParams.Length; i++)
-//                        visualParamsStrings[i] = visualParams[i].ToString();
-//                    m_log.DebugFormat(
-//                        "[AVFACTORY]: Setting visual params for {0} to {1}",
-//                        client.Name, string.Join(", ", visualParamsStrings));
+                    //                    string[] visualParamsStrings = new string[visualParams.Length];
+                    //                    for (int i = 0; i < visualParams.Length; i++)
+                    //                        visualParamsStrings[i] = visualParams[i].ToString();
+                    //                    m_log.DebugFormat(
+                    //                        "[AVFACTORY]: Setting visual params for {0} to {1}",
+                    //                        client.Name, string.Join(", ", visualParamsStrings));
 
                     float oldHeight = sp.Appearance.AvatarHeight;
                     changed = sp.Appearance.SetVisualParams(visualParams);
 
                     if (sp.Appearance.AvatarHeight != oldHeight && sp.Appearance.AvatarHeight > 0)
-                        sp.SetHeight(sp.Appearance.AvatarHeight);
+                        ((ScenePresence)sp).SetHeight(sp.Appearance.AvatarHeight);
                 }
 
                 // Process the baked texture array
@@ -227,39 +149,39 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     changed = sp.Appearance.SetTextureEntries(textureEntry) || changed;
 
-                    m_log.InfoFormat("[AVFACTORY]: received texture update for {0}", client.AgentId);
-                    Util.FireAndForget(delegate(object o) { ValidateBakedTextureCache(client, false); });
+                    m_log.InfoFormat("[AVFACTORY]: received texture update for {0}", sp.UUID);
+                    Util.FireAndForget(delegate(object o) { ValidateBakedTextureCache(sp, false); });
 
                     // This appears to be set only in the final stage of the appearance
                     // update transaction. In theory, we should be able to do an immediate
                     // appearance send and save here.
 
                 }
-				// save only if there were changes, send no matter what (doesn't hurt to send twice)
-				if (changed)
-					QueueAppearanceSave(client.AgentId);
+                // save only if there were changes, send no matter what (doesn't hurt to send twice)
+                if (changed)
+                    QueueAppearanceSave(sp.ControllingClient.AgentId);
 
-				QueueAppearanceSend(client.AgentId);
+                QueueAppearanceSend(sp.ControllingClient.AgentId);
             }
 
             // m_log.WarnFormat("[AVFACTORY]: complete SetAppearance for {0}:\n{1}",client.AgentId,sp.Appearance.ToString());
         }
 
-        /// <summary>
-        /// Checks for the existance of a baked texture asset and
-        /// requests the viewer rebake if the asset is not found
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="textureID"></param>
-        /// <param name="idx"></param>
-        private bool CheckBakedTextureAsset(IClientAPI client, UUID textureID, int idx)
+        public bool SendAppearance(UUID agentId)
         {
-            if (m_scene.AssetService.Get(textureID.ToString()) == null)
+            ScenePresence sp = m_scene.GetScenePresence(agentId);
+            if (sp == null)
             {
-                m_log.WarnFormat("[AVFACTORY]: Missing baked texture {0} ({1}) for avatar {2}",
-                                 textureID, idx, client.Name);
+                m_log.WarnFormat("[AVFACTORY]: Agent {0} no longer in the scene", agentId);
                 return false;
             }
+
+            // Send the appearance to everyone in the scene
+            sp.SendAppearanceToAllOtherAgents();
+
+            // Send animations back to the avatar as well
+            sp.Animator.SendAnimPack();
+
             return true;
         }
 
@@ -271,35 +193,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 return new Dictionary<BakeType, Primitive.TextureEntryFace>();
 
             return GetBakedTextureFaces(sp);
-        }
-
-        private Dictionary<BakeType, Primitive.TextureEntryFace> GetBakedTextureFaces(ScenePresence sp)
-        {
-            if (sp.IsChildAgent)
-                return new Dictionary<BakeType, Primitive.TextureEntryFace>();
-
-            Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures
-                = new Dictionary<BakeType, Primitive.TextureEntryFace>();
-
-            AvatarAppearance appearance = sp.Appearance;
-            Primitive.TextureEntryFace[] faceTextures = appearance.Texture.FaceTextures;
-
-            foreach (int i in Enum.GetValues(typeof(BakeType)))
-            {
-                BakeType bakeType = (BakeType)i;
-
-                if (bakeType == BakeType.Unknown)
-                    continue;
-
-//                m_log.DebugFormat(
-//                    "[AVFACTORY]: NPC avatar {0} has texture id {1} : {2}",
-//                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
-
-                int ftIndex = (int)AppearanceManager.BakeTypeToAgentTextureIndex(bakeType);
-                bakedTextures[bakeType] = faceTextures[ftIndex];
-            }
-
-            return bakedTextures;
         }
 
         public bool SaveBakedTextures(UUID agentId)
@@ -346,35 +239,17 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         bakedTextureFace.TextureID, bakeType, sp.Name, m_scene.RegionInfo.RegionName);
                 }
             }
-
-//            for (int i = 0; i < faceTextures.Length; i++)
-//            {
-////                m_log.DebugFormat(
-////                    "[AVFACTORY]: NPC avatar {0} has texture id {1} : {2}",
-////                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
-//
-//                if (faceTextures[i] == null)
-//                    continue;
-//
-//                AssetBase asset = m_scene.AssetService.Get(faceTextures[i].TextureID.ToString());
-//
-//                if (asset != null)
-//                {
-//                    asset.Temporary = false;
-//                    m_scene.AssetService.Store(asset);
-//                }
-//                else
-//                {
-//                    m_log.WarnFormat(
-//                        "[AV FACTORY]: Baked texture {0} for {1} in {2} not found when trying to save permanently",
-//                        faceTextures[i].TextureID, sp.Name, m_scene.RegionInfo.RegionName);
-//                }
-//            }
-
             return true;
         }
 
-        #region UpdateAppearanceTimer
+        /// <summary>
+        /// Check for the existence of the baked texture assets.
+        /// </summary>
+        /// <param name="sp"></param>
+        public bool ValidateBakedTextureCache(IScenePresence sp)
+        {
+            return ValidateBakedTextureCache(sp, true);
+        }
 
         /// <summary>
         /// Queue up a request to send appearance, makes it possible to
@@ -406,30 +281,107 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
         }
 
-        private void SaveAppearance(UUID agentid)
-        {
-            // We must set appearance parameters in the en_US culture in order to avoid issues where values are saved
-            // in a culture where decimal points are commas and then reloaded in a culture which just treats them as
-            // number seperators.
-            Culture.SetCurrentCulture();
+        #endregion
 
-            ScenePresence sp = m_scene.GetScenePresence(agentid);
-            if (sp == null)
+        #region AvatarFactoryModule private methods
+
+        /// <summary>
+        /// Check for the existence of the baked texture assets. Request a rebake
+        /// unless checkonly is true.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="checkonly"></param>
+        private bool ValidateBakedTextureCache(IScenePresence sp, bool checkonly)
+        {
+            bool defonly = true; // are we only using default textures
+
+            // Process the texture entry
+            for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
             {
-                m_log.WarnFormat("[AVFACTORY]: Agent {0} no longer in the scene", agentid);
-                return;
+                int idx = AvatarAppearance.BAKE_INDICES[i];
+                Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[idx];
+
+                // if there is no texture entry, skip it
+                if (face == null)
+                    continue;
+
+//                m_log.DebugFormat(
+//                    "[AVFACTORY]: Looking for texture {0}, id {1} for {2} {3}",
+//                    face.TextureID, idx, client.Name, client.AgentId);
+
+                // if the texture is one of the "defaults" then skip it
+                // this should probably be more intelligent (skirt texture doesnt matter
+                // if the avatar isnt wearing a skirt) but if any of the main baked 
+                // textures is default then the rest should be as well
+                if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                    continue;
+                
+                defonly = false; // found a non-default texture reference
+
+                if (!CheckBakedTextureAsset(sp, face.TextureID, idx))
+                {
+                    // the asset didn't exist if we are only checking, then we found a bad
+                    // one and we're done otherwise, ask for a rebake
+                    if (checkonly)
+                        return false;
+
+                    m_log.InfoFormat("[AVFACTORY]: missing baked texture {0}, requesting rebake", face.TextureID);
+                    
+                    sp.ControllingClient.SendRebakeAvatarTextures(face.TextureID);
+                }
             }
 
-            // m_log.WarnFormat("[AVFACTORY] avatar {0} save appearance",agentid);
+            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0}", sp.UUID);
 
-            // This could take awhile since it needs to pull inventory
-            // We need to do it at the point of save so that there is a sufficient delay for any upload of new body part/shape
-            // assets and item asset id changes to complete.
-            // I don't think we need to worry about doing this within m_setAppearanceLock since the queueing avoids
-            // multiple save requests.
-            SetAppearanceAssets(sp.UUID, sp.Appearance);
+            // If we only found default textures, then the appearance is not cached
+            return (defonly ? false : true);
+        }
 
-            m_scene.AvatarService.SetAppearance(agentid, sp.Appearance);
+        /// <summary>
+        /// Checks for the existance of a baked texture asset and
+        /// requests the viewer rebake if the asset is not found
+        /// </summary>
+        /// <param name="sp"></param>
+        /// <param name="textureID"></param>
+        /// <param name="idx"></param>
+        private bool CheckBakedTextureAsset(IScenePresence sp, UUID textureID, int idx)
+        {
+            if (m_scene.AssetService.Get(textureID.ToString()) == null)
+            {
+                m_log.WarnFormat("[AVFACTORY]: Missing baked texture {0} ({1}) for avatar {2}",
+                                 textureID, idx, sp.Name);
+                return false;
+            }
+            return true;
+        }
+
+        private Dictionary<BakeType, Primitive.TextureEntryFace> GetBakedTextureFaces(ScenePresence sp)
+        {
+            if (sp.IsChildAgent)
+                return new Dictionary<BakeType, Primitive.TextureEntryFace>();
+
+            Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures
+                = new Dictionary<BakeType, Primitive.TextureEntryFace>();
+
+            AvatarAppearance appearance = sp.Appearance;
+            Primitive.TextureEntryFace[] faceTextures = appearance.Texture.FaceTextures;
+
+            foreach (int i in Enum.GetValues(typeof(BakeType)))
+            {
+                BakeType bakeType = (BakeType)i;
+
+                if (bakeType == BakeType.Unknown)
+                    continue;
+
+//                m_log.DebugFormat(
+//                    "[AVFACTORY]: NPC avatar {0} has texture id {1} : {2}",
+//                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
+
+                int ftIndex = (int)AppearanceManager.BakeTypeToAgentTextureIndex(bakeType);
+                bakedTextures[bakeType] = faceTextures[ftIndex];
+            }
+
+            return bakedTextures;
         }
 
         private void HandleAppearanceUpdateTimer(object sender, EventArgs ea)
@@ -466,86 +418,30 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 m_updateTimer.Stop();
         }
 
-        #endregion
-
-        /// <summary>
-        /// Tell the client for this scene presence what items it should be wearing now
-        /// </summary>
-        public void SendWearables(IClientAPI client)
+        private void SaveAppearance(UUID agentid)
         {
-            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
+            // We must set appearance parameters in the en_US culture in order to avoid issues where values are saved
+            // in a culture where decimal points are commas and then reloaded in a culture which just treats them as
+            // number seperators.
+            Culture.SetCurrentCulture();
+
+            ScenePresence sp = m_scene.GetScenePresence(agentid);
             if (sp == null)
             {
-                m_log.WarnFormat("[AVFACTORY]: SendWearables unable to find presence for {0}", client.AgentId);
+                m_log.WarnFormat("[AVFACTORY]: Agent {0} no longer in the scene", agentid);
                 return;
             }
 
-//            m_log.DebugFormat("[AVFACTORY]: Received request for wearables of {0}", client.Name);
+            // m_log.WarnFormat("[AVFACTORY] avatar {0} save appearance",agentid);
 
-            client.SendWearables(sp.Appearance.Wearables, sp.Appearance.Serial++);
-        }
+            // This could take awhile since it needs to pull inventory
+            // We need to do it at the point of save so that there is a sufficient delay for any upload of new body part/shape
+            // assets and item asset id changes to complete.
+            // I don't think we need to worry about doing this within m_setAppearanceLock since the queueing avoids
+            // multiple save requests.
+            SetAppearanceAssets(sp.UUID, sp.Appearance);
 
-        /// <summary>
-        /// Update what the avatar is wearing using an item from their inventory.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        public void AvatarIsWearing(IClientAPI client, AvatarWearingArgs e)
-        {
-            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
-            if (sp == null)
-            {
-                m_log.WarnFormat("[AVFACTORY]: AvatarIsWearing unable to find presence for {0}", client.AgentId);
-                return;
-            }
-
-            // m_log.WarnFormat("[AVFACTORY]: AvatarIsWearing called for {0}", client.AgentId);
-
-            // we need to clean out the existing textures
-            sp.Appearance.ResetAppearance();
-
-            // operate on a copy of the appearance so we don't have to lock anything yet
-            AvatarAppearance avatAppearance = new AvatarAppearance(sp.Appearance, false);
-
-            foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
-            {
-                if (wear.Type < AvatarWearable.MAX_WEARABLES)
-                    avatAppearance.Wearables[wear.Type].Add(wear.ItemID, UUID.Zero);
-            }
-
-            avatAppearance.GetAssetsFrom(sp.Appearance);
-
-            lock (m_setAppearanceLock)
-            {
-                // Update only those fields that we have changed. This is important because the viewer
-                // often sends AvatarIsWearing and SetAppearance packets at once, and AvatarIsWearing
-                // shouldn't overwrite the changes made in SetAppearance.
-                sp.Appearance.Wearables = avatAppearance.Wearables;
-                sp.Appearance.Texture = avatAppearance.Texture;
-
-                // We don't need to send the appearance here since the "iswearing" will trigger a new set
-                // of visual param and baked texture changes. When those complete, the new appearance will be sent
-
-                QueueAppearanceSave(client.AgentId);
-            }
-        }
-
-        public bool SendAppearance(UUID agentId)
-        {
-            ScenePresence sp = m_scene.GetScenePresence(agentId);
-            if (sp == null)
-            {
-                m_log.WarnFormat("[AVFACTORY]: Agent {0} no longer in the scene", agentId);
-                return false;
-            }
-
-            // Send the appearance to everyone in the scene
-            sp.SendAppearanceToAllOtherAgents();
-
-            // Send animations back to the avatar as well
-            sp.Animator.SendAnimPack();
-
-            return true;
+            m_scene.AvatarService.SetAppearance(agentid, sp.Appearance);
         }
 
         private void SetAppearanceAssets(UUID userID, AvatarAppearance appearance)
@@ -587,5 +483,83 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 m_log.WarnFormat("[AVFACTORY]: user {0} has no inventory, appearance isn't going to work", userID);
             }
         }
+
+        #endregion
+
+        #region Client Event Handlers
+        /// <summary>
+        /// Tell the client for this scene presence what items it should be wearing now
+        /// </summary>
+        /// <param name="client"></param>
+        private void Client_OnRequestWearables(IClientAPI client)
+        {
+            // m_log.DebugFormat("[AVFACTORY]: Client_OnRequestWearables called for {0} ({1})", client.Name, client.AgentId);
+            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
+            if (sp != null)
+                client.SendWearables(sp.Appearance.Wearables, sp.Appearance.Serial++);
+            else
+                m_log.WarnFormat("[AVFACTORY]: Client_OnRequestWearables unable to find presence for {0}", client.AgentId);
+        }
+        
+        /// <summary>
+        /// Set appearance data (texture asset IDs and slider settings) received from a client
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="texture"></param>
+        /// <param name="visualParam"></param>
+        private void Client_OnSetAppearance(IClientAPI client, Primitive.TextureEntry textureEntry, byte[] visualParams)
+        {
+            // m_log.WarnFormat("[AVFACTORY]: Client_OnSetAppearance called for {0} ({1})", client.Name, client.AgentId);
+            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
+            if (sp != null)
+                SetAppearance(sp, textureEntry, visualParams);
+            else
+                m_log.WarnFormat("[AVFACTORY]: Client_OnSetAppearance unable to find presence for {0}", client.AgentId);
+        }
+
+        /// <summary>
+        /// Update what the avatar is wearing using an item from their inventory.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="e"></param>
+        private void Client_OnAvatarNowWearing(IClientAPI client, AvatarWearingArgs e)
+        {
+            // m_log.WarnFormat("[AVFACTORY]: Client_OnAvatarNowWearing called for {0} ({1})", client.Name, client.AgentId);
+            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
+            if (sp == null)
+            {
+                m_log.WarnFormat("[AVFACTORY]: Client_OnAvatarNowWearing unable to find presence for {0}", client.AgentId);
+                return;
+            }
+
+            // we need to clean out the existing textures
+            sp.Appearance.ResetAppearance();
+
+            // operate on a copy of the appearance so we don't have to lock anything yet
+            AvatarAppearance avatAppearance = new AvatarAppearance(sp.Appearance, false);
+
+            foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
+            {
+                if (wear.Type < AvatarWearable.MAX_WEARABLES)
+                    avatAppearance.Wearables[wear.Type].Add(wear.ItemID, UUID.Zero);
+            }
+
+            avatAppearance.GetAssetsFrom(sp.Appearance);
+
+            lock (m_setAppearanceLock)
+            {
+                // Update only those fields that we have changed. This is important because the viewer
+                // often sends AvatarIsWearing and SetAppearance packets at once, and AvatarIsWearing
+                // shouldn't overwrite the changes made in SetAppearance.
+                sp.Appearance.Wearables = avatAppearance.Wearables;
+                sp.Appearance.Texture = avatAppearance.Texture;
+
+                // We don't need to send the appearance here since the "iswearing" will trigger a new set
+                // of visual param and baked texture changes. When those complete, the new appearance will be sent
+
+                QueueAppearanceSave(client.AgentId);
+            }
+        }
+        #endregion
     }
 }
