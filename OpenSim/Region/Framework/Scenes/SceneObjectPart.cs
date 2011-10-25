@@ -4466,9 +4466,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParentGroup.Scene == null)
                     return;
 
-                PhysicsActor pa = PhysActor;
-
-                if (pa == null)
+                if (PhysActor == null)
                 {
                     // It's not phantom anymore. So make sure the physics engine get's knowledge of it
                     PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
@@ -4480,38 +4478,34 @@ namespace OpenSim.Region.Framework.Scenes
                         UsePhysics,
                         m_localId);
 
-                    pa = PhysActor;
-                    if (pa != null)
+                    PhysActor.SetMaterial(Material);
+                    DoPhysicsPropertyUpdate(UsePhysics, true);
+
+                    if (!m_parentGroup.IsDeleted)
                     {
-                        PhysActor.SetMaterial(Material);
-                        DoPhysicsPropertyUpdate(UsePhysics, true);
-
-                        if (!m_parentGroup.IsDeleted)
+                        if (LocalId == m_parentGroup.RootPart.LocalId)
                         {
-                            if (LocalId == m_parentGroup.RootPart.LocalId)
-                            {
-                                m_parentGroup.CheckSculptAndLoad();
-                            }
+                            m_parentGroup.CheckSculptAndLoad();
                         }
+                    }
 
-                        if (
-                            ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
-                            ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
-                            ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
-                            ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
-                            ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
-                            ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
-                            (CollisionSound != UUID.Zero)
-                            )
-                        {
-                            PhysActor.OnCollisionUpdate += PhysicsCollision;
-                            PhysActor.SubscribeEvents(1000);
-                        }
+                    if (
+                        ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
+                        ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+                        ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
+                        ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
+                        ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
+                        ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
+                        (CollisionSound != UUID.Zero)
+                        )
+                    {
+                        PhysActor.OnCollisionUpdate += PhysicsCollision;
+                        PhysActor.SubscribeEvents(1000);
                     }
                 }
                 else // it already has a physical representation
                 {
-                    pa.IsPhysical = UsePhysics;
+                    PhysActor.IsPhysical = UsePhysics;
 
                     DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status. If it's phantom this will remove the prim
 
