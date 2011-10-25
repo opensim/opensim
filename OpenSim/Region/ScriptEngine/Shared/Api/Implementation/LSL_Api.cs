@@ -2675,10 +2675,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// indices, and the tolerance for out-of-bound values, makes
         /// this more complicated than it might otherwise seem.
         /// </summary>
-
         public LSL_String llGetSubString(string src, int start, int end)
         {
-
             m_host.AddScriptLPS(1);
 
             // Normalize indices (if negative).
