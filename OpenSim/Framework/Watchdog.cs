@@ -112,8 +112,10 @@ namespace OpenSim.Framework
         /// <summary>
         /// Stops watchdog tracking on the current thread
         /// </summary>
-        /// <returns>True if the thread was removed from the list of tracked
-        /// threads, otherwise false</returns>
+        /// <returns>
+        /// True if the thread was removed from the list of tracked
+        /// threads, otherwise false
+        /// </returns>
         public static bool RemoveThread()
         {
             return RemoveThread(Thread.CurrentThread.ManagedThreadId);
@@ -131,6 +133,25 @@ namespace OpenSim.Framework
         {
             lock (m_threads)
                 return m_threads.Remove(threadID);
+        }
+
+        public static bool AbortThread(int threadID)
+        {
+            lock (m_threads)
+            {
+                if (m_threads.ContainsKey(threadID))
+                {
+                    ThreadWatchdogInfo twi = m_threads[threadID];
+                    twi.Thread.Abort();
+                    RemoveThread(threadID);
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
         }
 
         private static void UpdateThread(int threadID)
