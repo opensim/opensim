@@ -59,7 +59,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_timeout = pTimeout;
         }
 
-        public void ThreadStart(object o)
+        public void ThreadStart()
         {
             Run();
         }

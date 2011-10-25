@@ -36,6 +36,7 @@ using Nwc.XmlRpc;
 using Mono.Addins;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;

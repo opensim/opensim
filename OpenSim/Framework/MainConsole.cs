@@ -25,57 +25,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Collections.Generic;
-using System.Reflection;
-using System.Net;
-using log4net;
-using OpenSim.Framework.Servers.HttpServer;
-
 namespace OpenSim.Framework
 {
-    public class MainServer
+    public class MainConsole
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static ICommandConsole instance;
 
-        private static BaseHttpServer instance = null;
-        private static Dictionary<uint, BaseHttpServer> m_Servers =
-                new Dictionary<uint, BaseHttpServer>();
-
-        public static BaseHttpServer Instance
+        public static ICommandConsole Instance
         {
             get { return instance; }
             set { instance = value; }
-        }
-
-        public static IHttpServer GetHttpServer(uint port)
-        {
-            return GetHttpServer(port,null);
-        }
-
-        public static void AddHttpServer(BaseHttpServer server)
-        {
-            m_Servers.Add(server.Port, server);
-        }
-
-        public static IHttpServer GetHttpServer(uint port, IPAddress ipaddr)
-        {
-            if (port == 0)
-                return Instance;
-            if (instance != null && port == Instance.Port)
-                return Instance;
-
-            if (m_Servers.ContainsKey(port))
-                return m_Servers[port];
-
-            m_Servers[port] = new BaseHttpServer(port);
-
-            if (ipaddr != null)
-                m_Servers[port].ListenIPAddress = ipaddr;
-
-            m_log.InfoFormat("[MAIN HTTP SERVER]: Starting main http server on port {0}", port);
-            m_Servers[port].Start();
-
-            return m_Servers[port];
         }
     }
 }

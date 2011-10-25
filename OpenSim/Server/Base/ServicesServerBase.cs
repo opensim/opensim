@@ -30,6 +30,7 @@ using System.IO;
 using System.Xml;
 using System.Threading;
 using System.Reflection;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using log4net;
 using log4net.Config;
@@ -208,7 +209,7 @@ namespace OpenSim.Server.Base
             }
             else
             {
-                consoleAppender.Console = MainConsole.Instance;
+                consoleAppender.Console = (ConsoleBase)MainConsole.Instance;
 
                 if (null == consoleAppender.Threshold)
                     consoleAppender.Threshold = Level.All;
