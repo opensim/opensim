@@ -38,6 +38,7 @@ using System.Xml.Serialization;
 using System.Collections.Generic;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.UserAccountService;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenMetaverse;
@@ -49,11 +50,18 @@ namespace OpenSim.Server.Handlers.UserAccounts
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IUserAccountService m_UserAccountService;
+        private bool m_AllowCreateUser = false;
 
-        public UserAccountServerPostHandler(IUserAccountService service) :
+        public UserAccountServerPostHandler(IUserAccountService service)
+            : this(service, null) {}
+
+        public UserAccountServerPostHandler(IUserAccountService service, IConfig config) :
                 base("POST", "/accounts")
         {
             m_UserAccountService = service;
+
+            if (config != null)
+                m_AllowCreateUser = config.GetBoolean("AllowCreateUser", m_AllowCreateUser);
         }
 
         public override byte[] Handle(string path, Stream requestData,
@@ -81,6 +89,11 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
                 switch (method)
                 {
+                    case "createuser":
+                        if (m_AllowCreateUser)
+                            return CreateUser(request);
+                        else
+                            break;
                     case "getaccount":
                         return GetAccount(request);
                     case "getaccounts":
@@ -123,16 +136,20 @@ namespace OpenSim.Server.Handlers.UserAccounts
                 if (UUID.TryParse(request["UserID"].ToString(), out userID))
                     account = m_UserAccountService.GetUserAccount(scopeID, userID);
             }
-
             else if (request.ContainsKey("Email") && request["Email"] != null)
+            {
                 account = m_UserAccountService.GetUserAccount(scopeID, request["Email"].ToString());
-
+            }
             else if (request.ContainsKey("FirstName") && request.ContainsKey("LastName") &&
                 request["FirstName"] != null && request["LastName"] != null)
+            {
                 account = m_UserAccountService.GetUserAccount(scopeID, request["FirstName"].ToString(), request["LastName"].ToString());
+            }
 
             if (account == null)
+            {
                 result["result"] = "null";
+            }
             else
             {
                 result["result"] = account.ToKeyValuePairs();
@@ -178,6 +195,47 @@ namespace OpenSim.Server.Handlers.UserAccounts
         {
             // No can do. No changing user accounts from remote sims
             return FailureResult();
+        }
+
+        byte[] CreateUser(Dictionary<string, object> request)
+        {
+            if (!
+                request.ContainsKey("FirstName")
+                    && request.ContainsKey("LastName")
+                    && request.ContainsKey("Password"))
+                return FailureResult();
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            UUID scopeID = UUID.Zero;
+            if (request.ContainsKey("ScopeID") && !UUID.TryParse(request["ScopeID"].ToString(), out scopeID))
+                return FailureResult();
+
+            UUID principalID = UUID.Random();
+            if (request.ContainsKey("UserID") && !UUID.TryParse(request["UserID"].ToString(), out principalID))
+                return FailureResult();
+
+            string firstName = request["FirstName"].ToString();
+            string lastName = request["LastName"].ToString();
+            string password = request["Password"].ToString();
+
+            string email = "";
+            if (request.ContainsKey("Email"))
+                email = request["Email"].ToString();
+
+            UserAccount createdUserAccount = null;
+
+            if (m_UserAccountService is UserAccountService)
+                createdUserAccount
+                    = ((UserAccountService)m_UserAccountService).CreateUser(
+                        scopeID, principalID, firstName, lastName, password, email);
+
+            if (createdUserAccount == null)
+                return FailureResult();
+
+            result["result"] = createdUserAccount.ToKeyValuePairs();
+
+            return ResultToBytes(result);
         }
 
         private byte[] SuccessResult()

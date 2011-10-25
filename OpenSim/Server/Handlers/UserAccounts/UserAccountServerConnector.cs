@@ -55,7 +55,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
             Object[] args = new Object[] { config };
             m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(service, args);
 
-            server.AddStreamHandler(new UserAccountServerPostHandler(m_UserAccountService));
+            server.AddStreamHandler(new UserAccountServerPostHandler(m_UserAccountService, serverConfig));
         }
     }
 }
