@@ -987,6 +987,46 @@ namespace OpenSim.Region.Framework.Scenes
             return found;
         }
 
+        /// <summary>
+        /// Checks whether this region has a neighbour in the given direction.
+        /// </summary>
+        /// <param name="car"></param>
+        /// <param name="fix"></param>
+        /// <returns>
+        /// An integer which represents a compass point.  N == 1, going clockwise until we reach NW == 8.
+        /// Returns a positive integer if there is a region in that direction, a negative integer if not.
+        /// </returns>
+        public int HaveNeighbor(Cardinals car, ref int[] fix)
+        {
+            uint neighbourx = RegionInfo.RegionLocX;
+            uint neighboury = RegionInfo.RegionLocY;
+
+            int dir = (int)car;
+
+            if (dir > 1 && dir < 5) //Heading East
+                neighbourx++;
+            else if (dir > 5) // Heading West
+                neighbourx--;
+
+            if (dir < 3 || dir == 8) // Heading North
+                neighboury++;
+            else if (dir > 3 && dir < 7) // Heading Sout
+                neighboury--;
+
+            int x = (int)(neighbourx * Constants.RegionSize);
+            int y = (int)(neighboury * Constants.RegionSize);
+            GridRegion neighbourRegion = GridService.GetRegionByPosition(RegionInfo.ScopeID, x, y);
+
+            if (neighbourRegion == null)
+            {
+                fix[0] = (int)(RegionInfo.RegionLocX - neighbourx);
+                fix[1] = (int)(RegionInfo.RegionLocY - neighboury);
+                return dir * (-1);
+            }
+            else
+                return dir;
+        }
+
         // Alias IncomingHelloNeighbour OtherRegionUp, for now
         public GridRegion IncomingHelloNeighbour(RegionInfo neighbour)
         {
