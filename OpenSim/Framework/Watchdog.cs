@@ -178,7 +178,8 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static ThreadWatchdogInfo[] GetThreads()
         {
-            return m_threads.Values.ToArray();
+            lock (m_threads)
+                return m_threads.Values.ToArray();
         }
 
         private static void WatchdogTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
