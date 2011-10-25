@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            AssetBase asset = AssetHelpers.CreateAsset();
+            AssetBase asset = AssetHelpers.CreateNotecardAsset();
             asset.ID = TestHelpers.ParseTail(0x1).ToString();
 
             // Check we don't get anything before the asset is put in the cache
@@ -96,7 +96,7 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            AssetBase asset = AssetHelpers.CreateAsset();
+            AssetBase asset = AssetHelpers.CreateNotecardAsset();
             asset.ID = TestHelpers.ParseTail(0x2).ToString();
 
             m_cache.Store(asset);
@@ -112,8 +112,8 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-
-            AssetBase asset = AssetHelpers.CreateAsset();
+            
+            AssetBase asset = AssetHelpers.CreateNotecardAsset();
             asset.ID = TestHelpers.ParseTail(0x2).ToString();
 
             m_cache.Store(asset);

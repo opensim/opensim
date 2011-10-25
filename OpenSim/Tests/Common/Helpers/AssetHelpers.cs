@@ -40,9 +40,9 @@ namespace OpenSim.Tests.Common
         /// Create a notecard asset with a random uuids and dummy text.
         /// </summary>
         /// <returns></returns>
-        public static AssetBase CreateAsset()
+        public static AssetBase CreateNotecardAsset()
         {
-            return CreateAsset(UUID.Random());
+            return CreateNotecardAsset(UUID.Random());
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace OpenSim.Tests.Common
         /// </summary>
         /// <param name="creatorId">/param>
         /// <returns></returns>
-        public static AssetBase CreateAsset(UUID id)
+        public static AssetBase CreateNotecardAsset(UUID id)
         {
             return CreateAsset(id, AssetType.Notecard, "hello", UUID.Random());
         }
@@ -60,7 +60,7 @@ namespace OpenSim.Tests.Common
         /// </summary>
         /// <param name="creatorId">/param>
         /// <returns></returns>
-        public static AssetBase CreateAsset(Scene scene, UUID creatorId)
+        public static AssetBase CreateNotecardAsset(Scene scene, UUID creatorId)
         {
             AssetBase asset = CreateAsset(UUID.Random(), AssetType.Notecard, "hello", creatorId);
             scene.AssetService.Store(asset);

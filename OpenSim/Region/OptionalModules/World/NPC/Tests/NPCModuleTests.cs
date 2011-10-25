@@ -104,7 +104,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 
             // We also need to add the texture to the asset service, otherwise the AvatarFactoryModule will tell
             // ScenePresence.SendInitialData() to reset our entire appearance.
-            scene.AssetService.Store(AssetHelpers.CreateAsset(originalFace8TextureId));
+            scene.AssetService.Store(AssetHelpers.CreateNotecardAsset(originalFace8TextureId));
 
             afm.SetAppearance(sp, originalTe, null);
 
