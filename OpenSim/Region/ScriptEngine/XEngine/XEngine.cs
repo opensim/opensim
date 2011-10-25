@@ -1083,7 +1083,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             IScriptInstance instance = (ScriptInstance) parms;
             
-            //m_log.DebugFormat("[XENGINE]: Processing event for {0}", instance);
+            //m_log.DebugFormat("[XEngine]: Processing event for {0}", instance);
 
             return instance.EventProcessor();
         }
