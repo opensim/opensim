@@ -49,11 +49,20 @@ namespace OpenSim.Server.Handlers.Authentication
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAuthenticationService m_AuthenticationService;
+        private bool m_AllowSetPassword = false;
 
         public AuthenticationServerPostHandler(IAuthenticationService service) :
+                this(service, null) {}
+
+        public AuthenticationServerPostHandler(IAuthenticationService service, IConfig config) :
                 base("POST", "/auth")
         {
             m_AuthenticationService = service;
+
+            if (config != null)
+            {
+                m_AllowSetPassword = config.GetBoolean("AllowSetPassword", m_AllowSetPassword);
+            }
         }
 
         public override byte[] Handle(string path, Stream request,
@@ -113,31 +122,45 @@ namespace OpenSim.Server.Handlers.Authentication
 
             switch (method)
             {
-            case "authenticate":
-                if (!request.ContainsKey("PASSWORD"))
+                case "authenticate":
+                    if (!request.ContainsKey("PASSWORD"))
+                        return FailureResult();
+                    
+                    token = m_AuthenticationService.Authenticate(principalID, request["PASSWORD"].ToString(), lifetime);
+    
+                    if (token != String.Empty)
+                        return SuccessResult(token);
                     return FailureResult();
-                
-                token = m_AuthenticationService.Authenticate(principalID, request["PASSWORD"].ToString(), lifetime);
+    
+                case "setpassword":
+                    if (!m_AllowSetPassword)
+                        return FailureResult();
 
-                if (token != String.Empty)
-                    return SuccessResult(token);
-                return FailureResult();
-            case "verify":
-                if (!request.ContainsKey("TOKEN"))
+                    if (!request.ContainsKey("PASSWORD"))
+                        return FailureResult();
+    
+                    if (m_AuthenticationService.SetPassword(principalID, request["PASSWORD"].ToString()))
+                        return SuccessResult();
+                    else
+                        return FailureResult();
+    
+                case "verify":
+                    if (!request.ContainsKey("TOKEN"))
+                        return FailureResult();
+                    
+                    if (m_AuthenticationService.Verify(principalID, request["TOKEN"].ToString(), lifetime))
+                        return SuccessResult();
+    
                     return FailureResult();
-                
-                if (m_AuthenticationService.Verify(principalID, request["TOKEN"].ToString(), lifetime))
-                    return SuccessResult();
-
-                return FailureResult();
-            case "release":
-                if (!request.ContainsKey("TOKEN"))
+    
+                case "release":
+                    if (!request.ContainsKey("TOKEN"))
+                        return FailureResult();
+    
+                    if (m_AuthenticationService.Release(principalID, request["TOKEN"].ToString()))
+                        return SuccessResult();
+    
                     return FailureResult();
-
-                if (m_AuthenticationService.Release(principalID, request["TOKEN"].ToString()))
-                    return SuccessResult();
-
-                return FailureResult();
             }
 
             return FailureResult();

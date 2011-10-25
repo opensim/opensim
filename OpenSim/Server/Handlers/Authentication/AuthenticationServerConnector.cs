@@ -58,7 +58,7 @@ namespace OpenSim.Server.Handlers.Authentication
             Object[] args = new Object[] { config };
             m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authenticationService, args);
 
-            server.AddStreamHandler(new AuthenticationServerPostHandler(m_AuthenticationService));
+            server.AddStreamHandler(new AuthenticationServerPostHandler(m_AuthenticationService, serverConfig));
         }
     }
 }
