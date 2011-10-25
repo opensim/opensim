@@ -144,7 +144,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal UUID m_uuid { get; private set; }
         internal bool bad = false;
 
-        public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, CollisionLocker dode, Vector3 size, float pid_d, float pid_p, float capsule_radius, float tensor, float density, float height_fudge_factor, float walk_divisor, float rundivisor)
+        public OdeCharacter(
+            String avName, OdeScene parent_scene, Vector3 pos, Vector3 size, float pid_d, float pid_p,
+            float capsule_radius, float tensor, float density, float height_fudge_factor,
+            float walk_divisor, float rundivisor)
         {
             m_uuid = UUID.Random();
 

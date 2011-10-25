@@ -144,8 +144,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public uint m_localID { get; private set; }
 
-        private CollisionLocker ode;
-
         private bool m_taintforce = false;
         private bool m_taintaddangularforce = false;
         private Vector3 m_force;
@@ -203,13 +201,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal int m_material = (int)Material.Wood;
 
-        public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
-                       Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
+        public OdePrim(
+            String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
+            Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
         {
             Name = primName;
             m_vehicle = new ODEDynamics();
             //gc = GCHandle.Alloc(prim_geom, GCHandleType.Pinned);
-            ode = dode;
+
             if (!pos.IsFinite())
             {
                 pos = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f),
@@ -1390,7 +1389,6 @@ Console.WriteLine("CreateGeom:");
                             catch (AccessViolationException)
                             {
                                 m_log.WarnFormat("[PHYSICS]: Unable to create physics proxy for object {0}", Name);
-                                ode.dunlock(_parent_scene.world);
                                 return;
                             }
                         }
@@ -1405,7 +1403,6 @@ Console.WriteLine("CreateGeom:");
                             catch (AccessViolationException)
                             {
                                 m_log.WarnFormat("[PHYSICS]: Unable to create physics proxy for object {0}", Name);
-                                ode.dunlock(_parent_scene.world);
                                 return;
                             }
                         }
@@ -1421,7 +1418,6 @@ Console.WriteLine("CreateGeom:");
                         catch (AccessViolationException)
                         {
                             m_log.WarnFormat("[PHYSICS]: Unable to create physics proxy for object {0}", Name);
-                            ode.dunlock(_parent_scene.world);
                             return;
                         }
                     }
@@ -1437,7 +1433,6 @@ Console.WriteLine("CreateGeom:");
                     catch (AccessViolationException)
                     {
                         m_log.WarnFormat("[PHYSICS]: Unable to create physics proxy for object {0}", Name);
-                        ode.dunlock(_parent_scene.world);
                         return;
                     }
                 }
