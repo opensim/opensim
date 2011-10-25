@@ -107,6 +107,11 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_fps = 0;
 
         /// <summary>
+        /// Our nominal fps target, as expected in fps stats when a sim is running normally.
+        /// </summary>
+        private float m_nominalReportedFps = 55;
+
+        /// <summary>
         /// Parameter to adjust reported scene fps
         /// </summary>
         /// <remarks>
@@ -114,7 +119,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// However, we will still report an FPS that's closer to what people are used to seeing.  A lower FPS might
         /// affect clients and monitoring scripts/software.
         /// </remarks>
-        private float m_fpsCorrectionFactor = 5;
+        private float m_reportedFpsCorrectionFactor = 5;
 
         // saved last reported value so there is something available for llGetRegionFPS 
         private float lastReportedSimFPS = 0;
@@ -165,8 +170,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public SimStatsReporter(Scene scene)
         {
-            statsUpdateFactor = (float)(statsUpdatesEveryMS / 1000);
             m_scene = scene;
+            m_reportedFpsCorrectionFactor = scene.MinFrameTime * m_nominalReportedFps;
+            statsUpdateFactor = (float)(statsUpdatesEveryMS / 1000);
             ReportingRegion = scene.RegionInfo;
 
             m_objectCapacity = scene.RegionInfo.ObjectCapacity;
@@ -212,7 +218,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // We're going to lie about the FPS because we've been lying since 2008.  The actual FPS is currently
                 // locked at a maximum of 11.  Maybe at some point this can change so that we're not lying.
-                int reportedFPS = (int)(m_fps * m_fpsCorrectionFactor);
+                int reportedFPS = (int)(m_fps * m_reportedFpsCorrectionFactor);
 
                 // save the reported value so there is something available for llGetRegionFPS 
                 lastReportedSimFPS = reportedFPS / statsUpdateFactor;
