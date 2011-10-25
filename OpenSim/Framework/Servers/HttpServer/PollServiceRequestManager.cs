@@ -28,12 +28,16 @@
 using System;
 using System.Collections;
 using System.Threading;
+using System.Reflection;
+using log4net;
 using HttpServer;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
     public class PollServiceRequestManager
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly BaseHttpServer m_server;
         private static Queue m_requests = Queue.Synchronized(new Queue());
         private uint m_WorkerThreadCount = 0;
@@ -41,8 +45,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         private PollServiceWorkerThread[] m_PollServiceWorkerThreads;
         private Thread m_watcherThread;
         private bool m_running = true;
-
-        
 
         public PollServiceRequestManager(BaseHttpServer pSrv, uint pWorkerThreadCount, int pTimeout)
         {
@@ -61,7 +63,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_workerThreads[i].Name = String.Format("PollServiceWorkerThread{0}",i);
                 //Can't add to thread Tracker here Referencing OpenSim.Framework creates circular reference
                 m_workerThreads[i].Start();
-                
             }
 
             //start watcher threads
@@ -98,7 +99,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if (m_requests.Count == 0)
                     return;
 
+//                m_log.DebugFormat("[POLL SERVICE REQUEST MANAGER]: Processing {0} requests", m_requests.Count);
+
                 int reqperthread = (int) (m_requests.Count/m_WorkerThreadCount) + 1;
+
                 // For Each WorkerThread
                 for (int tc = 0; tc < m_WorkerThreadCount && m_requests.Count > 0; tc++)
                 {
