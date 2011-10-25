@@ -196,6 +196,11 @@ namespace OpenSim.Framework.Servers
                 m_console.Commands.AddCommand("base", false, "threads abort",
                         "threads abort <thread-id>",
                         "Abort a managed thread.  Use \"show threads\" to find possible threads.", HandleThreadsAbort);
+
+                m_console.Commands.AddCommand("base", false, "threads show",
+                        "threads show",
+                        "Show thread status.  Synonym for \"show threads\"",
+                        (string module, string[] args) => Notice(GetThreadsReport()));
             }
         }
         
