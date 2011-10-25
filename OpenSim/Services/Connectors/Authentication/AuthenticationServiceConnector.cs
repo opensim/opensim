@@ -151,5 +151,17 @@ namespace OpenSim.Services.Connectors
             // nope, we don't do this
             return false;
         }
+
+        public AuthInfo GetAuthInfo(UUID principalID)
+        {
+            // not done from remote simulators
+            return null;
+        }
+
+        public bool SetAuthInfo(AuthInfo info)
+        {
+            // not done from remote simulators
+            return false;
+        }
     }
 }

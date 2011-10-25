@@ -236,6 +236,16 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return false;
         }
 
+        public AuthInfo GetAuthInfo(UUID principalID)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SetAuthInfo(AuthInfo info)
+        {
+            throw new NotImplementedException();
+        }
+
         private bool CheckPassword(UUID userID, string password, string simianGridCredential, out string authorizeResult)
         {
             if (simianGridCredential.Contains(":"))

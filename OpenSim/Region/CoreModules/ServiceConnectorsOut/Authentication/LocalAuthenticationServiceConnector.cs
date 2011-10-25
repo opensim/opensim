@@ -158,7 +158,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication
             return m_AuthenticationService.SetPassword(principalID, passwd);
         }
 
-        #endregion
+        public AuthInfo GetAuthInfo(UUID principalID)
+        {
+            return m_AuthenticationService.GetAuthInfo(principalID);
+        }
 
+        public bool SetAuthInfo(AuthInfo info)
+        {
+            return m_AuthenticationService.SetAuthInfo(info);
+        }
+
+        #endregion
     }
 }

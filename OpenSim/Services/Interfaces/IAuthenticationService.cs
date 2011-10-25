@@ -26,10 +26,32 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 
 namespace OpenSim.Services.Interfaces
 {
+    public class AuthInfo
+    {
+        public UUID PrincipalID { get; set; }
+        public string AccountType { get; set; }
+        public string PasswordHash { get; set; }
+        public string PasswordSalt { get; set; }
+        public string WebLoginKey { get; set; }
+
+        public Dictionary<string, object> ToKeyValuePairs()
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            result["PrincipalID"] = PrincipalID;
+            result["AccountType"] = AccountType;
+            result["PasswordHash"] = PasswordHash;
+            result["PasswordSalt"] = PasswordSalt;
+            result["WebLoginKey"] = WebLoginKey;
+
+            return result;
+        }
+    }
+
     // Generic Authentication service used for identifying
     // and authenticating principals.
     // Principals may be clients acting on users' behalf,
@@ -75,6 +97,10 @@ namespace OpenSim.Services.Interfaces
         // authentication/authorization.
         //
         bool SetPassword(UUID principalID, string passwd);
+
+        AuthInfo GetAuthInfo(UUID principalID);
+
+        bool SetAuthInfo(AuthInfo info);
 
         //////////////////////////////////////////////////////
         // Grid
