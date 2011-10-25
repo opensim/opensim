@@ -140,7 +140,13 @@ namespace OpenSim.Region.Physics.Manager
         public event VelocityUpdate OnVelocityUpdate;
         public event OrientationUpdate OnOrientationUpdate;
         public event RequestTerseUpdate OnRequestTerseUpdate;
+
+        /// <summary>
+        /// Subscribers to this event must synchronously handle the dictionary of collisions received, since the event
+        /// object is reused in subsequent physics frames.
+        /// </summary>
         public event CollisionUpdate OnCollisionUpdate;
+
         public event OutOfBounds OnOutOfBounds;
 #pragma warning restore 67
 

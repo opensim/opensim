@@ -2083,10 +2083,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void PhysicsCollision(EventArgs e)
         {
             // single threaded here
-            if (e == null)
-            {
-                return;
-            }
 
             CollisionEventUpdate a = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> collissionswith = a.m_objCollisionList;
