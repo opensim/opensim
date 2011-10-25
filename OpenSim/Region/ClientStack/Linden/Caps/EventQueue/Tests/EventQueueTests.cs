@@ -45,12 +45,11 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
     [TestFixture]
     public class EventQueueTests
     {
-        [Test]
-        public void AddForClient()
-        {
-            TestHelpers.InMethod();
-            log4net.Config.XmlConfigurator.Configure();
+        private TestScene m_scene;
 
+        [SetUp]
+        public void SetUp()
+        {
             MainServer.Instance = new BaseHttpServer(9999, false, 9998, "");
 
             IConfigSource config = new IniConfigSource();
@@ -60,10 +59,17 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
             CapabilitiesModule capsModule = new CapabilitiesModule();
             EventQueueGetModule eqgModule = new EventQueueGetModule();
 
-            TestScene scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(scene, config, capsModule, eqgModule);
+            m_scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(m_scene, config, capsModule, eqgModule);
+        }
 
-            SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
+        [Test]
+        public void AddForClient()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            SceneHelpers.AddScenePresence(m_scene, TestHelpers.ParseTail(0x1));
 
             // TODO: Add more assertions for the other aspects of event queues
             Assert.That(MainServer.Instance.GetPollServiceHandlerKeys().Count, Is.EqualTo(1));
