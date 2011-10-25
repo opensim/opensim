@@ -362,7 +362,6 @@ namespace OpenSim
             {
                 m_configSettings.PhysicsEngine = startupConfig.GetString("physics");
                 m_configSettings.MeshEngineName = startupConfig.GetString("meshing");
-                m_configSettings.PhysicalPrim = startupConfig.GetBoolean("physical_prim", true);
 
                 m_configSettings.See_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor", true);
 
