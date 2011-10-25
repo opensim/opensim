@@ -1009,7 +1009,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             // Do we even have it?
             if (!m_Scripts.ContainsKey(itemID))
             {
+                // Do we even have it?
+                if (!m_Scripts.ContainsKey(itemID))
+                    return;
+
                 lockScriptsForRead(false);
+                lockScriptsForWrite(true);
+                m_Scripts.Remove(itemID);
+                lockScriptsForWrite(false);
+
                 return;
             }
              
