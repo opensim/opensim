@@ -34,7 +34,13 @@ namespace OpenSim.Framework
         public bool   See_into_region_from_neighbor { get; set; }
         public string StorageDll                    { get; set; }
         public string ClientstackDll                { get; set; }
+
+        /// <summary>
+        /// Controls whether physics can be applied to prims.  Even if false, prims still have entries in a
+        /// PhysicsScene in order to perform collision detection
+        /// </summary>
         public bool   PhysicalPrim                  { get; set; }
+        
         public string LibrariesXMLFile              { get; set; }
 
         public const uint DefaultRegionHttpPort = 9000;
