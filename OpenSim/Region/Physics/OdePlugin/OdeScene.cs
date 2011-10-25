@@ -1633,6 +1633,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="obj"></param>
         internal void AddCollisionEventReporting(PhysicsActor obj)
         {
+//            m_log.DebugFormat("[PHYSICS]: Adding {0} to collision event reporting", obj.SOPName);
+            
             lock (_collisionEventPrim)
             {
                 if (!_collisionEventPrim.Contains(obj))
@@ -1646,11 +1648,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="obj"></param>
         internal void RemoveCollisionEventReporting(PhysicsActor obj)
         {
+//            m_log.DebugFormat("[PHYSICS]: Removing {0} from collision event reporting", obj.SOPName);
+
             lock (_collisionEventPrim)
-            {
-                if (!_collisionEventPrim.Contains(obj))
-                    _collisionEventPrim.Remove(obj);
-            }
+                _collisionEventPrim.Remove(obj);
         }
 
         #region Add/Remove Entities
