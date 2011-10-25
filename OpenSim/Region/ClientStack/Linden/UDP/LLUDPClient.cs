@@ -602,8 +602,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             RTO = rto;
 
-            //m_log.Debug("[LLUDPCLIENT]: Setting agent " + this.Agent.FullName + "'s RTO to " + RTO + "ms with an RTTVAR of " +
-            //    RTTVAR + " based on new RTT of " + r + "ms");
+            //if (RTO != rto)
+       //          m_log.Debug("[LLUDPCLIENT]: Setting RTO to " + RTO + "ms from " + rto + "ms with an RTTVAR of " +
+                       //RTTVAR + " based on new RTT of " + r + "ms");
         }
 
         /// <summary>
