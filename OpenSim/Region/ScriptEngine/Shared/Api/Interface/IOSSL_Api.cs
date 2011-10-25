@@ -179,6 +179,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osNpcStopMoveToTarget(LSL_Key npc);
         void osNpcSay(key npc, string message);
         void osNpcSit(key npc, key target, int options);
+        void osNpcStand(LSL_Key npc);
         void osNpcRemove(key npc);
 
         LSL_Key osOwnerSaveAppearance(string notecard);

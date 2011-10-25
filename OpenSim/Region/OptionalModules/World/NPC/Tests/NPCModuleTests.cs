@@ -231,7 +231,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         }
 
         [Test]
-        public void TestSit()
+        public void TestSitAndStand()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -249,9 +249,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             part.SitTargetPosition = new Vector3(0, 0, 1);
             npcModule.Sit(npc.UUID, part.UUID, scene);
 
-            // Assertions?
             Assert.That(part.SitTargetAvatar, Is.EqualTo(npcId));
             Assert.That(npc.ParentID, Is.EqualTo(part.LocalId));
+
+            npcModule.Stand(npc.UUID, scene);
+
+            Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
+            Assert.That(npc.ParentID, Is.EqualTo(0));
         }
     }
 }

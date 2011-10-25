@@ -217,6 +217,23 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return false;
         }
 
+        public bool Stand(UUID agentID, Scene scene)
+        {
+            lock (m_avatars)
+            {
+                if (m_avatars.ContainsKey(agentID))
+                {
+                    ScenePresence sp;
+                    scene.TryGetScenePresence(agentID, out sp);
+                    sp.StandUp();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public bool DeleteNPC(UUID agentID, Scene scene)
         {
             lock (m_avatars)
