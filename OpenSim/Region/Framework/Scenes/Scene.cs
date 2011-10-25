@@ -577,8 +577,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_lastIncoming = 0;
             m_lastOutgoing = 0;
 
-            m_physicalPrim = physicalPrim;
-            
             m_seeIntoRegionFromNeighbor = SeeIntoRegionFromNeighbor;
 
             m_asyncSceneObjectDeleter = new AsyncSceneObjectGroupDeleter(this);
