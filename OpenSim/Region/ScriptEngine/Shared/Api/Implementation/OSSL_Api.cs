@@ -2359,6 +2359,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public void osNpcSit(LSL_Key npc, LSL_Key target, int options)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcSit");
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                module.Sit(new UUID(npc.m_string), new UUID(target.m_string), World);
+            }
+        }
+
         public void osNpcRemove(LSL_Key npc)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcRemove");

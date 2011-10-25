@@ -95,6 +95,15 @@ namespace OpenSim.Region.Framework.Interfaces
         bool Say(UUID agentID, Scene scene, string text);
 
         /// <summary>
+        /// Sit the NPC.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="partID"></param>
+        /// <param name="scene"></param>
+        /// <returns>true if the sit succeeded, false if not</returns>
+        bool Sit(UUID agentID, UUID partID, Scene scene);
+
+        /// <summary>
         /// Delete an NPC.
         /// </summary>
         /// <param name="agentID">The UUID of the NPC</param>

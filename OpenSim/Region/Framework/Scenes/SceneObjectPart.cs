@@ -776,7 +776,7 @@ namespace OpenSim.Region.Framework.Scenes
                         List<ScenePresence> avs = ParentGroup.GetLinkedAvatars();
                         foreach (ScenePresence av in avs)
                         {
-                            if (av.LinkedPrim == m_uuid)
+                            if (av.ParentID == m_localId)
                             {
                                 Vector3 offset = (m_offsetPosition - oldpos);
                                 av.AbsolutePosition += offset;
@@ -1260,14 +1260,12 @@ namespace OpenSim.Region.Framework.Scenes
         	set { m_occupied = value; }
         }
 
-        
         public UUID SitTargetAvatar
         {
             get { return m_sitTargetAvatar; }
             set { m_sitTargetAvatar = value; }
         }
 
-        
         public virtual UUID RegionID
         {
             get

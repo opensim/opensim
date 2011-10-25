@@ -493,8 +493,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (ScenePresence av in m_linkedAvatars)
                     {
-                        SceneObjectPart p;
-                        if (m_parts.TryGetValue(av.LinkedPrim, out p))
+                        SceneObjectPart p = m_scene.GetSceneObjectPart(av.ParentID);
+                        if (m_parts.TryGetValue(p.UUID, out p))
                         {
                             Vector3 offset = p.GetWorldPosition() - av.ParentPosition;
                             av.AbsolutePosition += offset;

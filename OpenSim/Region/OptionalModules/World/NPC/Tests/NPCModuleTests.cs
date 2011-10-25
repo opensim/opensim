@@ -229,5 +229,29 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             Assert.That(distanceToTarget, Is.LessThan(1), "NPC not within 1 unit of target position on second move");
             Assert.That(npc.AbsolutePosition, Is.EqualTo(targetPos));
         }
+
+        [Test]
+        public void TestSit()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
+
+            Vector3 startPos = new Vector3(128, 128, 30);
+            INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
+            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, scene, sp.Appearance);
+
+            ScenePresence npc = scene.GetScenePresence(npcId);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
+
+            // We must have a non Vector3.Zero sit target position otherwise part.SitTargetAvatar doesn't get set!
+            part.SitTargetPosition = new Vector3(0, 0, 1);
+            npcModule.Sit(npc.UUID, part.UUID, scene);
+
+            // Assertions?
+            Assert.That(part.SitTargetAvatar, Is.EqualTo(npcId));
+            Assert.That(npc.ParentID, Is.EqualTo(part.LocalId));
+        }
     }
 }

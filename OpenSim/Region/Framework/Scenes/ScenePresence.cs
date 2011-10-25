@@ -671,19 +671,12 @@ namespace OpenSim.Region.Framework.Scenes
         private uint m_parentID;
 
 
-        private UUID m_linkedPrim;
-
         public uint ParentID
         {
             get { return m_parentID; }
             set { m_parentID = value; }
         }
 
-        public UUID LinkedPrim
-        {
-            get { return m_linkedPrim; }
-            set { m_linkedPrim = value; }
-        }
 
         public float Health
         {
@@ -2056,7 +2049,6 @@ namespace OpenSim.Region.Framework.Scenes
                 
 		        m_parentPosition = Vector3.Zero;
 				m_parentID = 0;
-                m_linkedPrim = UUID.Zero;
                 m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
@@ -2513,7 +2505,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
         */
 
-
         public void HandleAgentSit(IClientAPI remoteClient, UUID agentID)
         {
             if (!String.IsNullOrEmpty(m_nextSitAnimation))
@@ -2616,7 +2607,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_parentID = m_requestedSitTargetID;
             }
 
-            m_linkedPrim = part.UUID;
             if (part.GetAvatarOnSitTarget() != UUID)
             {
                 m_offsetRotation = m_offsetRotation / part.RotationOffset;
