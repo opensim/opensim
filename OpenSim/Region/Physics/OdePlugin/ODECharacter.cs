@@ -1210,11 +1210,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_requestedUpdateFrequency = ms;
             m_eventsubscription = ms;
+            CollisionEventsThisFrame.Clear();
             _parent_scene.AddCollisionEventReporting(this);
         }
 
         public override void UnSubscribeEvents()
         {
+            CollisionEventsThisFrame.Clear();
             _parent_scene.RemoveCollisionEventReporting(this);
             m_requestedUpdateFrequency = 0;
             m_eventsubscription = 0;
