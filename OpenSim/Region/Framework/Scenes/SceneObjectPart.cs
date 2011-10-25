@@ -3071,7 +3071,7 @@ namespace OpenSim.Region.Framework.Scenes
             //if (LocalId != ParentGroup.RootPart.LocalId)
                 //isattachment = ParentGroup.RootPart.IsAttachment;
 
-            remoteClient.SendPrimUpdate(this, PrimUpdateFlags.FullUpdate);
+            remoteClient.SendEntityUpdate(this, PrimUpdateFlags.FullUpdate);
             ParentGroup.Scene.StatsReporter.AddObjectUpdates(1);
         }
 
@@ -4849,7 +4849,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             // Causes this thread to dig into the Client Thread Data.
             // Remember your locking here!
-            remoteClient.SendPrimUpdate(
+            remoteClient.SendEntityUpdate(
                 this,
                 PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
                     | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);

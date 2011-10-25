@@ -1101,7 +1101,14 @@ namespace OpenSim.Framework
         void SetChildAgentThrottle(byte[] throttle);
 
         void SendAvatarDataImmediate(ISceneEntity avatar);
-        void SendPrimUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags);
+
+        /// <summary>
+        /// Send a positional, velocity, etc. update to the viewer for a given entity.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="updateFlags"></param>
+        void SendEntityUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags);
+
         void ReprioritizeUpdates();
         void FlushPrimUpdates();
 
