@@ -310,10 +310,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// Sets many properties that ODE requires to be stable
         /// These settings need to be tweaked 'exactly' right or weird stuff happens.
         /// </summary>
-        public OdeScene(string sceneIdentifier)
+        /// <param value="name">Name of the scene.  Useful in debug messages.</param>
+        public OdeScene(string name)
         {
             m_log 
-                = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + sceneIdentifier);
+                = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + name);
+
+            Name = name;
 
             nearCallback = near;
             triCallback = TriCallback;
