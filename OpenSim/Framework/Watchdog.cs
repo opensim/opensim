@@ -51,7 +51,7 @@ namespace OpenSim.Framework
             public int LastTick { get; set; }
 
             /// <summary>
-            /// Number of seconds before we notify that the thread is having a problem.
+            /// Number of milliseconds before we notify that the thread is having a problem.
             /// </summary>
             public int Timeout { get; set; }
 
@@ -116,7 +116,7 @@ namespace OpenSim.Framework
         /// <param name="isBackground">True to run this thread as a background
         /// thread, otherwise false</param>
         /// <param name="timeout">
-        /// Number of seconds to wait until we issue a warning about timeout.
+        /// Number of milliseconds to wait until we issue a warning about timeout.
         /// </para>
         /// <returns>The newly created Thread object</returns>
         public static Thread StartThread(
