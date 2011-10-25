@@ -1568,7 +1568,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void ApplyPhysics(bool m_physicalPrim)
         {
             // Apply physics to the root prim
-            m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive, m_physicalPrim);
+            m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive);
             
             // Apply physics to child prims
             SceneObjectPart[] parts = m_parts.GetArray();
@@ -1578,7 +1578,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     SceneObjectPart part = parts[i];
                     if (part.LocalId != m_rootPart.LocalId)
-                        part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), part.VolumeDetectActive, m_physicalPrim);
+                        part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), part.VolumeDetectActive);
                 }
 
                 // Hack to get the physics scene geometries in the right spot

@@ -1600,15 +1600,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// Apply physics to this part.
         /// </summary>
         /// <param name="rootObjectFlags"></param>
-        /// <param name="m_physicalPrim"></param>
-        public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive, bool m_physicalPrim)
+        /// <param name="VolumeDetectActive"></param>
+        public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive)
         {
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT PART]: Applying physics to {0} {1}, m_physicalPrim {2}",
 //                Name, LocalId, UUID, m_physicalPrim);
 
-            bool isPhysical = (((rootObjectFlags & (uint) PrimFlags.Physics) != 0) && m_physicalPrim);
-            bool isPhantom = ((rootObjectFlags & (uint) PrimFlags.Phantom) != 0);
+            bool isPhysical = (rootObjectFlags & (uint) PrimFlags.Physics) != 0;
+            bool isPhantom = (rootObjectFlags & (uint) PrimFlags.Phantom) != 0;
 
             if (IsJoint())
             {
