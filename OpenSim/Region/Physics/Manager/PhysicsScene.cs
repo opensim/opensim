@@ -39,6 +39,10 @@ namespace OpenSim.Region.Physics.Manager
     public delegate void RaycastCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal);
     public delegate void RayCallback(List<ContactResult> list);
 
+    public delegate void JointMoved(PhysicsJoint joint);
+    public delegate void JointDeactivated(PhysicsJoint joint);
+    public delegate void JointErrorMessage(PhysicsJoint joint, string message); // this refers to an "error message due to a problem", not "amount of joint constraint violation"
+
     /// <summary>
     /// Contact result from a raycast.
     /// </summary>
@@ -261,93 +265,5 @@ namespace OpenSim.Region.Physics.Manager
         {
             return new List<ContactResult>();
         }
-
-        private class NullPhysicsScene : PhysicsScene
-        {
-            private static int m_workIndicator;
-
-
-            public override void Initialise(IMesher meshmerizer, IConfigSource config)
-            {
-                // Does nothing right now
-            }
-
-            public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
-            {
-                m_log.InfoFormat("[PHYSICS]: NullPhysicsScene : AddAvatar({0})", position);
-                return PhysicsActor.Null;
-            }
-
-            public override void RemoveAvatar(PhysicsActor actor)
-            {
-            }
-
-            public override void RemovePrim(PhysicsActor prim)
-            {
-            }
-            public override void SetWaterLevel(float baseheight)
-            {
-
-            }
-
-/*
-            public override PhysicsActor AddPrim(Vector3 position, Vector3 size, Quaternion rotation)
-            {
-                m_log.InfoFormat("NullPhysicsScene : AddPrim({0},{1})", position, size);
-                return PhysicsActor.Null;
-            }
-*/
-
-            public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                      Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
-            {
-                m_log.InfoFormat("[PHYSICS]: NullPhysicsScene : AddPrim({0},{1})", position, size);
-                return PhysicsActor.Null;
-            }
-
-            public override void AddPhysicsActorTaint(PhysicsActor prim)
-            {
-            }
-
-            public override float Simulate(float timeStep)
-            {
-                m_workIndicator = (m_workIndicator + 1) % 10;
-
-                return 0f;
-            }
-
-            public override void GetResults()
-            {
-                m_log.Info("[PHYSICS]: NullPhysicsScene : GetResults()");
-            }
-
-            public override void SetTerrain(float[] heightMap)
-            {
-                m_log.InfoFormat("[PHYSICS]: NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
-            }
-
-            public override void DeleteTerrain()
-            {
-            }
-
-            public override bool IsThreaded
-            {
-                get { return false; }
-            }
-
-            public override void Dispose()
-            {
-            }
-
-            public override Dictionary<uint,float> GetTopColliders()
-            {
-                Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
-                return returncolliders;
-            }
-            
-        }
     }
-    public delegate void JointMoved(PhysicsJoint joint);
-    public delegate void JointDeactivated(PhysicsJoint joint);
-    public delegate void JointErrorMessage(PhysicsJoint joint, string message); // this refers to an "error message due to a problem", not "amount of joint constraint violation"
 }
