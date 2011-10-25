@@ -62,7 +62,6 @@ namespace OpenSim.Services.UserAccountService
             if (userConfig == null)
                 throw new Exception("No UserAccountService configuration");
 
-            m_RootInstance = this;
             string gridServiceDll = userConfig.GetString("GridService", string.Empty);
             if (gridServiceDll != string.Empty)
                 m_GridService = LoadPlugin<IGridService>(gridServiceDll, new Object[] { config });
