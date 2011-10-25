@@ -324,7 +324,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="packet"></param>
         /// <param name="category"></param>
         /// <param name="allowSplitting"></param>
-        public void SendPacket(LLUDPClient udpClient, Packet packet, ThrottleOutPacketType category, bool allowSplitting, UnackedPacketMethod method)
+        /// <param name="method">
+        /// The method to call if the packet is not acked by the client.  If null, then a standard
+        /// resend of the packet is done.
+        /// </param>
+        public void SendPacket(
+            LLUDPClient udpClient, Packet packet, ThrottleOutPacketType category, bool allowSplitting, UnackedPacketMethod method)
         {
             // CoarseLocationUpdate packets cannot be split in an automated way
             if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
@@ -357,8 +362,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="udpClient"></param>
         /// <param name="data"></param>
         /// <param name="type"></param>
-        /// <param name="category"></param>        
-        public void SendPacketData(LLUDPClient udpClient, byte[] data, PacketType type, ThrottleOutPacketType category, UnackedPacketMethod method)
+        /// <param name="category"></param>
+        /// <param name="method">
+        /// The method to call if the packet is not acked by the client.  If null, then a standard
+        /// resend of the packet is done.
+        /// </param>
+        public void SendPacketData(
+            LLUDPClient udpClient, byte[] data, PacketType type, ThrottleOutPacketType category, UnackedPacketMethod method)
         {
             int dataLength = data.Length;
             bool doZerocode = (data[0] & Helpers.MSG_ZEROCODED) != 0;
@@ -1102,7 +1112,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler loop threw an exception: " + ex.Message, ex);
                 }
-
             }
 
             Watchdog.RemoveThread();

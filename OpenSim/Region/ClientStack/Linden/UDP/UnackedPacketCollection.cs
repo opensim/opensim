@@ -118,12 +118,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Returns a list of all of the packets with a TickCount older than
         /// the specified timeout
         /// </summary>
+        /// <remarks>
+        /// This function is not thread safe, and cannot be called
+        /// multiple times concurrently
+        /// </remarks>
         /// <param name="timeoutMS">Number of ticks (milliseconds) before a
-        /// packet is considered expired</param>
-        /// <returns>A list of all expired packets according to the given
-        /// expiration timeout</returns>
-        /// <remarks>This function is not thread safe, and cannot be called
-        /// multiple times concurrently</remarks>
+        /// packet is considered expired
+        /// </param>
+        /// <returns>
+        /// A list of all expired packets according to the given
+        /// expiration timeout
+        /// </returns>
         public List<OutgoingPacket> GetExpiredPackets(int timeoutMS)
         {
             ProcessQueues();

@@ -170,7 +170,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="circuitCode">Circuit code for this connection</param>
         /// <param name="agentID">AgentID for the connected agent</param>
         /// <param name="remoteEndPoint">Remote endpoint for this connection</param>
-        public LLUDPClient(LLUDPServer server, ThrottleRates rates, TokenBucket parentThrottle, uint circuitCode, UUID agentID, IPEndPoint remoteEndPoint, int defaultRTO, int maxRTO)
+        /// <param name="defaultRTO">
+        /// Default retransmission timeout for unacked packets.  The RTO will never drop
+        /// beyond this number.
+        /// </param>
+        /// <param name="maxRTO">
+        /// The maximum retransmission timeout for unacked packets.  The RTO will never exceed this number.
+        /// </param>
+        public LLUDPClient(
+            LLUDPServer server, ThrottleRates rates, TokenBucket parentThrottle, uint circuitCode, UUID agentID,
+            IPEndPoint remoteEndPoint, int defaultRTO, int maxRTO)
         {
             AgentID = agentID;
             RemoteEndPoint = remoteEndPoint;
@@ -198,7 +207,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_throttleCategories[i] = new TokenBucket(m_throttleCategory, rates.GetRate(type));
             }
 
-            // Default the retransmission timeout to three seconds
+            // Default the retransmission timeout to one second
             RTO = m_defaultRTO;
 
             // Initialize this to a sane value to prevent early disconnects
@@ -263,9 +272,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Return statistics information about client packet queues.
         /// </summary>
-        /// 
+        /// <remarks>
         /// FIXME: This should really be done in a more sensible manner rather than sending back a formatted string.
-        /// 
+        /// </remarks>
         /// <returns></returns>
         public string GetStats()
         {
@@ -616,8 +625,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Does an early check to see if this queue empty callback is already
         /// running, then asynchronously firing the event
         /// </summary>
-        /// <param name="throttleIndex">Throttle category to fire the callback
-        /// for</param>
+        /// <param name="categories">Throttle categories to fire the callback for</param>
         private void BeginFireQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
             if (m_nextOnQueueEmpty != 0 && (Environment.TickCount & Int32.MaxValue) >= m_nextOnQueueEmpty)
