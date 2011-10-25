@@ -7014,10 +7014,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            List<SceneObjectPart> parts = GetLinkParts(linknumber);
-
-            foreach (SceneObjectPart part in parts)
-                SetPrimParams(part, rules);
+            setLinkPrimParams(linknumber, rules);
 
             ScriptSleep(200);
         }
@@ -7026,6 +7023,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
+            setLinkPrimParams(linknumber, rules);
+        }
+
+        protected void setLinkPrimParams(int linknumber, LSL_List rules)
+        {
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
 
             foreach (SceneObjectPart part in parts)
@@ -7395,6 +7397,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         LSL_Rotation lr = rules.GetQuaternionItem(idx++);
                         SetRot(part, Rot2Quaternion(lr));
                         break;
+                    case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                        if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
+                            return;
+                        LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
+                        LSL_List new_rules = rules.GetSublist(idx, -1);
+                        setLinkPrimParams((int)new_linknumber, new_rules);
+                            return;
                 }
             }
         }
