@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using log4net;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.RegionLoader.Filesystem;
 using OpenSim.Framework.RegionLoader.Web;
@@ -152,8 +153,19 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         /// <returns>True if we're sane, false if we're insane</returns>
         private bool CheckRegionsForSanity(RegionInfo[] regions)
         {
-            if (regions.Length <= 1)
+            if (regions.Length == 0)
                 return true;
+
+            foreach (RegionInfo region in regions)
+            {
+                if (region.RegionID == UUID.Zero)
+                {
+                    m_log.ErrorFormat(
+                        "[LOAD REGIONS PLUGIN]: Region {0} has invalidate zero UUID <{1}>",
+                        region.RegionName, region.RegionID);
+                    return false;
+                }
+            }
 
             for (int i = 0; i < regions.Length - 1; i++)
             {
