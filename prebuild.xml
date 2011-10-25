@@ -3099,27 +3099,26 @@
       </Files>
     </Project>
 
-    <!-- Commented for now until new unit tests are written for the new LLUDP implementation
-    <Project frameworkVersion="v3_5" name="OpenSim.Region.ClientStack.LindenUDP.Tests" path="OpenSim/Region/ClientStack/LindenUDP/Tests" type="Library">
+    <Project frameworkVersion="v3_5" name="OpenSim.Region.ClientStack.LindenUDP.Tests" path="OpenSim/Region/ClientStack/Linden/UDP/Tests" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
+          <OutputPath>../../../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
+          <OutputPath>../../../../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../../../bin/</ReferencePath>
+      <ReferencePath>../../../../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-      <Reference name="log4net"/>
-      <Reference name="Nini" />
-      <Reference name="nunit.framework" />
-      <Reference name="OpenMetaverse"/>
-      <Reference name="OpenMetaverseTypes"/>
+      <Reference name="log4net" path="../../../../../../bin/"/>
+      <Reference name="Nini" path="../../../../../../bin/"/>
+      <Reference name="nunit.framework" path="../../../../../../bin/"/>
+      <Reference name="OpenMetaverse" path="../../../../../../bin/"/>
+      <Reference name="OpenMetaverseTypes" path="../../../../../../bin/"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Statistics"/>
@@ -3133,7 +3132,6 @@
         <Match pattern="*.cs" recurse="false"/>
       </Files>
     </Project>
-    -->
 
     <Project frameworkVersion="v3_5" name="OpenSim.Region.ScriptEngine.Tests" path="OpenSim/Region/ScriptEngine" type="Library">
       <Configuration name="Debug">
