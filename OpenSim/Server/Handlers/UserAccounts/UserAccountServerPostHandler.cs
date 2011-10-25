@@ -117,7 +117,6 @@ namespace OpenSim.Server.Handlers.UserAccounts
             }
 
             return FailureResult();
-
         }
 
         byte[] GetAccount(Dictionary<string, object> request)
@@ -126,13 +125,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
             UUID scopeID = UUID.Zero;
             Dictionary<string, object> result = new Dictionary<string, object>();
 
-            if (!request.ContainsKey("ScopeID"))
-            {
-                result["result"] = "null";
-                return ResultToBytes(result);
-            }
-
-            if (!UUID.TryParse(request["ScopeID"].ToString(), out scopeID))
+            if (request.ContainsKey("ScopeID") && !UUID.TryParse(request["ScopeID"].ToString(), out scopeID))
             {
                 result["result"] = "null";
                 return ResultToBytes(result);
@@ -174,11 +167,11 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
         byte[] GetAccounts(Dictionary<string, object> request)
         {
-            if (!request.ContainsKey("ScopeID") || !request.ContainsKey("query"))
+            if (!request.ContainsKey("query"))
                 return FailureResult();
 
             UUID scopeID = UUID.Zero;
-            if (!UUID.TryParse(request["ScopeID"].ToString(), out scopeID))
+            if (request.ContainsKey("ScopeID") && !UUID.TryParse(request["ScopeID"].ToString(), out scopeID))
                 return FailureResult();
 
             string query = request["query"].ToString();
@@ -187,7 +180,9 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
             Dictionary<string, object> result = new Dictionary<string, object>();
             if ((accounts == null) || ((accounts != null) && (accounts.Count == 0)))
+            {
                 result["result"] = "null";
+            }
             else
             {
                 int i = 0;
@@ -208,7 +203,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
         byte[] StoreAccount(Dictionary<string, object> request)
         {
             UUID principalID = UUID.Zero;
-            if (!(request.ContainsKey("PrincipalID") && UUID.TryParse(request["PrincipalID"].ToString(), out principalID)))
+            if (request.ContainsKey("PrincipalID") && !UUID.TryParse(request["PrincipalID"].ToString(), out principalID))
                 return FailureResult();
 
             UUID scopeID = UUID.Zero;
