@@ -235,6 +235,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.WL_SUN_MOON_COLOR:
                         toadd.Add(new LSL_Rotation(wl.sunMoonColor.X, wl.sunMoonColor.Y, wl.sunMoonColor.Z, wl.sunMoonColor.W));
                         break;
+                    case (int)ScriptBaseClass.WL_SUN_MOON_POSITION:
+                         toadd.Add(new LSL_Float(wl.sunMoonPosition));
+                         break;
                     case (int)ScriptBaseClass.WL_UNDERWATER_FOG_MODIFIER:
                         toadd.Add(new LSL_Float(wl.underwaterFogModifier));
                         break;
