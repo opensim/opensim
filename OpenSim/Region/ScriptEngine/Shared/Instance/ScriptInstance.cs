@@ -650,11 +650,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         {
             EventParams data = null;
 
+            if (Suspended)
+                return 0;
+
             lock (m_EventQueue)
             {
-                if (Suspended)
-                    return 0;
-
                 lock (m_Script)
                 {
                     data = (EventParams) m_EventQueue.Dequeue();
@@ -685,7 +685,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             lock(m_Script)
             {
                 
-                //m_log.DebugFormat("[XEngine]: Processing event {0} for {1}", data.EventName, this);
+//                m_log.DebugFormat("[XEngine]: Processing event {0} for {1}", data.EventName, this);
 
                 m_DetectParams = data.DetectParams;
 
