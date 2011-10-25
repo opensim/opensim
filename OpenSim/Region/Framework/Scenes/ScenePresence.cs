@@ -171,8 +171,6 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_lastChildAgentUpdatePosition;
         private Vector3 m_lastChildAgentUpdateCamPosition;
 
-        private int m_perfMonMS;
-
         private bool m_flyingOld;		// add for fly velocity control
         public bool m_wasFlying;		// add for fly velocity control
 
@@ -1417,8 +1415,6 @@ namespace OpenSim.Region.Framework.Scenes
             //    return;
             //}
 
-//            m_perfMonMS = Util.EnvironmentTickCount();
-
             ++m_movementUpdateCount;
             if (m_movementUpdateCount < 1)
                 m_movementUpdateCount = 1;
@@ -1712,9 +1708,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_scene.EventManager.TriggerOnClientMovement(this);
-
-            // It doesn't make sense to add this to frame stats as this update is processed indepedently of the scene loop
-//            m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
         }
 
         /// <summary>

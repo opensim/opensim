@@ -212,7 +212,6 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_firstHeartbeat = true;
 
         private object m_deleting_scene_object = new object();
-        private object m_cleaningAttachments = new object();
 
         private bool m_cleaningTemps = false;
         
