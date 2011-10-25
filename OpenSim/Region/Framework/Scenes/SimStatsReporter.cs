@@ -105,6 +105,17 @@ namespace OpenSim.Region.Framework.Scenes
         private float statsUpdateFactor = 0;
         private float m_timeDilation = 0;
         private int m_fps = 0;
+
+        /// <summary>
+        /// Parameter to adjust reported scene fps
+        /// </summary>
+        /// <remarks>
+        /// Our scene loop runs slower than other server implementations, apparantly because we work somewhat differently.
+        /// However, we will still report an FPS that's closer to what people are used to seeing.  A lower FPS might
+        /// affect clients and monitoring scripts/software.
+        /// </remarks>
+        private float m_fpsCorrectionFactor = 5;
+
         // saved last reported value so there is something available for llGetRegionFPS 
         private float lastReportedSimFPS = 0;
         private float[] lastReportedSimStats = new float[21];
@@ -201,7 +212,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // We're going to lie about the FPS because we've been lying since 2008.  The actual FPS is currently
                 // locked at a maximum of 11.  Maybe at some point this can change so that we're not lying.
-                int reportedFPS = m_fps * 5;
+                int reportedFPS = (int)(m_fps * m_fpsCorrectionFactor);
 
                 // save the reported value so there is something available for llGetRegionFPS 
                 lastReportedSimFPS = reportedFPS / statsUpdateFactor;
