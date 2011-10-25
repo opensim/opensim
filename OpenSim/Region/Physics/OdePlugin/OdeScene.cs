@@ -2658,7 +2658,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 // HACK: Using a time dilation of 1.0 to debug rubberbanding issues
                 //m_timeDilation = Math.Min((step_time / ODE_STEPSIZE) / (0.09375f / ODE_STEPSIZE), 1.0f);
 
-                step_time = 0.09375f;
+                step_time = 0.089f;
 
                 while (step_time > 0.0f)
                 {
