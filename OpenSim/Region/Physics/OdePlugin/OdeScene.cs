@@ -2859,14 +2859,14 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 {
                     //if (timeStep < 0.2f)
                     {
-                        foreach (OdePrim actor in _activeprims)
+                        foreach (OdePrim prim in _activeprims)
                         {
-                            if (actor.IsPhysical && (d.BodyIsEnabled(actor.Body) || !actor._zeroFlag))
+                            if (prim.IsPhysical && (d.BodyIsEnabled(prim.Body) || !prim._zeroFlag))
                             {
-                                actor.UpdatePositionAndVelocity();
+                                prim.UpdatePositionAndVelocity();
 
                                 if (SupportsNINJAJoints)
-                                    SimulateActorPendingJoints(actor);
+                                    SimulateActorPendingJoints(prim);
                             }
                         }
                     }
