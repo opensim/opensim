@@ -1994,9 +1994,11 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                     part.TaskInventory.LockItemsForRead(false);
+
                     // Reset sit target.
-                    if (part.GetAvatarOnSitTarget() == UUID)
+                    if (part.SitTargetAvatar == UUID)
                         part.SitTargetAvatar = UUID.Zero;
+
                     part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
 
                     ParentPosition = part.GetWorldPosition();
@@ -2083,10 +2085,12 @@ namespace OpenSim.Region.Framework.Scenes
                 // Is a sit target available?
                 Vector3 avSitOffSet = part.SitTargetPosition;
                 Quaternion avSitOrientation = part.SitTargetOrientation;
-                UUID avOnTargetAlready = part.GetAvatarOnSitTarget();
-                bool SitTargetOccupied = (avOnTargetAlready != UUID.Zero);
+                UUID avOnTargetAlready = part.SitTargetAvatar;
+
+                bool SitTargetUnOccupied = (!(avOnTargetAlready != UUID.Zero));
 	            bool SitTargetisSet = (Vector3.Zero != avSitOffSet);		//NB Latest SL Spec shows Sit Rotation setting is ignored.
-                if (SitTargetisSet && !SitTargetOccupied)
+
+                if (SitTargetisSet && SitTargetUnOccupied)
                 {
                     //switch the target to this prim
                     return part;
@@ -2525,8 +2529,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (part != null)
                 {
-//Console.WriteLine("Link #{0}, Rot {1}", part.LinkNum, part.GetWorldRotation());                
-                    if (part.GetAvatarOnSitTarget() == UUID)
+                    if (part.SitTargetAvatar == UUID)
                     {
 //Console.WriteLine("Scripted Sit");
                     	// Scripted sit
@@ -2607,7 +2610,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_parentID = m_requestedSitTargetID;
             }
 
-            if (part.GetAvatarOnSitTarget() != UUID)
+            if (part.SitTargetAvatar != UUID)
             {
                 m_offsetRotation = m_offsetRotation / part.RotationOffset;
             }

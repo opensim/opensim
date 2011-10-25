@@ -6809,7 +6809,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llAvatarOnSitTarget()
         {
             m_host.AddScriptLPS(1);
-            return m_host.GetAvatarOnSitTarget().ToString();
+            return m_host.SitTargetAvatar.ToString();
         }
 
         // http://wiki.secondlife.com/wiki/LlAvatarOnLinkSitTarget
