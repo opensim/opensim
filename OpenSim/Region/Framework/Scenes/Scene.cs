@@ -896,13 +896,14 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Another region is up. 
-        ///
+        /// Process the fact that a neighbouring region has come up.
+        /// </summary>
+        /// <remarks>
         /// We only add it to the neighbor list if it's within 1 region from here.
         /// Agents may have draw distance values that cross two regions though, so
         /// we add it to the notify list regardless of distance. We'll check
         /// the agent's draw distance before notifying them though.
-        /// </summary>
+        /// </remarks>
         /// <param name="otherRegion">RegionInfo handle for the new region.</param>
         /// <returns>True after all operations complete, throws exceptions otherwise.</returns>
         public override void OtherRegionUp(GridRegion otherRegion)
@@ -914,7 +915,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
-
                 // If these are cast to INT because long + negative values + abs returns invalid data
                 int resultX = Math.Abs((int)xcell - (int)RegionInfo.RegionLocX);
                 int resultY = Math.Abs((int)ycell - (int)RegionInfo.RegionLocY);
