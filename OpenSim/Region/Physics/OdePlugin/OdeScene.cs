@@ -3679,8 +3679,8 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 {
                     d.GeomSetCategoryBits(WaterGeom, (int)(CollisionCategories.Water));
                     d.GeomSetCollideBits(WaterGeom, (int)(CollisionCategories.Space));
-
                 }
+
                 geom_name_map[WaterGeom] = "Water";
 
                 d.Matrix3 R = new d.Matrix3();
