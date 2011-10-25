@@ -11737,7 +11737,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     logPacket = false;
 
                 if (logPacket)
-                    m_log.DebugFormat("[CLIENT]: Packet OUT {0}", packet.Type);
+                    m_log.DebugFormat("[CLIENT]: Packet OUT {0} to {1}", packet.Type, Name);
             }
             
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting, method);
@@ -11778,8 +11778,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="Pack">OpenMetaverse.packet</param>
         public void ProcessInPacket(Packet packet)
         {
-            if (m_debugPacketLevel >= 255)
-                m_log.DebugFormat("[CLIENT]: Packet IN {0}", packet.Type);
+            if (m_debugPacketLevel > 0)
+            {
+                bool outputPacket = true;
+
+                if (m_debugPacketLevel <= 255 && packet.Type == PacketType.AgentUpdate)
+                    outputPacket = false;
+
+                if (m_debugPacketLevel <= 200 && packet.Type == PacketType.RequestImage)
+                    outputPacket = false;
+
+                if (m_debugPacketLevel <= 100 && (packet.Type == PacketType.ViewerEffect || packet.Type == PacketType.AgentAnimation))
+                    outputPacket = false;
+
+                if (outputPacket)
+                    m_log.DebugFormat("[CLIENT]: Packet IN {0} from {1}", packet.Type, Name);
+            }
 
             if (!ProcessPacketMethod(packet))
                 m_log.Warn("[CLIENT]: unhandled packet " + packet.Type);
