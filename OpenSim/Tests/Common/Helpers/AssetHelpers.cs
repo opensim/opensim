@@ -129,10 +129,10 @@ namespace OpenSim.Tests.Common
         /// <summary>
         /// Create an asset from the given data.
         /// </summary>
-        public static AssetBase CreateAsset(UUID assetUuid, AssetType assetType, string data, UUID creatorID)
+        public static AssetBase CreateAsset(UUID assetUuid, AssetType assetType, string text, UUID creatorID)
         {
             AssetNotecard anc = new AssetNotecard();
-            anc.BodyText = "data";
+            anc.BodyText = text;
             anc.Encode();
 
             return CreateAsset(assetUuid, assetType, anc.AssetData, creatorID);
