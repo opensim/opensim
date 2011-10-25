@@ -191,7 +191,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private d.Mass pMass;
 
         private int m_eventsubscription;
-        private CollisionEventUpdate CollisionEventsThisFrame;
+        private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
 
         private IntPtr m_linkJoint = IntPtr.Zero;
 
@@ -3020,23 +3020,13 @@ Console.WriteLine(" JointCreateFixed");
 
         public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
-            if (CollisionEventsThisFrame == null)
-                CollisionEventsThisFrame = new CollisionEventUpdate();
-
             CollisionEventsThisFrame.addCollider(CollidedWith, contact);
         }
 
         public void SendCollisions()
         {
-            if (CollisionEventsThisFrame == null)
-                return;
-
-            base.SendCollisionUpdate(CollisionEventsThisFrame);
-
-            if (CollisionEventsThisFrame.m_objCollisionList.Count == 0)
-                CollisionEventsThisFrame = null;
-            else
-                CollisionEventsThisFrame = new CollisionEventUpdate();
+            if (CollisionEventsThisFrame.Count > 0)
+                base.SendCollisionUpdate(CollisionEventsThisFrame);
         }
 
         public override bool SubscribedEvents()

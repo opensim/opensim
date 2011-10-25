@@ -70,6 +70,11 @@ namespace OpenSim.Region.Physics.Manager
     {
         // Raising the event on the object, so don't need to provide location..  further up the tree knows that info.
 
+        /// <summary>
+        /// Number of collision events in this update.
+        /// </summary>
+        public int Count { get { return m_objCollisionList.Count; } }
+
         public int m_colliderType;
         public int m_GenericStartEnd;
         //public uint m_LocalID;
