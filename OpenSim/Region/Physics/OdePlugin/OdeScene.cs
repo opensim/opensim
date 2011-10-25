@@ -279,7 +279,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// Used to lock the entire physics scene.  Locked during the main part of Simulate()
         /// </summary>
-        public Object OdeLock;
+        internal Object OdeLock = new Object();
 
         public IMesher mesher;
 
@@ -315,27 +315,24 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_log 
                 = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + sceneIdentifier);
 
-            OdeLock = new Object();
             nearCallback = near;
             triCallback = TriCallback;
             triArrayCallback = TriArrayCallback;
             m_rayCastManager = new ODERayCastRequestManager(this);
-            lock (OdeLock)
-            {
-                // Create the world and the first space
-                world = d.WorldCreate();
-                space = d.HashSpaceCreate(IntPtr.Zero);
 
-                contactgroup = d.JointGroupCreate(0);
-                //contactgroup
+            // Create the world and the first space
+            world = d.WorldCreate();
+            space = d.HashSpaceCreate(IntPtr.Zero);
 
-                d.WorldSetAutoDisableFlag(world, false);
-                #if USE_DRAWSTUFF
-                
-                Thread viewthread = new Thread(new ParameterizedThreadStart(startvisualization));
-                viewthread.Start();
-                #endif
-            }
+            contactgroup = d.JointGroupCreate(0);
+            //contactgroup
+
+            d.WorldSetAutoDisableFlag(world, false);
+            #if USE_DRAWSTUFF
+            
+            Thread viewthread = new Thread(new ParameterizedThreadStart(startvisualization));
+            viewthread.Start();
+            #endif
 
             _watermap = new float[258 * 258];
 
