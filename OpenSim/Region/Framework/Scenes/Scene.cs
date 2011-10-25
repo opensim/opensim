@@ -1194,7 +1194,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void StartTimer()
         {
-            //m_log.Debug("[SCENE]: Starting timer");
+//            m_log.DebugFormat("[SCENE]: Starting Heartbeat timer for {0}", RegionInfo.RegionName);
+
             //m_heartbeatTimer.Enabled = true;
             //m_heartbeatTimer.Interval = (int)(m_timespan * 1000);
             //m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
@@ -1267,6 +1268,8 @@ namespace OpenSim.Region.Framework.Scenes
             agentMS = tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
 
             ++Frame;
+
+//            m_log.DebugFormat("[SCENE]: Processing frame {0}", Frame);
 
             try
             {
@@ -1392,6 +1395,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (LoginsDisabled && Frame == 20)
                 {
+//                    m_log.DebugFormat("{0} {1} {2}", LoginsDisabled, m_sceneGraph.GetActiveScriptsCount(), LoginLock);
+
                     // In 99.9% of cases it is a bad idea to manually force garbage collection. However,
                     // this is a rare case where we know we have just went through a long cycle of heap
                     // allocations, and there is no more work to be done until someone logs in
@@ -1408,8 +1413,9 @@ namespace OpenSim.Region.Framework.Scenes
                             EventManager.TriggerLoginsEnabled(RegionInfo.RegionName);
                         }
                         m_log.DebugFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
+
                         // For RegionReady lockouts
-                        if( LoginLock == false)
+                        if(LoginLock == false)
                         {
                             LoginsDisabled = false;
                         }

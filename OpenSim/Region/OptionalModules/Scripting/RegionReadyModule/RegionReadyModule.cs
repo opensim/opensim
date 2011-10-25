@@ -105,7 +105,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 
             m_log.DebugFormat("[RegionReady]: Enabled for region {0}", scene.RegionInfo.RegionName);
 
-            if(m_disable_logins == true)
+            if (m_disable_logins == true)
             {
                 scene.LoginLock = true;
                 scene.LoginsDisabled = true;
