@@ -164,11 +164,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public float MinFrameTime { get; private set; }
 
-        /// <summary>
-        /// The time of the last frame update.
-        /// </summary>
-        protected DateTime m_lastFrameUpdate = DateTime.UtcNow;
-
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
         private int m_update_objects = 1;
@@ -1264,8 +1259,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public override void Update()
-        {        
-            TimeSpan SinceLastFrame = DateTime.UtcNow - m_lastFrameUpdate;
+        {
             float physicsFPS = 0f;
 
             int maintc = Util.EnvironmentTickCount();
@@ -1325,7 +1319,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Frame % m_update_physics == 0)
                 {
                     if (m_physics_enabled)
-                        physicsFPS = m_sceneGraph.UpdatePhysics(Math.Max(SinceLastFrame.TotalSeconds, MinFrameTime));
+                        physicsFPS = m_sceneGraph.UpdatePhysics(MinFrameTime);
+
                     if (SynchronizeScene != null)
                         SynchronizeScene(this);
                 }
@@ -1418,6 +1413,7 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             LoginsDisabled = false;
                         }
+
                         m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
                     }
                     else
@@ -1446,10 +1442,6 @@ namespace OpenSim.Region.Framework.Scenes
             catch (Exception e)
             {
                 m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-            }
-            finally
-            {
-                m_lastFrameUpdate = DateTime.UtcNow;
             }
 
             maintc = Util.EnvironmentTickCountSubtract(maintc);
