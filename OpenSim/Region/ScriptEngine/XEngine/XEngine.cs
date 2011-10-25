@@ -374,8 +374,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     }
 
                     MainConsole.Instance.OutputFormat(
-                        "{0}.{1}, script UUID {2}, prim UUID {3} @ {4} ({5})",
-                        instance.PrimName, instance.ScriptName, instance.AssetID, instance.ObjectID,
+                        "{0}.{1}, item UUID {2}, prim UUID {3} @ {4} ({5})",
+                        instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID,
                         sop.AbsolutePosition, status);
                 }
             }
