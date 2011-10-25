@@ -1235,11 +1235,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (m_eventsubscription > m_requestedUpdateFrequency)
             {
-                if (CollisionEventsThisFrame != null)
-                {
-                    base.SendCollisionUpdate(CollisionEventsThisFrame);
-                }
-                CollisionEventsThisFrame = new CollisionEventUpdate();
+                base.SendCollisionUpdate(CollisionEventsThisFrame);
+
+                CollisionEventsThisFrame.Clear();
                 m_eventsubscription = 0;
             }
         }

@@ -2248,6 +2248,7 @@ namespace OpenSim.Region.Framework.Scenes
                             });
                         }
                     }
+
                     if (colliding.Count > 0)
                     {
                         StartCollidingMessage.Colliders = colliding;
@@ -2255,10 +2256,11 @@ namespace OpenSim.Region.Framework.Scenes
                         if (m_parentGroup.Scene == null)
                             return;
 
-                        if (m_parentGroup.PassCollision == true)
-                        {
-                            //TODO: Add pass to root prim!
-                        }
+//                        if (m_parentGroup.PassCollision == true)
+//                        {
+//                            //TODO: Add pass to root prim!
+//                        }
+
                         m_parentGroup.Scene.EventManager.TriggerScriptCollidingStart(LocalId, StartCollidingMessage);
                     }
                 }

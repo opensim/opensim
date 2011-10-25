@@ -113,6 +113,14 @@ namespace OpenSim.Region.Physics.Manager
                     m_objCollisionList[localID] = contact;
             }
         }
+
+        /// <summary>
+        /// Clear added collision events.
+        /// </summary>
+        public void Clear()
+        {
+            m_objCollisionList.Clear();
+        }
     }
 
     public abstract class PhysicsActor
