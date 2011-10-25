@@ -466,7 +466,7 @@ namespace OpenSim.Region.Framework.Scenes
                                               scenePresence.Lastname,
                                               newDebug);
 
-                            scenePresence.ControllingClient.SetDebugPacketLevel(newDebug);
+                            scenePresence.ControllingClient.DebugPacketLevel = newDebug;
                         }
                     });
                 }

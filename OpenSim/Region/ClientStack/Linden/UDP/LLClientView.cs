@@ -64,7 +64,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <value>
         /// Debug packet level.  See OpenSim.RegisterConsoleCommands() for more details.
         /// </value>
-        protected int m_debugPacketLevel = 0;
+        public int DebugPacketLevel { get; set; }
 
         #region Events
 
@@ -485,11 +485,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_prioritizer = new Prioritizer(m_scene);
 
             RegisterLocalPacketHandlers();
-        }
-
-        public void SetDebugPacketLevel(int newDebug)
-        {
-            m_debugPacketLevel = newDebug;
         }
 
         #region Client Methods
@@ -11715,25 +11710,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// provide your own method.</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType, bool doAutomaticSplitting, UnackedPacketMethod method)
         {
-            if (m_debugPacketLevel > 0)
+            if (DebugPacketLevel > 0)
             {
                 bool logPacket = true;
 
-                if (m_debugPacketLevel <= 255
+                if (DebugPacketLevel <= 255
                     && (packet.Type == PacketType.SimStats || packet.Type == PacketType.SimulatorViewerTimeMessage))
                     logPacket = false;
 
-                if (m_debugPacketLevel <= 200
+                if (DebugPacketLevel <= 200
                     && (packet.Type == PacketType.ImagePacket
                         || packet.Type == PacketType.ImageData
                         || packet.Type == PacketType.LayerData
                         || packet.Type == PacketType.CoarseLocationUpdate))
                     logPacket = false;
 
-                if (m_debugPacketLevel <= 100 && (packet.Type == PacketType.AvatarAnimation || packet.Type == PacketType.ViewerEffect))
+                if (DebugPacketLevel <= 100 && (packet.Type == PacketType.AvatarAnimation || packet.Type == PacketType.ViewerEffect))
                     logPacket = false;
                 
-                if (m_debugPacketLevel <= 50 && packet.Type == PacketType.ImprovedTerseObjectUpdate)
+                if (DebugPacketLevel <= 50 && packet.Type == PacketType.ImprovedTerseObjectUpdate)
                     logPacket = false;
 
                 if (logPacket)
@@ -11778,17 +11773,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="Pack">OpenMetaverse.packet</param>
         public void ProcessInPacket(Packet packet)
         {
-            if (m_debugPacketLevel > 0)
+            if (DebugPacketLevel > 0)
             {
                 bool outputPacket = true;
 
-                if (m_debugPacketLevel <= 255 && packet.Type == PacketType.AgentUpdate)
+                if (DebugPacketLevel <= 255 && packet.Type == PacketType.AgentUpdate)
                     outputPacket = false;
 
-                if (m_debugPacketLevel <= 200 && packet.Type == PacketType.RequestImage)
+                if (DebugPacketLevel <= 200 && packet.Type == PacketType.RequestImage)
                     outputPacket = false;
 
-                if (m_debugPacketLevel <= 100 && (packet.Type == PacketType.ViewerEffect || packet.Type == PacketType.AgentAnimation))
+                if (DebugPacketLevel <= 100 && (packet.Type == PacketType.ViewerEffect || packet.Type == PacketType.AgentAnimation))
                     outputPacket = false;
 
                 if (outputPacket)
