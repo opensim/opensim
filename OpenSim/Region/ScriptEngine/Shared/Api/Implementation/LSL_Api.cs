@@ -3325,11 +3325,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llTargetOmega(LSL_Vector axis, double spinrate, double gain)
         {
             m_host.AddScriptLPS(1);
-            m_host.AngularVelocity = new Vector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate));
-            m_host.ScheduleTerseUpdate();
-            m_host.SendTerseUpdateToAllClients();
-            m_host.ParentGroup.HasGroupChanged = true;
+            TargetOmega(m_host, axis, spinrate, gain);
         }
+
+        protected void TargetOmega(SceneObjectPart part, LSL_Vector axis, double spinrate, double gain)
+        {
+            part.AngularVelocity = new Vector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate));
+            part.ScheduleTerseUpdate();
+            part.SendTerseUpdateToAllClients();
+            part.ParentGroup.HasGroupChanged = true;
+         }
 
         public LSL_Integer llGetStartParameter()
         {
@@ -7396,6 +7401,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
                         LSL_Rotation lr = rules.GetQuaternionItem(idx++);
                         SetRot(part, Rot2Quaternion(lr));
+                        break;
+                    case (int)ScriptBaseClass.PRIM_OMEGA:
+                        if (remain < 3)
+                            return;
+                        LSL_Vector axis = rules.GetVector3Item(idx++);
+                        LSL_Float spinrate = rules.GetLSLFloatItem(idx++);
+                        LSL_Float gain = rules.GetLSLFloatItem(idx++);
+                        TargetOmega(part, axis, (double)spinrate, (double)gain);
                         break;
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
                         if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
