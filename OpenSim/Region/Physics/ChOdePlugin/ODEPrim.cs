@@ -2438,7 +2438,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
         {
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
-            CollisionEventsThisFrame.addCollider(CollidedWith, contact);
+            CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
         }
 
         public void SendCollisions()

@@ -164,11 +164,7 @@ namespace OpenSim.Framework
                 return m_threads.Remove(threadID);
         }
 
-<<<<<<< HEAD:OpenSim/Framework/Watchdog.cs
-        public static bool RemoveThread(int threadID)
-=======
         public static bool AbortThread(int threadID)
->>>>>>> master:OpenSim/Framework/Watchdog.cs
         {
             lock (m_threads)
             {
@@ -198,14 +194,10 @@ namespace OpenSim.Framework
             try
             {
                 if (m_threads.TryGetValue(threadID, out threadInfo))
-<<<<<<< HEAD:OpenSim/Framework/Watchdog.cs
-                    threadInfo.LastTick = Environment.TickCount;
-=======
                 {
                     threadInfo.LastTick = Environment.TickCount & Int32.MaxValue;
                     threadInfo.IsTimedOut = false;
                 }
->>>>>>> master:OpenSim/Framework/Watchdog.cs
                 else
                 {
                     m_log.WarnFormat("[WATCHDOG]: Asked to update thread {0} which is not being monitored", threadID);
