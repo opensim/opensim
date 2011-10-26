@@ -113,11 +113,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     {
         public List<UUID> AllowedCreators;
         public List<UUID> AllowedOwners;
+        public List<string> AllowedOwnerClasses;
 
         public FunctionPerms()
         {
             AllowedCreators = new List<UUID>();
             AllowedOwners = new List<UUID>();
+            AllowedOwnerClasses = new List<string>();
         }
     }
 
@@ -254,6 +256,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // Default behavior
                     perms.AllowedOwners = null;
                     perms.AllowedCreators = null;
+                    perms.AllowedOwnerClasses = null;
                 }
                 else
                 {
@@ -274,12 +277,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         foreach (string id in ids)
                         {
                             string current = id.Trim();
-                            UUID uuid;
-
-                            if (UUID.TryParse(current, out uuid))
+                            if (current.ToUpper() == "PARCEL_GROUP_MEMBER" || current.ToUpper() == "PARCEL_OWNER" || current.ToUpper() == "ESTATE_MANAGER" || current.ToUpper() == "ESTATE_OWNER")
                             {
-                                if (uuid != UUID.Zero)
-                                    perms.AllowedOwners.Add(uuid);
+                                if (!perms.AllowedOwnerClasses.Contains(current))
+                                    perms.AllowedOwnerClasses.Add(current.ToUpper());
+                            }
+                            else
+                            {
+                                UUID uuid;
+
+                                if (UUID.TryParse(current, out uuid))
+                                {
+                                    if (uuid != UUID.Zero)
+                                        perms.AllowedOwners.Add(uuid);
+                                }
                             }
                         }
 
@@ -335,11 +346,55 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             String.Format("{0} permission error. Can't find script in prim inventory.",
                             function));
                     }
+
+                    UUID ownerID = ti.OwnerID;
+
+                    //OSSL only may be used if objet is in the same group as the parcel
+                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_GROUP_MEMBER"))
+                    {
+                        ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+
+                        if (land.LandData.GroupID == ti.GroupID && land.LandData.GroupID != UUID.Zero)
+                        {
+                            return;
+                        }
+                    }
+
+                    //Only Parcelowners may use the function
+                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_OWNER"))
+                    {
+                        ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+
+                        if (land.LandData.OwnerID == ownerID)
+                        {
+                            return;
+                        }
+                    }
+
+                    //Only Estate Managers may use the function
+                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ESTATE_MANAGER"))
+                    {
+                        //Only Estate Managers may use the function
+                        if (World.RegionInfo.EstateSettings.IsEstateManager(ownerID) && World.RegionInfo.EstateSettings.EstateOwner != ownerID)
+                        {
+                            return;
+                        }
+                    }
+
+                    //Only regionowners may use the function
+                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ESTATE_OWNER"))
+                    {
+                        if (World.RegionInfo.EstateSettings.EstateOwner == ownerID)
+                        {
+                            return;
+                        }
+                    }
+
                     if (!m_FunctionPerms[function].AllowedCreators.Contains(ti.CreatorID))
                         OSSLError(
                             String.Format("{0} permission denied. Script creator is not in the list of users allowed to execute this function and prim owner also has no permission.",
                             function));
-                    if (ti.CreatorID != ti.OwnerID)
+                    if (ti.CreatorID != ownerID)
                     {
                         if ((ti.CurrentPermissions & (uint)PermissionMask.Modify) != 0)
                             OSSLError(

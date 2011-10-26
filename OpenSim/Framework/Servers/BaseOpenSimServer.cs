@@ -192,6 +192,15 @@ namespace OpenSim.Framework.Servers
                 m_console.Commands.AddCommand("base", false, "show version",
                         "show version",
                         "Show server version", HandleShow);
+
+                m_console.Commands.AddCommand("base", false, "threads abort",
+                        "threads abort <thread-id>",
+                        "Abort a managed thread.  Use \"show threads\" to find possible threads.", HandleThreadsAbort);
+
+                m_console.Commands.AddCommand("base", false, "threads show",
+                        "threads show",
+                        "Show thread status.  Synonym for \"show threads\"",
+                        (string module, string[] args) => Notice(GetThreadsReport()));
             }
         }
         
@@ -394,6 +403,27 @@ namespace OpenSim.Framework.Servers
                     Notice(GetVersionText());
                     break;
             }
+        }
+
+        public virtual void HandleThreadsAbort(string module, string[] cmd)
+        {
+            if (cmd.Length != 3)
+            {
+                MainConsole.Instance.Output("Usage: threads abort <thread-id>");
+                return;
+            }
+
+            int threadId;
+            if (!int.TryParse(cmd[2], out threadId))
+            {
+                MainConsole.Instance.Output("ERROR: Thread id must be an integer");
+                return;
+            }
+
+            if (Watchdog.AbortThread(threadId))
+                MainConsole.Instance.OutputFormat("Aborted thread with id {0}", threadId);
+            else
+                MainConsole.Instance.OutputFormat("ERROR - Thread with id {0} not found in managed threads", threadId);
         }
         
         protected void ShowInfo()

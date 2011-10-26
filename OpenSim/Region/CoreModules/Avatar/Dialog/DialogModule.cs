@@ -201,7 +201,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             }
             else
             {
-                OpenSim.Framework.Console.MainConsole.Instance.Output(
+                MainConsole.Instance.Output(
                     "Usage: alert <message> | alert-user <first> <last> <message>");
                 return;
             }

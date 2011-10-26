@@ -49,7 +49,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <summary>
         /// Add a handler for an HTTP request.
         /// </summary>
-        /// 
+        /// <remarks>
         /// This handler can actually be invoked either as 
         /// 
         /// http://<hostname>:<port>/?method=<methodName> 
@@ -70,7 +70,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// In addition, the handler invoked by the HTTP server for any request is the one when best matches the request
         /// URI.  So if a handler for "/myapp/" is registered and a request for "/myapp/page" is received, then
         /// the "/myapp/" handler is invoked if no "/myapp/page" handler exists.
-        /// 
+        /// </remarks>
         /// <param name="methodName"></param>
         /// <param name="handler"></param>
         /// <returns>

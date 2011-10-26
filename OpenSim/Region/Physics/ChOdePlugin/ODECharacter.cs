@@ -1299,7 +1299,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (m_eventsubscription > 0)
             {
-                CollisionEventsThisFrame.addCollider(CollidedWith, contact);
+                CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
             }
         }
 

@@ -33,12 +33,11 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using log4net;
+using OpenSim.Framework;
 
 namespace OpenSim.Framework.Console
 {
-    public delegate void CommandDelegate(string module, string[] cmd);
-
-    public class Commands
+    public class Commands : ICommands
     {
         /// <summary>
         /// Encapsulates a command that can be invoked from the console
@@ -564,14 +563,16 @@ namespace OpenSim.Framework.Console
     /// <summary>
     /// A console that processes commands internally
     /// </summary>
-    public class CommandConsole : ConsoleBase
+    public class CommandConsole : ConsoleBase, ICommandConsole
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public Commands Commands = new Commands();
+        public ICommands Commands { get; private set; }
 
         public CommandConsole(string defaultPrompt) : base(defaultPrompt)
         {
+            Commands = new Commands();
+
             Commands.AddCommand("console", false, "help", "help [<command>]", 
                     "Get general command list or more detailed help on a specific command", Help);
         }

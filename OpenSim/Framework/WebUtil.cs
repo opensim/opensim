@@ -39,9 +39,7 @@ using System.Text;
 using System.Web;
 using System.Xml;
 using System.Xml.Serialization;
-
 using log4net;
-using OpenSim.Framework.Servers.HttpServer;
 using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
@@ -65,35 +63,35 @@ namespace OpenSim.Framework
         // a "long" call for warning & debugging purposes
         public const int LongCallTime = 500;
 
-        /// <summary>
-        /// Send LLSD to an HTTP client in application/llsd+json form
-        /// </summary>
-        /// <param name="response">HTTP response to send the data in</param>
-        /// <param name="body">LLSD to send to the client</param>
-        public static void SendJSONResponse(OSHttpResponse response, OSDMap body)
-        {
-            byte[] responseData = Encoding.UTF8.GetBytes(OSDParser.SerializeJsonString(body));
-
-            response.ContentEncoding = Encoding.UTF8;
-            response.ContentLength = responseData.Length;
-            response.ContentType = "application/llsd+json";
-            response.Body.Write(responseData, 0, responseData.Length);
-        }
-
-        /// <summary>
-        /// Send LLSD to an HTTP client in application/llsd+xml form
-        /// </summary>
-        /// <param name="response">HTTP response to send the data in</param>
-        /// <param name="body">LLSD to send to the client</param>
-        public static void SendXMLResponse(OSHttpResponse response, OSDMap body)
-        {
-            byte[] responseData = OSDParser.SerializeLLSDXmlBytes(body);
-
-            response.ContentEncoding = Encoding.UTF8;
-            response.ContentLength = responseData.Length;
-            response.ContentType = "application/llsd+xml";
-            response.Body.Write(responseData, 0, responseData.Length);
-        }
+//        /// <summary>
+//        /// Send LLSD to an HTTP client in application/llsd+json form
+//        /// </summary>
+//        /// <param name="response">HTTP response to send the data in</param>
+//        /// <param name="body">LLSD to send to the client</param>
+//        public static void SendJSONResponse(OSHttpResponse response, OSDMap body)
+//        {
+//            byte[] responseData = Encoding.UTF8.GetBytes(OSDParser.SerializeJsonString(body));
+//
+//            response.ContentEncoding = Encoding.UTF8;
+//            response.ContentLength = responseData.Length;
+//            response.ContentType = "application/llsd+json";
+//            response.Body.Write(responseData, 0, responseData.Length);
+//        }
+//
+//        /// <summary>
+//        /// Send LLSD to an HTTP client in application/llsd+xml form
+//        /// </summary>
+//        /// <param name="response">HTTP response to send the data in</param>
+//        /// <param name="body">LLSD to send to the client</param>
+//        public static void SendXMLResponse(OSHttpResponse response, OSDMap body)
+//        {
+//            byte[] responseData = OSDParser.SerializeLLSDXmlBytes(body);
+//
+//            response.ContentEncoding = Encoding.UTF8;
+//            response.ContentLength = responseData.Length;
+//            response.ContentType = "application/llsd+xml";
+//            response.Body.Write(responseData, 0, responseData.Length);
+//        }
 
         /// <summary>
         /// Make a GET or GET-like request to a web service that returns LLSD
