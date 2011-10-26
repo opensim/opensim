@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Server.Base;
@@ -59,9 +60,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory
                 {
                     m_log.Info("[INVENTORY IN CONNECTOR]: Inventory Service In Connector enabled");
                 }
-
             }
-
         }
 
         public void PostInitialise()

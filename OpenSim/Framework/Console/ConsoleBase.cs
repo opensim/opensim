@@ -41,7 +41,7 @@ namespace OpenSim.Framework.Console
 
         protected string prompt = "# ";
 
-        public object ConsoleScene = null;
+        public object ConsoleScene { get; set; }
 
         /// <summary>
         /// The default prompt text.

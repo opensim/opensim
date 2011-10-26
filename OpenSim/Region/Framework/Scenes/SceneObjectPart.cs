@@ -2137,10 +2137,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void PhysicsCollision(EventArgs e)
         {
             // single threaded here
-            if (e == null)
-            {
-                return;
-            }
 
             CollisionEventUpdate a = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> collissionswith = a.m_objCollisionList;
@@ -2302,6 +2298,7 @@ namespace OpenSim.Region.Framework.Scenes
                             });
                         }
                     }
+
                     if (colliding.Count > 0)
                     {
                         StartCollidingMessage.Colliders = colliding;
@@ -2309,10 +2306,11 @@ namespace OpenSim.Region.Framework.Scenes
                         if (m_parentGroup.Scene == null)
                             return;
 
-                        if (m_parentGroup.PassCollision == true)
-                        {
-                            //TODO: Add pass to root prim!
-                        }
+//                        if (m_parentGroup.PassCollision == true)
+//                        {
+//                            //TODO: Add pass to root prim!
+//                        }
+
                         m_parentGroup.Scene.EventManager.TriggerScriptCollidingStart(LocalId, StartCollidingMessage);
                     }
                 }

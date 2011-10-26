@@ -33,7 +33,7 @@ using System.Reflection;
 using System.Xml;
 using log4net;
 using OpenMetaverse;
-using OpenSim.Framework.Console;
+//using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {

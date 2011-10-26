@@ -1633,6 +1633,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="obj"></param>
         internal void AddCollisionEventReporting(PhysicsActor obj)
         {
+//            m_log.DebugFormat("[PHYSICS]: Adding {0} to collision event reporting", obj.SOPName);
+            
             lock (_collisionEventPrim)
             {
                 if (!_collisionEventPrim.Contains(obj))
@@ -1646,11 +1648,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="obj"></param>
         internal void RemoveCollisionEventReporting(PhysicsActor obj)
         {
+//            m_log.DebugFormat("[PHYSICS]: Removing {0} from collision event reporting", obj.SOPName);
+
             lock (_collisionEventPrim)
-            {
-                if (!_collisionEventPrim.Contains(obj))
-                    _collisionEventPrim.Remove(obj);
-            }
+                _collisionEventPrim.Remove(obj);
         }
 
         #region Add/Remove Entities
@@ -2859,14 +2860,14 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 {
                     //if (timeStep < 0.2f)
                     {
-                        foreach (OdePrim actor in _activeprims)
+                        foreach (OdePrim prim in _activeprims)
                         {
-                            if (actor.IsPhysical && (d.BodyIsEnabled(actor.Body) || !actor._zeroFlag))
+                            if (prim.IsPhysical && (d.BodyIsEnabled(prim.Body) || !prim._zeroFlag))
                             {
-                                actor.UpdatePositionAndVelocity();
+                                prim.UpdatePositionAndVelocity();
 
                                 if (SupportsNINJAJoints)
-                                    SimulateActorPendingJoints(actor);
+                                    SimulateActorPendingJoints(prim);
                             }
                         }
                     }

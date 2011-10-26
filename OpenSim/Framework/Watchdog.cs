@@ -40,19 +40,31 @@ namespace OpenSim.Framework
     {
         /// <summary>Timer interval in milliseconds for the watchdog timer</summary>
         const double WATCHDOG_INTERVAL_MS = 2500.0d;
+
         /// <summary>Maximum timeout in milliseconds before a thread is considered dead</summary>
         const int WATCHDOG_TIMEOUT_MS = 5000;
 
         [System.Diagnostics.DebuggerDisplay("{Thread.Name}")]
         public class ThreadWatchdogInfo
         {
-            public Thread Thread;
-            public int LastTick;
+            public Thread Thread { get; private set; }
+            public int LastTick { get; set; }
 
-            public ThreadWatchdogInfo(Thread thread)
+            /// <summary>
+            /// Number of milliseconds before we notify that the thread is having a problem.
+            /// </summary>
+            public int Timeout { get; set; }
+
+            /// <summary>
+            /// Is this thread considered timed out?
+            /// </summary>
+            public bool IsTimedOut { get; set; }
+
+            public ThreadWatchdogInfo(Thread thread, int timeout)
             {
                 Thread = thread;
-                LastTick = Environment.TickCount;
+                Timeout = timeout;
+                LastTick = Environment.TickCount & Int32.MaxValue;
             }
         }
 
@@ -82,7 +94,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Start a new thread that is tracked by the watchdog timer
+        /// Start a new thread that is tracked by the watchdog timer.
         /// </summary>
         /// <param name="start">The method that will be executed in a new thread</param>
         /// <param name="name">A name to give to the new thread</param>
@@ -92,11 +104,36 @@ namespace OpenSim.Framework
         /// <returns>The newly created Thread object</returns>
         public static Thread StartThread(ThreadStart start, string name, ThreadPriority priority, bool isBackground)
         {
+            return StartThread(start, name, priority, isBackground, WATCHDOG_TIMEOUT_MS);
+        }
+
+        /// <summary>
+        /// Start a new thread that is tracked by the watchdog timer
+        /// </summary>
+        /// <param name="start">The method that will be executed in a new thread</param>
+        /// <param name="name">A name to give to the new thread</param>
+        /// <param name="priority">Priority to run the thread at</param>
+        /// <param name="isBackground">True to run this thread as a background
+        /// thread, otherwise false</param>
+        /// <param name="timeout">
+        /// Number of milliseconds to wait until we issue a warning about timeout.
+        /// </para>
+        /// <returns>The newly created Thread object</returns>
+        public static Thread StartThread(
+            ThreadStart start, string name, ThreadPriority priority, bool isBackground, int timeout)
+        {
             Thread thread = new Thread(start);
             thread.Name = name;
             thread.Priority = priority;
             thread.IsBackground = isBackground;
             thread.Start();
+
+            ThreadWatchdogInfo twi = new ThreadWatchdogInfo(thread, timeout);
+
+            m_log.Debug("[WATCHDOG]: Started tracking thread \"" + twi.Thread.Name + "\" (ID " + twi.Thread.ManagedThreadId + ")");
+
+            lock (m_threads)
+                m_threads.Add(twi.Thread.ManagedThreadId, twi);
 
             return thread;
         }
@@ -112,25 +149,42 @@ namespace OpenSim.Framework
         /// <summary>
         /// Stops watchdog tracking on the current thread
         /// </summary>
-        /// <returns>True if the thread was removed from the list of tracked
-        /// threads, otherwise false</returns>
+        /// <returns>
+        /// True if the thread was removed from the list of tracked
+        /// threads, otherwise false
+        /// </returns>
         public static bool RemoveThread()
         {
             return RemoveThread(Thread.CurrentThread.ManagedThreadId);
         }
 
-        private static void AddThread(ThreadWatchdogInfo threadInfo)
-        {
-            m_log.Debug("[WATCHDOG]: Started tracking thread \"" + threadInfo.Thread.Name + "\" (ID " + threadInfo.Thread.ManagedThreadId + ")");
-
-            lock (m_threads)
-                m_threads.Add(threadInfo.Thread.ManagedThreadId, threadInfo);
-        }
-
-        public static bool RemoveThread(int threadID)
+        private static bool RemoveThread(int threadID)
         {
             lock (m_threads)
                 return m_threads.Remove(threadID);
+        }
+
+<<<<<<< HEAD:OpenSim/Framework/Watchdog.cs
+        public static bool RemoveThread(int threadID)
+=======
+        public static bool AbortThread(int threadID)
+>>>>>>> master:OpenSim/Framework/Watchdog.cs
+        {
+            lock (m_threads)
+            {
+                if (m_threads.ContainsKey(threadID))
+                {
+                    ThreadWatchdogInfo twi = m_threads[threadID];
+                    twi.Thread.Abort();
+                    RemoveThread(threadID);
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
         }
 
         private static void UpdateThread(int threadID)
@@ -144,9 +198,18 @@ namespace OpenSim.Framework
             try
             {
                 if (m_threads.TryGetValue(threadID, out threadInfo))
+<<<<<<< HEAD:OpenSim/Framework/Watchdog.cs
                     threadInfo.LastTick = Environment.TickCount;
+=======
+                {
+                    threadInfo.LastTick = Environment.TickCount & Int32.MaxValue;
+                    threadInfo.IsTimedOut = false;
+                }
+>>>>>>> master:OpenSim/Framework/Watchdog.cs
                 else
-                    AddThread(new ThreadWatchdogInfo(Thread.CurrentThread));
+                {
+                    m_log.WarnFormat("[WATCHDOG]: Asked to update thread {0} which is not being monitored", threadID);
+                }
             }
             catch { }
         }
@@ -157,7 +220,8 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static ThreadWatchdogInfo[] GetThreads()
         {
-            return m_threads.Values.ToArray();
+            lock (m_threads)
+                return m_threads.Values.ToArray();
         }
 
         private static void WatchdogTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -174,10 +238,16 @@ namespace OpenSim.Framework
 
                     foreach (ThreadWatchdogInfo threadInfo in m_threads.Values)
                     {
-                        if (threadInfo.Thread.ThreadState == ThreadState.Stopped || now - threadInfo.LastTick >= WATCHDOG_TIMEOUT_MS)
+                        if (threadInfo.Thread.ThreadState == ThreadState.Stopped)
                         {
                             timedOut = threadInfo;
-                            m_threads.Remove(threadInfo.Thread.ManagedThreadId);
+                            RemoveThread(threadInfo.Thread.ManagedThreadId);
+                            break;
+                        }
+                        else if (!threadInfo.IsTimedOut && now - threadInfo.LastTick >= threadInfo.Timeout)
+                        {
+                            threadInfo.IsTimedOut = true;
+                            timedOut = threadInfo;
                             break;
                         }
                     }

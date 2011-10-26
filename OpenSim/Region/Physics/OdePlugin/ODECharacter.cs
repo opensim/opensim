@@ -1210,11 +1210,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_requestedUpdateFrequency = ms;
             m_eventsubscription = ms;
+            CollisionEventsThisFrame.Clear();
             _parent_scene.AddCollisionEventReporting(this);
         }
 
         public override void UnSubscribeEvents()
         {
+            CollisionEventsThisFrame.Clear();
             _parent_scene.RemoveCollisionEventReporting(this);
             m_requestedUpdateFrequency = 0;
             m_eventsubscription = 0;
@@ -1227,7 +1229,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //                m_log.DebugFormat(
 //                    "[PHYSICS]: Adding collision event for {0}, collidedWith {1}, contact {2}", "", CollidedWith, contact);
 
-                CollisionEventsThisFrame.addCollider(CollidedWith, contact);
+                CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
             }
         }
 
@@ -1235,11 +1237,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (m_eventsubscription > m_requestedUpdateFrequency)
             {
-                if (CollisionEventsThisFrame != null)
-                {
-                    base.SendCollisionUpdate(CollisionEventsThisFrame);
-                }
-                CollisionEventsThisFrame = new CollisionEventUpdate();
+                base.SendCollisionUpdate(CollisionEventsThisFrame);
+
+                CollisionEventsThisFrame.Clear();
                 m_eventsubscription = 0;
             }
         }

@@ -26,7 +26,7 @@
  */
 
 using OpenMetaverse;
-using OpenSim.Framework.Console;
+//using OpenSim.Framework.Console;
 using Nini.Config;
 
 namespace OpenSim.Framework
@@ -108,7 +108,7 @@ namespace OpenSim.Framework
         void RegisterModuleInterface<M>(M mod);
         void StackModuleInterface<M>(M mod);
 
-        void AddCommand(object module, string command, string shorthelp, string longhelp, CommandDelegate callback);
+//        void AddCommand(object module, string command, string shorthelp, string longhelp, CommandDelegate callback);
 
         ISceneObject DeserializeObject(string representation);
 

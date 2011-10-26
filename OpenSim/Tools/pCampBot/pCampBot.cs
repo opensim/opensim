@@ -27,6 +27,7 @@
 
 using System;
 using Nini.Config;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
 namespace pCampBot

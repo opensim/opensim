@@ -25,90 +25,57 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Reflection;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Net;
 using log4net;
-using Nini.Config;
-using OpenSim.Framework;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Server.Base;
-using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Freeswitch
+namespace OpenSim.Framework.Servers
 {
-    public class FreeswitchServiceInConnectorModule : ISharedRegionModule
+    public class MainServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static bool m_Enabled = false;
-        
-        private IConfigSource m_Config;
-        bool m_Registered = false;
 
-        #region IRegionModule interface
+        private static BaseHttpServer instance = null;
+        private static Dictionary<uint, BaseHttpServer> m_Servers =
+                new Dictionary<uint, BaseHttpServer>();
 
-        public void Initialise(IConfigSource config)
+        public static BaseHttpServer Instance
         {
-            m_Config = config;
-            IConfig moduleConfig = config.Configs["Modules"];
-            if (moduleConfig != null)
-            {
-                m_Enabled = moduleConfig.GetBoolean("FreeswitchServiceInConnector", false);
-                if (m_Enabled)
-                {
-                    m_log.Info("[FREESWITCH IN CONNECTOR]: FreeswitchServiceInConnector enabled");
-                }
-
-            }
+            get { return instance; }
+            set { instance = value; }
         }
 
-        public void PostInitialise()
+        public static IHttpServer GetHttpServer(uint port)
         {
+            return GetHttpServer(port,null);
         }
 
-        public void Close()
+        public static void AddHttpServer(BaseHttpServer server)
         {
+            m_Servers.Add(server.Port, server);
         }
 
-        public Type ReplaceableInterface 
+        public static IHttpServer GetHttpServer(uint port, IPAddress ipaddr)
         {
-            get { return null; }
+            if (port == 0)
+                return Instance;
+            if (instance != null && port == Instance.Port)
+                return Instance;
+
+            if (m_Servers.ContainsKey(port))
+                return m_Servers[port];
+
+            m_Servers[port] = new BaseHttpServer(port);
+
+            if (ipaddr != null)
+                m_Servers[port].ListenIPAddress = ipaddr;
+
+            m_log.InfoFormat("[MAIN HTTP SERVER]: Starting main http server on port {0}", port);
+            m_Servers[port].Start();
+
+            return m_Servers[port];
         }
-
-        public string Name
-        {
-            get { return "RegionFreeswitchService"; }
-        }
-
-        public void AddRegion(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-            if (!m_Registered)
-            {
-                m_Registered = true;
-
-                m_log.Info("[RegionFreeswitchService]: Starting...");
-
-                Object[] args = new Object[] { m_Config, MainServer.Instance };
-
-                ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:FreeswitchServerConnector", args);
-            }
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        #endregion
-
     }
 }
