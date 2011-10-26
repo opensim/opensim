@@ -617,6 +617,13 @@
     
     ; Comma separated list of UUIDS allows the function for that list of UUIDS
     ; Allow_osSetRegionWaterHeight = 888760cb-a3cf-43ac-8ea4-8732fd3ee2bb
+    
+    ; Comma separated list of owner classes that allow the function for a particular class of owners. Choices are
+    ; - PARCEL_GROUP_MEMBER: allow if objectgroup is the same group as the parcel
+    ; - PARCEL_OWNER: allow if the objectowner is parcelowner
+    ; - ESTATE_MANAGER: allow if the object owner is a estate manager
+    ; - ESTATE_OWNER: allow if objectowner is estateowner
+    ; Allow_osSetRegionWaterHeight = 888760cb-a3cf-43ac-8ea4-8732fd3ee2bb, PARCEL_OWNER, ESTATE_OWNER>, ...
 
     ; You can also use script creators as the uuid
     ; Creators_osSetRegionWaterHeight = <uuid>, ...
