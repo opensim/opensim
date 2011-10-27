@@ -374,7 +374,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     IScriptInstance instance = GetInstance(itemId);
                     if (instance == null)
                     {
-                        MainConsole.Instance.OutputFormat("Error - No item found with id {0}", itemId);
+                        // Commented out for now since this will cause false reports on simulators with more than
+                        // one scene where the current command line set region is 'root' (which causes commands to
+                        // go to both regions... (sigh)
+//                        MainConsole.Instance.OutputFormat("Error - No item found with id {0}", itemId);
                         return;
                     }
                     else
