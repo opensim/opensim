@@ -275,19 +275,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 {
                     if (m_TransferModule != null)
                         m_TransferModule.SendInstantMessage(im, delegate(bool success) {
-                            // Send BulkUpdateInventory
-                            IInventoryService invService = scene.InventoryService;
-                            UUID inventoryEntityID = new UUID(im.imSessionID); // The inventory item /folder, back from it's trip
 
-                            InventoryFolderBase folder = new InventoryFolderBase(inventoryEntityID, client.AgentId);
-                            folder = invService.GetFolder(folder);
+                            // justincc - FIXME: Comment out for now.  This code was added in commit db91044 Mon Aug 22 2011
+                            // and is apparently supposed to fix bulk inventory updates after accepting items.  But
+                            // instead it appears to cause two copies of an accepted folder for the receiving user in
+                            // at least some cases.  Folder/item update is already done when the offer is made (see code above)
 
-                            ScenePresence fromUser = scene.GetScenePresence(new UUID(im.fromAgentID));
-
-                            // If the user has left the scene by the time the message comes back then we can't send
-                            // them the update.
-                            if (fromUser != null)
-                                fromUser.ControllingClient.SendBulkUpdateInventory(folder);
+//                            // Send BulkUpdateInventory
+//                            IInventoryService invService = scene.InventoryService;
+//                            UUID inventoryEntityID = new UUID(im.imSessionID); // The inventory item /folder, back from it's trip
+//
+//                            InventoryFolderBase folder = new InventoryFolderBase(inventoryEntityID, client.AgentId);
+//                            folder = invService.GetFolder(folder);
+//
+//                            ScenePresence fromUser = scene.GetScenePresence(new UUID(im.fromAgentID));
+//
+//                            // If the user has left the scene by the time the message comes back then we can't send
+//                            // them the update.
+//                            if (fromUser != null)
+//                                fromUser.ControllingClient.SendBulkUpdateInventory(folder);
                         });
                 }
             }
