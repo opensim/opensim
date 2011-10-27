@@ -1493,10 +1493,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (volume < 0)
                 volume = 0;
 
-            m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence sp)
+            m_parentGroup.Scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                if (!sp.IsChildAgent)
-                    sp.ControllingClient.SendAttachedSoundGainChange(UUID, (float)volume);
+                sp.ControllingClient.SendAttachedSoundGainChange(UUID, (float)volume);
             });
         }
 
@@ -2136,6 +2135,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void PhysicsCollision(EventArgs e)
         {
+//            m_log.DebugFormat("Invoking PhysicsCollision on {0} {1} {2}", Name, LocalId, UUID);
+
             // single threaded here
 
             CollisionEventUpdate a = (CollisionEventUpdate)e;
@@ -2729,10 +2730,8 @@ namespace OpenSim.Region.Framework.Scenes
                 TaskInventory.LockItemsForRead(false);
             }
 
-            m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence sp)
+            m_parentGroup.Scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                if (sp.IsChildAgent)
-                    return;
                 if (!(Util.GetDistanceTo(sp.AbsolutePosition, AbsolutePosition) >= 100))
                     sp.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
             });

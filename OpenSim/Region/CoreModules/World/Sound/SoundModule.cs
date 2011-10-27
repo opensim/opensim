@@ -70,11 +70,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
             SceneObjectGroup grp = part.ParentGroup;
 
-            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                if (sp.IsChildAgent)
-                    return;
-
                 double dis = Util.GetDistanceTo(sp.AbsolutePosition, position);
                 if (dis > 100.0) // Max audio distance
                     return;
@@ -122,11 +119,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 }
             }
 
-            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                if (sp.IsChildAgent)
-                    return;
-
                 double dis = Util.GetDistanceTo(sp.AbsolutePosition, position);
                 if (dis > 100.0) // Max audio distance
                     return;

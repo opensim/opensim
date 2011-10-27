@@ -373,13 +373,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                                           scene.GetRootAgentCount(), scene.RegionInfo.RegionName,
                                           scene.RegionInfo.RegionID,
                                           DateTime.UtcNow.ToString("s")));
-            scene.ForEachScenePresence(delegate(ScenePresence sp)
+            scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                if (!sp.IsChildAgent)
-                {
                     list.Append(String.Format("    <avatar name=\"{0}\" uuid=\"{1}\" />\n", sp.Name, sp.UUID));
                     list.Append("</avatars>");
-                }
             });
             string payload = list.ToString();
 

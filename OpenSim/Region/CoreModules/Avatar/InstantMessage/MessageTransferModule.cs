@@ -140,8 +140,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             // Try root avatar only first
             foreach (Scene scene in m_Scenes)
             {
-                if (scene.Entities.ContainsKey(toAgentID) &&
-                        scene.Entities[toAgentID] is ScenePresence)
+//                m_log.DebugFormat(
+//                    "[INSTANT MESSAGE]: Looking for root agent {0} in {1}", 
+//                    toAgentID.ToString(), scene.RegionInfo.RegionName);
+                ScenePresence sp = scene.GetScenePresence(toAgentID);
+                if (sp != null && !sp.IsChildAgent)
                 {
 //                    m_log.DebugFormat(
 //                        "[INSTANT MESSAGE]: Looking for root agent {0} in {1}", 
@@ -165,9 +168,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             {
 //                m_log.DebugFormat(
 //                    "[INSTANT MESSAGE]: Looking for child of {0} in {1}", toAgentID, scene.RegionInfo.RegionName);
-
-                if (scene.Entities.ContainsKey(toAgentID) &&
-                        scene.Entities[toAgentID] is ScenePresence)
+                ScenePresence sp = scene.GetScenePresence(toAgentID);
+                if (sp != null)
                 {
                     // Local message
                     ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
@@ -405,17 +407,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     // Trigger the Instant message in the scene.
                     foreach (Scene scene in m_Scenes)
                     {
-                        if (scene.Entities.ContainsKey(toAgentID) &&
-                                scene.Entities[toAgentID] is ScenePresence)
+                        ScenePresence sp = scene.GetScenePresence(toAgentID);
+                        if (sp != null && !sp.IsChildAgent)
                         {
-                            ScenePresence user =
-                                    (ScenePresence)scene.Entities[toAgentID];
-
-                            if (!user.IsChildAgent)
-                            {
-                                scene.EventManager.TriggerIncomingInstantMessage(gim);
-                                successful = true;
-                            }
+                            scene.EventManager.TriggerIncomingInstantMessage(gim);
+                            successful = true;
                         }
                     }
                     if (!successful)

@@ -76,6 +76,8 @@ namespace OpenSim.Region.Physics.Manager
         /// </summary>
         public int Count { get { return m_objCollisionList.Count; } }
 
+        public bool CollisionsOnPreviousFrame { get; private set; }
+
         public Dictionary<uint, ContactPoint> m_objCollisionList;
 
         public CollisionEventUpdate(Dictionary<uint, ContactPoint> objCollisionList)

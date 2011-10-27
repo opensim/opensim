@@ -4124,9 +4124,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             List<UUID> keytable = new List<UUID>();
             // parse for sitting avatare-uuids
-            World.ForEachScenePresence(delegate(ScenePresence presence)
+            World.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
-                if (!presence.IsChildAgent && presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
+                if (presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
                     keytable.Add(presence.UUID);
             });
 
@@ -4199,9 +4199,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             // parse for sitting avatare-names
             List<String> nametable = new List<String>();
-            World.ForEachScenePresence(delegate(ScenePresence presence)
+            World.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
-                if (!presence.IsChildAgent && presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
+                if (presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
                     nametable.Add(presence.ControllingClient.Name);
             });
 
@@ -9933,9 +9933,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     landObject.SetMediaUrl(url);
 
                     // now send to all (non-child) agents in the parcel
-                    World.ForEachScenePresence(delegate(ScenePresence sp)
+                    World.ForEachRootScenePresence(delegate(ScenePresence sp)
                     {
-                        if (!sp.IsChildAgent && (sp.currentParcelUUID == landData.GlobalID))
+                        if (sp.currentParcelUUID == landData.GlobalID)
                         {
                             sp.ControllingClient.SendParcelMediaUpdate(landData.MediaURL,
                                                                           landData.MediaID,
@@ -9966,9 +9966,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence == null)
                 {
                     // send to all (non-child) agents in the parcel
-                    World.ForEachScenePresence(delegate(ScenePresence sp)
+                    World.ForEachRootScenePresence(delegate(ScenePresence sp)
                     {
-                        if (!sp.IsChildAgent && (sp.currentParcelUUID == landData.GlobalID))
+                        if (sp.currentParcelUUID == landData.GlobalID)
                         {
                             sp.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
                                                                            (ParcelMediaCommandEnum)commandToSend,
