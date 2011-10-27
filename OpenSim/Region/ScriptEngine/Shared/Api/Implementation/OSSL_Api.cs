@@ -873,10 +873,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osGetAgents");
 
             LSL_List result = new LSL_List();
-            World.ForEachScenePresence(delegate(ScenePresence sp)
+            World.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                if (!sp.IsChildAgent)
-                    result.Add(new LSL_String(sp.Name));
+                result.Add(new LSL_String(sp.Name));
             });
             return result;
         }
@@ -2582,11 +2581,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Severe, "osKickAvatar");
             if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
             {
-                World.ForEachScenePresence(delegate(ScenePresence sp)
+                World.ForEachRootScenePresence(delegate(ScenePresence sp)
                 {
-                    if (!sp.IsChildAgent &&
-                        sp.Firstname == FirstName &&
-                        sp.Lastname == SurName)
+                    if (sp.Firstname == FirstName && sp.Lastname == SurName)
                     {
                         // kick client...
                         if (alert != null)
@@ -2718,17 +2715,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osGetAvatarList");
 
             LSL_List result = new LSL_List();
-            World.ForEachScenePresence(delegate (ScenePresence avatar)
+            World.ForEachRootScenePresence(delegate (ScenePresence avatar)
             {
                 if (avatar != null && avatar.UUID != m_host.OwnerID)
                 {
-                    if (avatar.IsChildAgent == false)
-                    {
-                        result.Add(new LSL_String(avatar.UUID.ToString()));
-                        OpenMetaverse.Vector3 ap = avatar.AbsolutePosition;
-                        result.Add(new LSL_Vector(ap.X, ap.Y, ap.Z));
-                        result.Add(new LSL_String(avatar.Name));
-                    }
+                    result.Add(new LSL_String(avatar.UUID.ToString()));
+                    OpenMetaverse.Vector3 ap = avatar.AbsolutePosition;
+                    result.Add(new LSL_Vector(ap.X, ap.Y, ap.Z));
+                    result.Add(new LSL_String(avatar.Name));
                 }
             });
 

@@ -98,10 +98,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         
         public void SendGeneralAlert(string message)
         {
-            m_scene.ForEachScenePresence(delegate(ScenePresence presence)
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
-                if (!presence.IsChildAgent)
-                    presence.ControllingClient.SendAlertMessage(message);
+                presence.ControllingClient.SendAlertMessage(message);
             });
         }
 
@@ -163,10 +162,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         public void SendNotificationToUsersInRegion(
             UUID fromAvatarID, string fromAvatarName, string message)
         {
-            m_scene.ForEachScenePresence(delegate(ScenePresence presence)
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
-                if (!presence.IsChildAgent)
-                    presence.ControllingClient.SendBlueBoxMessage(fromAvatarID, fromAvatarName, message);
+                presence.ControllingClient.SendBlueBoxMessage(fromAvatarID, fromAvatarName, message);
             });
         }
         
