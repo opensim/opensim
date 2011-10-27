@@ -458,9 +458,9 @@ namespace OpenSim.Region.Framework.Scenes
             ForEachCurrentScene(
                 delegate(Scene scene)
                 {
-                    scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
+                    scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
                     {
-                        if (!scenePresence.IsChildAgent && (name == null || scenePresence.Name == name))
+                        if (name == null || scenePresence.Name == name)
                         {
                             m_log.DebugFormat("Packet debug for {0} {1} set to {2}",
                                               scenePresence.Firstname,
@@ -481,10 +481,9 @@ namespace OpenSim.Region.Framework.Scenes
             ForEachCurrentScene(
                 delegate(Scene scene)
                 {
-                    scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
+                    scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
                     {
-                        if (!scenePresence.IsChildAgent)
-                            avatars.Add(scenePresence);
+                        avatars.Add(scenePresence);
                     });
                 }
             );

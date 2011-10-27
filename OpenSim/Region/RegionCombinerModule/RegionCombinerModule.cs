@@ -711,10 +711,8 @@ namespace OpenSim.Region.RegionCombinerModule
 
             List<Vector3> CoarseLocations = new List<Vector3>();
             List<UUID> AvatarUUIDs = new List<UUID>();
-            connectiondata.RegionScene.ForEachScenePresence(delegate(ScenePresence sp)
+            connectiondata.RegionScene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                if (sp.IsChildAgent)
-                    return;
                 if (sp.UUID != presence.UUID)
                 {
                     if (sp.ParentID != 0)
