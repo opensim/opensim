@@ -2082,6 +2082,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void PhysicsCollision(EventArgs e)
         {
+//            m_log.DebugFormat("Invoking PhysicsCollision on {0} {1} {2}", Name, LocalId, UUID);
+
             // single threaded here
 
             CollisionEventUpdate a = (CollisionEventUpdate)e;

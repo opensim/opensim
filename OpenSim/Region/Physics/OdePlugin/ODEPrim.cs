@@ -193,6 +193,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         private int m_eventsubscription;
         private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
 
+        /// <summary>
+        /// Signal whether there were collisions on the previous frame, so we know if we need to send the
+        /// empty CollisionEventsThisFrame to the prim so that it can detect the end of a collision.
+        /// </summary>
+        /// <remarks>
+        /// This is probably a temporary measure, pending storing this information consistently in CollisionEventUpdate itself.
+        /// </remarks>
+        private bool m_collisionsOnPreviousFrame;
+
         private IntPtr m_linkJoint = IntPtr.Zero;
 
         internal volatile bool childPrim;
@@ -3025,8 +3034,20 @@ Console.WriteLine(" JointCreateFixed");
 
         public void SendCollisions()
         {
-            if (CollisionEventsThisFrame.Count > 0)
+            if (m_collisionsOnPreviousFrame || CollisionEventsThisFrame.Count > 0)
+            {
                 base.SendCollisionUpdate(CollisionEventsThisFrame);
+
+                if (CollisionEventsThisFrame.Count > 0)
+                {
+                    m_collisionsOnPreviousFrame = true;
+                    CollisionEventsThisFrame.Clear();
+                }
+                else
+                {
+                    m_collisionsOnPreviousFrame = false;
+                }
+            }
         }
 
         public override bool SubscribedEvents()
