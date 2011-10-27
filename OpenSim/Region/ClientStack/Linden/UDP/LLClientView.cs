@@ -1958,8 +1958,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SendBulkUpdateInventoryItem((InventoryItemBase)node);
             else if (node is InventoryFolderBase)
                 SendBulkUpdateInventoryFolder((InventoryFolderBase)node);
+            else if (node != null)
+                m_log.ErrorFormat("[CLIENT]: {0} sent unknown inventory node named {1}", Name, node.Name);
             else
-                m_log.ErrorFormat("[CLIENT]: Client for {0} sent unknown inventory node named {1}", Name, node.Name);
+                m_log.ErrorFormat("[CLIENT]: {0} sent null inventory node", Name);
         }
 
         protected void SendBulkUpdateInventoryItem(InventoryItemBase item)
