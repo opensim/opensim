@@ -1265,7 +1265,21 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-        
+
+        /// <summary>
+        /// Performs action on all ROOT (not child) scene presences.
+        /// This is just a shortcut function since frequently actions only appy to root SPs
+        /// </summary>
+        /// <param name="action"></param>
+        public void ForEachRootScenePresence(Action<ScenePresence> action)
+        {
+            ForEachScenePresence(delegate(ScenePresence sp)
+            {
+                if (!sp.IsChildAgent)
+                    action(sp);
+            });
+        }
+
         /// <summary>
         /// Performs action on all scene presences. This can ultimately run the actions in parallel but
         /// any delegates passed in will need to implement their own locking on data they reference and

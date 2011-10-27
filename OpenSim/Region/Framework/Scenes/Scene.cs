@@ -920,22 +920,17 @@ namespace OpenSim.Region.Framework.Scenes
 
                     try
                     {
-                        ForEachScenePresence(delegate(ScenePresence agent)
-                                             {
-                                                 // If agent is a root agent.
-                                                 if (!agent.IsChildAgent)
-                                                 {
-                                                     //agent.ControllingClient.new
-                                                     //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
+                        ForEachRootScenePresence(delegate(ScenePresence agent)
+                            {
+                                //agent.ControllingClient.new
+                                //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
 
-                                                     List<ulong> old = new List<ulong>();
-                                                     old.Add(otherRegion.RegionHandle);
-                                                     agent.DropOldNeighbours(old);
-                                                     if (m_teleportModule != null)
-                                                         m_teleportModule.EnableChildAgent(agent, otherRegion);
-                                                 }
-                                             }
-                            );
+                                List<ulong> old = new List<ulong>();
+                                old.Add(otherRegion.RegionHandle);
+                                agent.DropOldNeighbours(old);
+                                if (m_teleportModule != null)
+                                    m_teleportModule.EnableChildAgent(agent, otherRegion);
+                            });
                     }
                     catch (NullReferenceException)
                     {
@@ -1070,16 +1065,11 @@ namespace OpenSim.Region.Framework.Scenes
                     GridRegion r = new GridRegion(region);
                     try
                     {
-                        ForEachScenePresence(delegate(ScenePresence agent)
-                                             {
-                                                 // If agent is a root agent.
-                                                 if (!agent.IsChildAgent)
-                                                 {
-                                                     if (m_teleportModule != null)
-                                                         m_teleportModule.EnableChildAgent(agent, r);
-                                                 }
-                                             }
-                            );
+                        ForEachRootScenePresence(delegate(ScenePresence agent)
+                            {
+                                if (m_teleportModule != null)
+                                        m_teleportModule.EnableChildAgent(agent, r);
+                            });
                     }
                     catch (NullReferenceException)
                     {
@@ -1493,11 +1483,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="stats">Stats on the Simulator's performance</param>
         private void SendSimStatsPackets(SimStats stats)
         {
-            ForEachScenePresence(
+            ForEachRootScenePresence(
                 delegate(ScenePresence agent)
                 {
-                    if (!agent.IsChildAgent)
-                        agent.ControllingClient.SendSimStats(stats);
+                    agent.ControllingClient.SendSimStats(stats);
                 }
             );
         }
@@ -4460,6 +4449,19 @@ namespace OpenSim.Region.Framework.Scenes
             //return false;
 
             return cp.IsChildAgent;
+        }
+
+        /// <summary>
+        /// Performs action on all ROOT (not child) scene presences.
+        /// This is just a shortcut function since frequently actions only appy to root SPs
+        /// </summary>
+        /// <param name="action"></param>
+        public void ForEachRootScenePresence(Action<ScenePresence> action)
+        {
+            if(m_sceneGraph != null)
+            {
+                m_sceneGraph.ForEachRootScenePresence(action);
+            }
         }
 
         /// <summary>

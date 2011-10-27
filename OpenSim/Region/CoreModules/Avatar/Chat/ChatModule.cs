@@ -306,13 +306,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             
             if (c.Scene != null)
             {
-                ((Scene)c.Scene).ForEachScenePresence
+                ((Scene)c.Scene).ForEachRootScenePresence
                 (
                     delegate(ScenePresence presence)
                     {
-                        // ignore chat from child agents
-                        if (presence.IsChildAgent) return;
-                        
                         IClientAPI client = presence.ControllingClient;
                         
                         // don't forward SayOwner chat from objects to

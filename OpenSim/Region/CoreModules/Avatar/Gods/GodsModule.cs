@@ -221,7 +221,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                 }
                 else if (agentID == ALL_AGENTS)
                 {
-                    m_scene.ForEachScenePresence(
+                    m_scene.ForEachRootScenePresence(
                             delegate(ScenePresence p)
                             {
                                 if (p.UUID != godID && (!m_scene.Permissions.IsGod(p.UUID)))

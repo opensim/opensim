@@ -504,19 +504,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // Try root avatar first
             foreach (Scene scene in m_sceneList)
             {
-                if (scene.Entities.ContainsKey(agentID) &&
-                    scene.Entities[agentID] is ScenePresence)
+                ScenePresence sp = scene.GetScenePresence(agentID);
+                if (sp != null)
                 {
-                    ScenePresence user = (ScenePresence)scene.Entities[agentID];
-                    if (!user.IsChildAgent)
+                    if (!sp.IsChildAgent)
                     {
-                        if (m_debugEnabled) m_log.WarnFormat("[GROUPS-MESSAGING]: Found root agent for client : {0}", user.ControllingClient.Name);
-                        return user.ControllingClient;
+                        if (m_debugEnabled) m_log.WarnFormat("[GROUPS-MESSAGING]: Found root agent for client : {0}", sp.ControllingClient.Name);
+                        return sp.ControllingClient;
                     }
                     else
                     {
-                        if (m_debugEnabled) m_log.WarnFormat("[GROUPS-MESSAGING]: Found child agent for client : {0}", user.ControllingClient.Name);
-                        child = user.ControllingClient;
+                        if (m_debugEnabled) m_log.WarnFormat("[GROUPS-MESSAGING]: Found child agent for client : {0}", sp.ControllingClient.Name);
+                        child = sp.ControllingClient;
                     }
                 }
             }
