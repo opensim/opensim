@@ -797,7 +797,14 @@ namespace OpenSim.Region.Framework.Scenes
                         m_rotationOffset = actor.Orientation;
                     }
                 }
-                
+
+//                float roll, pitch, yaw = 0;
+//                m_rotationOffset.GetEulerAngles(out roll, out pitch, out yaw);
+//
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT PART]: Got euler {0} for RotationOffset on {1} {2}",
+//                    new Vector3(roll, pitch, yaw), Name, LocalId);
+
                 return m_rotationOffset;
             }
             
@@ -834,6 +841,13 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.Error("[SCENEOBJECTPART]: ROTATIONOFFSET" + ex.Message);
                     }
                 }
+
+//                float roll, pitch, yaw = 0;
+//                m_rotationOffset.GetEulerAngles(out roll, out pitch, out yaw);
+//
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT PART]: Set euler {0} for RotationOffset on {1} {2}",
+//                    new Vector3(roll, pitch, yaw), Name, LocalId);
             }
         }
 
@@ -4495,12 +4509,13 @@ namespace OpenSim.Region.Framework.Scenes
             PhysActor = null;
         }
 
+        /// <summary>
+        /// This updates the part's rotation and sends out an update to clients if necessary.
+        /// </summary>
+        /// <param name="rot"></param>
         public void UpdateRotation(Quaternion rot)
         {
-            if ((rot.X != RotationOffset.X) ||
-                (rot.Y != RotationOffset.Y) ||
-                (rot.Z != RotationOffset.Z) ||
-                (rot.W != RotationOffset.W))
+            if (rot != RotationOffset)
             {
                 RotationOffset = rot;
 

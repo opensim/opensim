@@ -1769,7 +1769,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Rotation = Quaternion.CreateFromEulers(angle);
 //            m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, Rotation);
-
+            
             Vector3 agent_control_v3 = new Vector3();
             HandleMoveToTargetUpdate(ref agent_control_v3);
             AddNewMovement(agent_control_v3);
