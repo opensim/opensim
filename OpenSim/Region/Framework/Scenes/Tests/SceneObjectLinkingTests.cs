@@ -62,9 +62,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             grp1.AbsolutePosition = new Vector3(10, 10, 10);
             grp2.AbsolutePosition = Vector3.Zero;
-            
+
             // <90,0,0>
-            grp1.Rotation = (Quaternion.CreateFromEulers(90 * Utils.DEG_TO_RAD, 0, 0));
+//            grp1.UpdateGroupRotationR(Quaternion.CreateFromEulers(90 * Utils.DEG_TO_RAD, 0, 0));
 
             // <180,0,0>
             grp2.UpdateGroupRotationR(Quaternion.CreateFromEulers(180 * Utils.DEG_TO_RAD, 0, 0));
@@ -85,7 +85,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             if (debugtest)
             {
                 m_log.Debug("parts: " + grp1.Parts.Length);
-                m_log.Debug("Group1: Pos:"+grp1.AbsolutePosition+", Rot:"+grp1.Rotation);
+                m_log.Debug("Group1: Pos:"+grp1.AbsolutePosition+", Rot:"+grp1.GroupRotation);
                 m_log.Debug("Group1: Prim1: OffsetPosition:"+ part1.OffsetPosition+", OffsetRotation:"+part1.RotationOffset);
                 m_log.Debug("Group1: Prim2: OffsetPosition:"+part2.OffsetPosition+", OffsetRotation:"+part2.RotationOffset);
             }
@@ -152,13 +152,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             grp4.AbsolutePosition = new Vector3(40, 40, 40);
 
             // <90,0,0>
-            grp1.Rotation = (Quaternion.CreateFromEulers(90 * Utils.DEG_TO_RAD, 0, 0));
+//            grp1.UpdateGroupRotationR(Quaternion.CreateFromEulers(90 * Utils.DEG_TO_RAD, 0, 0));
 
             // <180,0,0>
             grp2.UpdateGroupRotationR(Quaternion.CreateFromEulers(180 * Utils.DEG_TO_RAD, 0, 0));
 
             // <270,0,0>
-            grp3.Rotation = (Quaternion.CreateFromEulers(270 * Utils.DEG_TO_RAD, 0, 0));
+//            grp3.UpdateGroupRotationR(Quaternion.CreateFromEulers(270 * Utils.DEG_TO_RAD, 0, 0));
 
             // <0,90,0>
             grp4.UpdateGroupRotationR(Quaternion.CreateFromEulers(0, 90 * Utils.DEG_TO_RAD, 0));
@@ -187,12 +187,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             {
                 m_log.Debug("--------After Link-------");
                 m_log.Debug("Group1: parts:" + grp1.Parts.Length);
-                m_log.Debug("Group1: Pos:"+grp1.AbsolutePosition+", Rot:"+grp1.Rotation);
+                m_log.Debug("Group1: Pos:"+grp1.AbsolutePosition+", Rot:"+grp1.GroupRotation);
                 m_log.Debug("Group1: Prim1: OffsetPosition:" + part1.OffsetPosition + ", OffsetRotation:" + part1.RotationOffset);
                 m_log.Debug("Group1: Prim2: OffsetPosition:"+part2.OffsetPosition+", OffsetRotation:"+ part2.RotationOffset);
 
                 m_log.Debug("Group3: parts:" + grp3.Parts.Length);
-                m_log.Debug("Group3: Pos:"+grp3.AbsolutePosition+", Rot:"+grp3.Rotation);
+                m_log.Debug("Group3: Pos:"+grp3.AbsolutePosition+", Rot:"+grp3.GroupRotation);
                 m_log.Debug("Group3: Prim1: OffsetPosition:"+part3.OffsetPosition+", OffsetRotation:"+part3.RotationOffset);
                 m_log.Debug("Group3: Prim2: OffsetPosition:"+part4.OffsetPosition+", OffsetRotation:"+part4.RotationOffset);
             }
@@ -240,12 +240,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             {
                 m_log.Debug("--------After De-Link-------");
                 m_log.Debug("Group1: parts:" + grp1.Parts.Length);
-                m_log.Debug("Group1: Pos:" + grp1.AbsolutePosition + ", Rot:" + grp1.Rotation);
+                m_log.Debug("Group1: Pos:" + grp1.AbsolutePosition + ", Rot:" + grp1.GroupRotation);
                 m_log.Debug("Group1: Prim1: OffsetPosition:" + part1.OffsetPosition + ", OffsetRotation:" + part1.RotationOffset);
                 m_log.Debug("Group1: Prim2: OffsetPosition:" + part2.OffsetPosition + ", OffsetRotation:" + part2.RotationOffset);
 
                 m_log.Debug("Group3: parts:" + grp3.Parts.Length);
-                m_log.Debug("Group3: Pos:" + grp3.AbsolutePosition + ", Rot:" + grp3.Rotation);
+                m_log.Debug("Group3: Pos:" + grp3.AbsolutePosition + ", Rot:" + grp3.GroupRotation);
                 m_log.Debug("Group3: Prim1: OffsetPosition:" + part3.OffsetPosition + ", OffsetRotation:" + part3.RotationOffset);
                 m_log.Debug("Group3: Prim2: OffsetPosition:" + part4.OffsetPosition + ", OffsetRotation:" + part4.RotationOffset);
             }

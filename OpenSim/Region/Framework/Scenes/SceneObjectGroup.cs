@@ -281,14 +281,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_parts.Count; }
         }
 
-        protected Quaternion m_rotation = Quaternion.Identity;
-
-        public virtual Quaternion Rotation
-        {
-            get { return m_rotation; }
-            set { m_rotation = value; }
-        }
-
         public Quaternion GroupRotation
         {
             get { return m_rootPart.RotationOffset; }
