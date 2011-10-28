@@ -2798,11 +2798,6 @@ namespace OpenSim.Region.Framework.Scenes
             ScheduleGroupForTerseUpdate();
         }
 
-        public void OffsetForNewRegion(Vector3 offset)
-        {
-            m_rootPart.GroupPosition = offset;
-        }
-
         #endregion
 
         #region Rotation
