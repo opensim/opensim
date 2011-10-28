@@ -325,8 +325,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     if (checkonly)
                         return false;
 
-                    m_log.InfoFormat("[AVFACTORY]: missing baked texture {0}, requesting rebake", face.TextureID);
-                    
                     sp.ControllingClient.SendRebakeAvatarTextures(face.TextureID);
                 }
             }
@@ -348,7 +346,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         {
             if (m_scene.AssetService.Get(textureID.ToString()) == null)
             {
-                m_log.WarnFormat("[AVFACTORY]: Missing baked texture {0} ({1}) for avatar {2}",
+                m_log.InfoFormat("[AVFACTORY]: Missing baked texture {0} ({1}) for avatar {2}",
                                  textureID, idx, sp.Name);
                 return false;
             }
