@@ -143,24 +143,19 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             // Try root avatar only first
             foreach (Scene scene in m_Scenes)
             {
-                if (scene.Entities.ContainsKey(toAgentID) &&
-                        scene.Entities[toAgentID] is ScenePresence)
-                {
-//                    m_log.DebugFormat(
-//                        "[HG INSTANT MESSAGE]: Looking for root agent {0} in {1}", 
-//                        toAgentID.ToString(), scene.RegionInfo.RegionName);
-                                        
-                    ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
-                    if (!user.IsChildAgent)
-                    {
-                        // Local message
-//                        m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", user.Name, toAgentID);
-                        user.ControllingClient.SendInstantMessage(im);
+//                m_log.DebugFormat(
+//                    "[HG INSTANT MESSAGE]: Looking for root agent {0} in {1}", 
+//                    toAgentID.ToString(), scene.RegionInfo.RegionName);
+                ScenePresence sp = scene.GetScenePresence(toAgentID); 
+                if (sp != null && !sp.IsChildAgent)
+                {                                        
+                    // Local message
+//                  m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", user.Name, toAgentID);
+                    sp.ControllingClient.SendInstantMessage(im);
 
-                        // Message sent
-                        result(true);
-                        return;
-                    }
+                    // Message sent
+                    result(true);
+                    return;
                 }
             }
 
@@ -168,16 +163,14 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             foreach (Scene scene in m_Scenes)
             {
 //                m_log.DebugFormat(
-//                    "[HG INSTANT MESSAGE]: Looking for child of {0} in {1}", toAgentID, scene.RegionInfo.RegionName);
-
-                if (scene.Entities.ContainsKey(toAgentID) &&
-                        scene.Entities[toAgentID] is ScenePresence)
-                {
+//                    "[HG INSTANT MESSAGE]: Looking for child of {0} in {1}", 
+//                    toAgentID, scene.RegionInfo.RegionName);
+                ScenePresence sp = scene.GetScenePresence(toAgentID); 
+                if (sp != null)
+                {                   
                     // Local message
-                    ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
-
 //                    m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", user.Name, toAgentID);
-                    user.ControllingClient.SendInstantMessage(im);
+                    sp.ControllingClient.SendInstantMessage(im);
 
                     // Message sent
                     result(true);
@@ -231,17 +224,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             bool successful = false;
             foreach (Scene scene in m_Scenes)
             {
-                if (scene.Entities.ContainsKey(toAgentID) &&
-                        scene.Entities[toAgentID] is ScenePresence)
+                ScenePresence sp = scene.GetScenePresence(toAgentID);
+                if(!sp.IsChildAgent)
                 {
-                    ScenePresence user =
-                            (ScenePresence)scene.Entities[toAgentID];
-
-                    if (!user.IsChildAgent)
-                    {
-                        scene.EventManager.TriggerIncomingInstantMessage(gim);
-                        successful = true;
-                    }
+                    scene.EventManager.TriggerIncomingInstantMessage(gim);
+                    successful = true;
                 }
             }
             if (!successful)

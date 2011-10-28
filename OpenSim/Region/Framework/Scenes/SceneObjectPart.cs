@@ -1454,10 +1454,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (volume < 0)
                 volume = 0;
 
-            m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence sp)
+            m_parentGroup.Scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                if (!sp.IsChildAgent)
-                    sp.ControllingClient.SendAttachedSoundGainChange(UUID, (float)volume);
+                sp.ControllingClient.SendAttachedSoundGainChange(UUID, (float)volume);
             });
         }
 
@@ -2690,10 +2689,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence sp)
+            m_parentGroup.Scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                if (sp.IsChildAgent)
-                    return;
                 if (!(Util.GetDistanceTo(sp.AbsolutePosition, AbsolutePosition) >= 100))
                     sp.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
             });

@@ -401,10 +401,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     }
                     else
                     {
-                        m_scene.ForEachScenePresence(delegate(ScenePresence sp)
+                        m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
                         {
                             // Don't send a green dot for yourself
-                            if (!sp.IsChildAgent && sp.UUID != remoteClient.AgentId)
+                            if (sp.UUID != remoteClient.AgentId)
                             {
                                 mapitem = new mapItemReply();
                                 mapitem.x = (uint)(xstart + sp.AbsolutePosition.X);

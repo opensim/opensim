@@ -476,11 +476,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void SendLandUpdateToAvatarsOverMe(bool snap_selection)
         {
-            m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
             {
-                if (avatar.IsChildAgent)
-                    return;
-
                 ILandObject over = null;
                 try
                 {
