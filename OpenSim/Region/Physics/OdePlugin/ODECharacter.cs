@@ -161,17 +161,19 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     pos.Z = parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
                 }
+
                 _position = pos;
-                m_taintPosition.X = pos.X;
-                m_taintPosition.Y = pos.Y;
-                m_taintPosition.Z = pos.Z;
+                m_taintPosition = pos;
             }
             else
             {
-                _position = new Vector3(((float)_parent_scene.WorldExtents.X * 0.5f), ((float)_parent_scene.WorldExtents.Y * 0.5f), parent_scene.GetTerrainHeightAtXY(128f, 128f) + 10f);
-                m_taintPosition.X = _position.X;
-                m_taintPosition.Y = _position.Y;
-                m_taintPosition.Z = _position.Z;
+                _position
+                    = new Vector3(
+                        (float)_parent_scene.WorldExtents.X * 0.5f,
+                        (float)_parent_scene.WorldExtents.Y * 0.5f,
+                        parent_scene.GetTerrainHeightAtXY(128f, 128f) + 10f);
+                m_taintPosition = _position;
+
                 m_log.Warn("[PHYSICS]: Got NaN Position on Character Create");
             }
 
@@ -431,10 +433,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
                         }
 
-                        m_taintPosition.X = value.X;
-                        m_taintPosition.Y = value.Y;
-                        m_taintPosition.Z = value.Z;
-                        
+                        m_taintPosition = value;                        
                         _parent_scene.AddPhysicsActorTaint(this);
                     }
                     else
@@ -582,15 +581,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.MassSetCapsuleTotal(out ShellMass, m_mass, 2, CAPSULE_RADIUS, CAPSULE_LENGTH);
             Body = d.BodyCreate(_parent_scene.world);
             d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
-            
+
             _position.X = npositionX;
             _position.Y = npositionY;
             _position.Z = npositionZ;
 
-            
-            m_taintPosition.X = npositionX;
-            m_taintPosition.Y = npositionY;
-            m_taintPosition.Z = npositionZ;
+            m_taintPosition = _position;
 
             d.BodySetMass(Body, ref ShellMass);
             d.Matrix3 m_caprot;
@@ -845,9 +841,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
                 {
                     m_pidControllerActive = true;
-                    _target_velocity.X += force.X;
-                    _target_velocity.Y += force.Y;
-                    _target_velocity.Z += force.Z;
+                    _target_velocity += force;
                 }
             }
             else
@@ -868,8 +862,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void doForce(Vector3 force)
         {
             d.BodyAddForce(Body, force.X, force.Y, force.Z);
-            //d.BodySetRotation(Body, ref m_StandUpRotation);
-            //standupStraight();
         }
 
         public override void SetMomentum(Vector3 momentum)
@@ -1059,69 +1051,66 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal void UpdatePositionAndVelocity()
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
-            d.Vector3 vec;
+            d.Vector3 newPos;
             try
             {
-                vec = d.BodyGetPosition(Body);
+                newPos = d.BodyGetPosition(Body);
             }
             catch (NullReferenceException)
             {
                 bad = true;
                 _parent_scene.BadCharacter(this);
-                vec = new d.Vector3(_position.X, _position.Y, _position.Z);
+                newPos = new d.Vector3(_position.X, _position.Y, _position.Z);
                 base.RaiseOutOfBounds(_position); // Tells ScenePresence that there's a problem!
                 m_log.WarnFormat("[ODEPLUGIN]: Avatar Null reference for Avatar {0}, physical actor {1}", m_name, m_uuid);
             }
 
             //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
-            if (vec.X < 0.0f) vec.X = 0.0f;
-            if (vec.Y < 0.0f) vec.Y = 0.0f;
-            if (vec.X > (int)_parent_scene.WorldExtents.X - 0.05f) vec.X = (int)_parent_scene.WorldExtents.X - 0.05f;
-            if (vec.Y > (int)_parent_scene.WorldExtents.Y - 0.05f) vec.Y = (int)_parent_scene.WorldExtents.Y - 0.05f;
+            if (newPos.X < 0.0f) newPos.X = 0.0f;
+            if (newPos.Y < 0.0f) newPos.Y = 0.0f;
+            if (newPos.X > (int)_parent_scene.WorldExtents.X - 0.05f) newPos.X = (int)_parent_scene.WorldExtents.X - 0.05f;
+            if (newPos.Y > (int)_parent_scene.WorldExtents.Y - 0.05f) newPos.Y = (int)_parent_scene.WorldExtents.Y - 0.05f;
 
-            _position.X = vec.X;
-            _position.Y = vec.Y;
-            _position.Z = vec.Z;
+            _position.X = newPos.X;
+            _position.Y = newPos.Y;
+            _position.Z = newPos.Z;
 
             // I think we need to update the taintPosition too -- Diva 12/24/10
-            m_taintPosition.X = vec.X;
-            m_taintPosition.Y = vec.Y;
-            m_taintPosition.Z = vec.Z;
+            m_taintPosition = _position;
 
             // Did we move last? = zeroflag
             // This helps keep us from sliding all over
 
             if (_zeroFlag)
             {
-                _velocity.X = 0.0f;
-                _velocity.Y = 0.0f;
-                _velocity.Z = 0.0f;
+                _velocity = Vector3.Zero;
 
                 // Did we send out the 'stopped' message?
                 if (!m_lastUpdateSent)
                 {
                     m_lastUpdateSent = true;
                     //base.RequestPhysicsterseUpdate();
-
                 }
             }
             else
             {
                 m_lastUpdateSent = false;
+                d.Vector3 newVelocity;
+
                 try
                 {
-                    vec = d.BodyGetLinearVel(Body);
+                    newVelocity = d.BodyGetLinearVel(Body);
                 }
                 catch (NullReferenceException)
                 {
-                    vec.X = _velocity.X;
-                    vec.Y = _velocity.Y;
-                    vec.Z = _velocity.Z;
+                    newVelocity.X = _velocity.X;
+                    newVelocity.Y = _velocity.Y;
+                    newVelocity.Z = _velocity.Z;
                 }
-                _velocity.X = (vec.X);
-                _velocity.Y = (vec.Y);
 
-                _velocity.Z = (vec.Z);
+                _velocity.X = newVelocity.X;
+                _velocity.Y = newVelocity.Y;
+                _velocity.Z = newVelocity.Z;
 
                 if (_velocity.Z < -6 && !m_hackSentFall)
                 {
@@ -1255,10 +1244,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (Body != IntPtr.Zero)
                 {
                     d.BodySetPosition(Body, m_taintPosition.X, m_taintPosition.Y, m_taintPosition.Z);
-
-                    _position.X = m_taintPosition.X;
-                    _position.Y = m_taintPosition.Y;
-                    _position.Z = m_taintPosition.Z;
+                    _position = m_taintPosition;
                 }
             }
 
@@ -1303,8 +1289,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
                     d.BodyDestroy(Body);
                     d.GeomDestroy(Shell);
-                    AvatarGeomAndBodyCreation(_position.X, _position.Y,
-                                      _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2), m_tensor);
+                    AvatarGeomAndBodyCreation(
+                        _position.X,
+                        _position.Y,
+                        _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2), m_tensor);
 
                     // As with Size, we reset velocity.  However, this isn't strictly necessary since it doesn't
                     // appear to stall initial region crossings when done here.  Being done for consistency.
