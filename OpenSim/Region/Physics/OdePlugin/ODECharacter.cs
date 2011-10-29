@@ -431,13 +431,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                             value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
                         }
 
-                        _position.X = value.X;
-                        _position.Y = value.Y;
-                        _position.Z = value.Z;
-
                         m_taintPosition.X = value.X;
                         m_taintPosition.Y = value.Y;
                         m_taintPosition.Z = value.Z;
+                        
                         _parent_scene.AddPhysicsActorTaint(this);
                     }
                     else
