@@ -74,6 +74,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool _zeroFlag = false;
         private bool m_lastUpdateSent = false;
         private Vector3 _velocity;
+        private Vector3 m_taintTargetVelocity;
         private Vector3 _target_velocity;
         private Vector3 _acceleration;
         private Vector3 m_rotationalVelocity;
@@ -701,7 +702,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //             d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
 //             d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
 //             //d.Matrix3 bodyrotation = d.BodyGetRotation(Body);
-//             //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
+//             //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyFArotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
 //         }
 
         public override Vector3 Force
@@ -767,14 +768,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (value.IsFinite())
                 {
                     m_pidControllerActive = true;
-                    _target_velocity = value;
+                    m_taintTargetVelocity = value;
+                    _parent_scene.AddPhysicsActorTaint(this);
                 }
                 else
                 {
                     m_log.Warn("[PHYSICS]: Got a NaN velocity from Scene in a Character");
                 }
 
-//                m_log.DebugFormat("[PHYSICS]: Set target velocity of {0}", _target_velocity);
+//                m_log.DebugFormat("[PHYSICS]: Set target velocity of {0}", m_taintTargetVelocity);
             }
         }
 
@@ -834,14 +836,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // If uncommented, things get pushed off world
                     //
                     // m_log.Debug("Push!");
-                    // _target_velocity.X += force.X;
-                    // _target_velocity.Y += force.Y;
-                    // _target_velocity.Z += force.Z;
+                    // m_taintTargetVelocity.X += force.X;
+                    // m_taintTargetVelocity.Y += force.Y;
+                    // m_taintTargetVelocity.Z += force.Z;
                 }
                 else
                 {
                     m_pidControllerActive = true;
-                    _target_velocity += force;
+                    m_taintTargetVelocity += force;
                 }
             }
             else
@@ -1247,6 +1249,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _position = m_taintPosition;
                 }
             }
+
+            if (m_taintTargetVelocity != _target_velocity)
+                _target_velocity = m_taintTargetVelocity;
 
             if (m_tainted_isPhysical != m_isPhysical)
             {
