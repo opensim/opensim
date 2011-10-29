@@ -1250,6 +1250,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void ProcessTaints()
         {
+            if (m_taintPosition != _position)
+            {
+                if (Body != IntPtr.Zero)
+                {
+                    d.BodySetPosition(Body, m_taintPosition.X, m_taintPosition.Y, m_taintPosition.Z);
+
+                    _position.X = m_taintPosition.X;
+                    _position.Y = m_taintPosition.Y;
+                    _position.Z = m_taintPosition.Z;
+                }
+            }
+
             if (m_tainted_isPhysical != m_isPhysical)
             {
                 if (m_tainted_isPhysical)
@@ -1307,18 +1319,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         + (Shell==IntPtr.Zero ? "Shell ":"")
                         + (Body==IntPtr.Zero ? "Body ":"")
                         + (Amotor==IntPtr.Zero ? "Amotor ":""));
-                }
-            }
-
-            if (!m_taintPosition.ApproxEquals(_position, 0.05f))
-            {
-                if (Body != IntPtr.Zero)
-                {
-                    d.BodySetPosition(Body, m_taintPosition.X, m_taintPosition.Y, m_taintPosition.Z);
-
-                    _position.X = m_taintPosition.X;
-                    _position.Y = m_taintPosition.Y;
-                    _position.Z = m_taintPosition.Z;
                 }
             }
         }
