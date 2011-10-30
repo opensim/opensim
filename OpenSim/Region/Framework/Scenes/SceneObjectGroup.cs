@@ -344,15 +344,15 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_parts.Count; }
         }
 
-        protected Quaternion m_rotation = Quaternion.Identity;
-
-        public virtual Quaternion Rotation
-        {
-            get { return m_rotation; }
-            set {
-                m_rotation = value; 
-            }
-        }
+//        protected Quaternion m_rotation = Quaternion.Identity;
+//
+//        public virtual Quaternion Rotation
+//        {
+//            get { return m_rotation; }
+//            set {
+//                m_rotation = value; 
+//            }
+//        }
 
         public Quaternion GroupRotation
         {
@@ -3216,17 +3216,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void OffsetForNewRegion(Vector3 offset)
-        {
-            m_rootPart.GroupPosition = offset;
-        }
-
         #endregion
 
         #region Rotation
 
         /// <summary>
-        ///
+        /// Update the rotation of the group.
         /// </summary>
         /// <param name="rot"></param>
         public void UpdateGroupRotationR(Quaternion rot)
@@ -3254,7 +3249,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Update the position and rotation of a group simultaneously.
         /// </summary>
         /// <param name="pos"></param>
         /// <param name="rot"></param>
@@ -3288,7 +3283,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Update the rotation of a single prim within the group.
         /// </summary>
         /// <param name="rot"></param>
         /// <param name="localID"></param>
@@ -3314,7 +3309,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Update the position and rotation simultaneously of a single prim within the group.
         /// </summary>
         /// <param name="rot"></param>
         /// <param name="localID"></param>
@@ -3355,7 +3350,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Update the entire rotation of the group.
         /// </summary>
         /// <param name="rot"></param>
         public void UpdateRootRotation(Quaternion rot)

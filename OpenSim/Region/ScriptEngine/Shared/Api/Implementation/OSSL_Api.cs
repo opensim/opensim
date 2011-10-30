@@ -550,7 +550,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (World.Entities.TryGetValue(target, out entity))
                 {
                     if (entity is SceneObjectGroup)
-                        ((SceneObjectGroup)entity).Rotation = rotation;
+                        ((SceneObjectGroup)entity).UpdateGroupRotationR(rotation);
                     else if (entity is ScenePresence)
                         ((ScenePresence)entity).Rotation = rotation;
                 }

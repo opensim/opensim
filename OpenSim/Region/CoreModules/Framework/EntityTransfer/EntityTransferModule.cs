@@ -1712,7 +1712,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // Offset the positions for the new region across the border
             Vector3 oldGroupPosition = grp.RootPart.GroupPosition;
-            grp.OffsetForNewRegion(pos);
+            grp.RootPart.GroupPosition = pos;
 
             // If we fail to cross the border, then reset the position of the scene object on that border.
             uint x = 0, y = 0;
@@ -1720,7 +1720,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             GridRegion destination = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID, (int)x, (int)y);
             if (destination != null && !CrossPrimGroupIntoNewRegion(destination, grp, silent))
             {
-                grp.OffsetForNewRegion(oldGroupPosition);
+                grp.RootPart.GroupPosition = oldGroupPosition;
                 grp.ScheduleGroupForFullUpdate();
             }
         }

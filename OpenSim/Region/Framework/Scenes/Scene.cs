@@ -528,12 +528,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        // This gets locked so things stay thread safe.
-        public object SyncRoot
-        {
-            get { return m_sceneGraph.m_syncRoot; }
-        }
-
         public string DefaultScriptEngine
         {
             get { return m_defaultScriptEngine; }
