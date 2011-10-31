@@ -162,7 +162,7 @@ namespace pCampBot
             client.Throttle.Total = 400000;
             client.Network.LoginProgress += this.Network_LoginProgress;
             client.Network.SimConnected += this.Network_SimConnected;
-//            client.Network.Disconnected += this.Network_OnDisconnected;
+            client.Network.Disconnected += this.Network_OnDisconnected;
             client.Objects.ObjectUpdate += Objects_NewPrim;
             //client.Assets.OnAssetReceived += Asset_ReceivedCallback;
             if (client.Network.Login(FirstName, LastName, Password, "pCampBot", "Your name"))
