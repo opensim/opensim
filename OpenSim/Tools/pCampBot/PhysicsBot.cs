@@ -29,19 +29,23 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Timers;
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using Timer=System.Timers.Timer;
+using Timer = System.Timers.Timer;
 
 namespace pCampBot
 {
     public class PhysicsBot
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public delegate void AnEvent(PhysicsBot callbot, EventType someevent); // event delegate for bot events
         public IConfig startupConfig; // bot config, passed from BotManager
 
@@ -384,6 +388,7 @@ namespace pCampBot
 
         public void Network_OnDisconnected(object sender, DisconnectedEventArgs args)
         {
+//            m_log.ErrorFormat("Fired Network_OnDisconnected");
             if (OnDisconnected != null)
             {
                 OnDisconnected(this, EventType.DISCONNECTED);

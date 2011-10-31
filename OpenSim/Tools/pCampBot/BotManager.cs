@@ -165,18 +165,20 @@ namespace pCampBot
         /// </summary>
         /// <param name="callbot"></param>
         /// <param name="eventt"></param>
-        public void handlebotEvent(PhysicsBot callbot, EventType eventt)
+        private void handlebotEvent(PhysicsBot callbot, EventType eventt)
         {
             switch (eventt)
             {
                 case EventType.CONNECTED:
                     m_log.Info("[" + callbot.FirstName + " " + callbot.LastName + "]: Connected");
                     numbots++;
+//                m_log.InfoFormat("NUMBOTS {0}", numbots);
                     break;
                 case EventType.DISCONNECTED:
                     m_log.Info("[" + callbot.FirstName + " " + callbot.LastName + "]: Disconnected");
                     m_td[m_lBot.IndexOf(callbot)].Abort();
                     numbots--;
+//                m_log.InfoFormat("NUMBOTS {0}", numbots);
                     if (numbots <= 0)
                         Environment.Exit(0);
                     break;
