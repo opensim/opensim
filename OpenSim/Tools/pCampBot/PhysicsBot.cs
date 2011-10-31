@@ -47,7 +47,9 @@ namespace pCampBot
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public delegate void AnEvent(PhysicsBot callbot, EventType someevent); // event delegate for bot events
-        public IConfig startupConfig; // bot config, passed from BotManager
+
+        public BotManager BotManager { get; private set; }
+        private IConfig startupConfig; // bot config, passed from BotManager
 
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
@@ -59,11 +61,6 @@ namespace pCampBot
 
         public event AnEvent OnConnected;
         public event AnEvent OnDisconnected;
-
-        /// <summary>
-        /// Track the assets we have and have not received so we don't endlessly repeat requests.
-        /// </summary>
-        public Dictionary<UUID, bool> AssetsReceived { get; private set; }
 
         protected Timer m_action; // Action Timer
         protected List<uint> objectIDs = new List<uint>();
@@ -80,23 +77,23 @@ namespace pCampBot
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="bsconfig"></param>
+        /// <param name="bm"></param>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <param name="password"></param>
         /// <param name="loginUri"></param>
-        public PhysicsBot(IConfig bsconfig, string firstName, string lastName, string password, string loginUri)
+        public PhysicsBot(BotManager bm, string firstName, string lastName, string password, string loginUri)
         {
             FirstName = firstName;
             LastName = lastName;
             Name = string.Format("{0} {1}", FirstName, LastName);
             Password = password;
             LoginUri = loginUri;
-            startupConfig = bsconfig;
+
+            BotManager = bm;
+            startupConfig = bm.Config;
             readconfig();
             talkarray = readexcuses();
-
-            AssetsReceived = new Dictionary<UUID, bool>();
         }
 
         //We do our actions here.  This is where one would
@@ -428,13 +425,13 @@ namespace pCampBot
 
         private void GetTexture(UUID textureID)
         {
-            lock (AssetsReceived)
+            lock (BotManager.AssetsReceived)
             {
                 // Don't request assets more than once.
-                if (AssetsReceived.ContainsKey(textureID))
+                if (BotManager.AssetsReceived.ContainsKey(textureID))
                     return;
 
-                AssetsReceived[textureID] = false;
+                BotManager.AssetsReceived[textureID] = false;
                 client.Assets.RequestImage(textureID, ImageType.Normal, Asset_TextureCallback_Texture);
             }
         }
@@ -447,8 +444,8 @@ namespace pCampBot
         
         public void Asset_ReceivedCallback(AssetDownload transfer, Asset asset)
         {
-            lock (AssetsReceived)
-                AssetsReceived[asset.AssetID] = true;
+            lock (BotManager.AssetsReceived)
+                BotManager.AssetsReceived[asset.AssetID] = true;
 
 //            if (wear == "save")
 //            {

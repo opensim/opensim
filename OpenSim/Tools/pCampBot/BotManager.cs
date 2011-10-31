@@ -53,13 +53,20 @@ namespace pCampBot
         protected bool m_verbose = true;
         protected Random somthing = new Random(Environment.TickCount);
         protected int numbots = 0;
-        private IConfig Config;
+        public IConfig Config { get; private set; }
+
+        /// <summary>
+        /// Track the assets we have and have not received so we don't endlessly repeat requests.
+        /// </summary>
+        public Dictionary<UUID, bool> AssetsReceived { get; private set; }
 
         /// <summary>
         /// Constructor Creates MainConsole.Instance to take commands and provide the place to write data
         /// </summary>
         public BotManager()
         {
+            AssetsReceived = new Dictionary<UUID, bool>();
+
             m_console = CreateConsole();
             MainConsole.Instance = m_console;
 
@@ -113,7 +120,7 @@ namespace pCampBot
             for (int i = 0; i < botcount; i++)
             {
                 string lastName = string.Format("{0}_{1}", lastNameStem, i);
-                startupBot(i, cs, firstName, lastName, password, loginUri);
+                startupBot(i, this, firstName, lastName, password, loginUri);
             }
         }
 
@@ -146,9 +153,9 @@ namespace pCampBot
         /// <param name="lastName">Last name</param>
         /// <param name="password">Password</param>
         /// <param name="loginUri">Login URI</param>
-        public void startupBot(int pos, IConfig cs, string firstName, string lastName, string password, string loginUri)
+        public void startupBot(int pos, BotManager bm, string firstName, string lastName, string password, string loginUri)
         {
-            PhysicsBot pb = new PhysicsBot(cs, firstName, lastName, password, loginUri);
+            PhysicsBot pb = new PhysicsBot(bm, firstName, lastName, password, loginUri);
 
             pb.OnConnected += handlebotEvent;
             pb.OnDisconnected += handlebotEvent;
