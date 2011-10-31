@@ -56,6 +56,11 @@ namespace pCampBot
         public event AnEvent OnConnected;
         public event AnEvent OnDisconnected;
 
+        /// <summary>
+        /// Track the assets we have and have not received so we don't endlessly repeat requests.
+        /// </summary>
+        public Dictionary<UUID, bool> AssetsReceived { get; private set; }
+
         protected Timer m_action; // Action Timer
         protected List<uint> objectIDs = new List<uint>();
 
@@ -86,6 +91,8 @@ namespace pCampBot
             startupConfig = bsconfig;
             readconfig();
             talkarray = readexcuses();
+
+            AssetsReceived = new Dictionary<UUID, bool>();
         }
 
         //We do our actions here.  This is where one would
@@ -164,7 +171,7 @@ namespace pCampBot
             client.Network.SimConnected += this.Network_SimConnected;
             client.Network.Disconnected += this.Network_OnDisconnected;
             client.Objects.ObjectUpdate += Objects_NewPrim;
-            //client.Assets.OnAssetReceived += Asset_ReceivedCallback;
+
             if (client.Network.Login(FirstName, LastName, Password, "pCampBot", "Your name"))
             {
                 if (OnConnected != null)
@@ -227,7 +234,7 @@ namespace pCampBot
                 {
                     if (asset.Decode())
                     {
-                       File.WriteAllBytes(Path.Combine(saveDir, String.Format("{1}.{0}",
+                        File.WriteAllBytes(Path.Combine(saveDir, String.Format("{1}.{0}",
                         asset.AssetType.ToString().ToLower(),
                         asset.WearableType)), asset.AssetData);
                     }
@@ -393,25 +400,37 @@ namespace pCampBot
                 {
                     if (prim.Textures.DefaultTexture.TextureID != UUID.Zero)
                     {
-                        client.Assets.RequestImage(prim.Textures.DefaultTexture.TextureID, ImageType.Normal, Asset_TextureCallback_Texture);
+                        GetTexture(prim.Textures.DefaultTexture.TextureID);
                     }
 
                     for (int i = 0; i < prim.Textures.FaceTextures.Length; i++)
                     {
-                        if (prim.Textures.FaceTextures[i] != null)
+                        UUID textureID = prim.Textures.FaceTextures[i].TextureID;
+
+                        if (textureID != null && textureID != UUID.Zero)
                         {
-                            if (prim.Textures.FaceTextures[i].TextureID != UUID.Zero)
-                            {
-                                client.Assets.RequestImage(prim.Textures.FaceTextures[i].TextureID, ImageType.Normal, Asset_TextureCallback_Texture);
-                            }
+                            GetTexture(textureID);
                         }
                     }
                 }
 
                 if (prim.Sculpt.SculptTexture != UUID.Zero)
                 {
-                    client.Assets.RequestImage(prim.Sculpt.SculptTexture, ImageType.Normal, Asset_TextureCallback_Texture);
+                    GetTexture(prim.Sculpt.SculptTexture);
                 }
+            }
+        }
+
+        private void GetTexture(UUID textureID)
+        {
+            lock (AssetsReceived)
+            {
+                // Don't request assets more than once.
+                if (AssetsReceived.ContainsKey(textureID))
+                    return;
+
+                AssetsReceived[textureID] = false;
+                client.Assets.RequestImage(textureID, ImageType.Normal, Asset_TextureCallback_Texture);
             }
         }
 
@@ -421,12 +440,15 @@ namespace pCampBot
             //TODO: Implement texture saving and applying
         }
         
-        public void Asset_ReceivedCallback(AssetDownload transfer,Asset asset)
+        public void Asset_ReceivedCallback(AssetDownload transfer, Asset asset)
         {
-            if (wear == "save")
-            {
-                SaveAsset((AssetWearable) asset);
-            }
+            lock (AssetsReceived)
+                AssetsReceived[asset.AssetID] = true;
+
+//            if (wear == "save")
+//            {
+//                SaveAsset((AssetWearable) asset);
+//            }
         }
 
         public string[] readexcuses()
