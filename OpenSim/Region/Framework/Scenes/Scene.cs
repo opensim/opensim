@@ -1231,7 +1231,31 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
+                int tmpPhysicsMS2 = Util.EnvironmentTickCount();
+                if ((Frame % m_update_physics == 0) && m_physics_enabled)
+                    m_sceneGraph.UpdatePreparePhysics();
+                physicsMS2 = Util.EnvironmentTickCountSubtract(tmpPhysicsMS2);
+
+                // Apply any pending avatar force input to the avatar's velocity
                 int tmpAgentMS = Util.EnvironmentTickCount();
+                if (Frame % m_update_entitymovement == 0)
+                    m_sceneGraph.UpdateScenePresenceMovement();
+                agentMS = Util.EnvironmentTickCountSubtract(tmpAgentMS);
+
+                // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
+                // velocity
+                int tmpPhysicsMS = Util.EnvironmentTickCount();
+                if (Frame % m_update_physics == 0)
+                {
+                    if (m_physics_enabled)
+                        physicsFPS = m_sceneGraph.UpdatePhysics(MinFrameTime);
+
+                    if (SynchronizeScene != null)
+                        SynchronizeScene(this);
+                }
+                physicsMS = Util.EnvironmentTickCountSubtract(tmpPhysicsMS);
+
+                tmpAgentMS = Util.EnvironmentTickCount();
 
                 // Check if any objects have reached their targets
                 CheckAtTargets();
@@ -1259,33 +1283,7 @@ namespace OpenSim.Region.Framework.Scenes
                     });
                 }
 
-                agentMS = Util.EnvironmentTickCountSubtract(tmpAgentMS);
-
-                int tmpPhysicsMS2 = Util.EnvironmentTickCount();
-                if ((Frame % m_update_physics == 0) && m_physics_enabled)
-                    m_sceneGraph.UpdatePreparePhysics();
-                physicsMS2 = Util.EnvironmentTickCountSubtract(tmpPhysicsMS2);
-
-                // Apply any pending avatar force input to the avatar's velocity
-                if (Frame % m_update_entitymovement == 0)
-                {
-                    tmpAgentMS = Util.EnvironmentTickCount();
-                    m_sceneGraph.UpdateScenePresenceMovement();
-                    agentMS += Util.EnvironmentTickCountSubtract(tmpAgentMS);
-                }
-
-                // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
-                // velocity
-                int tmpPhysicsMS = Util.EnvironmentTickCount();
-                if (Frame % m_update_physics == 0)
-                {
-                    if (m_physics_enabled)
-                        physicsFPS = m_sceneGraph.UpdatePhysics(MinFrameTime);
-
-                    if (SynchronizeScene != null)
-                        SynchronizeScene(this);
-                }
-                physicsMS = Util.EnvironmentTickCountSubtract(tmpPhysicsMS);
+                agentMS += Util.EnvironmentTickCountSubtract(tmpAgentMS);
 
                 // Delete temp-on-rez stuff
                 if (Frame % m_update_temp_cleaning == 0 && !m_cleaningTemps)
