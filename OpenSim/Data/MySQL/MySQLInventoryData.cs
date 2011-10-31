@@ -794,7 +794,8 @@ namespace OpenSim.Data.MySQL
                 {
                     dbcon.Open();
 
-                    using (MySqlCommand cmd = new MySqlCommand("DELETE FROM inventoryfolders WHERE folderID=?uuid", dbcon))
+                    // System folders can never be deleted. Period.
+                    using (MySqlCommand cmd = new MySqlCommand("DELETE FROM inventoryfolders WHERE folderID=?uuid and type=-1", dbcon))
                     {
                         cmd.Parameters.AddWithValue("?uuid", folderID.ToString());
 
