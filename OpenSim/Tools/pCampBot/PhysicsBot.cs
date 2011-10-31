@@ -29,21 +29,27 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Timers;
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using Timer=System.Timers.Timer;
+using Timer = System.Timers.Timer;
 
 namespace pCampBot
 {
     public class PhysicsBot
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public delegate void AnEvent(PhysicsBot callbot, EventType someevent); // event delegate for bot events
-        public IConfig startupConfig; // bot config, passed from BotManager
+
+        public BotManager BotManager { get; private set; }
+        private IConfig startupConfig; // bot config, passed from BotManager
 
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
@@ -71,19 +77,21 @@ namespace pCampBot
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="bsconfig"></param>
+        /// <param name="bm"></param>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <param name="password"></param>
         /// <param name="loginUri"></param>
-        public PhysicsBot(IConfig bsconfig, string firstName, string lastName, string password, string loginUri)
+        public PhysicsBot(BotManager bm, string firstName, string lastName, string password, string loginUri)
         {
             FirstName = firstName;
             LastName = lastName;
             Name = string.Format("{0} {1}", FirstName, LastName);
             Password = password;
             LoginUri = loginUri;
-            startupConfig = bsconfig;
+
+            BotManager = bm;
+            startupConfig = bm.Config;
             readconfig();
             talkarray = readexcuses();
         }
@@ -162,9 +170,9 @@ namespace pCampBot
             client.Throttle.Total = 400000;
             client.Network.LoginProgress += this.Network_LoginProgress;
             client.Network.SimConnected += this.Network_SimConnected;
-//            client.Network.Disconnected += this.Network_OnDisconnected;
+            client.Network.Disconnected += this.Network_OnDisconnected;
             client.Objects.ObjectUpdate += Objects_NewPrim;
-            //client.Assets.OnAssetReceived += Asset_ReceivedCallback;
+
             if (client.Network.Login(FirstName, LastName, Password, "pCampBot", "Your name"))
             {
                 if (OnConnected != null)
@@ -227,7 +235,7 @@ namespace pCampBot
                 {
                     if (asset.Decode())
                     {
-                       File.WriteAllBytes(Path.Combine(saveDir, String.Format("{1}.{0}",
+                        File.WriteAllBytes(Path.Combine(saveDir, String.Format("{1}.{0}",
                         asset.AssetType.ToString().ToLower(),
                         asset.WearableType)), asset.AssetData);
                     }
@@ -377,6 +385,7 @@ namespace pCampBot
 
         public void Network_OnDisconnected(object sender, DisconnectedEventArgs args)
         {
+//            m_log.ErrorFormat("Fired Network_OnDisconnected");
             if (OnDisconnected != null)
             {
                 OnDisconnected(this, EventType.DISCONNECTED);
@@ -393,25 +402,37 @@ namespace pCampBot
                 {
                     if (prim.Textures.DefaultTexture.TextureID != UUID.Zero)
                     {
-                        client.Assets.RequestImage(prim.Textures.DefaultTexture.TextureID, ImageType.Normal, Asset_TextureCallback_Texture);
+                        GetTexture(prim.Textures.DefaultTexture.TextureID);
                     }
 
                     for (int i = 0; i < prim.Textures.FaceTextures.Length; i++)
                     {
-                        if (prim.Textures.FaceTextures[i] != null)
+                        UUID textureID = prim.Textures.FaceTextures[i].TextureID;
+
+                        if (textureID != null && textureID != UUID.Zero)
                         {
-                            if (prim.Textures.FaceTextures[i].TextureID != UUID.Zero)
-                            {
-                                client.Assets.RequestImage(prim.Textures.FaceTextures[i].TextureID, ImageType.Normal, Asset_TextureCallback_Texture);
-                            }
+                            GetTexture(textureID);
                         }
                     }
                 }
 
                 if (prim.Sculpt.SculptTexture != UUID.Zero)
                 {
-                    client.Assets.RequestImage(prim.Sculpt.SculptTexture, ImageType.Normal, Asset_TextureCallback_Texture);
+                    GetTexture(prim.Sculpt.SculptTexture);
                 }
+            }
+        }
+
+        private void GetTexture(UUID textureID)
+        {
+            lock (BotManager.AssetsReceived)
+            {
+                // Don't request assets more than once.
+                if (BotManager.AssetsReceived.ContainsKey(textureID))
+                    return;
+
+                BotManager.AssetsReceived[textureID] = false;
+                client.Assets.RequestImage(textureID, ImageType.Normal, Asset_TextureCallback_Texture);
             }
         }
 
@@ -421,12 +442,15 @@ namespace pCampBot
             //TODO: Implement texture saving and applying
         }
         
-        public void Asset_ReceivedCallback(AssetDownload transfer,Asset asset)
+        public void Asset_ReceivedCallback(AssetDownload transfer, Asset asset)
         {
-            if (wear == "save")
-            {
-                SaveAsset((AssetWearable) asset);
-            }
+            lock (BotManager.AssetsReceived)
+                BotManager.AssetsReceived[asset.AssetID] = true;
+
+//            if (wear == "save")
+//            {
+//                SaveAsset((AssetWearable) asset);
+//            }
         }
 
         public string[] readexcuses()
