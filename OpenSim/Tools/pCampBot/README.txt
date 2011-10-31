@@ -1,9 +1,12 @@
 This is the PhysicsCamperbot libslBot tester.
 
-This is designed to be run in standalone mode with authorize accounts
-turned off as a way to stress test the simulator.  It creates <N>
-clients that log in, randomly jump/walk around, and say excuses from
+This is designed to stress test the simulator.  It creates <N>
+clients that log in, randomly jump/walk around, and can say excuses from
 the BOFH.
+
+Bots must have accounts already created.  Each bot will have the same firstname and password
+but their lastname will be appended with _<bot-number> starting from 0.  So if you have two bots called ima bot, their
+first names will be ima_bot_0 and ima_bot_1.
 
 *** WARNING ***
 Using this bot on a public grid could get you banned permanently, so
@@ -21,19 +24,8 @@ pCampBot.exe will end up in the regular opensim/bin folder
 
 ----- Running the bot -----
 
-windows: pCampBot.exe -botcount <N> -loginuri <URI>
-*nix: mono pCampBot.exe -botcount <N> -loginuri <URI>
-
-The names it produces are random by default, however, you can specify
-either a firstname or a lastname in the command line also.
-
-ex: pCampBot.exe -botcount <N> -loginuri <URI> -lastname <lastname>
-
-If you specify both a firstname *and* a lastname, you'll likely run
-into trouble unless you're only running a single bot.  In that case,
-there's also a password option.
-
-pCampBot.exe -botcount 1 -loginuri http://somegrid.com:8002 -firstname SomeDude -lastname SomeDude -password GobbleDeGook
+windows: pCampBot.exe -botcount <N> -loginuri <URI> -firstname <bot-first-name> -lastname <bot-last-name-stem> -password <bot-password>
+*nix: mono pCampBot.exe -botcount <N> -loginuri <URI> -firstname <bot-first-name> -lastname <bot-last-name-stem> -password <bot-password>
 
 ----- Commands -----
 
@@ -41,4 +33,3 @@ The bot has console commands:
   help       - lists the console commands and what they do
   shutdown   - gracefully shuts down the bots
   quit       - forcefully shuts things down leaving stuff unclean
-  addbots N  - adds N number of random bots. (replace 'N' with a number)

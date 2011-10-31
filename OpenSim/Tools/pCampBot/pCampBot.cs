@@ -95,9 +95,9 @@ namespace pCampBot
                                      "Spawns a set of bots to test an OpenSim region\n\n" +
                                      "  -l, -loginuri      loginuri for sim to log into (required)\n" +
                                      "  -n, -botcount      number of bots to start (default: 1)\n" +
-                                     "  -firstname         first name for the bot(s) (default: random string)\n" +
-                                     "  -lastname          lastname for the bot(s) (default: random string)\n" +
-                                     "  -password          password for the bots(s) (default: random string)\n" +
+                                     "  -firstname         first name for the bots\n" +
+                                     "  -lastname          lastname for the bots.  Each lastname will have _<bot-number> appended, e.g. Ima Bot_0\n" +
+                                     "  -password          password for the bots\n" +
                                      "  -wear              set appearance folder to load from (default: no)\n" +
                                      "  -h, -help          show this message"
                                      );
