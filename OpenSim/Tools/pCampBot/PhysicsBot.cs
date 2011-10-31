@@ -45,10 +45,11 @@ namespace pCampBot
         public delegate void AnEvent(PhysicsBot callbot, EventType someevent); // event delegate for bot events
         public IConfig startupConfig; // bot config, passed from BotManager
 
-        public string firstname;
-        public string lastname;
-        public string password;
-        public string loginURI;
+        public string FirstName { get; private set; }
+        public string LastName { get; private set; }
+        public string Name { get; private set; }
+        public string Password { get; private set; }
+        public string LoginUri { get; private set; }
         public string saveDir;
         public string wear;
 
@@ -60,16 +61,28 @@ namespace pCampBot
 
         protected Random somthing = new Random(Environment.TickCount);// We do stuff randomly here
 
-        //New instance of a SecondLife client
+        /// <summary>
+        /// New instance of a SecondLife client
+        /// </summary>
         public GridClient client = new GridClient();
 
         protected string[] talkarray;
+
         /// <summary>
-        ///
+        /// Constructor
         /// </summary>
-        /// <param name="bsconfig">nini config for the bot</param>
-        public PhysicsBot(IConfig bsconfig)
+        /// <param name="bsconfig"></param>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="password"></param>
+        /// <param name="loginUri"></param>
+        public PhysicsBot(IConfig bsconfig, string firstName, string lastName, string password, string loginUri)
         {
+            FirstName = firstName;
+            LastName = lastName;
+            Name = string.Format("{0} {1}", FirstName, LastName);
+            Password = password;
+            LoginUri = loginUri;
             startupConfig = bsconfig;
             readconfig();
             talkarray = readexcuses();
@@ -116,10 +129,6 @@ namespace pCampBot
         /// </summary>
         public void readconfig()
         {
-            firstname = startupConfig.GetString("firstname", "random");
-            lastname = startupConfig.GetString("lastname", "random");
-            password = startupConfig.GetString("password", "12345");
-            loginURI = startupConfig.GetString("loginuri");
             wear = startupConfig.GetString("wear","no");
         }
 
@@ -136,7 +145,7 @@ namespace pCampBot
         /// </summary>
         public void startup()
         {
-            client.Settings.LOGIN_SERVER = loginURI;
+            client.Settings.LOGIN_SERVER = LoginUri;
             client.Settings.ALWAYS_DECODE_OBJECTS = false;
             client.Settings.AVATAR_TRACKING = false;
             client.Settings.OBJECT_TRACKING = false;
@@ -153,10 +162,10 @@ namespace pCampBot
             client.Throttle.Total = 400000;
             client.Network.LoginProgress += this.Network_LoginProgress;
             client.Network.SimConnected += this.Network_SimConnected;
-            client.Network.Disconnected += this.Network_OnDisconnected;
+//            client.Network.Disconnected += this.Network_OnDisconnected;
             client.Objects.ObjectUpdate += Objects_NewPrim;
             //client.Assets.OnAssetReceived += Asset_ReceivedCallback;
-            if (client.Network.Login(firstname, lastname, password, "pCampBot", "Your name"))
+            if (client.Network.Login(FirstName, LastName, Password, "pCampBot", "Your name"))
             {
                 if (OnConnected != null)
                 {
@@ -180,7 +189,9 @@ namespace pCampBot
             }
             else
             {
-                MainConsole.Instance.Output(firstname + " " + lastname + " Can't login: " + client.Network.LoginMessage);
+                MainConsole.Instance.OutputFormat(
+                    "{0} {1} cannot login: {2}", FirstName, LastName, client.Network.LoginMessage);
+
                 if (OnDisconnected != null)
                 {
                     OnDisconnected(this, EventType.DISCONNECTED);
@@ -190,7 +201,7 @@ namespace pCampBot
 
         public void SaveDefaultAppearance()
         {
-            saveDir = "MyAppearance/" + firstname + "_" + lastname;
+            saveDir = "MyAppearance/" + FirstName + "_" + LastName;
             if (!Directory.Exists(saveDir))
             {
                 Directory.CreateDirectory(saveDir);
