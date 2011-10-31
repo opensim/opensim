@@ -4028,33 +4028,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public override void Show(string[] showParams)
-        {
-            base.Show(showParams);
-
-            switch (showParams[0])
-            {
-                case "users":
-                    m_log.Error("Current Region: " + RegionInfo.RegionName);
-                    m_log.ErrorFormat("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname",
-                                      "Agent ID", "Session ID", "Circuit", "IP", "World");
-
-                    ForEachScenePresence(delegate(ScenePresence sp)
-                    {
-                        m_log.ErrorFormat("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
-                                          sp.Firstname,
-                                          sp.Lastname,
-                                          sp.UUID,
-                                          sp.ControllingClient.AgentId,
-                                          "Unknown",
-                                          "Unknown",
-                                          RegionInfo.RegionName);
-                    });
-
-                    break;
-            }
-        }
-
         #region Script Handling Methods
 
         /// <summary>

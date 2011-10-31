@@ -1045,6 +1045,19 @@ namespace OpenSim
                         MainConsole.Instance.Output("Shared Module: " + module.Name);
                     }
 
+                    m_sceneManager.ForEachScene(
+                        delegate(Scene scene)
+                        {
+                            m_log.Error("The currently loaded modules in " + scene.RegionInfo.RegionName + " are:");
+                            foreach (IRegionModule module in scene.Modules.Values)
+                            {
+                                if (!module.IsSharedModule)
+                                {
+                                    m_log.Error("Region Module: " + module.Name);
+                                }
+                            }
+                        });
+
                     MainConsole.Instance.Output("");
                     break;
 
