@@ -165,7 +165,7 @@ namespace pCampBot
                     m_action.AutoReset = false;
                     m_action.Elapsed += new ElapsedEventHandler(m_action_Elapsed);
                     m_action.Start();
-                    OnConnected(this, EventType.CONNECTED);
+//                    OnConnected(this, EventType.CONNECTED);
                     if (wear == "save")
                     {
                         client.Appearance.SetPreviousAppearance();
@@ -384,6 +384,7 @@ namespace pCampBot
                     {
                         client.Assets.RequestImage(prim.Textures.DefaultTexture.TextureID, ImageType.Normal, Asset_TextureCallback_Texture);
                     }
+
                     for (int i = 0; i < prim.Textures.FaceTextures.Length; i++)
                     {
                         if (prim.Textures.FaceTextures[i] != null)
@@ -392,10 +393,10 @@ namespace pCampBot
                             {
                                 client.Assets.RequestImage(prim.Textures.FaceTextures[i].TextureID, ImageType.Normal, Asset_TextureCallback_Texture);
                             }
-
                         }
                     }
                 }
+
                 if (prim.Sculpt.SculptTexture != UUID.Zero)
                 {
                     client.Assets.RequestImage(prim.Sculpt.SculptTexture, ImageType.Normal, Asset_TextureCallback_Texture);

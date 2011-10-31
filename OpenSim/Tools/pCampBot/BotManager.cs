@@ -81,16 +81,16 @@ namespace pCampBot
 
             m_console.Commands.AddCommand("bot", false, "shutdown",
                     "shutdown",
-                    "Gracefully shut down bots", HandleShutdown);
+                    "Shutdown bots and exit", HandleShutdown);
 
             m_console.Commands.AddCommand("bot", false, "quit",
                     "quit",
-                    "Force quit (DANGEROUS, try shutdown first)",
+                    "Shutdown bots and exit",
                     HandleShutdown);
 
-            m_console.Commands.AddCommand("bot", false, "add bots",
-                    "add bots <number>",
-                    "Add more bots", HandleAddBots);
+//            m_console.Commands.AddCommand("bot", false, "add bots",
+//                    "add bots <number>",
+//                    "Add more bots", HandleAddBots);
 
             m_lBot = new List<PhysicsBot>();
         }
@@ -177,14 +177,14 @@ namespace pCampBot
             switch (eventt)
             {
                 case EventType.CONNECTED:
-                    m_log.Info("[ " + callbot.firstname + " " + callbot.lastname + "]: Connected");
+                    m_log.Info("[" + callbot.firstname + " " + callbot.lastname + "]: Connected");
                     numbots++;
                     break;
                 case EventType.DISCONNECTED:
-                    m_log.Info("[ " + callbot.firstname + " " + callbot.lastname + "]: Disconnected");
+                    m_log.Info("[" + callbot.firstname + " " + callbot.lastname + "]: Disconnected");
                     m_td[m_lBot.IndexOf(callbot)].Abort();
                     numbots--;
-                    if (numbots >1)
+                    if (numbots <= 0)
                         Environment.Exit(0);
                     break;
             }
