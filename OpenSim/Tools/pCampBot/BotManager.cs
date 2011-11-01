@@ -49,7 +49,6 @@ namespace pCampBot
 
         protected CommandConsole m_console;
         protected List<PhysicsBot> m_lBot;
-        protected Thread[] m_td;
         protected bool m_verbose = true;
         protected Random somthing = new Random(Environment.TickCount);
         protected int numbots = 0;
@@ -110,7 +109,6 @@ namespace pCampBot
         public void dobotStartup(int botcount, IConfig cs)
         {
             Config = cs;
-            m_td = new Thread[botcount];
 
             string firstName = cs.GetString("firstname");
             string lastNameStem = cs.GetString("lastname");
@@ -160,11 +158,12 @@ namespace pCampBot
             pb.OnConnected += handlebotEvent;
             pb.OnDisconnected += handlebotEvent;
 
-            m_td[pos] = new Thread(pb.startup);
-            m_td[pos].Name = pb.Name;
-            m_td[pos].IsBackground = true;
-            m_td[pos].Start();
             m_lBot.Add(pb);
+
+            Thread pbThread = new Thread(pb.startup);
+            pbThread.Name = pb.Name;
+            pbThread.IsBackground = true;
+            pbThread.Start();
         }
 
         /// <summary>
@@ -183,7 +182,6 @@ namespace pCampBot
                     break;
                 case EventType.DISCONNECTED:
                     m_log.Info("[" + callbot.FirstName + " " + callbot.LastName + "]: Disconnected");
-                    m_td[m_lBot.IndexOf(callbot)].Abort();
                     numbots--;
 //                m_log.InfoFormat("NUMBOTS {0}", numbots);
                     if (numbots <= 0)
