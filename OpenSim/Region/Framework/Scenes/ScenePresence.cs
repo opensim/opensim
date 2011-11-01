@@ -2927,7 +2927,7 @@ namespace OpenSim.Region.Framework.Scenes
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
             {
-                m_log.Warn("[SCENE PRESENCE] attempt to send avatar data from a child agent");
+                m_log.Warn("[SCENE PRESENCE]: Attempt to send avatar data from a child agent");
                 return;
             }
 
@@ -2984,10 +2984,10 @@ namespace OpenSim.Region.Framework.Scenes
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
             {
-                m_log.Warn("[SCENE PRESENCE] attempt to send avatar data from a child agent");
+                m_log.Warn("[SCENE PRESENCE]: Attempt to send avatar data from a child agent");
                 return;
             }
-
+            
             int count = 0;
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
                         {

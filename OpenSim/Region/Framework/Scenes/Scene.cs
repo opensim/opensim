@@ -86,7 +86,6 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_allowScriptCrossings;
         public bool m_useFlySlow;
         public bool m_usePreJump;
-        public bool m_seeIntoRegionFromNeighbor;
 
         protected float m_defaultDrawDistance = 255.0f;
         public float DefaultDrawDistance 
@@ -660,14 +659,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_physics_enabled = !RegionInfo.RegionSettings.DisablePhysics;
 
-            // Old
-            /*
-            m_simulatorVersion = simulatorVersion
-                + " (OS " + Util.GetOperatingSystemInformation() + ")"
-                + " ChilTasks:" + m_seeIntoRegionFromNeighbor.ToString()
-                + " PhysPrim:" + m_physicalPrim.ToString();
-            */
-
             m_simulatorVersion = simulatorVersion + " (" + Util.GetRuntimeInformation() + ")";
 
             #region Region Config
@@ -714,7 +705,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_clampPrimSize = true;
                 }
 
-                m_seeIntoRegionFromNeighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor", true);
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
                 m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
                 m_dontPersistBefore =
@@ -4198,33 +4188,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-            }
-        }
-
-        public override void Show(string[] showParams)
-        {
-            base.Show(showParams);
-
-            switch (showParams[0])
-            {
-                case "users":
-                    m_log.Error("Current Region: " + RegionInfo.RegionName);
-                    m_log.ErrorFormat("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname",
-                                      "Agent ID", "Session ID", "Circuit", "IP", "World");
-
-                    ForEachScenePresence(delegate(ScenePresence sp)
-                    {
-                        m_log.ErrorFormat("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
-                                          sp.Firstname,
-                                          sp.Lastname,
-                                          sp.UUID,
-                                          sp.ControllingClient.AgentId,
-                                          "Unknown",
-                                          "Unknown",
-                                          RegionInfo.RegionName);
-                    });
-
-                    break;
             }
         }
 

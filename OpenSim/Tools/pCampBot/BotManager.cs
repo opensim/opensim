@@ -49,17 +49,22 @@ namespace pCampBot
 
         protected CommandConsole m_console;
         protected List<PhysicsBot> m_lBot;
-        protected Thread[] m_td;
-        protected bool m_verbose = true;
         protected Random somthing = new Random(Environment.TickCount);
         protected int numbots = 0;
-        protected IConfig Previous_config;
+        public IConfig Config { get; private set; }
+
+        /// <summary>
+        /// Track the assets we have and have not received so we don't endlessly repeat requests.
+        /// </summary>
+        public Dictionary<UUID, bool> AssetsReceived { get; private set; }
 
         /// <summary>
         /// Constructor Creates MainConsole.Instance to take commands and provide the place to write data
         /// </summary>
         public BotManager()
         {
+            AssetsReceived = new Dictionary<UUID, bool>();
+
             m_console = CreateConsole();
             MainConsole.Instance = m_console;
 
@@ -81,16 +86,21 @@ namespace pCampBot
 
             m_console.Commands.AddCommand("bot", false, "shutdown",
                     "shutdown",
-                    "Gracefully shut down bots", HandleShutdown);
+                    "Shutdown bots and exit", HandleShutdown);
 
             m_console.Commands.AddCommand("bot", false, "quit",
                     "quit",
-                    "Force quit (DANGEROUS, try shutdown first)",
+                    "Shutdown bots and exit",
                     HandleShutdown);
 
-            m_console.Commands.AddCommand("bot", false, "add bots",
-                    "add bots <number>",
-                    "Add more bots", HandleAddBots);
+            m_console.Commands.AddCommand("bot", false, "show status",
+                    "show status",
+                    "Shows the status of all bots",
+                    HandleShowStatus);
+
+//            m_console.Commands.AddCommand("bot", false, "add bots",
+//                    "add bots <number>",
+//                    "Add more bots", HandleAddBots);
 
             m_lBot = new List<PhysicsBot>();
         }
@@ -102,69 +112,63 @@ namespace pCampBot
         /// <param name="cs">The configuration for the bots to use</param>
         public void dobotStartup(int botcount, IConfig cs)
         {
-            Previous_config = cs;
-            m_td = new Thread[botcount];
+            Config = cs;
+
+            string firstName = cs.GetString("firstname");
+            string lastNameStem = cs.GetString("lastname");
+            string password = cs.GetString("password");
+            string loginUri = cs.GetString("loginuri");
+
             for (int i = 0; i < botcount; i++)
             {
-                startupBot(i, cs);
+                string lastName = string.Format("{0}_{1}", lastNameStem, i);
+                startupBot(i, this, firstName, lastName, password, loginUri);
             }
         }
 
-        /// <summary>
-        /// Add additional bots (and threads) to our bot pool
-        /// </summary>
-        /// <param name="botcount">How Many of them to add</param>
-        public void addbots(int botcount)
-        {
-            int len = m_td.Length;
-            Thread[] m_td2 = new Thread[len + botcount];
-            for (int i = 0; i < len; i++)
-            {
-                m_td2[i] = m_td[i];
-            }
-            m_td = m_td2;
-            int newlen = len + botcount;
-            for (int i = len; i < newlen; i++)
-            {
-                startupBot(i, Previous_config);
-            }
-        }
+//        /// <summary>
+//        /// Add additional bots (and threads) to our bot pool
+//        /// </summary>
+//        /// <param name="botcount">How Many of them to add</param>
+//        public void addbots(int botcount)
+//        {
+//            int len = m_td.Length;
+//            Thread[] m_td2 = new Thread[len + botcount];
+//            for (int i = 0; i < len; i++)
+//            {
+//                m_td2[i] = m_td[i];
+//            }
+//            m_td = m_td2;
+//            int newlen = len + botcount;
+//            for (int i = len; i < newlen; i++)
+//            {
+//                startupBot(i, Config);
+//            }
+//        }
 
         /// <summary>
         /// This starts up the bot and stores the thread for the bot in the thread array
         /// </summary>
         /// <param name="pos">The position in the thread array to stick the bot's thread</param>
         /// <param name="cs">Configuration of the bot</param>
-        public void startupBot(int pos, IConfig cs)
+        /// <param name="firstName">First name</param>
+        /// <param name="lastName">Last name</param>
+        /// <param name="password">Password</param>
+        /// <param name="loginUri">Login URI</param>
+        public void startupBot(int pos, BotManager bm, string firstName, string lastName, string password, string loginUri)
         {
-            PhysicsBot pb = new PhysicsBot(cs);
+            PhysicsBot pb = new PhysicsBot(bm, firstName, lastName, password, loginUri);
 
             pb.OnConnected += handlebotEvent;
             pb.OnDisconnected += handlebotEvent;
-            if (cs.GetString("firstname", "random") == "random") pb.firstname = CreateRandomName();
-            if (cs.GetString("lastname", "random") == "random") pb.lastname = CreateRandomName();
 
-            m_td[pos] = new Thread(pb.startup);
-            m_td[pos].Name = "CampBot_" + pos;
-            m_td[pos].IsBackground = true;
-            m_td[pos].Start();
-            m_lBot.Add(pb);
-        }
+            lock (m_lBot)
+                m_lBot.Add(pb);
 
-        /// <summary>
-        /// Creates a random name for the bot
-        /// </summary>
-        /// <returns></returns>
-        private string CreateRandomName()
-        {
-            string returnstring = "";
-            string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-            for (int i = 0; i < 7; i++)
-            {
-                returnstring += chars.Substring(somthing.Next(chars.Length),1);
-            }
-            return returnstring;
+            Thread pbThread = new Thread(pb.startup);
+            pbThread.Name = pb.Name;
+            pbThread.IsBackground = true;
+            pbThread.Start();
         }
 
         /// <summary>
@@ -172,19 +176,20 @@ namespace pCampBot
         /// </summary>
         /// <param name="callbot"></param>
         /// <param name="eventt"></param>
-        public void handlebotEvent(PhysicsBot callbot, EventType eventt)
+        private void handlebotEvent(PhysicsBot callbot, EventType eventt)
         {
             switch (eventt)
             {
                 case EventType.CONNECTED:
-                    m_log.Info("[ " + callbot.firstname + " " + callbot.lastname + "]: Connected");
+                    m_log.Info("[" + callbot.FirstName + " " + callbot.LastName + "]: Connected");
                     numbots++;
+//                m_log.InfoFormat("NUMBOTS {0}", numbots);
                     break;
                 case EventType.DISCONNECTED:
-                    m_log.Info("[ " + callbot.firstname + " " + callbot.lastname + "]: Disconnected");
-                    m_td[m_lBot.IndexOf(callbot)].Abort();
+                    m_log.Info("[" + callbot.FirstName + " " + callbot.LastName + "]: Disconnected");
                     numbots--;
-                    if (numbots >1)
+//                m_log.InfoFormat("NUMBOTS {0}", numbots);
+                    if (numbots <= 0)
                         Environment.Exit(0);
                     break;
             }
@@ -195,10 +200,9 @@ namespace pCampBot
         /// </summary>
         public void doBotShutdown()
         {
-            foreach (PhysicsBot pb in m_lBot)
-            {
-                pb.shutdown();
-            }
+            lock (m_lBot)
+                foreach (PhysicsBot pb in m_lBot)
+                    pb.shutdown();
         }
 
         /// <summary>
@@ -216,6 +220,21 @@ namespace pCampBot
             doBotShutdown();
         }
 
+        private void HandleShowStatus(string module, string[] cmd)
+        {
+            string outputFormat = "{0,-30} {1,-14}";
+            MainConsole.Instance.OutputFormat(outputFormat, "Name", "Status");
+
+            lock (m_lBot)
+            {
+                foreach (PhysicsBot pb in m_lBot)
+                {
+                    MainConsole.Instance.OutputFormat(
+                        outputFormat, pb.Name, (pb.IsConnected ? "Connected" : "Disconnected"));
+                }
+            }
+        }
+
         /*
         private void HandleQuit(string module, string[] cmd)
         {
@@ -223,17 +242,17 @@ namespace pCampBot
             Environment.Exit(0);
         }
         */
-
-        private void HandleAddBots(string module, string[] cmd)
-        {
-            int newbots = 0;
-            
-            if (cmd.Length > 2)
-            {
-                Int32.TryParse(cmd[2], out newbots);
-            }
-            if (newbots > 0)
-                addbots(newbots);
-        }
+//
+//        private void HandleAddBots(string module, string[] cmd)
+//        {
+//            int newbots = 0;
+//            
+//            if (cmd.Length > 2)
+//            {
+//                Int32.TryParse(cmd[2], out newbots);
+//            }
+//            if (newbots > 0)
+//                addbots(newbots);
+//        }
     }
 }

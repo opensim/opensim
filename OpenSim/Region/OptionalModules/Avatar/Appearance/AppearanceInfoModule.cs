@@ -98,7 +98,24 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                 "Show appearance information for each avatar in the simulator.",
                 "At the moment this actually just checks that we have all the required baked textures.  If not, then appearance is 'corrupt' and other avatars will continue to see a cloud.",
                 ShowAppearanceInfo);
-        }                 
+
+            scene.AddCommand(
+                this, "appearance send",
+                "appearance send",
+                "Send appearance data for each avatar in the simulator to viewers.",
+                SendAppearance);
+        }
+
+        private void SendAppearance(string module, string[] cmd)
+        {
+            lock (m_scenes)
+            {
+                foreach (Scene scene in m_scenes.Values)
+                {
+                    scene.ForEachRootScenePresence(sp => scene.AvatarFactory.SendAppearance(sp.UUID));
+                }
+            }
+        }
 
         protected void ShowAppearanceInfo(string module, string[] cmd)
         {     
