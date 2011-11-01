@@ -456,27 +456,6 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
         
         /// <summary>
-        /// Shows various details about the sim based on the parameters supplied by the console command in openSimMain.
-        /// </summary>
-        /// <param name="showParams">What to show</param>
-        public virtual void Show(string[] showParams)
-        {
-            switch (showParams[0])
-            {
-                case "modules":
-                    m_log.Error("The currently loaded modules in " + RegionInfo.RegionName + " are:");
-                    foreach (IRegionModule module in Modules.Values)
-                    {
-                        if (!module.IsSharedModule)
-                        {
-                            m_log.Error("Region Module: " + module.Name);
-                        }
-                    }
-                    break;
-            }
-        }
-
-        /// <summary>
         /// Call this from a region module to add a command to the OpenSim console.
         /// </summary>
         /// <param name="mod"></param>
