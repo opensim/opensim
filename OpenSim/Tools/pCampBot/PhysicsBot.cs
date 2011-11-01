@@ -51,6 +51,11 @@ namespace pCampBot
         public BotManager BotManager { get; private set; }
         private IConfig startupConfig; // bot config, passed from BotManager
 
+        /// <summary>
+        /// Is this bot connected to the grid?
+        /// </summary>
+        public bool IsConnected { get; private set; }
+
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
         public string Name { get; private set; }
@@ -181,24 +186,23 @@ namespace pCampBot
 
             if (client.Network.Login(FirstName, LastName, Password, "pCampBot", "Your name"))
             {
-                if (OnConnected != null)
-                {
-                    Thread.Sleep(somthing.Next(1000, 10000));
-                    m_actionThread = new Thread(Action);
-                    m_actionThread.Start();
+                IsConnected = true;
+
+                Thread.Sleep(somthing.Next(1000, 10000));
+                m_actionThread = new Thread(Action);
+                m_actionThread.Start();
 
 //                    OnConnected(this, EventType.CONNECTED);
-                    if (wear == "save")
-                    {
-                        client.Appearance.SetPreviousAppearance();
-                        SaveDefaultAppearance();
-                    }
-                    else if (wear != "no")
-                    {
-                        MakeDefaultAppearance(wear);
-                    }
-                    client.Self.Jump(true);
+                if (wear == "save")
+                {
+                    client.Appearance.SetPreviousAppearance();
+                    SaveDefaultAppearance();
                 }
+                else if (wear != "no")
+                {
+                    MakeDefaultAppearance(wear);
+                }
+                client.Self.Jump(true);
             }
             else
             {
@@ -392,8 +396,6 @@ namespace pCampBot
         {
 //            m_log.ErrorFormat("Fired Network_OnDisconnected");
 
-           // Only pass on the disconnect message when we receive a SimShutdown type shutdown.  We have to ignore
-           // the earlier ClientInitiated shutdown callback.
 //           if (
 //               (args.Reason == NetworkManager.DisconnectType.SimShutdown
 //                    || args.Reason == NetworkManager.DisconnectType.NetworkTimeout)
@@ -406,6 +408,7 @@ namespace pCampBot
                && OnDisconnected != null)
 //            if (OnDisconnected != null)
             {
+                IsConnected = false;
                 OnDisconnected(this, EventType.DISCONNECTED);
             }
         }

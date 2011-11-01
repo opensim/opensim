@@ -93,6 +93,11 @@ namespace pCampBot
                     "Shutdown bots and exit",
                     HandleShutdown);
 
+            m_console.Commands.AddCommand("bot", false, "show status",
+                    "show status",
+                    "Shows the status of all bots",
+                    HandleShowStatus);
+
 //            m_console.Commands.AddCommand("bot", false, "add bots",
 //                    "add bots <number>",
 //                    "Add more bots", HandleAddBots);
@@ -157,7 +162,8 @@ namespace pCampBot
             pb.OnConnected += handlebotEvent;
             pb.OnDisconnected += handlebotEvent;
 
-            m_lBot.Add(pb);
+            lock (m_lBot)
+                m_lBot.Add(pb);
 
             Thread pbThread = new Thread(pb.startup);
             pbThread.Name = pb.Name;
@@ -194,10 +200,9 @@ namespace pCampBot
         /// </summary>
         public void doBotShutdown()
         {
-            foreach (PhysicsBot pb in m_lBot)
-            {
-                pb.shutdown();
-            }
+            lock (m_lBot)
+                foreach (PhysicsBot pb in m_lBot)
+                    pb.shutdown();
         }
 
         /// <summary>
@@ -213,6 +218,21 @@ namespace pCampBot
         {
             m_log.Warn("[BOTMANAGER]: Shutting down bots");
             doBotShutdown();
+        }
+
+        private void HandleShowStatus(string module, string[] cmd)
+        {
+            string outputFormat = "{0,-30} {1,-14}";
+            MainConsole.Instance.OutputFormat(outputFormat, "Name", "Status");
+
+            lock (m_lBot)
+            {
+                foreach (PhysicsBot pb in m_lBot)
+                {
+                    MainConsole.Instance.OutputFormat(
+                        outputFormat, pb.Name, (pb.IsConnected ? "Connected" : "Disconnected"));
+                }
+            }
         }
 
         /*
