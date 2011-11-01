@@ -62,7 +62,11 @@ namespace pCampBot
         public event AnEvent OnConnected;
         public event AnEvent OnDisconnected;
 
-        protected Timer m_action; // Action Timer
+        /// <summary>
+        /// Keep a track of the continuously acting thread so that we can abort it.
+        /// </summary>
+        private Thread m_actionThread;
+
         protected List<uint> objectIDs = new List<uint>();
 
         protected Random somthing = new Random(Environment.TickCount);// We do stuff randomly here
@@ -98,8 +102,7 @@ namespace pCampBot
 
         //We do our actions here.  This is where one would
         //add additional steps and/or things the bot should do
-
-        void m_action_Elapsed(object sender, ElapsedEventArgs e)
+        private void Action()
         {
             while (true)
             {
@@ -145,6 +148,9 @@ namespace pCampBot
         /// </summary>
         public void shutdown()
         {
+            if (m_actionThread != null)
+                m_actionThread.Abort();
+
             client.Network.Logout();
         }
 
@@ -177,11 +183,10 @@ namespace pCampBot
             {
                 if (OnConnected != null)
                 {
-                    m_action = new Timer(somthing.Next(1000, 10000));
-                    m_action.Enabled = true;
-                    m_action.AutoReset = false;
-                    m_action.Elapsed += new ElapsedEventHandler(m_action_Elapsed);
-                    m_action.Start();
+                    Thread.Sleep(somthing.Next(1000, 10000));
+                    m_actionThread = new Thread(Action);
+                    m_actionThread.Start();
+
 //                    OnConnected(this, EventType.CONNECTED);
                     if (wear == "save")
                     {
@@ -386,6 +391,13 @@ namespace pCampBot
         public void Network_OnDisconnected(object sender, DisconnectedEventArgs args)
         {
 //            m_log.ErrorFormat("Fired Network_OnDisconnected");
+
+           // Only pass on the disconnect message when we receive a SimShutdown type shutdown.  We have to ignore
+           // the earlier ClientInitiated shutdown callback.
+//           if (
+//               (args.Reason == NetworkManager.DisconnectType.SimShutdown
+//                    || args.Reason == NetworkManager.DisconnectType.NetworkTimeout)
+//               && OnDisconnected != null)
             if (OnDisconnected != null)
             {
                 OnDisconnected(this, EventType.DISCONNECTED);
