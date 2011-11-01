@@ -398,7 +398,13 @@ namespace pCampBot
 //               (args.Reason == NetworkManager.DisconnectType.SimShutdown
 //                    || args.Reason == NetworkManager.DisconnectType.NetworkTimeout)
 //               && OnDisconnected != null)
-            if (OnDisconnected != null)
+
+           if (
+               (args.Reason == NetworkManager.DisconnectType.ClientInitiated
+                    || args.Reason == NetworkManager.DisconnectType.ServerInitiated
+                    || args.Reason == NetworkManager.DisconnectType.NetworkTimeout)
+               && OnDisconnected != null)
+//            if (OnDisconnected != null)
             {
                 OnDisconnected(this, EventType.DISCONNECTED);
             }
