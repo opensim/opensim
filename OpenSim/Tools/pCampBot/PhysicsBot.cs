@@ -124,11 +124,11 @@ namespace pCampBot
                 }
 
                 // TODO: unused: Vector3 pos = client.Self.SimPosition;
-                Vector3 newpos = new Vector3(somthing.Next(255), somthing.Next(255), somthing.Next(255));
+                Vector3 newpos = new Vector3(somthing.Next(1, 254), somthing.Next(1, 254), somthing.Next(1, 254));
                 client.Self.Movement.TurnToward(newpos);
 
                 client.Self.Movement.AtPos = true;
-                Thread.Sleep(somthing.Next(3000,13000));
+                Thread.Sleep(somthing.Next(3000, 13000));
                 client.Self.Movement.AtPos = false;
                 client.Self.Jump(true);
 
