@@ -49,7 +49,6 @@ namespace pCampBot
 
         protected CommandConsole m_console;
         protected List<PhysicsBot> m_lBot;
-        protected bool m_verbose = true;
         protected Random somthing = new Random(Environment.TickCount);
         protected int numbots = 0;
         public IConfig Config { get; private set; }
