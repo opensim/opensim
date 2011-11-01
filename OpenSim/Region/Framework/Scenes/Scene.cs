@@ -86,7 +86,6 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_allowScriptCrossings;
         public bool m_useFlySlow;
         public bool m_usePreJump;
-        public bool m_seeIntoRegionFromNeighbor;
 
         protected float m_defaultDrawDistance = 255.0f;
         public float DefaultDrawDistance 
@@ -638,14 +637,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_physics_enabled = !RegionInfo.RegionSettings.DisablePhysics;
 
-            // Old
-            /*
-            m_simulatorVersion = simulatorVersion
-                + " (OS " + Util.GetOperatingSystemInformation() + ")"
-                + " ChilTasks:" + m_seeIntoRegionFromNeighbor.ToString()
-                + " PhysPrim:" + m_physicalPrim.ToString();
-            */
-
             m_simulatorVersion = simulatorVersion + " (" + Util.GetRuntimeInformation() + ")";
 
             #region Region Config
@@ -690,7 +681,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_clampPrimSize = true;
                 }
 
-                m_seeIntoRegionFromNeighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor", true);
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
                 m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
                 m_dontPersistBefore =

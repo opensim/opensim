@@ -84,7 +84,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_pendingObjects == null)
             {
-                if (!m_presence.IsChildAgent || (m_presence.Scene.m_seeIntoRegionFromNeighbor))
+                if (!m_presence.IsChildAgent)
                 {
                     m_pendingObjects = new Queue<SceneObjectGroup>();
 
