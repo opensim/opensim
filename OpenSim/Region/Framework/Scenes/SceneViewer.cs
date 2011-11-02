@@ -84,18 +84,15 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_pendingObjects == null)
             {
-                if (!m_presence.IsChildAgent)
-                {
-                    m_pendingObjects = new Queue<SceneObjectGroup>();
+                m_pendingObjects = new Queue<SceneObjectGroup>();
 
-                    lock (m_pendingObjects)
+                lock (m_pendingObjects)
+                {
+                    EntityBase[] entities = m_presence.Scene.Entities.GetEntities();
+                    foreach (EntityBase e in entities)
                     {
-                        EntityBase[] entities = m_presence.Scene.Entities.GetEntities();
-                        foreach (EntityBase e in entities)
-                        {
-                            if (e != null && e is SceneObjectGroup)
-                                m_pendingObjects.Enqueue((SceneObjectGroup)e);
-                        }
+                        if (e != null && e is SceneObjectGroup)
+                            m_pendingObjects.Enqueue((SceneObjectGroup)e);
                     }
                 }
             }
