@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         private const int DEBUG_CHANNEL = 2147483647;
 
         private bool m_enabled = true;
-        private int m_saydistance = 30;
+        private int m_saydistance = 20;
         private int m_shoutdistance = 100;
         private int m_whisperdistance = 10;
         private List<Scene> m_scenes = new List<Scene>();
