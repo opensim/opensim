@@ -332,7 +332,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 
                 grp.IsAttachment = false;
                 // Required for linking
-                grp.RootPart.UpdateFlag = 0;
+                grp.RootPart.ClearUpdateSchedule();
                 
                 if (m_scene.Permissions.CanRezObject(1, avatar.UUID, pos))
                 {
@@ -345,8 +345,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
             for (int j = 1; j < allparts.Length; j++)
             {
-                rootGroup.RootPart.UpdateFlag = 0;
-                allparts[j].RootPart.UpdateFlag = 0;
+                // Required for linking
+                rootGroup.RootPart.ClearUpdateSchedule();
+                allparts[j].RootPart.ClearUpdateSchedule();
                 rootGroup.LinkToGroup(allparts[j]);
             }
 
