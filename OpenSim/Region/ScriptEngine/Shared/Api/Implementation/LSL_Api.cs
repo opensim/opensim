@@ -3330,10 +3330,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void TargetOmega(SceneObjectPart part, LSL_Vector axis, double spinrate, double gain)
         {
-            part.AngularVelocity = new Vector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate));
-            part.ScheduleTerseUpdate();
-            part.SendTerseUpdateToAllClients();
-            part.ParentGroup.HasGroupChanged = true;
+            part.UpdateAngularVelocity(new Vector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate)));
          }
 
         public LSL_Integer llGetStartParameter()
@@ -3595,11 +3592,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     parentPrim = targetPart.ParentGroup;
                     childPrim = m_host.ParentGroup;
                 }
-//                byte uf = childPrim.RootPart.UpdateFlag;
-                childPrim.RootPart.UpdateFlag = 0;
+
+                // Required for linking
+                childPrim.RootPart.ClearUpdateSchedule();
                 parentPrim.LinkToGroup(childPrim);
-//                if (uf != (Byte)0)
-//                    parent.RootPart.UpdateFlag = uf;
             }
 
             parentPrim.TriggerScriptChangedEvent(Changed.LINK);
@@ -3680,7 +3676,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     parts.Remove(newRoot);
                     foreach (SceneObjectPart part in parts)
                     {
-                        part.UpdateFlag = 0;
+                        // Required for linking
+                        part.ClearUpdateSchedule();
                         newRoot.ParentGroup.LinkToGroup(part.ParentGroup);
                     }
                     newRoot.ParentGroup.HasGroupChanged = true;

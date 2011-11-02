@@ -316,7 +316,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("ClickAction", ProcessClickAction);
             m_SOPXmlProcessors.Add("Shape", ProcessShape);
             m_SOPXmlProcessors.Add("Scale", ProcessScale);
-            m_SOPXmlProcessors.Add("UpdateFlag", ProcessUpdateFlag);
             m_SOPXmlProcessors.Add("SitTargetOrientation", ProcessSitTargetOrientation);
             m_SOPXmlProcessors.Add("SitTargetPosition", ProcessSitTargetPosition);
             m_SOPXmlProcessors.Add("SitTargetPositionLL", ProcessSitTargetPositionLL);
@@ -582,11 +581,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessScale(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.Scale = Util.ReadVector(reader, "Scale");
-        }
-
-        private static void ProcessUpdateFlag(SceneObjectPart obj, XmlTextReader reader)
-        {
-            obj.UpdateFlag = (byte)reader.ReadElementContentAsInt("UpdateFlag", String.Empty);
         }
 
         private static void ProcessSitTargetOrientation(SceneObjectPart obj, XmlTextReader reader)
@@ -1187,7 +1181,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             WriteShape(writer, sop.Shape, options);
 
             WriteVector(writer, "Scale", sop.Scale);
-            writer.WriteElementString("UpdateFlag", sop.UpdateFlag.ToString());
             WriteQuaternion(writer, "SitTargetOrientation", sop.SitTargetOrientation); 
             WriteVector(writer, "SitTargetPosition", sop.SitTargetPosition);
             WriteVector(writer, "SitTargetPositionLL", sop.SitTargetPositionLL);

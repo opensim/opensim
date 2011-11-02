@@ -297,7 +297,6 @@ namespace OpenSim.Data.Tests
             pbshap.ProfileEnd = ushort.MaxValue;
             pbshap.ProfileHollow = ushort.MaxValue;
             Vector3 scale = new Vector3(random.Next(),random.Next(),random.Next());
-            byte updatef = (byte) random.Next(127);
 
             RegionInfo regionInfo = new RegionInfo();
             regionInfo.RegionID = region3;
@@ -336,7 +335,6 @@ namespace OpenSim.Data.Tests
             sop.LinkNum = linknum;
             sop.ClickAction = clickaction;
             sop.Scale = scale;
-            sop.UpdateFlag = updatef;
 
             //Tests if local part accepted the parameters:
             Assert.That(regionh,Is.EqualTo(sop.RegionHandle), "Assert.That(regionh,Is.EqualTo(sop.RegionHandle))");
@@ -369,7 +367,6 @@ namespace OpenSim.Data.Tests
             Assert.That(linknum,Is.EqualTo(sop.LinkNum), "Assert.That(linknum,Is.EqualTo(sop.LinkNum))");
             Assert.That(clickaction,Is.EqualTo(sop.ClickAction), "Assert.That(clickaction,Is.EqualTo(sop.ClickAction))");
             Assert.That(scale,Is.EqualTo(sop.Scale), "Assert.That(scale,Is.EqualTo(sop.Scale))");
-            Assert.That(updatef,Is.EqualTo(sop.UpdateFlag), "Assert.That(updatef,Is.EqualTo(sop.UpdateFlag))");
             
             // This is necessary or object will not be inserted in DB
             sop.Flags = PrimFlags.None;
@@ -469,7 +466,6 @@ namespace OpenSim.Data.Tests
             PrimitiveBaseShape pbshap = new PrimitiveBaseShape();
             pbshap = PrimitiveBaseShape.Default;
             Vector3 scale = new Vector3(random.Next(),random.Next(),random.Next());
-            byte updatef = (byte) random.Next(127);
             
             // Updates the region with new values
             SceneObjectGroup sog2 = FindSOG("Adam  West", region3);
@@ -499,7 +495,6 @@ namespace OpenSim.Data.Tests
             sog2.RootPart.LinkNum = linknum;
             sog2.RootPart.ClickAction = clickaction;
             sog2.RootPart.Scale = scale;
-            sog2.RootPart.UpdateFlag = updatef;
             
             db.StoreObject(sog2, region3);
             List<SceneObjectGroup> sogs = db.LoadObjects(region3);

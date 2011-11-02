@@ -1157,7 +1157,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (!silent)
                     {
-                        part.UpdateFlag = 0;
+                        part.ClearUpdateSchedule();
                         if (part == m_rootPart)
                         {
                             if (!IsAttachment || (AttachedAvatar == avatar.ControllingClient.AgentId) || 
@@ -1735,13 +1735,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (UsePhysics && !AbsolutePosition.ApproxEquals(lastPhysGroupPos, 0.02f))
             {
-                m_rootPart.UpdateFlag = 1;
+                m_rootPart.UpdateFlag = UpdateRequired.TERSE;
                 lastPhysGroupPos = AbsolutePosition;
             }
 
             if (UsePhysics && !GroupRotation.ApproxEquals(lastPhysGroupRot, 0.1f))
             {
-                m_rootPart.UpdateFlag = 1;
+                m_rootPart.UpdateFlag = UpdateRequired.TERSE;
                 lastPhysGroupRot = GroupRotation;
             }
 
