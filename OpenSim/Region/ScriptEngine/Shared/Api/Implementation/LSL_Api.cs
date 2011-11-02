@@ -1958,6 +1958,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return end;
         }
 
+        protected LSL_Vector GetSetPosTarget(SceneObjectPart part, LSL_Vector targetPos, LSL_Vector fromPos)
+        {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return fromPos;
+
+            // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
+
+
+            float ground = World.GetGroundHeight((float)targetPos.x, (float)targetPos.y);
+            bool disable_underground_movement = m_ScriptEngine.Config.GetBoolean("DisableUndergroundMovement", true);
+
+            if (part.ParentGroup.RootPart == part)
+            {
+                if ((targetPos.z < ground) && disable_underground_movement && m_host.ParentGroup.AttachmentPoint == 0)
+                    targetPos.z = ground;
+            }
+            LSL_Vector real_vec = SetPosAdjust(fromPos, targetPos);
+
+            return real_vec;
+        }
+
         protected void SetPos(SceneObjectPart part, LSL_Vector targetPos)
         {
             // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
@@ -7043,6 +7064,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             int idx = 0;
 
+            bool positionChanged = false;
+            LSL_Vector currentPosition = GetPartLocalPos(part);
+
             while (idx < rules.Length)
             {
                 int code = rules.GetLSLIntegerItem(idx++);
@@ -7059,7 +7083,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
 
                         v=rules.GetVector3Item(idx++);
-                        SetPos(part, v);
+                        positionChanged = true;
+                        currentPosition = GetSetPosTarget(part, v, currentPosition);
 
                         break;
                     case (int)ScriptBaseClass.PRIM_SIZE:
@@ -7416,6 +7441,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
                         part = part.ParentGroup.GetLinkNumPart((int)new_linknumber);
                         break;
+                }
+            }
+
+            if (positionChanged)
+            {
+                if (part.ParentGroup.RootPart == part)
+                {
+                    SceneObjectGroup parent = part.ParentGroup;
+                    parent.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
+                }
+                else
+                {
+                    part.OffsetPosition = new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z);
+                    SceneObjectGroup parent = part.ParentGroup;
+                    parent.HasGroupChanged = true;
+                    parent.ScheduleGroupForTerseUpdate();
                 }
             }
         }
