@@ -7411,12 +7411,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         TargetOmega(part, axis, (double)spinrate, (double)gain);
                         break;
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
-                        if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
+                        if (remain < 1)
                             return;
                         LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
-                        LSL_List new_rules = rules.GetSublist(idx, -1);
-                        setLinkPrimParams((int)new_linknumber, new_rules);
-                            return;
+                        part = part.ParentGroup.GetLinkNumPart((int)new_linknumber);
+                        break;
                 }
             }
         }
