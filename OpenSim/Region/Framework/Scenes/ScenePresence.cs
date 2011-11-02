@@ -2980,7 +2980,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendAppearanceToAllOtherAgents()
         {
-            //m_log.DebugFormat("[SCENE PRESENCE] SendAppearanceToAllOtherAgents: {0} ({1})", Name, UUID);
+//            m_log.DebugFormat("[SCENE PRESENCE] SendAppearanceToAllOtherAgents: {0} {1}", Name, UUID);
+
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
             {
@@ -3008,7 +3009,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendOtherAgentsAppearanceToMe()
         {
-            //m_log.DebugFormat("[SCENE PRESENCE] SendOtherAgentsAppearanceToMe: {0} ({1})", Name, UUID);
+//            m_log.DebugFormat("[SCENE PRESENCE] SendOtherAgentsAppearanceToMe: {0} {1}", Name, UUID);
 
             int count = 0;
             m_scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
@@ -3564,7 +3565,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (ISceneObject so in cAgent.AttachmentObjects)
                 {
                     ((SceneObjectGroup)so).LocalId = 0;
-                    ((SceneObjectGroup)so).RootPart.UpdateFlag = 0;
+                    ((SceneObjectGroup)so).RootPart.ClearUpdateSchedule();
                     so.SetState(cAgent.AttachmentObjectStates[i++], m_scene);
                     m_scene.IncomingCreateObject(so);
                 }

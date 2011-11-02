@@ -1907,8 +1907,8 @@ namespace OpenSim.Region.Framework.Scenes
                         SceneObjectPart newRoot = newSet[0];
                         newSet.RemoveAt(0);
 
-                        foreach (SceneObjectPart newChild in newSet)
-                            newChild.UpdateFlag = 0;
+                            foreach (SceneObjectPart newChild in newSet)
+                                newChild.ClearUpdateSchedule();
 
                         newRoot.ParentGroup.areUpdatesSuspended = true;
                         LinkObjects(newRoot, newSet);

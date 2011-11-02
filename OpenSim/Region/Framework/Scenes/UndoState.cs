@@ -173,6 +173,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
+                // Note: Updating these properties on sop automatically schedules an update if needed
                 if (Position != Vector3.Zero)
                 {
                     //                        m_log.DebugFormat(
@@ -196,8 +197,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     part.Resize(Scale);
                 }
-
-                part.ScheduleTerseUpdate();
             }
 
             part.Undoing = false;
@@ -227,6 +226,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
+                // Note: Updating these properties on sop automatically schedules an update if needed
                 if (Position != Vector3.Zero)
                     part.OffsetPosition = Position;
 
@@ -235,8 +235,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (Scale != Vector3.Zero)
                     part.Resize(Scale);
-
-                part.ScheduleTerseUpdate();
             }
 
             part.Undoing = false;
