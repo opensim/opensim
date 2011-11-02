@@ -1752,7 +1752,7 @@ namespace OpenSim.Region.Framework.Scenes
                 List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
 
                 // We do this in reverse to get the link order of the prims correct
-                for (int i = children.Count - 1; i >= 0; i--)
+                for (int i = 0 ; i < children.Count ; i++)
                 {
                     SceneObjectGroup child = children[i].ParentGroup;
 
@@ -1784,6 +1784,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
             finally
             {
+                lock (SceneObjectGroupsByLocalPartID)
+                {
+                    foreach (SceneObjectPart part in parentGroup.Parts)
+                        SceneObjectGroupsByLocalPartID[part.LocalId] = parentGroup;
+                }
+
                 parentGroup.areUpdatesSuspended = false;
                 parentGroup.HasGroupChanged = true;
                 parentGroup.ProcessBackup(m_parentScene.SimulationDataService, true);

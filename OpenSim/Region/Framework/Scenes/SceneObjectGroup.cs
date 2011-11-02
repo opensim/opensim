@@ -2351,16 +2351,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="objectGroup">The group of prims which should be linked to this group</param>
         public void LinkToGroup(SceneObjectGroup objectGroup)
         {
-            // Make sure we have sent any pending unlinks or stuff.
-            //if (objectGroup.RootPart.UpdateFlag > 0)
-            //{
-            //    m_log.WarnFormat(
-            //        "[SCENE OBJECT GROUP]: Forcing send of linkset {0}, {1} to {2}, {3} as its still waiting.",
-            //        objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
-
-            //    objectGroup.RootPart.SendScheduledUpdates();
-            //}
-
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: Linking group with root part {0}, {1} to group with root part {2}, {3}",
 //                objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
@@ -2384,45 +2374,27 @@ namespace OpenSim.Region.Framework.Scenes
             linkPart.RotationOffset = newRot;
 
             linkPart.ParentID = m_rootPart.LocalId;
+
             if (m_rootPart.LinkNum == 0)
                 m_rootPart.LinkNum = 1;
 
             lock (m_parts.SyncRoot)
             {
+                int linkNum = PrimCount + 1;
+
                 m_parts.Add(linkPart.UUID, linkPart);
 
-                // Insert in terms of link numbers, the new links
-                // before the current ones (with the exception of 
-                // the root prim. Shuffle the old ones up
-                SceneObjectPart[] parts = m_parts.GetArray();
-                for (int i = 0; i < parts.Length; i++)
-                {
-                    SceneObjectPart part = parts[i];
-                    if (part.LinkNum != 1)
-                    {
-                        // Don't update root prim link number
-                        part.LinkNum += objectGroup.PrimCount;
-                    }
-                }
-            }
+                linkPart.SetParent(this);
+                linkPart.CreateSelected = true;
 
-            linkPart.LinkNum = 2;
+                linkPart.LinkNum = linkNum++;
 
-            linkPart.SetParent(this);
-            linkPart.CreateSelected = true;
-
-            lock (m_parts.SyncRoot)
-            {
-                //if (linkPart.PhysActor != null)
-                //{
-                // m_scene.PhysicsScene.RemovePrim(linkPart.PhysActor);
-
-                //linkPart.PhysActor = null;
-                //}
-
-                //TODO: rest of parts
-                int linkNum = 3;
                 SceneObjectPart[] ogParts = objectGroup.Parts;
+                Array.Sort(ogParts, delegate(SceneObjectPart a, SceneObjectPart b)
+                        {
+                            return a.LinkNum - b.LinkNum;
+                        });
+
                 for (int i = 0; i < ogParts.Length; i++)
                 {
                     SceneObjectPart part = ogParts[i];
