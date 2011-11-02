@@ -489,11 +489,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_authenticateHandler; }
         }
 
-        public SceneGraph SceneContents
-        {
-            get { return m_sceneGraph; }
-        }
-
         public bool UseBackup
         {
             get { return m_useBackup; }
