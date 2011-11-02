@@ -266,7 +266,14 @@ namespace OpenSim.Server.Base
         {
             while (m_Running)
             {
-                MainConsole.Instance.Prompt();
+                try
+                {
+                    MainConsole.Instance.Prompt();
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("Command error: {0}", e);
+                }
             }
 
             if (m_pidFile != String.Empty)
