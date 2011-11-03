@@ -449,10 +449,8 @@ namespace pCampBot
                     {
                         UUID textureID = prim.Textures.FaceTextures[i].TextureID;
 
-                        if (textureID != null && textureID != UUID.Zero)
-                        {
+                        if (textureID != UUID.Zero)
                             GetTexture(textureID);
-                        }
                     }
                 }
 
