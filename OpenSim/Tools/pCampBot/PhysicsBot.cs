@@ -55,7 +55,26 @@ namespace pCampBot
         /// <summary>
         /// Behaviours implemented by this bot.
         /// </summary>
+        /// <remarks>
+        /// Lock this list before manipulating it.
+        /// </remarks>
         public List<IBehaviour> Behaviours { get; private set; }
+
+        /// <summary>
+        /// Objects that the bot has discovered.
+        /// </summary>
+        /// <remarks>
+        /// Returns a list copy.  Inserting new objects manually will have no effect.
+        /// </remarks>
+        public Dictionary<UUID, Primitive> Objects
+        {
+            get
+            {
+                lock (m_objects)
+                    return new Dictionary<UUID, Primitive>(m_objects);
+            }
+        }
+        private Dictionary<UUID, Primitive> m_objects = new Dictionary<UUID, Primitive>();
 
         /// <summary>
         /// Is this bot connected to the grid?
@@ -125,7 +144,14 @@ namespace pCampBot
         private void Action()
         {
             while (true)
-                Behaviours.ForEach(b => b.Action(this));
+                lock (Behaviours)
+                    Behaviours.ForEach(
+                        b =>
+                        {
+                            // m_log.DebugFormat("[pCAMPBOT]: For {0} performing action {1}", Name, b.GetType());
+                            b.Action(this);
+                        }
+                    );
         }
 
         /// <summary>
@@ -407,6 +433,9 @@ namespace pCampBot
 
             if (prim != null)
             {
+                lock (m_objects)
+                    m_objects[prim.ID] = prim;
+
                 if (prim.Textures != null)
                 {
                     if (prim.Textures.DefaultTexture.TextureID != UUID.Zero)

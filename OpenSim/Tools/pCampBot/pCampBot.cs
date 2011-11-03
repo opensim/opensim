@@ -84,12 +84,13 @@ namespace pCampBot
             //Set up our nifty config..  thanks to nini
             ArgvConfigSource cs = new ArgvConfigSource(args);
 
-            cs.AddSwitch("Startup", "botcount","n");
-            cs.AddSwitch("Startup", "loginuri","l");
+            cs.AddSwitch("Startup", "botcount", "n");
+            cs.AddSwitch("Startup", "loginuri", "l");
             cs.AddSwitch("Startup", "firstname");
             cs.AddSwitch("Startup", "lastname");
             cs.AddSwitch("Startup", "password");
-            cs.AddSwitch("Startup", "help","h");
+            cs.AddSwitch("Startup", "behaviours", "b");
+            cs.AddSwitch("Startup", "help", "h");
             cs.AddSwitch("Startup", "wear");
 
             IConfig ol = cs.Configs["Startup"];
@@ -110,6 +111,7 @@ namespace pCampBot
                                      "  -firstname         first name for the bots\n" +
                                      "  -lastname          lastname for the bots.  Each lastname will have _<bot-number> appended, e.g. Ima Bot_0\n" +
                                      "  -password          password for the bots\n" +
+                                     "  -b, behaviours     behaviours for bots.  Current options p (physics), g (grab).  Comma separated, e.g. p,g.  Default is p",
                                      "  -wear              set appearance folder to load from (default: no)\n" +
                                      "  -h, -help          show this message"
                                      );

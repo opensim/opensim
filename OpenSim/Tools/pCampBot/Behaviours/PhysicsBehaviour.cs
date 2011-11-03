@@ -35,7 +35,7 @@ using pCampBot.Interfaces;
 namespace pCampBot
 {
     /// <summary>
-    /// This is a behaviour designed to stress physics by moving and bouncing around bots a whole lot.
+    /// Stress physics by moving and bouncing around bots a whole lot.
     /// </summary>
     /// <remarks>
     /// TODO: talkarray should be in a separate behaviour.

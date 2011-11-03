@@ -120,13 +120,23 @@ namespace pCampBot
             string password = cs.GetString("password");
             string loginUri = cs.GetString("loginuri");
 
-            // Hardcoded for new
-            List<IBehaviour> behaviours = new List<IBehaviour>();
-            behaviours.Add(new PhysicsBehaviour());
+            HashSet<string> behaviourSwitches = new HashSet<string>();
+            Array.ForEach<string>(
+                cs.GetString("behaviours", "p").Split(new char[] { ',' }), b => behaviourSwitches.Add(b));
 
             for (int i = 0; i < botcount; i++)
             {
                 string lastName = string.Format("{0}_{1}", lastNameStem, i);
+
+                List<IBehaviour> behaviours = new List<IBehaviour>();
+    
+                // Hard-coded for now
+                if (behaviourSwitches.Contains("p"))
+                    behaviours.Add(new PhysicsBehaviour());
+    
+                if (behaviourSwitches.Contains("g"))
+                    behaviours.Add(new GrabbingBehaviour());
+
                 startupBot(i, this, behaviours, firstName, lastName, password, loginUri);
             }
         }
