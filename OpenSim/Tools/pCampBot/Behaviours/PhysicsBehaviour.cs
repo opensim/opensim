@@ -49,7 +49,7 @@ namespace pCampBot
             talkarray = readexcuses();
         }
 
-        public void Action(PhysicsBot bot)
+        public void Action(Bot bot)
         {
             int walkorrun = bot.Random.Next(4); // Randomize between walking and running. The greater this number,
                                                 // the greater the bot's chances to walk instead of run.

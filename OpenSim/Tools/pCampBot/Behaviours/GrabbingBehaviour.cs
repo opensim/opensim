@@ -41,7 +41,7 @@ namespace pCampBot
     /// </remarks>
     public class GrabbingBehaviour : IBehaviour
     {
-        public void Action(PhysicsBot bot)
+        public void Action(Bot bot)
         {
             Dictionary<UUID, Primitive> objects = bot.Objects;
 

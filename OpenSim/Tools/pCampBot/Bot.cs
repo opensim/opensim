@@ -43,11 +43,11 @@ using Timer = System.Timers.Timer;
 
 namespace pCampBot
 {
-    public class PhysicsBot
+    public class Bot
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public delegate void AnEvent(PhysicsBot callbot, EventType someevent); // event delegate for bot events
+        public delegate void AnEvent(Bot callbot, EventType someevent); // event delegate for bot events
 
         public BotManager BotManager { get; private set; }
         private IConfig startupConfig; // bot config, passed from BotManager
@@ -119,7 +119,7 @@ namespace pCampBot
         /// <param name="password"></param>
         /// <param name="loginUri"></param>
         /// <param name="behaviours"></param>
-        public PhysicsBot(
+        public Bot(
             BotManager bm, List<IBehaviour> behaviours,
             string firstName, string lastName, string password, string loginUri)
         {

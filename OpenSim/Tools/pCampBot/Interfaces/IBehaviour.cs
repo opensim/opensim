@@ -31,6 +31,6 @@ namespace pCampBot.Interfaces
 {
     public interface IBehaviour
     {
-        void Action(PhysicsBot bot);
+        void Action(Bot bot);
     }
 }
