@@ -1494,7 +1494,7 @@ namespace OpenSim.Region.Framework.Scenes
                     msg.fromAgentName = "Server";
                     msg.dialog = (byte)19; // Object msg
                     msg.fromGroup = false;
-                    msg.offline = (byte)1;
+                    msg.offline = (byte)0;
                     msg.ParentEstateID = RegionInfo.EstateSettings.ParentEstateID;
                     msg.Position = Vector3.Zero;
                     msg.RegionID = RegionInfo.RegionID.Guid;

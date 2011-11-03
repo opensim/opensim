@@ -356,12 +356,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 PresenceInfo[] presences = PresenceService.GetAgents(new string[] { fid });
                 if (presences != null && presences.Length > 0)
                     presence = presences[0];
-                if (presence != null)
-                    im.offline = 0;
+                im.offline = 0;
 
                 im.fromAgentID = fromAgentID.Guid;
                 im.fromAgentName = firstname + " " + lastname;
-                im.offline = (byte)((presence == null) ? 1 : 0);
                 im.imSessionID = im.fromAgentID;
                 im.message = FriendshipMessage(fid);
 
