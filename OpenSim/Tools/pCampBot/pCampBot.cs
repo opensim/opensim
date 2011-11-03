@@ -26,6 +26,8 @@
  */
 
 using System;
+using System.Reflection;
+using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -44,6 +46,8 @@ namespace pCampBot
 
     public class pCampBot
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         [STAThread]
         public static void Main(string[] args)
         {
@@ -60,9 +64,17 @@ namespace pCampBot
 
                 //startup specified number of bots.  1 is the default
                 bm.dobotStartup(botcount, config);
+
                 while (true)
                 {
-                    MainConsole.Instance.Prompt();
+                    try
+                    {
+                        MainConsole.Instance.Prompt();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("Command error: {0}", e);
+                    }
                 }
             }
         }

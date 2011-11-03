@@ -36,6 +36,7 @@ using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
 using Nini.Config;
+using pCampBot.Interfaces;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using Timer = System.Timers.Timer;
@@ -50,6 +51,11 @@ namespace pCampBot
 
         public BotManager BotManager { get; private set; }
         private IConfig startupConfig; // bot config, passed from BotManager
+
+        /// <summary>
+        /// Behaviours implemented by this bot.
+        /// </summary>
+        public List<IBehaviour> Behaviours { get; private set; }
 
         /// <summary>
         /// Is this bot connected to the grid?
@@ -74,25 +80,33 @@ namespace pCampBot
 
         protected List<uint> objectIDs = new List<uint>();
 
-        protected Random somthing = new Random(Environment.TickCount);// We do stuff randomly here
+        /// <summary>
+        /// Random number generator.
+        /// </summary>
+        public Random Random { get; private set; }
 
         /// <summary>
         /// New instance of a SecondLife client
         /// </summary>
-        public GridClient client = new GridClient();
-
-        protected string[] talkarray;
+        public GridClient Client { get; private set; }
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="bm"></param>
+        /// <param name="behaviours">Behaviours for this bot to perform</param>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <param name="password"></param>
         /// <param name="loginUri"></param>
-        public PhysicsBot(BotManager bm, string firstName, string lastName, string password, string loginUri)
+        /// <param name="behaviours"></param>
+        public PhysicsBot(
+            BotManager bm, List<IBehaviour> behaviours,
+            string firstName, string lastName, string password, string loginUri)
         {
+            Client = new GridClient();
+            
+            Random = new Random(Environment.TickCount);// We do stuff randomly here
             FirstName = firstName;
             LastName = lastName;
             Name = string.Format("{0} {1}", FirstName, LastName);
@@ -102,7 +116,8 @@ namespace pCampBot
             BotManager = bm;
             startupConfig = bm.Config;
             readconfig();
-            talkarray = readexcuses();
+
+            Behaviours = behaviours;
         }
 
         //We do our actions here.  This is where one would
@@ -110,34 +125,7 @@ namespace pCampBot
         private void Action()
         {
             while (true)
-            {
-                int walkorrun = somthing.Next(4); // Randomize between walking and running. The greater this number,
-                                                  // the greater the bot's chances to walk instead of run.
-                client.Self.Jump(false);
-                if (walkorrun == 0)
-                {
-                    client.Self.Movement.AlwaysRun = true;
-                }
-                else
-                {
-                    client.Self.Movement.AlwaysRun = false;
-                }
-
-                // TODO: unused: Vector3 pos = client.Self.SimPosition;
-                Vector3 newpos = new Vector3(somthing.Next(1, 254), somthing.Next(1, 254), somthing.Next(1, 254));
-                client.Self.Movement.TurnToward(newpos);
-
-                client.Self.Movement.AtPos = true;
-                Thread.Sleep(somthing.Next(3000, 13000));
-                client.Self.Movement.AtPos = false;
-                client.Self.Jump(true);
-
-                string randomf = talkarray[somthing.Next(talkarray.Length)];
-                if (talkarray.Length > 1 && randomf.Length > 1)
-                    client.Self.Chat(randomf, 0, ChatType.Normal);
-
-                Thread.Sleep(somthing.Next(1000, 10000));
-            }
+                Behaviours.ForEach(b => b.Action(this));
         }
 
         /// <summary>
@@ -145,7 +133,7 @@ namespace pCampBot
         /// </summary>
         public void readconfig()
         {
-            wear = startupConfig.GetString("wear","no");
+            wear = startupConfig.GetString("wear", "no");
         }
 
         /// <summary>
@@ -156,7 +144,7 @@ namespace pCampBot
             if (m_actionThread != null)
                 m_actionThread.Abort();
 
-            client.Network.Logout();
+            Client.Network.Logout();
         }
 
         /// <summary>
@@ -164,50 +152,50 @@ namespace pCampBot
         /// </summary>
         public void startup()
         {
-            client.Settings.LOGIN_SERVER = LoginUri;
-            client.Settings.ALWAYS_DECODE_OBJECTS = false;
-            client.Settings.AVATAR_TRACKING = false;
-            client.Settings.OBJECT_TRACKING = false;
-            client.Settings.SEND_AGENT_THROTTLE = true;
-            client.Settings.SEND_PINGS = true;
-            client.Settings.STORE_LAND_PATCHES = false;
-            client.Settings.USE_ASSET_CACHE = false;
-            client.Settings.MULTIPLE_SIMS = true;
-            client.Throttle.Asset = 100000;
-            client.Throttle.Land = 100000;
-            client.Throttle.Task = 100000;
-            client.Throttle.Texture = 100000;
-            client.Throttle.Wind = 100000;
-            client.Throttle.Total = 400000;
-            client.Network.LoginProgress += this.Network_LoginProgress;
-            client.Network.SimConnected += this.Network_SimConnected;
-            client.Network.Disconnected += this.Network_OnDisconnected;
-            client.Objects.ObjectUpdate += Objects_NewPrim;
+            Client.Settings.LOGIN_SERVER = LoginUri;
+            Client.Settings.ALWAYS_DECODE_OBJECTS = false;
+            Client.Settings.AVATAR_TRACKING = false;
+            Client.Settings.OBJECT_TRACKING = false;
+            Client.Settings.SEND_AGENT_THROTTLE = true;
+            Client.Settings.SEND_PINGS = true;
+            Client.Settings.STORE_LAND_PATCHES = false;
+            Client.Settings.USE_ASSET_CACHE = false;
+            Client.Settings.MULTIPLE_SIMS = true;
+            Client.Throttle.Asset = 100000;
+            Client.Throttle.Land = 100000;
+            Client.Throttle.Task = 100000;
+            Client.Throttle.Texture = 100000;
+            Client.Throttle.Wind = 100000;
+            Client.Throttle.Total = 400000;
+            Client.Network.LoginProgress += this.Network_LoginProgress;
+            Client.Network.SimConnected += this.Network_SimConnected;
+            Client.Network.Disconnected += this.Network_OnDisconnected;
+            Client.Objects.ObjectUpdate += Objects_NewPrim;
 
-            if (client.Network.Login(FirstName, LastName, Password, "pCampBot", "Your name"))
+            if (Client.Network.Login(FirstName, LastName, Password, "pCampBot", "Your name"))
             {
                 IsConnected = true;
 
-                Thread.Sleep(somthing.Next(1000, 10000));
+                Thread.Sleep(Random.Next(1000, 10000));
                 m_actionThread = new Thread(Action);
                 m_actionThread.Start();
 
 //                    OnConnected(this, EventType.CONNECTED);
                 if (wear == "save")
                 {
-                    client.Appearance.SetPreviousAppearance();
+                    Client.Appearance.SetPreviousAppearance();
                     SaveDefaultAppearance();
                 }
                 else if (wear != "no")
                 {
                     MakeDefaultAppearance(wear);
                 }
-                client.Self.Jump(true);
+                Client.Self.Jump(true);
             }
             else
             {
                 MainConsole.Instance.OutputFormat(
-                    "{0} {1} cannot login: {2}", FirstName, LastName, client.Network.LoginMessage);
+                    "{0} {1} cannot login: {2}", FirstName, LastName, Client.Network.LoginMessage);
 
                 if (OnDisconnected != null)
                 {
@@ -227,11 +215,11 @@ namespace pCampBot
             Array wtypes = Enum.GetValues(typeof(WearableType));
             foreach (WearableType wtype in wtypes)
             {
-                UUID wearable = client.Appearance.GetWearableAsset(wtype);
+                UUID wearable = Client.Appearance.GetWearableAsset(wtype);
                 if (wearable != UUID.Zero)
                 {
-                    client.Assets.RequestAsset(wearable, AssetType.Clothing, false, Asset_ReceivedCallback);
-                    client.Assets.RequestAsset(wearable, AssetType.Bodypart, false, Asset_ReceivedCallback);
+                    Client.Assets.RequestAsset(wearable, AssetType.Clothing, false, Asset_ReceivedCallback);
+                    Client.Assets.RequestAsset(wearable, AssetType.Bodypart, false, Asset_ReceivedCallback);
                 }
             }
         }
@@ -306,11 +294,11 @@ namespace pCampBot
                     UUID assetID = UUID.Random();
                     AssetClothing asset = new AssetClothing(assetID, File.ReadAllBytes(clothing[i]));
                     asset.Decode();
-                    asset.Owner = client.Self.AgentID;
+                    asset.Owner = Client.Self.AgentID;
                     asset.WearableType = GetWearableType(clothing[i]);
                     asset.Encode();
-                    transid = client.Assets.RequestUpload(asset,true);
-                    client.Inventory.RequestCreateItem(clothfolder.UUID, "MyClothing" + i.ToString(), "MyClothing", AssetType.Clothing,
+                    transid = Client.Assets.RequestUpload(asset,true);
+                    Client.Inventory.RequestCreateItem(clothfolder.UUID, "MyClothing" + i.ToString(), "MyClothing", AssetType.Clothing,
                          transid, InventoryType.Wearable, asset.WearableType, PermissionMask.All, delegate(bool success, InventoryItem item)
                     {
                         if (success)
@@ -328,11 +316,11 @@ namespace pCampBot
                     UUID assetID = UUID.Random();
                     AssetBodypart asset = new AssetBodypart(assetID, File.ReadAllBytes(bodyparts[i]));
                     asset.Decode();
-                    asset.Owner = client.Self.AgentID;
+                    asset.Owner = Client.Self.AgentID;
                     asset.WearableType = GetWearableType(bodyparts[i]);
                     asset.Encode();
-                    transid = client.Assets.RequestUpload(asset,true);
-                    client.Inventory.RequestCreateItem(clothfolder.UUID, "MyBodyPart" + i.ToString(), "MyBodyPart", AssetType.Bodypart,
+                    transid = Client.Assets.RequestUpload(asset,true);
+                    Client.Inventory.RequestCreateItem(clothfolder.UUID, "MyBodyPart" + i.ToString(), "MyBodyPart", AssetType.Bodypart,
                          transid, InventoryType.Wearable, asset.WearableType, PermissionMask.All, delegate(bool success, InventoryItem item)
                     {
                         if (success)
@@ -352,7 +340,7 @@ namespace pCampBot
                 else
                 {
                     MainConsole.Instance.Output(String.Format("Sending {0} wearables...",listwearables.Count));
-                    client.Appearance.WearOutfit(listwearables, false);
+                    Client.Appearance.WearOutfit(listwearables, false);
                 }
             }
             catch (Exception ex)
@@ -363,8 +351,8 @@ namespace pCampBot
 
         public InventoryFolder FindClothingFolder()
         {
-            UUID rootfolder = client.Inventory.Store.RootFolder.UUID;
-            List<InventoryBase> listfolders = client.Inventory.Store.GetContents(rootfolder);
+            UUID rootfolder = Client.Inventory.Store.RootFolder.UUID;
+            List<InventoryBase> listfolders = Client.Inventory.Store.GetContents(rootfolder);
             InventoryFolder clothfolder = new InventoryFolder(UUID.Random());
             foreach (InventoryBase folder in listfolders)
             {
@@ -453,10 +441,9 @@ namespace pCampBot
                     return;
 
                 BotManager.AssetsReceived[textureID] = false;
-                client.Assets.RequestImage(textureID, ImageType.Normal, Asset_TextureCallback_Texture);
+                Client.Assets.RequestImage(textureID, ImageType.Normal, Asset_TextureCallback_Texture);
             }
         }
-
         
         public void Asset_TextureCallback_Texture(TextureRequestState state, AssetTexture assetTexture)
         {
@@ -472,21 +459,6 @@ namespace pCampBot
 //            {
 //                SaveAsset((AssetWearable) asset);
 //            }
-        }
-
-        public string[] readexcuses()
-        {
-            string allexcuses = "";
-
-            string file = Path.Combine(Util.configDir(), "pCampBotSentences.txt");
-            if (File.Exists(file))
-            {
-                StreamReader csr = File.OpenText(file);
-                allexcuses = csr.ReadToEnd();
-                csr.Close();
-            }
-
-            return allexcuses.Split(Environment.NewLine.ToCharArray());
         }
     }
 }
