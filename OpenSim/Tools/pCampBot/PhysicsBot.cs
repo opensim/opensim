@@ -150,6 +150,8 @@ namespace pCampBot
                         {
                             // m_log.DebugFormat("[pCAMPBOT]: For {0} performing action {1}", Name, b.GetType());
                             b.Action(this);
+
+                            Thread.Sleep(Random.Next(1000, 10000));
                         }
                     );
         }
