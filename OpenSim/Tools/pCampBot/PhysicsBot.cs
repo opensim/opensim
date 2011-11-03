@@ -36,9 +36,9 @@ using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
 using Nini.Config;
-using pCampBot.Interfaces;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using pCampBot.Interfaces;
 using Timer = System.Timers.Timer;
 
 namespace pCampBot
@@ -105,7 +105,7 @@ namespace pCampBot
             string firstName, string lastName, string password, string loginUri)
         {
             Client = new GridClient();
-            
+
             Random = new Random(Environment.TickCount);// We do stuff randomly here
             FirstName = firstName;
             LastName = lastName;
