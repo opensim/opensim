@@ -1740,7 +1740,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             //m_log.Debug("  >>> CrossPrimGroupIntoNewRegion <<<");
 
             bool successYN = false;
-            grp.RootPart.UpdateFlag = 0;
+            grp.RootPart.ClearUpdateSchedule();
             //int primcrossingXMLmethod = 0;
 
             if (destination != null)

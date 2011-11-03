@@ -169,6 +169,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         public bool SendAppearance(UUID agentId)
         {
+//            m_log.DebugFormat("[AVFACTORY]: Sending appearance for {0}", agentId);
+
             ScenePresence sp = m_scene.GetScenePresence(agentId);
             if (sp == null)
             {
@@ -257,7 +259,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         /// </summary>
         public void QueueAppearanceSend(UUID agentid)
         {
-            // m_log.WarnFormat("[AVFACTORY]: Queue appearance send for {0}", agentid);
+//            m_log.DebugFormat("[AVFACTORY]: Queue appearance send for {0}", agentid);
 
             // 10000 ticks per millisecond, 1000 milliseconds per second
             long timestamp = DateTime.Now.Ticks + Convert.ToInt64(m_sendtime * 1000 * 10000);
@@ -391,10 +393,17 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 Dictionary<UUID, long> sends = new Dictionary<UUID, long>(m_sendqueue);
                 foreach (KeyValuePair<UUID, long> kvp in sends)
                 {
-                    if (kvp.Value < now)
+                    // We have to load the key and value into local parameters to avoid a race condition if we loop
+                    // around and load kvp with a different value before FireAndForget has launched its thread.
+                    UUID avatarID = kvp.Key;
+                    long sendTime = kvp.Value;
+
+//                    m_log.DebugFormat("[AVFACTORY]: Handling queued appearance updates for {0}, update delta to now is {1}", avatarID, sendTime - now);
+
+                    if (sendTime < now)
                     {
-                        Util.FireAndForget(delegate(object o) { SendAppearance(kvp.Key); });
-                        m_sendqueue.Remove(kvp.Key);
+                        Util.FireAndForget(o => SendAppearance(avatarID));
+                        m_sendqueue.Remove(avatarID);
                     }
                 }
             }
@@ -404,10 +413,15 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 Dictionary<UUID, long> saves = new Dictionary<UUID, long>(m_savequeue);
                 foreach (KeyValuePair<UUID, long> kvp in saves)
                 {
-                    if (kvp.Value < now)
+                    // We have to load the key and value into local parameters to avoid a race condition if we loop
+                    // around and load kvp with a different value before FireAndForget has launched its thread.                    
+                    UUID avatarID = kvp.Key;
+                    long sendTime = kvp.Value;
+
+                    if (sendTime < now)
                     {
-                        Util.FireAndForget(delegate(object o) { SaveAppearance(kvp.Key); });
-                        m_savequeue.Remove(kvp.Key);
+                        Util.FireAndForget(o => SaveAppearance(avatarID));
+                        m_savequeue.Remove(avatarID);
                     }
                 }
             }
