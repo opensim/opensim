@@ -3212,7 +3212,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (ISceneObject so in cAgent.AttachmentObjects)
                 {
                     ((SceneObjectGroup)so).LocalId = 0;
-                    ((SceneObjectGroup)so).RootPart.UpdateFlag = 0;
+                    ((SceneObjectGroup)so).RootPart.ClearUpdateSchedule();
                     so.SetState(cAgent.AttachmentObjectStates[i++], m_scene);
                     m_scene.IncomingCreateObject(so);
                 }

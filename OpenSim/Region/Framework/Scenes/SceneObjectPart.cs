@@ -106,6 +106,13 @@ namespace OpenSim.Region.Framework.Scenes
         SCULPT = 7
     }
 
+    public enum UpdateRequired : byte
+    {
+        NONE = 0,
+        TERSE = 1,
+        FULL = 2
+    }
+
     #endregion Enumerations
 
     public class SceneObjectPart : IScriptHost, ISceneEntity
@@ -254,15 +261,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_passTouches;
 
-        /// <summary>
-        /// Only used internally to schedule client updates.
-        /// 0 - no update is scheduled
-        /// 1 - terse update scheduled
-        /// 2 - full update scheduled
-        ///
-        /// TODO - This should be an enumeration
-        /// </summary>
-        private byte m_updateFlag;
+        private UpdateRequired m_updateFlag;
 
         private PhysicsActor m_physActor;
         protected Vector3 m_acceleration;
@@ -884,7 +883,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        /// <summary></summary>
+        /// <summary>Update angular velocity and schedule terse update.</summary>
+        public void UpdateAngularVelocity(Vector3 avel)
+        {
+            AngularVelocity = avel;
+            ScheduleTerseUpdate();
+            ParentGroup.HasGroupChanged = true;
+        }
+
+        /// <summary>Get or set angular velocity. Does not schedule update.</summary>
         public Vector3 AngularVelocity
         {
             get
@@ -1023,8 +1030,8 @@ namespace OpenSim.Region.Framework.Scenes
                 TriggerScriptChangedEvent(Changed.SCALE);
             }
         }
-        
-        public byte UpdateFlag
+
+        public UpdateRequired UpdateFlag
         {
             get { return m_updateFlag; }
             set { m_updateFlag = value; }
@@ -1309,9 +1316,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Clear all pending updates of parts to clients
         /// </summary>
-        private void ClearUpdateSchedule()
+        public void ClearUpdateSchedule()
         {
-            m_updateFlag = 0;
+            UpdateFlag = UpdateRequired.NONE;
         }
 
         /// <summary>
@@ -2829,7 +2836,7 @@ namespace OpenSim.Region.Framework.Scenes
                 TimeStampFull = (uint)timeNow;
             }
 
-            m_updateFlag = 2;
+            UpdateFlag = UpdateRequired.FULL;
 
             //            m_log.DebugFormat(
             //                "[SCENE OBJECT PART]: Scheduling full  update for {0}, {1} at {2}",
@@ -2845,13 +2852,13 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_parentGroup == null)
                 return;
 
-            if (m_updateFlag < 1)
+            if (UpdateFlag == UpdateRequired.NONE)
             {
                 m_parentGroup.HasGroupChanged = true;
                 m_parentGroup.QueueForUpdateCheck();
 
                 TimeStampTerse = (uint) Util.UnixTimeSinceEpoch();
-                m_updateFlag = 1;
+                UpdateFlag = UpdateRequired.TERSE;
 
             //                m_log.DebugFormat(
             //                    "[SCENE OBJECT PART]: Scheduling terse update for {0}, {1} at {2}",
@@ -3018,45 +3025,39 @@ namespace OpenSim.Region.Framework.Scenes
             const float POSITION_TOLERANCE = 0.05f;
             const int TIME_MS_TOLERANCE = 3000;
 
-            if (m_updateFlag == 1)
+            switch (UpdateFlag)
             {
-                // Throw away duplicate or insignificant updates
-                if (!RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
-                    !Acceleration.Equals(m_lastAcceleration) ||
-                    !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
-                    Velocity.ApproxEquals(Vector3.Zero, VELOCITY_TOLERANCE) ||
-                    !AngularVelocity.ApproxEquals(m_lastAngularVelocity, VELOCITY_TOLERANCE) ||
-                    !OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
-                    Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
+                case UpdateRequired.TERSE:
                 {
-                    AddTerseUpdateToAllAvatars();
-                    ClearUpdateSchedule();
+                    // Throw away duplicate or insignificant updates
+                    if (!RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                        !Acceleration.Equals(m_lastAcceleration) ||
+                        !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
+                        Velocity.ApproxEquals(Vector3.Zero, VELOCITY_TOLERANCE) ||
+                        !AngularVelocity.ApproxEquals(m_lastAngularVelocity, VELOCITY_TOLERANCE) ||
+                        !OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
+                        Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
+                    {
+                        AddTerseUpdateToAllAvatars();
+                        ClearUpdateSchedule();
 
-                    // This causes the Scene to 'poll' physical objects every couple of frames
-                    // bad, so it's been replaced by an event driven method.
-                    //if ((ObjectFlags & (uint)PrimFlags.Physics) != 0)
-                    //{
-                    // Only send the constant terse updates on physical objects!
-                    //ScheduleTerseUpdate();
-                    //}
-
-                    // Update the "last" values
-                    m_lastPosition = OffsetPosition;
-                    m_lastRotation = RotationOffset;
-                    m_lastVelocity = Velocity;
-                    m_lastAcceleration = Acceleration;
-                    m_lastAngularVelocity = AngularVelocity;
-                    m_lastTerseSent = Environment.TickCount;
+                        // Update the "last" values
+                        m_lastPosition = OffsetPosition;
+                        m_lastRotation = RotationOffset;
+                        m_lastVelocity = Velocity;
+                        m_lastAcceleration = Acceleration;
+                        m_lastAngularVelocity = AngularVelocity;
+                        m_lastTerseSent = Environment.TickCount;
+                    }
+                    break;
                 }
-            }
-            else
-            {
-                if (m_updateFlag == 2) // is a new prim, just created/reloaded or has major changes
+                case UpdateRequired.FULL:
                 {
                     AddFullUpdateToAllAvatars();
-                    ClearUpdateSchedule();
+                    break;
                 }
             }
+
             ClearUpdateSchedule();
         }
 
@@ -3436,7 +3437,7 @@ namespace OpenSim.Region.Framework.Scenes
             _groupID = groupID;
             if (client != null)
                 SendPropertiesToClient(client);
-            m_updateFlag = 2;
+            UpdateFlag = UpdateRequired.FULL;
         }
 
         /// <summary>

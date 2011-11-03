@@ -473,7 +473,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                         // Grab the asset data from the response stream
                         using (MemoryStream stream = new MemoryStream())
                         {
-                            responseStream.CopyTo(stream, Int32.MaxValue);
+                            responseStream.CopyTo(stream, 4096);
                             asset.Data = stream.ToArray();
                         }
                     }

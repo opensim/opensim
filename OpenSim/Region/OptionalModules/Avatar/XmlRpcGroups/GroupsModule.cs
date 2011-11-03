@@ -881,7 +881,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             msg.dialog = dialog;
             // msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.GroupNotice;
             msg.fromGroup = true;
-            msg.offline = (byte)1; // Allow this message to be stored for offline use
+            msg.offline = (byte)0;
             msg.ParentEstateID = 0;
             msg.Position = Vector3.Zero;
             msg.RegionID = UUID.Zero.Guid;
