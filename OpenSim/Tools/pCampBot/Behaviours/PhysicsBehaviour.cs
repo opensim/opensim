@@ -75,8 +75,6 @@ namespace pCampBot
             string randomf = talkarray[bot.Random.Next(talkarray.Length)];
             if (talkarray.Length > 1 && randomf.Length > 1)
                 bot.Client.Self.Chat(randomf, 0, ChatType.Normal);
-
-            Thread.Sleep(bot.Random.Next(1000, 10000));
         }
 
         private string[] readexcuses()
