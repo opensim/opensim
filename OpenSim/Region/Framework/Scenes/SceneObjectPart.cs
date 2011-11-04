@@ -992,7 +992,7 @@ namespace OpenSim.Region.Framework.Scenes
         public PrimitiveBaseShape Shape
         {
             get { return m_shape; }
-            set { m_shape = value; }
+            set { m_shape = value;}
         }
 
         /// <summary>
@@ -1336,12 +1336,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="AgentID"></param>
         private void SendRootPartPropertiesToClient(UUID AgentID)
         {
-            m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
+            m_parentGroup.Scene.ForEachClient(delegate(IClientAPI client)
             {
                 // Ugly reference :(
-                if (avatar.UUID == AgentID)
+                if (client.AgentId == AgentID)
                 {
-                    m_parentGroup.SendPropertiesToClient(avatar.ControllingClient);
+                    m_parentGroup.SendPropertiesToClient(client);
                 }
             });
         }
@@ -1461,9 +1461,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (volume < 0)
                 volume = 0;
 
-            m_parentGroup.Scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+            m_parentGroup.Scene.ForEachRootClient(delegate(IClientAPI client)
             {
-                sp.ControllingClient.SendAttachedSoundGainChange(UUID, (float)volume);
+                client.SendAttachedSoundGainChange(UUID, (float)volume);
             });
         }
 
@@ -2216,7 +2216,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else
                         {
-                            m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence av)
+                            m_parentGroup.Scene.ForEachAvatar(delegate(ScenePresence av)
                             {
                                 if (av.LocalId == localId)
                                 {
@@ -2347,7 +2347,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else
                         {
-                            m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence av)
+                            m_parentGroup.Scene.ForEachAvatar(delegate(ScenePresence av)
                             {
                                 if (av.LocalId == localId)
                                 {
@@ -2470,7 +2470,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else
                         {
-                            m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence av)
+                            m_parentGroup.Scene.ForEachAvatar(delegate(ScenePresence av)
                             {
                                 if (av.LocalId == localId)
                                 {
@@ -2696,7 +2696,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            m_parentGroup.Scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+            m_parentGroup.Scene.ForEachAvatar(delegate(ScenePresence sp)
             {
                 if (!(Util.GetDistanceTo(sp.AbsolutePosition, AbsolutePosition) >= 100))
                     sp.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);

@@ -1644,7 +1644,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (flexi)
             {
                 part.Shape.FlexiEntry = true;   // this setting flexi true isn't working, but the below parameters do
-                                                // work once the prim is already flexi
+                                                                // work once the prim is already flexi
                 part.Shape.FlexiSoftness = softness;
                 part.Shape.FlexiGravity = gravity;
                 part.Shape.FlexiDrag = friction;
@@ -1654,10 +1654,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.Shape.FlexiForceY = (float)Force.y;
                 part.Shape.FlexiForceZ = (float)Force.z;
                 part.Shape.PathCurve = 0x80;
+                part.ParentGroup.HasGroupChanged = true;
+                part.ScheduleFullUpdate();
             }
-
-            part.ParentGroup.HasGroupChanged = true;
-            part.ScheduleFullUpdate();
         }
 
         /// <summary>
@@ -3741,7 +3740,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             List<UUID> keytable = new List<UUID>();
             // parse for sitting avatare-uuids
-            World.ForEachRootScenePresence(delegate(ScenePresence presence)
+            World.ForEachAvatar(delegate(ScenePresence presence)
             {
                 if (presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
                     keytable.Add(presence.UUID);
@@ -3803,7 +3802,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             // parse for sitting avatare-names
             List<String> nametable = new List<String>();
-            World.ForEachRootScenePresence(delegate(ScenePresence presence)
+            World.ForEachAvatar(delegate(ScenePresence presence)
             {
                 if (presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
                     nametable.Add(presence.ControllingClient.Name);
@@ -7612,7 +7611,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             int avatarCount = 0;
-            World.ForEachRootScenePresence(delegate(ScenePresence presence)
+            World.ForEachAvatar(delegate(ScenePresence presence)
             {
                 if (presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
                         avatarCount++;
@@ -9380,7 +9379,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     landObject.SetMediaUrl(url);
 
                     // now send to all (non-child) agents in the parcel
-                    World.ForEachRootScenePresence(delegate(ScenePresence sp)
+                    World.ForEachAvatar(delegate(ScenePresence sp)
                     {
                         if (sp.currentParcelUUID == landData.GlobalID)
                         {
@@ -9413,7 +9412,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence == null)
                 {
                     // send to all (non-child) agents in the parcel
-                    World.ForEachRootScenePresence(delegate(ScenePresence sp)
+                    World.ForEachAvatar(delegate(ScenePresence sp)
                     {
                         if (sp.currentParcelUUID == landData.GlobalID)
                         {
@@ -10528,7 +10527,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (checkAgents)
                 {
-                    World.ForEachScenePresence(delegate(ScenePresence sp)
+                    World.ForEachAvatar(delegate(ScenePresence sp)
                     {
                         if (sp.AbsolutePosition.ApproxEquals(posToCheck, sp.PhysicsActor.Size.X))
                         {

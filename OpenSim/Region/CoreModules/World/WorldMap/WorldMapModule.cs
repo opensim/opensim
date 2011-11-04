@@ -401,7 +401,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     }
                     else
                     {
-                        m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+                        m_scene.ForEachAvatar(delegate(ScenePresence sp)
                         {
                             // Don't send a green dot for yourself
                             if (sp.UUID != remoteClient.AgentId)
@@ -1180,7 +1180,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             else
             {
                 OSDArray responsearr = new OSDArray(m_scene.GetRootAgentCount());
-                m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+                m_scene.ForEachAvatar(delegate(ScenePresence sp)
                 {
                     OSDMap responsemapdata = new OSDMap();
                     responsemapdata["X"] = OSD.FromInteger((int)(xstart + sp.AbsolutePosition.X));

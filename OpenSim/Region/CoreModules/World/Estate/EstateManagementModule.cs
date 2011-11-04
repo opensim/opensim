@@ -658,14 +658,14 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (!Scene.Permissions.CanIssueEstateCommand(remover_client.AgentId, false))
                 return;
 
-            Scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+            Scene.ForEachRootClient(delegate(IClientAPI client)
             {
-                if (sp.UUID != senderID)
+                if (client.AgentId != senderID)
                 {
                     // make sure they are still there, we could be working down a long list
                     // Also make sure they are actually in the region
                     ScenePresence p;
-                    if(Scene.TryGetScenePresence(sp.UUID, out p))
+                    if(Scene.TryGetScenePresence(client.AgentId, out p))
                         Scene.TeleportClientHome(p.UUID, p.ControllingClient);
                 }
             });
@@ -927,9 +927,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void sendRegionInfoPacketToAll()
         {
-            Scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+            Scene.ForEachRootClient(delegate(IClientAPI client)
             {
-                HandleRegionInfoRequest(sp.ControllingClient);
+                HandleRegionInfoRequest(client);
             });
         }
 

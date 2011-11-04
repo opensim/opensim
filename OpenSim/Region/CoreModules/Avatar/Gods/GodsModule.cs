@@ -140,14 +140,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                             // This is a bit crude. It seems the client will be null before it actually stops the thread
                             // The thread will kill itself eventually :/
                             // Is there another way to make sure *all* clients get this 'inter region' message?
-                            m_scene.ForEachRootScenePresence(
-                                delegate(ScenePresence p)
+                            m_scene.ForEachRootClient(
+                                delegate(IClientAPI client)
                                 {
-                                    if (p.UUID != godID)
+                                    if (client.AgentId != godID)
                                     {
-                                        // Possibly this should really be p.Close() though that method doesn't send a close
-                                        // to the client
-                                        p.ControllingClient.Close();
+                                        client.Close();
                                     }
                                 }
                             );

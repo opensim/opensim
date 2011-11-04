@@ -1190,7 +1190,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// This is just a shortcut function since frequently actions only appy to root SPs
         /// </summary>
         /// <param name="action"></param>
-        public void ForEachRootScenePresence(Action<ScenePresence> action)
+        public void ForEachAvatar(Action<ScenePresence> action)
         {
             ForEachScenePresence(delegate(ScenePresence sp)
             {

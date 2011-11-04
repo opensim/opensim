@@ -228,7 +228,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             
             foreach (Scene s in m_scenes)
             {
-                s.ForEachScenePresence(
+                // This should use ForEachClient, but clients don't have a position.
+                // If camera is moved into client, then camera position can be used
+                s.ForEachAvatar(
                     delegate(ScenePresence presence)
                     {
                         if (TrySendChatMessage(presence, fromPos, regionPos, fromID, fromName, c.Type, message, sourceType))
@@ -279,11 +281,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
 
             HashSet<UUID> receiverIDs = new HashSet<UUID>();
             
-            ((Scene)c.Scene).ForEachRootScenePresence(
-                delegate(ScenePresence presence)
+            ((Scene)c.Scene).ForEachRootClient(
+                delegate(IClientAPI client)
                 {   
-                    IClientAPI client = presence.ControllingClient;
-                    
                     // don't forward SayOwner chat from objects to
                     // non-owner agents
                     if ((c.Type == ChatTypeEnum.Owner) &&
@@ -292,8 +292,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                         return;
                     
                     client.SendChatMessage(c.Message, (byte)cType, CenterOfRegion, fromName, fromID, 
-                                           (byte)sourceType, (byte)ChatAudibleLevel.Fully);
-                    receiverIDs.Add(presence.UUID);
+                                            (byte)sourceType, (byte)ChatAudibleLevel.Fully);
+                    receiverIDs.Add(client.AgentId);
                 });
             
             (c.Scene as Scene).EventManager.TriggerOnChatToClients(
