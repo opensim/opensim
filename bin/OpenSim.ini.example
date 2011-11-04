@@ -339,9 +339,9 @@
     ;; Distance in meters that whispers should travel.
     ; whisper_distance = 10
 
-    ;# {say_distance} {} {Distance at which normal chat is heard, in meters? (SL uses 20 here)} {} 30
+    ;# {say_distance} {} {Distance at which normal chat is heard, in meters?} {} 20
     ;; Distance in meters that ordinary chat should travel.
-    ; say_distance = 30
+    ; say_distance = 20
 
     ;# {shout_distance} {Distance at which a shout is heard, in meters?} {} 100
     ;; Distance in meters that shouts should travel.

@@ -145,58 +145,39 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             param.Add(mBlock);
             return param;
         }
-        public void SendProfileToClient(ScenePresence presence)
+
+        public void SendProfileToClient(IClientAPI client)
         {
-            IClientAPI client = presence.ControllingClient;
+            SendProfileToClient(client, m_scene.RegionInfo.WindlightSettings);
+        }
+
+        public void SendProfileToClient(IClientAPI client, RegionLightShareData wl)
+        {
             if (m_enableWindlight && m_scene.RegionInfo.WindlightSettings.valid)
             {
-                if (presence.IsChildAgent == false)
-                {
-                    List<byte[]> param = compileWindlightSettings(m_scene.RegionInfo.WindlightSettings);
-                    client.SendGenericMessage("Windlight", param);
-                }
-            }
-            else
-            {
-                //We probably don't want to spam chat with this.. probably
-                //m_log.Debug("[WINDLIGHT]: Module disabled");
+                List<byte[]> param = compileWindlightSettings(wl);
+                client.SendGenericMessage("Windlight", param);
             }
         }
-        public void SendProfileToClient(ScenePresence presence, RegionLightShareData wl)
-        {
-            IClientAPI client = presence.ControllingClient;
-            if (m_enableWindlight && m_scene.RegionInfo.WindlightSettings.valid)
-            {
-                if (presence.IsChildAgent == false)
-                {
-                    List<byte[]> param = compileWindlightSettings(wl);
-                    client.SendGenericMessage("Windlight", param);
-                }
-            }
-            else
-            {
-                //We probably don't want to spam chat with this.. probably
-                //m_log.Debug("[WINDLIGHT]: Module disabled");
-            }
-        }
+
         private void EventManager_OnMakeRootAgent(ScenePresence presence)
         {
             if (m_enableWindlight && m_scene.RegionInfo.WindlightSettings.valid)
                 m_log.Debug("[WINDLIGHT]: Sending windlight scene to new client");
-            SendProfileToClient(presence);
+            SendProfileToClient(presence.ControllingClient);
         }
+
         private void EventManager_OnSendNewWindlightProfileTargeted(RegionLightShareData wl, UUID pUUID)
         {
-            ScenePresence Sc;
-            if (m_scene.TryGetScenePresence(pUUID,out Sc))
-            {
-                SendProfileToClient(Sc,wl);
-            }
+            IClientAPI client;
+            m_scene.TryGetClient(pUUID, out client);
+            SendProfileToClient(client, wl);
         }
+
         private void EventManager_OnSaveNewWindlightProfile()
         {
             if (m_scene.RegionInfo.WindlightSettings.valid)
-                m_scene.ForEachScenePresence(SendProfileToClient);
+                m_scene.ForEachRootClient(SendProfileToClient);
         }
 
         public void PostInitialise()

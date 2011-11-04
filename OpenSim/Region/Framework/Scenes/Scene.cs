@@ -1460,12 +1460,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="stats">Stats on the Simulator's performance</param>
         private void SendSimStatsPackets(SimStats stats)
         {
-            ForEachRootScenePresence(
-                delegate(ScenePresence agent)
-                {
-                    agent.ControllingClient.SendSimStats(stats);
-                }
-            );
+            ForEachRootClient(delegate(IClientAPI client)
+            {
+                client.SendSimStats(stats);
+            });
         }
 
         /// <summary>
@@ -4387,35 +4385,32 @@ namespace OpenSim.Region.Framework.Scenes
             return m_sceneGraph.GetScenePresence(localID);
         }
 
+        /// <summary>
+        /// Returns true if scene presence is a child (no avatar in this scene)
+        /// </summary>
+        /// <param name="avatarID"></param>
+        /// <returns></returns>
         public override bool PresenceChildStatus(UUID avatarID)
         {
-            ScenePresence cp = GetScenePresence(avatarID);
-
-            // FIXME: This is really crap - some logout code is relying on a NullReferenceException to halt its processing
-            // This needs to be fixed properly by cleaning up the logout code.
-            //if (cp != null)
-            //    return cp.IsChildAgent;
-
-            //return false;
-
-            return cp.IsChildAgent;
+            ScenePresence sp;
+            return TryGetScenePresence(avatarID, out sp) && sp.IsChildAgent;
         }
 
         /// <summary>
-        /// Performs action on all ROOT (not child) scene presences.
-        /// This is just a shortcut function since frequently actions only appy to root SPs
+        /// Performs action on all avatars in the scene (root scene presences)
+        /// Avatars may be an NPC or a 'real' client.
         /// </summary>
         /// <param name="action"></param>
         public void ForEachRootScenePresence(Action<ScenePresence> action)
         {
             if(m_sceneGraph != null)
             {
-                m_sceneGraph.ForEachRootScenePresence(action);
+                m_sceneGraph.ForEachAvatar(action);
             }
         }
 
         /// <summary>
-        /// Performs action on all scene presences.
+        /// Performs action on all scene presences (root and child)
         /// </summary>
         /// <param name="action"></param>
         public void ForEachScenePresence(Action<ScenePresence> action)
@@ -4425,25 +4420,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_sceneGraph.ForEachScenePresence(action);
             }
         }
-
-        /// <summary>
-        /// Perform the given action for each object
-        /// </summary>
-        /// <param name="action"></param>
-        //        public void ForEachObject(Action<SceneObjectGroup> action)
-        //        {
-        //            List<SceneObjectGroup> presenceList;
-        //
-        //            lock (m_sceneObjects)
-        //            {
-        //                presenceList = new List<SceneObjectGroup>(m_sceneObjects.Values);
-        //            }
-        //
-        //            foreach (SceneObjectGroup presence in presenceList)
-        //            {
-        //                action(presence);
-        //            }
-        //        }
 
         /// <summary>
         /// Get a group via its UUID
@@ -4517,6 +4493,22 @@ namespace OpenSim.Region.Framework.Scenes
             return m_sceneGraph.TryGetAvatarByName(avatarName, out avatar);
         }
 
+        /// <summary>
+        /// Perform an action on all clients with an avatar in this scene (root only)
+        /// </summary>
+        /// <param name="action"></param>
+        public void ForEachRootClient(Action<IClientAPI> action)
+        {
+            ForEachRootScenePresence(delegate(ScenePresence presence)
+            {
+                action(presence.ControllingClient);
+            });
+        }
+
+        /// <summary>
+        /// Perform an action on all clients connected to the region (root and child)
+        /// </summary>
+        /// <param name="action"></param>
         public void ForEachClient(Action<IClientAPI> action)
         {
             m_clientManager.ForEachSync(action);

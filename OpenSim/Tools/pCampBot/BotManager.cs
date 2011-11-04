@@ -37,6 +37,7 @@ using log4net.Repository;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using pCampBot.Interfaces;
 
 namespace pCampBot
 {
@@ -48,7 +49,7 @@ namespace pCampBot
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected CommandConsole m_console;
-        protected List<PhysicsBot> m_lBot;
+        protected List<Bot> m_lBot;
         protected Random somthing = new Random(Environment.TickCount);
         protected int numbots = 0;
         public IConfig Config { get; private set; }
@@ -102,7 +103,7 @@ namespace pCampBot
 //                    "add bots <number>",
 //                    "Add more bots", HandleAddBots);
 
-            m_lBot = new List<PhysicsBot>();
+            m_lBot = new List<Bot>();
         }
 
         /// <summary>
@@ -119,10 +120,24 @@ namespace pCampBot
             string password = cs.GetString("password");
             string loginUri = cs.GetString("loginuri");
 
+            HashSet<string> behaviourSwitches = new HashSet<string>();
+            Array.ForEach<string>(
+                cs.GetString("behaviours", "p").Split(new char[] { ',' }), b => behaviourSwitches.Add(b));
+
             for (int i = 0; i < botcount; i++)
             {
                 string lastName = string.Format("{0}_{1}", lastNameStem, i);
-                startupBot(i, this, firstName, lastName, password, loginUri);
+
+                List<IBehaviour> behaviours = new List<IBehaviour>();
+    
+                // Hard-coded for now
+                if (behaviourSwitches.Contains("p"))
+                    behaviours.Add(new PhysicsBehaviour());
+    
+                if (behaviourSwitches.Contains("g"))
+                    behaviours.Add(new GrabbingBehaviour());
+
+                startupBot(i, this, behaviours, firstName, lastName, password, loginUri);
             }
         }
 
@@ -150,14 +165,17 @@ namespace pCampBot
         /// This starts up the bot and stores the thread for the bot in the thread array
         /// </summary>
         /// <param name="pos">The position in the thread array to stick the bot's thread</param>
-        /// <param name="cs">Configuration of the bot</param>
+        /// <param name="bm"></param>
+        /// <param name="behaviours">Behaviours for this bot to perform.</param>
         /// <param name="firstName">First name</param>
         /// <param name="lastName">Last name</param>
         /// <param name="password">Password</param>
         /// <param name="loginUri">Login URI</param>
-        public void startupBot(int pos, BotManager bm, string firstName, string lastName, string password, string loginUri)
+        public void startupBot(
+             int pos, BotManager bm, List<IBehaviour> behaviours,
+             string firstName, string lastName, string password, string loginUri)
         {
-            PhysicsBot pb = new PhysicsBot(bm, firstName, lastName, password, loginUri);
+            Bot pb = new Bot(bm, behaviours, firstName, lastName, password, loginUri);
 
             pb.OnConnected += handlebotEvent;
             pb.OnDisconnected += handlebotEvent;
@@ -176,7 +194,7 @@ namespace pCampBot
         /// </summary>
         /// <param name="callbot"></param>
         /// <param name="eventt"></param>
-        private void handlebotEvent(PhysicsBot callbot, EventType eventt)
+        private void handlebotEvent(Bot callbot, EventType eventt)
         {
             switch (eventt)
             {
@@ -201,7 +219,7 @@ namespace pCampBot
         public void doBotShutdown()
         {
             lock (m_lBot)
-                foreach (PhysicsBot pb in m_lBot)
+                foreach (Bot pb in m_lBot)
                     pb.shutdown();
         }
 
@@ -227,7 +245,7 @@ namespace pCampBot
 
             lock (m_lBot)
             {
-                foreach (PhysicsBot pb in m_lBot)
+                foreach (Bot pb in m_lBot)
                 {
                     MainConsole.Instance.OutputFormat(
                         outputFormat, pb.Name, (pb.IsConnected ? "Connected" : "Disconnected"));

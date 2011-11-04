@@ -148,7 +148,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
 
                 Rest.main.SceneManager.ForEachScene(delegate(Scene s)
                 {
-                    s.ForEachScenePresence(delegate(ScenePresence sp)
+                    s.ForEachRootScenePresence(delegate(ScenePresence sp)
                     {
                         if (sp.Firstname == names[0] && sp.Lastname == names[1])
                         {

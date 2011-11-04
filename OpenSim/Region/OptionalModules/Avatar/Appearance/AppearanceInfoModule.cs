@@ -123,15 +123,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
             {   
                 foreach (Scene scene in m_scenes.Values)
                 {
-                    scene.ForEachScenePresence(
+                    scene.ForEachRootScenePresence(
                         delegate(ScenePresence sp)
                         {
-                            if (sp.ControllingClient is LLClientView && !((LLClientView)sp.ControllingClient).ChildAgentStatus())
-                            {
-                                bool bakedTextureValid = scene.AvatarFactory.ValidateBakedTextureCache(sp);
-                                MainConsole.Instance.OutputFormat(
-                                    "{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "corrupt");
-                            }
+                            bool bakedTextureValid = scene.AvatarFactory.ValidateBakedTextureCache(sp);
+                            MainConsole.Instance.OutputFormat(
+                                "{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "corrupt");
                         });
                 }
             }

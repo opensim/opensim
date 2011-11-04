@@ -1827,7 +1827,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (flexi)
             {
                 part.Shape.FlexiEntry = true;   // this setting flexi true isn't working, but the below parameters do
-                                                // work once the prim is already flexi
+                                                                // work once the prim is already flexi
                 part.Shape.FlexiSoftness = softness;
                 part.Shape.FlexiGravity = gravity;
                 part.Shape.FlexiDrag = friction;
@@ -1837,10 +1837,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.Shape.FlexiForceY = (float)Force.y;
                 part.Shape.FlexiForceZ = (float)Force.z;
                 part.Shape.PathCurve = 0x80;
+                part.ParentGroup.HasGroupChanged = true;
+                part.ScheduleFullUpdate();
             }
-
-            part.ParentGroup.HasGroupChanged = true;
-            part.ScheduleFullUpdate();
         }
 
         /// <summary>
@@ -11199,7 +11198,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (checkAgents)
                 {
-                    World.ForEachScenePresence(delegate(ScenePresence sp)
+                    World.ForEachRootScenePresence(delegate(ScenePresence sp)
                     {
                         if (sp.AbsolutePosition.ApproxEquals(posToCheck, sp.PhysicsActor.Size.X))
                         {

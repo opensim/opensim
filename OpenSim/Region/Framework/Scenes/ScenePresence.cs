@@ -1072,7 +1072,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // send the animations of the other presences to me
-            m_scene.ForEachScenePresence(delegate(ScenePresence presence)
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
                 if (presence != this)
                     presence.Animator.SendAnimPackToClient(ControllingClient);

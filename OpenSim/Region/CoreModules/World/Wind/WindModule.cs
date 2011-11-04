@@ -435,9 +435,9 @@ namespace OpenSim.Region.CoreModules
                         m_frameLastUpdateClientArray = m_frame;
                     }
 
-                    m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+                    m_scene.ForEachRootClient(delegate(IClientAPI client)
                     {
-                        sp.ControllingClient.SendWindData(windSpeeds);
+                        client.SendWindData(windSpeeds);
                     });
                 }
             }
