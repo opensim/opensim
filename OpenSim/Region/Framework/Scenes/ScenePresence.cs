@@ -1997,8 +1997,6 @@ namespace OpenSim.Region.Framework.Scenes
                     if (part.SitTargetAvatar == UUID)
                         part.SitTargetAvatar = UUID.Zero;
 
-                    part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
-
                     ParentPosition = part.GetWorldPosition();
                     ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
                 }
@@ -2052,6 +2050,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
+
+                if (part != null)
+                    part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
             }
 
             Animator.UpdateMovementAnimations();
