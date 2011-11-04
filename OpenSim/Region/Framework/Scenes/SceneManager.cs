@@ -481,7 +481,7 @@ namespace OpenSim.Region.Framework.Scenes
             ForEachCurrentScene(
                 delegate(Scene scene)
                 {
-                    scene.ForEachAvatar(delegate(ScenePresence scenePresence)
+                    scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
                     {
                         avatars.Add(scenePresence);
                     });

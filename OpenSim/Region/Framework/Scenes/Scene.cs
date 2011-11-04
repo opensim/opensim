@@ -872,7 +872,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     try
                     {
-                        ForEachAvatar(delegate(ScenePresence agent)
+                        ForEachRootScenePresence(delegate(ScenePresence agent)
                             {
                                 //agent.ControllingClient.new
                                 //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
@@ -1017,7 +1017,7 @@ namespace OpenSim.Region.Framework.Scenes
                     GridRegion r = new GridRegion(region);
                     try
                     {
-                        ForEachAvatar(delegate(ScenePresence agent)
+                        ForEachRootScenePresence(delegate(ScenePresence agent)
                             {
                                 if (m_teleportModule != null)
                                         m_teleportModule.EnableChildAgent(agent, r);
@@ -4228,7 +4228,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Avatars may be an NPC or a 'real' client.
         /// </summary>
         /// <param name="action"></param>
-        public void ForEachAvatar(Action<ScenePresence> action)
+        public void ForEachRootScenePresence(Action<ScenePresence> action)
         {
             if(m_sceneGraph != null)
             {
@@ -4326,7 +4326,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="action"></param>
         public void ForEachRootClient(Action<IClientAPI> action)
         {
-            ForEachAvatar(delegate(ScenePresence presence)
+            ForEachRootScenePresence(delegate(ScenePresence presence)
             {
                 action(presence.ControllingClient);
             });

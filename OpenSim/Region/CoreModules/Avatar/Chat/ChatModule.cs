@@ -230,7 +230,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             {
                 // This should use ForEachClient, but clients don't have a position.
                 // If camera is moved into client, then camera position can be used
-                s.ForEachAvatar(
+                s.ForEachRootScenePresence(
                     delegate(ScenePresence presence)
                     {
                         if (TrySendChatMessage(presence, fromPos, regionPos, fromID, fromName, c.Type, message, sourceType))

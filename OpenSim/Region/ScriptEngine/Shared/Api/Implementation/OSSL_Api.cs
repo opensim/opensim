@@ -873,7 +873,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osGetAgents");
 
             LSL_List result = new LSL_List();
-            World.ForEachAvatar(delegate(ScenePresence sp)
+            World.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
                 result.Add(new LSL_String(sp.Name));
             });
@@ -2581,7 +2581,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Severe, "osKickAvatar");
             if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
             {
-                World.ForEachAvatar(delegate(ScenePresence sp)
+                World.ForEachRootScenePresence(delegate(ScenePresence sp)
                 {
                     if (sp.Firstname == FirstName && sp.Lastname == SurName)
                     {
@@ -2715,7 +2715,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osGetAvatarList");
 
             LSL_List result = new LSL_List();
-            World.ForEachAvatar(delegate (ScenePresence avatar)
+            World.ForEachRootScenePresence(delegate (ScenePresence avatar)
             {
                 if (avatar != null && avatar.UUID != m_host.OwnerID)
                 {

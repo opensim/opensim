@@ -1150,7 +1150,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart part = parts[i];
 
-                Scene.ForEachAvatar(delegate(ScenePresence avatar)
+                Scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
                 {
                     if (avatar.ParentID == LocalId)
                         avatar.StandUp();

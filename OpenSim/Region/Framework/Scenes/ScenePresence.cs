@@ -956,7 +956,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // send the animations of the other presences to me
-            m_scene.ForEachAvatar(delegate(ScenePresence presence)
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
                 if (presence != this)
                     presence.Animator.SendAnimPackToClient(ControllingClient);
@@ -2596,7 +2596,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendOtherAgentsAvatarDataToMe()
         {
             int count = 0;
-            m_scene.ForEachAvatar(delegate(ScenePresence scenePresence)
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
                         {
                             // only send information about other root agents
                             if (scenePresence.UUID == UUID)
@@ -2660,7 +2660,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat("[SCENE PRESENCE] SendOtherAgentsAppearanceToMe: {0} {1}", Name, UUID);
 
             int count = 0;
-            m_scene.ForEachAvatar(delegate(ScenePresence scenePresence)
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
                         {
                             // only send information about other root agents
                             if (scenePresence.UUID == UUID)

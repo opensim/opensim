@@ -507,7 +507,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     senseEntity(sp);
                 if ((ts.type & AGENT_BY_USERNAME) != 0)
                 {
-                    m_CmdManager.m_ScriptEngine.World.ForEachAvatar(
+                    m_CmdManager.m_ScriptEngine.World.ForEachRootScenePresence(
                         delegate (ScenePresence ssp)
                         {
                             if (ssp.Lastname == "Resident")
@@ -526,7 +526,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
             else
             {
-                m_CmdManager.m_ScriptEngine.World.ForEachAvatar(senseEntity);
+                m_CmdManager.m_ScriptEngine.World.ForEachRootScenePresence(senseEntity);
             }
             return sensedEntities;
         }

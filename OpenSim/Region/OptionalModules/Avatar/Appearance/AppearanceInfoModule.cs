@@ -112,7 +112,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
             {
                 foreach (Scene scene in m_scenes.Values)
                 {
-                    scene.ForEachAvatar(sp => scene.AvatarFactory.SendAppearance(sp.UUID));
+                    scene.ForEachRootScenePresence(sp => scene.AvatarFactory.SendAppearance(sp.UUID));
                 }
             }
         }
@@ -123,7 +123,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
             {   
                 foreach (Scene scene in m_scenes.Values)
                 {
-                    scene.ForEachAvatar(
+                    scene.ForEachRootScenePresence(
                         delegate(ScenePresence sp)
                         {
                             bool bakedTextureValid = scene.AvatarFactory.ValidateBakedTextureCache(sp);

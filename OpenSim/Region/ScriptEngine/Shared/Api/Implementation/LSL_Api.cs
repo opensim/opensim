@@ -3740,7 +3740,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             List<UUID> keytable = new List<UUID>();
             // parse for sitting avatare-uuids
-            World.ForEachAvatar(delegate(ScenePresence presence)
+            World.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
                 if (presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
                     keytable.Add(presence.UUID);
@@ -3802,7 +3802,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             // parse for sitting avatare-names
             List<String> nametable = new List<String>();
-            World.ForEachAvatar(delegate(ScenePresence presence)
+            World.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
                 if (presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
                     nametable.Add(presence.ControllingClient.Name);
@@ -7611,7 +7611,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             int avatarCount = 0;
-            World.ForEachAvatar(delegate(ScenePresence presence)
+            World.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
                 if (presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
                         avatarCount++;
@@ -9379,7 +9379,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     landObject.SetMediaUrl(url);
 
                     // now send to all (non-child) agents in the parcel
-                    World.ForEachAvatar(delegate(ScenePresence sp)
+                    World.ForEachRootScenePresence(delegate(ScenePresence sp)
                     {
                         if (sp.currentParcelUUID == landData.GlobalID)
                         {
@@ -9412,7 +9412,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence == null)
                 {
                     // send to all (non-child) agents in the parcel
-                    World.ForEachAvatar(delegate(ScenePresence sp)
+                    World.ForEachRootScenePresence(delegate(ScenePresence sp)
                     {
                         if (sp.currentParcelUUID == landData.GlobalID)
                         {
@@ -10527,7 +10527,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (checkAgents)
                 {
-                    World.ForEachAvatar(delegate(ScenePresence sp)
+                    World.ForEachRootScenePresence(delegate(ScenePresence sp)
                     {
                         if (sp.AbsolutePosition.ApproxEquals(posToCheck, sp.PhysicsActor.Size.X))
                         {
