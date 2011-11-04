@@ -2250,7 +2250,10 @@ Console.WriteLine(" JointCreateFixed");
         {
             if (!m_isSelected)
             {
+                // Not sure exactly why this sleep is here, but from experimentation it appears to stop an avatar
+                // walking through a default rez size prim if it keeps kicking it around - justincc.
                 Thread.Sleep(20);
+
                 if (IsPhysical)
                 {
                     if (Body != IntPtr.Zero)
