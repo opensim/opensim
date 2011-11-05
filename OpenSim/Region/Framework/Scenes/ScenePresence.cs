@@ -89,7 +89,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// rotation, prim cut, prim twist, prim taper, and prim shear. See mantis
         /// issue #1716
         /// </summary>
-        public static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.1f, 0.0f, 0.3f);
+        public static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.0f, 0.0f, 0.418f);
 
         /// <summary>
         /// Movement updates for agents in neighboring regions are sent directly to clients.
@@ -169,7 +169,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected ulong crossingFromRegion;
 
-        private readonly Vector3[] Dir_Vectors = new Vector3[9];
+        private readonly Vector3[] Dir_Vectors = new Vector3[11];
 
 
         protected Timer m_reprioritization_timer;
@@ -241,6 +241,8 @@ namespace OpenSim.Region.Framework.Scenes
             DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
             DIR_CONTROL_FLAG_FORWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS,
             DIR_CONTROL_FLAG_BACKWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG,
+            DIR_CONTROL_FLAG_LEFT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS,
+            DIR_CONTROL_FLAG_RIGHT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG,
             DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
         }
         
@@ -479,7 +481,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (PhysicsActor != null)
+                if (PhysicsActor != null && m_parentID == 0)
                 {
                     m_pos = PhysicsActor.Position;
 
@@ -507,7 +509,7 @@ namespace OpenSim.Region.Framework.Scenes
                         SceneObjectPart part = m_scene.GetSceneObjectPart(ParentID);
                         if (part != null)
                         {
-                            return ParentPosition + (m_pos * part.GetWorldRotation());
+                            return part.AbsolutePosition + (m_pos * part.GetWorldRotation());
                         }
                         else
                         {
@@ -816,23 +818,27 @@ namespace OpenSim.Region.Framework.Scenes
             Dir_Vectors[3] = -Vector3.UnitY; //RIGHT
             Dir_Vectors[4] = Vector3.UnitZ; //UP
             Dir_Vectors[5] = -Vector3.UnitZ; //DOWN
-            Dir_Vectors[8] = new Vector3(0f, 0f, -0.5f); //DOWN_Nudge
-            Dir_Vectors[6] = Vector3.UnitX*2; //FORWARD
-            Dir_Vectors[7] = -Vector3.UnitX; //BACK
+            Dir_Vectors[6] = new Vector3(0.5f, 0f, 0f); //FORWARD_NUDGE
+            Dir_Vectors[7] = new Vector3(-0.5f, 0f, 0f);  //BACK_NUDGE
+            Dir_Vectors[8] = new Vector3(0f, 0.5f, 0f);  //LEFT_NUDGE
+            Dir_Vectors[9] = new Vector3(0f, -0.5f, 0f);  //RIGHT_NUDGE
+            Dir_Vectors[10] = new Vector3(0f, 0f, -0.5f); //DOWN_Nudge
         }
 
         private Vector3[] GetWalkDirectionVectors()
         {
-            Vector3[] vector = new Vector3[9];
-            vector[0] = new Vector3(m_CameraUpAxis.Z, 0f, -CameraAtAxis.Z); //FORWARD
-            vector[1] = new Vector3(-m_CameraUpAxis.Z, 0f, CameraAtAxis.Z); //BACK
+            Vector3[] vector = new Vector3[11];
+            vector[0] = new Vector3(m_CameraUpAxis.Z, 0f, -m_CameraAtAxis.Z); //FORWARD
+            vector[1] = new Vector3(-m_CameraUpAxis.Z, 0f, m_CameraAtAxis.Z); //BACK
             vector[2] = Vector3.UnitY; //LEFT
             vector[3] = -Vector3.UnitY; //RIGHT
-            vector[4] = new Vector3(CameraAtAxis.Z, 0f, m_CameraUpAxis.Z); //UP
-            vector[5] = new Vector3(-CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN
-            vector[8] = new Vector3(-CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN_Nudge
-            vector[6] = (new Vector3(m_CameraUpAxis.Z, 0f, -CameraAtAxis.Z) * 2); //FORWARD Nudge
-            vector[7] = new Vector3(-m_CameraUpAxis.Z, 0f, CameraAtAxis.Z); //BACK Nudge
+            vector[4] = new Vector3(m_CameraAtAxis.Z, 0f, m_CameraUpAxis.Z); //UP
+            vector[5] = new Vector3(-m_CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN
+            vector[6] = new Vector3(m_CameraUpAxis.Z, 0f, -m_CameraAtAxis.Z); //FORWARD_NUDGE
+            vector[7] = new Vector3(-m_CameraUpAxis.Z, 0f, m_CameraAtAxis.Z); //BACK_NUDGE
+            vector[8] = Vector3.UnitY; //LEFT_NUDGE
+            vector[9] = -Vector3.UnitY; //RIGHT_NUDGE
+            vector[10] = new Vector3(-m_CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN_NUDGE
             return vector;
         }
 
@@ -1031,12 +1037,17 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (PhysicsActor != null)
             {
-                PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
-                PhysicsActor.OnOutOfBounds -= OutOfBoundsCall;
-                m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
-                PhysicsActor.UnSubscribeEvents();
-                PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
-                PhysicsActor = null;
+                try
+                {
+                    PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
+                    PhysicsActor.OnOutOfBounds -= OutOfBoundsCall;
+                    m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
+                    PhysicsActor.UnSubscribeEvents();
+                    PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
+                    PhysicsActor = null;
+                }
+                catch
+                { }
             }
         }
 
@@ -2049,9 +2060,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_requestedSitTargetID = part.LocalId;
                 //m_requestedSitOffset = offset;
                 m_requestedSitTargetUUID = targetID;
-                
+
                 m_log.DebugFormat("[SIT]: Client requested Sit Position: {0}", offset);
-                
+
                 if (m_scene.PhysicsScene.SupportsRayCast())
                 {
                     //m_scene.PhysicsScene.RaycastWorld(Vector3.Zero,Vector3.Zero, 0.01f,new RaycastCallback());
@@ -2270,7 +2281,7 @@ namespace OpenSim.Region.Framework.Scenes
                 HandleAgentSit(remoteClient, agentID, "SIT");
             }
         }
-        
+
         public void HandleAgentSit(IClientAPI remoteClient, UUID agentID, string sitAnimation)
         {
             SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
