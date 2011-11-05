@@ -85,7 +85,6 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_trustBinaries;
         public bool m_allowScriptCrossings;
         public bool m_useFlySlow;
-        public bool m_usePreJump;
 
         protected float m_defaultDrawDistance = 255.0f;
         public float DefaultDrawDistance 
@@ -649,8 +648,6 @@ namespace OpenSim.Region.Framework.Scenes
                 
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
-                // TODO: Change default to true once the feature is supported
-                m_usePreJump = startupConfig.GetBoolean("enableprejump", false);
 
                 m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
 
