@@ -1681,21 +1681,21 @@ namespace OpenSim.Region.Framework.Scenes
                 // which occurs later in the main scene loop
                 if (update_movementflag || (update_rotation && DCFlagKeyPressed))
                 {
-                    //                    m_log.DebugFormat(
-                    //                        "[SCENE PRESENCE]: In {0} adding velocity of {1} to {2}, umf = {3}, ur = {4}",
-                    //                        m_scene.RegionInfo.RegionName, agent_control_v3, Name, update_movementflag, update_rotation);
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: In {0} adding velocity of {1} to {2}, umf = {3}, ur = {4}",
+//                        m_scene.RegionInfo.RegionName, agent_control_v3, Name, update_movementflag, update_rotation);
 
                     AddNewMovement(agent_control_v3);
                 }
-                //                else
-                //                {
-                //                    if (!update_movementflag)
-                //                    {
-                //                        m_log.DebugFormat(
-                //                            "[SCENE PRESENCE]: In {0} ignoring requested update of {1} for {2} as update_movementflag = false",
-                //                            m_scene.RegionInfo.RegionName, agent_control_v3, Name);
-                //                    }
-                //                }
+//                else
+//                {
+//                    if (!update_movementflag)
+//                    {
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: In {0} ignoring requested update of {1} for {2} as update_movementflag = false",
+//                            m_scene.RegionInfo.RegionName, agent_control_v3, Name);
+//                    }
+//                }
 
                 if (update_movementflag && ParentID == 0)
                     Animator.UpdateMovementAnimations();
@@ -1714,20 +1714,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>True if movement has been updated in some way.  False otherwise.</returns>
         public bool HandleMoveToTargetUpdate(ref Vector3 agent_control_v3)
         {
-            //            m_log.DebugFormat("[SCENE PRESENCE]: Called HandleMoveToTargetUpdate() for {0}", Name);
+//            m_log.DebugFormat("[SCENE PRESENCE]: Called HandleMoveToTargetUpdate() for {0}", Name);
 
             bool updated = false;
 
-            //            m_log.DebugFormat(
-            //                "[SCENE PRESENCE]: bAllowUpdateMoveToPosition {0}, m_moveToPositionInProgress {1}, m_autopilotMoving {2}",
-            //                allowUpdate, m_moveToPositionInProgress, m_autopilotMoving);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: bAllowUpdateMoveToPosition {0}, m_moveToPositionInProgress {1}, m_autopilotMoving {2}",
+//                allowUpdate, m_moveToPositionInProgress, m_autopilotMoving);
 
             if (!m_autopilotMoving)
             {
                 double distanceToTarget = Util.GetDistanceTo(AbsolutePosition, MoveToPositionTarget);
-                //                        m_log.DebugFormat(
-                //                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
-                //                            Name, AbsolutePosition, MoveToPositionTarget, distanceToTarget);
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
+//                            Name, AbsolutePosition, MoveToPositionTarget, distanceToTarget);
 
                 // Check the error term of the current position in relation to the target position
                 if (distanceToTarget <= 1)
@@ -1750,7 +1750,7 @@ namespace OpenSim.Region.Framework.Scenes
                             (MoveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
                             * Matrix4.CreateFromQuaternion(Quaternion.Inverse(Rotation)); // change to avatar coords
                         // Ignore z component of vector
-                        //                        Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
+//                        Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
                         LocalVectorToTarget3D.Normalize();
 
                         // update avatar movement flags. the avatar coordinate system is as follows:
@@ -1816,9 +1816,9 @@ namespace OpenSim.Region.Framework.Scenes
                             updated = true;
                         }
 
-                        //                        m_log.DebugFormat(
-                        //                            "[SCENE PRESENCE]: HandleMoveToTargetUpdate adding {0} to move vector {1} for {2}",
-                        //                            LocalVectorToTarget3D, agent_control_v3, Name);
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: HandleMoveToTargetUpdate adding {0} to move vector {1} for {2}",
+//                            LocalVectorToTarget3D, agent_control_v3, Name);
 
                         agent_control_v3 += LocalVectorToTarget3D;
                     }
