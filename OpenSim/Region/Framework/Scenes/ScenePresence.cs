@@ -320,7 +320,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         #region Client Camera
-        // Position of agent's camera in world (region cordinates)
+
+        /// <summary>
+        /// Position of agent's camera in world (region cordinates)
+        /// </summary>
         protected Vector3 m_lastCameraPosition;
 
         protected Vector3 m_CameraPosition;
@@ -1911,14 +1914,12 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectPart part in partArray)
             {
                 // Is a sit target available?
-                Vector3 avSitOffSet = part.SitTargetPosition;
+                Vector3 avSitOffset = part.SitTargetPosition;
                 Quaternion avSitOrientation = part.SitTargetOrientation;
                 UUID avOnTargetAlready = part.SitTargetAvatar;
 
-                bool SitTargetUnOccupied = (!(avOnTargetAlready != UUID.Zero));
-                bool SitTargetisSet =
-                    (!(avSitOffSet.X == 0f && avSitOffSet.Y == 0f && avSitOffSet.Z == 0f && avSitOrientation.W == 1f &&
-                       avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 0f));
+                bool SitTargetUnOccupied = avOnTargetAlready == UUID.Zero;
+                bool SitTargetisSet = avSitOffset != Vector3.Zero || avSitOrientation != Quaternion.Identity;
 
                 if (SitTargetisSet && SitTargetUnOccupied)
                 {
@@ -1940,7 +1941,6 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 cameraAtOffset = Vector3.Zero;
             bool forceMouselook = false;
 
-            //SceneObjectPart part =  m_scene.GetSceneObjectPart(targetID);
             SceneObjectPart part = FindNextAvailableSitTarget(targetID);
             if (part != null)
             {
@@ -1954,9 +1954,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 bool SitTargetUnOccupied = (!(avOnTargetAlready != UUID.Zero));
                 bool SitTargetisSet =
-                    (!(avSitOffSet.X == 0f && avSitOffSet.Y == 0f && avSitOffSet.Z == 0f &&
+                    (!(avSitOffSet == Vector3.Zero &&
                        (
-                           avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 0f && avSitOrientation.W == 1f // Valid Zero Rotation quaternion
+                           avSitOrientation == Quaternion.Identity // Valid Zero Rotation quaternion
                            || avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 1f && avSitOrientation.W == 0f // W-Z Mapping was invalid at one point
                            || avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 0f && avSitOrientation.W == 0f // Invalid Quaternion
                        )
@@ -2008,6 +2008,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             ControllingClient.SendSitResponse(targetID, offset, sitOrientation, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
             m_requestedSitTargetUUID = targetID;
+
             // This calls HandleAgentSit twice, once from here, and the client calls
             // HandleAgentSit itself after it gets to the location
             // It doesn't get to the location until we've moved them there though
@@ -2292,15 +2293,13 @@ namespace OpenSim.Region.Framework.Scenes
 
                         //Quaternion result = (sitTargetOrient * vq) * nq;
 
-                        m_pos = new Vector3(sitTargetPos.X, sitTargetPos.Y, sitTargetPos.Z);
-                        m_pos += SIT_TARGET_ADJUSTMENT;
+                        m_pos = sitTargetPos + SIT_TARGET_ADJUSTMENT;
                         Rotation = sitTargetOrient;
                         ParentPosition = part.AbsolutePosition;
                     }
                     else
                     {
                         m_pos -= part.AbsolutePosition;
-
                         ParentPosition = part.AbsolutePosition;
 
 //                        m_log.DebugFormat(
@@ -2313,6 +2312,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
             }
+
             ParentID = m_requestedSitTargetID;
 
             Velocity = Vector3.Zero;
