@@ -146,6 +146,11 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_flyingOld;		// add for fly velocity control
         public bool m_wasFlying;		// add for fly velocity control
 
+        private int m_lastColCount = -1;		//KF: Look for Collision chnages
+        private int m_updateCount = 0;			//KF: Update Anims for a while
+        private static readonly int UPDATE_COUNT = 10;		// how many frames to update for
+        private List<uint> m_lastColliders = new List<uint>();
+
         private TeleportFlags m_teleportFlags;
         public TeleportFlags TeleportFlags
         {
@@ -208,13 +213,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_followCamAuto;
 
         private int m_movementUpdateCount;
-        private int m_lastColCount = -1;		//KF: Look for Collision chnages
-        private int m_updateCount = 0;			//KF: Update Anims for a while
-        private static readonly int UPDATE_COUNT = 10;		// how many frames to update for
         private const int NumMovementsBetweenRayCast = 5;
-        private List<uint> m_lastColliders = new List<uint>();
-
-        private object m_syncRoot = new Object();
 
         private bool CameraConstraintActive;
         //private int m_moveToPositionStateStatus;
@@ -255,7 +254,7 @@ namespace OpenSim.Region.Framework.Scenes
             DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
             DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
             DIR_CONTROL_FLAG_FORWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS,
-            DIR_CONTROL_FLAG_BACK_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG,
+            DIR_CONTROL_FLAG_BACKWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG,
             DIR_CONTROL_FLAG_LEFT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS,
             DIR_CONTROL_FLAG_RIGHT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG,
             DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
@@ -496,11 +495,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                PhysicsActor actor = m_physicsActor;
-//                if (actor != null)
-                if ((actor != null) && (m_parentID == 0))   // KF Do NOT update m_pos here if Av is sitting!
-				{
-                    m_pos = actor.Position;
+                if (PhysicsActor != null && m_parentID == 0)
+                {
+                    m_pos = PhysicsActor.Position;
 
 //                    m_log.DebugFormat(
 //                        "[SCENE PRESENCE]: Set position {0} for {1} in {2} via getting AbsolutePosition!",
@@ -551,10 +548,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-//				Changed this to update unconditionally to make npose work
-//                if (m_parentID == 0)   // KF Do NOT update m_pos here if Av is sitting!
-                    m_pos = value;
-                m_parentPosition = Vector3.Zero;
+                m_pos = value;
+                ParentPosition = Vector3.Zero;
 
 //                m_log.DebugFormat(
 //                    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
@@ -637,15 +632,12 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_isChildAgent = value; }
         }
 
-        private uint m_parentID;
-
-
         public uint ParentID
         {
             get { return m_parentID; }
             set { m_parentID = value; }
         }
-
+        private uint m_parentID;
 
         public float Health
         {
@@ -797,7 +789,10 @@ namespace OpenSim.Region.Framework.Scenes
             m_reprioritization_timer.AutoReset = false;
 
             AdjustKnownSeeds();
+
+            // TODO: I think, this won't send anything, as we are still a child here...
             Animator.TrySetMovementAnimation("STAND"); 
+
             // we created a new ScenePresence (a new child agent) in a fresh region.
             // Request info about all the (root) agents in this region
             // Note: This won't send data *to* other clients in that region (children don't send)
@@ -861,7 +856,7 @@ namespace OpenSim.Region.Framework.Scenes
             vector[10] = new Vector3(-m_CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN_NUDGE
             return vector;
         }
-        
+
         #endregion
 
         public uint GenerateClientFlags(UUID ObjectID)
@@ -876,8 +871,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendPrimUpdates()
         {
-            m_sceneViewer.SendPrimUpdates();
-
             SceneViewer.SendPrimUpdates();
         }
 
@@ -1117,11 +1110,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 try
                 {
-                    m_physicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
-                    m_physicsActor.OnOutOfBounds -= OutOfBoundsCall;
-                    m_physicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
+                    PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
+                    PhysicsActor.OnOutOfBounds -= OutOfBoundsCall;
                     m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
-                    m_physicsActor.UnSubscribeEvents();
+                    PhysicsActor.UnSubscribeEvents();
+                    PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
                     PhysicsActor = null;
                 }
                 catch
@@ -1146,7 +1139,6 @@ namespace OpenSim.Region.Framework.Scenes
             AddToPhysicalScene(isFlying);
 
             SendTerseUpdateToAllClients();
-            
         }
 
         public void TeleportWithMomentum(Vector3 pos)
@@ -1364,12 +1356,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// This is the event handler for client movement. If a client is moving, this event is triggering.
         /// </summary>
-        /// <summary>
-        /// This is the event handler for client movement. If a client is moving, this event is triggering.
-        /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
-            //            m_log.DebugFormat("[SCENE PRESENCE]: Received agent update from {0}", remoteClient.Name);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: In {0} received agent update from {1}",
+//                Scene.RegionInfo.RegionName, remoteClient.Name);
 
             //if (IsChildAgent)
             //{
@@ -1570,7 +1561,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                             if ((MovementFlag & (byte)(uint)DCF) == 0)
                             {
-                                if (DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACK_NUDGE)
+                                if (DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE)
                                 {
                                     MovementFlag |= (byte)nudgehack;
                                 }
@@ -1582,13 +1573,13 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else
                         {
-                            if ((m_movementflag & (byte)(uint)DCF) != 0 ||
-                                ((DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACK_NUDGE)
-                                && ((m_movementflag & (byte)nudgehack) == nudgehack))
+                            if ((MovementFlag & (byte)(uint)DCF) != 0 ||
+                                ((DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE)
+                                && ((MovementFlag & (byte)nudgehack) == nudgehack))
                                 ) // This or is for Nudge forward
                             {
-                                //                                m_log.DebugFormat("[SCENE PRESENCE]: Updating m_movementflag for {0} with lack of {1}", Name, DCF);
-                                m_movementflag -= ((byte)(uint)DCF);
+//                                m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with lack of {1}", Name, DCF);
+                                MovementFlag -= ((byte)(uint)DCF);
                                 update_movementflag = true;
 
                                 /*
@@ -1818,9 +1809,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (SitGround)
                 StandUp();
 
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
-//                Name, pos, m_scene.RegionInfo.RegionName);
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
+                Name, pos, m_scene.RegionInfo.RegionName);
 
             if (pos.X < 0 || pos.X >= Constants.RegionSize
                 || pos.Y < 0 || pos.Y >= Constants.RegionSize
@@ -1846,9 +1837,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (pos.Z - terrainHeight < 0.2)
                 pos.Z = terrainHeight;
 
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
-//                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
+                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
 
             if (noFly)
                 PhysicsActor.Flying = false;
@@ -1884,7 +1875,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ResetMoveToTarget()
         {
-//            m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
+            m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
 
             MovingToTarget = false;
             MoveToPositionTarget = Vector3.Zero;
@@ -2548,9 +2539,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 CheckForSignificantMovement(); // sends update to the modules.
             }
-            
-            //Sending prim updates AFTER the avatar terse updates are sent
-            SendPrimUpdates();
         }
 
         #endregion
@@ -3268,7 +3256,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_callbackURI = cAgent.CallbackURI;
 
             m_pos = cAgent.Position;
-            
             m_velocity = cAgent.Velocity;
             CameraPosition = cAgent.Center;
             CameraAtAxis = cAgent.AtAxis;
@@ -3415,14 +3402,14 @@ namespace OpenSim.Region.Framework.Scenes
             //if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))
             // The Physics Scene will send updates every 500 ms grep: PhysicsActor.SubscribeEvents(
             // as of this comment the interval is set in AddToPhysicalScene
-            if (Animator!=null)
+            if (Animator != null)
             {
-				if (m_updateCount > 0)			//KF: DO NOT call UpdateMovementAnimations outside of the m_updateCount wrapper,
-				{								//  else its will lock out other animation changes, like ground sit.
-	            	Animator.UpdateMovementAnimations();
-	            	m_updateCount--;
-				}
-			}
+                if (m_updateCount > 0)
+                {
+                    Animator.UpdateMovementAnimations();
+                    m_updateCount--;
+                }
+            }
 
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
@@ -3431,12 +3418,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             // No collisions at all means we may be flying. Update always
             // to make falling work
-			if (m_lastColCount != coldata.Count || coldata.Count == 0)
-			{	
-				m_updateCount = UPDATE_COUNT;
-				m_lastColCount = coldata.Count;
-			}
-			
+            if (m_lastColCount != coldata.Count || coldata.Count == 0)
+            {	
+                m_updateCount = UPDATE_COUNT;
+                m_lastColCount = coldata.Count;
+            }
+
             if (coldata.Count != 0 && Animator != null)
             {
                 switch (Animator.CurrentMovementAnimation)
@@ -4047,15 +4034,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
         
-        private Vector3 Quat2Euler(Quaternion rot){
-        	float x = Utils.RAD_TO_DEG * (float)Math.Atan2((double)((2.0f * rot.X * rot.W) - (2.0f * rot.Y * rot.Z)) , 
-        													(double)(1 - (2.0f * rot.X * rot.X) - (2.0f * rot.Z * rot.Z)));
-        	float y = Utils.RAD_TO_DEG * (float)Math.Asin ((double)((2.0f * rot.X * rot.Y) + (2.0f * rot.Z * rot.W)));
-        	float z = Utils.RAD_TO_DEG * (float)Math.Atan2(((double)(2.0f * rot.Y * rot.W) - (2.0f * rot.X * rot.Z)) , 
-        													(double)(1 - (2.0f * rot.Y * rot.Y) - (2.0f * rot.Z * rot.Z)));
-	        return(new Vector3(x,y,z));
-	    }
-
         private void CheckLandingPoint(ref Vector3 pos)
         {
             // Never constrain lures
