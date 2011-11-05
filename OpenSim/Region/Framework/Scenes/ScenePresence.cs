@@ -920,61 +920,7 @@ namespace OpenSim.Region.Framework.Scenes
                 pos.Y = crossedBorder.BorderLine.Z - 1;
             }
 
-            ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
-            if (land != null)
-            {
-                // If we come in via login, landmark or map, we want to
-                // honor landing points. If we come in via Lure, we want
-                // to ignore them.
-                if ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)) == (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID) ||
-                    (m_teleportFlags & TeleportFlags.ViaLandmark) != 0 ||
-                    (m_teleportFlags & TeleportFlags.ViaLocation) != 0)
-                {
-                    // Don't restrict gods, estate managers, or land owners to
-                    // the TP point. This behaviour mimics agni.
-                    if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
-                        land.LandData.UserLocation != Vector3.Zero &&
-                        GodLevel < 200 &&
-                        ((land.LandData.OwnerID != m_uuid &&
-                        (!m_scene.Permissions.IsGod(m_uuid)) &&
-                        (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid))) || (m_teleportFlags & TeleportFlags.ViaLocation) != 0))
-                    {
-                        pos = land.LandData.UserLocation;
-                    }
-                }
-                
-                land.SendLandUpdateToClient(ControllingClient);
-            }
-
-            if (pos.X < 0 || pos.Y < 0 || pos.Z < 0)
-            {
-                Vector3 emergencyPos = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 128);
-                
-                if (pos.X < 0)
-                {
-                    emergencyPos.X = (int)Constants.RegionSize + pos.X;
-                    if (!(pos.Y < 0))
-                        emergencyPos.Y = pos.Y;
-                    if (!(pos.Z < 0))
-                        emergencyPos.Z = pos.Z;
-                }
-                if (pos.Y < 0)
-                {
-                    emergencyPos.Y = (int)Constants.RegionSize + pos.Y;
-                    if (!(pos.X < 0))
-                        emergencyPos.X = pos.X;
-                    if (!(pos.Z < 0))
-                        emergencyPos.Z = pos.Z;
-                }
-                if (pos.Z < 0)
-                {
-                    emergencyPos.Z = 128;
-                    if (!(pos.Y < 0))
-                        emergencyPos.Y = pos.Y;
-                    if (!(pos.X < 0))
-                        emergencyPos.X = pos.X;
-                }
-            }
+            CheckAndAdjustLandingPoint(ref pos);
 
             if (pos.X < 0f || pos.Y < 0f || pos.Z < 0f)
             {
@@ -1815,7 +1761,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
-                Name, pos, m_scene.RegionInfo.RegionName);
+//                Name, pos, m_scene.RegionInfo.RegionName);
 
             if (pos.X < 0 || pos.X >= Constants.RegionSize
                 || pos.Y < 0 || pos.Y >= Constants.RegionSize
@@ -4060,6 +4006,35 @@ namespace OpenSim.Region.Framework.Scenes
                     pos = land.LandData.UserLocation;
                 else
                     ControllingClient.SendAlertMessage("Can't teleport closer to destination");
+            }
+        }
+
+        private void CheckAndAdjustLandingPoint(ref Vector3 pos)
+        {
+            ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
+            if (land != null)
+            {
+                // If we come in via login, landmark or map, we want to
+                // honor landing points. If we come in via Lure, we want
+                // to ignore them.
+                if ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)) == (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID) ||
+                    (m_teleportFlags & TeleportFlags.ViaLandmark) != 0 ||
+                    (m_teleportFlags & TeleportFlags.ViaLocation) != 0)
+                {
+                    // Don't restrict gods, estate managers, or land owners to
+                    // the TP point. This behaviour mimics agni.
+                    if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
+                        land.LandData.UserLocation != Vector3.Zero &&
+                        GodLevel < 200 &&
+                        ((land.LandData.OwnerID != m_uuid &&
+                        (!m_scene.Permissions.IsGod(m_uuid)) &&
+                        (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid))) || (m_teleportFlags & TeleportFlags.ViaLocation) != 0))
+                    {
+                        pos = land.LandData.UserLocation;
+                    }
+                }
+                
+                land.SendLandUpdateToClient(ControllingClient);
             }
         }
     }
