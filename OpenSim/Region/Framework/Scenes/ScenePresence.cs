@@ -1942,7 +1942,7 @@ namespace OpenSim.Region.Framework.Scenes
                         Velocity = Vector3.Zero;
                         SendAvatarDataToAllAgents();
 
-                        HandleAgentSit(ControllingClient, m_requestedSitTargetUUID);  //KF ??
+                        //HandleAgentSit(ControllingClient, m_requestedSitTargetUUID);
                     }
                     //ControllingClient.SendSitResponse(m_requestedSitTargetID, m_requestedSitOffset, Quaternion.Identity, false, Vector3.Zero, Vector3.Zero, false);
                     m_requestedSitTargetUUID = UUID.Zero;
@@ -1979,22 +1979,24 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (ParentID != 0)
             {
-                SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
+                m_log.Debug("StandupCode Executed");
+                SceneObjectPart part = m_scene.GetSceneObjectPart(ParentID);
                 if (part != null)
                 {
-                    part.TaskInventory.LockItemsForRead(true);
                     TaskInventoryDictionary taskIDict = part.TaskInventory;
                     if (taskIDict != null)
                     {
-                        foreach (UUID taskID in taskIDict.Keys)
+                        lock (taskIDict)
                         {
-                            UnRegisterControlEventsToScript(LocalId, taskID);
-                            taskIDict[taskID].PermsMask &= ~(
-                                2048 | //PERMISSION_CONTROL_CAMERA
-                                4); // PERMISSION_TAKE_CONTROLS
+                            foreach (UUID taskID in taskIDict.Keys)
+                            {
+                                UnRegisterControlEventsToScript(LocalId, taskID);
+                                taskIDict[taskID].PermsMask &= ~(
+                                    2048 | //PERMISSION_CONTROL_CAMERA
+                                    4); // PERMISSION_TAKE_CONTROLS
+                            }
                         }
                     }
-                    part.TaskInventory.LockItemsForRead(false);
 
                     // Reset sit target.
                     if (part.SitTargetAvatar == UUID)
@@ -2003,54 +2005,16 @@ namespace OpenSim.Region.Framework.Scenes
                     ParentPosition = part.GetWorldPosition();
                     ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
                 }
-				// part.GetWorldRotation()   is the rotation of the object being sat on
-				// Rotation  is the sittiing Av's rotation
 
-	           	Quaternion partRot;
-//	            if (part.LinkNum == 1)
-//	            {				// Root prim of linkset
-//	                partRot = part.ParentGroup.RootPart.RotationOffset;
-//	            }
-//	            else
-//	            {				// single or child prim
-
-//	            }                       
-                if (part == null) //CW: Part may be gone. llDie() for example.
-                {
-                    partRot = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
-                }
-                else
-                {
-                    partRot = part.GetWorldRotation();
-                }
-
-	            Quaternion partIRot = Quaternion.Inverse(partRot);
-
-				Quaternion avatarRot = Quaternion.Inverse(Quaternion.Inverse(Rotation) * partIRot); // world or. of the av
-				Vector3 avStandUp = new Vector3(0.3f, 0f, 0f) * avatarRot;		// 0.3M infront of av
-
-                
-                if (m_physicsActor == null)
+                if (PhysicsActor == null)
                 {
                     AddToPhysicalScene(false);
                 }
-                //CW: If the part isn't null then we can set the current position 
-                if (part != null)
-                {
-                    Vector3 avWorldStandUp = avStandUp + part.GetWorldPosition() + ((m_pos - part.OffsetPosition) * partRot);			// + av sit offset!
-                    AbsolutePosition = avWorldStandUp;                	 //KF: Fix stand up.
-                    part.IsOccupied = false;
-                    part.ParentGroup.DeleteAvatar(ControllingClient.AgentId);
-                }
-                else
-                {
-                    //CW: Since the part doesn't exist, a coarse standup position isn't an issue
-                    AbsolutePosition = m_lastWorldPosition;
-                }
-                
-		        m_parentPosition = Vector3.Zero;
-				m_parentID = 0;
-                m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+
+                m_pos += ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
+                ParentPosition = Vector3.Zero;
+
+                ParentID = 0;
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
 
@@ -2058,7 +2022,7 @@ namespace OpenSim.Region.Framework.Scenes
                     part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
             }
 
-            Animator.UpdateMovementAnimations();
+            Animator.TrySetMovementAnimation("STAND");
         }
 
         private SceneObjectPart FindNextAvailableSitTarget(UUID targetID)
@@ -2089,8 +2053,8 @@ namespace OpenSim.Region.Framework.Scenes
                 Quaternion avSitOrientation = part.SitTargetOrientation;
                 UUID avOnTargetAlready = part.SitTargetAvatar;
 
-                bool SitTargetUnOccupied = (!(avOnTargetAlready != UUID.Zero));
-	            bool SitTargetisSet = (Vector3.Zero != avSitOffset);		//NB Latest SL Spec shows Sit Rotation setting is ignored.
+                bool SitTargetUnOccupied = avOnTargetAlready == UUID.Zero;
+                bool SitTargetisSet = avSitOffset != Vector3.Zero || avSitOrientation != Quaternion.Identity;
 
                 if (SitTargetisSet && SitTargetUnOccupied)
                 {
@@ -2106,167 +2070,87 @@ namespace OpenSim.Region.Framework.Scenes
         private void SendSitResponse(IClientAPI remoteClient, UUID targetID, Vector3 offset, Quaternion pSitOrientation)
         {
             bool autopilot = true;
-            Vector3 autopilotTarget = new Vector3();
-            Quaternion sitOrientation = Quaternion.Identity;
             Vector3 pos = new Vector3();
+            Quaternion sitOrientation = pSitOrientation;
             Vector3 cameraEyeOffset = Vector3.Zero;
             Vector3 cameraAtOffset = Vector3.Zero;
             bool forceMouselook = false;
 
             SceneObjectPart part = FindNextAvailableSitTarget(targetID);
-            if (part == null) return;
-            
-            // TODO: determine position to sit at based on scene geometry; don't trust offset from client
-            // see http://wiki.secondlife.com/wiki/User:Andrew_Linden/Office_Hours/2007_11_06 for details on how LL does it
-                
-			// part is the prim to sit on
-			// offset is the world-ref vector distance from that prim center to the click-spot
-			// UUID  is the UUID of the Avatar doing the clicking
-				
-			m_avInitialPos = AbsolutePosition; 			// saved to calculate unscripted sit rotation
-			
-            // Is a sit target available?
-            Vector3 avSitOffSet = part.SitTargetPosition;
-            Quaternion avSitOrientation = part.SitTargetOrientation;
-
-            bool SitTargetisSet = (Vector3.Zero != avSitOffSet);		//NB Latest SL Spec shows Sit Rotation setting is ignored.
-   //     	Quaternion partIRot = Quaternion.Inverse(part.GetWorldRotation());
-           	Quaternion partRot;
-//            if (part.LinkNum == 1)
-//            {				// Root prim of linkset
-//                partRot = part.ParentGroup.RootPart.RotationOffset;
-//            }
-//            else
-//            {				// single or child prim
-                partRot = part.GetWorldRotation();
-//            }                       
-           	Quaternion partIRot = Quaternion.Inverse(partRot);
-//Console.WriteLine("SendSitResponse offset=" + offset + "  Occup=" + part.IsOccupied + "    TargSet=" + SitTargetisSet);
-			// Sit analysis rewritten by KF 091125 
-            if (SitTargetisSet) 		// scipted sit
+            if (part != null)
             {
-				if (!part.IsOccupied)
-				{
-//Console.WriteLine("Scripted, unoccupied");
-    	            part.SitTargetAvatar = UUID;		// set that Av will be on it
-    	            offset = new Vector3(avSitOffSet.X, avSitOffSet.Y, avSitOffSet.Z);	// change ofset to the scripted one
+                // TODO: determine position to sit at based on scene geometry; don't trust offset from client
+                // see http://wiki.secondlife.com/wiki/User:Andrew_Linden/Office_Hours/2007_11_06 for details on how LL does it
 
-                    Quaternion nrot = avSitOrientation;
-                    if (!part.IsRoot)
+                // Is a sit target available?
+                Vector3 avSitOffSet = part.SitTargetPosition;
+                Quaternion avSitOrientation = part.SitTargetOrientation;
+                UUID avOnTargetAlready = part.SitTargetAvatar;
+
+                bool SitTargetUnOccupied = (!(avOnTargetAlready != UUID.Zero));
+                bool SitTargetisSet =
+                    (!(avSitOffSet == Vector3.Zero &&
+                       (
+                           avSitOrientation == Quaternion.Identity // Valid Zero Rotation quaternion
+                           || avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 1f && avSitOrientation.W == 0f // W-Z Mapping was invalid at one point
+                           || avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 0f && avSitOrientation.W == 0f // Invalid Quaternion
+                       )
+                       ));
+
+//                m_log.DebugFormat("[SCENE PRESENCE]: {0} {1}", SitTargetisSet, SitTargetUnOccupied);
+
+                if (SitTargetisSet && SitTargetUnOccupied)
+                {
+                    part.SitTargetAvatar = UUID;
+                    offset = new Vector3(avSitOffSet.X, avSitOffSet.Y, avSitOffSet.Z);
+                    sitOrientation = avSitOrientation;
+                    autopilot = false;
+                }
+                part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
+
+                pos = part.AbsolutePosition + offset;
+                //if (Math.Abs(part.AbsolutePosition.Z - AbsolutePosition.Z) > 1)
+                //{
+                   // offset = pos;
+                    //autopilot = false;
+                //}
+                if (PhysicsActor != null)
+                {
+                    // If we're not using the client autopilot, we're immediately warping the avatar to the location
+                    // We can remove the physicsActor until they stand up.
+                    m_sitAvatarHeight = PhysicsActor.Size.Z;
+
+                    if (autopilot)
                     {
-                        nrot = part.RotationOffset * avSitOrientation;
+                        if (Util.GetDistanceTo(AbsolutePosition, pos) < 4.5)
+                        {
+                            autopilot = false;
+
+                            RemoveFromPhysicalScene();
+                            AbsolutePosition = pos + new Vector3(0.0f, 0.0f, m_sitAvatarHeight);
+                        }
                     }
-    	            sitOrientation = nrot;		// Change rotatione to the scripted one
-                    OffsetRotation = nrot;
-    	            autopilot = false;						// Jump direct to scripted llSitPos()
-    	        }
-    	       	else
-    	       	{
-//Console.WriteLine("Scripted, occupied");    	        	
-    	    		 return;
-    	       	}
-    	    }
-    	    else	// Not Scripted
-    	    {
-    	       	if ( (Math.Abs(offset.X) > 0.1f) || (Math.Abs(offset.Y) > 0.1f) ) // Changed 0.5M to 0.1M as they want to be able to sit close together 
-    	       	{
-    	       		// large prim & offset, ignore if other Avs sitting
-//    	       		offset.Z -= 0.05f;
-    	       		m_avUnscriptedSitPos = offset * partIRot;					// (non-zero) sit where clicked
-    	       		autopilotTarget = part.AbsolutePosition + offset;			// World location of clicked point
-    	                
-//Console.WriteLine(" offset ={0}", offset);            
-//Console.WriteLine(" UnscriptedSitPos={0}", m_avUnscriptedSitPos);            
-//Console.WriteLine(" autopilotTarget={0}", autopilotTarget);            
-    	                
-    	       	}
-    	       	else		// small offset
-    	       	{
-//Console.WriteLine("Small offset");    	        	
-					if (!part.IsOccupied)
-					{
-						m_avUnscriptedSitPos = Vector3.Zero;	// Zero = Sit on prim center
-						autopilotTarget = part.AbsolutePosition;
-//Console.WriteLine("UsSmall autopilotTarget={0}", autopilotTarget);						
-    	       		}
-    	       		else return; 		// occupied small
-    	       	}	// end large/small
-    	    } // end Scripted/not
-
-            part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
-
-            cameraAtOffset = part.GetCameraAtOffset();
-            cameraEyeOffset = part.GetCameraEyeOffset();
-            forceMouselook = part.GetForceMouselook();
-            if(cameraAtOffset == Vector3.Zero) cameraAtOffset =  new Vector3(0f, 0f, 0.1f); // 
-            if(cameraEyeOffset == Vector3.Zero) cameraEyeOffset =  new Vector3(0f, 0f, 0.1f); // 
-
-            if (m_physicsActor != null)
-            {
-                // If we're not using the client autopilot, we're immediately warping the avatar to the location
-                // We can remove the physicsActor until they stand up.
-                m_sitAvatarHeight = m_physicsActor.Size.Z;
-                if (autopilot)
-                {				// its not a scripted sit
-//                        if (Util.GetDistanceTo(AbsolutePosition, autopilotTarget) < 4.5)
-					if( (Math.Abs(AbsolutePosition.X - autopilotTarget.X) < 256.0f) && (Math.Abs(AbsolutePosition.Y - autopilotTarget.Y) < 256.0f) )
+                    else
                     {
-                        autopilot = false;		// close enough
-                        m_lastWorldPosition = m_pos; /* CW - This give us a position to return the avatar to if the part is killed before standup.
-                                                             Not using the part's position because returning the AV to the last known standing
-                                                             position is likely to be more friendly, isn't it? */
                         RemoveFromPhysicalScene();
-                        Velocity = Vector3.Zero;
-                        AbsolutePosition = autopilotTarget + new Vector3(0.0f, 0.0f, (m_sitAvatarHeight / 2.0f));  // Warp av to over sit target
-                    } // else the autopilot will get us close
+                    }
                 }
-                else
-                {	// its a scripted sit
-                    m_lastWorldPosition = part.AbsolutePosition;  /* CW - This give us a position to return the avatar to if the part is killed before standup.
-                                                                          I *am* using the part's position this time because we have no real idea how far away
-                                                                          the avatar is from the sit target. */
-                    RemoveFromPhysicalScene();
-                    Velocity = Vector3.Zero;
-                }
+
+                cameraAtOffset = part.GetCameraAtOffset();
+                cameraEyeOffset = part.GetCameraEyeOffset();
+                forceMouselook = part.GetForceMouselook();
             }
-            else return;    // physactor is null! 
 
-			Vector3 offsetr; // = offset * partIRot;	
-			// KF: In a linkset, offsetr needs to be relative to the group root!  091208	
-	//		offsetr = (part.OffsetPosition * Quaternion.Inverse(part.ParentGroup.RootPart.RotationOffset)) + (offset * partIRot);
- //           if (part.LinkNum < 2)    091216 All this was necessary because of the GetWorldRotation error.
-  //          {				// Single, or Root prim of linkset, target is ClickOffset * RootRot
-            	//offsetr = offset * partIRot;
-//
-  //          }
-  //          else
-    //        {	// Child prim, offset is (ChildOffset * RootRot) + (ClickOffset * ChildRot)
-        //    	offsetr = //(part.OffsetPosition * Quaternion.Inverse(part.ParentGroup.RootPart.RotationOffset)) +	
-      //      				(offset * partRot);
-    //        }
+            ControllingClient.SendSitResponse(targetID, offset, sitOrientation, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
+            m_requestedSitTargetUUID = targetID;
 
-//Console.WriteLine(" ");
-//Console.WriteLine("link number ={0}", part.LinkNum);		
-//Console.WriteLine("Prim offset ={0}", part.OffsetPosition );			
-//Console.WriteLine("Root Rotate ={0}", part.ParentGroup.RootPart.RotationOffset);
-//Console.WriteLine("Click offst ={0}", offset);
-//Console.WriteLine("Prim Rotate ={0}", part.GetWorldRotation());
-//Console.WriteLine("offsetr     ={0}", offsetr);
-//Console.WriteLine("Camera At   ={0}", cameraAtOffset);
-//Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
-
-            //NOTE: SendSitResponse should be relative to the GROUP *NOT* THE PRIM if we're sitting on a child
-            ControllingClient.SendSitResponse(part.ParentGroup.UUID, ((offset * part.RotationOffset) + part.OffsetPosition), sitOrientation, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
-            
-            m_requestedSitTargetUUID = part.UUID;		//KF: Correct autopilot target
             // This calls HandleAgentSit twice, once from here, and the client calls
             // HandleAgentSit itself after it gets to the location
             // It doesn't get to the location until we've moved them there though
             // which happens in HandleAgentSit :P
             m_autopilotMoving = autopilot;
-            m_autoPilotTarget = autopilotTarget;
+            m_autoPilotTarget = pos;
             m_sitAtAutoTarget = autopilot;
-            m_initialSitTarget = autopilotTarget;
             if (!autopilot)
                 HandleAgentSit(remoteClient, UUID);
         }
@@ -2300,9 +2184,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_requestedSitTargetID = part.LocalId;
                 //m_requestedSitOffset = offset;
                 m_requestedSitTargetUUID = targetID;
-                
+
                 m_log.DebugFormat("[SIT]: Client requested Sit Position: {0}", offset);
-                
+
                 if (m_scene.PhysicsScene.SupportsRayCast())
                 {
                     //m_scene.PhysicsScene.RaycastWorld(Vector3.Zero,Vector3.Zero, 0.01f,new RaycastCallback());
@@ -2521,7 +2405,7 @@ namespace OpenSim.Region.Framework.Scenes
                 HandleAgentSit(remoteClient, agentID, "SIT");
             }
         }
-        
+
         public void HandleAgentSit(IClientAPI remoteClient, UUID agentID, string sitAnimation)
         {
             SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
@@ -2532,68 +2416,33 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (part.SitTargetAvatar == UUID)
                     {
-//Console.WriteLine("Scripted Sit");
-                    	// Scripted sit
                         Vector3 sitTargetPos = part.SitTargetPosition;
                         Quaternion sitTargetOrient = part.SitTargetOrientation;
-                        m_pos = new Vector3(sitTargetPos.X, sitTargetPos.Y, sitTargetPos.Z);
-                        m_pos += SIT_TARGET_ADJUSTMENT;
-                        if (!part.IsRoot)
-                        {
-                            m_pos *= part.RotationOffset;
-                        }
-                        m_bodyRot = sitTargetOrient;
-                        m_parentPosition = part.AbsolutePosition;
-	    	            part.IsOccupied = true;
-                        part.ParentGroup.AddAvatar(agentID); 	                                
+
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: Sitting {0} at sit target {1}, {2} on {3} {4}",
+//                            Name, sitTargetPos, sitTargetOrient, part.Name, part.LocalId);
+
+                        //Quaternion vq = new Quaternion(sitTargetPos.X, sitTargetPos.Y+0.2f, sitTargetPos.Z+0.2f, 0);
+                        //Quaternion nq = new Quaternion(-sitTargetOrient.X, -sitTargetOrient.Y, -sitTargetOrient.Z, sitTargetOrient.w);
+
+                        //Quaternion result = (sitTargetOrient * vq) * nq;
+
+                        m_pos = sitTargetPos + SIT_TARGET_ADJUSTMENT;
+                        Rotation = sitTargetOrient;
+                        ParentPosition = part.AbsolutePosition;
                     }
                     else
                     {
-						// if m_avUnscriptedSitPos is zero then Av sits above center
-						// Else Av sits at m_avUnscriptedSitPos						
-						
-                    	// Non-scripted sit by Kitto Flora 21Nov09
-                    	// Calculate angle of line from prim to Av
-                    	Quaternion partIRot;
-//                    	if (part.LinkNum == 1)
-//                  	{				// Root prim of linkset
-//                    		partIRot = Quaternion.Inverse(part.ParentGroup.RootPart.RotationOffset);
-//                    	}
-//                    	else
-//                    	{				// single or child prim
-                    		partIRot = Quaternion.Inverse(part.GetWorldRotation());
-//                    	}
-                    	Vector3 sitTargetPos= part.AbsolutePosition + m_avUnscriptedSitPos;
-	                	float y_diff = (m_avInitialPos.Y - sitTargetPos.Y);
-    	            	float x_diff = ( m_avInitialPos.X - sitTargetPos.X);
-    	            	if(Math.Abs(x_diff) < 0.001f) x_diff = 0.001f;			// avoid div by 0
-    	            	if(Math.Abs(y_diff) < 0.001f) y_diff = 0.001f;			// avoid pol flip at 0
-    	            	float sit_angle = (float)Math.Atan2( (double)y_diff, (double)x_diff);
-						// NOTE: when sitting m_ pos and m_bodyRot are *relative* to the prim location/rotation, not 'World'.
-    	            	//  Av sits at world euler <0,0, z>, translated by part rotation 
-    	            	m_bodyRot = partIRot * Quaternion.CreateFromEulers(0f, 0f, sit_angle);		// sit at 0,0,inv-click
-    	            	
-                        m_parentPosition = part.AbsolutePosition;
-    	                part.IsOccupied = true;
-                        part.ParentGroup.AddAvatar(agentID);
-                        m_pos = new Vector3(0f, 0f, 0.05f) + 					// corrections to get Sit Animation
-                        		(new Vector3(0.0f, 0f, 0.61f) * partIRot) + 	// located on center
-                        		(new Vector3(0.34f, 0f, 0.0f) * m_bodyRot) +
-                        		m_avUnscriptedSitPos;							// adds click offset, if any
-	                    //Set up raytrace to find top surface of prim
-	         			Vector3 size = part.Scale;
-	 					float mag = 2.0f; // 0.1f + (float)Math.Sqrt((size.X * size.X) + (size.Y * size.Y) + (size.Z * size.Z));
-						Vector3 start =  part.AbsolutePosition + new Vector3(0f, 0f, mag);
-	 					Vector3 down = new Vector3(0f, 0f, -1f);    
-//Console.WriteLine("st={0}  do={1}  ma={2}", start, down, mag);	 					
-		                m_scene.PhysicsScene.RaycastWorld(
-	                    		start,		// Vector3 position,
-	                    		down, 		// Vector3 direction,
-	                    		mag, 		// float length,
-	                    		SitAltitudeCallback);          	// retMethod
-	                } // end scripted/not
+                        m_pos -= part.AbsolutePosition;
+                        ParentPosition = part.AbsolutePosition;
+
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: Sitting {0} at position {1} ({2} + {3}) on part {4} {5} without sit target",
+//                            Name, part.AbsolutePosition, m_pos, ParentPosition, part.Name, part.LocalId);
+                    }
                 }
-                else  // no Av
+                else
                 {
                     return;
                 }
@@ -2601,58 +2450,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             ParentID = m_requestedSitTargetID;
 
-            //We want our offsets to reference the root prim, not the child we may have sat on
-            if (!part.IsRoot)
-            {
-                m_parentID = part.ParentGroup.RootPart.LocalId;
-                m_pos += part.OffsetPosition;
-            }
-            else
-            {
-                m_parentID = m_requestedSitTargetID;
-            }
-
-            if (part.SitTargetAvatar != UUID)
-            {
-                m_offsetRotation = m_offsetRotation / part.RotationOffset;
-            }
             Velocity = Vector3.Zero;
             RemoveFromPhysicalScene();
+
             Animator.TrySetMovementAnimation(sitAnimation);
             SendAvatarDataToAllAgents();
         }
-        
-        public void SitAltitudeCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal)
-        {
-			// KF: 091202 There appears to be a bug in Prim Edit Size - the process sometimes make a prim that RayTrace no longer
-			//     sees. Take/re-rez, or sim restart corrects the condition. Result of bug is incorrect sit height.
-			if(hitYN)
-			{
-				// m_pos = Av offset from prim center to make look like on center
-				// m_parentPosition = Actual center pos of prim
-				// collisionPoint = spot on prim where we want to sit
-				// collisionPoint.Z = global sit surface height
-				SceneObjectPart part = m_scene.GetSceneObjectPart(localid);
-				Quaternion partIRot;
-//	            if (part.LinkNum == 1)
-///    	        {				// Root prim of linkset
-//    	            partIRot = Quaternion.Inverse(part.ParentGroup.RootPart.RotationOffset);
-//    	        }
-//    	        else
-//    	        {				// single or child prim
-    	            partIRot = Quaternion.Inverse(part.GetWorldRotation());
-//    	        }          
-                if (m_initialSitTarget != null)
-                {
-                    float offZ = collisionPoint.Z - m_initialSitTarget.Z;
-                    Vector3 offset = new Vector3(0.0f, 0.0f, offZ) * partIRot; // Altitude correction
-                    //Console.WriteLine("sitPoint={0},  offset={1}",  sitPoint,  offset);
-                    m_pos += offset;
-                    //  ControllingClient.SendClearFollowCamProperties(part.UUID);
-                }
-				
-			}
-		} // End SitAltitudeCallback  KF.
 
         /// <summary>
         /// Event handler for the 'Always run' setting on the client
