@@ -144,7 +144,11 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_userFlags; }
         }
         private bool m_flyingOld;		// add for fly velocity control
-        public bool m_wasFlying;		// add for fly velocity control
+        public bool WasFlying
+        {
+            get { return m_wasFlying; }
+        }
+        private bool m_wasFlying;		// add for fly velocity control
 
         private int m_lastColCount = -1;		//KF: Look for Collision chnages
         private int m_updateCount = 0;			//KF: Update Anims for a while
