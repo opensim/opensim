@@ -3362,7 +3362,6 @@ namespace OpenSim.Region.Framework.Scenes
                     prim.OffsetPosition = axPos;
 
                     prim.IgnoreUndoUpdate = false;
-                    prim.IgnoreUndoUpdate = false;
                 }
             }
 

@@ -345,7 +345,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         #region Client Camera
-        // Position of agent's camera in world (region cordinates)
+
+        /// <summary>
+        /// Position of agent's camera in world (region cordinates)
+        /// </summary>
         protected Vector3 m_lastCameraPosition;
 
         protected Vector3 m_CameraPosition;
@@ -2082,12 +2085,12 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectPart part in partArray)
             {
                 // Is a sit target available?
-                Vector3 avSitOffSet = part.SitTargetPosition;
+                Vector3 avSitOffset = part.SitTargetPosition;
                 Quaternion avSitOrientation = part.SitTargetOrientation;
                 UUID avOnTargetAlready = part.SitTargetAvatar;
 
                 bool SitTargetUnOccupied = (!(avOnTargetAlready != UUID.Zero));
-	            bool SitTargetisSet = (Vector3.Zero != avSitOffSet);		//NB Latest SL Spec shows Sit Rotation setting is ignored.
+	            bool SitTargetisSet = (Vector3.Zero != avSitOffset);		//NB Latest SL Spec shows Sit Rotation setting is ignored.
 
                 if (SitTargetisSet && SitTargetUnOccupied)
                 {
@@ -2110,7 +2113,6 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 cameraAtOffset = Vector3.Zero;
             bool forceMouselook = false;
 
-            //SceneObjectPart part =  m_scene.GetSceneObjectPart(targetID);
             SceneObjectPart part = FindNextAvailableSitTarget(targetID);
             if (part == null) return;
             
@@ -2596,6 +2598,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
             }
+
             ParentID = m_requestedSitTargetID;
 
             //We want our offsets to reference the root prim, not the child we may have sat on
@@ -2794,9 +2797,6 @@ namespace OpenSim.Region.Framework.Scenes
             // server.
             if (remoteClient.IsActive)
             {
-                Vector3 pos = m_pos;
-                pos.Z += Appearance.HipOffset;
-
                 //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, Rotation, m_velocity);
 
                 remoteClient.SendEntityUpdate(

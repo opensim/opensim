@@ -126,6 +126,9 @@ namespace OpenSim.Services.LLLoginService
             if (accountService == string.Empty || authService == string.Empty)
                 throw new Exception("LoginService is missing service specifications");
 
+            // replace newlines in welcome message
+            m_WelcomeMessage = m_WelcomeMessage.Replace("\\n", "\n");
+
             Object[] args = new Object[] { config };
             m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
             m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);

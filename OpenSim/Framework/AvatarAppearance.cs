@@ -53,7 +53,6 @@ namespace OpenSim.Framework
         protected AvatarWearable[] m_wearables;
         protected Dictionary<int, List<AvatarAttachment>> m_attachments;
         protected float m_avatarHeight = 0;
-        protected float m_hipOffset = 0;
 
         public virtual int Serial
         {
@@ -87,11 +86,6 @@ namespace OpenSim.Framework
         {
             get { return m_avatarHeight; }
             set { m_avatarHeight = value; }
-        }
-
-        public virtual float HipOffset
-        {
-            get { return m_hipOffset; }
         }
 
         public AvatarAppearance()
@@ -184,7 +178,6 @@ namespace OpenSim.Framework
                 m_visualparams = (byte[])appearance.VisualParams.Clone();
 
             m_avatarHeight = appearance.m_avatarHeight;
-            m_hipOffset = appearance.m_hipOffset;
 
             // Copy the attachment, force append mode since that ensures consistency
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
@@ -347,20 +340,18 @@ namespace OpenSim.Framework
 
         public virtual void SetHeight()
         {
-            m_avatarHeight = 1.23077f  // Shortest possible avatar height
-                           + 0.516945f * (float)m_visualparams[(int)VPElement.SHAPE_HEIGHT] / 255.0f   // Body height
-                           + 0.072514f * (float)m_visualparams[(int)VPElement.SHAPE_HEAD_SIZE] / 255.0f  // Head size
-                           + 0.3836f * (float)m_visualparams[(int)VPElement.SHAPE_LEG_LENGTH] / 255.0f    // Leg length
-                           + 0.08f * (float)m_visualparams[(int)VPElement.SHOES_PLATFORM_HEIGHT] / 255.0f    // Shoe platform height
-                           + 0.07f * (float)m_visualparams[(int)VPElement.SHOES_HEEL_HEIGHT] / 255.0f    // Shoe heel height
-                           + 0.076f * (float)m_visualparams[(int)VPElement.SHAPE_NECK_LENGTH] / 255.0f;    // Neck length
-
-            m_hipOffset = (((1.23077f // Half of avatar
-                           + 0.516945f * (float)m_visualparams[(int)VPElement.SHAPE_HEIGHT] / 255.0f   // Body height
-                           + 0.3836f * (float)m_visualparams[(int)VPElement.SHAPE_LEG_LENGTH] / 255.0f    // Leg length
-                           + 0.08f * (float)m_visualparams[(int)VPElement.SHOES_PLATFORM_HEIGHT] / 255.0f    // Shoe platform height
-                           + 0.07f * (float)m_visualparams[(int)VPElement.SHOES_HEEL_HEIGHT] / 255.0f    // Shoe heel height
-                           ) / 2) - m_avatarHeight / 2) * 0.31f - 0.0425f;
+            // Start with shortest possible female avatar height
+            m_avatarHeight = 1.14597f;
+            // Add offset for male avatars
+            if (m_visualparams[(int)VPElement.SHAPE_MALE] != 0)
+                m_avatarHeight += 0.0848f;
+            // Add offsets for visual params
+            m_avatarHeight += 0.516945f * (float)m_visualparams[(int)VPElement.SHAPE_HEIGHT]          / 255.0f
+                            + 0.08117f  * (float)m_visualparams[(int)VPElement.SHAPE_HEAD_SIZE]       / 255.0f
+                            + 0.3836f   * (float)m_visualparams[(int)VPElement.SHAPE_LEG_LENGTH]      / 255.0f
+                            + 0.07f     * (float)m_visualparams[(int)VPElement.SHOES_PLATFORM_HEIGHT] / 255.0f
+                            + 0.08f     * (float)m_visualparams[(int)VPElement.SHOES_HEEL_HEIGHT]     / 255.0f
+                            + 0.076f    * (float)m_visualparams[(int)VPElement.SHAPE_NECK_LENGTH]     / 255.0f;
         }
 
         public virtual void SetWearable(int wearableId, AvatarWearable wearable)
@@ -591,7 +582,6 @@ namespace OpenSim.Framework
 
             data["serial"] = OSD.FromInteger(m_serial);
             data["height"] = OSD.FromReal(m_avatarHeight);
-            data["hipoffset"] = OSD.FromReal(m_hipOffset);
 
             // Wearables
             OSDArray wears = new OSDArray(AvatarWearable.MAX_WEARABLES);
@@ -636,8 +626,6 @@ namespace OpenSim.Framework
                 m_serial = data["serial"].AsInteger();
             if ((data != null) && (data["height"] != null))
                 m_avatarHeight = (float)data["height"].AsReal();
-            if ((data != null) && (data["hipoffset"] != null))
-                m_hipOffset = (float)data["hipoffset"].AsReal();
 
             try
             {
