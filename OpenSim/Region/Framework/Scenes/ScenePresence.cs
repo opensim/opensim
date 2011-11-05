@@ -73,7 +73,7 @@ namespace OpenSim.Region.Framework.Scenes
 //        {
 //            m_log.Debug("[SCENE PRESENCE] Destructor called");
 //        }
-        
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public PresenceType PresenceType { get; private set; }
@@ -90,8 +90,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// rotation, prim cut, prim twist, prim taper, and prim shear. See mantis
         /// issue #1716
         /// </summary>
-//        private static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.1f, 0.0f, 0.3f);
-		// Value revised by KF 091121 by comparison with SL.
         public static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.0f, 0.0f, 0.418f);
 
         /// <summary>
@@ -120,7 +118,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// TODO: For some reason, we effectively have a list both here and in Appearance.  Need to work out if this is
         /// necessary.
         /// </remarks>
-
         protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
 
         public Object AttachmentsSyncLock { get; private set; }
@@ -134,11 +131,8 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 lastKnownAllowedPosition;
         public bool sentMessageAboutRestrictedParcelFlyingDown;
         public Vector4 CollisionPlane = Vector4.UnitW;
-        
-		private Vector3 m_avInitialPos;		// used to calculate unscripted sit rotation
-		private Vector3 m_avUnscriptedSitPos;	// for non-scripted prims
+
         private Vector3 m_lastPosition;
-        private Vector3 m_lastWorldPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
         //private int m_lastTerseSent;
@@ -149,6 +143,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_userFlags; }
         }
+        private bool m_flyingOld;		// add for fly velocity control
+        public bool m_wasFlying;		// add for fly velocity control
+
         private TeleportFlags m_teleportFlags;
         public TeleportFlags TeleportFlags
         {
@@ -170,9 +167,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Vector3 m_lastChildAgentUpdatePosition;
         private Vector3 m_lastChildAgentUpdateCamPosition;
-
-        private bool m_flyingOld;		// add for fly velocity control
-        public bool m_wasFlying;		// add for fly velocity control
 
         private const int LAND_VELOCITYMAG_MAX = 12;
 
@@ -199,7 +193,6 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_autopilotMoving;
         private Vector3 m_autoPilotTarget;
         private bool m_sitAtAutoTarget;
-        private Vector3 m_initialSitTarget = Vector3.Zero;		//KF: First estimate of where to sit
 
         private string m_nextSitAnimation = String.Empty;
 
