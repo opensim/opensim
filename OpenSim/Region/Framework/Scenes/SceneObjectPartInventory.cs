@@ -1122,14 +1122,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="datastore"></param>
         public void ProcessInventoryBackup(ISimulationDataService datastore)
         {
-            if (HasInventoryChanged)
-            {
+// Removed this because linking will cause an immediate delete of the new
+// child prim from the database and the subsequent storing of the prim sees
+// the inventory of it as unchanged and doesn't store it at all. The overhead
+// of storing prim inventory needlessly is much less than the aggravation
+// of prim inventory loss.
+//            if (HasInventoryChanged)
+//            {
                 Items.LockItemsForRead(true);
                 datastore.StorePrimInventory(m_part.UUID, Items.Values);
                 Items.LockItemsForRead(false);
 
                 HasInventoryChanged = false;
-            }
+//            }
         }
 
         public class InventoryStringBuilder
