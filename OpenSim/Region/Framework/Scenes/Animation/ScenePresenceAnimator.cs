@@ -166,6 +166,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             const float PREJUMP_DELAY = 200f;
             const float JUMP_PERIOD = 800f;
             #region Inputs
+
             AgentManager.ControlFlags controlFlags = (AgentManager.ControlFlags)m_scenePresence.AgentControlFlags;
             PhysicsActor actor = m_scenePresence.PhysicsActor;
 
