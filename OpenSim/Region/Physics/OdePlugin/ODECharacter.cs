@@ -1269,7 +1269,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // m_taintForce = Vector3.Zero.  Need to lock ProcessTaints() when we set a new tainted force.
                     doForce(m_taintForce);
                 }
-                
+
                 m_taintForce = Vector3.Zero;
             }
 

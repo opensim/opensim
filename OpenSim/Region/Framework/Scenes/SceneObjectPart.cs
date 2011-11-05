@@ -1129,13 +1129,21 @@ namespace OpenSim.Region.Framework.Scenes
         public Quaternion SitTargetOrientation
         {
             get { return m_sitTargetOrientation; }
-            set { m_sitTargetOrientation = value; }
+            set
+            {
+                m_sitTargetOrientation = value;
+//                m_log.DebugFormat("[SCENE OBJECT PART]: Set sit target orientation {0} for {1} {2}", m_sitTargetOrientation, Name, LocalId);
+            }
         }
 
         public Vector3 SitTargetPosition
         {
             get { return m_sitTargetPosition; }
-            set { m_sitTargetPosition = value; }
+            set
+            {
+                m_sitTargetPosition = value;
+//                m_log.DebugFormat("[SCENE OBJECT PART]: Set sit target position to {0} for {1} {2}", m_sitTargetPosition, Name, LocalId);
+            }
         }
 
         // This sort of sucks, but I'm adding these in to make some of
