@@ -131,9 +131,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public void ResetAnimations()
         {
-Console.WriteLine("ResetA.............");
             m_animations.Clear();
-TrySetMovementAnimation("STAND");
+            TrySetMovementAnimation("STAND");
         }
         
         /// <summary>
@@ -169,7 +168,6 @@ TrySetMovementAnimation("STAND");
             #region Inputs
 
             AgentManager.ControlFlags controlFlags = (AgentManager.ControlFlags)m_scenePresence.AgentControlFlags;
-//            m_log.DebugFormat("[ANIM]: Control flags: {0}", controlFlags);
             PhysicsActor actor = m_scenePresence.PhysicsActor;
 
             // Create forward and left vectors from the current avatar rotation
@@ -191,12 +189,12 @@ TrySetMovementAnimation("STAND");
 
             // Direction in which the avatar is trying to move
             Vector3 move = Vector3.Zero;
+            if (heldForward) { move.X += fwd.X; move.Y += fwd.Y; }
             if (heldBack) { move.X -= fwd.X; move.Y -= fwd.Y; }
             if (heldLeft) { move.X += left.X; move.Y += left.Y; }
             if (heldRight) { move.X -= left.X; move.Y -= left.Y; }
             if (heldUp) { move.Z += 1; }
             if (heldDown) { move.Z -= 1; }
-            if (heldForward) { move.X += fwd.X; move.Y += fwd.Y; }
 
             // Is the avatar trying to move?
 //            bool moving = (move != Vector3.Zero);
