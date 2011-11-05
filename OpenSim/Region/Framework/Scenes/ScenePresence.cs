@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Xml;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Timers;
@@ -137,6 +138,18 @@ namespace OpenSim.Region.Framework.Scenes
         //private int m_lastTerseSent;
 
         private Vector3? m_forceToApply;
+        private int m_userFlags;
+        public int UserFlags
+        {
+            get { return m_userFlags; }
+        }
+        private bool m_flyingOld;		// add for fly velocity control
+        public bool m_wasFlying;		// add for fly velocity control
+
+        private int m_lastColCount = -1;		//KF: Look for Collision chnages
+        private int m_updateCount = 0;			//KF: Update Anims for a while
+        private static readonly int UPDATE_COUNT = 10;		// how many frames to update for
+
         private TeleportFlags m_teleportFlags;
         public TeleportFlags TeleportFlags
         {
@@ -756,6 +769,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_localId = m_scene.AllocateLocalId();
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
+            m_userFlags = account.UserFlags;
 
             if (account != null)
                 UserLevel = account.UserLevel;
@@ -1033,7 +1047,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Removes physics plugin scene representation of this agent if it exists.
         /// </summary>
-        private void RemoveFromPhysicalScene()
+        public void RemoveFromPhysicalScene()
         {
             if (PhysicsActor != null)
             {
@@ -1362,6 +1376,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             #endregion Inputs
 
+            // Make anims work for client side autopilot
+            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0)
+                m_updateCount = UPDATE_COUNT;
+
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
@@ -1392,6 +1410,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
             {
+                m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
+                Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+
                 // TODO: This doesn't prevent the user from walking yet.
                 // Setting parent ID would fix this, if we knew what value
                 // to use.  Or we could add a m_isSitting variable.
@@ -1726,6 +1747,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </param>
         public void MoveToTarget(Vector3 pos, bool noFly, bool landAtTarget)
         {
+            if (SitGround)
+                StandUp();
+
             m_log.DebugFormat(
                 "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
                 Name, pos, m_scene.RegionInfo.RegionName);
@@ -2361,6 +2385,19 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 direc = vec * Rotation;
             direc.Normalize();
 
+            if (PhysicsActor.Flying != m_flyingOld)                // add for fly velocity control
+            {
+                m_flyingOld = PhysicsActor.Flying;                 // add for fly velocity control
+                if (!PhysicsActor.Flying)
+                    m_wasFlying = true;      // add for fly velocity control
+            }
+
+            if (PhysicsActor.IsColliding == true)
+                m_wasFlying = false;        // add for fly velocity control
+
+            if ((vec.Z == 0f) && !PhysicsActor.Flying)
+                direc.Z = 0f; // Prevent camera WASD up.
+
             direc *= 0.03f * 128f * SpeedModifier;
 
             if (PhysicsActor != null)
@@ -2379,7 +2416,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //    m_log.Info("[AGENT]: Stop Flying");
                     //}
                 }
-                else if (!PhysicsActor.Flying && PhysicsActor.IsColliding)
+                if (!PhysicsActor.Flying && PhysicsActor.IsColliding)
                 {
                     if (direc.Z > 2.0f)
                     {
@@ -3303,12 +3340,26 @@ namespace OpenSim.Region.Framework.Scenes
             // The Physics Scene will send updates every 500 ms grep: PhysicsActor.SubscribeEvents(
             // as of this comment the interval is set in AddToPhysicalScene
             if (Animator != null)
-                Animator.UpdateMovementAnimations();
+            {
+                if (m_updateCount > 0)
+                {
+                    Animator.UpdateMovementAnimations();
+                    m_updateCount--;
+                }
+            }
 
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
 
             CollisionPlane = Vector4.UnitW;
+
+            // No collisions at all means we may be flying. Update always
+            // to make falling work
+            if (m_lastColCount != coldata.Count || coldata.Count == 0)
+            {	
+                m_updateCount = UPDATE_COUNT;
+                m_lastColCount = coldata.Count;
+            }
 
             if (coldata.Count != 0 && Animator != null)
             {
@@ -3410,6 +3461,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_attachments)
             {
+                // This may be true when the attachment comes back
+                // from serialization after login. Clear it.
+                gobj.IsDeleted = false;
+
                 m_attachments.Add(gobj);
             }
         }
