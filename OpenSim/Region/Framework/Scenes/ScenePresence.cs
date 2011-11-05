@@ -199,7 +199,6 @@ namespace OpenSim.Region.Framework.Scenes
         //PauPaw:Proper PID Controler for autopilot************
         public bool MovingToTarget { get; private set; }
         public Vector3 MoveToPositionTarget { get; private set; }
-        private Quaternion m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls whether an avatar automatically moving to a target will land when it gets there (if flying).
@@ -612,39 +611,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public Quaternion OffsetRotation
-        {
-            get { return m_offsetRotation; }
-            set { m_offsetRotation = value; }
-        }
         private Quaternion m_bodyRot = Quaternion.Identity;
 
         public Quaternion Rotation
         {
-            get {
-                if (m_parentID != 0)
-                {
-                    if (m_offsetRotation != null)
-                    {
-                        return m_offsetRotation;
-                    }
-                    else
-                    {
-                        return new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
-                    }
-                    
-                }
-                else
-                {
-                    return m_bodyRot;
-                }
-            }
-            set { 
+            get { return m_bodyRot; }
+            set
+            {
                 m_bodyRot = value;
-                if (m_parentID != 0)
-                {
-                    m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
-                }
+//                m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, m_bodyRot);
             }
         }
 

@@ -7564,7 +7564,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
                         LSL_Rotation r;
                         r = rules.GetQuaternionItem(idx++);
-                        av.OffsetRotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
+                        av.Rotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
                         av.SendAvatarDataToAllAgents();
                         break;
                 }
