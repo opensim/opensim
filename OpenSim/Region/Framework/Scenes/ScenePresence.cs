@@ -2479,7 +2479,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //    m_log.Info("[AGENT]: Stop Flying");
                     //}
                 }
-                if (Animator.m_falling && m_wasFlying)    // if falling from flying, disable motion add
+                if (Animator.Falling && m_wasFlying)    // if falling from flying, disable motion add
                 {
                     direc *= 0.0f;
                 }

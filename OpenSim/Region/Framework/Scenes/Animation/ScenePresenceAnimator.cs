@@ -66,7 +66,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public bool m_jumping = false;      // Add for jumping
         public float m_jumpVelocity = 0f;   // Add for jumping
         private int m_landing = 0;          // Add for jumping
-        public bool m_falling = false;      // Add for falling
+        public bool Falling
+        {
+            get { return m_falling; }
+        }
+        private bool m_falling = false;      // Add for falling
         private float m_fallHeight;         // Add for falling
 
         /// <value>
