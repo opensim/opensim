@@ -208,7 +208,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     ScenePresence sp;
                     scene.TryGetScenePresence(agentID, out sp);
                     sp.HandleAgentRequestSit(m_avatars[agentID], agentID, partID, Vector3.Zero);
-                    sp.HandleAgentSit(m_avatars[agentID], agentID);
+//                    sp.HandleAgentSit(m_avatars[agentID], agentID);
 
                     return true;
                 }

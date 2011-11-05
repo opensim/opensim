@@ -89,7 +89,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// rotation, prim cut, prim twist, prim taper, and prim shear. See mantis
         /// issue #1716
         /// </summary>
-        private static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.1f, 0.0f, 0.3f);
+        public static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.1f, 0.0f, 0.3f);
 
         /// <summary>
         /// Movement updates for agents in neighboring regions are sent directly to clients.
@@ -1873,7 +1873,7 @@ namespace OpenSim.Region.Framework.Scenes
                     AddToPhysicalScene(false);
                 }
 
-                m_pos += ParentPosition + new Vector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
+                m_pos += ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
                 ParentPosition = Vector3.Zero;
 
                 ParentID = 0;
@@ -2283,6 +2283,10 @@ namespace OpenSim.Region.Framework.Scenes
                         Vector3 sitTargetPos = part.SitTargetPosition;
                         Quaternion sitTargetOrient = part.SitTargetOrientation;
 
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: Sitting {0} at sit target {1}, {2} on {3} {4}",
+//                            Name, sitTargetPos, sitTargetOrient, part.Name, part.LocalId);
+
                         //Quaternion vq = new Quaternion(sitTargetPos.X, sitTargetPos.Y+0.2f, sitTargetPos.Z+0.2f, 0);
                         //Quaternion nq = new Quaternion(-sitTargetOrient.X, -sitTargetOrient.Y, -sitTargetOrient.Z, sitTargetOrient.w);
 
@@ -2291,15 +2295,17 @@ namespace OpenSim.Region.Framework.Scenes
                         m_pos = new Vector3(sitTargetPos.X, sitTargetPos.Y, sitTargetPos.Z);
                         m_pos += SIT_TARGET_ADJUSTMENT;
                         Rotation = sitTargetOrient;
-                        //Rotation = sitTargetOrient;
                         ParentPosition = part.AbsolutePosition;
-
-                        //SendTerseUpdateToAllClients();
                     }
                     else
                     {
                         m_pos -= part.AbsolutePosition;
+
                         ParentPosition = part.AbsolutePosition;
+
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: Sitting {0} at position {1} ({2} + {3}) on part {4} {5} without sit target",
+//                            Name, part.AbsolutePosition, m_pos, ParentPosition, part.Name, part.LocalId);
                     }
                 }
                 else
@@ -2314,10 +2320,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             Animator.TrySetMovementAnimation(sitAnimation);
             SendAvatarDataToAllAgents();
-            // This may seem stupid, but Our Full updates don't send avatar rotation :P
-            // So we're also sending a terse update (which has avatar rotation)
-            // [Update] We do now.
-            //SendTerseUpdateToAllClients();
         }
 
         /// <summary>
