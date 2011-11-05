@@ -102,6 +102,7 @@ what it is today.
 * lulurun 
 * M.Igarashi
 * maimedleech
+* Mana Janus
 * Mic Bowman
 * Michelle Argus
 * Michael Cortez (The Flotsam Project, http://osflotsam.org/)
@@ -133,6 +134,7 @@ what it is today.
 * Salahzar Stenvaag
 * sempuki
 * SignpostMarv
+* SpotOn3D
 * Strawberry Fride
 * tglion
 * tlaukkan/Tommil (Tommi S. E. Laukkanen, Bubble Cloud)
