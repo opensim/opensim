@@ -58,20 +58,18 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             get { return m_movementAnimation; }
         }
- //       protected string m_movementAnimation = "DEFAULT"; 	//KF: 'DEFAULT' does not exist!
-        protected string m_movementAnimation = "CROUCH";		//KF: CROUCH ensures reliable Av Anim. init.
+        protected string m_movementAnimation = "CROUCH";
         private int m_animTickFall;
-//        private int m_animTickJump;
         public int m_animTickJump;		// ScenePresence has to see this to control +Z force
-        public bool m_jumping = false;      // Add for jumping
-        public float m_jumpVelocity = 0f;   // Add for jumping
-        private int m_landing = 0;          // Add for jumping
+        public bool m_jumping = false; 
+        public float m_jumpVelocity = 0f;
+        private int m_landing = 0;
         public bool Falling
         {
             get { return m_falling; }
         }
-        private bool m_falling = false;      // Add for falling
-        private float m_fallHeight;         // Add for falling
+        private bool m_falling = false;
+        private float m_fallHeight;
 
         /// <value>
         /// The scene presence that this animator applies to
@@ -133,9 +131,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public void ResetAnimations()
         {
-Console.WriteLine("ResetA.............");
             m_animations.Clear();
-TrySetMovementAnimation("STAND");
+            TrySetMovementAnimation("STAND");
         }
         
         /// <summary>
@@ -165,16 +162,11 @@ TrySetMovementAnimation("STAND");
         /// </summary>
         public string GetMovementAnimation()
         {
-//Console.WriteLine("GMA-------"); //##
-//#@            const float FALL_DELAY = 0.33f;
-            const float FALL_DELAY = 800f; //##    mS
-//rm for jumping            const float PREJUMP_DELAY = 0.25f;
-            const float PREJUMP_DELAY = 200f;           // mS add for jumping
-            const float JUMP_PERIOD = 800f;              // mS add for jumping
+            const float FALL_DELAY = 800f;
+            const float PREJUMP_DELAY = 200f;
+            const float JUMP_PERIOD = 800f;
             #region Inputs
-
             AgentManager.ControlFlags controlFlags = (AgentManager.ControlFlags)m_scenePresence.AgentControlFlags;
-//            m_log.DebugFormat("[ANIM]: Control flags: {0}", controlFlags);
             PhysicsActor actor = m_scenePresence.PhysicsActor;
 
             // Create forward and left vectors from the current avatar rotation
@@ -196,16 +188,15 @@ TrySetMovementAnimation("STAND");
 
             // Direction in which the avatar is trying to move
             Vector3 move = Vector3.Zero;
+            if (heldForward) { move.X += fwd.X; move.Y += fwd.Y; }
             if (heldBack) { move.X -= fwd.X; move.Y -= fwd.Y; }
             if (heldLeft) { move.X += left.X; move.Y += left.Y; }
             if (heldRight) { move.X -= left.X; move.Y -= left.Y; }
             if (heldUp) { move.Z += 1; }
             if (heldDown) { move.Z -= 1; }
-            if (heldForward) { move.X += fwd.X; move.Y += fwd.Y; }
 
             // Is the avatar trying to move?
 //            bool moving = (move != Vector3.Zero);
-// rm for jumping            bool jumping = m_animTickJump != 0;
             #endregion Inputs
 
             #region Flying
@@ -214,10 +205,10 @@ TrySetMovementAnimation("STAND");
             {
                 m_animTickFall = 0;
                 m_animTickJump = 0;
-                m_jumping = false;           //add for jumping
-                m_falling = true;            //add for falling
-                m_jumpVelocity = 0f;         //add for jumping
-                actor.Selected = false;      //add for jumping flag
+                m_jumping = false;
+                m_falling = true;
+                m_jumpVelocity = 0f;
+                actor.Selected = false;
                 m_fallHeight = actor.Position.Z;    // save latest flying height
 
                 if (move.X != 0f || move.Y != 0f)
@@ -231,10 +222,9 @@ TrySetMovementAnimation("STAND");
                 else if (move.Z < 0f)
                 {
                     if (actor != null && actor.IsColliding) 
-                    {  //##
-//Console.WriteLine("LAND FLYING"); // ##
+                    {
                         return "LAND";
-                }  //#
+                }
                     else
                         return "HOVER_DOWN";
                 }
@@ -248,28 +238,22 @@ TrySetMovementAnimation("STAND");
 
             #region Falling/Floating/Landing
 
-// rm for jumping            if (actor == null || !actor.IsColliding)
-            if ((actor == null || !actor.IsColliding) && !m_jumping)       // add for jumping
+            if ((actor == null || !actor.IsColliding) && !m_jumping)
             {
-// rm                float fallElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
-                float fallElapsed = (float)(Environment.TickCount - m_animTickFall);   // add, in mS
+                float fallElapsed = (float)(Environment.TickCount - m_animTickFall);
                 float fallVelocity = (actor != null) ? actor.Velocity.Z : 0.0f;
-//Console.WriteLine("falling    t={0}   v={1}", fallElapsed, fallVelocity);   //##
 
-// rm for fall          if (m_animTickFall == 0 || (fallElapsed > FALL_DELAY && fallVelocity >= 0.0f))
-                if (!m_jumping && (fallVelocity < -3.0f) ) m_falling = true;       // add for falling and jumping
+                if (!m_jumping && (fallVelocity < -3.0f) ) m_falling = true;
 
-                if (m_animTickFall == 0 || (fallVelocity >= 0.0f))         // add for jumping
-                    // not falling yet   or  going up         
+                if (m_animTickFall == 0 || (fallVelocity >= 0.0f))
                 {
+                    // not falling yet, or going up         
                     // reset start of fall time
                     m_animTickFall = Environment.TickCount;
                 }
-//                else if (!jumping && fallElapsed > FALL_DELAY)
-                else if (!m_jumping && (fallElapsed > FALL_DELAY) && (fallVelocity < -3.0f) && (m_scenePresence.WasFlying)) // add for falling and jumping
+                else if (!m_jumping && (fallElapsed > FALL_DELAY) && (fallVelocity < -3.0f) && (m_scenePresence.WasFlying))
                 {
                     // Falling long enough to trigger the animation
-//Console.WriteLine("FALLDOWN");  //##
                     return "FALLDOWN";
                 }
 
@@ -287,12 +271,11 @@ TrySetMovementAnimation("STAND");
 
             if ((move.Z > 0f) && (!m_jumping))
             {
-//Console.WriteLine("PJ {0}", jumptime); //##
                 // Start jumping, prejump
                 m_animTickFall = 0;
                 m_jumping = true;
                 m_falling = false;
-                actor.Selected = true;      // borrowed for jmping flag
+                actor.Selected = true;      // borrowed for jumping flag
                 m_animTickJump = Environment.TickCount;
                 m_jumpVelocity = 0.35f;
                 return "PREJUMP";
@@ -302,7 +285,6 @@ TrySetMovementAnimation("STAND");
             {
                 if ( (jumptime > (JUMP_PERIOD * 1.5f)) && actor.IsColliding)
                 {
-//Console.WriteLine("LA {0}", jumptime); //##
                     // end jumping
                     m_jumping = false;
                     m_falling = false;
@@ -313,14 +295,12 @@ TrySetMovementAnimation("STAND");
                 }
                 else if (jumptime > JUMP_PERIOD)
                 {
-//Console.WriteLine("JD {0}", jumptime); //##
                     // jump down
                     m_jumpVelocity = 0f;
                     return "JUMP";
                 }
                 else if (jumptime > PREJUMP_DELAY)
                 {
-//Console.WriteLine("JU {0}", jumptime); //##
                     // jump up
                     m_jumping = true;
                     m_jumpVelocity = 10f;
@@ -328,7 +308,7 @@ TrySetMovementAnimation("STAND");
                 }
             }
 
-            #endregion Jumping          // end added section
+            #endregion Jumping
 
             #region Ground Movement
 
@@ -338,72 +318,36 @@ TrySetMovementAnimation("STAND");
                 m_animTickFall = Environment.TickCount;
                 // TODO: SOFT_LAND support
                 float fallHeight = m_fallHeight - actor.Position.Z;
-//Console.WriteLine("Hit from  {0}", fallHeight);  //##
-                if (fallHeight > 15.0f)         // add for falling
+                if (fallHeight > 15.0f)
                     return "STANDUP";
-                else if (fallHeight > 8.0f)     // add for falling
-                    return "SOFT_LAND";         // add for falling
-                else                            // add for falling
-                    return "LAND";              // add for falling
+                else if (fallHeight > 8.0f)
+                    return "SOFT_LAND";
+                else
+                    return "LAND";
             }
-// rm jumping                float landElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
-// rm jumping                if ((m_animTickFall != 0) && (landElapsed <= FALL_DELAY))
-// rm for landing                    return "LAND";
             else if ((m_movementAnimation == "LAND") || (m_movementAnimation == "SOFT_LAND") || (m_movementAnimation == "STANDUP"))
             {
-                int landElapsed = Environment.TickCount - m_animTickFall; // add for jumping
-                int limit = 1000;   // add for jumping 
-                if(m_movementAnimation == "LAND") limit = 350;   // add for jumping 
+                int landElapsed = Environment.TickCount - m_animTickFall;
+                int limit = 1000;
+                if(m_movementAnimation == "LAND") limit = 350;
                 // NB if the above is set too long a weird anim reset from some place prevents STAND from being sent to client
 
-                if ((m_animTickFall != 0) && (landElapsed <= limit))  // add for jumping 
+                if ((m_animTickFall != 0) && (landElapsed <= limit))
                 {
-//Console.WriteLine("Lelapse {0}", m_movementAnimation);  //##
                     return m_movementAnimation;
                 }
                 else
                 {
-//Console.WriteLine("end/STAND");  //##
                     m_fallHeight = actor.Position.Z;    // save latest flying height
                     return "STAND";
                 }
             }
-/* This section removed, replaced by jumping section
-            m_animTickFall = 0;
 
-            if (move.Z > 0.2f)
-            {
-                // Jumping
-                if (!jumping)
-                {
-                    // Begin prejump
-                    m_animTickJump = Environment.TickCount;
-                    return "PREJUMP";
-                }
-                else if (Environment.TickCount - m_animTickJump > PREJUMP_DELAY * 800.0f)
-                {
-                    // Start actual jump
-                    if (m_animTickJump == -1)
-                    {
-                        // Already jumping! End the current jump
-                        m_animTickJump = 0;
-                        return "JUMP";
-                    }
-
-                    m_animTickJump = -1;
-                    return "JUMP";
-                }
-            }
-            else
-            {
-                // Not jumping
-                m_animTickJump = 0;
-  */
             // next section moved outside paren. and realigned for jumping
             if (move.X != 0f || move.Y != 0f)
             {
                 m_fallHeight = actor.Position.Z;    // save latest flying height
-                m_falling = false;      // Add for falling
+                m_falling = false;
                 // Walking / crouchwalking / running
                 if (move.Z < 0f)
                     return "CROUCHWALK";
@@ -412,10 +356,9 @@ TrySetMovementAnimation("STAND");
                 else
                     return "WALK";
             }
-// rm for jumping            else
-            else if (!m_jumping)    // add for jumping
+            else if (!m_jumping)
             {
-                m_falling = false;      // Add for falling
+                m_falling = false;
                 // Not walking
                 if (move.Z < 0)
                     return "CROUCH";
@@ -426,10 +369,9 @@ TrySetMovementAnimation("STAND");
                 else
                     return "STAND";
             }
-            // end section realign for jumping
             #endregion Ground Movement
 
-            m_falling = false;      // Add for falling
+            m_falling = false;
             return m_movementAnimation;
         }
 
@@ -439,15 +381,7 @@ TrySetMovementAnimation("STAND");
         public void UpdateMovementAnimations()
         {
             m_movementAnimation = GetMovementAnimation();
-/*            if (m_movementAnimation == "PREJUMP" && !m_scenePresence.Scene.m_usePreJump)
-            {
-                // This was the previous behavior before PREJUMP
-                TrySetMovementAnimation("JUMP");
-            }
-            else
-            {      removed for jumping */
-                TrySetMovementAnimation(m_movementAnimation);
-// rm for jumping            }
+            TrySetMovementAnimation(m_movementAnimation);
         }
 
         public UUID[] GetAnimationArray()
