@@ -1754,8 +1754,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (SitGround)
                 StandUp();
 
-            m_log.DebugFormat(
-                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
                 Name, pos, m_scene.RegionInfo.RegionName);
 
             if (pos.X < 0 || pos.X >= Constants.RegionSize
@@ -1820,7 +1820,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ResetMoveToTarget()
         {
-            m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
+//            m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
 
             MovingToTarget = false;
             MoveToPositionTarget = Vector3.Zero;
