@@ -548,7 +548,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 //
                 if (so.IsSelected)
                 {
-                    m_scene.SendKillObject(so.RootPart.LocalId);
+                    m_scene.SendKillObject(new List<uint> { so.RootPart.LocalId });
                 }
 
                 so.IsSelected = false; // fudge....

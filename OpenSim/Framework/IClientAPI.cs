@@ -1046,7 +1046,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="localID"></param>
-        void SendKillObject(ulong regionHandle, uint localID);
+        void SendKillObject(ulong regionHandle, List<uint> localID);
 
         void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId, UUID[] objectIDs);
         void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args);

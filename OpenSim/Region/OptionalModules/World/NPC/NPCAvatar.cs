@@ -520,7 +520,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         }
 
-        public virtual void SendKillObject(ulong regionHandle, uint localID)
+        public virtual void SendKillObject(ulong regionHandle, List<uint> localID)
         {
         }
 

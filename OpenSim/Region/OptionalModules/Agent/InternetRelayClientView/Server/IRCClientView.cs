@@ -934,7 +934,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void SendKillObject(ulong regionHandle, uint localID)
+        public void SendKillObject(ulong regionHandle, List<uint> localID)
         {
             
         }
