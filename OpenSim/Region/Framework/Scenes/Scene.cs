@@ -3164,16 +3164,25 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendKillObject(uint localID)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
+            UUID attachedAvatar = UUID.Zero;
+
             if (part != null) // It is a prim
             {
                 if (!part.ParentGroup.IsDeleted) // Valid
                 {
                     if (part.ParentGroup.RootPart != part) // Child part
                         return;
+
+                    if (part.ParentGroup.IsAttachment && part.ParentGroup.AttachmentPoint >= 31 && part.ParentGroup.AttachmentPoint <= 38)
+                        attachedAvatar = part.ParentGroup.AttachedAvatar;
                 }
             }
 
-            ForEachClient(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, localID); });
+            ForEachClient(delegate(IClientAPI client)
+            {
+                if (attachedAvatar == UUID.Zero || attachedAvatar == client.AgentId)
+                    client.SendKillObject(m_regionHandle, localID);
+            });
         }
 
         #endregion
