@@ -117,7 +117,15 @@ namespace OpenSim.Services.AssetService
                 return null;
             }
 
-            return m_Database.GetAsset(assetID);
+            try
+            {
+                return m_Database.GetAsset(assetID);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[ASSET SERVICE]: Exception getting asset {0} {1}", assetID, e);
+                return null;
+            }
         }
 
         public virtual AssetBase GetCached(string id)
