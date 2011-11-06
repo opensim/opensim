@@ -109,7 +109,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (SceneObjectGroup g in objectGroups)
                 {
                     killIDs.Add(g.LocalId);
-                    g.DeleteGroupFromScene(false);
+                    g.DeleteGroupFromScene(true);
                 }
 
                 m_scene.SendKillObject(killIDs);
