@@ -3310,7 +3310,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 deleteIDs.Add(localID);
             }
-            ForEachClient(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, deleteIDs); });
+
+            ForEachClient(delegate(IClientAPI client)
+            {
+                    client.SendKillObject(m_regionHandle, deleteIDs);
+            });
         }
 
         #endregion

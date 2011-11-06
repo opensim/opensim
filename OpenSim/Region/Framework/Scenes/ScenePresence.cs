@@ -774,7 +774,10 @@ namespace OpenSim.Region.Framework.Scenes
             m_localId = m_scene.AllocateLocalId();
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
-            m_userFlags = account.UserFlags;
+            if (account != null)
+                m_userFlags = account.UserFlags;
+            else
+                m_userFlags = 0;
 
             if (account != null)
                 UserLevel = account.UserLevel;
