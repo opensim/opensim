@@ -571,7 +571,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected void KillEntity(Scene scene, uint localID)
         {
-            scene.SendKillObject(new List<uint>() { localID });
+            scene.SendKillObject(new List<uint> { localID });
         }
 
         protected virtual GridRegion GetFinalDestination(GridRegion region)

@@ -107,8 +107,7 @@ namespace OpenSim.Region.Framework.Scenes
                 List<uint> killIDs = new List<uint>();
 
                 foreach (SceneObjectGroup g in objectGroups)
-                {
-                    killIDs.Add(g.LocalId);
+                {   killIDs.Add(g.LocalId);
                     g.DeleteGroupFromScene(true);
                 }
 

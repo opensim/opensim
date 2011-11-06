@@ -11385,7 +11385,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         // It's a ghost! tell the client to delete it from view.
                         simClient.SendKillObject(Scene.RegionInfo.RegionHandle,
-                                                 new List<uint>() { localId });
+                                                 new List<uint> { localId });
                     }
                     else
                     {

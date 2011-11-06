@@ -548,6 +548,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             if (!silent)
             {
+                // Killing it here will cause the client to deselect it
+                // It then reappears on the avatar, deselected
+                // through the full update below
+                //
+                if (so.IsSelected)
+                {
+                    m_scene.SendKillObject(new List<uint> { so.RootPart.LocalId });
+                }
+
                 so.IsSelected = false; // fudge....
                 so.ScheduleGroupForFullUpdate();
             }

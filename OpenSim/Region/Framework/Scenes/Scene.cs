@@ -3230,7 +3230,7 @@ namespace OpenSim.Region.Framework.Scenes
                     delegate(IClientAPI client)
                     {
                         //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
-                        try { client.SendKillObject(avatar.RegionHandle, new List<uint>() { avatar.LocalId}); }
+                        try { client.SendKillObject(avatar.RegionHandle, new List<uint> { avatar.LocalId }); }
                         catch (NullReferenceException) { }
                     });
 
@@ -3310,11 +3310,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 deleteIDs.Add(localID);
             }
-
-            ForEachClient(delegate(IClientAPI client)
-            {
-                    client.SendKillObject(m_regionHandle, deleteIDs);
-            });
+            ForEachClient(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, deleteIDs); });
         }
 
         #endregion
