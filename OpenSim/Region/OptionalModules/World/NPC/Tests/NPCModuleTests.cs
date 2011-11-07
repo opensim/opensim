@@ -285,9 +285,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 
             // FIXME: This is different for live avatars - z position is adjusted.  This is half the height of the
             // default avatar.
+            // Curiously, Vector3.ToString() will not display the last two places of the float.  For example,
+            // printing out npc.AbsolutePosition will give <0, 0, 0.8454993> not <0, 0, 0.845499337>
             Assert.That(
                 npc.AbsolutePosition,
-                Is.EqualTo(part.AbsolutePosition + new Vector3(0, 0, 0.8454993f)));
+                Is.EqualTo(part.AbsolutePosition + new Vector3(0, 0, 0.845499337f)));
 
             npcModule.Stand(npc.UUID, scene);
 
