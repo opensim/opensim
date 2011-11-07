@@ -287,7 +287,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             // default avatar.
             Assert.That(
                 npc.AbsolutePosition,
-                Is.EqualTo(part.AbsolutePosition + new Vector3(0, 0, 0.8454993));
+                Is.EqualTo(part.AbsolutePosition + new Vector3(0, 0, 0.8454993f)));
 
             npcModule.Stand(npc.UUID, scene);
 
