@@ -1914,6 +1914,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (part.SitTargetAvatar == UUID)
                         part.SitTargetAvatar = UUID.Zero;
 
+                    part.ParentGroup.DeleteAvatar(UUID);
                     ParentPosition = part.GetWorldPosition();
                     ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
                 }
@@ -2343,11 +2344,13 @@ namespace OpenSim.Region.Framework.Scenes
                         m_pos = sitTargetPos + SIT_TARGET_ADJUSTMENT;
                         Rotation = sitTargetOrient;
                         ParentPosition = part.AbsolutePosition;
+                        part.ParentGroup.AddAvatar(UUID);
                     }
                     else
                     {
                         m_pos -= part.AbsolutePosition;
                         ParentPosition = part.AbsolutePosition;
+                        part.ParentGroup.AddAvatar(UUID);
 
 //                        m_log.DebugFormat(
 //                            "[SCENE PRESENCE]: Sitting {0} at position {1} ({2} + {3}) on part {4} {5} without sit target",
