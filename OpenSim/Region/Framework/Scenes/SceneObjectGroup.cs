@@ -2894,7 +2894,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Update the entire rotation of the group.
+        /// Update the rotation of just the root prim of a linkset.
         /// </summary>
         /// <param name="rot"></param>
         public void UpdateRootRotation(Quaternion rot)
