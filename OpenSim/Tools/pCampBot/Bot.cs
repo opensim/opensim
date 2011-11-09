@@ -447,17 +447,20 @@ namespace pCampBot
 
                     for (int i = 0; i < prim.Textures.FaceTextures.Length; i++)
                     {
-                        UUID textureID = prim.Textures.FaceTextures[i].TextureID;
+                        Primitive.TextureEntryFace face = prim.Textures.FaceTextures[i];
 
-                        if (textureID != UUID.Zero)
-                            GetTexture(textureID);
+                        if (face != null)
+                        {
+                            UUID textureID = prim.Textures.FaceTextures[i].TextureID;
+
+                            if (textureID != UUID.Zero)
+                                GetTexture(textureID);
+                        }
                     }
                 }
 
-                if (prim.Sculpt.SculptTexture != UUID.Zero)
-                {
+                if (prim.Sculpt != null && prim.Sculpt.SculptTexture != UUID.Zero)
                     GetTexture(prim.Sculpt.SculptTexture);
-                }
             }
         }
 
