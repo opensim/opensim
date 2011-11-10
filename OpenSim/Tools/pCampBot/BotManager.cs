@@ -233,8 +233,11 @@ namespace pCampBot
 
         private void HandleShutdown(string module, string[] cmd)
         {
-            m_log.Warn("[BOTMANAGER]: Shutting down bots");
-            doBotShutdown();
+            Util.FireAndForget(o =>
+            {
+                m_log.Warn("[BOTMANAGER]: Shutting down bots");
+                doBotShutdown();
+            });
         }
 
         private void HandleShowStatus(string module, string[] cmd)
