@@ -1392,6 +1392,11 @@ namespace OpenSim.Region.Framework.Scenes
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0)
                 m_updateCount = UPDATE_COUNT;
 
+            // Make turning in place work
+            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0 ||
+                (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
+                m_updateCount = UPDATE_COUNT;
+
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
