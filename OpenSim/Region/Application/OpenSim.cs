@@ -56,6 +56,7 @@ namespace OpenSim
         protected bool m_gui = false;
         protected string m_consoleType = "local";
         protected uint m_consolePort = 0;
+        protected string m_custom_prompt;
 
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
@@ -85,7 +86,9 @@ namespace OpenSim
 
                 if (networkConfig != null)
                     m_consolePort = (uint)networkConfig.GetInt("console_port", 0);
+
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
+
                 if (m_logFileAppender != null)
                 {
                     if (m_logFileAppender is log4net.Appender.FileAppender)
@@ -108,6 +111,7 @@ namespace OpenSim
                     Util.FireAndForgetMethod = asyncCallMethod;
 
                 stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 15);
+                m_custom_prompt = startupConfig.GetString("custom_prompt", "Region");
             }
 
             if (Util.FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
@@ -831,7 +835,7 @@ namespace OpenSim
 
             string regionName = (m_sceneManager.CurrentScene == null ? "root" : m_sceneManager.CurrentScene.RegionInfo.RegionName);
             MainConsole.Instance.Output(String.Format("Currently selected region is {0}", regionName));
-            m_console.DefaultPrompt = String.Format("Region ({0}) ", regionName);
+            m_console.DefaultPrompt = String.Format("{0} ({1}) ", m_custom_prompt, regionName);
             m_console.ConsoleScene = m_sceneManager.CurrentScene;
         }
 

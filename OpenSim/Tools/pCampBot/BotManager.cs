@@ -51,7 +51,6 @@ namespace pCampBot
         protected CommandConsole m_console;
         protected List<Bot> m_lBot;
         protected Random somthing = new Random(Environment.TickCount);
-        protected int numbots = 0;
         public IConfig Config { get; private set; }
 
         /// <summary>
@@ -137,7 +136,7 @@ namespace pCampBot
                 if (behaviourSwitches.Contains("g"))
                     behaviours.Add(new GrabbingBehaviour());
 
-                startupBot(i, this, behaviours, firstName, lastName, password, loginUri);
+                StartBot(this, behaviours, firstName, lastName, password, loginUri);
             }
         }
 
@@ -157,22 +156,21 @@ namespace pCampBot
 //            int newlen = len + botcount;
 //            for (int i = len; i < newlen; i++)
 //            {
-//                startupBot(i, Config);
+//                startupBot(Config);
 //            }
 //        }
 
         /// <summary>
         /// This starts up the bot and stores the thread for the bot in the thread array
         /// </summary>
-        /// <param name="pos">The position in the thread array to stick the bot's thread</param>
         /// <param name="bm"></param>
         /// <param name="behaviours">Behaviours for this bot to perform.</param>
         /// <param name="firstName">First name</param>
         /// <param name="lastName">Last name</param>
         /// <param name="password">Password</param>
         /// <param name="loginUri">Login URI</param>
-        public void startupBot(
-             int pos, BotManager bm, List<IBehaviour> behaviours,
+        public void StartBot(
+             BotManager bm, List<IBehaviour> behaviours,
              string firstName, string lastName, string password, string loginUri)
         {
             Bot pb = new Bot(bm, behaviours, firstName, lastName, password, loginUri);
@@ -200,16 +198,17 @@ namespace pCampBot
             {
                 case EventType.CONNECTED:
                     m_log.Info("[" + callbot.FirstName + " " + callbot.LastName + "]: Connected");
-                    numbots++;
-//                m_log.InfoFormat("NUMBOTS {0}", numbots);
                     break;
                 case EventType.DISCONNECTED:
                     m_log.Info("[" + callbot.FirstName + " " + callbot.LastName + "]: Disconnected");
-                    numbots--;
-//                m_log.InfoFormat("NUMBOTS {0}", numbots);
-                    if (numbots <= 0)
-                        Environment.Exit(0);
-                    break;
+
+                    lock (m_lBot)
+                    {
+                        if (m_lBot.TrueForAll(b => !b.IsConnected))
+                            Environment.Exit(0);
+
+                        break;
+                    }
             }
         }
 
@@ -234,8 +233,11 @@ namespace pCampBot
 
         private void HandleShutdown(string module, string[] cmd)
         {
-            m_log.Warn("[BOTMANAGER]: Shutting down bots");
-            doBotShutdown();
+            Util.FireAndForget(o =>
+            {
+                m_log.Warn("[BOTMANAGER]: Shutting down bots");
+                doBotShutdown();
+            });
         }
 
         private void HandleShowStatus(string module, string[] cmd)
