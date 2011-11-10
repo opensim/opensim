@@ -1731,18 +1731,23 @@ namespace OpenSim.Region.Framework.Scenes
             //if ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0)
             //    return;
 
-            bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
-
-            if (UsePhysics && !AbsolutePosition.ApproxEquals(lastPhysGroupPos, 0.02f))
+            // If we somehow got here to updating the SOG and its root part is not scheduled for update,
+            // check to see if the physical position or rotation warrant an update. 
+            if (m_rootPart.UpdateFlag == UpdateRequired.NONE)
             {
-                m_rootPart.UpdateFlag = UpdateRequired.TERSE;
-                lastPhysGroupPos = AbsolutePosition;
-            }
+                bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
 
-            if (UsePhysics && !GroupRotation.ApproxEquals(lastPhysGroupRot, 0.1f))
-            {
-                m_rootPart.UpdateFlag = UpdateRequired.TERSE;
-                lastPhysGroupRot = GroupRotation;
+                if (UsePhysics && !AbsolutePosition.ApproxEquals(lastPhysGroupPos, 0.02f))
+                {
+                    m_rootPart.UpdateFlag = UpdateRequired.TERSE;
+                    lastPhysGroupPos = AbsolutePosition;
+                }
+
+                if (UsePhysics && !GroupRotation.ApproxEquals(lastPhysGroupRot, 0.1f))
+                {
+                    m_rootPart.UpdateFlag = UpdateRequired.TERSE;
+                    lastPhysGroupRot = GroupRotation;
+                }
             }
 
             SceneObjectPart[] parts = m_parts.GetArray();
