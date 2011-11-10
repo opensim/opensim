@@ -2261,7 +2261,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Send metadata about the root prim (name, description, sale price, etc.) to a client.
+        /// Send metadata about the root prim (name, description, sale price, permissions, etc.) to a client.
         /// </summary>
         /// <param name="client"></param>
         public void SendPropertiesToClient(IClientAPI client)
@@ -2886,6 +2886,11 @@ namespace OpenSim.Region.Framework.Scenes
                 parts[i].UpdatePermissions(AgentID, field, localID, mask, addRemTF);
 
             HasGroupChanged = true;
+
+            // Send the group's properties to all clients once all parts are updated
+            IClientAPI client;
+            if (Scene.TryGetClient(AgentID, out client))
+                SendPropertiesToClient(client);
         }
 
         #endregion

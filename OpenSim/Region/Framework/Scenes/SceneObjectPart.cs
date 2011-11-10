@@ -1391,22 +1391,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.SendObjectPropertiesReply(this);
         }
 
-        /// <summary>
-        /// For the scene object group to which this part belongs, send that scene object's root part properties to a client.
-        /// </summary>
-        /// <param name="AgentID"></param>
-        private void SendRootPartPropertiesToClient(UUID AgentID)
-        {
-            m_parentGroup.Scene.ForEachClient(delegate(IClientAPI client)
-            {
-                // Ugly reference :(
-                if (client.AgentId == AgentID)
-                {
-                    m_parentGroup.SendPropertiesToClient(client);
-                }
-            });
-        }
-
         // TODO: unused:
         // private void handleTimerAccounting(uint localID, double interval)
         // {
@@ -4268,6 +4252,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Update permissions on the SOP. Should only be called from SOG.UpdatePermissions because the SOG
+        /// will handle the client notifications once all of its parts are updated.
+        /// </summary>
+        /// <param name="AgentID"></param>
+        /// <param name="field"></param>
+        /// <param name="localID"></param>
+        /// <param name="mask"></param>
+        /// <param name="addRemTF"></param>
         public void UpdatePermissions(UUID AgentID, byte field, uint localID, uint mask, byte addRemTF)
         {
             bool set = addRemTF == 1;
@@ -4316,8 +4309,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 SendFullUpdateToAllClients();
-
-                SendRootPartPropertiesToClient(AgentID);
             }
         }
 
