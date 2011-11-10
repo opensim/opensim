@@ -2019,8 +2019,6 @@ namespace OpenSim.Region.Framework.Scenes
                     sitOrientation = avSitOrientation;
                     autopilot = false;
                 }
-                part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
-
                 pos = part.AbsolutePosition + offset;
                 //if (Math.Abs(part.AbsolutePosition.Z - AbsolutePosition.Z) > 1)
                 //{
@@ -2066,6 +2064,12 @@ namespace OpenSim.Region.Framework.Scenes
             m_sitAtAutoTarget = autopilot;
             if (!autopilot)
                 HandleAgentSit(remoteClient, UUID);
+
+            // Moved here to avoid a race with default sit anim
+            // The script event needs to be raised after the default sit anim is set.
+            if (part != null)
+                part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
+
         }
 
         // public void HandleAgentRequestSit(IClientAPI remoteClient, UUID agentID, UUID targetID, Vector3 offset, string sitAnimation)
