@@ -51,7 +51,6 @@ namespace pCampBot
         protected CommandConsole m_console;
         protected List<Bot> m_lBot;
         protected Random somthing = new Random(Environment.TickCount);
-        protected int numbots = 0;
         public IConfig Config { get; private set; }
 
         /// <summary>
@@ -200,16 +199,17 @@ namespace pCampBot
             {
                 case EventType.CONNECTED:
                     m_log.Info("[" + callbot.FirstName + " " + callbot.LastName + "]: Connected");
-                    numbots++;
-//                m_log.InfoFormat("NUMBOTS {0}", numbots);
                     break;
                 case EventType.DISCONNECTED:
                     m_log.Info("[" + callbot.FirstName + " " + callbot.LastName + "]: Disconnected");
-                    numbots--;
-//                m_log.InfoFormat("NUMBOTS {0}", numbots);
-                    if (numbots <= 0)
-                        Environment.Exit(0);
-                    break;
+
+                    lock (m_lBot)
+                    {
+                        if (m_lBot.TrueForAll(b => !b.IsConnected))
+                            Environment.Exit(0);
+
+                        break;
+                    }
             }
         }
 

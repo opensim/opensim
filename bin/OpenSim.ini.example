@@ -230,6 +230,11 @@
     ;; by scripts have changed.
     ; DeleteScriptsOnStartup = true
 
+    ;; Custom prompt
+    ;; This value replaces the word "Region" in console prompt
+    ;; (usualy "Region (regionName) # "
+    ;; Useful only if you have to monitor serveral servers
+    ; custom_prompt = "MyServer1"
 
 [SMTP]
     ;; The SMTP server enabled the email module to send email to external

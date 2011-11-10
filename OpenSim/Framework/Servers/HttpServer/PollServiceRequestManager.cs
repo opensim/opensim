@@ -44,7 +44,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         private uint m_WorkerThreadCount = 0;
         private Thread[] m_workerThreads;
         private PollServiceWorkerThread[] m_PollServiceWorkerThreads;
-        private Thread m_watcherThread;
         private bool m_running = true;
 
         public PollServiceRequestManager(BaseHttpServer pSrv, uint pWorkerThreadCount, int pTimeout)
@@ -69,13 +68,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                         int.MaxValue);
             }
 
-            m_watcherThread
-                = Watchdog.StartThread(
-                    this.ThreadStart,
-                    "PollServiceWatcherThread",
-                    ThreadPriority.Normal,
-                    false,
-                    1000 * 60 * 10);
+            Watchdog.StartThread(
+                this.ThreadStart,
+                "PollServiceWatcherThread",
+                ThreadPriority.Normal,
+                false,
+                1000 * 60 * 10);
         }
 
         internal void ReQueueEvent(PollServiceHttpRequest req)

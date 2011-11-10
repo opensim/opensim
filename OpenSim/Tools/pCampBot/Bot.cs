@@ -222,7 +222,7 @@ namespace pCampBot
             }
             else
             {
-                MainConsole.Instance.OutputFormat(
+                m_log.ErrorFormat(
                     "{0} {1} cannot login: {2}", FirstName, LastName, Client.Network.LoginMessage);
 
                 if (OnDisconnected != null)
@@ -266,12 +266,12 @@ namespace pCampBot
                     }
                     else
                     {
-                        MainConsole.Instance.Output(String.Format("Failed to decode {0} asset {1}", asset.AssetType, asset.AssetID));
+                        m_log.WarnFormat("Failed to decode {0} asset {1}", asset.AssetType, asset.AssetID);
                     }
                 }
                 catch (Exception e)
                 {
-                    MainConsole.Instance.Output(String.Format("Exception: {0}",e.ToString()));
+                    m_log.ErrorFormat("Exception: {0}{1}", e.Message, e.StackTrace);
                 }
             }
         }
@@ -305,7 +305,7 @@ namespace pCampBot
                 if (wear == "yes")
                 {
                     //TODO: Implement random outfit picking
-                    MainConsole.Instance.Output("Picks a random outfit. Not yet implemented.");
+                    m_log.DebugFormat("Picks a random outfit. Not yet implemented.");
                 }
                 else if (wear != "save")
                     saveDir = "MyAppearance/" + wear;
@@ -334,7 +334,9 @@ namespace pCampBot
                             listwearables.Add(item);
                         }
                         else
-                            MainConsole.Instance.Output(String.Format("Failed to create item {0}",item.Name));
+                        {
+                            m_log.WarnFormat("Failed to create item {0}", item.Name);
+                        }
                     }
                     );
                 }
@@ -356,7 +358,9 @@ namespace pCampBot
                             listwearables.Add(item);
                         }
                         else
-                            MainConsole.Instance.Output(String.Format("Failed to create item {0}",item.Name));
+                        {
+                            m_log.WarnFormat("Failed to create item {0}", item.Name);
+                        }
                     }
                     );
                 }
@@ -364,10 +368,12 @@ namespace pCampBot
                 Thread.Sleep(1000);
 
                 if (listwearables == null || listwearables.Count == 0)
-                    MainConsole.Instance.Output("Nothing to send on this folder!");
+                {
+                    m_log.DebugFormat("Nothing to send on this folder!");
+                }
                 else
                 {
-                    MainConsole.Instance.Output(String.Format("Sending {0} wearables...",listwearables.Count));
+                    m_log.DebugFormat("Sending {0} wearables...", listwearables.Count);
                     Client.Appearance.WearOutfit(listwearables, false);
                 }
             }
@@ -447,17 +453,20 @@ namespace pCampBot
 
                     for (int i = 0; i < prim.Textures.FaceTextures.Length; i++)
                     {
-                        UUID textureID = prim.Textures.FaceTextures[i].TextureID;
+                        Primitive.TextureEntryFace face = prim.Textures.FaceTextures[i];
 
-                        if (textureID != UUID.Zero)
-                            GetTexture(textureID);
+                        if (face != null)
+                        {
+                            UUID textureID = prim.Textures.FaceTextures[i].TextureID;
+
+                            if (textureID != UUID.Zero)
+                                GetTexture(textureID);
+                        }
                     }
                 }
 
-                if (prim.Sculpt.SculptTexture != UUID.Zero)
-                {
+                if (prim.Sculpt != null && prim.Sculpt.SculptTexture != UUID.Zero)
                     GetTexture(prim.Sculpt.SculptTexture);
-                }
             }
         }
 
