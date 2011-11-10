@@ -36,6 +36,14 @@
 
 
 [Startup]
+    ;# {ConsolePrompt} {} {ConsolePrompt} {} "Region (\R) "
+    ;; Console prompt
+    ;; Certain special characters can be used to customize the prompt
+    ;; Currently, these are
+    ;; \R - substitute region name
+    ;; \\ - substitute \
+    ; ConsolePrompt = "Region (\R) "
+
     ;# {save_crashes} {} {Save crashes to disk?} {true false} false
     ;; Set this to true if you want to log crashes to disk
     ;; this can be useful when submitting bug reports.
@@ -229,12 +237,6 @@
     ;; compiled scripts if you're recompiling OpenSim from source code and internal interfaces used
     ;; by scripts have changed.
     ; DeleteScriptsOnStartup = true
-
-    ;; Custom prompt
-    ;; This value replaces the word "Region" in console prompt
-    ;; (usualy "Region (regionName) # "
-    ;; Useful only if you have to monitor serveral servers
-    ; custom_prompt = "MyServer1"
 
 [SMTP]
     ;; The SMTP server enabled the email module to send email to external
