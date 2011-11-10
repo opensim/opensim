@@ -1743,6 +1743,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectGroup parentGroup = root.ParentGroup;
             if (parentGroup == null) return;
+
+            // Cowardly refuse to link to a group owned root
+            if (parentGroup.OwnerID == parentGroup.GroupID)
+                return;
+
             Monitor.Enter(m_updateLock);
 
             try
@@ -1770,11 +1775,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 foreach (SceneObjectGroup child in childGroups)
                 {
-                    parentGroup.LinkToGroup(child);
+                    if (parentGroup.OwnerID == child.OwnerID)
+                    {
+                        parentGroup.LinkToGroup(child);
 
-                    // this is here so physics gets updated!
-                    // Don't remove!  Bad juju!  Stay away! or fix physics!
-                    child.AbsolutePosition = child.AbsolutePosition;
+                        // this is here so physics gets updated!
+                        // Don't remove!  Bad juju!  Stay away! or fix physics!
+                        child.AbsolutePosition = child.AbsolutePosition;
+                    }
                 }
 
                 // We need to explicitly resend the newly link prim's object properties since no other actions
@@ -1819,9 +1827,14 @@ namespace OpenSim.Region.Framework.Scenes
                         if (part.ParentGroup.PrimCount != 1) // Skip single
                         {
                             if (part.LinkNum < 2) // Root
+                            {
                                 rootParts.Add(part);
+                            }
                             else
+                            {
+                                part.LastOwnerID = part.ParentGroup.RootPart.LastOwnerID;
                                 childParts.Add(part);
+                            }
 
                             SceneObjectGroup group = part.ParentGroup;
                             if (!affectedGroups.Contains(group))
