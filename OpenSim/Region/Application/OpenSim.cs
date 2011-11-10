@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Timers;
 using log4net;
 using Nini.Config;
@@ -56,7 +57,16 @@ namespace OpenSim
         protected bool m_gui = false;
         protected string m_consoleType = "local";
         protected uint m_consolePort = 0;
-        protected string m_custom_prompt;
+
+        /// <summary>
+        /// Prompt to use for simulator command line.
+        /// </summary>
+        private string m_consolePrompt;
+
+        /// <summary>
+        /// Regex for parsing out special characters in the prompt.
+        /// </summary>
+        private Regex m_consolePromptRegex = new Regex(@"([^\\])\\(\w)", RegexOptions.Compiled);
 
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
@@ -111,7 +121,7 @@ namespace OpenSim
                     Util.FireAndForgetMethod = asyncCallMethod;
 
                 stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 15);
-                m_custom_prompt = startupConfig.GetString("custom_prompt", "Region");
+                m_consolePrompt = startupConfig.GetString("console_prompt", @"Region (\R) ");
             }
 
             if (Util.FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
@@ -835,7 +845,22 @@ namespace OpenSim
 
             string regionName = (m_sceneManager.CurrentScene == null ? "root" : m_sceneManager.CurrentScene.RegionInfo.RegionName);
             MainConsole.Instance.Output(String.Format("Currently selected region is {0}", regionName));
-            m_console.DefaultPrompt = String.Format("{0} ({1}) ", m_custom_prompt, regionName);
+
+//            m_log.DebugFormat("Original prompt is {0}", m_consolePrompt);
+            string prompt = m_consolePrompt;
+
+            // Replace "\R" with the region name
+            // Replace "\\" with "\"
+            prompt = m_consolePromptRegex.Replace(prompt, m =>
+            {
+//                m_log.DebugFormat("Matched {0}", m.Groups[2].Value);
+                if (m.Groups[2].Value == "R")
+                    return m.Groups[1].Value + regionName;
+                else
+                    return m.Groups[0].Value;
+            });
+
+            m_console.DefaultPrompt = prompt;
             m_console.ConsoleScene = m_sceneManager.CurrentScene;
         }
 
