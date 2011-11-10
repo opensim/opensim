@@ -1514,7 +1514,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                             if ((MovementFlag & (byte)(uint)DCF) == 0)
                             {
-                                if (DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE)
+                                if (DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE ||
+                                    DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT_NUDGE)
                                 {
                                     MovementFlag |= (byte)nudgehack;
                                 }
@@ -1527,7 +1528,8 @@ namespace OpenSim.Region.Framework.Scenes
                         else
                         {
                             if ((MovementFlag & (byte)(uint)DCF) != 0 ||
-                                ((DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE)
+                                ((DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE ||
+                                DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT_NUDGE)
                                 && ((MovementFlag & (byte)nudgehack) == nudgehack))
                                 ) // This or is for Nudge forward
                             {
