@@ -1671,8 +1671,6 @@ namespace OpenSim.Region.Framework.Scenes
             Monitor.Enter(m_updateLock);
             try
             {
-                SceneObjectGroup parentGroup = root.ParentGroup;
-
                 List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
 
                 // We do this in reverse to get the link order of the prims correct
