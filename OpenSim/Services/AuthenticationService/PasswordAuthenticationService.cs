@@ -60,16 +60,25 @@ namespace OpenSim.Services.AuthenticationService
         {
             AuthenticationData data = m_Database.Get(principalID);
 
-            if (data != null && data.Data != null)
+            if (data == null)
             {
-                if (!data.Data.ContainsKey("passwordHash") ||
-                    !data.Data.ContainsKey("passwordSalt"))
-                {
-                    return String.Empty;
-                }
-
-                string hashed = Util.Md5Hash(password + ":" +
-                        data.Data["passwordSalt"].ToString());
+                m_log.DebugFormat("[AUTH SERVICE]: PrincipalID {0} not found", principalID);
+                return String.Empty;
+            }
+            else if (data.Data == null)
+            {
+                m_log.DebugFormat("[AUTH SERVICE]: PrincipalID {0} data not found", principalID);
+                return String.Empty;
+            }
+            else if (!data.Data.ContainsKey("passwordHash") || !data.Data.ContainsKey("passwordSalt"))
+            {
+                m_log.DebugFormat(
+                    "[AUTH SERVICE]: PrincipalID {0} data didn't contain either passwordHash or passwordSalt", principalID);
+                return String.Empty;
+            }
+            else
+            {
+                string hashed = Util.Md5Hash(password + ":" + data.Data["passwordSalt"].ToString());
 
                 //m_log.DebugFormat("[PASS AUTH]: got {0}; hashed = {1}; stored = {2}", password, hashed, data.Data["passwordHash"].ToString());
 
@@ -77,10 +86,14 @@ namespace OpenSim.Services.AuthenticationService
                 {
                     return GetToken(principalID, lifetime);
                 }
+                else
+                {
+                    m_log.DebugFormat(
+                        "[AUTH SERVICE]: Salted hash {0} of given password did not match salted hash of {1} for PrincipalID {2}.  Authentication failure.",
+                        principalID);
+                    return String.Empty;
+                }
             }
-
-            m_log.DebugFormat("[AUTH SERVICE]: PrincipalID {0} or its data not found", principalID);
-            return String.Empty;
         }
     }
 }
