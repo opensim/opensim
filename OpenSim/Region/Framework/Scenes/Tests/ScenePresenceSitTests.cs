@@ -110,6 +110,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
             Assert.That(sp.ParentID, Is.EqualTo(part.LocalId));
+            Assert.That(sp.PhysicsActor, Is.Null);
 
             // FIXME: This is different for live avatars - z position is adjusted.  This is half the height of the
             // default avatar.
@@ -123,6 +124,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
             Assert.That(sp.ParentID, Is.EqualTo(0));
+            Assert.That(sp.PhysicsActor, Is.Not.Null);
         }
 
         [Test]
@@ -147,11 +149,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(
                 sp.AbsolutePosition,
                 Is.EqualTo(part.AbsolutePosition + part.SitTargetPosition + ScenePresence.SIT_TARGET_ADJUSTMENT));
+            Assert.That(sp.PhysicsActor, Is.Null);
 
             sp.StandUp();
 
             Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
             Assert.That(sp.ParentID, Is.EqualTo(0));
+            Assert.That(sp.PhysicsActor, Is.Not.Null);
         }
 
         [Test]
