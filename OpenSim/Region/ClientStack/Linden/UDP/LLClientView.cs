@@ -1553,41 +1553,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             kill.Header.Reliable = true;
             kill.Header.Zerocoded = true;
 
-            lock (m_killRecord)
+            if (localIDs.Count == 1 && m_scene.GetScenePresence(localIDs[0]) != null)
             {
-                if (localIDs.Count == 1)
+                OutPacket(kill, ThrottleOutPacketType.State);
+            }
+            else
+            {
+                // We MUST lock for both manipulating the kill record and sending the packet, in order to avoid a race
+                // condition where a kill can be processed before an out-of-date update for the same object.
+                // ProcessEntityUpdates() also takes the m_killRecord lock.
+                lock (m_killRecord)
                 {
-                    if (m_scene.GetScenePresence(localIDs[0]) != null)
-                    {
-                        OutPacket(kill, ThrottleOutPacketType.State);
-                        return;
-                    }
-                    m_killRecord.Add(localIDs[0]);
-                }
-                else
-                {
-                    lock (m_entityUpdates.SyncRoot)
-                    {
-                        foreach (uint localID in localIDs)
-                            m_killRecord.Add(localID);
-                    }
+                    foreach (uint localID in localIDs)
+                        m_killRecord.Add(localID);
+
+                    // The throttle queue used here must match that being used for updates.  Otherwise, there is a
+                    // chance that a kill packet put on a separate queue will be sent to the client before an existing
+                    // update packet on another queue.  Receiving updates after kills results in unowned and undeletable
+                    // scene objects in a viewer until that viewer is relogged in.
+                    OutPacket(kill, ThrottleOutPacketType.Task);
                 }
             }
-
-            // The throttle queue used here must match that being used for
-            // updates. Otherwise, there is a chance that a kill packet put
-            // on a separate queue will be sent to the client before an
-            // existing update packet on another queue. Receiving updates
-            // after kills results in unowned and undeletable
-            // scene objects in a viewer until that viewer is relogged in.
-            OutPacket(kill, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
         /// Send information about the items contained in a folder to the client.
-        ///
-        /// XXX This method needs some refactoring loving
         /// </summary>
+        /// <remarks>
+        /// XXX This method needs some refactoring loving
+        /// </remarks>
         /// <param name="ownerID">The owner of the folder</param>
         /// <param name="folderID">The id of the folder</param>
         /// <param name="items">The items contained in the folder identified by folderID</param>
