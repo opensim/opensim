@@ -1419,6 +1419,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // to use.  Or we could add a m_isSitting variable.
                 //Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
                 SitGround = true;
+                RemoveFromPhysicalScene();
             }
 
             // In the future, these values might need to go global.
@@ -1835,11 +1836,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void StandUp()
         {
+//            m_log.DebugFormat("[SCENE PRESENCE]: StandUp() for {0}", Name);
+
             SitGround = false;
+            if (PhysicsActor == null)
+                AddToPhysicalScene(false);
 
             if (ParentID != 0)
             {
-//                m_log.Debug("StandupCode Executed");
                 SceneObjectPart part = m_scene.GetSceneObjectPart(ParentID);
                 if (part != null)
                 {
@@ -1864,11 +1868,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     ParentPosition = part.GetWorldPosition();
                     ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
-                }
-
-                if (PhysicsActor == null)
-                {
-                    AddToPhysicalScene(false);
                 }
 
                 m_pos += ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
