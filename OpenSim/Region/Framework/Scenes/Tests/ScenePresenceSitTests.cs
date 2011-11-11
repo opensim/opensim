@@ -153,5 +153,28 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
             Assert.That(sp.ParentID, Is.EqualTo(0));
         }
+
+        [Test]
+        public void TestSitAndStandOnGround()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, TestHelpers.ParseTail(0x1));
+
+            // If a prim has a sit target then we can sit from any distance away
+//            Vector3 startPos = new Vector3(128, 128, 30);
+//            sp.AbsolutePosition = startPos;
+
+            sp.HandleAgentSitOnGround();
+
+            Assert.That(sp.SitGround, Is.True);
+            Assert.That(sp.PhysicsActor, Is.Null);
+
+            sp.StandUp();
+
+            Assert.That(sp.SitGround, Is.False);
+            Assert.That(sp.PhysicsActor, Is.Not.Null);
+        }
     }
 }
