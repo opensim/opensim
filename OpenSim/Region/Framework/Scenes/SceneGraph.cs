@@ -1661,11 +1661,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="childPrims"></param>
         protected internal void LinkObjects(SceneObjectPart root, List<SceneObjectPart> children)
         {
+            SceneObjectGroup parentGroup = root.ParentGroup;
+            if (parentGroup == null) return;
+
+            // Cowardly refuse to link to a group owned root
+            if (parentGroup.OwnerID == parentGroup.GroupID)
+                return;
+
             Monitor.Enter(m_updateLock);
             try
             {
-                SceneObjectGroup parentGroup = root.ParentGroup;
-
                 List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
 
                 // We do this in reverse to get the link order of the prims correct
@@ -1683,11 +1688,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 foreach (SceneObjectGroup child in childGroups)
                 {
-                    parentGroup.LinkToGroup(child);
+                    if (parentGroup.OwnerID == child.OwnerID)
+                    {
+                        parentGroup.LinkToGroup(child);
 
-                    // this is here so physics gets updated!
-                    // Don't remove!  Bad juju!  Stay away! or fix physics!
-                    child.AbsolutePosition = child.AbsolutePosition;
+                        // this is here so physics gets updated!
+                        // Don't remove!  Bad juju!  Stay away! or fix physics!
+                        child.AbsolutePosition = child.AbsolutePosition;
+                    }
                 }
 
                 // We need to explicitly resend the newly link prim's object properties since no other actions
@@ -1725,9 +1733,14 @@ namespace OpenSim.Region.Framework.Scenes
                         if (part.ParentGroup.PrimCount != 1) // Skip single
                         {
                             if (part.LinkNum < 2) // Root
+                            {
                                 rootParts.Add(part);
+                            }
                             else
+                            {
+                                part.LastOwnerID = part.ParentGroup.RootPart.LastOwnerID;
                                 childParts.Add(part);
+                            }
 
                             SceneObjectGroup group = part.ParentGroup;
                             if (!affectedGroups.Contains(group))

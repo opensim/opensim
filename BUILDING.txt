@@ -28,3 +28,5 @@ From the distribution type:
  
 Helpful resources:
 * http://opensimulator.org/wiki/Build_Instructions
+
+ 
