@@ -12,7 +12,7 @@ Steps:
 === Building on Linux ===
 
 Prereqs:
- * Mono >= 2.4.2
+ * Mono >= 2.4.3
  * Nant >= 0.85
  * On some Linux distributions you may need to install additional packages.  
     See http://opensimulator.org/wiki/Dependencies for more information.
@@ -28,5 +28,3 @@ From the distribution type:
  
 Helpful resources:
 * http://opensimulator.org/wiki/Build_Instructions
-
- 
