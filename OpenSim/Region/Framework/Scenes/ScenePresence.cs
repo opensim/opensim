@@ -1927,7 +1927,7 @@ namespace OpenSim.Region.Framework.Scenes
             return targetPart;
         }
 
-        private void SendSitResponse(IClientAPI remoteClient, UUID targetID, Vector3 offset, Quaternion pSitOrientation)
+        private void SendSitResponse(UUID targetID, Vector3 offset, Quaternion pSitOrientation)
         {
             Vector3 pos = new Vector3();
             Quaternion sitOrientation = pSitOrientation;
@@ -2009,7 +2009,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_requestedSitTargetUUID = targetID;
 
-                HandleAgentSit(remoteClient, UUID);
+                HandleAgentSit(ControllingClient, UUID);
 
                 // Moved here to avoid a race with default sit anim
                 // The script event needs to be raised after the default sit anim is set.
@@ -2017,7 +2017,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        // public void HandleAgentRequestSit(IClientAPI remoteClient, UUID agentID, UUID targetID, Vector3 offset, string sitAnimation)
         public void HandleAgentRequestSit(IClientAPI remoteClient, UUID agentID, UUID targetID, Vector3 offset)
         {
             if (ParentID != 0)
@@ -2061,7 +2060,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Warn("Sit requested on unknown object: " + targetID.ToString());
             }
 
-            SendSitResponse(remoteClient, targetID, offset, Quaternion.Identity);
+            SendSitResponse(targetID, offset, Quaternion.Identity);
         }
 
         /*
