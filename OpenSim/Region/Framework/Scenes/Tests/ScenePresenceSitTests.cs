@@ -53,7 +53,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
-        public void TestSitOutsideRange()
+        public void TestSitOutsideRangeNoTarget()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -73,7 +73,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
-        public void TestSitWithinRange()
+        public void TestSitWithinRangeNoTarget()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -118,6 +118,35 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(
                 sp.AbsolutePosition,
                 Is.EqualTo(part.AbsolutePosition + new Vector3(0, 0, 0.845499337f)));
+
+            sp.StandUp();
+
+            Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
+            Assert.That(sp.ParentID, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestSitAndStandWithSitTarget()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, TestHelpers.ParseTail(0x1));
+
+            // If a prim has a sit target then we can sit from any distance away
+            Vector3 startPos = new Vector3(128, 128, 30);
+            sp.AbsolutePosition = startPos;
+
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            part.SitTargetPosition = new Vector3(0, 0, 1);
+
+            sp.HandleAgentRequestSit(sp.ControllingClient, sp.UUID, part.UUID, Vector3.Zero);
+
+            Assert.That(part.SitTargetAvatar, Is.EqualTo(sp.UUID));
+            Assert.That(sp.ParentID, Is.EqualTo(part.LocalId));
+            Assert.That(
+                sp.AbsolutePosition,
+                Is.EqualTo(part.AbsolutePosition + part.SitTargetPosition + ScenePresence.SIT_TARGET_ADJUSTMENT));
 
             sp.StandUp();
 
