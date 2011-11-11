@@ -163,7 +163,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         private uint m_requestedSitTargetID;
         private UUID m_requestedSitTargetUUID;
-        public bool SitGround = false;
+
+        /// <summary>
+        /// Are we sitting on the ground?
+        /// </summary>
+        public bool SitGround { get; private set; }
 
         private SendCourseLocationsMethod m_sendCourseLocationsMethod;
 
@@ -1410,17 +1414,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
-            {
-                m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
-                Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
-
-                // TODO: This doesn't prevent the user from walking yet.
-                // Setting parent ID would fix this, if we knew what value
-                // to use.  Or we could add a m_isSitting variable.
-                //Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
-                SitGround = true;
-                RemoveFromPhysicalScene();
-            }
+                HandleAgentSitOnGround();
 
             // In the future, these values might need to go global.
             // Here's where you get them.
@@ -2312,6 +2306,19 @@ namespace OpenSim.Region.Framework.Scenes
 
             Animator.TrySetMovementAnimation(sitAnimation);
             SendAvatarDataToAllAgents();
+        }
+
+        public void HandleAgentSitOnGround()
+        {
+            m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
+            Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+
+            // TODO: This doesn't prevent the user from walking yet.
+            // Setting parent ID would fix this, if we knew what value
+            // to use.  Or we could add a m_isSitting variable.
+            //Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+            SitGround = true;
+            RemoveFromPhysicalScene();
         }
 
         /// <summary>
