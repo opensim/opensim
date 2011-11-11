@@ -2034,7 +2034,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (autopilot)
                     {
-                        if (Util.GetDistanceTo(AbsolutePosition, pos) < 4.5)
+                        if (Util.GetDistanceTo(AbsolutePosition, pos) <= 10)
                         {
                             autopilot = false;
 

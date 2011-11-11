@@ -45,25 +45,51 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     public class ScenePresenceSitTests
     {
         private TestScene m_scene;
-//        private AvatarFactoryModule afm;
-//        private UserManagementModule umm;
-//        private AttachmentsModule am;
 
         [SetUp]
         public void Init()
         {
-//            IConfigSource config = new IniConfigSource();
-//            config.AddConfig("NPC");
-//            config.Configs["NPC"].Set("Enabled", "true");
-//            config.AddConfig("Modules");
-//            config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
-//
-//            afm = new AvatarFactoryModule();
-//            umm = new UserManagementModule();
-//            am = new AttachmentsModule();
-
             m_scene = SceneHelpers.SetupScene();
-//            SceneHelpers.SetupSceneModules(scene, config, afm, umm, am, new BasicInventoryAccessModule(), new NPCModule());
+        }
+
+        [Test]
+        public void TestSitOutsideRange()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, TestHelpers.ParseTail(0x1));
+
+            // More than 10 meters away from 0, 0, 0 (default part position)
+            Vector3 startPos = new Vector3(10.1f, 0, 0);
+            sp.AbsolutePosition = startPos;
+
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+
+            sp.HandleAgentRequestSit(sp.ControllingClient, sp.UUID, part.UUID, Vector3.Zero);
+
+            Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
+            Assert.That(sp.ParentID, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestSitWithinRange()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, TestHelpers.ParseTail(0x1));
+
+            // Less than 10 meters away from 0, 0, 0 (default part position)
+            Vector3 startPos = new Vector3(9.9f, 0, 0);
+            sp.AbsolutePosition = startPos;
+
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+
+            sp.HandleAgentRequestSit(sp.ControllingClient, sp.UUID, part.UUID, Vector3.Zero);
+
+            Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
+            Assert.That(sp.ParentID, Is.EqualTo(part.LocalId));
         }
 
         [Test]
@@ -74,8 +100,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, TestHelpers.ParseTail(0x1));
 
-            // FIXME: To get this to work for now, we are going to place the npc right next to the target so that
-            // the autopilot doesn't trigger
+            // Make sure we're within range to sit
             Vector3 startPos = new Vector3(1, 1, 1);
             sp.AbsolutePosition = startPos;
 
