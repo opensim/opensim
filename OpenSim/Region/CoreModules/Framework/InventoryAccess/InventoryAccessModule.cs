@@ -477,7 +477,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move) | 7;
             foreach (SceneObjectGroup grp in objsForEffectivePermissions)
-                effectivePerms &= grp.GetEffectivePermissions();
+                effectivePerms &= grp.GetEffectivePermissions(true);
             effectivePerms |= (uint)PermissionMask.Move;
 
             if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())

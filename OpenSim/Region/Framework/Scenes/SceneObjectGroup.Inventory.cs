@@ -230,6 +230,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public uint GetEffectivePermissions()
         {
+            return GetEffectivePermissions(false);
+        }
+
+        public uint GetEffectivePermissions(bool useBase)
+        {
             uint perms=(uint)(PermissionMask.Modify |
                               PermissionMask.Copy |
                               PermissionMask.Move |
@@ -241,7 +246,10 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
-                ownerMask &= part.OwnerMask;
+                if (useBase)
+                    ownerMask &= part.BaseMask;
+                else
+                    ownerMask &= part.OwnerMask;
                 perms &= part.Inventory.MaskEffectivePermissions();
             }
 
