@@ -122,18 +122,19 @@ namespace OpenSim.Framework
         public static Thread StartThread(
             ThreadStart start, string name, ThreadPriority priority, bool isBackground, int timeout)
         {
+            Thread thread = new Thread(start);
+            thread.Name = name;
+            thread.Priority = priority;
+            thread.IsBackground = isBackground;
+            
+            ThreadWatchdogInfo twi = new ThreadWatchdogInfo(thread, timeout);
+
             m_log.Debug("[WATCHDOG]: Started tracking thread \"" + twi.Thread.Name + "\" (ID " + twi.Thread.ManagedThreadId + ")");
 
             lock (m_threads)
                 m_threads.Add(twi.Thread.ManagedThreadId, twi);
 
-            Thread thread = new Thread(start);
-            thread.Name = name;
-            thread.Priority = priority;
-            thread.IsBackground = isBackground;
             thread.Start();
-
-            ThreadWatchdogInfo twi = new ThreadWatchdogInfo(thread, timeout);
 
             return thread;
         }
