@@ -70,9 +70,28 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
             UUID userId = TestHelpers.ParseTail(0x1);
 
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
-            
+
             Assert.That(((TestClient)sp.ControllingClient).OfflineNotificationsReceived.Count, Is.EqualTo(0));
             Assert.That(((TestClient)sp.ControllingClient).OnlineNotificationsReceived.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestAddFriendWhileOnline()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UUID user2Id = TestHelpers.ParseTail(0x2);
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
+            ScenePresence sp2 = SceneHelpers.AddScenePresence(m_scene, user2Id);
+
+            // This friendship is currently only one-way, which might be pathalogical in Second Life.
+            m_fm.AddFriend(sp.ControllingClient, user2Id);
+
+            Assert.That(((TestClient)sp.ControllingClient).OfflineNotificationsReceived.Count, Is.EqualTo(0));
+            Assert.That(((TestClient)sp.ControllingClient).OnlineNotificationsReceived.Count, Is.EqualTo(1));
         }
     }
 }

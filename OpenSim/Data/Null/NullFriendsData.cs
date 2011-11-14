@@ -56,13 +56,21 @@ namespace OpenSim.Data.Null
         /// <returns></returns>
         public FriendsData[] GetFriends(string userID)
         {
-            List<FriendsData> lst = m_Data.FindAll(delegate (FriendsData fdata)
+            List<FriendsData> lst = m_Data.FindAll(fdata =>
             {
                 return fdata.PrincipalID == userID.ToString();
             });
 
             if (lst != null)
+            {
+                lst.ForEach(f =>
+                {
+                    FriendsData f2 = m_Data.Find(candidateF2 => f.Friend == candidateF2.PrincipalID);
+                    if (f2 != null) { f.Data["TheirFlags"] = f2.Data["Flags"]; }
+                });
+
                 return lst.ToArray();
+            }
 
             return new FriendsData[0];
         }
