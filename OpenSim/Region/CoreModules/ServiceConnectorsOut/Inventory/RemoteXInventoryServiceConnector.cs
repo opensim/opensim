@@ -50,8 +50,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         public Scene Scene { get; set; }
 
-        private bool m_Enabled = false;
-        private Scene m_Scene;
+        private bool m_Enabled;
         private XInventoryServicesConnector m_RemoteConnector;
 
         private IUserManagement m_UserManager;

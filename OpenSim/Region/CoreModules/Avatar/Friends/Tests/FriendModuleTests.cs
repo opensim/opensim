@@ -85,7 +85,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
             UUID user2Id = TestHelpers.ParseTail(0x2);
 
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
-            ScenePresence sp2 = SceneHelpers.AddScenePresence(m_scene, user2Id);
+            SceneHelpers.AddScenePresence(m_scene, user2Id);
 
             // This friendship is currently only one-way, which might be pathalogical in Second Life.
             m_fm.AddFriend(sp.ControllingClient, user2Id);

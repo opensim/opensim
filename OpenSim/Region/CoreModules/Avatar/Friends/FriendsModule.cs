@@ -354,18 +354,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     continue;
                 }
 
-                PresenceInfo presence = null;
-                PresenceInfo[] presences = PresenceService.GetAgents(new string[] { fid });
-                if (presences != null && presences.Length > 0)
-                    presence = presences[0];
                 im.offline = 0;
-
                 im.fromAgentID = fromAgentID.Guid;
                 im.fromAgentName = firstname + " " + lastname;
                 im.imSessionID = im.fromAgentID;
                 im.message = FriendshipMessage(fid);
 
-                // Finally
                 LocalFriendshipOffered(agentID, im);
             }
 
