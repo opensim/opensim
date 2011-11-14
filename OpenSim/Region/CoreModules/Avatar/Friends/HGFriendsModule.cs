@@ -141,7 +141,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             List<string> fList = new List<string>();
             foreach (string s in friendList)
-                fList.Add(s.Substring(0, 36));
+            {
+                if (s.Length < 36)
+                    m_log.WarnFormat(
+                        "[HGFRIENDS MODULE]: Ignoring friend {0} ({1} chars) for {2} since identifier too short",
+                        s, s.Length, userID);
+                else
+                    fList.Add(s.Substring(0, 36));
+            }
 
             PresenceInfo[] presence = PresenceService.GetAgents(fList.ToArray());
             foreach (PresenceInfo pi in presence)

@@ -11088,6 +11088,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     Utils.BytesToString(avatarInterestUpdate.PropertiesData.LanguagesText));
             return true;
         }
+
         private bool HandleGrantUserRights(IClientAPI sender, Packet Pack)
         {
             GrantUserRightsPacket GrantUserRights =
@@ -11108,6 +11109,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     GrantUserRights.Rights[0].RelatedRights);
             return true;
         }
+
         private bool HandlePlacesQuery(IClientAPI sender, Packet Pack)
         {
             PlacesQueryPacket placesQueryPacket =
