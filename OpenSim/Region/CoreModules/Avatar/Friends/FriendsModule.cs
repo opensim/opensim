@@ -357,7 +357,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 im.offline = 0;
                 im.fromAgentID = fromAgentID.Guid;
                 im.fromAgentName = firstname + " " + lastname;
-                im.offline = (byte)((presence == null) ? 1 : 0);
                 im.imSessionID = im.fromAgentID;
                 im.message = FriendshipMessage(fid);
 
@@ -583,7 +582,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             ICallingCardModule ccm = client.Scene.RequestModuleInterface<ICallingCardModule>();
             if (ccm != null)
             {
-                ccm.CreateCallingCard(agentID, friendID, UUID.Zero);
+                ccm.CreateCallingCard(client.AgentId, friendID, UUID.Zero);
             }
 
             // Update the local cache
