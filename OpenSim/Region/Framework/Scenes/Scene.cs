@@ -2657,6 +2657,16 @@ namespace OpenSim.Region.Framework.Scenes
                     land.SendLandUpdateToClient(client);
                 }
             }
+
+            // Send all scene object to the new client
+            Util.FireAndForget(delegate
+            {
+                Entities.ForEach(delegate(EntityBase e)
+                {
+                    if (e != null && e is SceneObjectGroup)
+                        ((SceneObjectGroup)e).SendFullUpdateToClient(client);
+                });
+            });
         }
 
         /// <summary>

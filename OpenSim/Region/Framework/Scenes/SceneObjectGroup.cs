@@ -2148,30 +2148,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void ScheduleFullUpdateToAvatar(ScenePresence presence)
-        {
-//            m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1} just to avatar {2}", Name, UUID, presence.Name);
-            
-            RootPart.AddFullUpdateToAvatar(presence);
-
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-            {
-                SceneObjectPart part = parts[i];
-                if (part != RootPart)
-                    part.AddFullUpdateToAvatar(presence);
-            }
-        }
-
-        public void ScheduleTerseUpdateToAvatar(ScenePresence presence)
-        {
-//            m_log.DebugFormat("[SOG]: Scheduling terse update for {0} {1} just to avatar {2}", Name, UUID, presence.Name);
-
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].AddTerseUpdateToAvatar(presence);
-        }
-
         /// <summary>
         /// Schedule a full update for this scene object
         /// </summary>

@@ -87,8 +87,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
             SceneHelpers.AddScenePresence(m_scene, user2Id);
 
-            // This friendship is currently only one-way, which might be pathalogical in Second Life.
-            m_fm.AddFriend(sp.ControllingClient, user2Id);
+            // This fiendship is two-way but without a connector, only the first user will receive the online
+            // notification.
+            m_fm.AddFriendship(sp.ControllingClient, user2Id);
 
             Assert.That(((TestClient)sp.ControllingClient).OfflineNotificationsReceived.Count, Is.EqualTo(0));
             Assert.That(((TestClient)sp.ControllingClient).OnlineNotificationsReceived.Count, Is.EqualTo(1));

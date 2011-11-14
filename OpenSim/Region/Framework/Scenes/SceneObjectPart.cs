@@ -1425,25 +1425,6 @@ namespace OpenSim.Region.Framework.Scenes
             // m_log.Debug("Aprev: " + prevflag.ToString() + " curr: " + Flags.ToString());
         }
 
-        /// <summary>
-        /// Tell all scene presences that they should send updates for this part to their clients
-        /// </summary>
-        public void AddFullUpdateToAllAvatars()
-        {
-            ParentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
-            {
-                AddFullUpdateToAvatar(avatar);
-            });
-        }
-
-        /// <summary>
-        /// Tell the scene presence that it should send updates for this part to its client
-        /// </summary>
-        public void AddFullUpdateToAvatar(ScenePresence presence)
-        {
-            presence.SceneViewer.QueuePartForUpdate(this);
-        }
-
         public void AddNewParticleSystem(Primitive.ParticleSystem pSystem)
         {
             m_particleSystem = pSystem.GetBytes();
@@ -1452,20 +1433,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void RemoveParticleSystem()
         {
             m_particleSystem = new byte[0];
-        }
-
-        /// Terse updates
-        public void AddTerseUpdateToAllAvatars()
-        {
-            ParentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
-            {
-                AddTerseUpdateToAvatar(avatar);
-            });
-        }
-
-        public void AddTerseUpdateToAvatar(ScenePresence presence)
-        {
-            presence.SceneViewer.QueuePartForUpdate(this);
         }
 
         public void AddTextureAnimation(Primitive.TextureAnimation pTexAnim)
@@ -2703,8 +2670,6 @@ namespace OpenSim.Region.Framework.Scenes
                 //ParentGroup.RootPart.m_groupPosition = newpos;
             }
             ScheduleTerseUpdate();
-
-            //SendTerseUpdateToAllClients();
         }
 
         public void PreloadSound(string sound)
@@ -2888,6 +2853,13 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup == null)
                 return;
 
+            // This was pulled from SceneViewer. Attachments always receive full updates.
+            // I could not verify if this is a requirement but this maintains existing behavior
+            if (ParentGroup.IsAttachment)
+            {
+                ScheduleFullUpdate();
+            }
+
             if (UpdateFlag == UpdateRequired.NONE)
             {
                 ParentGroup.HasGroupChanged = true;
@@ -2982,23 +2954,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Send a full update to all clients except the one nominated.
-        /// </summary>
-        /// <param name="agentID"></param>
-        public void SendFullUpdateToAllClientsExcept(UUID agentID)
-        {
-            if (ParentGroup == null)
-                return;
-
-            ParentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
-            {
-                // Ugly reference :(
-                if (avatar.UUID != agentID)
-                    SendFullUpdate(avatar.ControllingClient, avatar.GenerateClientFlags(UUID));
-            });
-        }
-
-        /// <summary>
         /// Sends a full update to the client
         /// </summary>
         /// <param name="remoteClient"></param>
@@ -3074,7 +3029,8 @@ namespace OpenSim.Region.Framework.Scenes
                         !OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
                         Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                     {
-                        AddTerseUpdateToAllAvatars();
+
+                        SendTerseUpdateToAllClients();
                         ClearUpdateSchedule();
 
                         // Update the "last" values
@@ -3089,7 +3045,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 case UpdateRequired.FULL:
                 {
-                    AddFullUpdateToAllAvatars();
+                    SendFullUpdateToAllClients();
                     break;
                 }
             }
@@ -3193,9 +3149,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            ParentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
+            ParentGroup.Scene.ForEachClient(delegate(IClientAPI client)
             {
-                SendTerseUpdateToClient(avatar.ControllingClient);
+                SendTerseUpdateToClient(client);
             });
         }
 
