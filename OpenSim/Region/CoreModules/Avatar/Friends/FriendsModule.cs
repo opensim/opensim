@@ -572,10 +572,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             m_log.DebugFormat("[FRIENDS]: {0} accepted friendship from {1}", client.AgentId, friendID);
 
-            AddFriend(client, friendID);
+            AddFriendship(client, friendID);
         }
 
-        public void AddFriend(IClientAPI client, UUID friendID)
+        public void AddFriendship(IClientAPI client, UUID friendID)
         {
             StoreFriendships(client.AgentId, friendID);
 

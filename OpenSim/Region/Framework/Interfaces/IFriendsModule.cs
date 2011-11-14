@@ -34,18 +34,15 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IFriendsModule
     {
         /// <summary>
-        /// Add a friend for the given user.
+        /// Add a friendship between two users.
         /// </summary>
         /// <remarks>
-        /// This is a one-way friendship.  To make a two way friendship you will need to call this again with the
-        /// client and friend reversed.
-        /// 
         /// Ultimately, it would be more useful to take in a user account here rather than having to have a user
         /// present in the scene.
         /// </remarks>
         /// <param name="client"></param>
         /// <param name="friendID"></param>
-        void AddFriend(IClientAPI client, UUID friendID);
+        void AddFriendship(IClientAPI client, UUID friendID);
 
         uint GetFriendPerms(UUID PrincipalID, UUID FriendID);
         bool SendFriendsOnlineIfNeeded(IClientAPI client);
