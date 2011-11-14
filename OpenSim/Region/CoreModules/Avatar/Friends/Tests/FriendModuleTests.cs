@@ -71,12 +71,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
 
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
 
-            Assert.That(((TestClient)sp.ControllingClient).OfflineNotificationsReceived.Count, Is.EqualTo(0));
-            Assert.That(((TestClient)sp.ControllingClient).OnlineNotificationsReceived.Count, Is.EqualTo(0));
+            Assert.That(((TestClient)sp.ControllingClient).ReceivedOfflineNotifications.Count, Is.EqualTo(0));
+            Assert.That(((TestClient)sp.ControllingClient).ReceivedOnlineNotifications.Count, Is.EqualTo(0));
         }
 
         [Test]
-        public void TestAddFriendWhileOnline()
+        public void TestAddFriendshipWhileOnline()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -91,8 +91,28 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
             // notification.
             m_fm.AddFriendship(sp.ControllingClient, user2Id);
 
-            Assert.That(((TestClient)sp.ControllingClient).OfflineNotificationsReceived.Count, Is.EqualTo(0));
-            Assert.That(((TestClient)sp.ControllingClient).OnlineNotificationsReceived.Count, Is.EqualTo(1));
+            Assert.That(((TestClient)sp.ControllingClient).ReceivedOfflineNotifications.Count, Is.EqualTo(0));
+            Assert.That(((TestClient)sp.ControllingClient).ReceivedOnlineNotifications.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void TestRemoveFriendshipWhileOnline()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID user1Id = TestHelpers.ParseTail(0x1);
+            UUID user2Id = TestHelpers.ParseTail(0x2);
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, user1Id);
+            SceneHelpers.AddScenePresence(m_scene, user2Id);
+
+            m_fm.AddFriendship(sp.ControllingClient, user2Id);
+            m_fm.RemoveFriendship(sp.ControllingClient, user2Id);
+
+            TestClient user1Client = sp.ControllingClient as TestClient;
+            Assert.That(user1Client.ReceivedFriendshipTerminations.Count, Is.EqualTo(1));
+            Assert.That(user1Client.ReceivedFriendshipTerminations[0], Is.EqualTo(user2Id));
         }
     }
 }

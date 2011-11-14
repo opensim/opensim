@@ -57,8 +57,9 @@ namespace OpenSim.Tests.Common.Mock
         private IScene m_scene;
 
         // Properties so that we can get at received data for test purposes
-        public List<UUID> OfflineNotificationsReceived { get; private set; }
-        public List<UUID> OnlineNotificationsReceived { get; private set; }
+        public List<UUID> ReceivedOfflineNotifications { get; private set; }
+        public List<UUID> ReceivedOnlineNotifications { get; private set; }
+        public List<UUID> ReceivedFriendshipTerminations { get; private set; }
 
 // disable warning: public events, part of the public API
 #pragma warning disable 67
@@ -445,8 +446,9 @@ namespace OpenSim.Tests.Common.Mock
             m_scene = scene;
             CapsSeedUrl = agentData.CapsPath;
 
-            OfflineNotificationsReceived = new List<UUID>();
-            OnlineNotificationsReceived = new List<UUID>();
+            ReceivedOfflineNotifications = new List<UUID>();
+            ReceivedOnlineNotifications = new List<UUID>();
+            ReceivedFriendshipTerminations = new List<UUID>();
         }
 
         /// <summary>
@@ -834,12 +836,12 @@ namespace OpenSim.Tests.Common.Mock
 
         public void SendAgentOffline(UUID[] agentIDs)
         {
-            OfflineNotificationsReceived.AddRange(agentIDs);
+            ReceivedOfflineNotifications.AddRange(agentIDs);
         }
 
         public void SendAgentOnline(UUID[] agentIDs)
         {
-            OnlineNotificationsReceived.AddRange(agentIDs);
+            ReceivedOnlineNotifications.AddRange(agentIDs);
         }
 
         public void SendSitResponse(UUID TargetID, Vector3 OffsetPos, Quaternion SitOrientation, bool autopilot,
@@ -1109,6 +1111,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public void SendTerminateFriend(UUID exFriendID)
         {
+            ReceivedFriendshipTerminations.Add(exFriendID);
         }
 
         public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)

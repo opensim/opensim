@@ -241,7 +241,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             client.OnInstantMessage += OnInstantMessage;
             client.OnApproveFriendRequest += OnApproveFriendRequest;
             client.OnDenyFriendRequest += OnDenyFriendRequest;
-            client.OnTerminateFriendship += OnTerminateFriendship;
+            client.OnTerminateFriendship += (thisClient, agentID, exfriendID) => RemoveFriendship(thisClient, exfriendID);
             client.OnGrantUserRights += OnGrantUserRights;
 
             Util.FireAndForget(delegate { FetchFriendslist(client); });
@@ -635,10 +635,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 }
             }
         }
-
-        private void OnTerminateFriendship(IClientAPI client, UUID agentID, UUID exfriendID)
+        
+        public void RemoveFriendship(IClientAPI client, UUID exfriendID)
         {
-            if (!DeleteFriendship(agentID, exfriendID))
+            if (!DeleteFriendship(client.AgentId, exfriendID))
                 client.SendAlertMessage("Unable to terminate friendship on this sim.");
 
             // Update local cache
@@ -661,9 +661,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 if (friendSession != null)
                 {
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                    m_FriendsSimConnector.FriendshipTerminated(region, agentID, exfriendID);
+                    m_FriendsSimConnector.FriendshipTerminated(region, client.AgentId, exfriendID);
                 }
-            }
+            }            
         }
 
         private void OnGrantUserRights(IClientAPI remoteClient, UUID requester, UUID target, int rights)
