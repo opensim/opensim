@@ -2862,6 +2862,8 @@ namespace OpenSim.Region.Framework.Scenes
                             Velocity = Vector3.Zero;
                             AbsolutePosition = pos;
 
+//                            m_log.DebugFormat("[SCENE PRESENCE]: Prevented flyoff for {0} at {1}", Name, AbsolutePosition);
+
                             AddToPhysicalScene(isFlying);
                         }
                     }

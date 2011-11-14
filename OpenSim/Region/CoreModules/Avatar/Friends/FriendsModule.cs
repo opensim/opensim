@@ -165,7 +165,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
                 // Instantiate the request handler
                 IHttpServer server = MainServer.GetHttpServer((uint)mPort);
-                server.AddStreamHandler(new FriendsRequestHandler(this));
+
+                if (server != null)
+                    server.AddStreamHandler(new FriendsRequestHandler(this));
             }
 
             if (m_FriendsService == null)
@@ -352,20 +354,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     continue;
                 }
 
-                PresenceInfo presence = null;
-                PresenceInfo[] presences = PresenceService.GetAgents(new string[] { fid });
-                if (presences != null && presences.Length > 0)
-                    presence = presences[0];
-                if (presence != null)
-                    im.offline = 0;
-
+                im.offline = 0;
                 im.fromAgentID = fromAgentID.Guid;
                 im.fromAgentName = firstname + " " + lastname;
                 im.offline = (byte)((presence == null) ? 1 : 0);
                 im.imSessionID = im.fromAgentID;
                 im.message = FriendshipMessage(fid);
 
-                // Finally
                 LocalFriendshipOffered(agentID, im);
             }
 
@@ -576,9 +571,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
         {
-            m_log.DebugFormat("[FRIENDS]: {0} accepted friendship from {1}", agentID, friendID);
+            m_log.DebugFormat("[FRIENDS]: {0} accepted friendship from {1}", client.AgentId, friendID);
 
-            StoreFriendships(agentID, friendID);
+            AddFriend(client, friendID);
+        }
+
+        public void AddFriend(IClientAPI client, UUID friendID)
+        {
+            StoreFriendships(client.AgentId, friendID);
 
             ICallingCardModule ccm = client.Scene.RequestModuleInterface<ICallingCardModule>();
             if (ccm != null)
@@ -594,7 +594,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             //
 
             // Try Local
-            if (LocalFriendshipApproved(agentID, client.Name, friendID))
+            if (LocalFriendshipApproved(client.AgentId, client.Name, friendID))
             {
                 client.SendAgentOnline(new UUID[] { friendID });
                 return;
@@ -608,7 +608,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 if (friendSession != null)
                 {
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                    m_FriendsSimConnector.FriendshipApproved(region, agentID, client.Name, friendID);
+                    m_FriendsSimConnector.FriendshipApproved(region, client.AgentId, client.Name, friendID);
                     client.SendAgentOnline(new UUID[] { friendID });
                 }
             }
@@ -882,7 +882,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         }
 
         /// <summary>
-        /// Update loca cache only
+        /// Update local cache only
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="friendID"></param>
