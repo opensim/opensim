@@ -165,7 +165,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
                 // Instantiate the request handler
                 IHttpServer server = MainServer.GetHttpServer((uint)mPort);
-                server.AddStreamHandler(new FriendsRequestHandler(this));
+
+                if (server != null)
+                    server.AddStreamHandler(new FriendsRequestHandler(this));
             }
 
             if (m_FriendsService == null)
