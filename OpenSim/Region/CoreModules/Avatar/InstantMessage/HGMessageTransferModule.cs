@@ -225,12 +225,13 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             foreach (Scene scene in m_Scenes)
             {
                 ScenePresence sp = scene.GetScenePresence(toAgentID);
-                if(!sp.IsChildAgent)
+                if(sp != null && !sp.IsChildAgent)
                 {
                     scene.EventManager.TriggerIncomingInstantMessage(gim);
                     successful = true;
                 }
             }
+
             if (!successful)
             {
                 // If the message can't be delivered to an agent, it
