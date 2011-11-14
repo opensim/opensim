@@ -135,7 +135,6 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_lastPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
-        //private int m_lastTerseSent;
 
         private Vector3? m_forceToApply;
         private int m_userFlags;
@@ -644,14 +643,6 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_health = value; }
         }
 
-        private ISceneViewer m_sceneViewer;
-
-        public ISceneViewer SceneViewer
-        {
-            get { return m_sceneViewer; }
-            private set { m_sceneViewer = value; }
-        }
-
         public void AdjustKnownSeeds()
         {
             Dictionary<ulong, string> seeds;
@@ -755,7 +746,6 @@ namespace OpenSim.Region.Framework.Scenes
             AttachmentsSyncLock = new Object();
 
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
-            SceneViewer = new SceneViewer(this);
             Animator = new ScenePresenceAnimator(this);
             PresenceType = type;
             DrawDistance = world.DefaultDrawDistance;
@@ -864,16 +854,6 @@ namespace OpenSim.Region.Framework.Scenes
         public uint GenerateClientFlags(UUID ObjectID)
         {
             return m_scene.Permissions.GenerateClientFlags(m_uuid, ObjectID);
-        }
-
-        /// <summary>
-        /// Send updates to the client about prims which have been placed on the update queue.  We don't
-        /// necessarily send updates for all the parts on the queue, e.g. if an updates with a more recent
-        /// timestamp has already been sent.
-        /// </summary>
-        public void SendPrimUpdates()
-        {
-            SceneViewer.SendPrimUpdates();
         }
 
         #region Status Methods
@@ -2412,10 +2392,6 @@ namespace OpenSim.Region.Framework.Scenes
             const float ROTATION_TOLERANCE = 0.01f;
             const float VELOCITY_TOLERANCE = 0.001f;
             const float POSITION_TOLERANCE = 0.05f;
-            //const int TIME_MS_TOLERANCE = 3000;
-
-            if (!sendingPrims)
-                Util.FireAndForget(delegate { sendingPrims = true; SendPrimUpdates(); sendingPrims = false; });
 
             if (IsChildAgent == false)
             {
@@ -2427,7 +2403,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
                     !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
                     !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
-                    //Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                 {
                     SendTerseUpdateToAllClients();
 
@@ -2435,7 +2410,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastPosition = m_pos;
                     m_lastRotation = Rotation;
                     m_lastVelocity = Velocity;
-                    //m_lastTerseSent = Environment.TickCount;
                 }
 
                 // followed suggestion from mic bowman. reversed the two lines below.
@@ -3419,8 +3393,6 @@ namespace OpenSim.Region.Framework.Scenes
             // I don't get it but mono crashes when you try to dispose of this timer,
             // unsetting the elapsed callback should be enough to allow for cleanup however.
             // m_reprioritizationTimer.Dispose(); 
-
-            SceneViewer.Close();
 
             RemoveFromPhysicalScene();
             Animator.Close();

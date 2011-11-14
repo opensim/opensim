@@ -1049,24 +1049,6 @@ namespace OpenSim
                     MainConsole.Instance.Output(handlers.ToString());
                     break;
 
-                case "pending-objects":
-                    System.Text.StringBuilder pending = new System.Text.StringBuilder("Pending objects:\n");
-                    m_sceneManager.ForEachScene(
-                        delegate(Scene scene)
-                        {
-                            scene.ForEachScenePresence(
-                                delegate(ScenePresence sp)
-                                {
-                                    pending.AppendFormat("{0}: {1} {2} pending\n",
-                                        scene.RegionInfo.RegionName, sp.Name, sp.SceneViewer.GetPendingObjectsCount());
-                                }
-                            );
-                        }
-                    );
-
-                    MainConsole.Instance.Output(pending.ToString());
-                    break;
-
                 case "modules":
                     MainConsole.Instance.Output("The currently loaded shared modules are:");
                     foreach (IRegionModule module in m_moduleLoader.GetLoadedSharedModules)
