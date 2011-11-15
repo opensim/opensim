@@ -1145,7 +1145,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             m_lastUpdate = Util.EnvironmentTickCount();
 
-            HeartbeatThread = Watchdog.StartThread(Heartbeat, "Heartbeat for region " + RegionInfo.RegionName, ThreadPriority.Normal, false);
+            HeartbeatThread
+                = Watchdog.StartThread(
+                    Heartbeat, string.Format("Heartbeat ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false);
         }
 
         /// <summary>
