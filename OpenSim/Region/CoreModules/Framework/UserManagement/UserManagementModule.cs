@@ -31,7 +31,6 @@ using System.Reflection;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -44,13 +43,13 @@ using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.Framework.UserManagement
 {
-    struct UserData
+    class UserData
     {
-        public UUID Id;
-        public string FirstName;
-        public string LastName;
-        public string HomeURL;
-        public Dictionary<string, object> ServerURLs;
+        public UUID Id { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string HomeURL { get; set; }
+        public Dictionary<string, object> ServerURLs { get; set; }
     }
 
     public class UserManagementModule : ISharedRegionModule, IUserManagement
@@ -253,6 +252,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public string GetUserServerURL(UUID userID, string serverType)
         {
+            UserData userdata;
             lock (m_UserCache)
                 m_UserCache.TryGetValue(userID, out userdata);
 
@@ -287,6 +287,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             if (account != null)
                 return userID.ToString();
 
+            UserData ud;
             lock (m_UserCache)
                 m_UserCache.TryGetValue(userID, out ud);
 

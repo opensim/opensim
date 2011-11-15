@@ -52,10 +52,13 @@ namespace OpenSim.Framework
             /// <summary>
             /// Approximate tick when this thread was started.
             /// </summary>
-            public int StartTick { get; private set; }
+            /// <remarks>
+            /// Not terribly good since this quickly wraps around.
+            /// </remarks>
+            public int FirstTick { get; private set; }
 
             /// <summary>
-            /// Last time this heartbeat update was invoked
+            /// First time this heartbeat update was invoked
             /// </summary>
             public int LastTick { get; set; }
 
@@ -73,8 +76,8 @@ namespace OpenSim.Framework
             {
                 Thread = thread;
                 Timeout = timeout;
-                StartTick = Environment.TickCount & Int32.MaxValue;
-                LastTick = StartTick;
+                FirstTick = Environment.TickCount & Int32.MaxValue;
+                LastTick = FirstTick;
             }
         }
 
