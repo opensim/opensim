@@ -247,13 +247,17 @@ namespace OpenSim.Framework.Servers
             Watchdog.ThreadWatchdogInfo[] threads = Watchdog.GetThreads();
 
             sb.Append(threads.Length + " threads are being tracked:" + Environment.NewLine);
+
+            int timeNow = Util.EnvironmentTickCount();
+
             foreach (Watchdog.ThreadWatchdogInfo twi in threads)
             {
                 Thread t = twi.Thread;
                 
-                sb.Append(
-                    "ID: " + t.ManagedThreadId + ", Name: " + t.Name + ", TimeRunning: " 
-                    + "Pri: " + t.Priority + ", State: " + t.ThreadState);
+                sb.AppendFormat(
+                    "ID: {0}, Name: {1}, Last Update: {2} ms ago, Pri: {3}, State: {4}",
+                    t.ManagedThreadId, t.Name, timeNow - twi.LastTick, t.Priority, t.ThreadState);
+
                 sb.Append(Environment.NewLine);
             }
 
