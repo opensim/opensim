@@ -92,7 +92,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         /// Maintain a record of viewers that need to be sent notifications for friends that are online.  This only
         /// needs to be done on login.  Subsequent online/offline friend changes are sent by a different mechanism.
         /// </summary>
-        protected HashSet<UUID> m_NeedsListOfFriends = new HashSet<UUID>();
+        protected HashSet<UUID> m_NeedsListOfOnlineFriends = new HashSet<UUID>();
 
         protected IPresenceService PresenceService
         {
@@ -331,8 +331,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             StatusChange(agentID, true);
             
             // Register that we need to send the list of online friends to this user
-            lock (m_NeedsListOfFriends)
-                m_NeedsListOfFriends.Add(agentID);
+            lock (m_NeedsListOfOnlineFriends)
+                m_NeedsListOfOnlineFriends.Add(agentID);
         }
 
         public virtual bool SendFriendsOnlineIfNeeded(IClientAPI client)
@@ -340,9 +340,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             UUID agentID = client.AgentId;
 
             // Check if the online friends list is needed
-            lock (m_NeedsListOfFriends)
+            lock (m_NeedsListOfOnlineFriends)
             {
-                if (!m_NeedsListOfFriends.Remove(agentID))
+                if (!m_NeedsListOfOnlineFriends.Remove(agentID))
                     return false;
             }
 
