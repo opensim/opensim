@@ -221,7 +221,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// A list of actors that should receive collision events.
         /// </summary>
-        private readonly List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
+        private readonly Dictionary<uint, PhysicsActor> _collisionEventPrim = new Dictionary<uint, PhysicsActor>();
         
         private readonly HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
@@ -1636,10 +1636,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //            m_log.DebugFormat("[PHYSICS]: Adding {0} to collision event reporting", obj.SOPName);
             
             lock (_collisionEventPrim)
-            {
-                if (!_collisionEventPrim.Contains(obj))
-                    _collisionEventPrim.Add(obj);
-            }
+                _collisionEventPrim[obj.LocalID] = obj;
         }
 
         /// <summary>
@@ -1651,7 +1648,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //            m_log.DebugFormat("[PHYSICS]: Removing {0} from collision event reporting", obj.SOPName);
 
             lock (_collisionEventPrim)
-                _collisionEventPrim.Remove(obj);
+                _collisionEventPrim.Remove(obj.LocalID);
         }
 
         #region Add/Remove Entities
@@ -2792,7 +2789,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
 
                         lock (_collisionEventPrim)
                         {
-                            foreach (PhysicsActor obj in _collisionEventPrim)
+                            foreach (PhysicsActor obj in _collisionEventPrim.Values)
                             {
 //                                m_log.DebugFormat("[PHYSICS]: Assessing {0} for collision events", obj.SOPName);
 
