@@ -79,9 +79,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         protected IFriendsService m_FriendsService = null;
         protected FriendsSimConnector m_FriendsSimConnector;
 
-        protected Dictionary<UUID, UserFriendData> m_Friends =
-                new Dictionary<UUID, UserFriendData>();
+        /// <summary>
+        /// Cache friends lists for users.
+        /// </summary>
+        /// <remarks>
+        /// This is a complex and error-prone thing to do.  At the moment, we assume that the efficiency gained in
+        /// permissions checks outweighs the disadvantages of that complexity.
+        /// </remarks>
+        protected Dictionary<UUID, UserFriendData> m_Friends = new Dictionary<UUID, UserFriendData>();
 
+        /// <summary>
+        /// Maintain a record of viewers that need to be sent notifications for friends that are online.  This only
+        /// needs to be done on login.  Subsequent online/offline friend changes are sent by a different mechanism.
+        /// </summary>
         protected HashSet<UUID> m_NeedsListOfFriends = new HashSet<UUID>();
 
         protected IPresenceService PresenceService
@@ -189,6 +199,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             if (!m_Enabled)
                 return;
+
             m_log.DebugFormat("[FRIENDS MODULE]: AddRegion on {0}", Name);
 
             m_Scenes.Add(scene);
@@ -244,12 +255,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             client.OnTerminateFriendship += (thisClient, agentID, exfriendID) => RemoveFriendship(thisClient, exfriendID);
             client.OnGrantUserRights += OnGrantUserRights;
 
-            Util.FireAndForget(delegate { FetchFriendslist(client); });
+            // Do not do this asynchronously.  If we do, then subsequent code can outrace FetchFriendsList() and
+            // return misleading results from the still empty friends cache.
+            // If we absolutely need to do this asynchronously, then a signalling mechanism is needed so that calls
+            // to GetFriends() will wait until FetchFriendslist() completes.  Locks are insufficient.
+            FetchFriendslist(client);
         }
 
-        /// Fetch the friends list or increment the refcount for the existing 
-        /// friends list
+
+        /// <summary>
+        /// Fetch the friends list or increment the refcount for the existing
+        /// friends list.
+        /// </summary>
+        /// <param name="client">
+        /// </param>
+        /// <returns>
         /// Returns true if the list was fetched, false if it wasn't
+        /// </returns>
         protected virtual bool FetchFriendslist(IClientAPI client)
         {
             UUID agentID = client.AgentId;

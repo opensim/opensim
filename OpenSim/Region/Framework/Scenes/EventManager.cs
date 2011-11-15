@@ -73,8 +73,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public event OnNewClientDelegate OnNewClient;
 
-        public delegate void OnClientLoginDelegate(IClientAPI client);
-        public event OnClientLoginDelegate OnClientLogin;
+        /// <summary>
+        /// Fired if the client entering this sim is doing so as a new login
+        /// </summary>
+        public event Action<IClientAPI> OnClientLogin;
 
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
 
@@ -651,10 +653,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TriggerOnClientLogin(IClientAPI client)
         {
-            OnClientLoginDelegate handlerClientLogin = OnClientLogin;
+            Action<IClientAPI> handlerClientLogin = OnClientLogin;
             if (handlerClientLogin != null)
             {
-                foreach (OnClientLoginDelegate d in handlerClientLogin.GetInvocationList())
+                foreach (Action<IClientAPI> d in handlerClientLogin.GetInvocationList())
                 {
                     try
                     {
