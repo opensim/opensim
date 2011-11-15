@@ -328,7 +328,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             List<UUID> online = GetOnlineFriends(agentID);
             if (online.Count > 0)
             {
-                m_log.DebugFormat("[FRIENDS MODULE]: User {0} in region {1} has {2} friends online", client.AgentId, client.Scene.RegionInfo.RegionName, online.Count);
+                m_log.DebugFormat(
+                    "[FRIENDS MODULE]: User {0} in region {1} has {2} friends online",
+                    client.Name, client.Scene.RegionInfo.RegionName, online.Count);
+
                 client.SendAgentOnline(online.ToArray());
             }
 
@@ -806,16 +809,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 if (onlineBitChanged)
                 {
                     if ((rights & (int)FriendRights.CanSeeOnline) == 1)
-                        friendClient.SendAgentOnline(new UUID[] { new UUID(userID) });
+                        friendClient.SendAgentOnline(new UUID[] { userID });
                     else
-                        friendClient.SendAgentOffline(new UUID[] { new UUID(userID) });
+                        friendClient.SendAgentOffline(new UUID[] { userID });
                 }
                 else
                 {
                     bool canEditObjectsChanged = ((rights ^ userFlags) & (int)FriendRights.CanModifyObjects) != 0;
                     if (canEditObjectsChanged)
                         friendClient.SendChangeUserRights(userID, friendID, rights);
-
                 }
 
                 // Update local cache
