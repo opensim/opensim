@@ -219,9 +219,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly List<d.ContactGeom> _perloopContact = new List<d.ContactGeom>();
 
         /// <summary>
-        /// A list of actors that should receive collision events.
+        /// A dictionary of actors that should receive collision events.
         /// </summary>
         private readonly Dictionary<uint, PhysicsActor> _collisionEventPrim = new Dictionary<uint, PhysicsActor>();
+
+        /// <summary>
+        /// A dictionary of collision event changes that are waiting to be processed.
+        /// </summary>
+        private readonly Dictionary<uint, PhysicsActor> _collisionEventPrimChanges = new Dictionary<uint, PhysicsActor>();
         
         private readonly HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
@@ -1635,8 +1640,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
 //            m_log.DebugFormat("[PHYSICS]: Adding {0} to collision event reporting", obj.SOPName);
             
-            lock (_collisionEventPrim)
-                _collisionEventPrim[obj.LocalID] = obj;
+            lock (_collisionEventPrimChanges)
+                _collisionEventPrimChanges[obj.LocalID] = obj;
         }
 
         /// <summary>
@@ -1647,8 +1652,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
 //            m_log.DebugFormat("[PHYSICS]: Removing {0} from collision event reporting", obj.SOPName);
 
-            lock (_collisionEventPrim)
-                _collisionEventPrim.Remove(obj.LocalID);
+            lock (_collisionEventPrimChanges)
+                _collisionEventPrimChanges[obj.LocalID] = null;
         }
 
         #region Add/Remove Entities
@@ -2660,6 +2665,22 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
 //                m_physicsiterations = 10;
 //            }
 
+            // We change _collisionEventPrimChanges to avoid locking _collisionEventPrim itself and causing potential
+            // deadlock if the collision event tries to lock something else later on which is already locked by a
+            // caller that is adding or removing the collision event.
+            lock (_collisionEventPrimChanges)
+            {
+                foreach (KeyValuePair<uint, PhysicsActor> kvp in _collisionEventPrimChanges)
+                {
+                    if (kvp.Value == null)
+                        _collisionEventPrim.Remove(kvp.Key);
+                    else
+                        _collisionEventPrim[kvp.Key] = kvp.Value;
+                }
+
+                _collisionEventPrimChanges.Clear();
+            }
+
             if (SupportsNINJAJoints)
             {
                 DeleteRequestedJoints(); // this must be outside of the lock (OdeLock) to avoid deadlocks
@@ -2787,25 +2808,22 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
 
                         collision_optimized();
 
-                        lock (_collisionEventPrim)
+                        foreach (PhysicsActor obj in _collisionEventPrim.Values)
                         {
-                            foreach (PhysicsActor obj in _collisionEventPrim.Values)
-                            {
 //                                m_log.DebugFormat("[PHYSICS]: Assessing {0} for collision events", obj.SOPName);
 
-                                switch ((ActorTypes)obj.PhysicsActorType)
-                                {
-                                    case ActorTypes.Agent:
-                                        OdeCharacter cobj = (OdeCharacter)obj;
-                                        cobj.AddCollisionFrameTime(100);
-                                        cobj.SendCollisions();
-                                        break;
+                            switch ((ActorTypes)obj.PhysicsActorType)
+                            {
+                                case ActorTypes.Agent:
+                                    OdeCharacter cobj = (OdeCharacter)obj;
+                                    cobj.AddCollisionFrameTime(100);
+                                    cobj.SendCollisions();
+                                    break;
 
-                                    case ActorTypes.Prim:
-                                        OdePrim pobj = (OdePrim)obj;
-                                        pobj.SendCollisions();
-                                        break;
-                                }
+                                case ActorTypes.Prim:
+                                    OdePrim pobj = (OdePrim)obj;
+                                    pobj.SendCollisions();
+                                    break;
                             }
                         }
 
