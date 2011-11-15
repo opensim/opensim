@@ -267,9 +267,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
                 if (userdata.HomeURL != string.Empty)
                 {
-//                    m_log.DebugFormat(
-//                        "[USER MANAGEMENT MODULE]: Did not find url type {0} so requesting urls from {1} for {2}",
-//                        serverType, userdata.HomeURL, userID);
+                    m_log.DebugFormat(
+                        "[USER MANAGEMENT MODULE]: Did not find url type {0} so requesting urls from '{1}' for {2}",
+                        serverType, userdata.HomeURL, userID);
 
                     UserAgentServiceConnector uConn = new UserAgentServiceConnector(userdata.HomeURL);
                     userdata.ServerURLs = uConn.GetServerURLs(userID);
