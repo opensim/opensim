@@ -335,22 +335,21 @@ namespace OpenSim.Services.HypergridService
             }
 
             if (userURL == m_ExternalName)
+            {
                 return m_UserAgentService.VerifyAgent(aCircuit.SessionID, aCircuit.ServiceSessionID);
+            }
             else
             {
-//                Object[] args = new Object[] { userURL };
                 IUserAgentService userAgentService = new UserAgentServiceConnector(userURL); 
-                if (userAgentService != null)
+
+                try
                 {
-                    try
-                    {
-                        return userAgentService.VerifyAgent(aCircuit.SessionID, aCircuit.ServiceSessionID);
-                    }
-                    catch
-                    {
-                        m_log.DebugFormat("[GATEKEEPER SERVICE]: Unable to contact authentication service at {0}", userURL);
-                        return false;
-                    }
+                    return userAgentService.VerifyAgent(aCircuit.SessionID, aCircuit.ServiceSessionID);
+                }
+                catch
+                {
+                    m_log.DebugFormat("[GATEKEEPER SERVICE]: Unable to contact authentication service at {0}", userURL);
+                    return false;
                 }
             }
 
