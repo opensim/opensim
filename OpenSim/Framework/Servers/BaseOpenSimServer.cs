@@ -243,6 +243,9 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         protected string GetThreadsReport()
         {
+            // This should be a constant field.
+            string reportFormat = "{0,6}   {1,35}   {2,16}   {3,10}   {4,30}";
+
             StringBuilder sb = new StringBuilder();
             Watchdog.ThreadWatchdogInfo[] threads = Watchdog.GetThreads();
 
@@ -250,12 +253,16 @@ namespace OpenSim.Framework.Servers
 
             int timeNow = Util.EnvironmentTickCount();
 
+            sb.AppendFormat(reportFormat, "ID", "NAME", "LAST UPDATE (MS)", "PRIORITY", "STATE");
+            sb.Append(Environment.NewLine);
+
             foreach (Watchdog.ThreadWatchdogInfo twi in threads)
             {
                 Thread t = twi.Thread;
                 
                 sb.AppendFormat(
-                    "ID: {0}, Name: {1}, Last Update: {2} ms ago, Pri: {3}, State: {4}",
+                    reportFormat,
+                    //t.ManagedThreadId, t.Name, string.Format("{0} ms", timeNow - twi.LastTick), t.Priority, t.ThreadState);
                     t.ManagedThreadId, t.Name, timeNow - twi.LastTick, t.Priority, t.ThreadState);
 
                 sb.Append(Environment.NewLine);
