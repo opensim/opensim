@@ -865,6 +865,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// avatar is actual in the sim.  They can perform all actions.
         /// This change is made whenever an avatar enters a region, whether by crossing over from a neighbouring sim,
         /// teleporting in or on initial login.
+        ///
+        /// This method is on the critical path for transferring an avatar from one region to another.  Delay here
+        /// delays that crossing.
         /// </summary>
         public void MakeRootAgent(Vector3 pos, bool isFlying)
         {

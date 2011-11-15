@@ -212,10 +212,15 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void OnMakeChildAgentDelegate(ScenePresence presence);
         public event OnMakeChildAgentDelegate OnMakeChildAgent;
 
-        public delegate void OnMakeRootAgentDelegate(ScenePresence presence);
         public delegate void OnSaveNewWindlightProfileDelegate();
         public delegate void OnSendNewWindlightProfileTargetedDelegate(RegionLightShareData wl, UUID user);
-        public event OnMakeRootAgentDelegate OnMakeRootAgent;
+
+        /// <summary>
+        /// This event is on the critical path for transferring an avatar from one region to another.  Try and do
+        /// as little work on this event as possible, or do work asynchronously.
+        /// </summary>
+        public event Action<ScenePresence> OnMakeRootAgent;
+        
         public event OnSendNewWindlightProfileTargetedDelegate OnSendNewWindlightProfileTargeted;
         public event OnSaveNewWindlightProfileDelegate OnSaveNewWindlightProfile;
 
@@ -1322,10 +1327,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TriggerOnMakeRootAgent(ScenePresence presence)
         {
-            OnMakeRootAgentDelegate handlerMakeRootAgent = OnMakeRootAgent;
+            Action<ScenePresence> handlerMakeRootAgent = OnMakeRootAgent;
             if (handlerMakeRootAgent != null)
             {
-                foreach (OnMakeRootAgentDelegate d in handlerMakeRootAgent.GetInvocationList())
+                foreach (Action<ScenePresence> d in handlerMakeRootAgent.GetInvocationList())
                 {
                     try
                     {

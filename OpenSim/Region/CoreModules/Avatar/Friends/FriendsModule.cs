@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -856,7 +857,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             IClientAPI friendClient = LocateClientObject(friendID);
             if (friendClient != null)
             {
-                // the  friend in this sim as root agent
+                // the friend in this sim as root agent
                 if (online)
                     friendClient.SendAgentOnline(new UUID[] { userID });
                 else
@@ -913,6 +914,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private void RecacheFriends(IClientAPI client)
         {
+            // FIXME: Ideally, we want to avoid doing this here since it sits the EventManager.OnMakeRootAgent event
+            // is on the critical path for transferring an avatar from one region to another.
             UUID agentID = client.AgentId;
             lock (m_Friends)
             {
