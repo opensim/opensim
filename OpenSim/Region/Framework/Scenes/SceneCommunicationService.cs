@@ -55,9 +55,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected RegionInfo m_regionInfo;
         protected Scene m_scene;
-
-        protected RegionCommsListener regionCommsHost;
-
         protected List<UUID> m_agentsInTransit;
 
         /// <summary>
