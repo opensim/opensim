@@ -255,24 +255,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             client.OnTerminateFriendship += (thisClient, agentID, exfriendID) => RemoveFriendship(thisClient, exfriendID);
             client.OnGrantUserRights += OnGrantUserRights;
 
-            // Do not do this asynchronously.  If we do, then subsequent code can outrace FetchFriendsList() and
+            // Do not do this asynchronously.  If we do, then subsequent code can outrace CacheFriends() and
             // return misleading results from the still empty friends cache.
             // If we absolutely need to do this asynchronously, then a signalling mechanism is needed so that calls
-            // to GetFriends() will wait until FetchFriendslist() completes.  Locks are insufficient.
-            FetchFriendslist(client);
+            // to GetFriends() will wait until CacheFriends() completes.  Locks are insufficient.
+            CacheFriends(client);
         }
 
 
         /// <summary>
-        /// Fetch the friends list or increment the refcount for the existing
-        /// friends list.
+        /// Cache the friends list or increment the refcount for the existing friends list.
         /// </summary>
         /// <param name="client">
         /// </param>
         /// <returns>
         /// Returns true if the list was fetched, false if it wasn't
         /// </returns>
-        protected virtual bool FetchFriendslist(IClientAPI client)
+        protected virtual bool CacheFriends(IClientAPI client)
         {
             UUID agentID = client.AgentId;
             lock (m_Friends)
@@ -319,7 +318,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private void OnMakeRootAgent(ScenePresence sp)
         {
-            RefetchFriends(sp.ControllingClient);
+            RecacheFriends(sp.ControllingClient);
         }
 
         private void OnClientLogin(IClientAPI client)
@@ -605,7 +604,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             StoreFriendships(client.AgentId, friendID);
 
             // Update the local cache
-            RefetchFriends(client);
+            RecacheFriends(client);
 
             //
             // Notify the friend
@@ -667,7 +666,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 client.SendAlertMessage("Unable to terminate friendship on this sim.");
 
             // Update local cache
-            RefetchFriends(client);
+            RecacheFriends(client);
 
             client.SendTerminateFriend(exfriendID);
 
@@ -781,7 +780,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 friendClient.SendInstantMessage(im);
 
                 // Update the local cache
-                RefetchFriends(friendClient);
+                RecacheFriends(friendClient);
 
                 // we're done
                 return true;
@@ -814,7 +813,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 // the friend in this sim as root agent
                 friendClient.SendTerminateFriend(exfriendID);
                 // update local cache
-                RefetchFriends(friendClient);
+                RecacheFriends(friendClient);
                 // we're done
                 return true;
             }
@@ -913,7 +912,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return FriendsService.GetFriends(client.AgentId);
         }
 
-        private void RefetchFriends(IClientAPI client)
+        private void RecacheFriends(IClientAPI client)
         {
             UUID agentID = client.AgentId;
             lock (m_Friends)

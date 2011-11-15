@@ -30,7 +30,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
-
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -84,9 +83,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         #endregion
 
-        protected override bool FetchFriendslist(IClientAPI client)
+        protected override bool CacheFriends(IClientAPI client)
         {
-            if (base.FetchFriendslist(client))
+            if (base.CacheFriends(client))
             {
                 UUID agentID = client.AgentId;
                 // we do this only for the root agent
