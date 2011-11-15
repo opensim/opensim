@@ -1121,8 +1121,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_sceneGraph.Close();
 
-            // De-register with region communications (events cleanup)
-            UnRegisterRegionWithComms();
+            if (!GridService.DeregisterRegion(m_regInfo.RegionID))
+                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", m_regInfo.RegionName);
 
             // call the base class Close method.
             base.Close();
@@ -1623,8 +1623,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <exception cref="System.Exception">Thrown if registration of the region itself fails.</exception>
         public void RegisterRegionWithGrid()
         {
-            RegisterCommsEvents();
-
             m_sceneGridService.SetScene(this);
 
             GridRegion region = new GridRegion(RegionInfo);
@@ -3194,38 +3192,6 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region RegionComms
-
-        /// <summary>
-        /// Register the methods that should be invoked when this scene receives various incoming events
-        /// </summary>
-        public void RegisterCommsEvents()
-        {
-            m_sceneGridService.OnCloseAgentConnection += IncomingCloseAgent;
-            //m_eventManager.OnRegionUp += OtherRegionUp;
-            //m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
-            //m_sceneGridService.OnRemoveKnownRegionFromAvatar += HandleRemoveKnownRegionsFromAvatar;
-            m_sceneGridService.OnLogOffUser += HandleLogOffUserFromGrid;
-            m_sceneGridService.OnGetLandData += GetLandData;
-        }
-
-        /// <summary>
-        /// Deregister this scene from receiving incoming region events
-        /// </summary>
-        public void UnRegisterRegionWithComms()
-        {
-            m_sceneGridService.OnLogOffUser -= HandleLogOffUserFromGrid;
-            //m_sceneGridService.OnRemoveKnownRegionFromAvatar -= HandleRemoveKnownRegionsFromAvatar;
-            //m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
-            //m_eventManager.OnRegionUp -= OtherRegionUp;
-            m_sceneGridService.OnCloseAgentConnection -= IncomingCloseAgent;
-            m_sceneGridService.OnGetLandData -= GetLandData;
-
-            // this does nothing; should be removed
-            m_sceneGridService.Close();
-
-            if (!GridService.DeregisterRegion(m_regInfo.RegionID))
-                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", m_regInfo.RegionName);
-        }
 
         /// <summary>
         /// Do the work necessary to initiate a new user connection for a particular scene.
