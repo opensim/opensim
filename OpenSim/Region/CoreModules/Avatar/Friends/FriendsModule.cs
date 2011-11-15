@@ -262,7 +262,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             CacheFriends(client);
         }
 
-
         /// <summary>
         /// Cache the friends list or increment the refcount for the existing friends list.
         /// </summary>

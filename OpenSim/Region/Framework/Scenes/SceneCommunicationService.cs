@@ -61,11 +61,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected List<UUID> m_agentsInTransit;
 
         /// <summary>
-        /// An agent is crossing into this region
-        /// </summary>
-        public event AgentCrossing OnAvatarCrossingIntoRegion;
-
-        /// <summary>
         /// A user will arrive shortly, set up appropriate credentials so it can connect
         /// </summary>
 //        public event ExpectUserDelegate OnExpectUser;

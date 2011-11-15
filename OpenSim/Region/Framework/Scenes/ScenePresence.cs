@@ -859,9 +859,12 @@ namespace OpenSim.Region.Framework.Scenes
         #region Status Methods
 
         /// <summary>
-        /// This turns a child agent, into a root agent
-        /// This is called when an agent teleports into a region, or if an
-        /// agent crosses into this region from a neighbor over the border
+        /// Turns a child agent into a root agent.
+        /// </summary>
+        /// Child agents are logged into neighbouring sims largely to observe changes.  Root agents exist when the
+        /// avatar is actual in the sim.  They can perform all actions.
+        /// This change is made whenever an avatar enters a region, whether by crossing over from a neighbouring sim,
+        /// teleporting in or on initial login.
         /// </summary>
         public void MakeRootAgent(Vector3 pos, bool isFlying)
         {
