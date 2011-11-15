@@ -130,7 +130,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         public void Close()
         {
             m_Scenes.Clear();
-            m_UserCache.Clear();
+
+            lock (m_UserCache)
+                m_UserCache.Clear();
         }
 
         #endregion ISharedRegionModule
@@ -188,11 +190,14 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         {
             string[] returnstring = new string[2];
 
-            if (m_UserCache.ContainsKey(uuid))
+            lock (m_UserCache)
             {
-                returnstring[0] = m_UserCache[uuid].FirstName;
-                returnstring[1] = m_UserCache[uuid].LastName;
-                return returnstring;
+                if (m_UserCache.ContainsKey(uuid))
+                {
+                    returnstring[0] = m_UserCache[uuid].FirstName;
+                    returnstring[1] = m_UserCache[uuid].LastName;
+                    return returnstring;
+                }
             }
 
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(UUID.Zero, uuid);
@@ -237,22 +242,35 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public string GetUserHomeURL(UUID userID)
         {
-            if (m_UserCache.ContainsKey(userID))
-                return m_UserCache[userID].HomeURL;
+            lock (m_UserCache)
+            {
+                if (m_UserCache.ContainsKey(userID))
+                    return m_UserCache[userID].HomeURL;
+            }
 
             return string.Empty;
         }
 
         public string GetUserServerURL(UUID userID, string serverType)
         {
-            if (m_UserCache.ContainsKey(userID))
+            lock (m_UserCache)
+                m_UserCache.TryGetValue(userID, out userdata);
+
+            if (userdata != null)
             {
-                UserData userdata = m_UserCache[userID];
+//                m_log.DebugFormat("[USER MANAGEMENT MODULE]: Requested url type {0} for {1}", serverType, userID);
+
                 if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
+                {
                     return userdata.ServerURLs[serverType].ToString();
+                }
 
                 if (userdata.HomeURL != string.Empty)
                 {
+//                    m_log.DebugFormat(
+//                        "[USER MANAGEMENT MODULE]: Did not find url type {0} so requesting urls from {1} for {2}",
+//                        serverType, userdata.HomeURL, userID);
+
                     UserAgentServiceConnector uConn = new UserAgentServiceConnector(userdata.HomeURL);
                     userdata.ServerURLs = uConn.GetServerURLs(userID);
                     if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
@@ -269,9 +287,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             if (account != null)
                 return userID.ToString();
 
-            if (m_UserCache.ContainsKey(userID))
+            lock (m_UserCache)
+                m_UserCache.TryGetValue(userID, out ud);
+
+            if (ud != null)
             {
-                UserData ud = m_UserCache[userID];
                 string homeURL = ud.HomeURL;
                 string first = ud.FirstName, last = ud.LastName;
                 if (ud.LastName.StartsWith("@"))
@@ -291,8 +311,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public void AddUser(UUID uuid, string first, string last)
         {
-            if (m_UserCache.ContainsKey(uuid))
-                return;
+            lock (m_UserCache)
+            {
+                if (m_UserCache.ContainsKey(uuid))
+                    return;
+            }
 
             UserData user = new UserData();
             user.Id = uuid;
@@ -310,8 +333,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public void AddUser(UUID id, string creatorData)
         {
-            if (m_UserCache.ContainsKey(id))
-                return;
+            lock (m_UserCache)
+            {
+                if (m_UserCache.ContainsKey(id))
+                    return;
+            }
 
 //            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, craetorData {1}", id, creatorData);
 
@@ -402,22 +428,24 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         private void HandleShowUsers(string module, string[] cmd)
         {
-            if (m_UserCache.Count == 0)
+            lock (m_UserCache)
             {
-                MainConsole.Instance.Output("No users not found");
+                if (m_UserCache.Count == 0)
+                {
+                    MainConsole.Instance.Output("No users not found");
+                    return;
+                }
+    
+                MainConsole.Instance.Output("UUID                                 User Name");
+                MainConsole.Instance.Output("-----------------------------------------------------------------------------");
+                foreach (KeyValuePair<UUID, UserData> kvp in m_UserCache)
+                {
+                    MainConsole.Instance.Output(String.Format("{0} {1} {2}",
+                           kvp.Key, kvp.Value.FirstName, kvp.Value.LastName));
+                }
+    
                 return;
             }
-
-            MainConsole.Instance.Output("UUID                                 User Name");
-            MainConsole.Instance.Output("-----------------------------------------------------------------------------");
-            foreach (KeyValuePair<UUID, UserData> kvp in m_UserCache)
-            {
-                MainConsole.Instance.Output(String.Format("{0} {1} {2}",
-                       kvp.Key, kvp.Value.FirstName, kvp.Value.LastName));
-            }
-            return;
         }
-
-
     }
 }
