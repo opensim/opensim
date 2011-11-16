@@ -265,7 +265,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     return userdata.ServerURLs[serverType].ToString();
                 }
 
-                if (userdata.HomeURL != string.Empty)
+                if (userData.HomeURL != null && userdata.HomeURL != string.Empty)
                 {
                     m_log.DebugFormat(
                         "[USER MANAGEMENT MODULE]: Did not find url type {0} so requesting urls from '{1}' for {2}",
