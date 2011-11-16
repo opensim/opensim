@@ -2544,11 +2544,12 @@ namespace OpenSim.Region.Framework.Scenes
             // Send all scene object to the new client
             Util.FireAndForget(delegate
             {
-                Entities.ForEach(delegate(EntityBase e)
+                EntityBase[] entities = Entities.GetEntities();
+                foreach(EntityBase e in entities)
                 {
                     if (e != null && e is SceneObjectGroup)
                         ((SceneObjectGroup)e).SendFullUpdateToClient(client);
-                });
+                }
             });
         }
 
