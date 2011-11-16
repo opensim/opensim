@@ -108,7 +108,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         private Vector3 m_taintForce;
 
-        internal uint m_localID = 0;
         // taints and their non-tainted counterparts
         private bool m_isPhysical = false; // the current physical status
         private bool m_tainted_isPhysical = false; // set when the physical status is tainted (false=not existing in physics engine, true=existing)
@@ -229,11 +228,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get { return m_alwaysRun; }
             set { m_alwaysRun = value; }
-        }
-
-        public override uint LocalID
-        {
-            set { m_localID = value; }
         }
 
         public override bool Grabbed

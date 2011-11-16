@@ -517,7 +517,11 @@ namespace OpenSim.Region.Framework.Scenes
         public uint LocalId
         {
             get { return m_localId; }
-            set { m_localId = value; }
+            set
+            {
+                m_localId = value;
+//                m_log.DebugFormat("[SCENE OBJECT PART]: Set part {0} to local id {1}", Name, m_localId);
+            }
         }
 
         public virtual string Name

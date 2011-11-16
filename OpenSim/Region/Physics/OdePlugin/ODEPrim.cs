@@ -142,8 +142,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public bool m_taintselected { get; private set; }
         public bool m_taintCollidesWater { get; private set; }
 
-        public uint m_localID { get; private set; }
-
         private bool m_taintforce = false;
         private bool m_taintaddangularforce = false;
         private Vector3 m_force;
@@ -288,13 +286,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get { return false; }
             set { return; }
-        }
-
-        public override uint LocalID
-        {
-            set {
-                //m_log.Info("[PHYSICS]: Setting TrackerID: " + value);
-                m_localID = value; }
         }
 
         public override bool Grabbed
@@ -1058,7 +1049,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
         private void AddChildPrim(OdePrim prim)
         {
 //Console.WriteLine("AddChildPrim  " + Name);
-            if (this.m_localID != prim.m_localID)
+            if (LocalID != prim.LocalID)
             {
                 if (Body == IntPtr.Zero)
                 {

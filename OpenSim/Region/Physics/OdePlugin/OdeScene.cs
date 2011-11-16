@@ -1306,8 +1306,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         case ActorTypes.Agent:
                             cc1 = (OdeCharacter)p1;
-                            obj2LocalID = cc1.m_localID;
-                            cc1.AddCollisionEvent(cc2.m_localID, contact);
+                            obj2LocalID = cc1.LocalID;
+                            cc1.AddCollisionEvent(cc2.LocalID, contact);
                             //ctype = (int)CollisionCategories.Character;
 
                             //if (cc1.CollidingObj)
@@ -1322,8 +1322,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             if (p1 is OdePrim)
                             {
                                 cp1 = (OdePrim) p1;
-                                obj2LocalID = cp1.m_localID;
-                                cp1.AddCollisionEvent(cc2.m_localID, contact);
+                                obj2LocalID = cp1.LocalID;
+                                cp1.AddCollisionEvent(cc2.LocalID, contact);
                             }
                             //ctype = (int)CollisionCategories.Geom;
 
@@ -1359,8 +1359,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 if (p1 is OdeCharacter)
                                 {
                                     cc1 = (OdeCharacter) p1;
-                                    obj2LocalID = cc1.m_localID;
-                                    cc1.AddCollisionEvent(cp2.m_localID, contact);
+                                    obj2LocalID = cc1.LocalID;
+                                    cc1.AddCollisionEvent(cp2.LocalID, contact);
                                     //ctype = (int)CollisionCategories.Character;
 
                                     //if (cc1.CollidingObj)
@@ -1375,8 +1375,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 if (p1 is OdePrim)
                                 {
                                     cp1 = (OdePrim) p1;
-                                    obj2LocalID = cp1.m_localID;
-                                    cp1.AddCollisionEvent(cp2.m_localID, contact);
+                                    obj2LocalID = cp1.LocalID;
+                                    cp1.AddCollisionEvent(cp2.LocalID, contact);
                                     //ctype = (int)CollisionCategories.Geom;
 
                                     //if (cp1.CollidingObj)
@@ -1638,7 +1638,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="obj"></param>
         internal void AddCollisionEventReporting(PhysicsActor obj)
         {
-//            m_log.DebugFormat("[PHYSICS]: Adding {0} to collision event reporting", obj.SOPName);
+//            m_log.DebugFormat("[PHYSICS]: Adding {0} {1} to collision event reporting", obj.SOPName, obj.LocalID);
             
             lock (_collisionEventPrimChanges)
                 _collisionEventPrimChanges[obj.LocalID] = obj;
@@ -1650,7 +1650,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="obj"></param>
         internal void RemoveCollisionEventReporting(PhysicsActor obj)
         {
-//            m_log.DebugFormat("[PHYSICS]: Removing {0} from collision event reporting", obj.SOPName);
+//            m_log.DebugFormat("[PHYSICS]: Removing {0} {1} from collision event reporting", obj.SOPName, obj.LocalID);
 
             lock (_collisionEventPrimChanges)
                 _collisionEventPrimChanges[obj.LocalID] = null;
@@ -1754,9 +1754,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
         {
-#if SPAM
-            m_log.DebugFormat("[PHYSICS]: Adding physics actor to {0}", primName);
-#endif
+//            m_log.DebugFormat("[ODE SCENE]: Adding physics actor to {0} {1}", primName, localid);
 
             return AddPrim(primName, position, size, rotation, pbs, isPhysical, localid);
         }
@@ -2810,7 +2808,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
 
                         foreach (PhysicsActor obj in _collisionEventPrim.Values)
                         {
-//                                m_log.DebugFormat("[PHYSICS]: Assessing {0} for collision events", obj.SOPName);
+//                                m_log.DebugFormat("[PHYSICS]: Assessing {0} {1} for collision events", obj.SOPName, obj.LocalID);
 
                             switch ((ActorTypes)obj.PhysicsActorType)
                             {
@@ -3746,7 +3744,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 {
                     if (prm.CollisionScore > 0)
                     {
-                        returncolliders.Add(prm.m_localID, prm.CollisionScore);
+                        returncolliders.Add(prm.LocalID, prm.CollisionScore);
                         cnt++;
                         prm.CollisionScore = 0f;
                         if (cnt > 25)
