@@ -1770,6 +1770,7 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="System.Xml"/>
       <Reference name="Mono.Addins" path="../../../bin/"/>
       <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
@@ -2035,6 +2036,7 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Capabilities"/>
@@ -2393,6 +2395,7 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="System.Data"/>
       <Reference name="System.Web"/>
       <Reference name="System.Xml"/>
