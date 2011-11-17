@@ -273,7 +273,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             catch (IOException ioe)
             {
                 m_log.Error(String.Format("[TERRAIN]: Unable to save to {0}, {1}", filename, ioe.Message));
-                throw new TerrainException(String.Format("Unable to save heightmap: {0}", ioe.Message));
             }
 
             m_log.ErrorFormat(
