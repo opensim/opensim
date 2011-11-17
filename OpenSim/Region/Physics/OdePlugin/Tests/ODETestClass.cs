@@ -104,7 +104,7 @@ namespace OpenSim.Region.Physics.OdePlugin.Tests
                 m_log.Info("TargetSpace: " + oprim.m_targetSpace + " - SceneMainSpace: " + pscene.space);
 
                 Assert.That(!oprim.m_taintadd);
-                m_log.Info("Prim Position (" + oprim.m_localID + "): " + prim.Position.ToString());
+                m_log.Info("Prim Position (" + oprim.LocalID + "): " + prim.Position);
 
                 // Make sure we're above the ground
                 //Assert.That(prim.Position.Z > 20f);

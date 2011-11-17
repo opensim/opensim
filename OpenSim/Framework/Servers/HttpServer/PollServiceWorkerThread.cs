@@ -69,6 +69,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             while (m_running)
             {
                 PollServiceHttpRequest req = m_request.Dequeue();
+
+                Watchdog.UpdateThread();
+                
                 try
                 {
                     if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))

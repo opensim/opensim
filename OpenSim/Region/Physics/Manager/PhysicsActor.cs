@@ -25,8 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using log4net;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using OpenSim.Framework;
 using OpenMetaverse;
 
@@ -46,10 +48,10 @@ namespace OpenSim.Region.Physics.Manager
 
     public enum PIDHoverType
     {
-        Ground
-        , GroundAndWater
-        , Water
-        , Absolute
+        Ground,
+        GroundAndWater,
+        Water,
+        Absolute
     }
 
     public struct ContactPoint
@@ -114,6 +116,8 @@ namespace OpenSim.Region.Physics.Manager
 
     public abstract class PhysicsActor
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public delegate void RequestTerseUpdate();
         public delegate void CollisionUpdate(EventArgs e);
         public delegate void OutOfBounds(Vector3 pos);
@@ -197,10 +201,10 @@ namespace OpenSim.Region.Physics.Manager
         {
             CollisionUpdate handler = OnCollisionUpdate;
 
+//            m_log.DebugFormat("[PHYSICS ACTOR]: Sending collision for {0}", LocalID);
+
             if (handler != null)
-            {
                 handler(e);
-            }
         }
 
         public virtual void SetMaterial (int material)

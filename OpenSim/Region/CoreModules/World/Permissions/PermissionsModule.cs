@@ -479,8 +479,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         }
 
         protected bool IsFriendWithPerms(UUID user,UUID objectOwner)
-        {
-            
+        {            
             if (user == UUID.Zero)
                 return false;
 

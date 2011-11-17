@@ -103,7 +103,11 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual uint LocalId
         {
             get { return m_localId; }
-            set { m_localId = value; }
+            set
+            {
+                m_localId = value;
+//                m_log.DebugFormat("[ENTITY BASE]: Set part {0} to local id {1}", Name, m_localId);
+            }
         }
 
         /// <summary>

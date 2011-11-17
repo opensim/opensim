@@ -134,11 +134,11 @@ namespace OpenSim.Services.Connectors.Friends
         private bool Call(GridRegion region, Dictionary<string, object> sendData)
         {
             string reqString = ServerUtils.BuildQueryString(sendData);
-            //m_log.DebugFormat("[FRIENDS CONNECTOR]: queryString = {0}", reqString);
+            //m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: queryString = {0}", reqString);
             if (region == null)
                 return false;
 
-            m_log.DebugFormat("[FRIENDS CONNECTOR]: region: {0}", region.ExternalHostName + ":" + region.HttpPort);
+            m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: region: {0}", region.ExternalHostName + ":" + region.HttpPort);
             try
             {
                 string url = "http://" + region.ExternalHostName + ":" + region.HttpPort;
@@ -157,15 +157,15 @@ namespace OpenSim.Services.Connectors.Friends
                             return false;
                     }
                     else
-                        m_log.DebugFormat("[FRIENDS CONNECTOR]: reply data does not contain result field");
+                        m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: reply data does not contain result field");
 
                 }
                 else
-                    m_log.DebugFormat("[FRIENDS CONNECTOR]: received empty reply");
+                    m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: received empty reply");
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[FRIENDS CONNECTOR]: Exception when contacting remote sim: {0}", e.ToString());
+                m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: Exception when contacting remote sim: {0}", e.ToString());
             }
 
             return false;

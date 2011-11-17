@@ -1724,7 +1724,6 @@
       <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
       <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
       <Reference name="OpenMetaverse" path="../../../bin/"/>
-      <Reference name="PumaCode.SvnDotNet" path="../../../bin/"/>
       <Reference name="OpenSim.Capabilities"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
