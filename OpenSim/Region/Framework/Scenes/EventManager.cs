@@ -77,8 +77,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public event OnNewClientDelegate OnNewClient;
 
-        public delegate void OnClientLoginDelegate(IClientAPI client);
-        public event OnClientLoginDelegate OnClientLogin;
+        /// <summary>
+        /// Fired if the client entering this sim is doing so as a new login
+        /// </summary>
+        public event Action<IClientAPI> OnClientLogin;
 
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
 
@@ -214,10 +216,15 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void OnMakeChildAgentDelegate(ScenePresence presence);
         public event OnMakeChildAgentDelegate OnMakeChildAgent;
 
-        public delegate void OnMakeRootAgentDelegate(ScenePresence presence);
         public delegate void OnSaveNewWindlightProfileDelegate();
         public delegate void OnSendNewWindlightProfileTargetedDelegate(RegionLightShareData wl, UUID user);
-        public event OnMakeRootAgentDelegate OnMakeRootAgent;
+
+        /// <summary>
+        /// This event is on the critical path for transferring an avatar from one region to another.  Try and do
+        /// as little work on this event as possible, or do work asynchronously.
+        /// </summary>
+        public event Action<ScenePresence> OnMakeRootAgent;
+        
         public event OnSendNewWindlightProfileTargetedDelegate OnSendNewWindlightProfileTargeted;
         public event OnSaveNewWindlightProfileDelegate OnSaveNewWindlightProfile;
 
@@ -655,10 +662,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TriggerOnClientLogin(IClientAPI client)
         {
-            OnClientLoginDelegate handlerClientLogin = OnClientLogin;
+            Action<IClientAPI> handlerClientLogin = OnClientLogin;
             if (handlerClientLogin != null)
             {
-                foreach (OnClientLoginDelegate d in handlerClientLogin.GetInvocationList())
+                foreach (Action<IClientAPI> d in handlerClientLogin.GetInvocationList())
                 {
                     try
                     {
@@ -1344,10 +1351,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TriggerOnMakeRootAgent(ScenePresence presence)
         {
-            OnMakeRootAgentDelegate handlerMakeRootAgent = OnMakeRootAgent;
+            Action<ScenePresence> handlerMakeRootAgent = OnMakeRootAgent;
             if (handlerMakeRootAgent != null)
             {
-                foreach (OnMakeRootAgentDelegate d in handlerMakeRootAgent.GetInvocationList())
+                foreach (Action<ScenePresence> d in handlerMakeRootAgent.GetInvocationList())
                 {
                     try
                     {

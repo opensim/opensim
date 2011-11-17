@@ -65,7 +65,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         private OpenSim.Framework.BlockingQueue<MapRequestState> requests = new OpenSim.Framework.BlockingQueue<MapRequestState>();
 
-        //private IConfig m_config;
         protected Scene m_scene;
         private List<MapBlockData> cachedMapBlocks = new List<MapBlockData>();
         private int cachedTime = 0;
@@ -348,7 +347,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
 //            m_log.Debug("[WORLD MAP]: Starting remote MapItem request thread");
 
-            Watchdog.StartThread(process, "MapItemRequestThread", ThreadPriority.BelowNormal, true);
+            Watchdog.StartThread(
+                process,
+                string.Format("MapItemRequestThread ({0})", m_scene.RegionInfo.RegionName),
+                ThreadPriority.BelowNormal,
+                true);
         }
 
         /// <summary>
@@ -357,7 +360,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private void StopThread()
         {
             MapRequestState st = new MapRequestState();
-            st.agentID=STOP_UUID;
+            st.agentID = STOP_UUID;
             st.EstateID=0;
             st.flags=0;
             st.godlike=false;

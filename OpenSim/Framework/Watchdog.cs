@@ -48,6 +48,18 @@ namespace OpenSim.Framework
         public class ThreadWatchdogInfo
         {
             public Thread Thread { get; private set; }
+
+            /// <summary>
+            /// Approximate tick when this thread was started.
+            /// </summary>
+            /// <remarks>
+            /// Not terribly good since this quickly wraps around.
+            /// </remarks>
+            public int FirstTick { get; private set; }
+
+            /// <summary>
+            /// First time this heartbeat update was invoked
+            /// </summary>
             public int LastTick { get; set; }
 
             /// <summary>
@@ -64,7 +76,8 @@ namespace OpenSim.Framework
             {
                 Thread = thread;
                 Timeout = timeout;
-                LastTick = Environment.TickCount & Int32.MaxValue;
+                FirstTick = Environment.TickCount & Int32.MaxValue;
+                LastTick = FirstTick;
             }
         }
 

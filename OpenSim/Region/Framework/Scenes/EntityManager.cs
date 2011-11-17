@@ -79,7 +79,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             List<EntityBase> tmp = new List<EntityBase>();
 
-            m_entities.ForEach(
+            ForEach(
                 delegate(EntityBase entity)
                 {
                     if (entity is T)
@@ -93,7 +93,7 @@ namespace OpenSim.Region.Framework.Scenes
         public EntityBase[] GetEntities()
         {
             List<EntityBase> tmp = new List<EntityBase>(m_entities.Count);
-            m_entities.ForEach(delegate(EntityBase entity) { tmp.Add(entity); });
+            ForEach(delegate(EntityBase entity) { tmp.Add(entity); });
             return tmp.ToArray();
         }
 

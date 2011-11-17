@@ -378,12 +378,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             // Loop over contacts, build results.
             for (int i = 0; i < count; i++)
             {
-                if (p1 != null) { 
+                if (p1 != null)
+                {
                     if (p1 is OdePrim)
                     {
                         ContactResult collisionresult = new ContactResult();
                     
-                        collisionresult.ConsumerID = ((OdePrim)p1).m_localID;
+                        collisionresult.ConsumerID = p1.LocalID;
                         collisionresult.Pos = new Vector3(contacts[i].pos.X, contacts[i].pos.Y, contacts[i].pos.Z);
                         collisionresult.Depth = contacts[i].depth;
                         collisionresult.Normal = new Vector3(contacts[i].normal.X, contacts[i].normal.Y,
@@ -399,7 +400,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         ContactResult collisionresult = new ContactResult();
 
-                        collisionresult.ConsumerID = ((OdePrim)p2).m_localID;
+                        collisionresult.ConsumerID = p2.LocalID;
                         collisionresult.Pos = new Vector3(contacts[i].pos.X, contacts[i].pos.Y, contacts[i].pos.Z);
                         collisionresult.Depth = contacts[i].depth;
                         collisionresult.Normal = new Vector3(contacts[i].normal.X, contacts[i].normal.Y,
