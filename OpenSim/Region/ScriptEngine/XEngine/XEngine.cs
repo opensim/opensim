@@ -90,6 +90,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private bool m_KillTimedOutScripts;
         private string m_ScriptEnginesPath = null;
 
+        /// <summary>
+        /// Is the entire simulator in the process of shutting down?
+        /// </summary>
+        private bool m_SimulatorShuttingDown;
+
         private static List<XEngine> m_ScriptEngines =
                 new List<XEngine>();
 
@@ -470,17 +475,22 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     //
                     instance.DestroyScriptInstance();
 
-                    // Unload scripts and app domains
+                    // Unload scripts and app domains.
                     // Must be done explicitly because they have infinite
-                    // lifetime
-                    //
-                    m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
-                    if (m_DomainScripts[instance.AppDomain].Count == 0)
+                    // lifetime.
+                    // However, don't bother to do this if the simulator is shutting
+                    // down since it takes a long time with many scripts.
+                    if (!m_SimulatorShuttingDown)
                     {
-                        m_DomainScripts.Remove(instance.AppDomain);
-                        UnloadAppDomain(instance.AppDomain);
+                        m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
+                        if (m_DomainScripts[instance.AppDomain].Count == 0)
+                        {
+                            m_DomainScripts.Remove(instance.AppDomain);
+                            UnloadAppDomain(instance.AppDomain);
+                        }
                     }
                 }
+
                 m_Scripts.Clear();
                 m_PrimObjects.Clear();
                 m_Assemblies.Clear();
@@ -1428,6 +1438,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void OnShutdown()
         {
+            m_SimulatorShuttingDown = true;
+
             List<IScriptInstance> instances = new List<IScriptInstance>();
 
             lock (m_Scripts)

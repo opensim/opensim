@@ -98,9 +98,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event OnPluginConsoleDelegate OnPluginConsole;
 
-        public delegate void OnShutdownDelegate();
-
-        public event OnShutdownDelegate OnShutdown;
+        /// <summary>
+        /// Triggered when the entire simulator is shutdown.
+        /// </summary>
+        public event Action OnShutdown;
         
         public delegate void ObjectDeGrabDelegate(uint localID, uint originalID, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);
         public delegate void ScriptResetDelegate(uint localID, UUID itemID);
@@ -113,9 +114,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
 
-        public delegate void SceneShuttingDownDelegate(Scene scene);
-
-        public event SceneShuttingDownDelegate OnSceneShuttingDown;
+        /// <summary>
+        /// Triggered when an individual scene is shutdown.
+        /// </summary>
+        /// <remarks>
+        /// This does not automatically mean that the entire simulator is shutting down.  Listen to OnShutdown for that
+        /// notification.
+        /// </remarks>
+        public event Action<Scene> OnSceneShuttingDown;
 
         /// <summary>
         /// Fired when an object is touched/grabbed.
@@ -869,10 +875,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TriggerShutdown()
         {
-            OnShutdownDelegate handlerShutdown = OnShutdown;
+            Action handlerShutdown = OnShutdown;
             if (handlerShutdown != null)
             {
-                foreach (OnShutdownDelegate d in handlerShutdown.GetInvocationList())
+                foreach (Action d in handlerShutdown.GetInvocationList())
                 {
                     try
                     {
@@ -2212,10 +2218,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TriggerSceneShuttingDown(Scene s)
         {
-            SceneShuttingDownDelegate handler = OnSceneShuttingDown;
+            Action<Scene> handler = OnSceneShuttingDown;
             if (handler != null)
             {
-                foreach (SceneShuttingDownDelegate d in handler.GetInvocationList())
+                foreach (Action<Scene> d in handler.GetInvocationList())
                 {
                     try
                     {
