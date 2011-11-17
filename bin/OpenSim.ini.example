@@ -532,19 +532,17 @@
 
 
 [Economy]
-    ;; The economy module is not enabled by default and there is no easy,
-    ;; menu controlled way to do this. To enabled this module, insert
-    ;; economymodule = BetaGridLikeMoneyModule
-    ;; into the startup section (at the top of this file).
-    ;; Then configure the options below as needed.
+    ; The default economy module only implements just enough to allow free actions (transfer of objects, etc).
+    ; There is no intention to implement anything further in core OpenSimulator.
+    ; This functionality has to be provided by third party modules.
 
-    ;; Enables selling things for $0
-    ; SellEnabled = "false"
+    ;; Enables selling things for $0.  Default is true.
+    ; SellEnabled = true
 
-    ;; Money Unit fee to upload textures, animations etc
+    ;; Money Unit fee to upload textures, animations etc.  Default is 0.
     ; PriceUpload = 0
 
-    ;; Money Unit fee to create groups
+    ;; Money Unit fee to create groups.  Default is 0.
     ; PriceGroupCreate = 0
 
 
