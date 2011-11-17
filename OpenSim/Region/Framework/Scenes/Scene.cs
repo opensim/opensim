@@ -215,6 +215,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_lastIncoming;
         private int m_lastOutgoing;
         private bool m_firstHeartbeat = true;
+        private int m_hbRestarts = 0;
 
         private object m_deleting_scene_object = new object();
         
@@ -1166,6 +1167,9 @@ namespace OpenSim.Region.Framework.Scenes
             //m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
             if (HeartbeatThread != null)
             {
+                m_hbRestarts++;
+                if(m_hbRestarts > 10)
+                    Environment.Exit(1);
                 m_log.ErrorFormat("[SCENE]: Restarting heartbeat thread because it hasn't reported in in region {0}", RegionInfo.RegionName);
                 HeartbeatThread.Abort();
                 Watchdog.AbortThread(HeartbeatThread.ManagedThreadId);
