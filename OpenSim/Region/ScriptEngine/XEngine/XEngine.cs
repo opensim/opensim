@@ -91,6 +91,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private bool m_KillTimedOutScripts;
         private string m_ScriptEnginesPath = null;
 
+        /// <summary>
+        /// Is the entire simulator in the process of shutting down?
+        /// </summary>
+        private bool m_SimulatorShuttingDown;
+
         private static List<XEngine> m_ScriptEngines =
                 new List<XEngine>();
 
@@ -537,12 +542,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 // Must be done explicitly because they have infinite
                 // lifetime
                 //
-                m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
-                if (m_DomainScripts[instance.AppDomain].Count == 0)
+                if (!m_SimulatorShuttingDown)
                 {
-                    m_DomainScripts.Remove(instance.AppDomain);
-                    UnloadAppDomain(instance.AppDomain);
+                    m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
+                    if (m_DomainScripts[instance.AppDomain].Count == 0)
+                    {
+                        m_DomainScripts.Remove(instance.AppDomain);
+                        UnloadAppDomain(instance.AppDomain);
+                    }
                 }
+
+                m_Scripts.Clear();
+                m_PrimObjects.Clear();
+                m_Assemblies.Clear();
+                m_DomainScripts.Clear();
             }
             lockScriptsForRead(false);
             lockScriptsForWrite(true);
@@ -1512,6 +1525,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void OnShutdown()
         {
+            m_SimulatorShuttingDown = true;
+
             List<IScriptInstance> instances = new List<IScriptInstance>();
 
             lockScriptsForRead(true);

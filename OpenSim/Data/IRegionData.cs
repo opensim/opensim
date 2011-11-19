@@ -37,10 +37,30 @@ namespace OpenSim.Data
         public UUID RegionID;
         public UUID ScopeID;
         public string RegionName;
+
+        /// <summary>
+        /// The position in meters of this region.
+        /// </summary>
         public int posX;
+
+        /// <summary>
+        /// The position in meters of this region.
+        /// </summary>
         public int posY;
+
         public int sizeX;
         public int sizeY;
+
+        /// <summary>
+        /// Return the x-coordinate of this region.
+        /// </summary>
+        public int coordX { get { return posX / (int)Constants.RegionSize; } }
+
+        /// <summary>
+        /// Return the y-coordinate of this region.
+        /// </summary>
+        public int coordY { get { return posY / (int)Constants.RegionSize; } }
+
         public Dictionary<string, object> Data;
     }
 

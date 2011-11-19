@@ -138,6 +138,8 @@ namespace OpenSim.Services.MapImageService
 
         public byte[] GetMapTile(string fileName, out string format)
         {
+//            m_log.DebugFormat("[MAP IMAGE SERVICE]: Getting map tile {0}", fileName);
+
             format = ".jpg";
             string fullName = Path.Combine(m_TilesStoragePath, fileName);
             if (File.Exists(fullName))
@@ -206,7 +208,7 @@ namespace OpenSim.Services.MapImageService
 
         private bool CreateTile(uint zoomLevel, int x, int y)
         {
-            m_log.DebugFormat("[MAP IMAGE SERVICE]: Create tile for {0} {1}, zoom {2}", x, y, zoomLevel);
+//            m_log.DebugFormat("[MAP IMAGE SERVICE]: Create tile for {0} {1}, zoom {2}", x, y, zoomLevel);
             int prevWidth = (int)Math.Pow(2, (double)zoomLevel - 2);
             int thisWidth = (int)Math.Pow(2, (double)zoomLevel - 1);
 

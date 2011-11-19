@@ -129,7 +129,9 @@ namespace OpenSim.Services.Connectors
 
                 }
                 else
-                    m_log.DebugFormat("[MAP IMAGE CONNECTOR]: RegisterRegion received null reply");
+                {
+                    m_log.DebugFormat("[MAP IMAGE CONNECTOR]: Map post received null reply");
+                }
             }
             catch (Exception e)
             {

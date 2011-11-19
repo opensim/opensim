@@ -79,7 +79,7 @@ namespace OpenSim.Server.Handlers.MapImage
 
         public override byte[] Handle(string path, Stream requestData, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            m_log.DebugFormat("[MAP SERVICE IMAGE HANDLER]: Received {0}", path);
+//            m_log.DebugFormat("[MAP SERVICE IMAGE HANDLER]: Received {0}", path);
             StreamReader sr = new StreamReader(requestData);
             string body = sr.ReadToEnd();
             sr.Close();
@@ -97,9 +97,14 @@ namespace OpenSim.Server.Handlers.MapImage
                 int x = 0, y = 0;
                 Int32.TryParse(request["X"].ToString(), out x);
                 Int32.TryParse(request["Y"].ToString(), out y);
-                string type = "image/jpeg";
-                if (request.ContainsKey("TYPE"))
-                    type = request["TYPE"].ToString();
+
+                m_log.DebugFormat("[MAP ADD SERVER CONNECTOR]: Received map data for region at {0}-{1}", x, y);
+
+//                string type = "image/jpeg";
+//
+//                if (request.ContainsKey("TYPE"))
+//                    type = request["TYPE"].ToString();
+
                 byte[] data = Convert.FromBase64String(request["DATA"].ToString());
 
                 string reason = string.Empty;
@@ -117,7 +122,6 @@ namespace OpenSim.Server.Handlers.MapImage
             }
 
             return FailureResult("Unexpected server error");
-
         }
 
         private byte[] SuccessResult()

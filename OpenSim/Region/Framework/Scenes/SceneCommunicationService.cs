@@ -174,7 +174,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // We're ignoring a collection was modified error because this data gets old and outdated fast.
             }
-
         }
 
         public delegate void SendCloseChildAgentDelegate(UUID agentID, ulong regionHandle);
@@ -185,13 +184,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected void SendCloseChildAgentAsync(UUID agentID, ulong regionHandle)
         {
-
-            //m_log.Debug("[INTERGRID]: Sending close agent to " + regionHandle);
             // let's do our best, but there's not much we can do if the neighbour doesn't accept.
 
             //m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);
             uint x = 0, y = 0;
             Utils.LongToUInts(regionHandle, out x, out y);
+
             GridRegion destination = m_scene.GridService.GetRegionByPosition(m_regionInfo.ScopeID, (int)x, (int)y);
             m_scene.SimulationService.CloseChildAgent(destination, agentID);
         }

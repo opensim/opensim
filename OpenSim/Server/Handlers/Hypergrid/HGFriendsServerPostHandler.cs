@@ -99,7 +99,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
             }
 
             return FailureResult();
-
         }
 
         #region Method-specific handlers
@@ -127,7 +126,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 return FailureResult();
             }
 
-            string perms = "0";
             FriendInfo[] friendsInfo = m_FriendsService.GetFriends(principalID);
             foreach (FriendInfo finfo in friendsInfo)
             {

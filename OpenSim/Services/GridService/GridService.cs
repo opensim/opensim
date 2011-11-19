@@ -156,6 +156,7 @@ namespace OpenSim.Services.GridService
                     regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
                 return "Region overlaps another region";
             }
+
             if ((region != null) && (region.RegionID == regionInfos.RegionID) && 
                 ((region.posX != regionInfos.RegionLocX) || (region.posY != regionInfos.RegionLocY)))
             {
@@ -236,17 +237,20 @@ namespace OpenSim.Services.GridService
             }
 
             m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) registered successfully at {2}-{3}", 
-                regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
+                regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionCoordX, regionInfos.RegionCoordY);
 
             return String.Empty;
         }
 
         public bool DeregisterRegion(UUID regionID)
         {
-            m_log.DebugFormat("[GRID SERVICE]: Region {0} deregistered", regionID);
             RegionData region = m_Database.Get(regionID, UUID.Zero);
             if (region == null)
                 return false;
+
+            m_log.DebugFormat(
+                "[GRID SERVICE]: Deregistering region {0} ({1}) at {2}-{3}",
+                region.RegionName, region.RegionID, region.coordX, region.coordY);
 
             int flags = Convert.ToInt32(region.Data["flags"]);
 
@@ -292,7 +296,7 @@ namespace OpenSim.Services.GridService
                     }
                 }
 
-                m_log.DebugFormat("[GRID SERVICE]: region {0} has {1} neighbours", region.RegionName, rinfos.Count);
+//                m_log.DebugFormat("[GRID SERVICE]: region {0} has {1} neighbours", region.RegionName, rinfos.Count);
             }
             else
             {
