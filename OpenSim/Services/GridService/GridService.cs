@@ -249,7 +249,7 @@ namespace OpenSim.Services.GridService
                 return false;
 
             m_log.DebugFormat(
-                "[GRID SERVICE]: Degistering region {0} ({1}) at {2}-{3}",
+                "[GRID SERVICE]: Deregistering region {0} ({1}) at {2}-{3}",
                 region.RegionName, region.RegionID, region.coordX, region.coordY);
 
             int flags = Convert.ToInt32(region.Data["flags"]);
@@ -296,7 +296,7 @@ namespace OpenSim.Services.GridService
                     }
                 }
 
-                m_log.DebugFormat("[GRID SERVICE]: region {0} has {1} neighbours", region.RegionName, rinfos.Count);
+//                m_log.DebugFormat("[GRID SERVICE]: region {0} has {1} neighbours", region.RegionName, rinfos.Count);
             }
             else
             {

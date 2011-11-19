@@ -369,7 +369,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         public bool CloseAgent(GridRegion destination, UUID id)
         {
-            // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: CloseAgent start");
+//            m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: CloseAgent start");
 
             string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
 
