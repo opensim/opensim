@@ -237,7 +237,7 @@ namespace OpenSim.Services.GridService
             }
 
             m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) registered successfully at {2}-{3}", 
-                regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
+                regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionCoordX, regionInfos.RegionCoordY);
 
             return String.Empty;
         }
@@ -250,8 +250,8 @@ namespace OpenSim.Services.GridService
 
             m_log.DebugFormat(
                 "[GRID SERVICE]: Degistering region {0} ({1}) at {2}-{3}",
-                region.RegionName, region.RegionID, region.posX, region.posY);
-            
+                region.RegionName, region.RegionID, region.coordX, region.coordY);
+
             int flags = Convert.ToInt32(region.Data["flags"]);
 
             if (!m_DeleteOnUnregister || (flags & (int)OpenSim.Data.RegionFlags.Persistent) != 0)

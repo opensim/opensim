@@ -103,9 +103,8 @@ namespace OpenSim.Services.Interfaces
         int GetRegionFlags(UUID scopeID, UUID regionID);
     }
 
-    public class GridRegion : Object
+    public class GridRegion
     {
-
         /// <summary>
         /// The port by which http communication occurs with the region 
         /// </summary>
@@ -149,6 +148,19 @@ namespace OpenSim.Services.Interfaces
 
         protected IPEndPoint m_internalEndPoint;
 
+        /// <summary>
+        /// The co-ordinate of this region.
+        /// </summary>
+        public int RegionCoordX { get { return RegionLocX / (int)Constants.RegionSize; } }
+
+        /// <summary>
+        /// The co-ordinate of this region
+        /// </summary>
+        public int RegionCoordY { get { return RegionLocY / (int)Constants.RegionSize; } }
+
+        /// <summary>
+        /// The location of this region in meters.
+        /// </summary>
         public int RegionLocX
         {
             get { return m_regionLocX; }
@@ -156,6 +168,9 @@ namespace OpenSim.Services.Interfaces
         }
         protected int m_regionLocX;
 
+        /// <summary>
+        /// The location of this region in meters.
+        /// </summary>
         public int RegionLocY
         {
             get { return m_regionLocY; }
@@ -407,8 +422,6 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp.ContainsKey("Token"))
                 Token = kvp["Token"].ToString();
-
         }
     }
-
 }
