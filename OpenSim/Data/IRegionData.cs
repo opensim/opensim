@@ -47,19 +47,19 @@ namespace OpenSim.Data
         /// The position in meters of this region.
         /// </summary>
         public int posY;
-        
+
         public int sizeX;
         public int sizeY;
 
         /// <summary>
-        /// Return the x-coordinate of this region.  We currently assume that every region is the same size.
+        /// Return the x-coordinate of this region.
         /// </summary>
-        public int coordX { get { return (sizeX != 0) ? posX / sizeX : -1; } }
+        public int coordX { get { return (sizeX != 0) ? posX / (int)Constants.RegionSize : -1; } }
 
         /// <summary>
-        /// Return the y-coordinate of this region.  We currently assume that every region is the same size.
+        /// Return the y-coordinate of this region.
         /// </summary>
-        public int coordY { get { return (sizeY != 0) ? posY / sizeY : -1; } }
+        public int coordY { get { return (sizeY != 0) ? posY / (int)Constants.RegionSize : -1; } }
 
         public Dictionary<string, object> Data;
     }
