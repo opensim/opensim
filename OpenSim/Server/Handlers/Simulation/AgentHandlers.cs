@@ -251,7 +251,7 @@ namespace OpenSim.Server.Handlers.Simulation
         public override byte[] Handle(string path, Stream request,
                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            m_log.DebugFormat("[SIMULATION]: Stream handler called");
+//            m_log.DebugFormat("[SIMULATION]: Stream handler called");
 
             Hashtable keysvals = new Hashtable();
             Hashtable headervals = new Hashtable();
@@ -438,7 +438,7 @@ namespace OpenSim.Server.Handlers.Simulation
         public override byte[] Handle(string path, Stream request,
                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            m_log.DebugFormat("[SIMULATION]: Stream handler called");
+//            m_log.DebugFormat("[SIMULATION]: Stream handler called");
 
             Hashtable keysvals = new Hashtable();
             Hashtable headervals = new Hashtable();

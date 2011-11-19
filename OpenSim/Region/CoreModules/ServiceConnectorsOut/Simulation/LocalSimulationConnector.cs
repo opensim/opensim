@@ -196,7 +196,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 }
             }
 
-            m_log.DebugFormat("[LOCAL SIMULATION CONNECTOR]: Did not find region {0} for SendCreateChildAgent", destination.RegionName);
             reason = "Did not find region " + destination.RegionName;
             return false;
         }
