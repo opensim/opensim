@@ -244,11 +244,14 @@ namespace OpenSim.Services.GridService
 
         public bool DeregisterRegion(UUID regionID)
         {
-            m_log.DebugFormat("[GRID SERVICE]: Region {0} deregistered", regionID);
             RegionData region = m_Database.Get(regionID, UUID.Zero);
             if (region == null)
                 return false;
 
+            m_log.DebugFormat(
+                "[GRID SERVICE]: Degistering region {0} ({1}) at {2}-{3}",
+                region.RegionName, region.RegionID, region.posX, region.posY);
+            
             int flags = Convert.ToInt32(region.Data["flags"]);
 
             if (!m_DeleteOnUnregister || (flags & (int)OpenSim.Data.RegionFlags.Persistent) != 0)
