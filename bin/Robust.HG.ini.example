@@ -237,7 +237,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     AllowRemoteSetLoginLevel = "false"
     
     ; For V2 map
-    ; MapTileURL = "http://127.0.0.1:8002";
+    MapTileURL = "http://127.0.0.1:8002";
 
     ; If you run this login server behind a proxy, set this to true
     ; HasProxy = false

@@ -25,11 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using log4net;
-using Nini.Config;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using log4net;
+using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Server.Base;
 using OpenSim.Region.Framework.Interfaces;
@@ -119,10 +120,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
 
         #region INeighbourService
 
-        public GridRegion HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
+        public OpenSim.Services.Interfaces.GridRegion HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
         {
-            m_log.DebugFormat("[NEIGHBOUR CONNECTOR]: HelloNeighbour from {0}, to {1}.",
-                thisRegion.RegionName, regionHandle);
+            uint x, y;
+            Utils.LongToUInts(regionHandle, out x, out y);
+
+            m_log.DebugFormat("[NEIGHBOUR CONNECTOR]: HelloNeighbour from region {0} to region at {1}-{2}",
+                thisRegion.RegionName, x / Constants.RegionSize, y / Constants.RegionSize);
+
             foreach (Scene s in m_Scenes)
             {
                 if (s.RegionInfo.RegionHandle == regionHandle)

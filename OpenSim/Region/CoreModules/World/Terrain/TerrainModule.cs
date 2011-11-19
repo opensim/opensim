@@ -86,6 +86,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private volatile bool m_tainted;
         private readonly Stack<LandUndoState> m_undo = new Stack<LandUndoState>(5);
 
+        /// <summary>
+        /// Human readable list of terrain file extensions that are supported.
+        /// </summary>
+        private string m_supportedFileExtensions = "";
+
         #region ICommandableModule Members
 
         public ICommander CommandInterface
@@ -135,6 +140,15 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
             InstallDefaultEffects();
             LoadPlugins();
+
+            // Generate user-readable extensions list
+            string supportedFilesSeparator = "";
+
+            foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
+            {
+                m_supportedFileExtensions += supportedFilesSeparator + loader.Key + " (" + loader.Value + ")";
+                supportedFilesSeparator = ", ";
+            }
         }
 
         public void RegionLoaded(Scene scene)
@@ -251,20 +265,19 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     if (filename.EndsWith(loader.Key))
                     {
                         loader.Value.SaveFile(filename, m_channel);
+                        m_log.InfoFormat("[TERRAIN]: Saved terrain from {0} to {1}", m_scene.RegionInfo.RegionName, filename);
                         return;
                     }
                 }
             }
-            catch (NotImplementedException)
-            {
-                m_log.Error("Unable to save to " + filename + ", saving of this file format has not been implemented.");
-                throw new TerrainException(String.Format("Unable to save heightmap: saving of this file format not implemented"));
-            }
             catch (IOException ioe)
             {
                 m_log.Error(String.Format("[TERRAIN]: Unable to save to {0}, {1}", filename, ioe.Message));
-                throw new TerrainException(String.Format("Unable to save heightmap: {0}", ioe.Message));
             }
+
+            m_log.ErrorFormat(
+                "[TERRAIN]: Could not save terrain from {0} to {1}.  Valid file extensions are {2}",
+                m_scene.RegionInfo.RegionName, filename, m_supportedFileExtensions);
         }
 
         /// <summary>
@@ -345,6 +358,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             float duration = 0.25f;
             if (action == 0)
                 duration = 4.0f;
+
             client_OnModifyTerrain(user, (float)pos.Z, duration, size, action, pos.Y, pos.X, pos.Y, pos.X, agentId);
         }
 
@@ -534,6 +548,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             m_channel = channel;
                             UpdateRevertMap();
                         }
+
                         return;
                     }
                 }
@@ -566,10 +581,17 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                                                   fileWidth, fileHeight,
                                                   (int)Constants.RegionSize,
                                                   (int)Constants.RegionSize);
+
+                            m_log.InfoFormat("[TERRAIN]: Saved terrain from {0} to {1}", m_scene.RegionInfo.RegionName, filename);
                         }
+                        
                         return;
                     }
                 }
+
+                m_log.ErrorFormat(
+                    "[TERRAIN]: Could not save terrain from {0} to {1}.  Valid file extensions are {2}",
+                    m_scene.RegionInfo.RegionName, filename, m_supportedFileExtensions);
             }
         }
 
@@ -1126,32 +1148,23 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private void InstallInterfaces()
         {
-            // Load / Save
-            string supportedFileExtensions = "";
-            string supportedFilesSeparator = "";
-            foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
-            {
-                supportedFileExtensions += supportedFilesSeparator + loader.Key + " (" + loader.Value + ")";
-                supportedFilesSeparator = ", ";
-            }
-
             Command loadFromFileCommand =
                 new Command("load", CommandIntentions.COMMAND_HAZARDOUS, InterfaceLoadFile, "Loads a terrain from a specified file.");
             loadFromFileCommand.AddArgument("filename",
                                             "The file you wish to load from, the file extension determines the loader to be used. Supported extensions include: " +
-                                            supportedFileExtensions, "String");
+                                            m_supportedFileExtensions, "String");
 
             Command saveToFileCommand =
                 new Command("save", CommandIntentions.COMMAND_NON_HAZARDOUS, InterfaceSaveFile, "Saves the current heightmap to a specified file.");
             saveToFileCommand.AddArgument("filename",
                                           "The destination filename for your heightmap, the file extension determines the format to save in. Supported extensions include: " +
-                                          supportedFileExtensions, "String");
+                                          m_supportedFileExtensions, "String");
 
             Command loadFromTileCommand =
                 new Command("load-tile", CommandIntentions.COMMAND_HAZARDOUS, InterfaceLoadTileFile, "Loads a terrain from a section of a larger file.");
             loadFromTileCommand.AddArgument("filename",
                                             "The file you wish to load from, the file extension determines the loader to be used. Supported extensions include: " +
-                                            supportedFileExtensions, "String");
+                                            m_supportedFileExtensions, "String");
             loadFromTileCommand.AddArgument("file width", "The width of the file in tiles", "Integer");
             loadFromTileCommand.AddArgument("file height", "The height of the file in tiles", "Integer");
             loadFromTileCommand.AddArgument("minimum X tile", "The X region coordinate of the first section on the file",
@@ -1163,7 +1176,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 new Command("save-tile", CommandIntentions.COMMAND_HAZARDOUS, InterfaceSaveTileFile, "Saves the current heightmap to the larger file.");
             saveToTileCommand.AddArgument("filename",
                                             "The file you wish to save to, the file extension determines the loader to be used. Supported extensions include: " +
-                                            supportedFileExtensions, "String");
+                                            m_supportedFileExtensions, "String");
             saveToTileCommand.AddArgument("file width", "The width of the file in tiles", "Integer");
             saveToTileCommand.AddArgument("file height", "The height of the file in tiles", "Integer");
             saveToTileCommand.AddArgument("minimum X tile", "The X region coordinate of the first section on the file",

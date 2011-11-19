@@ -5222,18 +5222,16 @@ namespace OpenSim.Region.Framework.Scenes
             return offsets.ToArray();
         }
 
+        /// <summary>
+        /// Regenerate the maptile for this scene.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void RegenerateMaptile(object sender, ElapsedEventArgs e)
         {
             IWorldMapModule mapModule = RequestModuleInterface<IWorldMapModule>();
             if (mapModule != null)
-            {
                 mapModule.GenerateMaptile();
-
-                string error = GridService.RegisterRegion(RegionInfo.ScopeID, new GridRegion(RegionInfo));
-
-                if (error != String.Empty)
-                    throw new Exception(error);
-            }
         }
 
 //        public void CleanDroppedAttachments()
