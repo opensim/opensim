@@ -193,8 +193,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// Avatars in the physics scene.
         /// </summary>
         private readonly HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
-        
+
+        /// <summary>
+        /// Prims in the physics scene.
+        /// </summary>
         private readonly HashSet<OdePrim> _prims = new HashSet<OdePrim>();
+
+        /// <summary>
+        /// Prims in the physics scene that are subject to physics, not just collisions.
+        /// </summary>
         private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
 
         /// <summary>
@@ -1565,45 +1572,42 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //}
             }
 
-            lock (_activeprims)
+            List<OdePrim> removeprims = null;
+            foreach (OdePrim chr in _activeprims)
             {
-                List<OdePrim> removeprims = null;
-                foreach (OdePrim chr in _activeprims)
+                if (chr.Body != IntPtr.Zero && d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
                 {
-                    if (chr.Body != IntPtr.Zero && d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
+                    try
                     {
-                        try
+                        lock (chr)
                         {
-                            lock (chr)
+                            if (space != IntPtr.Zero && chr.prim_geom != IntPtr.Zero && chr.m_taintremove == false)
                             {
-                                if (space != IntPtr.Zero && chr.prim_geom != IntPtr.Zero && chr.m_taintremove == false)
+                                d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
+                            }
+                            else
+                            {
+                                if (removeprims == null)
                                 {
-                                    d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
+                                    removeprims = new List<OdePrim>();
                                 }
-                                else
-                                {
-                                    if (removeprims == null)
-                                    {
-                                        removeprims = new List<OdePrim>();
-                                    }
-                                    removeprims.Add(chr);
-                                    m_log.Debug("[PHYSICS]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed.  Removed it from the active prim list.  This needs to be fixed!");
-                                }
+                                removeprims.Add(chr);
+                                m_log.Debug("[PHYSICS]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed.  Removed it from the active prim list.  This needs to be fixed!");
                             }
                         }
-                        catch (AccessViolationException)
-                        {
-                            m_log.Warn("[PHYSICS]: Unable to space collide");
-                        }
+                    }
+                    catch (AccessViolationException)
+                    {
+                        m_log.Warn("[PHYSICS]: Unable to space collide");
                     }
                 }
+            }
 
-                if (removeprims != null)
+            if (removeprims != null)
+            {
+                foreach (OdePrim chr in removeprims)
                 {
-                    foreach (OdePrim chr in removeprims)
-                    {
-                        _activeprims.Remove(chr);
-                    }
+                    _activeprims.Remove(chr);
                 }
             }
         }
@@ -1770,13 +1774,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal void ActivatePrim(OdePrim prim)
         {
             // adds active prim..   (ones that should be iterated over in collisions_optimized
-            lock (_activeprims)
-            {
-                if (!_activeprims.Contains(prim))
-                    _activeprims.Add(prim);
-                //else
-                  //  m_log.Warn("[PHYSICS]: Double Entry in _activeprims detected, potential crash immenent");
-            }
+            if (!_activeprims.Contains(prim))
+                _activeprims.Add(prim);
+            //else
+              //  m_log.Warn("[PHYSICS]: Double Entry in _activeprims detected, potential crash immenent");
         }
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
@@ -2150,8 +2151,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="prim"></param>
         internal void DeactivatePrim(OdePrim prim)
         {
-            lock (_activeprims)
-                _activeprims.Remove(prim);
+            _activeprims.Remove(prim);
         }
 
         public override void RemovePrim(PhysicsActor prim)
@@ -2818,13 +2818,10 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                         }
 
                         // Move other active objects
-                        lock (_activeprims)
+                        foreach (OdePrim prim in _activeprims)
                         {
-                            foreach (OdePrim prim in _activeprims)
-                            {
-                                prim.m_collisionscore = 0;
-                                prim.Move(timeStep);
-                            }
+                            prim.m_collisionscore = 0;
+                            prim.Move(timeStep);
                         }
 
                         //if ((framecount % m_randomizeWater) == 0)
@@ -2893,20 +2890,16 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                     defects.Clear();
                 }
 
-                lock (_activeprims)
-                {
-                    //if (timeStep < 0.2f)
-                    {
-                        foreach (OdePrim prim in _activeprims)
-                        {
-                            if (prim.IsPhysical && (d.BodyIsEnabled(prim.Body) || !prim._zeroFlag))
-                            {
-                                prim.UpdatePositionAndVelocity();
+                //if (timeStep < 0.2f)
 
-                                if (SupportsNINJAJoints)
-                                    SimulateActorPendingJoints(prim);
-                            }
-                        }
+                foreach (OdePrim prim in _activeprims)
+                {
+                    if (prim.IsPhysical && (d.BodyIsEnabled(prim.Body) || !prim._zeroFlag))
+                    {
+                        prim.UpdatePositionAndVelocity();
+
+                        if (SupportsNINJAJoints)
+                            SimulateActorPendingJoints(prim);
                     }
                 }
 
