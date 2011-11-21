@@ -123,9 +123,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_buoyancy = 0f;
 
         // private CollisionLocker ode;
-
-        private string m_name = String.Empty;
-
         private bool[] m_colliderarr = new bool[11];
         private bool[] m_colliderGroundarr = new bool[11];
 
@@ -212,7 +209,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _parent_scene.AddPhysicsActorTaint(this);
             
-            m_name = avName;
+            Name = avName;
         }
 
         public override int PhysicsActorType
@@ -1068,7 +1065,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _parent_scene.BadCharacter(this);
                 newPos = new d.Vector3(_position.X, _position.Y, _position.Z);
                 base.RaiseOutOfBounds(_position); // Tells ScenePresence that there's a problem!
-                m_log.WarnFormat("[ODEPLUGIN]: Avatar Null reference for Avatar {0}, physical actor {1}", m_name, m_uuid);
+                m_log.WarnFormat("[ODEPLUGIN]: Avatar Null reference for Avatar {0}, physical actor {1}", Name, m_uuid);
             }
 
             //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
@@ -1284,8 +1281,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z, m_tensor);
                     
-                    _parent_scene.geom_name_map[Shell] = m_name;
-                    _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
+                    _parent_scene.geom_name_map[Shell] = Name;
+                    _parent_scene.actor_name_map[Shell] = this;
                     _parent_scene.AddCharacter(this);
                 }
                 else
@@ -1320,7 +1317,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // appear to stall initial region crossings when done here.  Being done for consistency.
 //                    Velocity = Vector3.Zero;
 
-                    _parent_scene.geom_name_map[Shell] = m_name;
+                    _parent_scene.geom_name_map[Shell] = Name;
                     _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
                 }
                 else
