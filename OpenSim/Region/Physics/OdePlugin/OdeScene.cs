@@ -1247,69 +1247,64 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private bool checkDupe(d.ContactGeom contactGeom, int atype)
         {
-            bool result = false;
-            //return result;
             if (!m_filterCollisions)
                 return false;
+            
+            bool result = false;
 
             ActorTypes at = (ActorTypes)atype;
-            lock (_perloopContact)
+
+            foreach (d.ContactGeom contact in _perloopContact)
             {
-                foreach (d.ContactGeom contact in _perloopContact)
+                //if ((contact.g1 == contactGeom.g1 && contact.g2 == contactGeom.g2))
+                //{
+                    // || (contact.g2 == contactGeom.g1 && contact.g1 == contactGeom.g2)
+                if (at == ActorTypes.Agent)
                 {
-                    //if ((contact.g1 == contactGeom.g1 && contact.g2 == contactGeom.g2))
-                    //{
-                        // || (contact.g2 == contactGeom.g1 && contact.g1 == contactGeom.g2)
-                    if (at == ActorTypes.Agent)
-                    {
-                            if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)) && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                        if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)) && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                        {
+                            
+                            if (Math.Abs(contact.depth - contactGeom.depth) < 0.052f)
                             {
-                                
-                                if (Math.Abs(contact.depth - contactGeom.depth) < 0.052f)
-                                {
-                                    //contactGeom.depth *= .00005f;
-                                   //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
-                                    // m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
-                                    result = true;
-                                    break;
-                                }
-                                else
-                                {
-                                    //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
-                                }
+                                //contactGeom.depth *= .00005f;
+                               //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
+                                // m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
+                                result = true;
+                                break;
                             }
                             else
                             {
-                                //m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
-                                //int i = 0;
-                            }
-                    } 
-                    else if (at == ActorTypes.Prim)
-                    {
-                            //d.AABB aabb1 = new d.AABB();
-                            //d.AABB aabb2 = new d.AABB();
-
-                            //d.GeomGetAABB(contactGeom.g2, out aabb2);
-                            //d.GeomGetAABB(contactGeom.g1, out aabb1);
-                            //aabb1.
-                            if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)) && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
-                            {
-                                if (contactGeom.normal.X == contact.normal.X && contactGeom.normal.Y == contact.normal.Y && contactGeom.normal.Z == contact.normal.Z)
-                                {
-                                    if (Math.Abs(contact.depth - contactGeom.depth) < 0.272f)
-                                    {
-                                        result = true;
-                                        break;
-                                    }
-                                }
                                 //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
-                                //m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
                             }
-                            
-                    }
-                    
-                    //}
+                        }
+                        else
+                        {
+                            //m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
+                            //int i = 0;
+                        }
+                } 
+                else if (at == ActorTypes.Prim)
+                {
+                        //d.AABB aabb1 = new d.AABB();
+                        //d.AABB aabb2 = new d.AABB();
 
+                        //d.GeomGetAABB(contactGeom.g2, out aabb2);
+                        //d.GeomGetAABB(contactGeom.g1, out aabb1);
+                        //aabb1.
+                        if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)) && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                        {
+                            if (contactGeom.normal.X == contact.normal.X && contactGeom.normal.Y == contact.normal.Y && contactGeom.normal.Z == contact.normal.Z)
+                            {
+                                if (Math.Abs(contact.depth - contactGeom.depth) < 0.272f)
+                                {
+                                    result = true;
+                                    break;
+                                }
+                            }
+                            //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
+                            //m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
+                        }
+                        
                 }
             }
 
