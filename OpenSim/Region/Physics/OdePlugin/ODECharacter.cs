@@ -526,7 +526,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-
             // movementVector.Z is zero
 
             // calculate tilt components based on desired amount of tilt and current (snapped) heading.
@@ -1291,16 +1290,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (Shell != IntPtr.Zero && Body != IntPtr.Zero && Amotor != IntPtr.Zero)
                 {
-//                    m_log.DebugFormat("[PHYSICS]: Changing capsule size");
+//                    m_log.DebugFormat(
+//                        "[ODE CHARACTER]: Changing capsule size from {0} to {1} for {2}",
+//                        CAPSULE_LENGTH, m_tainted_CAPSULE_LENGTH, Name);
                     
                     m_pidControllerActive = true;
+
+                    _parent_scene.geom_name_map.Remove(Shell);
+                    _parent_scene.actor_name_map.Remove(Shell);
+
                     // no lock needed on _parent_scene.OdeLock because we are called from within the thread lock in OdePlugin's simulate()
-                    d.JointDestroy(Amotor);
+                    DestroyOdeStructures();
+
                     float prevCapsule = CAPSULE_LENGTH;
                     CAPSULE_LENGTH = m_tainted_CAPSULE_LENGTH;
-                    //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
-                    d.BodyDestroy(Body);
-                    d.GeomDestroy(Shell);
+
                     AvatarGeomAndBodyCreation(
                         _position.X,
                         _position.Y,
@@ -1315,7 +1319,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    m_log.Warn("[PHYSICS]: trying to change capsule size, but the following ODE data is missing - " 
+                    m_log.Warn("[ODE CHARACTER]: trying to change capsule size, but the following ODE data is missing - "
                         + (Shell==IntPtr.Zero ? "Shell ":"")
                         + (Body==IntPtr.Zero ? "Body ":"")
                         + (Amotor==IntPtr.Zero ? "Amotor ":""));

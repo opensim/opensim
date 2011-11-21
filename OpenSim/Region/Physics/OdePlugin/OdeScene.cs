@@ -243,7 +243,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// Maps a unique geometry id (a memory location) to a physics actor name.
         /// </summary>
         /// <remarks>
-        /// Only actors participating in collisions have geometries.
+        /// Only actors participating in collisions have geometries.  This has to be maintained separately from
+        /// actor_name_map because terrain and water currently don't conceptually have a physics actor of their own
+        /// apart from the singleton PANull
         /// </remarks>
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
 
