@@ -542,16 +542,18 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         /// <summary>
-        /// This creates the Avatar's physical Surrogate at the position supplied
+        /// This creates the Avatar's physical Surrogate in ODE at the position supplied
         /// </summary>
+        /// <remarks>
+        /// WARNING: This MUST NOT be called outside of ProcessTaints, else we can have unsynchronized access
+        /// to ODE internals. ProcessTaints is called from within thread-locked Simulate(), so it is the only
+        /// place that is safe to call this routine AvatarGeomAndBodyCreation.
+        /// </remarks>
         /// <param name="npositionX"></param>
         /// <param name="npositionY"></param>
         /// <param name="npositionZ"></param>
-
-        // WARNING: This MUST NOT be called outside of ProcessTaints, else we can have unsynchronized access
-        // to ODE internals. ProcessTaints is called from within thread-locked Simulate(), so it is the only 
-        // place that is safe to call this routine AvatarGeomAndBodyCreation.
-        private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ, float tensor)
+        /// <param name="tensor"></param>
+        private void CreateOdeStructures(float npositionX, float npositionY, float npositionZ, float tensor)
         {
             int dAMotorEuler = 1;
 //            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
@@ -1268,7 +1270,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             + (Amotor!=IntPtr.Zero ? "Amotor ":""));
                     }
 
-                    AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z, m_tensor);
+                    CreateOdeStructures(_position.X, _position.Y, _position.Z, m_tensor);
                     _parent_scene.AddCharacter(this);
                 }
                 else
@@ -1296,7 +1298,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     float prevCapsule = CAPSULE_LENGTH;
                     CAPSULE_LENGTH = m_tainted_CAPSULE_LENGTH;
 
-                    AvatarGeomAndBodyCreation(
+                    CreateOdeStructures(
                         _position.X,
                         _position.Y,
                         _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2), m_tensor);
