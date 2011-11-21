@@ -189,7 +189,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public d.TriCallback triCallback;
         public d.TriArrayCallback triArrayCallback;
 
+        /// <summary>
+        /// Avatars in the physics scene.
+        /// </summary>
         private readonly HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
+        
         private readonly HashSet<OdePrim> _prims = new HashSet<OdePrim>();
         private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
 
@@ -253,6 +257,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// Only actors participating in collisions have geometries.
         /// </remarks>
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
+
+        /// <summary>
+        /// Defects list to remove characters that no longer have finite positions due to some other bug.
+        /// </summary>
+        /// <remarks>
+        /// Used repeatedly in Simulate() but initialized once here.
+        /// </remarks>
+        private readonly List<OdeCharacter> defects = new List<OdeCharacter>();
 
         private bool m_NINJA_physics_joints_enabled = false;
         //private Dictionary<String, IntPtr> jointpart_name_map = new Dictionary<String,IntPtr>();
@@ -1515,45 +1527,42 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             _perloopContact.Clear();
 
-            lock (_characters)
+            foreach (OdeCharacter chr in _characters)
             {
-                foreach (OdeCharacter chr in _characters)
+                // Reset the collision values to false
+                // since we don't know if we're colliding yet
+                
+                // For some reason this can happen. Don't ask...
+                //
+                if (chr == null)
+                    continue;
+                
+                if (chr.Shell == IntPtr.Zero || chr.Body == IntPtr.Zero)
+                    continue;
+                
+                chr.IsColliding = false;
+                chr.CollidingGround = false;
+                chr.CollidingObj = false;
+                
+                // test the avatar's geometry for collision with the space
+                // This will return near and the space that they are the closest to
+                // And we'll run this again against the avatar and the space segment
+                // This will return with a bunch of possible objects in the space segment
+                // and we'll run it again on all of them.
+                try
                 {
-                    // Reset the collision values to false
-                    // since we don't know if we're colliding yet
-                    
-                    // For some reason this can happen. Don't ask...
-                    //
-                    if (chr == null)
-                        continue;
-                    
-                    if (chr.Shell == IntPtr.Zero || chr.Body == IntPtr.Zero)
-                        continue;
-                    
-                    chr.IsColliding = false;
-                    chr.CollidingGround = false;
-                    chr.CollidingObj = false;
-                    
-                    // test the avatar's geometry for collision with the space
-                    // This will return near and the space that they are the closest to
-                    // And we'll run this again against the avatar and the space segment
-                    // This will return with a bunch of possible objects in the space segment
-                    // and we'll run it again on all of them.
-                    try
-                    {
-                        d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
-                    }
-                    catch (AccessViolationException)
-                    {
-                        m_log.Warn("[PHYSICS]: Unable to space collide");
-                    }
-                    //float terrainheight = GetTerrainHeightAtXY(chr.Position.X, chr.Position.Y);
-                    //if (chr.Position.Z + (chr.Velocity.Z * timeStep) < terrainheight + 10)
-                    //{
-                    //chr.Position.Z = terrainheight + 10.0f;
-                    //forcedZ = true;
-                    //}
+                    d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
                 }
+                catch (AccessViolationException)
+                {
+                    m_log.Warn("[PHYSICS]: Unable to space collide");
+                }
+                //float terrainheight = GetTerrainHeightAtXY(chr.Position.X, chr.Position.Y);
+                //if (chr.Position.Z + (chr.Velocity.Z * timeStep) < terrainheight + 10)
+                //{
+                //chr.Position.Z = terrainheight + 10.0f;
+                //forcedZ = true;
+                //}
             }
 
             lock (_activeprims)
@@ -1716,28 +1725,22 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void AddCharacter(OdeCharacter chr)
         {
-            lock (_characters)
+            if (!_characters.Contains(chr))
             {
-                if (!_characters.Contains(chr))
-                {
-                    _characters.Add(chr);
+                _characters.Add(chr);
 
-                    if (chr.bad)
-                        m_log.ErrorFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.m_uuid);
-                }
+                if (chr.bad)
+                    m_log.ErrorFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.m_uuid);
             }
         }
 
         internal void RemoveCharacter(OdeCharacter chr)
         {
-            lock (_characters)
+            if (_characters.Contains(chr))
             {
-                if (_characters.Contains(chr))
-                {
-                    _characters.Remove(chr);
-                    geom_name_map.Remove(chr.Shell);
-                    actor_name_map.Remove(chr.Shell);
-                }
+                _characters.Remove(chr);
+                geom_name_map.Remove(chr.Shell);
+                actor_name_map.Remove(chr.Shell);
             }
         }
 
@@ -2797,13 +2800,21 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                         }
 
                         // Move characters
-                        lock (_characters)
+                        foreach (OdeCharacter actor in _characters)
                         {
-                            foreach (OdeCharacter actor in _characters)
+                            if (actor != null)
+                                actor.Move(defects);
+                        }
+
+                        if (defects.Count != 0)
+                        {
+                            foreach (OdeCharacter actor in defects)
                             {
-                                if (actor != null)
-                                    actor.Move();
+                                RemoveCharacter(actor);
+                                actor.DestroyOdeStructures();
                             }
+
+                            defects.Clear();
                         }
 
                         // Move other active objects
@@ -2860,18 +2871,26 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                     timeLeft -= ODE_STEPSIZE;
                 }
 
-                lock (_characters)
+                foreach (OdeCharacter actor in _characters)
                 {
-                    foreach (OdeCharacter actor in _characters)
+                    if (actor != null)
                     {
-                        if (actor != null)
-                        {
-                            if (actor.bad)
-                                m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
+                        if (actor.bad)
+                            m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
 
-                            actor.UpdatePositionAndVelocity();
-                        }
+                        actor.UpdatePositionAndVelocity(defects);
                     }
+                }
+
+                if (defects.Count != 0)
+                {
+                    foreach (OdeCharacter actor in defects)
+                    {
+                        RemoveCharacter(actor);
+                        actor.DestroyOdeStructures();
+                    }
+
+                    defects.Clear();
                 }
 
                 lock (_activeprims)
@@ -3899,30 +3918,28 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 }
             }
             ds.SetColor(1.0f, 0.0f, 0.0f);
-            lock (_characters)
+
+            foreach (OdeCharacter chr in _characters)
             {
-                foreach (OdeCharacter chr in _characters)
+                if (chr.Shell != IntPtr.Zero)
                 {
-                    if (chr.Shell != IntPtr.Zero)
-                    {
-                        IntPtr body = d.GeomGetBody(chr.Shell);
+                    IntPtr body = d.GeomGetBody(chr.Shell);
 
-                        d.Vector3 pos;
-                        d.GeomCopyPosition(chr.Shell, out pos);
-                        //d.BodyCopyPosition(body, out pos);
+                    d.Vector3 pos;
+                    d.GeomCopyPosition(chr.Shell, out pos);
+                    //d.BodyCopyPosition(body, out pos);
 
-                        d.Matrix3 R;
-                        d.GeomCopyRotation(chr.Shell, out R);
-                        //d.BodyCopyRotation(body, out R);
+                    d.Matrix3 R;
+                    d.GeomCopyRotation(chr.Shell, out R);
+                    //d.BodyCopyRotation(body, out R);
 
-                        ds.DrawCapsule(ref pos, ref R, chr.Size.Z, 0.35f);
-                        d.Vector3 sides = new d.Vector3();
-                        sides.X = 0.5f;
-                        sides.Y = 0.5f;
-                        sides.Z = 0.5f;
+                    ds.DrawCapsule(ref pos, ref R, chr.Size.Z, 0.35f);
+                    d.Vector3 sides = new d.Vector3();
+                    sides.X = 0.5f;
+                    sides.Y = 0.5f;
+                    sides.Z = 0.5f;
 
-                        ds.DrawBox(ref pos, ref R, ref sides);
-                    }
+                    ds.DrawBox(ref pos, ref R, ref sides);
                 }
             }
         }

@@ -862,11 +862,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// Called from Simulate
         /// This is the avatar's movement control + PID Controller
         /// </summary>
-        /// <remarks>
-        /// This routine will remove the character from the physics scene if it detects something wrong (non-finite
+        /// <param name="defects">The character will be added to this list if there is something wrong (non-finite
         /// position or velocity).
-        /// </remarks>
-        internal void Move()
+        /// </param>
+        internal void Move(List<OdeCharacter> defects)
         {
             //  no lock; for now it's only called from within Simulate()
             
@@ -891,8 +890,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     "[ODE CHARACTER]: Avatar position of {0} for {1} is non-finite!  Removing from physics scene.",
                     localPos, Name);
 
-                _parent_scene.RemoveCharacter(this);
-                DestroyOdeStructures();
+                defects.Add(this);
 
                 return;
             }
@@ -1031,15 +1029,19 @@ namespace OpenSim.Region.Physics.OdePlugin
                     "[ODE CHARACTER]: Got a NaN force vector {0} in Move() for {1}.  Removing character from physics scene.",
                     vec, Name);
 
-                _parent_scene.RemoveCharacter(this);
-                DestroyOdeStructures();
+                defects.Add(this);
+
+                return;
             }
         }
 
         /// <summary>
         /// Updates the reported position and velocity.  This essentially sends the data up to ScenePresence.
         /// </summary>
-        internal void UpdatePositionAndVelocity()
+        /// <param name="defects">The character will be added to this list if there is something wrong (non-finite
+        /// position or velocity).
+        /// </param>
+        internal void UpdatePositionAndVelocity(List<OdeCharacter> defects)
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
             d.Vector3 newPos;
@@ -1050,11 +1052,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             catch (NullReferenceException)
             {
                 bad = true;
-                _parent_scene.RemoveCharacter(this);
-                DestroyOdeStructures();
+                defects.Add(this);
                 newPos = new d.Vector3(_position.X, _position.Y, _position.Z);
                 base.RaiseOutOfBounds(_position); // Tells ScenePresence that there's a problem!
                 m_log.WarnFormat("[ODE CHARACTER]: Avatar Null reference for Avatar {0}, physical actor {1}", Name, m_uuid);
+
+                return;
             }
 
             //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
@@ -1134,7 +1137,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// Used internally to destroy the ODE structures associated with this character.
         /// </summary>
-        private void DestroyOdeStructures()
+        internal void DestroyOdeStructures()
         {
             // destroy avatar capsule and related ODE data
             if (Amotor != IntPtr.Zero)
