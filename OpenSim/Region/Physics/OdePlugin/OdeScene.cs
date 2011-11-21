@@ -1716,8 +1716,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!_characters.Contains(chr))
                 {
                     _characters.Add(chr);
-                    geom_name_map[chr.Shell] = Name;
-                    actor_name_map[chr.Shell] = chr;
 
                     if (chr.bad)
                         m_log.ErrorFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.m_uuid);
