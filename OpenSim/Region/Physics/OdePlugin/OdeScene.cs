@@ -251,10 +251,27 @@ namespace OpenSim.Region.Physics.OdePlugin
         //private Dictionary<String, IntPtr> jointpart_name_map = new Dictionary<String,IntPtr>();
         private readonly Dictionary<String, List<PhysicsJoint>> joints_connecting_actor = new Dictionary<String, List<PhysicsJoint>>();
         private d.ContactGeom[] contacts;
-        private readonly List<PhysicsJoint> requestedJointsToBeCreated = new List<PhysicsJoint>(); // lock only briefly. accessed by external code (to request new joints) and by OdeScene.Simulate() to move those joints into pending/active
-        private readonly List<PhysicsJoint> pendingJoints = new List<PhysicsJoint>(); // can lock for longer. accessed only by OdeScene.
-        private readonly List<PhysicsJoint> activeJoints = new List<PhysicsJoint>(); // can lock for longer. accessed only by OdeScene.
-        private readonly List<string> requestedJointsToBeDeleted = new List<string>(); // lock only briefly. accessed by external code (to request deletion of joints) and by OdeScene.Simulate() to move those joints out of pending/active
+
+        /// <summary>
+        /// Lock only briefly. accessed by external code (to request new joints) and by OdeScene.Simulate() to move those joints into pending/active
+        /// </summary>
+        private readonly List<PhysicsJoint> requestedJointsToBeCreated = new List<PhysicsJoint>();
+
+        /// <summary>
+        /// can lock for longer. accessed only by OdeScene.
+        /// </summary>
+        private readonly List<PhysicsJoint> pendingJoints = new List<PhysicsJoint>();
+
+        /// <summary>
+        /// can lock for longer. accessed only by OdeScene.
+        /// </summary>
+        private readonly List<PhysicsJoint> activeJoints = new List<PhysicsJoint>();
+
+        /// <summary>
+        /// lock only briefly. accessed by external code (to request deletion of joints) and by OdeScene.Simulate() to move those joints out of pending/active
+        /// </summary>
+        private readonly List<string> requestedJointsToBeDeleted = new List<string>();
+
         private Object externalJointRequestsLock = new Object();
         private readonly Dictionary<String, PhysicsJoint> SOPName_to_activeJoint = new Dictionary<String, PhysicsJoint>();
         private readonly Dictionary<String, PhysicsJoint> SOPName_to_pendingJoint = new Dictionary<String, PhysicsJoint>();
@@ -776,12 +793,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
 
-                lock (contacts)
-                {
-                    count = d.Collide(g1, g2, contacts.Length, contacts, d.ContactGeom.SizeOf);
-                    if (count > contacts.Length)
-                        m_log.Error("[PHYSICS]: Got " + count + " contacts when we asked for a maximum of " + contacts.Length);
-                }
+                count = d.Collide(g1, g2, contacts.Length, contacts, d.ContactGeom.SizeOf);
+                if (count > contacts.Length)
+                    m_log.Error("[PHYSICS]: Got " + count + " contacts when we asked for a maximum of " + contacts.Length);
             }
             catch (SEHException)
             {
