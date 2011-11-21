@@ -194,14 +194,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
 
         /// <summary>
-        /// Defects list to remove characters that no longer have finite positions due to some other bug.
-        /// </summary>
-        /// <remarks>
-        /// Used repeatedly in Simulate() but initialized once here.
-        /// </remarks>
-        private readonly List<OdeCharacter> defects = new List<OdeCharacter>();
-
-        /// <summary>
         /// Used to lock on manipulation of _taintedPrimL and _taintedPrimH
         /// </summary>
         private readonly Object _taintedPrimLock = new Object();
@@ -236,8 +228,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// A dictionary of collision event changes that are waiting to be processed.
         /// </summary>
         private readonly Dictionary<uint, PhysicsActor> _collisionEventPrimChanges = new Dictionary<uint, PhysicsActor>();
-        
-        private readonly HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
 
         /// <summary>
         /// Maps a unique geometry id (a memory location) to a physics actor name.
@@ -1736,15 +1726,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        internal void BadCharacter(OdeCharacter chr)
-        {
-            lock (_badCharacter)
-            {
-                if (!_badCharacter.Contains(chr))
-                    _badCharacter.Add(chr);
-            }
-        }
-
         private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
                                      PrimitiveBaseShape pbs, bool isphysical, uint localID)
         {
@@ -2805,15 +2786,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                             foreach (OdeCharacter actor in _characters)
                             {
                                 if (actor != null)
-                                    actor.Move(defects);
-                            }
-                            
-                            if (0 != defects.Count)
-                            {
-                                foreach (OdeCharacter defect in defects)
-                                    RemoveCharacter(defect);
-
-                                defects.Clear();
+                                    actor.Move();
                             }
                         }
 
@@ -2882,19 +2855,6 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
 
                             actor.UpdatePositionAndVelocity();
                         }
-                    }
-                }
-
-                lock (_badCharacter)
-                {
-                    if (_badCharacter.Count > 0)
-                    {
-                        foreach (OdeCharacter chr in _badCharacter)
-                        {
-                            RemoveCharacter(chr);
-                        }
-
-                        _badCharacter.Clear();
                     }
                 }
 

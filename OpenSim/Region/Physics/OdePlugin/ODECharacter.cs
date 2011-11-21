@@ -178,7 +178,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         parent_scene.GetTerrainHeightAtXY(128f, 128f) + 10f);
                 m_taintPosition = _position;
 
-                m_log.Warn("[PHYSICS]: Got NaN Position on Character Create");
+                m_log.WarnFormat("[ODE CHARACTER]: Got NaN Position on Character Create for {0}", avName);
             }
 
             _parent_scene = parent_scene;
@@ -201,7 +201,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_colliderarr[i] = false;
             }
             CAPSULE_LENGTH = (size.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
-            //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
+            //m_log.Info("[ODE CHARACTER]: " + CAPSULE_LENGTH.ToString());
             m_tainted_CAPSULE_LENGTH = CAPSULE_LENGTH;
 
             m_isPhysical = false; // current status: no ODE information exists
@@ -266,7 +266,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 flying = value;
-//                m_log.DebugFormat("[PHYSICS]: Set OdeCharacter Flying to {0}", flying);
+//                m_log.DebugFormat("[ODE CHARACTER]: Set OdeCharacter Flying to {0}", flying);
             }
         }
 
@@ -437,7 +437,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        m_log.Warn("[PHYSICS]: Got a NaN Position from Scene on a Character");
+                        m_log.WarnFormat("[ODE CHARACTER]: Got a NaN Position from Scene on character {0}", Name);
                     }
                 }
             }
@@ -464,7 +464,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     Vector3 SetSize = value;
                     m_tainted_CAPSULE_LENGTH = (SetSize.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
-//                    m_log.Info("[SIZE]: " + CAPSULE_LENGTH);
+//                    m_log.Info("[ODE CHARACTER]: " + CAPSULE_LENGTH);
 
                     // If we reset velocity here, then an avatar stalls when it crosses a border for the first time
                     // (as the height of the new root agent is set).
@@ -474,7 +474,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    m_log.Warn("[PHYSICS]: Got a NaN Size from Scene on a Character");
+                    m_log.WarnFormat("[ODE CHARACTER]: Got a NaN Size from Scene on {0}", Name);
                 }
             }
         }
@@ -533,7 +533,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float xTiltComponent = -movementVector.X * m_tiltMagnitudeWhenProjectedOnXYPlane;
             float yTiltComponent = -movementVector.Y * m_tiltMagnitudeWhenProjectedOnXYPlane;
 
-            //m_log.Debug("[PHYSICS] changing avatar tilt");
+            //m_log.Debug("[ODE CHARACTER]: changing avatar tilt");
             d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, xTiltComponent);
             d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, xTiltComponent); // must be same as lowstop, else a different, spurious tilt is introduced
             d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, yTiltComponent);
@@ -560,17 +560,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             _parent_scene.waitForSpaceUnlock(_parent_scene.space);
             if (CAPSULE_LENGTH <= 0)
             {
-                m_log.Warn("[PHYSICS]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
+                m_log.Warn("[ODE CHARACTER]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
                 CAPSULE_LENGTH = 0.01f;
-
             }
 
             if (CAPSULE_RADIUS <= 0)
             {
-                m_log.Warn("[PHYSICS]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
+                m_log.Warn("[ODE CHARACTER]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
                 CAPSULE_RADIUS = 0.01f;
-
             }
+
             Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
 
             d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
@@ -770,7 +769,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    m_log.Warn("[PHYSICS]: Got a NaN velocity from Scene in a Character");
+                    m_log.WarnFormat("[ODE CHARACTER]: Got a NaN velocity from Scene for {0}", Name);
                 }
 
 //                m_log.DebugFormat("[PHYSICS]: Set target velocity of {0}", m_taintTargetVelocity);
@@ -848,7 +847,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                m_log.Warn("[PHYSICS]: Got a NaN force applied to a Character");
+                m_log.WarnFormat("[ODE CHARACTER]: Got a NaN force applied to {0}", Name);
             }
             //m_lastUpdateSent = false;
         }
@@ -874,11 +873,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// Called from Simulate
         /// This is the avatar's movement control + PID Controller
         /// </summary>
-        /// <param name="defects">
-        /// If there is something wrong with the character (e.g. its position is non-finite)
-        /// then it is added to this list.  The ODE structures associated with it are also destroyed.
-        /// </param>
-        internal void Move(List<OdeCharacter> defects)
+        /// <remarks>
+        /// This routine will remove the character from the physics scene if it detects something wrong (non-finite
+        /// position or velocity).
+        /// </remarks>
+        internal void Move()
         {
             //  no lock; for now it's only called from within Simulate()
             
@@ -899,11 +898,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             
             if (!localPos.IsFinite())
             {
-                m_log.WarnFormat("[PHYSICS]: Avatar Position of {0} is non-finite!", Name);
+                m_log.WarnFormat(
+                    "[ODE CHARACTER]: Avatar position of {0} for {1} is non-finite!  Removing from physics scene.",
+                    localPos, Name);
 
-                defects.Add(this);
-                // _parent_scene.RemoveCharacter(this);
-
+                _parent_scene.RemoveCharacter(this);
                 DestroyOdeStructures();
 
                 return;
@@ -1038,11 +1037,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                m_log.Warn("[PHYSICS]: Got a NaN force vector in Move()");
-                m_log.Warn("[PHYSICS]: Avatar Position is non-finite!");
-                defects.Add(this);
-                // _parent_scene.RemoveCharacter(this);
+                m_log.WarnFormat(
+                    "[ODE CHARACTER]: Got a NaN force vector {0} in Move() for {1}.  Removing character from physics scene.",
+                    vec, Name);
 
+                _parent_scene.RemoveCharacter(this);
                 DestroyOdeStructures();
             }
         }
@@ -1061,7 +1060,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             catch (NullReferenceException)
             {
                 bad = true;
-                _parent_scene.BadCharacter(this);
+                _parent_scene.RemoveCharacter(this);
                 DestroyOdeStructures();
                 newPos = new d.Vector3(_position.X, _position.Y, _position.Z);
                 base.RaiseOutOfBounds(_position); // Tells ScenePresence that there's a problem!
@@ -1275,7 +1274,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // Create avatar capsule and related ODE data
                     if (!(Shell == IntPtr.Zero && Body == IntPtr.Zero && Amotor == IntPtr.Zero))
                     {
-                        m_log.Warn("[PHYSICS]: re-creating the following avatar ODE data, even though it already exists - "
+                        m_log.Warn("[ODE CHARACTER]: re-creating the following avatar ODE data for " + Name + ", even though it already exists - "
                             + (Shell!=IntPtr.Zero ? "Shell ":"")
                             + (Body!=IntPtr.Zero ? "Body ":"")
                             + (Amotor!=IntPtr.Zero ? "Amotor ":""));
@@ -1320,7 +1319,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    m_log.Warn("[ODE CHARACTER]: trying to change capsule size, but the following ODE data is missing - "
+                    m_log.Warn("[ODE CHARACTER]: trying to change capsule size for " + Name + ", but the following ODE data is missing - "
                         + (Shell==IntPtr.Zero ? "Shell ":"")
                         + (Body==IntPtr.Zero ? "Body ":"")
                         + (Amotor==IntPtr.Zero ? "Amotor ":""));
