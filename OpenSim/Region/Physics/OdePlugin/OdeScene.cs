@@ -1556,8 +1556,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 catch (AccessViolationException)
                 {
-                    m_log.Warn("[PHYSICS]: Unable to space collide");
+                    m_log.WarnFormat("[PHYSICS]: Unable to space collide {0}", Name);
                 }
+                
                 //float terrainheight = GetTerrainHeightAtXY(chr.Position.X, chr.Position.Y);
                 //if (chr.Position.Z + (chr.Velocity.Z * timeStep) < terrainheight + 10)
                 //{
