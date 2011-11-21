@@ -188,9 +188,18 @@ namespace OpenSim.Region.Physics.OdePlugin
         private d.NearCallback nearCallback;
         public d.TriCallback triCallback;
         public d.TriArrayCallback triArrayCallback;
+
         private readonly HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
         private readonly HashSet<OdePrim> _prims = new HashSet<OdePrim>();
         private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
+
+        /// <summary>
+        /// Defects list to remove characters that no longer have finite positions due to some other bug.
+        /// </summary>
+        /// <remarks>
+        /// Used repeatedly in Simulate() but initialized once here.
+        /// </remarks>
+        private readonly List<OdeCharacter> defects = new List<OdeCharacter>();
 
         /// <summary>
         /// Used to lock on manipulation of _taintedPrimL and _taintedPrimH
@@ -2773,18 +2782,18 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                         // Move characters
                         lock (_characters)
                         {
-                            List<OdeCharacter> defects = new List<OdeCharacter>();
                             foreach (OdeCharacter actor in _characters)
                             {
                                 if (actor != null)
                                     actor.Move(defects);
                             }
+                            
                             if (0 != defects.Count)
                             {
                                 foreach (OdeCharacter defect in defects)
-                                {
                                     RemoveCharacter(defect);
-                                }
+
+                                defects.Clear();
                             }
                         }
 
