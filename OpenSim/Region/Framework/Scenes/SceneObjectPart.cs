@@ -242,7 +242,6 @@ namespace OpenSim.Region.Framework.Scenes
         private byte[] m_TextureAnimation;
         private byte m_clickAction;
         private Color m_color = Color.Black;
-        private string m_description = String.Empty;
         private readonly List<uint> m_lastColliders = new List<uint>();
         private int m_linkNum;
         
@@ -323,6 +322,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_TextureAnimation = Utils.EmptyBytes;
             m_particleSystem = Utils.EmptyBytes;
             Rezzed = DateTime.UtcNow;
+            Description = String.Empty;
             
             m_inventory = new SceneObjectPartInventory(this);
         }
@@ -342,6 +342,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_name = "Primitive";
 
             Rezzed = DateTime.UtcNow;
+            Description = String.Empty;
             CreationDate = (int)Utils.DateTimeToUnixTime(Rezzed);
             LastOwnerID = CreatorID = OwnerID = ownerID;
             UUID = UUID.Random();
@@ -906,11 +907,7 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_acceleration = value; }
         }
 
-        public string Description
-        {
-            get { return m_description; }
-            set { m_description = value; }
-        }
+        public string Description { get; set; }
 
         /// <value>
         /// Text color.
