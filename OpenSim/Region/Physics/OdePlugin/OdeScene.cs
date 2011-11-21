@@ -216,7 +216,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </remarks>
         private readonly HashSet<OdePrim> _taintedPrimH = new HashSet<OdePrim>();
 
+        /// <summary>
+        /// Record a character that has taints to be processed.
+        /// </summary>
         private readonly HashSet<OdeCharacter> _taintedActors = new HashSet<OdeCharacter>();
+
+        /// <summary>
+        /// Keep record of contacts in the physics loop so that we can remove duplicates.
+        /// </summary>
         private readonly List<d.ContactGeom> _perloopContact = new List<d.ContactGeom>();
 
         /// <summary>
@@ -1059,6 +1066,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (!skipThisContact)
                 {
+                    _perloopContact.Add(curContact);
+
                     // If we're colliding against terrain
                     if (name1 == "Terrain" || name2 == "Terrain")
                     {
@@ -1068,7 +1077,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             // Use the movement terrain contact
                             AvatarMovementTerrainContact.geom = curContact;
-                            _perloopContact.Add(curContact);
+
                             if (m_global_contactcount < maxContactsbeforedeath)
                             {
                                 joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementTerrainContact);
@@ -1081,7 +1090,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 // Use the non moving terrain contact
                                 TerrainContact.geom = curContact;
-                                _perloopContact.Add(curContact);
+
                                 if (m_global_contactcount < maxContactsbeforedeath)
                                 {
                                     joint = d.JointCreateContact(world, contactgroup, ref TerrainContact);
@@ -1107,7 +1116,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                                     //m_log.DebugFormat("Material: {0}", material);
                                     m_materialContacts[material, movintYN].geom = curContact;
-                                    _perloopContact.Add(curContact);
 
                                     if (m_global_contactcount < maxContactsbeforedeath)
                                     {
@@ -1128,9 +1136,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                                     if (p2 is OdePrim)
                                         material = ((OdePrim)p2).m_material;
+
                                     //m_log.DebugFormat("Material: {0}", material);
                                     m_materialContacts[material, movintYN].geom = curContact;
-                                    _perloopContact.Add(curContact);
 
                                     if (m_global_contactcount < maxContactsbeforedeath)
                                     {
@@ -1163,8 +1171,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                             //contact.normal = new d.Vector3(0, 0, 1);
                             //contact.pos = new d.Vector3(0, 0, contact.pos.Z - 5f);
                         }
+
                         WaterContact.geom = curContact;
-                        _perloopContact.Add(curContact);
+
                         if (m_global_contactcount < maxContactsbeforedeath)
                         {
                             joint = d.JointCreateContact(world, contactgroup, ref WaterContact);
@@ -1182,7 +1191,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 // Use the Movement prim contact
                                 AvatarMovementprimContact.geom = curContact;
-                                _perloopContact.Add(curContact);
+
                                 if (m_global_contactcount < maxContactsbeforedeath)
                                 {
                                     joint = d.JointCreateContact(world, contactgroup, ref AvatarMovementprimContact);
@@ -1212,13 +1221,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                             
                             //m_log.DebugFormat("Material: {0}", material);
                             m_materialContacts[material, 0].geom = curContact;
-                            _perloopContact.Add(curContact);
 
                             if (m_global_contactcount < maxContactsbeforedeath)
                             {
                                 joint = d.JointCreateContact(world, contactgroup, ref m_materialContacts[material, 0]);
                                 m_global_contactcount++;
-
                             }
                         }
                     }
@@ -1249,7 +1256,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (!m_filterCollisions)
                 return false;
-            
+
             bool result = false;
 
             ActorTypes at = (ActorTypes)atype;
@@ -1261,50 +1268,51 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // || (contact.g2 == contactGeom.g1 && contact.g1 == contactGeom.g2)
                 if (at == ActorTypes.Agent)
                 {
-                        if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)) && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                    if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f)
+                        && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f)
+                        && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f))
+                        && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                    {
+                        if (Math.Abs(contact.depth - contactGeom.depth) < 0.052f)
                         {
-                            
-                            if (Math.Abs(contact.depth - contactGeom.depth) < 0.052f)
-                            {
-                                //contactGeom.depth *= .00005f;
-                               //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
-                                // m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
-                                result = true;
-                                break;
-                            }
-                            else
-                            {
-                                //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
-                            }
+                            //contactGeom.depth *= .00005f;
+                           //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
+                            // m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
+                            result = true;
+                            break;
                         }
-                        else
-                        {
-                            //m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
-                            //int i = 0;
-                        }
+//                        else
+//                        {
+//                            //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
+//                        }
+                    }
+//                    else
+//                    {
+//                        //m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
+//                        //int i = 0;
+//                    }
                 } 
                 else if (at == ActorTypes.Prim)
                 {
-                        //d.AABB aabb1 = new d.AABB();
-                        //d.AABB aabb2 = new d.AABB();
+                    //d.AABB aabb1 = new d.AABB();
+                    //d.AABB aabb2 = new d.AABB();
 
-                        //d.GeomGetAABB(contactGeom.g2, out aabb2);
-                        //d.GeomGetAABB(contactGeom.g1, out aabb1);
-                        //aabb1.
-                        if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)) && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                    //d.GeomGetAABB(contactGeom.g2, out aabb2);
+                    //d.GeomGetAABB(contactGeom.g1, out aabb1);
+                    //aabb1.
+                    if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)) && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                    {
+                        if (contactGeom.normal.X == contact.normal.X && contactGeom.normal.Y == contact.normal.Y && contactGeom.normal.Z == contact.normal.Z)
                         {
-                            if (contactGeom.normal.X == contact.normal.X && contactGeom.normal.Y == contact.normal.Y && contactGeom.normal.Z == contact.normal.Z)
+                            if (Math.Abs(contact.depth - contactGeom.depth) < 0.272f)
                             {
-                                if (Math.Abs(contact.depth - contactGeom.depth) < 0.272f)
-                                {
-                                    result = true;
-                                    break;
-                                }
+                                result = true;
+                                break;
                             }
-                            //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
-                            //m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
                         }
-                        
+                        //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
+                        //m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
+                    }
                 }
             }
 
@@ -1589,8 +1597,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
             }
-
-            _perloopContact.Clear();
         }
 
         #endregion
