@@ -160,8 +160,10 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract bool Selected { set; }
 
+        /// <summary>
+        /// This is being used by ODE joint code.
+        /// </summary>
         public string SOPName;
-        public string SOPDescription;
 
         public abstract void CrossingFailure();
 
