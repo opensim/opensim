@@ -238,8 +238,23 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly Dictionary<uint, PhysicsActor> _collisionEventPrimChanges = new Dictionary<uint, PhysicsActor>();
         
         private readonly HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
+
+        /// <summary>
+        /// Maps a unique geometry id (a memory location) to a physics actor name.
+        /// </summary>
+        /// <remarks>
+        /// Only actors participating in collisions have geometries.
+        /// </remarks>
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
+
+        /// <summary>
+        /// Maps a unique geometry id (a memory location) to a physics actor.
+        /// </summary>
+        /// <remarks>
+        /// Only actors participating in collisions have geometries.
+        /// </remarks>
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
+
         private bool m_NINJA_physics_joints_enabled = false;
         //private Dictionary<String, IntPtr> jointpart_name_map = new Dictionary<String,IntPtr>();
         private readonly Dictionary<String, List<PhysicsJoint>> joints_connecting_actor = new Dictionary<String, List<PhysicsJoint>>();
@@ -1699,8 +1714,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!_characters.Contains(chr))
                 {
                     _characters.Add(chr);
+                    geom_name_map[chr.Shell] = Name;
+                    actor_name_map[chr.Shell] = chr;
+
                     if (chr.bad)
-                        m_log.DebugFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.m_uuid);
+                        m_log.ErrorFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.m_uuid);
                 }
             }
         }
@@ -1712,6 +1730,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (_characters.Contains(chr))
                 {
                     _characters.Remove(chr);
+                    geom_name_map.Remove(chr.Shell);
+                    actor_name_map.Remove(chr.Shell);
                 }
             }
         }
