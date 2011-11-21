@@ -909,15 +909,7 @@ namespace OpenSim.Region.Framework.Scenes
         public string Description
         {
             get { return m_description; }
-            set 
-            {
-                m_description = value;
-                PhysicsActor actor = PhysActor;
-                if (actor != null)
-                {
-                    actor.SOPDescription = value;
-                }
-            }
+            set { m_description = value; }
         }
 
         /// <value>
@@ -1543,8 +1535,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // Basic Physics returns null..  joy joy joy.
                     if (PhysActor != null)
                     {
-                        PhysActor.SOPName = this.Name; // save object name and desc into the PhysActor so ODE internals know the joint/body info
-                        PhysActor.SOPDescription = this.Description;
+                        PhysActor.SOPName = this.Name; // save object into the PhysActor so ODE internals know the joint/body info
                         PhysActor.SetMaterial(Material);
                         DoPhysicsPropertyUpdate(RigidBody, true);
                         PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
