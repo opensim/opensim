@@ -557,7 +557,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             //CAPSULE_LENGTH = -5;
             //CAPSULE_RADIUS = -5;
             int dAMotorEuler = 1;
-            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+//            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
             if (CAPSULE_LENGTH <= 0)
             {
                 m_log.Warn("[ODE CHARACTER]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
@@ -1155,7 +1155,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             //kill the Geometry
-            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+//            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
 
             if (Body != IntPtr.Zero)
             {
