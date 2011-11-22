@@ -1735,12 +1735,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void RemoveCharacter(OdeCharacter chr)
         {
-            if (_characters.Contains(chr))
-            {
-                _characters.Remove(chr);
-                geom_name_map.Remove(chr.Shell);
-                actor_name_map.Remove(chr.Shell);
-            }
+            _characters.Remove(chr);
         }
 
         private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
