@@ -449,7 +449,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                return new T[] { default(T) };
+                return new T[] {};
             }
         }
         
