@@ -542,123 +542,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         /// <summary>
-        /// This creates the Avatar's physical Surrogate in ODE at the position supplied
-        /// </summary>
-        /// <remarks>
-        /// WARNING: This MUST NOT be called outside of ProcessTaints, else we can have unsynchronized access
-        /// to ODE internals. ProcessTaints is called from within thread-locked Simulate(), so it is the only
-        /// place that is safe to call this routine AvatarGeomAndBodyCreation.
-        /// </remarks>
-        /// <param name="npositionX"></param>
-        /// <param name="npositionY"></param>
-        /// <param name="npositionZ"></param>
-        /// <param name="tensor"></param>
-        private void CreateOdeStructures(float npositionX, float npositionY, float npositionZ, float tensor)
-        {
-            int dAMotorEuler = 1;
-//            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
-            if (CAPSULE_LENGTH <= 0)
-            {
-                m_log.Warn("[ODE CHARACTER]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
-                CAPSULE_LENGTH = 0.01f;
-            }
-
-            if (CAPSULE_RADIUS <= 0)
-            {
-                m_log.Warn("[ODE CHARACTER]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
-                CAPSULE_RADIUS = 0.01f;
-            }
-
-            Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
-
-            d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
-            d.GeomSetCollideBits(Shell, (int)m_collisionFlags);
-
-            d.MassSetCapsuleTotal(out ShellMass, m_mass, 2, CAPSULE_RADIUS, CAPSULE_LENGTH);
-            Body = d.BodyCreate(_parent_scene.world);
-            d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
-
-            _position.X = npositionX;
-            _position.Y = npositionY;
-            _position.Z = npositionZ;
-
-            m_taintPosition = _position;
-
-            d.BodySetMass(Body, ref ShellMass);
-            d.Matrix3 m_caprot;
-            // 90 Stand up on the cap of the capped cyllinder
-            if (_parent_scene.IsAvCapsuleTilted)
-            {
-                d.RFromAxisAndAngle(out m_caprot, 1, 0, 1, (float)(Math.PI / 2));
-            }
-            else
-            {
-                d.RFromAxisAndAngle(out m_caprot, 0, 0, 1, (float)(Math.PI / 2));
-            }
-
-            d.GeomSetRotation(Shell, ref m_caprot);
-            d.BodySetRotation(Body, ref m_caprot);
-
-            d.GeomSetBody(Shell, Body);
-
-            // The purpose of the AMotor here is to keep the avatar's physical
-            // surrogate from rotating while moving
-            Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
-            d.JointAttach(Amotor, Body, IntPtr.Zero);
-            d.JointSetAMotorMode(Amotor, dAMotorEuler);
-            d.JointSetAMotorNumAxes(Amotor, 3);
-            d.JointSetAMotorAxis(Amotor, 0, 0, 1, 0, 0);
-            d.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
-            d.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
-            d.JointSetAMotorAngle(Amotor, 0, 0);
-            d.JointSetAMotorAngle(Amotor, 1, 0);
-            d.JointSetAMotorAngle(Amotor, 2, 0);
-
-            // These lowstops and high stops are effectively (no wiggle room)
-            if (_parent_scene.IsAvCapsuleTilted)
-            {
-                d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
-            }
-            else
-            {
-                #region Documentation of capsule motor LowStop and HighStop parameters
-                // Intentionally introduce some tilt into the capsule by setting
-                // the motor stops to small epsilon values. This small tilt prevents
-                // the capsule from falling into the terrain; a straight-up capsule
-                // (with -0..0 motor stops) falls into the terrain for reasons yet
-                // to be comprehended in their entirety.
-                #endregion
-                AlignAvatarTiltWithCurrentDirectionOfMovement(Vector3.Zero);
-                d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, 0.08f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, 0.08f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop,  0.08f); // must be same as lowstop, else a different, spurious tilt is introduced
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f); // same as lowstop
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.08f); // same as lowstop
-            }
-
-            // Fudge factor is 1f by default, we're setting it to 0.  We don't want it to Fudge or the
-            // capped cyllinder will fall over
-            d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, tensor);
-
-            //d.Matrix3 bodyrotation = d.BodyGetRotation(Body);
-            //d.QfromR(
-            //d.Matrix3 checkrotation = new d.Matrix3(0.7071068,0.5, -0.7071068,
-            //
-            //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
-            //standupStraight();
-
-            _parent_scene.geom_name_map[Shell] = Name;
-            _parent_scene.actor_name_map[Shell] = this;
-        }
-
-        /// <summary>
         /// Uses the capped cyllinder volume formula to calculate the avatar's mass.
         /// This may be used in calculations in the scene/scenepresence
         /// </summary>
@@ -1123,6 +1006,123 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_hackSentFall = false;
                 }
             }
+        }
+
+        /// <summary>
+        /// This creates the Avatar's physical Surrogate in ODE at the position supplied
+        /// </summary>
+        /// <remarks>
+        /// WARNING: This MUST NOT be called outside of ProcessTaints, else we can have unsynchronized access
+        /// to ODE internals. ProcessTaints is called from within thread-locked Simulate(), so it is the only
+        /// place that is safe to call this routine AvatarGeomAndBodyCreation.
+        /// </remarks>
+        /// <param name="npositionX"></param>
+        /// <param name="npositionY"></param>
+        /// <param name="npositionZ"></param>
+        /// <param name="tensor"></param>
+        private void CreateOdeStructures(float npositionX, float npositionY, float npositionZ, float tensor)
+        {
+            int dAMotorEuler = 1;
+//            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+            if (CAPSULE_LENGTH <= 0)
+            {
+                m_log.Warn("[ODE CHARACTER]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
+                CAPSULE_LENGTH = 0.01f;
+            }
+
+            if (CAPSULE_RADIUS <= 0)
+            {
+                m_log.Warn("[ODE CHARACTER]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
+                CAPSULE_RADIUS = 0.01f;
+            }
+
+            Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
+
+            d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
+            d.GeomSetCollideBits(Shell, (int)m_collisionFlags);
+
+            d.MassSetCapsuleTotal(out ShellMass, m_mass, 2, CAPSULE_RADIUS, CAPSULE_LENGTH);
+            Body = d.BodyCreate(_parent_scene.world);
+            d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
+
+            _position.X = npositionX;
+            _position.Y = npositionY;
+            _position.Z = npositionZ;
+
+            m_taintPosition = _position;
+
+            d.BodySetMass(Body, ref ShellMass);
+            d.Matrix3 m_caprot;
+            // 90 Stand up on the cap of the capped cyllinder
+            if (_parent_scene.IsAvCapsuleTilted)
+            {
+                d.RFromAxisAndAngle(out m_caprot, 1, 0, 1, (float)(Math.PI / 2));
+            }
+            else
+            {
+                d.RFromAxisAndAngle(out m_caprot, 0, 0, 1, (float)(Math.PI / 2));
+            }
+
+            d.GeomSetRotation(Shell, ref m_caprot);
+            d.BodySetRotation(Body, ref m_caprot);
+
+            d.GeomSetBody(Shell, Body);
+
+            // The purpose of the AMotor here is to keep the avatar's physical
+            // surrogate from rotating while moving
+            Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
+            d.JointAttach(Amotor, Body, IntPtr.Zero);
+            d.JointSetAMotorMode(Amotor, dAMotorEuler);
+            d.JointSetAMotorNumAxes(Amotor, 3);
+            d.JointSetAMotorAxis(Amotor, 0, 0, 1, 0, 0);
+            d.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
+            d.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
+            d.JointSetAMotorAngle(Amotor, 0, 0);
+            d.JointSetAMotorAngle(Amotor, 1, 0);
+            d.JointSetAMotorAngle(Amotor, 2, 0);
+
+            // These lowstops and high stops are effectively (no wiggle room)
+            if (_parent_scene.IsAvCapsuleTilted)
+            {
+                d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
+            }
+            else
+            {
+                #region Documentation of capsule motor LowStop and HighStop parameters
+                // Intentionally introduce some tilt into the capsule by setting
+                // the motor stops to small epsilon values. This small tilt prevents
+                // the capsule from falling into the terrain; a straight-up capsule
+                // (with -0..0 motor stops) falls into the terrain for reasons yet
+                // to be comprehended in their entirety.
+                #endregion
+                AlignAvatarTiltWithCurrentDirectionOfMovement(Vector3.Zero);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, 0.08f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, 0.08f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop,  0.08f); // must be same as lowstop, else a different, spurious tilt is introduced
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f); // same as lowstop
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.08f); // same as lowstop
+            }
+
+            // Fudge factor is 1f by default, we're setting it to 0.  We don't want it to Fudge or the
+            // capped cyllinder will fall over
+            d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, tensor);
+
+            //d.Matrix3 bodyrotation = d.BodyGetRotation(Body);
+            //d.QfromR(
+            //d.Matrix3 checkrotation = new d.Matrix3(0.7071068,0.5, -0.7071068,
+            //
+            //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
+            //standupStraight();
+
+            _parent_scene.geom_name_map[Shell] = Name;
+            _parent_scene.actor_name_map[Shell] = this;
         }
 
         /// <summary>
