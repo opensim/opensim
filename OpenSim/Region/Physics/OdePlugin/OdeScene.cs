@@ -3583,64 +3583,64 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
             return true;
         }
 
-        public override void UnCombine(PhysicsScene pScene)
-        {
-            IntPtr localGround = IntPtr.Zero;
-//            float[] localHeightfield;
-            bool proceed = false;
-            List<IntPtr> geomDestroyList = new List<IntPtr>();
-
-            lock (OdeLock)
-            {
-                if (RegionTerrain.TryGetValue(Vector3.Zero, out localGround))
-                {
-                    foreach (IntPtr geom in TerrainHeightFieldHeights.Keys)
-                    {
-                        if (geom == localGround)
-                        {
-//                            localHeightfield = TerrainHeightFieldHeights[geom];
-                            proceed = true;
-                        }
-                        else
-                        {
-                            geomDestroyList.Add(geom);
-                        }
-                    }
-
-                    if (proceed)
-                    {
-                        m_worldOffset = Vector3.Zero;
-                        WorldExtents = new Vector2((int)Constants.RegionSize, (int)Constants.RegionSize);
-                        m_parentScene = null;
-
-                        foreach (IntPtr g in geomDestroyList)
-                        {
-                            // removingHeightField needs to be done or the garbage collector will
-                            // collect the terrain data before we tell ODE to destroy it causing 
-                            // memory corruption
-                            if (TerrainHeightFieldHeights.ContainsKey(g))
-                            {
-//                                float[] removingHeightField = TerrainHeightFieldHeights[g];
-                                TerrainHeightFieldHeights.Remove(g);
-
-                                if (RegionTerrain.ContainsKey(g))
-                                {
-                                    RegionTerrain.Remove(g);
-                                }
-
-                                d.GeomDestroy(g);
-                                //removingHeightField = new float[0];
-                            }
-                        }
-
-                    }
-                    else
-                    {
-                        m_log.Warn("[PHYSICS]: Couldn't proceed with UnCombine.  Region has inconsistant data.");
-                    }
-                }
-            }
-        }
+//        public override void UnCombine(PhysicsScene pScene)
+//        {
+//            IntPtr localGround = IntPtr.Zero;
+////            float[] localHeightfield;
+//            bool proceed = false;
+//            List<IntPtr> geomDestroyList = new List<IntPtr>();
+//
+//            lock (OdeLock)
+//            {
+//                if (RegionTerrain.TryGetValue(Vector3.Zero, out localGround))
+//                {
+//                    foreach (IntPtr geom in TerrainHeightFieldHeights.Keys)
+//                    {
+//                        if (geom == localGround)
+//                        {
+////                            localHeightfield = TerrainHeightFieldHeights[geom];
+//                            proceed = true;
+//                        }
+//                        else
+//                        {
+//                            geomDestroyList.Add(geom);
+//                        }
+//                    }
+//
+//                    if (proceed)
+//                    {
+//                        m_worldOffset = Vector3.Zero;
+//                        WorldExtents = new Vector2((int)Constants.RegionSize, (int)Constants.RegionSize);
+//                        m_parentScene = null;
+//
+//                        foreach (IntPtr g in geomDestroyList)
+//                        {
+//                            // removingHeightField needs to be done or the garbage collector will
+//                            // collect the terrain data before we tell ODE to destroy it causing 
+//                            // memory corruption
+//                            if (TerrainHeightFieldHeights.ContainsKey(g))
+//                            {
+////                                float[] removingHeightField = TerrainHeightFieldHeights[g];
+//                                TerrainHeightFieldHeights.Remove(g);
+//
+//                                if (RegionTerrain.ContainsKey(g))
+//                                {
+//                                    RegionTerrain.Remove(g);
+//                                }
+//
+//                                d.GeomDestroy(g);
+//                                //removingHeightField = new float[0];
+//                            }
+//                        }
+//
+//                    }
+//                    else
+//                    {
+//                        m_log.Warn("[PHYSICS]: Couldn't proceed with UnCombine.  Region has inconsistant data.");
+//                    }
+//                }
+//            }
+//        }
 
         public override void SetWaterLevel(float baseheight)
         {
