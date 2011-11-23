@@ -50,7 +50,12 @@ namespace pCampBot
 
         protected CommandConsole m_console;
         protected List<Bot> m_lBot;
-        protected Random somthing = new Random(Environment.TickCount);
+
+        /// <summary>
+        /// Random number generator.
+        /// </summary>
+        public Random Rng { get; private set; }
+        
         public IConfig Config { get; private set; }
 
         /// <summary>
@@ -63,6 +68,7 @@ namespace pCampBot
         /// </summary>
         public BotManager()
         {
+            Rng = new Random(Environment.TickCount);
             AssetsReceived = new Dictionary<UUID, bool>();
 
             m_console = CreateConsole();
