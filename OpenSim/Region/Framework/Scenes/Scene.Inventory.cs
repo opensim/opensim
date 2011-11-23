@@ -82,16 +82,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.Info("[PRIM INVENTORY]: Starting scripts in scene");
 
             IScriptModule[] engines = RequestModuleInterfaces<IScriptModule>();
-            if (engines != null)
-            {
-                foreach (IScriptModule engine in engines)
-                {
-                    if (engine != null)
-                    {
-                        engine.StartProcessing();
-                    }
-                }
-            }
+
+            foreach (IScriptModule engine in engines)
+                engine.StartProcessing();
         }
 
         public void AddUploadedInventoryItem(UUID agentID, InventoryItemBase item)

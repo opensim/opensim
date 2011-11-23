@@ -48,7 +48,7 @@ namespace OpenSim.Region.OptionalModules.PhysicsParameters
     public class PhysicsParameters : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static string LogHeader = "[PHYSICS PARAMETERS]";
+//        private static string LogHeader = "[PHYSICS PARAMETERS]";
 
         private List<Scene> m_scenes = new List<Scene>();
         private static bool m_commandsLoaded = false;

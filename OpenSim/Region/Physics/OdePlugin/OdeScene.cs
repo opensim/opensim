@@ -377,8 +377,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param value="name">Name of the scene.  Useful in debug messages.</param>
         public OdeScene(string name)
         {
-            m_log 
-                = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + name);
+            m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + name);
 
             Name = name;
 
@@ -769,7 +768,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 catch (AccessViolationException)
                 {
-                    m_log.Warn("[PHYSICS]: Unable to collide test a space");
+                    m_log.Warn("[ODE SCENE]: Unable to collide test a space");
                     return;
                 }
                 //Colliding a space or a geom with a space or a geom. so drill down
@@ -821,17 +820,17 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 count = d.Collide(g1, g2, contacts.Length, contacts, d.ContactGeom.SizeOf);
                 if (count > contacts.Length)
-                    m_log.Error("[PHYSICS]: Got " + count + " contacts when we asked for a maximum of " + contacts.Length);
+                    m_log.Error("[ODE SCENE]: Got " + count + " contacts when we asked for a maximum of " + contacts.Length);
             }
             catch (SEHException)
             {
                 m_log.Error(
-                    "[PHYSICS]: The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
+                    "[ODE SCENE]: The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
                 base.TriggerPhysicsBasedRestart();
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[PHYSICS]: Unable to collide test an object: {0}", e.Message);
+                m_log.WarnFormat("[ODE SCENE]: Unable to collide test an object: {0}", e.Message);
                 return;
             }
 
@@ -1556,7 +1555,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 catch (AccessViolationException)
                 {
-                    m_log.WarnFormat("[PHYSICS]: Unable to space collide {0}", Name);
+                    m_log.WarnFormat("[ODE SCENE]: Unable to space collide {0}", Name);
                 }
                 
                 //float terrainheight = GetTerrainHeightAtXY(chr.Position.X, chr.Position.Y);
@@ -1587,13 +1586,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     removeprims = new List<OdePrim>();
                                 }
                                 removeprims.Add(chr);
-                                m_log.Debug("[PHYSICS]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed.  Removed it from the active prim list.  This needs to be fixed!");
+                                m_log.Debug("[ODE SCENE]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed.  Removed it from the active prim list.  This needs to be fixed!");
                             }
                         }
                     }
                     catch (AccessViolationException)
                     {
-                        m_log.Warn("[PHYSICS]: Unable to space collide");
+                        m_log.Warn("[ODE SCENE]: Unable to space collide");
                     }
                 }
             }
@@ -1729,18 +1728,24 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _characters.Add(chr);
 
                 if (chr.bad)
-                    m_log.ErrorFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.m_uuid);
+                    m_log.ErrorFormat("[ODE SCENE]: Added BAD actor {0} to characters list", chr.m_uuid);
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[ODE SCENE]: Tried to add character {0} {1} but they are already in the set!",
+                    chr.Name, chr.LocalID);
             }
         }
 
         internal void RemoveCharacter(OdeCharacter chr)
         {
             if (_characters.Contains(chr))
-            {
                 _characters.Remove(chr);
-                geom_name_map.Remove(chr.Shell);
-                actor_name_map.Remove(chr.Shell);
-            }
+            else
+                m_log.ErrorFormat(
+                    "[ODE SCENE]: Tried to remove character {0} {1} but they are not in the list!",
+                    chr.Name, chr.LocalID);
         }
 
         private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
@@ -2160,7 +2165,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     p.setPrimForRemoval();
                     AddPhysicsActorTaint(prim);
-                    //RemovePrimThreadLocked(p);
                 }
             }
         }
@@ -2228,7 +2232,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //m_log.Warn(prim.prim_geom);
 
                     if (!prim.RemoveGeom())
-                        m_log.Warn("[PHYSICS]: Unable to remove prim from physics scene");
+                        m_log.Warn("[ODE SCENE]: Unable to remove prim from physics scene");
 
                     lock (_prims)
                         _prims.Remove(prim);
@@ -2320,7 +2324,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" + currentspace +
+                        m_log.Info("[ODE SCENE]: Invalid Scene passed to 'recalculatespace':" + currentspace +
                                    " Geom:" + geom);
                     }
                 }
@@ -2336,7 +2340,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         else
                         {
-                            m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
+                            m_log.Info("[ODE SCENE]: Invalid Scene passed to 'recalculatespace':" +
                                        sGeomIsIn + " Geom:" + geom);
                         }
                     }
@@ -2359,7 +2363,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         else
                         {
-                            m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
+                            m_log.Info("[ODE SCENE]: Invalid Scene passed to 'recalculatespace':" +
                                        currentspace + " Geom:" + geom);
                         }
                     }
@@ -2379,7 +2383,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         else
                         {
-                            m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
+                            m_log.Info("[ODE SCENE]: Invalid Scene passed to 'recalculatespace':" +
                                        currentspace + " Geom:" + geom);
                         }
                     }
@@ -2395,7 +2399,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
+                                m_log.Info("[ODE SCENE]: Invalid Scene passed to 'recalculatespace':" +
                                            sGeomIsIn + " Geom:" + geom);
                             }
                         }
@@ -2607,15 +2611,17 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         /// <summary>
         /// Called after our prim properties are set Scale, position etc.
+        /// </summary>
+        /// <remarks>
         /// We use this event queue like method to keep changes to the physical scene occuring in the threadlocked mutex
         /// This assures us that we have no race conditions
-        /// </summary>
-        /// <param name="prim"></param>
-        public override void AddPhysicsActorTaint(PhysicsActor prim)
+        /// </remarks>
+        /// <param name="actor"></param>
+        public override void AddPhysicsActorTaint(PhysicsActor actor)
         {
-            if (prim is OdePrim)
+            if (actor is OdePrim)
             {
-                OdePrim taintedprim = ((OdePrim) prim);
+                OdePrim taintedprim = ((OdePrim)actor);
                 lock (_taintedPrimLock)
                 {
                     if (!(_taintedPrimH.Contains(taintedprim))) 
@@ -2627,18 +2633,17 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                         _taintedPrimL.Add(taintedprim);                    // List for ordered readout
                     }
                 }
-                return;
             }
-            else if (prim is OdeCharacter)
+            else if (actor is OdeCharacter)
             {
-                OdeCharacter taintedchar = ((OdeCharacter)prim);
+                OdeCharacter taintedchar = ((OdeCharacter)actor);
                 lock (_taintedActors)
                 {
                     if (!(_taintedActors.Contains(taintedchar)))
                     {
                         _taintedActors.Add(taintedchar);
                         if (taintedchar.bad)
-                            m_log.DebugFormat("[PHYSICS]: Added BAD actor {0} to tainted actors", taintedchar.m_uuid);
+                            m_log.DebugFormat("[ODE SCENE]: Added BAD actor {0} to tainted actors", taintedchar.m_uuid);
                     }
                 }
             }
@@ -2734,28 +2739,17 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 {
                     try
                     {
-                        // Insert, remove Characters
-                        bool processedtaints = false;
-
                         lock (_taintedActors)
                         {
                             if (_taintedActors.Count > 0)
                             {
                                 foreach (OdeCharacter character in _taintedActors)
-                                {
                                     character.ProcessTaints();
 
-                                    processedtaints = true;
-                                    //character.m_collisionscore = 0;
-                                }
-
-                                if (processedtaints)
+                                if (_taintedActors.Count > 0)
                                     _taintedActors.Clear();
                             }
                         }
-
-                        // Modify other objects in the scene.
-                        processedtaints = false;
 
                         lock (_taintedPrimLock)
                         {
@@ -2772,7 +2766,6 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                                     prim.ProcessTaints();
                                 }
 
-                                processedtaints = true;
                                 prim.m_collisionscore = 0;
 
                                 // This loop can block up the Heartbeat for a very long time on large regions.
@@ -2785,7 +2778,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                             if (SupportsNINJAJoints)
                                 SimulatePendingNINJAJoints();
 
-                            if (processedtaints)
+                            if (_taintedPrimL.Count > 0)
                             {
 //Console.WriteLine("Simulate calls Clear of _taintedPrim list");
                                 _taintedPrimH.Clear();
@@ -2853,7 +2846,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[PHYSICS]: {0}, {1}, {2}", e.Message, e.TargetSite, e);
+                        m_log.ErrorFormat("[ODE SCENE]: {0}, {1}, {2}", e.Message, e.TargetSite, e);
                     }
 
                     timeLeft -= ODE_STEPSIZE;
@@ -2862,7 +2855,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 foreach (OdeCharacter actor in _characters)
                 {
                     if (actor.bad)
-                        m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
+                        m_log.WarnFormat("[ODE SCENE]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
 
                     actor.UpdatePositionAndVelocity(defects);
                 }
@@ -3422,7 +3415,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 {
                     if (Single.IsNaN(resultarr2[y, x]) || Single.IsInfinity(resultarr2[y, x]))
                     {
-                        m_log.Warn("[PHYSICS]: Non finite heightfield element detected.  Setting it to 0");
+                        m_log.Warn("[ODE SCENE]: Non finite heightfield element detected.  Setting it to 0");
                         resultarr2[y, x] = 0;
                     }
                     returnarr[i] = resultarr2[y, x];
@@ -3453,7 +3446,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
         private void SetTerrain(float[] heightMap, Vector3 pOffset)
         {
             int startTime = Util.EnvironmentTickCount();
-            m_log.DebugFormat("[PHYSICS]: Setting terrain for {0}", Name);
+            m_log.DebugFormat("[ODE SCENE]: Setting terrain for {0}", Name);
 
             // this._heightmap[i] = (double)heightMap[i];
             // dbm (danx0r) -- creating a buffer zone of one extra sample all around
@@ -3578,7 +3571,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
             }
 
             m_log.DebugFormat(
-                "[PHYSICS]: Setting terrain for {0} took {1}ms", Name, Util.EnvironmentTickCountSubtract(startTime));
+                "[ODE SCENE]: Setting terrain for {0} took {1}ms", Name, Util.EnvironmentTickCountSubtract(startTime));
         }
 
         public override void DeleteTerrain()
@@ -3595,64 +3588,64 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
             return true;
         }
 
-        public override void UnCombine(PhysicsScene pScene)
-        {
-            IntPtr localGround = IntPtr.Zero;
-//            float[] localHeightfield;
-            bool proceed = false;
-            List<IntPtr> geomDestroyList = new List<IntPtr>();
-
-            lock (OdeLock)
-            {
-                if (RegionTerrain.TryGetValue(Vector3.Zero, out localGround))
-                {
-                    foreach (IntPtr geom in TerrainHeightFieldHeights.Keys)
-                    {
-                        if (geom == localGround)
-                        {
-//                            localHeightfield = TerrainHeightFieldHeights[geom];
-                            proceed = true;
-                        }
-                        else
-                        {
-                            geomDestroyList.Add(geom);
-                        }
-                    }
-
-                    if (proceed)
-                    {
-                        m_worldOffset = Vector3.Zero;
-                        WorldExtents = new Vector2((int)Constants.RegionSize, (int)Constants.RegionSize);
-                        m_parentScene = null;
-
-                        foreach (IntPtr g in geomDestroyList)
-                        {
-                            // removingHeightField needs to be done or the garbage collector will
-                            // collect the terrain data before we tell ODE to destroy it causing 
-                            // memory corruption
-                            if (TerrainHeightFieldHeights.ContainsKey(g))
-                            {
-//                                float[] removingHeightField = TerrainHeightFieldHeights[g];
-                                TerrainHeightFieldHeights.Remove(g);
-
-                                if (RegionTerrain.ContainsKey(g))
-                                {
-                                    RegionTerrain.Remove(g);
-                                }
-
-                                d.GeomDestroy(g);
-                                //removingHeightField = new float[0];
-                            }
-                        }
-
-                    }
-                    else
-                    {
-                        m_log.Warn("[PHYSICS]: Couldn't proceed with UnCombine.  Region has inconsistant data.");
-                    }
-                }
-            }
-        }
+//        public override void UnCombine(PhysicsScene pScene)
+//        {
+//            IntPtr localGround = IntPtr.Zero;
+////            float[] localHeightfield;
+//            bool proceed = false;
+//            List<IntPtr> geomDestroyList = new List<IntPtr>();
+//
+//            lock (OdeLock)
+//            {
+//                if (RegionTerrain.TryGetValue(Vector3.Zero, out localGround))
+//                {
+//                    foreach (IntPtr geom in TerrainHeightFieldHeights.Keys)
+//                    {
+//                        if (geom == localGround)
+//                        {
+////                            localHeightfield = TerrainHeightFieldHeights[geom];
+//                            proceed = true;
+//                        }
+//                        else
+//                        {
+//                            geomDestroyList.Add(geom);
+//                        }
+//                    }
+//
+//                    if (proceed)
+//                    {
+//                        m_worldOffset = Vector3.Zero;
+//                        WorldExtents = new Vector2((int)Constants.RegionSize, (int)Constants.RegionSize);
+//                        m_parentScene = null;
+//
+//                        foreach (IntPtr g in geomDestroyList)
+//                        {
+//                            // removingHeightField needs to be done or the garbage collector will
+//                            // collect the terrain data before we tell ODE to destroy it causing 
+//                            // memory corruption
+//                            if (TerrainHeightFieldHeights.ContainsKey(g))
+//                            {
+////                                float[] removingHeightField = TerrainHeightFieldHeights[g];
+//                                TerrainHeightFieldHeights.Remove(g);
+//
+//                                if (RegionTerrain.ContainsKey(g))
+//                                {
+//                                    RegionTerrain.Remove(g);
+//                                }
+//
+//                                d.GeomDestroy(g);
+//                                //removingHeightField = new float[0];
+//                            }
+//                        }
+//
+//                    }
+//                    else
+//                    {
+//                        m_log.Warn("[PHYSICS]: Couldn't proceed with UnCombine.  Region has inconsistant data.");
+//                    }
+//                }
+//            }
+//        }
 
         public override void SetWaterLevel(float baseheight)
         {

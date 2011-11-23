@@ -102,11 +102,27 @@ namespace OpenSim.Framework
 
         bool TryGetScenePresence(UUID agentID, out object scenePresence);
 
-        T RequestModuleInterface<T>();
-        T[] RequestModuleInterfaces<T>();
-
+        /// <summary>
+        /// Register an interface to a region module.  This allows module methods to be called directly as
+        /// well as via events.  If there is already a module registered for this interface, it is not replaced
+        /// (is this the best behaviour?)
+        /// </summary>
+        /// <param name="mod"></param>
         void RegisterModuleInterface<M>(M mod);
+        
         void StackModuleInterface<M>(M mod);
+
+        /// <summary>
+        /// For the given interface, retrieve the region module which implements it.
+        /// </summary>
+        /// <returns>null if there is no registered module implementing that interface</returns>
+        T RequestModuleInterface<T>();
+
+        /// <summary>
+        /// For the given interface, retrieve an array of region modules that implement it.
+        /// </summary>
+        /// <returns>an empty array if there are no registered modules implementing that interface</returns>
+        T[] RequestModuleInterfaces<T>();
 
 //        void AddCommand(object module, string command, string shorthelp, string longhelp, CommandDelegate callback);
 

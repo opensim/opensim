@@ -841,33 +841,33 @@ namespace OpenSim.Region.RegionCombinerModule
         {
         }
         
-        /// <summary>
-        /// TODO:
-        /// </summary>
-        /// <param name="rdata"></param>
-        public void UnCombineRegion(RegionData rdata)
-        {
-            lock (m_regions)
-            {
-                if (m_regions.ContainsKey(rdata.RegionId))
-                {
-                    // uncombine root region and virtual regions
-                }
-                else
-                {
-                    foreach (RegionConnections r in m_regions.Values)
-                    {
-                        foreach (RegionData rd in r.ConnectedRegions)
-                        {
-                            if (rd.RegionId == rdata.RegionId)
-                            {
-                                // uncombine virtual region
-                            }
-                        }
-                    }
-                }
-            }
-        }
+//        /// <summary>
+//        /// TODO:
+//        /// </summary>
+//        /// <param name="rdata"></param>
+//        public void UnCombineRegion(RegionData rdata)
+//        {
+//            lock (m_regions)
+//            {
+//                if (m_regions.ContainsKey(rdata.RegionId))
+//                {
+//                    // uncombine root region and virtual regions
+//                }
+//                else
+//                {
+//                    foreach (RegionConnections r in m_regions.Values)
+//                    {
+//                        foreach (RegionData rd in r.ConnectedRegions)
+//                        {
+//                            if (rd.RegionId == rdata.RegionId)
+//                            {
+//                                // uncombine virtual region
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         // Create a set of infinite borders around the whole aabb of the combined island.
         private void AdjustLargeRegionBounds()

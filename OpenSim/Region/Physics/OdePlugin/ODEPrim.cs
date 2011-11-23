@@ -272,7 +272,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_taintadd = true;
             _parent_scene.AddPhysicsActorTaint(this);
-            //  don't do .add() here; old geoms get recycled with the same hash
         }
 
         public override int PhysicsActorType
