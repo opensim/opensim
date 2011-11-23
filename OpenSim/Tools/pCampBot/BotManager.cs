@@ -110,8 +110,8 @@ namespace pCampBot
                     "Show regions known to bots",
                     HandleShowRegions);
 
-            m_console.Commands.AddCommand("bot", false, "show status",
-                    "show status",
+            m_console.Commands.AddCommand("bot", false, "show bots",
+                    "show bots",
                     "Shows the status of all bots",
                     HandleShowStatus);
 
