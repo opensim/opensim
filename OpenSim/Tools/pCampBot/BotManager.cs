@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using OpenMetaverse;
@@ -48,7 +49,14 @@ namespace pCampBot
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Command console
+        /// </summary>
         protected CommandConsole m_console;
+
+        /// <summary>
+        /// Created bots, whether active or inactive.
+        /// </summary>
         protected List<Bot> m_lBot;
 
         /// <summary>
@@ -56,6 +64,9 @@ namespace pCampBot
         /// </summary>
         public Random Rng { get; private set; }
 
+        /// <summary>
+        /// Overall configuration.
+        /// </summary>
         public IConfig Config { get; private set; }
 
         /// <summary>
@@ -140,21 +151,25 @@ namespace pCampBot
             Array.ForEach<string>(
                 cs.GetString("behaviours", "p").Split(new char[] { ',' }), b => behaviourSwitches.Add(b));
 
+            List<IBehaviour> behaviours = new List<IBehaviour>();
+
+            // Hard-coded for now
+            if (behaviourSwitches.Contains("p"))
+                behaviours.Add(new PhysicsBehaviour());
+
+            if (behaviourSwitches.Contains("g"))
+                behaviours.Add(new GrabbingBehaviour());
+
+            if (behaviourSwitches.Contains("t"))
+                behaviours.Add(new TeleportBehaviour());
+
+            MainConsole.Instance.OutputFormat(
+                "[BOT MANAGER]: Bots configured for behaviours {0}",
+                string.Join(",", behaviours.ConvertAll<string>(b => b.Name).ToArray()));
+
             for (int i = 0; i < botcount; i++)
             {
                 string lastName = string.Format("{0}_{1}", lastNameStem, i);
-
-                List<IBehaviour> behaviours = new List<IBehaviour>();
-    
-                // Hard-coded for now
-                if (behaviourSwitches.Contains("p"))
-                    behaviours.Add(new PhysicsBehaviour());
-    
-                if (behaviourSwitches.Contains("g"))
-                    behaviours.Add(new GrabbingBehaviour());
-
-                if (behaviourSwitches.Contains("t"))
-                    behaviours.Add(new TeleportBehaviour());
 
                 StartBot(this, behaviours, firstName, lastName, password, loginUri);
             }

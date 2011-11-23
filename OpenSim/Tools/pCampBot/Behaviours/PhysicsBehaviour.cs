@@ -42,6 +42,8 @@ namespace pCampBot
     /// </remarks>
     public class PhysicsBehaviour : IBehaviour
     {
+        public string Name { get { return "Physics"; } }
+
         private string[] talkarray;
 
         public PhysicsBehaviour()

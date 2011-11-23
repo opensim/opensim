@@ -31,6 +31,15 @@ namespace pCampBot.Interfaces
 {
     public interface IBehaviour
     {
+        /// <summary>
+        /// Name of this behaviour.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
+        /// Action to take when this behaviour is invoked.
+        /// </summary>
+        /// <param name="bot"></param>
         void Action(Bot bot);
     }
 }

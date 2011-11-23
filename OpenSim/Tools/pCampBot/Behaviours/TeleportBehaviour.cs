@@ -42,6 +42,8 @@ namespace pCampBot
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public string Name { get { return "Teleport"; } }
+
         public void Action(Bot bot)
         {
             Random rng = bot.Manager.Rng;

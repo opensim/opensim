@@ -41,6 +41,8 @@ namespace pCampBot
     /// </remarks>
     public class GrabbingBehaviour : IBehaviour
     {
+        public string Name { get { return "Grabbing"; } }
+
         public void Action(Bot bot)
         {
             Dictionary<UUID, Primitive> objects = bot.Objects;
