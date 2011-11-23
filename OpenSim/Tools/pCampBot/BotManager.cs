@@ -153,6 +153,9 @@ namespace pCampBot
                 if (behaviourSwitches.Contains("g"))
                     behaviours.Add(new GrabbingBehaviour());
 
+                if (behaviourSwitches.Contains("t"))
+                    behaviours.Add(new TeleportBehaviour());
+
                 StartBot(this, behaviours, firstName, lastName, password, loginUri);
             }
         }
