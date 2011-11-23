@@ -218,7 +218,19 @@ namespace pCampBot
                 {
                     MakeDefaultAppearance(wear);
                 }
+
                 Client.Self.Jump(true);
+
+                // Extract nearby region information.
+                Client.Grid.GridRegion += BotManager.Grid_GridRegion;
+                uint xUint, yUint;
+                Utils.LongToUInts(Client.Network.CurrentSim.Handle, out xUint, out yUint);
+                ushort minX, minY, maxX, maxY;
+                minX = (ushort)Math.Min(0, xUint - 5);
+                minY = (ushort)Math.Min(0, yUint - 5);
+                maxX = (ushort)(xUint + 5);
+                maxY = (ushort)(yUint + 5);
+                Client.Grid.RequestMapBlocks(GridLayerType.Terrain, minX, minY, maxX, maxY, false);
             }
             else
             {

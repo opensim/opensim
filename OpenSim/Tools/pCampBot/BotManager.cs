@@ -55,7 +55,7 @@ namespace pCampBot
         /// Random number generator.
         /// </summary>
         public Random Rng { get; private set; }
-        
+
         public IConfig Config { get; private set; }
 
         /// <summary>
@@ -64,12 +64,18 @@ namespace pCampBot
         public Dictionary<UUID, bool> AssetsReceived { get; private set; }
 
         /// <summary>
+        /// The regions that we know about.
+        /// </summary>
+        public Dictionary<ulong, GridRegion> RegionsKnown { get; private set; }
+
+        /// <summary>
         /// Constructor Creates MainConsole.Instance to take commands and provide the place to write data
         /// </summary>
         public BotManager()
         {
             Rng = new Random(Environment.TickCount);
             AssetsReceived = new Dictionary<UUID, bool>();
+            RegionsKnown = new Dictionary<ulong, GridRegion>();
 
             m_console = CreateConsole();
             MainConsole.Instance = m_console;
@@ -98,6 +104,11 @@ namespace pCampBot
                     "quit",
                     "Shutdown bots and exit",
                     HandleShutdown);
+
+            m_console.Commands.AddCommand("bot", false, "show regions",
+                    "show regions",
+                    "Show regions known to bots",
+                    HandleShowRegions);
 
             m_console.Commands.AddCommand("bot", false, "show status",
                     "show status",
@@ -246,17 +257,33 @@ namespace pCampBot
             });
         }
 
+        private void HandleShowRegions(string module, string[] cmd)
+        {
+            string outputFormat = "{0,-30}  {1, -20}  {2, -5}  {3, -5}";
+            MainConsole.Instance.OutputFormat(outputFormat, "Name", "Handle", "X", "Y");
+
+            lock (RegionsKnown)
+            {
+                foreach (GridRegion region in RegionsKnown.Values)
+                {
+                    MainConsole.Instance.OutputFormat(
+                        outputFormat, region.Name, region.RegionHandle, region.X, region.Y);
+                }
+            }
+        }
+
         private void HandleShowStatus(string module, string[] cmd)
         {
-            string outputFormat = "{0,-30} {1,-14}";
-            MainConsole.Instance.OutputFormat(outputFormat, "Name", "Status");
+            string outputFormat = "{0,-30}  {1, -30}  {2,-14}";
+            MainConsole.Instance.OutputFormat(outputFormat, "Name", "Region", "Status");
 
             lock (m_lBot)
             {
                 foreach (Bot pb in m_lBot)
                 {
                     MainConsole.Instance.OutputFormat(
-                        outputFormat, pb.Name, (pb.IsConnected ? "Connected" : "Disconnected"));
+                        outputFormat,
+                        pb.Name, pb.Client.Network.CurrentSim.Name, pb.IsConnected ? "Connected" : "Disconnected");
                 }
             }
         }
@@ -280,5 +307,24 @@ namespace pCampBot
 //            if (newbots > 0)
 //                addbots(newbots);
 //        }
+
+        internal void Grid_GridRegion(object o, GridRegionEventArgs args)
+        {
+            lock (RegionsKnown)
+            {
+                GridRegion newRegion = args.Region;
+
+                if (RegionsKnown.ContainsKey(newRegion.RegionHandle))
+                {
+                    return;
+                }
+                else
+                {
+                    m_log.DebugFormat(
+                        "[BOT MANAGER]: Adding {0} {1} to known regions", newRegion.Name, newRegion.RegionHandle);
+                    RegionsKnown[newRegion.RegionHandle] = newRegion;
+                }
+            }
+        }
     }
 }
