@@ -70,7 +70,7 @@ namespace OpenSim
         /// <param name="networkInfo"></param>
         /// <returns>A configuration that gets passed to modules</returns>
         public OpenSimConfigSource LoadConfigSettings(
-                IConfigSource argvSource, out ConfigSettings configSettings,
+                IConfigSource argvSource, EnvConfigSource envConfigSource, out ConfigSettings configSettings,
                 out NetworkServersInfo networkInfo)
         {
             m_configSettings = configSettings = new ConfigSettings();
@@ -194,6 +194,24 @@ namespace OpenSim
 
             // Make sure command line options take precedence
             m_config.Source.Merge(argvSource);
+
+
+            IConfig enVars = m_config.Source.Configs["Environment"];
+
+            if( enVars != null )
+            {
+                string[] env_keys = enVars.GetKeys();
+
+                foreach ( string key in env_keys )
+                {
+                    envConfigSource.AddEnv(key, string.Empty);
+                }
+
+                envConfigSource.LoadEnv();
+                m_config.Source.Merge(envConfigSource);
+                m_config.Source.ExpandKeyValues();
+            }
+
 
             ReadConfigSettings();
 
