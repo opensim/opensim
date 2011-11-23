@@ -184,7 +184,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_lastUpdateSent;
 
         public IntPtr Body = IntPtr.Zero;
-        public String Name { get; private set; }
         private Vector3 _target_velocity;
         private d.Mass pMass;
 
@@ -273,7 +272,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_taintadd = true;
             _parent_scene.AddPhysicsActorTaint(this);
-            //  don't do .add() here; old geoms get recycled with the same hash
         }
 
         public override int PhysicsActorType
@@ -857,7 +855,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_MeshToTriMeshMap[mesh] = _triMeshData;
             }
 
-            _parent_scene.waitForSpaceUnlock(m_targetSpace);
+//            _parent_scene.waitForSpaceUnlock(m_targetSpace);
             try
             {
                 if (prim_geom == IntPtr.Zero)
@@ -1380,7 +1378,7 @@ Console.WriteLine("CreateGeom:");
                     {
                         if (((_size.X / 2f) > 0f))
                         {
-                            _parent_scene.waitForSpaceUnlock(m_targetSpace);
+//                            _parent_scene.waitForSpaceUnlock(m_targetSpace);
                             try
                             {
 //Console.WriteLine(" CreateGeom 1");
@@ -1394,7 +1392,7 @@ Console.WriteLine("CreateGeom:");
                         }
                         else
                         {
-                            _parent_scene.waitForSpaceUnlock(m_targetSpace);
+//                            _parent_scene.waitForSpaceUnlock(m_targetSpace);
                             try
                             {
 //Console.WriteLine(" CreateGeom 2");
@@ -1409,7 +1407,7 @@ Console.WriteLine("CreateGeom:");
                     }
                     else
                     {
-                        _parent_scene.waitForSpaceUnlock(m_targetSpace);
+//                        _parent_scene.waitForSpaceUnlock(m_targetSpace);
                         try
                         {
 //Console.WriteLine("  CreateGeom 3");
@@ -1424,7 +1422,7 @@ Console.WriteLine("CreateGeom:");
                 }
                 else
                 {
-                    _parent_scene.waitForSpaceUnlock(m_targetSpace);
+//                    _parent_scene.waitForSpaceUnlock(m_targetSpace);
                     try
                     {
 //Console.WriteLine("  CreateGeom 4");
@@ -1577,17 +1575,17 @@ Console.WriteLine(" JointCreateFixed");
             {
                 // string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
                 // int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
-                _parent_scene.waitForSpaceUnlock(m_targetSpace);
+//                _parent_scene.waitForSpaceUnlock(m_targetSpace);
 
                 IntPtr tempspace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
                 m_targetSpace = tempspace;
 
-                _parent_scene.waitForSpaceUnlock(m_targetSpace);
+//                _parent_scene.waitForSpaceUnlock(m_targetSpace);
                 if (prim_geom != IntPtr.Zero)
                 {
                     d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
 
-                    _parent_scene.waitForSpaceUnlock(m_targetSpace);
+//                    _parent_scene.waitForSpaceUnlock(m_targetSpace);
                     d.SpaceAdd(m_targetSpace, prim_geom);
                 }
             }
@@ -1978,7 +1976,7 @@ Console.WriteLine(" JointCreateFixed");
 
             if (d.SpaceQuery(m_targetSpace, prim_geom))
             {
-                _parent_scene.waitForSpaceUnlock(m_targetSpace);
+//                _parent_scene.waitForSpaceUnlock(m_targetSpace);
                 d.SpaceRemove(m_targetSpace, prim_geom);
             }
 

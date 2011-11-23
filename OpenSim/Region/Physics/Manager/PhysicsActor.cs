@@ -160,8 +160,19 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract bool Selected { set; }
 
+        /// <summary>
+        /// Name of this actor.
+        /// </summary>
+        /// <remarks>
+        /// XXX: Bizarrely, this cannot be "Terrain" or "Water" right now unless it really is simulating terrain or
+        /// water.  This is not a problem due to the formatting of names given by prims and avatars.
+        /// </remarks>
+        public string Name { get; protected set; }
+
+        /// <summary>
+        /// This is being used by ODE joint code.
+        /// </summary>
         public string SOPName;
-        public string SOPDescription;
 
         public abstract void CrossingFailure();
 

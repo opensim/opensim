@@ -252,7 +252,6 @@ namespace OpenSim.Region.Framework.Scenes
         private byte[] m_TextureAnimation;
         private byte m_clickAction;
         private Color m_color = Color.Black;
-        private string m_description = String.Empty;
         private readonly List<uint> m_lastColliders = new List<uint>();
         private int m_linkNum;
         
@@ -331,11 +330,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public SceneObjectPart()
         {
-            // It's not necessary to persist this
             m_TextureAnimation = Utils.EmptyBytes;
             m_particleSystem = Utils.EmptyBytes;
             Rezzed = DateTime.UtcNow;
-            
+            Description = String.Empty;
+
+            // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
+            // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
+            // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
             m_inventory = new SceneObjectPartInventory(this);
         }
 
@@ -349,11 +351,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="offsetPosition"></param>
         public SceneObjectPart(
             UUID ownerID, PrimitiveBaseShape shape, Vector3 groupPosition, 
-            Quaternion rotationOffset, Vector3 offsetPosition)
+            Quaternion rotationOffset, Vector3 offsetPosition) : this()
         {
             m_name = "Object";
 
-            Rezzed = DateTime.UtcNow;
             CreationDate = (int)Utils.DateTimeToUnixTime(Rezzed);
             LastOwnerID = CreatorID = OwnerID = ownerID;
             UUID = UUID.Random();
@@ -368,19 +369,10 @@ namespace OpenSim.Region.Framework.Scenes
             Velocity = Vector3.Zero;
             AngularVelocity = Vector3.Zero;
             Acceleration = Vector3.Zero;
-            m_TextureAnimation = Utils.EmptyBytes;
-            m_particleSystem = Utils.EmptyBytes;
-
-            // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
-            // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
-            // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
-
             Flags = 0;
             CreateSelected = true;
 
             TrimPermissions();
-            
-            m_inventory = new SceneObjectPartInventory(this);
         }
 
         #endregion Constructors
@@ -938,19 +930,7 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_acceleration = value; }
         }
 
-        public string Description
-        {
-            get { return m_description; }
-            set 
-            {
-                m_description = value;
-                PhysicsActor actor = PhysActor;
-                if (actor != null)
-                {
-                    actor.SOPDescription = value;
-                }
-            }
-        }
+        public string Description { get; set; }
 
         /// <value>
         /// Text color.
@@ -1595,8 +1575,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // Basic Physics returns null..  joy joy joy.
                     if (PhysActor != null)
                     {
-                        PhysActor.SOPName = this.Name; // save object name and desc into the PhysActor so ODE internals know the joint/body info
-                        PhysActor.SOPDescription = this.Description;
+                        PhysActor.SOPName = this.Name; // save object into the PhysActor so ODE internals know the joint/body info
                         PhysActor.SetMaterial(Material);
                         DoPhysicsPropertyUpdate(RigidBody, true);
                         PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
