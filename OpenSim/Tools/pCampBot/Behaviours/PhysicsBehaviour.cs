@@ -73,7 +73,6 @@ namespace pCampBot
             Thread.Sleep(bot.Random.Next(3000, 13000));
             bot.Client.Self.Movement.AtPos = false;
             bot.Client.Self.Jump(true);
-
             string randomf = talkarray[bot.Random.Next(talkarray.Length)];
             if (talkarray.Length > 1 && randomf.Length > 1)
                 bot.Client.Self.Chat(randomf, 0, ChatType.Normal);

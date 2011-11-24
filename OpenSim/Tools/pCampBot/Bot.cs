@@ -226,8 +226,6 @@ namespace pCampBot
                     MakeDefaultAppearance(wear);
                 }
 
-                Client.Self.Jump(true);
-
                 // Extract nearby region information.
                 Client.Grid.GridRegion += Manager.Grid_GridRegion;
                 uint xUint, yUint;

@@ -163,6 +163,9 @@ namespace pCampBot
             if (behaviourSwitches.Contains("t"))
                 behaviours.Add(new TeleportBehaviour());
 
+//            if (behaviourSwitches.Contains("c"))
+//                behaviours.Add(new CrossBehaviour());
+
             MainConsole.Instance.OutputFormat(
                 "[BOT MANAGER]: Bots configured for behaviours {0}",
                 string.Join(",", behaviours.ConvertAll<string>(b => b.Name).ToArray()));

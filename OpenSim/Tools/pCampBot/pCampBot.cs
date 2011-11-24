@@ -104,17 +104,21 @@ namespace pCampBot
             // name, to load an specific folder, or save, to save an avatar with some already existing wearables
             // worn to the folder MyAppearance/FirstName_LastName, and the load it.
             Console.WriteLine(
-                                     "usage: pCampBot <-loginuri loginuri> [OPTIONS]\n" +
-                                     "Spawns a set of bots to test an OpenSim region\n\n" +
-                                     "  -l, -loginuri      loginuri for sim to log into (required)\n" +
-                                     "  -n, -botcount      number of bots to start (default: 1)\n" +
-                                     "  -firstname         first name for the bots\n" +
-                                     "  -lastname          lastname for the bots.  Each lastname will have _<bot-number> appended, e.g. Ima Bot_0\n" +
-                                     "  -password          password for the bots\n" +
-                                     "  -b, behaviours     behaviours for bots.  Current options p (physics), g (grab), t (teleport).  Comma separated, e.g. p,g.  Default is p",
-                                     "  -wear              set appearance folder to load from (default: no)\n" +
-                                     "  -h, -help          show this message"
-                                     );
+                "usage: pCampBot <-loginuri loginuri> [OPTIONS]\n" +
+                "Spawns a set of bots to test an OpenSim region\n\n" +
+                "  -l, -loginuri      loginuri for sim to log into (required)\n" +
+                "  -n, -botcount      number of bots to start (default: 1)\n" +
+                "  -firstname         first name for the bots\n" +
+                "  -lastname          lastname for the bots.  Each lastname will have _<bot-number> appended, e.g. Ima Bot_0\n" +
+                "  -password          password for the bots\n" +
+                "  -b, behaviours     behaviours for bots.  Comma separated, e.g. p,g.  Default is p\n",
+                "    current options are:" +
+                "       p (physics)" +
+                "       g (grab)" +
+                "       t (teleport)" +
+//                "       c (cross)" +
+                "  -wear              set appearance folder to load from (default: no)\n" +
+                "  -h, -help          show this message");
         }
     }
 }
