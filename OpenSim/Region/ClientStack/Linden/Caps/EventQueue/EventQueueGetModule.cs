@@ -39,6 +39,7 @@ using OpenMetaverse.Messages.Linden;
 using OpenMetaverse.Packets;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
@@ -58,9 +59,15 @@ namespace OpenSim.Region.ClientStack.Linden
     public class EventQueueGetModule : IEventQueue, IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        protected Scene m_scene = null;
+
+        /// <value>
+        /// Debug level.
+        /// </value>
+        public int DebugLevel { get; set; }
+
+        protected Scene m_scene;
         private IConfigSource m_gConfig;
-        bool enabledYN = false;
+        bool enabledYN;
         
         private Dictionary<UUID, int> m_ids = new Dictionary<UUID, int>();
 
@@ -97,6 +104,15 @@ namespace OpenSim.Region.ClientStack.Linden
                 scene.EventManager.OnClientClosed += ClientClosed;
                 scene.EventManager.OnMakeChildAgent += MakeChildAgent;
                 scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+
+                MainConsole.Instance.Commands.AddCommand(
+                    "event queue",
+                    false,
+                    "debug eq",
+                    "debug eq [0|1]",
+                    "debug eq 1 will turn on event queue debugging.  This will log all outgoing event queue messages to clients.\n"
+                        + "debug eq 1 will turn off event queue debugging.",
+                    HandleDebugEq);
             }
             else
             {
@@ -127,6 +143,22 @@ namespace OpenSim.Region.ClientStack.Linden
             get { return false; }
         }
         #endregion
+
+        protected void HandleDebugEq(string module, string[] args)
+        {
+            int debugLevel;
+
+            if (!(args.Length == 3 && int.TryParse(args[2], out debugLevel)))
+            {
+                MainConsole.Instance.OutputFormat("Usage: debug eq [0|1]");
+            }
+            else
+            {
+                DebugLevel = debugLevel;
+                MainConsole.Instance.OutputFormat(
+                    "Set event queue debug level to {0} in {1}", DebugLevel, m_scene.RegionInfo.RegionName);
+            }
+        }
 
         /// <summary>
         ///  Always returns a valid queue
@@ -323,7 +355,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
             // This will persist this beyond the expiry of the caps handlers
             MainServer.Instance.AddPollServiceHTTPHandler(
-                capsBase + EventQueueGetUUID.ToString() + "/", EventQueuePoll, new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID));
+                capsBase + EventQueueGetUUID.ToString() + "/",
+                EventQueuePoll,
+                new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID));
 
             Random rnd = new Random(Environment.TickCount);
             lock (m_ids)
@@ -370,12 +404,31 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             else
             {
+                if (DebugLevel > 0 && element is OSDMap)
+                {
+                    OSDMap ev = (OSDMap)element;
+                    m_log.DebugFormat(
+                        "[EVENT QUEUE GET MODULE]: Eq OUT {0} to {1}",
+                        ev["message"], m_scene.GetScenePresence(pAgentId).Name);
+                }
+
                 array.Add(element);
+
                 lock (queue)
                 {
                     while (queue.Count > 0)
                     {
-                        array.Add(queue.Dequeue());
+                        element = queue.Dequeue();
+
+                        if (DebugLevel > 0 && element is OSDMap)
+                        {
+                            OSDMap ev = (OSDMap)element;
+                            m_log.DebugFormat(
+                                "[EVENT QUEUE GET MODULE]: Eq OUT {0} to {1}",
+                                ev["message"], m_scene.GetScenePresence(pAgentId).Name);
+                        }
+
+                        array.Add(element);
                         thisID++;
                     }
                 }
@@ -471,11 +524,29 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 array.Add(element);
 
+                if (element is OSDMap)
+                {
+                    OSDMap ev = (OSDMap)element;
+                    m_log.DebugFormat(
+                        "[EVENT QUEUE GET MODULE]: Eq OUT {0} to {1}",
+                        ev["message"], m_scene.GetScenePresence(agentID).Name);
+                }
+
                 lock (queue)
                 {
                     while (queue.Count > 0)
                     {
-                        array.Add(queue.Dequeue());
+                        element = queue.Dequeue();
+
+                        if (element is OSDMap)
+                        {
+                            OSDMap ev = (OSDMap)element;
+                            m_log.DebugFormat(
+                                "[EVENT QUEUE GET MODULE]: Eq OUT {0} to {1}",
+                                ev["message"], m_scene.GetScenePresence(agentID).Name);
+                        }
+
+                        array.Add(element);
                         thisID++;
                     }
                 }
@@ -494,7 +565,8 @@ namespace OpenSim.Region.ClientStack.Linden
             responsedata["content_type"] = "application/xml";
             responsedata["keepalive"] = false;
             responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(events);
-            //m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
+
+            m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
 
             return responsedata;
         }
@@ -717,6 +789,7 @@ namespace OpenSim.Region.ClientStack.Linden
             OSD item = EventQueueHelper.GroupMembership(groupUpdate);
             Enqueue(item, avatarID);
         }
+
         public void QueryReply(PlacesReplyPacket groupUpdate, UUID avatarID)
         {
             OSD item = EventQueueHelper.PlacesQuery(groupUpdate);
