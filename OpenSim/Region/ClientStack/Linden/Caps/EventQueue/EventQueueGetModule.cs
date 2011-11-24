@@ -386,7 +386,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public Hashtable GetEvents(UUID requestID, UUID pAgentId, string request)
         {
-            m_log.DebugFormat("[EVENT QUEUE GET MODULE]: Invoked GetEvents() for {0}", pAgentId);
+//            m_log.DebugFormat("[EVENT QUEUE GET MODULE]: Invoked GetEvents() for {0}", pAgentId);
 
             Queue<OSD> queue = TryGetQueue(pAgentId);
             OSD element;
