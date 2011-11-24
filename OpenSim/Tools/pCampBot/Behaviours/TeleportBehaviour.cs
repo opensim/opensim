@@ -25,34 +25,51 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenMetaverse;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using log4net;
+using OpenMetaverse;
 using pCampBot.Interfaces;
 
 namespace pCampBot
 {
     /// <summary>
-    /// Click (grab) on random objects in the scene.
+    /// Teleport to a random region on the grid.
     /// </summary>
-    /// <remarks>
-    /// The viewer itself does not give the option of grabbing objects that haven't been signalled as grabbable.
-    /// </remarks>
-    public class GrabbingBehaviour : IBehaviour
+    public class TeleportBehaviour : IBehaviour
     {
-        public string Name { get { return "Grabbing"; } }
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public string Name { get { return "Teleport"; } }
 
         public void Action(Bot bot)
         {
-            Dictionary<UUID, Primitive> objects = bot.Objects;
+            Random rng = bot.Manager.Rng;
+            GridRegion[] knownRegions;
 
-            Primitive prim = objects.ElementAt(bot.Random.Next(0, objects.Count)).Value;
+            lock (bot.Manager.RegionsKnown)
+            {
+                if (bot.Manager.RegionsKnown.Count == 0)
+                {
+                    m_log.DebugFormat(
+                        "[TELEPORT BEHAVIOUR]: Ignoring teleport action for {0} since no regions are known yet", bot.Name);
+                    return;
+                }
 
-            // This appears to be a typical message sent when a viewer user clicks a clickable object
-            bot.Client.Self.Grab(prim.LocalID);
-            bot.Client.Self.GrabUpdate(prim.ID, Vector3.Zero);
-            bot.Client.Self.DeGrab(prim.LocalID);
+                knownRegions = bot.Manager.RegionsKnown.Values.ToArray();
+            }
+
+            Simulator sourceRegion = bot.Client.Network.CurrentSim;
+            GridRegion destRegion = knownRegions[rng.Next(knownRegions.Length)];
+            Vector3 destPosition = new Vector3(rng.Next(255), rng.Next(255), 50);
+
+            m_log.DebugFormat(
+                "[TELEPORT BEHAVIOUR]: Teleporting {0} from {1} {2} to {3} {4}",
+                bot.Name, sourceRegion.Name, bot.Client.Self.SimPosition, destRegion.Name, destPosition);
+
+            bot.Client.Self.Teleport(destRegion.RegionHandle, destPosition);
         }
     }
 }

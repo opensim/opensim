@@ -70,7 +70,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private Vector3 _position;
         private d.Vector3 _zeroPosition;
-        // private d.Matrix3 m_StandUpRotation;
         private bool _zeroFlag = false;
         private bool m_lastUpdateSent = false;
         private Vector3 _velocity;
@@ -123,9 +122,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_buoyancy = 0f;
 
         // private CollisionLocker ode;
-
-        private string m_name = String.Empty;
-
         private bool[] m_colliderarr = new bool[11];
         private bool[] m_colliderGroundarr = new bool[11];
 
@@ -181,7 +177,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         parent_scene.GetTerrainHeightAtXY(128f, 128f) + 10f);
                 m_taintPosition = _position;
 
-                m_log.Warn("[PHYSICS]: Got NaN Position on Character Create");
+                m_log.WarnFormat("[ODE CHARACTER]: Got NaN Position on Character Create for {0}", avName);
             }
 
             _parent_scene = parent_scene;
@@ -204,7 +200,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_colliderarr[i] = false;
             }
             CAPSULE_LENGTH = (size.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
-            //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
+            //m_log.Info("[ODE CHARACTER]: " + CAPSULE_LENGTH.ToString());
             m_tainted_CAPSULE_LENGTH = CAPSULE_LENGTH;
 
             m_isPhysical = false; // current status: no ODE information exists
@@ -212,7 +208,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _parent_scene.AddPhysicsActorTaint(this);
             
-            m_name = avName;
+            Name = avName;
         }
 
         public override int PhysicsActorType
@@ -269,7 +265,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 flying = value;
-//                m_log.DebugFormat("[PHYSICS]: Set OdeCharacter Flying to {0}", flying);
+//                m_log.DebugFormat("[ODE CHARACTER]: Set OdeCharacter Flying to {0}", flying);
             }
         }
 
@@ -440,7 +436,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        m_log.Warn("[PHYSICS]: Got a NaN Position from Scene on a Character");
+                        m_log.WarnFormat("[ODE CHARACTER]: Got a NaN Position from Scene on character {0}", Name);
                     }
                 }
             }
@@ -467,7 +463,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     Vector3 SetSize = value;
                     m_tainted_CAPSULE_LENGTH = (SetSize.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
-//                    m_log.Info("[SIZE]: " + CAPSULE_LENGTH);
+//                    m_log.Info("[ODE CHARACTER]: " + CAPSULE_LENGTH);
 
                     // If we reset velocity here, then an avatar stalls when it crosses a border for the first time
                     // (as the height of the new root agent is set).
@@ -477,7 +473,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    m_log.Warn("[PHYSICS]: Got a NaN Size from Scene on a Character");
+                    m_log.WarnFormat("[ODE CHARACTER]: Got a NaN Size from Scene on {0}", Name);
                 }
             }
         }
@@ -529,7 +525,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-
             // movementVector.Z is zero
 
             // calculate tilt components based on desired amount of tilt and current (snapped) heading.
@@ -537,7 +532,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float xTiltComponent = -movementVector.X * m_tiltMagnitudeWhenProjectedOnXYPlane;
             float yTiltComponent = -movementVector.Y * m_tiltMagnitudeWhenProjectedOnXYPlane;
 
-            //m_log.Debug("[PHYSICS] changing avatar tilt");
+            //m_log.Debug("[ODE CHARACTER]: changing avatar tilt");
             d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, xTiltComponent);
             d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, xTiltComponent); // must be same as lowstop, else a different, spurious tilt is introduced
             d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, yTiltComponent);
@@ -546,124 +541,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f); // same as lowstop
         }
 
-        /// <summary>
-        /// This creates the Avatar's physical Surrogate at the position supplied
-        /// </summary>
-        /// <param name="npositionX"></param>
-        /// <param name="npositionY"></param>
-        /// <param name="npositionZ"></param>
-
-        // WARNING: This MUST NOT be called outside of ProcessTaints, else we can have unsynchronized access
-        // to ODE internals. ProcessTaints is called from within thread-locked Simulate(), so it is the only 
-        // place that is safe to call this routine AvatarGeomAndBodyCreation.
-        private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ, float tensor)
-        {
-            //CAPSULE_LENGTH = -5;
-            //CAPSULE_RADIUS = -5;
-            int dAMotorEuler = 1;
-            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
-            if (CAPSULE_LENGTH <= 0)
-            {
-                m_log.Warn("[PHYSICS]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
-                CAPSULE_LENGTH = 0.01f;
-
-            }
-
-            if (CAPSULE_RADIUS <= 0)
-            {
-                m_log.Warn("[PHYSICS]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
-                CAPSULE_RADIUS = 0.01f;
-
-            }
-            Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
-
-            d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
-            d.GeomSetCollideBits(Shell, (int)m_collisionFlags);
-
-            d.MassSetCapsuleTotal(out ShellMass, m_mass, 2, CAPSULE_RADIUS, CAPSULE_LENGTH);
-            Body = d.BodyCreate(_parent_scene.world);
-            d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
-
-            _position.X = npositionX;
-            _position.Y = npositionY;
-            _position.Z = npositionZ;
-
-            m_taintPosition = _position;
-
-            d.BodySetMass(Body, ref ShellMass);
-            d.Matrix3 m_caprot;
-            // 90 Stand up on the cap of the capped cyllinder
-            if (_parent_scene.IsAvCapsuleTilted)
-            {
-                d.RFromAxisAndAngle(out m_caprot, 1, 0, 1, (float)(Math.PI / 2));
-            }
-            else
-            {
-                d.RFromAxisAndAngle(out m_caprot, 0, 0, 1, (float)(Math.PI / 2));
-            }
-
-
-            d.GeomSetRotation(Shell, ref m_caprot);
-            d.BodySetRotation(Body, ref m_caprot);
-
-            d.GeomSetBody(Shell, Body);
-
-
-            // The purpose of the AMotor here is to keep the avatar's physical
-            // surrogate from rotating while moving
-            Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
-            d.JointAttach(Amotor, Body, IntPtr.Zero);
-            d.JointSetAMotorMode(Amotor, dAMotorEuler);
-            d.JointSetAMotorNumAxes(Amotor, 3);
-            d.JointSetAMotorAxis(Amotor, 0, 0, 1, 0, 0);
-            d.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
-            d.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
-            d.JointSetAMotorAngle(Amotor, 0, 0);
-            d.JointSetAMotorAngle(Amotor, 1, 0);
-            d.JointSetAMotorAngle(Amotor, 2, 0);
-
-            // These lowstops and high stops are effectively (no wiggle room)
-            if (_parent_scene.IsAvCapsuleTilted)
-            {
-                d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
-            }
-            else
-            {
-                #region Documentation of capsule motor LowStop and HighStop parameters
-                // Intentionally introduce some tilt into the capsule by setting
-                // the motor stops to small epsilon values. This small tilt prevents
-                // the capsule from falling into the terrain; a straight-up capsule
-                // (with -0..0 motor stops) falls into the terrain for reasons yet
-                // to be comprehended in their entirety.
-                #endregion
-                AlignAvatarTiltWithCurrentDirectionOfMovement(Vector3.Zero);
-                d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, 0.08f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, 0.08f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop,  0.08f); // must be same as lowstop, else a different, spurious tilt is introduced
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f); // same as lowstop
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.08f); // same as lowstop
-            }
-
-            // Fudge factor is 1f by default, we're setting it to 0.  We don't want it to Fudge or the
-            // capped cyllinder will fall over
-            d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, tensor);
-
-            //d.Matrix3 bodyrotation = d.BodyGetRotation(Body);
-            //d.QfromR(
-            //d.Matrix3 checkrotation = new d.Matrix3(0.7071068,0.5, -0.7071068,
-            //
-            //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
-            //standupStraight();
-        }
-
-        //
         /// <summary>
         /// Uses the capped cyllinder volume formula to calculate the avatar's mass.
         /// This may be used in calculations in the scene/scenepresence
@@ -774,7 +651,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    m_log.Warn("[PHYSICS]: Got a NaN velocity from Scene in a Character");
+                    m_log.WarnFormat("[ODE CHARACTER]: Got a NaN velocity from Scene for {0}", Name);
                 }
 
 //                m_log.DebugFormat("[PHYSICS]: Set target velocity of {0}", m_taintTargetVelocity);
@@ -836,7 +713,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_taintForce += force;
                     _parent_scene.AddPhysicsActorTaint(this);
 
-                    //doForce(force);
                     // If uncommented, things get pushed off world
                     //
                     // m_log.Debug("Push!");
@@ -852,22 +728,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                m_log.Warn("[PHYSICS]: Got a NaN force applied to a Character");
+                m_log.WarnFormat("[ODE CHARACTER]: Got a NaN force applied to {0}", Name);
             }
             //m_lastUpdateSent = false;
         }
 
         public override void AddAngularForce(Vector3 force, bool pushforce)
         {
-        }
-
-        /// <summary>
-        /// After all of the forces add up with 'add force' we apply them with doForce
-        /// </summary>
-        /// <param name="force"></param>
-        public void doForce(Vector3 force)
-        {
-            d.BodyAddForce(Body, force.X, force.Y, force.Z);
         }
 
         public override void SetMomentum(Vector3 momentum)
@@ -878,9 +745,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// Called from Simulate
         /// This is the avatar's movement control + PID Controller
         /// </summary>
-        /// <param name="defects">
-        /// If there is something wrong with the character (e.g. its position is non-finite)
-        /// then it is added to this list.  The ODE structures associated with it are also destroyed.
+        /// <param name="defects">The character will be added to this list if there is something wrong (non-finite
+        /// position or velocity).
         /// </param>
         internal void Move(List<OdeCharacter> defects)
         {
@@ -903,12 +769,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             
             if (!localPos.IsFinite())
             {
-                m_log.Warn("[PHYSICS]: Avatar Position is non-finite!");
+                m_log.WarnFormat(
+                    "[ODE CHARACTER]: Avatar position of {0} for {1} is non-finite!  Removing from physics scene.",
+                    localPos, Name);
 
                 defects.Add(this);
-                // _parent_scene.RemoveCharacter(this);
-
-                DestroyOdeStructures();
 
                 return;
             }
@@ -1035,26 +900,31 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (vec.IsFinite())
             {
-                doForce(vec);
+                // Apply the total force acting on this avatar
+                d.BodyAddForce(Body, vec.X, vec.Y, vec.Z);
 
                 if (!_zeroFlag)
                     AlignAvatarTiltWithCurrentDirectionOfMovement(vec);
             }
             else
             {
-                m_log.Warn("[PHYSICS]: Got a NaN force vector in Move()");
-                m_log.Warn("[PHYSICS]: Avatar Position is non-finite!");
-                defects.Add(this);
-                // _parent_scene.RemoveCharacter(this);
+                m_log.WarnFormat(
+                    "[ODE CHARACTER]: Got a NaN force vector {0} in Move() for {1}.  Removing character from physics scene.",
+                    vec, Name);
 
-                DestroyOdeStructures();
+                defects.Add(this);
+
+                return;
             }
         }
 
         /// <summary>
         /// Updates the reported position and velocity.  This essentially sends the data up to ScenePresence.
         /// </summary>
-        internal void UpdatePositionAndVelocity()
+        /// <param name="defects">The character will be added to this list if there is something wrong (non-finite
+        /// position or velocity).
+        /// </param>
+        internal void UpdatePositionAndVelocity(List<OdeCharacter> defects)
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
             d.Vector3 newPos;
@@ -1065,10 +935,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             catch (NullReferenceException)
             {
                 bad = true;
-                _parent_scene.BadCharacter(this);
+                defects.Add(this);
                 newPos = new d.Vector3(_position.X, _position.Y, _position.Z);
                 base.RaiseOutOfBounds(_position); // Tells ScenePresence that there's a problem!
-                m_log.WarnFormat("[ODEPLUGIN]: Avatar Null reference for Avatar {0}, physical actor {1}", m_name, m_uuid);
+                m_log.WarnFormat("[ODE CHARACTER]: Avatar Null reference for Avatar {0}, physical actor {1}", Name, m_uuid);
+
+                return;
             }
 
             //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
@@ -1137,6 +1009,123 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         /// <summary>
+        /// This creates the Avatar's physical Surrogate in ODE at the position supplied
+        /// </summary>
+        /// <remarks>
+        /// WARNING: This MUST NOT be called outside of ProcessTaints, else we can have unsynchronized access
+        /// to ODE internals. ProcessTaints is called from within thread-locked Simulate(), so it is the only
+        /// place that is safe to call this routine AvatarGeomAndBodyCreation.
+        /// </remarks>
+        /// <param name="npositionX"></param>
+        /// <param name="npositionY"></param>
+        /// <param name="npositionZ"></param>
+        /// <param name="tensor"></param>
+        private void CreateOdeStructures(float npositionX, float npositionY, float npositionZ, float tensor)
+        {
+            int dAMotorEuler = 1;
+//            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+            if (CAPSULE_LENGTH <= 0)
+            {
+                m_log.Warn("[ODE CHARACTER]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
+                CAPSULE_LENGTH = 0.01f;
+            }
+
+            if (CAPSULE_RADIUS <= 0)
+            {
+                m_log.Warn("[ODE CHARACTER]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
+                CAPSULE_RADIUS = 0.01f;
+            }
+
+            Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
+
+            d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
+            d.GeomSetCollideBits(Shell, (int)m_collisionFlags);
+
+            d.MassSetCapsuleTotal(out ShellMass, m_mass, 2, CAPSULE_RADIUS, CAPSULE_LENGTH);
+            Body = d.BodyCreate(_parent_scene.world);
+            d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
+
+            _position.X = npositionX;
+            _position.Y = npositionY;
+            _position.Z = npositionZ;
+
+            m_taintPosition = _position;
+
+            d.BodySetMass(Body, ref ShellMass);
+            d.Matrix3 m_caprot;
+            // 90 Stand up on the cap of the capped cyllinder
+            if (_parent_scene.IsAvCapsuleTilted)
+            {
+                d.RFromAxisAndAngle(out m_caprot, 1, 0, 1, (float)(Math.PI / 2));
+            }
+            else
+            {
+                d.RFromAxisAndAngle(out m_caprot, 0, 0, 1, (float)(Math.PI / 2));
+            }
+
+            d.GeomSetRotation(Shell, ref m_caprot);
+            d.BodySetRotation(Body, ref m_caprot);
+
+            d.GeomSetBody(Shell, Body);
+
+            // The purpose of the AMotor here is to keep the avatar's physical
+            // surrogate from rotating while moving
+            Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
+            d.JointAttach(Amotor, Body, IntPtr.Zero);
+            d.JointSetAMotorMode(Amotor, dAMotorEuler);
+            d.JointSetAMotorNumAxes(Amotor, 3);
+            d.JointSetAMotorAxis(Amotor, 0, 0, 1, 0, 0);
+            d.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
+            d.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
+            d.JointSetAMotorAngle(Amotor, 0, 0);
+            d.JointSetAMotorAngle(Amotor, 1, 0);
+            d.JointSetAMotorAngle(Amotor, 2, 0);
+
+            // These lowstops and high stops are effectively (no wiggle room)
+            if (_parent_scene.IsAvCapsuleTilted)
+            {
+                d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
+            }
+            else
+            {
+                #region Documentation of capsule motor LowStop and HighStop parameters
+                // Intentionally introduce some tilt into the capsule by setting
+                // the motor stops to small epsilon values. This small tilt prevents
+                // the capsule from falling into the terrain; a straight-up capsule
+                // (with -0..0 motor stops) falls into the terrain for reasons yet
+                // to be comprehended in their entirety.
+                #endregion
+                AlignAvatarTiltWithCurrentDirectionOfMovement(Vector3.Zero);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, 0.08f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, 0.08f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop,  0.08f); // must be same as lowstop, else a different, spurious tilt is introduced
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f); // same as lowstop
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.08f); // same as lowstop
+            }
+
+            // Fudge factor is 1f by default, we're setting it to 0.  We don't want it to Fudge or the
+            // capped cyllinder will fall over
+            d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, tensor);
+
+            //d.Matrix3 bodyrotation = d.BodyGetRotation(Body);
+            //d.QfromR(
+            //d.Matrix3 checkrotation = new d.Matrix3(0.7071068,0.5, -0.7071068,
+            //
+            //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
+            //standupStraight();
+
+            _parent_scene.geom_name_map[Shell] = Name;
+            _parent_scene.actor_name_map[Shell] = this;
+        }
+
+        /// <summary>
         /// Cleanup the things we use in the scene.
         /// </summary>
         internal void Destroy()
@@ -1148,7 +1137,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// Used internally to destroy the ODE structures associated with this character.
         /// </summary>
-        private void DestroyOdeStructures()
+        internal void DestroyOdeStructures()
         {
             // destroy avatar capsule and related ODE data
             if (Amotor != IntPtr.Zero)
@@ -1159,13 +1148,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             //kill the Geometry
-            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+//            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
 
             if (Body != IntPtr.Zero)
             {
                 //kill the body
                 d.BodyDestroy(Body);
-
                 Body = IntPtr.Zero;
             }
 
@@ -1173,6 +1161,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 d.GeomDestroy(Shell);
                 _parent_scene.geom_name_map.Remove(Shell);
+                _parent_scene.actor_name_map.Remove(Shell);
+
                 Shell = IntPtr.Zero;
             }
         }
@@ -1261,7 +1251,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // FIXME: This is not a good solution since it's subject to a race condition if a force is another
                     // thread sets a new force while we're in this loop (since it could be obliterated by
                     // m_taintForce = Vector3.Zero.  Need to lock ProcessTaints() when we set a new tainted force.
-                    doForce(m_taintForce);
+                    d.BodyAddForce(Body, m_taintForce.X, m_taintForce.Y, m_taintForce.Z);
                 }
 
                 m_taintForce = Vector3.Zero;
@@ -1277,15 +1267,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // Create avatar capsule and related ODE data
                     if (!(Shell == IntPtr.Zero && Body == IntPtr.Zero && Amotor == IntPtr.Zero))
                     {
-                        m_log.Warn("[PHYSICS]: re-creating the following avatar ODE data, even though it already exists - "
+                        m_log.Warn("[ODE CHARACTER]: re-creating the following avatar ODE data for " + Name + ", even though it already exists - "
                             + (Shell!=IntPtr.Zero ? "Shell ":"")
                             + (Body!=IntPtr.Zero ? "Body ":"")
                             + (Amotor!=IntPtr.Zero ? "Amotor ":""));
                     }
-                    AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z, m_tensor);
-                    
-                    _parent_scene.geom_name_map[Shell] = m_name;
-                    _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
+
+                    CreateOdeStructures(_position.X, _position.Y, _position.Z, m_tensor);
                     _parent_scene.AddCharacter(this);
                 }
                 else
@@ -1301,17 +1289,19 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (Shell != IntPtr.Zero && Body != IntPtr.Zero && Amotor != IntPtr.Zero)
                 {
-//                    m_log.DebugFormat("[PHYSICS]: Changing capsule size");
+//                    m_log.DebugFormat(
+//                        "[ODE CHARACTER]: Changing capsule size from {0} to {1} for {2}",
+//                        CAPSULE_LENGTH, m_tainted_CAPSULE_LENGTH, Name);
                     
                     m_pidControllerActive = true;
+
                     // no lock needed on _parent_scene.OdeLock because we are called from within the thread lock in OdePlugin's simulate()
-                    d.JointDestroy(Amotor);
+                    DestroyOdeStructures();
+
                     float prevCapsule = CAPSULE_LENGTH;
                     CAPSULE_LENGTH = m_tainted_CAPSULE_LENGTH;
-                    //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
-                    d.BodyDestroy(Body);
-                    d.GeomDestroy(Shell);
-                    AvatarGeomAndBodyCreation(
+
+                    CreateOdeStructures(
                         _position.X,
                         _position.Y,
                         _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2), m_tensor);
@@ -1319,13 +1309,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // As with Size, we reset velocity.  However, this isn't strictly necessary since it doesn't
                     // appear to stall initial region crossings when done here.  Being done for consistency.
 //                    Velocity = Vector3.Zero;
-
-                    _parent_scene.geom_name_map[Shell] = m_name;
-                    _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
                 }
                 else
                 {
-                    m_log.Warn("[PHYSICS]: trying to change capsule size, but the following ODE data is missing - " 
+                    m_log.Warn("[ODE CHARACTER]: trying to change capsule size for " + Name + ", but the following ODE data is missing - "
                         + (Shell==IntPtr.Zero ? "Shell ":"")
                         + (Body==IntPtr.Zero ? "Body ":"")
                         + (Amotor==IntPtr.Zero ? "Amotor ":""));

@@ -112,6 +112,13 @@ namespace OpenSim
             get { return m_clientServers; }
         }
 
+        protected EnvConfigSource m_EnvConfigSource = new EnvConfigSource();
+
+        public EnvConfigSource envConfigSource
+        {
+            get { return m_EnvConfigSource; }
+        }
+
         protected List<IClientNetworkServer> m_clientServers = new List<IClientNetworkServer>();
        
         public uint HttpServerPort
@@ -146,7 +153,7 @@ namespace OpenSim
         protected virtual void LoadConfigSettings(IConfigSource configSource)
         {
             m_configLoader = new ConfigurationLoader();
-            m_config = m_configLoader.LoadConfigSettings(configSource, out m_configSettings, out m_networkServersInfo);
+            m_config = m_configLoader.LoadConfigSettings(configSource, envConfigSource, out m_configSettings, out m_networkServersInfo);
             ReadExtraConfigSettings();
         }
 

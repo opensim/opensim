@@ -3535,23 +3535,23 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="args">The arguments for the event</param>
         public void SendScriptEventToAttachments(string eventName, Object[] args)
         {
-            if (m_scriptEngines != null)
-            {
-                lock (m_attachments)
-                {
-                    foreach (SceneObjectGroup grp in m_attachments)
-                    {
-                        // 16384 is CHANGED_ANIMATION
-                        //
-                        // Send this to all attachment root prims
-                        //
-                        foreach (IScriptModule m in m_scriptEngines)
-                        {
-                            if (m == null) // No script engine loaded
-                                continue;
+            if (m_scriptEngines.Length == 0)
+                return;
 
-                            m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { (int)Changed.ANIMATION });
-                        }
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup grp in m_attachments)
+                {
+                    // 16384 is CHANGED_ANIMATION
+                    //
+                    // Send this to all attachment root prims
+                    //
+                    foreach (IScriptModule m in m_scriptEngines)
+                    {
+                        if (m == null) // No script engine loaded
+                            continue;
+
+                        m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { (int)Changed.ANIMATION });
                     }
                 }
             }

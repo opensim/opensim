@@ -49,8 +49,15 @@ namespace pCampBot
 
         public delegate void AnEvent(Bot callbot, EventType someevent); // event delegate for bot events
 
-        public BotManager BotManager { get; private set; }
-        private IConfig startupConfig; // bot config, passed from BotManager
+        /// <summary>
+        /// Bot manager.
+        /// </summary>
+        public BotManager Manager { get; private set; }
+
+        /// <summary>
+        /// Bot config, passed from BotManager.
+        /// </summary>
+        private IConfig startupConfig;
 
         /// <summary>
         /// Behaviours implemented by this bot.
@@ -132,7 +139,7 @@ namespace pCampBot
             Password = password;
             LoginUri = loginUri;
 
-            BotManager = bm;
+            Manager = bm;
             startupConfig = bm.Config;
             readconfig();
 
@@ -218,7 +225,19 @@ namespace pCampBot
                 {
                     MakeDefaultAppearance(wear);
                 }
+
                 Client.Self.Jump(true);
+
+                // Extract nearby region information.
+                Client.Grid.GridRegion += Manager.Grid_GridRegion;
+                uint xUint, yUint;
+                Utils.LongToUInts(Client.Network.CurrentSim.Handle, out xUint, out yUint);
+                ushort minX, minY, maxX, maxY;
+                minX = (ushort)Math.Min(0, xUint - 5);
+                minY = (ushort)Math.Min(0, yUint - 5);
+                maxX = (ushort)(xUint + 5);
+                maxY = (ushort)(yUint + 5);
+                Client.Grid.RequestMapBlocks(GridLayerType.Terrain, minX, minY, maxX, maxY, false);
             }
             else
             {
@@ -472,13 +491,13 @@ namespace pCampBot
 
         private void GetTexture(UUID textureID)
         {
-            lock (BotManager.AssetsReceived)
+            lock (Manager.AssetsReceived)
             {
                 // Don't request assets more than once.
-                if (BotManager.AssetsReceived.ContainsKey(textureID))
+                if (Manager.AssetsReceived.ContainsKey(textureID))
                     return;
 
-                BotManager.AssetsReceived[textureID] = false;
+                Manager.AssetsReceived[textureID] = false;
                 Client.Assets.RequestImage(textureID, ImageType.Normal, Asset_TextureCallback_Texture);
             }
         }
@@ -490,8 +509,8 @@ namespace pCampBot
         
         public void Asset_ReceivedCallback(AssetDownload transfer, Asset asset)
         {
-            lock (BotManager.AssetsReceived)
-                BotManager.AssetsReceived[asset.AssetID] = true;
+            lock (Manager.AssetsReceived)
+                Manager.AssetsReceived[asset.AssetID] = true;
 
 //            if (wear == "save")
 //            {
