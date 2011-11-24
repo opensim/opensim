@@ -346,12 +346,16 @@ namespace OpenSim.Region.ClientStack.Linden
             }
 
             // Register this as a caps handler
+            // FIXME: Confusingly, we need to register separate as a capability so that the client is told about
+            // EventQueueGet when it receive capability information, but then we replace the rest handler immediately
+            // afterwards with the poll service.  So for now, we'll pass a null instead to simplify code reading, but
+            // really it should be possible to directly register the poll handler as a capability.
             caps.RegisterHandler("EventQueueGet",
-                                 new RestHTTPHandler("POST", capsBase + EventQueueGetUUID.ToString() + "/",
-                                                       delegate(Hashtable m_dhttpMethod)
-                                                       {
-                                                           return ProcessQueue(m_dhttpMethod, agentID, caps);
-                                                       }));
+                                 new RestHTTPHandler("POST", capsBase + EventQueueGetUUID.ToString() + "/", null));
+//                                                       delegate(Hashtable m_dhttpMethod)
+//                                                       {
+//                                                           return ProcessQueue(m_dhttpMethod, agentID, caps);
+//                                                       }));
 
             // This will persist this beyond the expiry of the caps handlers
             MainServer.Instance.AddPollServiceHTTPHandler(
@@ -382,6 +386,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public Hashtable GetEvents(UUID requestID, UUID pAgentId, string request)
         {
+            m_log.DebugFormat("[EVENT QUEUE GET MODULE]: Invoked GetEvents() for {0}", pAgentId);
+
             Queue<OSD> queue = TryGetQueue(pAgentId);
             OSD element;
             lock (queue)
@@ -465,167 +471,166 @@ namespace OpenSim.Region.ClientStack.Linden
             return responsedata;
         }
 
-        public Hashtable ProcessQueue(Hashtable request, UUID agentID, Caps caps)
-        {
-            // TODO: this has to be redone to not busy-wait (and block the thread),
-            // TODO: as soon as we have a non-blocking way to handle HTTP-requests.
-
-//            if (m_log.IsDebugEnabled)
-//            { 
-//                String debug = "[EVENTQUEUE]: Got request for agent {0} in region {1} from thread {2}: [  ";
-//                foreach (object key in request.Keys)
+//        public Hashtable ProcessQueue(Hashtable request, UUID agentID, Caps caps)
+//        {
+//            // TODO: this has to be redone to not busy-wait (and block the thread),
+//            // TODO: as soon as we have a non-blocking way to handle HTTP-requests.
+//
+////            if (m_log.IsDebugEnabled)
+////            {
+////                String debug = "[EVENTQUEUE]: Got request for agent {0} in region {1} from thread {2}: [  ";
+////                foreach (object key in request.Keys)
+////                {
+////                    debug += key.ToString() + "=" + request[key].ToString() + "  ";
+////                }
+////                m_log.DebugFormat(debug + "  ]", agentID, m_scene.RegionInfo.RegionName, System.Threading.Thread.CurrentThread.Name);
+////            }
+//
+//            Queue<OSD> queue = TryGetQueue(agentID);
+//            OSD element;
+//
+//            lock (queue)
+//                element = queue.Dequeue(); // 15s timeout
+//
+//            Hashtable responsedata = new Hashtable();
+//
+//            int thisID = 0;
+//            lock (m_ids)
+//                thisID = m_ids[agentID];
+//
+//            if (element == null)
+//            {
+//                //m_log.ErrorFormat("[EVENTQUEUE]: Nothing to process in " + m_scene.RegionInfo.RegionName);
+//                if (thisID == -1) // close-request
 //                {
-//                    debug += key.ToString() + "=" + request[key].ToString() + "  ";
+//                    m_log.ErrorFormat("[EVENTQUEUE]: 404 in " + m_scene.RegionInfo.RegionName);
+//                    responsedata["int_response_code"] = 404; //501; //410; //404;
+//                    responsedata["content_type"] = "text/plain";
+//                    responsedata["keepalive"] = false;
+//                    responsedata["str_response_string"] = "Closed EQG";
+//                    return responsedata;
 //                }
-//                m_log.DebugFormat(debug + "  ]", agentID, m_scene.RegionInfo.RegionName, System.Threading.Thread.CurrentThread.Name);
+//                responsedata["int_response_code"] = 502;
+//                responsedata["content_type"] = "text/plain";
+//                responsedata["keepalive"] = false;
+//                responsedata["str_response_string"] = "Upstream error: ";
+//                responsedata["error_status_text"] = "Upstream error:";
+//                responsedata["http_protocol_version"] = "HTTP/1.0";
+//                return responsedata;
 //            }
-
-            Queue<OSD> queue = TryGetQueue(agentID);
-            OSD element;
-
-            lock (queue)
-                element = queue.Dequeue(); // 15s timeout
-
-            Hashtable responsedata = new Hashtable();
-            
-            int thisID = 0;
-            lock (m_ids) 
-                thisID = m_ids[agentID];
-
-            if (element == null)
-            {
-                //m_log.ErrorFormat("[EVENTQUEUE]: Nothing to process in " + m_scene.RegionInfo.RegionName);
-                if (thisID == -1) // close-request
-                {
-                    m_log.ErrorFormat("[EVENTQUEUE]: 404 in " + m_scene.RegionInfo.RegionName);
-                    responsedata["int_response_code"] = 404; //501; //410; //404;
-                    responsedata["content_type"] = "text/plain";
-                    responsedata["keepalive"] = false;
-                    responsedata["str_response_string"] = "Closed EQG";
-                    return responsedata;
-                }
-                responsedata["int_response_code"] = 502;
-                responsedata["content_type"] = "text/plain";
-                responsedata["keepalive"] = false;
-                responsedata["str_response_string"] = "Upstream error: ";
-                responsedata["error_status_text"] = "Upstream error:";
-                responsedata["http_protocol_version"] = "HTTP/1.0";
-                return responsedata;
-            }
-
-            OSDArray array = new OSDArray();
-            if (element == null) // didn't have an event in 15s
-            {
-                // Send it a fake event to keep the client polling!   It doesn't like 502s like the proxys say!
-                array.Add(EventQueueHelper.KeepAliveEvent());
-                //m_log.DebugFormat("[EVENTQUEUE]: adding fake event for {0} in region {1}", agentID, m_scene.RegionInfo.RegionName);
-            }
-            else
-            {
-                array.Add(element);
-
-                if (element is OSDMap)
-                {
-                    OSDMap ev = (OSDMap)element;
-                    m_log.DebugFormat(
-                        "[EVENT QUEUE GET MODULE]: Eq OUT {0} to {1}",
-                        ev["message"], m_scene.GetScenePresence(agentID).Name);
-                }
-
-                lock (queue)
-                {
-                    while (queue.Count > 0)
-                    {
-                        element = queue.Dequeue();
-
-                        if (element is OSDMap)
-                        {
-                            OSDMap ev = (OSDMap)element;
-                            m_log.DebugFormat(
-                                "[EVENT QUEUE GET MODULE]: Eq OUT {0} to {1}",
-                                ev["message"], m_scene.GetScenePresence(agentID).Name);
-                        }
-
-                        array.Add(element);
-                        thisID++;
-                    }
-                }
-            }
-
-            OSDMap events = new OSDMap();
-            events.Add("events", array);
-
-            events.Add("id", new OSDInteger(thisID));
-            lock (m_ids)
-            {
-                m_ids[agentID] = thisID + 1;
-            }
-
-            responsedata["int_response_code"] = 200;
-            responsedata["content_type"] = "application/xml";
-            responsedata["keepalive"] = false;
-            responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(events);
-
-            m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
-
-            return responsedata;
-        }
+//
+//            OSDArray array = new OSDArray();
+//            if (element == null) // didn't have an event in 15s
+//            {
+//                // Send it a fake event to keep the client polling!   It doesn't like 502s like the proxys say!
+//                array.Add(EventQueueHelper.KeepAliveEvent());
+//                //m_log.DebugFormat("[EVENTQUEUE]: adding fake event for {0} in region {1}", agentID, m_scene.RegionInfo.RegionName);
+//            }
+//            else
+//            {
+//                array.Add(element);
+//
+//                if (element is OSDMap)
+//                {
+//                    OSDMap ev = (OSDMap)element;
+//                    m_log.DebugFormat(
+//                        "[EVENT QUEUE GET MODULE]: Eq OUT {0} to {1}",
+//                        ev["message"], m_scene.GetScenePresence(agentID).Name);
+//                }
+//
+//                lock (queue)
+//                {
+//                    while (queue.Count > 0)
+//                    {
+//                        element = queue.Dequeue();
+//
+//                        if (element is OSDMap)
+//                        {
+//                            OSDMap ev = (OSDMap)element;
+//                            m_log.DebugFormat(
+//                                "[EVENT QUEUE GET MODULE]: Eq OUT {0} to {1}",
+//                                ev["message"], m_scene.GetScenePresence(agentID).Name);
+//                        }
+//
+//                        array.Add(element);
+//                        thisID++;
+//                    }
+//                }
+//            }
+//
+//            OSDMap events = new OSDMap();
+//            events.Add("events", array);
+//
+//            events.Add("id", new OSDInteger(thisID));
+//            lock (m_ids)
+//            {
+//                m_ids[agentID] = thisID + 1;
+//            }
+//
+//            responsedata["int_response_code"] = 200;
+//            responsedata["content_type"] = "application/xml";
+//            responsedata["keepalive"] = false;
+//            responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(events);
+//
+//            m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
+//
+//            return responsedata;
+//        }
 
         public Hashtable EventQueuePoll(Hashtable request)
         {
             return new Hashtable();
         }
 
-        public Hashtable EventQueuePath2(Hashtable request)
-        {
-            string capuuid = (string)request["uri"]; //path.Replace("/CAPS/EQG/","");
-            // pull off the last "/" in the path.
-            Hashtable responsedata = new Hashtable();
-            capuuid = capuuid.Substring(0, capuuid.Length - 1);
-            capuuid = capuuid.Replace("/CAPS/EQG/", "");
-            UUID AvatarID = UUID.Zero;
-            UUID capUUID = UUID.Zero;
-            
-            // parse the path and search for the avatar with it registered
-            if (UUID.TryParse(capuuid, out capUUID))
-            {
-                lock (m_QueueUUIDAvatarMapping)
-                {
-                    if (m_QueueUUIDAvatarMapping.ContainsKey(capUUID))
-                    {
-                        AvatarID = m_QueueUUIDAvatarMapping[capUUID];
-                    }
-                }
-                
-                if (AvatarID != UUID.Zero)
-                {
-                    return ProcessQueue(request, AvatarID, m_scene.CapsModule.GetCapsForUser(AvatarID));
-                }
-                else
-                {
-                    responsedata["int_response_code"] = 404;
-                    responsedata["content_type"] = "text/plain";
-                    responsedata["keepalive"] = false;
-                    responsedata["str_response_string"] = "Not Found";
-                    responsedata["error_status_text"] = "Not Found";
-                    responsedata["http_protocol_version"] = "HTTP/1.0";
-                    return responsedata;
-                    // return 404
-                }
-            }
-            else
-            {
-                responsedata["int_response_code"] = 404;
-                responsedata["content_type"] = "text/plain";
-                responsedata["keepalive"] = false;
-                responsedata["str_response_string"] = "Not Found";
-                responsedata["error_status_text"] = "Not Found";
-                responsedata["http_protocol_version"] = "HTTP/1.0";
-                return responsedata;
-                // return 404
-            }
-
-        }
+//        public Hashtable EventQueuePath2(Hashtable request)
+//        {
+//            string capuuid = (string)request["uri"]; //path.Replace("/CAPS/EQG/","");
+//            // pull off the last "/" in the path.
+//            Hashtable responsedata = new Hashtable();
+//            capuuid = capuuid.Substring(0, capuuid.Length - 1);
+//            capuuid = capuuid.Replace("/CAPS/EQG/", "");
+//            UUID AvatarID = UUID.Zero;
+//            UUID capUUID = UUID.Zero;
+//
+//            // parse the path and search for the avatar with it registered
+//            if (UUID.TryParse(capuuid, out capUUID))
+//            {
+//                lock (m_QueueUUIDAvatarMapping)
+//                {
+//                    if (m_QueueUUIDAvatarMapping.ContainsKey(capUUID))
+//                    {
+//                        AvatarID = m_QueueUUIDAvatarMapping[capUUID];
+//                    }
+//                }
+//                
+//                if (AvatarID != UUID.Zero)
+//                {
+//                    return ProcessQueue(request, AvatarID, m_scene.CapsModule.GetCapsForUser(AvatarID));
+//                }
+//                else
+//                {
+//                    responsedata["int_response_code"] = 404;
+//                    responsedata["content_type"] = "text/plain";
+//                    responsedata["keepalive"] = false;
+//                    responsedata["str_response_string"] = "Not Found";
+//                    responsedata["error_status_text"] = "Not Found";
+//                    responsedata["http_protocol_version"] = "HTTP/1.0";
+//                    return responsedata;
+//                    // return 404
+//                }
+//            }
+//            else
+//            {
+//                responsedata["int_response_code"] = 404;
+//                responsedata["content_type"] = "text/plain";
+//                responsedata["keepalive"] = false;
+//                responsedata["str_response_string"] = "Not Found";
+//                responsedata["error_status_text"] = "Not Found";
+//                responsedata["http_protocol_version"] = "HTTP/1.0";
+//                return responsedata;
+//                // return 404
+//            }
+//        }
 
         public OSD EventQueueFallBack(string path, OSD request, string endpoint)
         {
