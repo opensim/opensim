@@ -11621,7 +11621,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     logPacket = false;
 
                 if (logPacket)
-                    m_log.DebugFormat("[CLIENT]: Packet OUT {0} to {1}", packet.Type, Name);
+                    m_log.DebugFormat(
+                        "[CLIENT]: PACKET OUT to   {0} ({1}) in {2} - {3}",
+                        Name, ChildAgentStatus() ? "child" : "root ", m_scene.RegionInfo.RegionName, packet.Type);
             }
             
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting, method);
@@ -11664,19 +11666,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (DebugPacketLevel > 0)
             {
-                bool outputPacket = true;
+                bool logPacket = true;
 
                 if (DebugPacketLevel <= 255 && packet.Type == PacketType.AgentUpdate)
-                    outputPacket = false;
+                    logPacket = false;
 
                 if (DebugPacketLevel <= 200 && packet.Type == PacketType.RequestImage)
-                    outputPacket = false;
+                    logPacket = false;
 
                 if (DebugPacketLevel <= 100 && (packet.Type == PacketType.ViewerEffect || packet.Type == PacketType.AgentAnimation))
-                    outputPacket = false;
+                    logPacket = false;
 
-                if (outputPacket)
-                    m_log.DebugFormat("[CLIENT]: Packet IN {0} from {1}", packet.Type, Name);
+                if (logPacket)
+                    m_log.DebugFormat(
+                        "[CLIENT]: PACKET IN  from {0} ({1}) in {2} - {3}",
+                        Name, ChildAgentStatus() ? "child" : "root ", m_scene.RegionInfo.RegionName, packet.Type);
             }
 
             if (!ProcessPacketMethod(packet))
