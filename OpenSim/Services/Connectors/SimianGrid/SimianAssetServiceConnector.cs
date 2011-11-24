@@ -334,7 +334,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
             // Make the remote storage request
             try
             {
-                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_serverUrl);
+                // Simian does not require the asset ID to be in the URL because it's in the post data.
+                // By appending it to the URL also, we allow caching proxies (squid) to invalidate asset URLs
+                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_serverUrl + asset.FullID.ToString());
                 
                 HttpWebResponse response = MultipartForm.Post(request, postParameters);
                 using (Stream responseStream = response.GetResponseStream())
