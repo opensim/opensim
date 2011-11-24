@@ -130,6 +130,8 @@ namespace pCampBot
             BotManager bm, List<IBehaviour> behaviours,
             string firstName, string lastName, string password, string loginUri)
         {
+            behaviours.ForEach(b => b.Initialize(this));
+            
             Client = new GridClient();
 
             Random = new Random(Environment.TickCount);// We do stuff randomly here
@@ -156,7 +158,7 @@ namespace pCampBot
                         b =>
                         {
                             // m_log.DebugFormat("[pCAMPBOT]: For {0} performing action {1}", Name, b.GetType());
-                            b.Action(this);
+                            b.Action();
 
                             Thread.Sleep(Random.Next(1000, 10000));
                         }

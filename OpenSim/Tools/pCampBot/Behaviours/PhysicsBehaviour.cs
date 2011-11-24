@@ -40,42 +40,41 @@ namespace pCampBot
     /// <remarks>
     /// TODO: talkarray should be in a separate behaviour.
     /// </remarks>
-    public class PhysicsBehaviour : IBehaviour
+    public class PhysicsBehaviour : AbstractBehaviour
     {
-        public string Name { get { return "Physics"; } }
-
         private string[] talkarray;
 
         public PhysicsBehaviour()
         {
+            Name = "Physics";
             talkarray = readexcuses();
         }
 
-        public void Action(Bot bot)
+        public override void Action()
         {
-            int walkorrun = bot.Random.Next(4); // Randomize between walking and running. The greater this number,
+            int walkorrun = Bot.Random.Next(4); // Randomize between walking and running. The greater this number,
                                                 // the greater the bot's chances to walk instead of run.
-            bot.Client.Self.Jump(false);
+            Bot.Client.Self.Jump(false);
             if (walkorrun == 0)
             {
-                bot.Client.Self.Movement.AlwaysRun = true;
+                Bot.Client.Self.Movement.AlwaysRun = true;
             }
             else
             {
-                bot.Client.Self.Movement.AlwaysRun = false;
+                Bot.Client.Self.Movement.AlwaysRun = false;
             }
 
             // TODO: unused: Vector3 pos = client.Self.SimPosition;
-            Vector3 newpos = new Vector3(bot.Random.Next(1, 254), bot.Random.Next(1, 254), bot.Random.Next(1, 254));
-            bot.Client.Self.Movement.TurnToward(newpos);
+            Vector3 newpos = new Vector3(Bot.Random.Next(1, 254), Bot.Random.Next(1, 254), Bot.Random.Next(1, 254));
+            Bot.Client.Self.Movement.TurnToward(newpos);
 
-            bot.Client.Self.Movement.AtPos = true;
-            Thread.Sleep(bot.Random.Next(3000, 13000));
-            bot.Client.Self.Movement.AtPos = false;
-            bot.Client.Self.Jump(true);
-            string randomf = talkarray[bot.Random.Next(talkarray.Length)];
+            Bot.Client.Self.Movement.AtPos = true;
+            Thread.Sleep(Bot.Random.Next(3000, 13000));
+            Bot.Client.Self.Movement.AtPos = false;
+            Bot.Client.Self.Jump(true);
+            string randomf = talkarray[Bot.Random.Next(talkarray.Length)];
             if (talkarray.Length > 1 && randomf.Length > 1)
-                bot.Client.Self.Chat(randomf, 0, ChatType.Normal);
+                Bot.Client.Self.Chat(randomf, 0, ChatType.Normal);
         }
 
         private string[] readexcuses()
