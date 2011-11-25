@@ -3272,7 +3272,15 @@ namespace OpenSim.Region.Framework.Scenes
                     if (hasHollow) ret += 1;
                     break;
                 case PrimType.SCULPT:
-                    ret = 1;
+                    // Special mesh handling
+                    if (this.Shape.SculptType == 5)
+                    {
+                        ret = 7; // its a mesh then max 8 faces
+                    }
+                    else
+                    {
+                        ret = 1; // its a sculpt then max 1 faces
+                    }
                     break;
             }
             return ret;
