@@ -86,7 +86,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float CAPSULE_RADIUS = 0.37f;
         private float CAPSULE_LENGTH = 2.140599f;
         private float m_tensor = 3800000f;
-        private float heightFudgeFactor = 0.52f;
+//        private float heightFudgeFactor = 0.52f;
         private float walkDivisor = 1.3f;
         private float runDivisor = 0.8f;
         private bool flying = false;
@@ -149,7 +149,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public OdeCharacter(
             String avName, OdeScene parent_scene, Vector3 pos, Vector3 size, float pid_d, float pid_p,
-            float capsule_radius, float tensor, float density, float height_fudge_factor,
+            float capsule_radius, float tensor, float density,
             float walk_divisor, float rundivisor)
         {
             m_uuid = UUID.Random();
@@ -187,7 +187,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             CAPSULE_RADIUS = capsule_radius;
             m_tensor = tensor;
             m_density = density;
-            heightFudgeFactor = height_fudge_factor;
+//            heightFudgeFactor = height_fudge_factor;
             walkDivisor = walk_divisor;
             runDivisor = rundivisor;
 

@@ -56,7 +56,7 @@ namespace OpenSim.Region.Physics.Manager
 
     public abstract class PhysicsScene
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Name of this scene.  Useful in debug messages to distinguish one OdeScene instance from another.
