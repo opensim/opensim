@@ -235,10 +235,11 @@ namespace OpenSim.Capabilities.Handlers
             llsdFolder.folder_id = invFolder.ID;
             llsdFolder.parent_id = invFolder.ParentID;
             llsdFolder.name = invFolder.Name;
-            if (invFolder.Type < 0 || invFolder.Type >= TaskInventoryItem.Types.Length)
+
+            if (!Enum.IsDefined(typeof(AssetType), invFolder.Type))
                 llsdFolder.type = "-1";
             else
-                llsdFolder.type = TaskInventoryItem.Types[invFolder.Type];
+                llsdFolder.type = Utils.AssetTypeToString((AssetType)invFolder.Type);
             llsdFolder.preferred_type = "-1";
 
             return llsdFolder;

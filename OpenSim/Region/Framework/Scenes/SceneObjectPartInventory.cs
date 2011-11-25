@@ -832,8 +832,8 @@ namespace OpenSim.Region.Framework.Scenes
                         invString.AddSectionEnd();
 
                         invString.AddNameValueLine("asset_id", item.AssetID.ToString());
-                        invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
-                        invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
+                        invString.AddNameValueLine("type", Utils.AssetTypeToString((AssetType)item.Type));
+                        invString.AddNameValueLine("inv_type", Utils.InventoryTypeToString((InventoryType)item.InvType));
                         invString.AddNameValueLine("flags", Utils.UIntToHexString(item.Flags));
 
                         invString.AddSaleStart();

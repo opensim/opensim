@@ -40,63 +40,6 @@ namespace OpenSim.Framework
         /// </summary>
         private const uint FULL_MASK_PERMISSIONS_GENERAL = 2147483647;
 
-        /// <summary>
-        /// Inventory types
-        /// </summary>
-        public static string[] InvTypes = new string[]
-            {
-                "texture",
-                "sound",
-                "calling_card",
-                "landmark",
-                String.Empty,
-                String.Empty,
-                "object",
-                "notecard",
-                String.Empty,
-                String.Empty,
-                "lsl_text",
-                String.Empty,
-                String.Empty,
-                "bodypart",
-                String.Empty,
-                "snapshot",
-                String.Empty,
-                String.Empty,
-                "wearable",
-                "animation",
-                "gesture"
-            };
-
-        /// <summary>
-        /// Asset types
-        /// </summary>
-        public static string[] Types = new string[]
-            {
-                "texture",
-                "sound",
-                "callcard",
-                "landmark",
-                "clothing", // Deprecated
-                "clothing",
-                "object",
-                "notecard",
-                "category",
-                "root",
-                "lsltext",
-                "lslbyte",
-                "txtr_tga",
-                "bodypart",
-                "trash",
-                "snapshot",
-                "lstndfnd",
-                "snd_wav",
-                "img_tga",
-                "jpeg",
-                "animatn",
-                "gesture"
-            };
-
         private UUID _assetID = UUID.Zero;
 
         private uint _baseMask = FULL_MASK_PERMISSIONS_GENERAL;
