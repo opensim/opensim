@@ -60,6 +60,8 @@ namespace OpenSim.Capabilities.Handlers
 
         public string FetchInventoryDescendentsRequest(string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
+//            m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Received request");
+
             // nasty temporary hack here, the linden client falsely
             // identifies the uuid 00000000-0000-0000-0000-000000000000
             // as a string which breaks us
@@ -155,7 +157,10 @@ namespace OpenSim.Capabilities.Handlers
             inv.Items = new List<InventoryItemBase>();
             int version = 0;
 
-            inv = Fetch(invFetch.owner_id, invFetch.folder_id, invFetch.owner_id, invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order, out version);
+            inv
+                = Fetch(
+                    invFetch.owner_id, invFetch.folder_id, invFetch.owner_id,
+                    invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order, out version);
 
             if (inv.Folders != null)
             {
@@ -183,7 +188,7 @@ namespace OpenSim.Capabilities.Handlers
                                             bool fetchFolders, bool fetchItems, int sortOrder, out int version)
         {
             m_log.DebugFormat(
-                "[WEBFETCHINVENTORYDESCENDANTS]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
+                "[WEB FETCH INV DESC HANDLER]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
                 fetchFolders, fetchItems, folderID, agentID);
 
             version = 0;
@@ -254,16 +259,19 @@ namespace OpenSim.Capabilities.Handlers
             llsdItem.item_id = invItem.ID;
             llsdItem.name = invItem.Name;
             llsdItem.parent_id = invItem.Folder;
+
             try
             {
-                // TODO reevaluate after upgrade to libomv >= r2566. Probably should use UtilsConversions.
-                llsdItem.type = TaskInventoryItem.Types[invItem.AssetType];
-                llsdItem.inv_type = TaskInventoryItem.InvTypes[invItem.InvType];
+                llsdItem.type = Utils.AssetTypeToString((AssetType)invItem.AssetType);
+                llsdItem.inv_type = Utils.InventoryTypeToString((InventoryType)invItem.InvType);
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[CAPS]: Problem setting asset {0} inventory {1} types while converting inventory item {2}: {3}", invItem.AssetType, invItem.InvType, invItem.Name, e.Message);
+                m_log.ErrorFormat(
+                    "[WEB FETCH INV DESC HANDLER]: Problem setting asset {0} inventory {1} types while converting inventory item {2}: {3}",
+                    invItem.AssetType, invItem.InvType, invItem.Name, e.Message);
             }
+
             llsdItem.permissions = new LLSDPermissions();
             llsdItem.permissions.creator_id = invItem.CreatorIdAsUuid;
             llsdItem.permissions.base_mask = (int)invItem.CurrentPermissions;
@@ -294,6 +302,5 @@ namespace OpenSim.Capabilities.Handlers
 
             return llsdItem;
         }
-
     }
 }

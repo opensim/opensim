@@ -122,11 +122,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 WebFetchInvDescHandler webFetchHandler = new WebFetchInvDescHandler(m_InventoryService, m_LibraryService);
                 IRequestHandler reqHandler = new RestStreamHandler("POST", "/CAPS/" + UUID.Random(), webFetchHandler.FetchInventoryDescendentsRequest);
                 caps.RegisterHandler("WebFetchInventoryDescendents", reqHandler);
+//                caps.RegisterHandler("FetchInventoryDescendents2", reqHandler);
             }
             else
             {
                 m_log.InfoFormat("[WEBFETCHINVENTORYDESCENDANTS]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
                 caps.RegisterHandler("WebFetchInventoryDescendents", m_URL);
+//                caps.RegisterHandler("FetchInventoryDescendents2", m_URL);
             }
         }
 
