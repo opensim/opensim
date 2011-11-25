@@ -121,7 +121,8 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             if (m_webFetchInventoryDescendentsUrl != "")
                 RegisterFetchCap(agentID, caps, "WebFetchInventoryDescendents", m_webFetchInventoryDescendentsUrl);
-            else if (m_fetchInventoryDescendents2Url != "")
+
+            if (m_fetchInventoryDescendents2Url != "")
                 RegisterFetchCap(agentID, caps, "FetchInventoryDescendents2", m_fetchInventoryDescendents2Url);
         }
 
