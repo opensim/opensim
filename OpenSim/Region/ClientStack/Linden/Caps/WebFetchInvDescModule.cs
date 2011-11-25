@@ -42,18 +42,24 @@ using OpenSim.Capabilities.Handlers;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
-
+    /// <summary>
+    /// This module implements both WebFetchInventoryDescendents and FetchInventoryDescendents2 capabilities.
+    /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class WebFetchInvDescModule : INonSharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private Scene m_scene;
 
         private IInventoryService m_InventoryService;
         private ILibraryService m_LibraryService;
-        private bool m_Enabled = false;
-        private string m_URL;
+
+        private bool m_Enabled;
+
+        private string m_fetchInventoryDescendents2Url;
+        private string m_webFetchInventoryDescendentsUrl;
 
         #region ISharedRegionModule Members
 
@@ -63,9 +69,10 @@ namespace OpenSim.Region.ClientStack.Linden
             if (config == null)
                 return;
 
-            m_URL = config.GetString("Cap_WebFetchInventoryDescendents", string.Empty);
-            // Cap doesn't exist
-            if (m_URL != string.Empty)
+            m_fetchInventoryDescendents2Url = config.GetString("Cap_FetchInventoryDescendents2", string.Empty);
+            m_webFetchInventoryDescendentsUrl = config.GetString("Cap_WebFetchInventoryDescendents", string.Empty);
+
+            if (m_fetchInventoryDescendents2Url != string.Empty || m_webFetchInventoryDescendentsUrl != string.Empty)
                 m_Enabled = true;
         }
 
@@ -111,26 +118,40 @@ namespace OpenSim.Region.ClientStack.Linden
 
         #endregion
 
-        public void RegisterCaps(UUID agentID, Caps caps)
+        private void RegisterCaps(UUID agentID, Caps caps)
         {
             UUID capID = UUID.Random();
 
-            //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
-            if (m_URL == "localhost")
+            if (m_webFetchInventoryDescendentsUrl != "")
+                RegisterFetchCap(agentID, caps, "WebFetchInventoryDescendents", m_webFetchInventoryDescendentsUrl);
+            else if (m_fetchInventoryDescendents2Url != "")
+                RegisterFetchCap(agentID, caps, "FetchInventoryDescendents2", m_fetchInventoryDescendents2Url);
+        }
+
+        private void RegisterFetchCap(UUID agentID, Caps caps, string capName, string url)
+        {
+            string capUrl;
+
+            if (url == "localhost")
             {
-                m_log.InfoFormat("[WEBFETCHINVENTORYDESCENDANTS]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
+                capUrl = "/CAPS/" + UUID.Random();
+
                 WebFetchInvDescHandler webFetchHandler = new WebFetchInvDescHandler(m_InventoryService, m_LibraryService);
-                IRequestHandler reqHandler = new RestStreamHandler("POST", "/CAPS/" + UUID.Random(), webFetchHandler.FetchInventoryDescendentsRequest);
-                caps.RegisterHandler("WebFetchInventoryDescendents", reqHandler);
-//                caps.RegisterHandler("FetchInventoryDescendents2", reqHandler);
+                IRequestHandler reqHandler
+                    = new RestStreamHandler("POST", capUrl, webFetchHandler.FetchInventoryDescendentsRequest);
+
+                caps.RegisterHandler(capName, reqHandler);
             }
             else
             {
-                m_log.InfoFormat("[WEBFETCHINVENTORYDESCENDANTS]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
-                caps.RegisterHandler("WebFetchInventoryDescendents", m_URL);
-//                caps.RegisterHandler("FetchInventoryDescendents2", m_URL);
-            }
-        }
+                capUrl = url;
 
+                caps.RegisterHandler(capName, capUrl);
+            }
+
+//            m_log.DebugFormat(
+//                "[WEB FETCH INV DESC MODULE]: Registered capability {0} at {1} in region {2} for {3}",
+//                capName, capUrl, m_scene.RegionInfo.RegionName, agentID);
+        }
     }
 }

@@ -117,7 +117,6 @@ namespace OpenSim.Capabilities.Handlers
                     response += inventoryitemstr;
                 }
 
-
                 if (response.Length == 0)
                 {
                     // Ter-guess: If requests fail a lot, the client seems to stop requesting descendants.
@@ -135,6 +134,7 @@ namespace OpenSim.Capabilities.Handlers
                 //m_log.Debug("[CAPS] "+response);
 
             }
+            
             return response;
         }
 
