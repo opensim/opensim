@@ -48,8 +48,7 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class WebFetchInvDescModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
 
@@ -120,8 +119,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void RegisterCaps(UUID agentID, Caps caps)
         {
-            UUID capID = UUID.Random();
-
             if (m_webFetchInventoryDescendentsUrl != "")
                 RegisterFetchCap(agentID, caps, "WebFetchInventoryDescendents", m_webFetchInventoryDescendentsUrl);
             else if (m_fetchInventoryDescendents2Url != "")
