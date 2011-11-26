@@ -330,7 +330,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-         }
+        }
 
         public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
@@ -484,6 +484,7 @@ namespace OpenSim.Region.Framework.Scenes
             // can be handled transparently).
             InventoryFolderImpl fold = null;
             if (LibraryService != null && LibraryService.LibraryRootFolder != null)
+            {
                 if ((fold = LibraryService.LibraryRootFolder.FindFolder(folderID)) != null)
                 {
                     remoteClient.SendInventoryFolderDetails(
@@ -491,6 +492,7 @@ namespace OpenSim.Region.Framework.Scenes
                         fold.RequestListOfFolders(), fold.Version, fetchFolders, fetchItems);
                     return;
                 }
+            }
 
             // We're going to send the reply async, because there may be
             // an enormous quantity of packets -- basically the entire inventory!
@@ -585,14 +587,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        delegate void PurgeFolderDelegate(UUID userID, UUID folder);
+
         /// <summary>
         /// This should delete all the items and folders in the given directory.
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
-
-        delegate void PurgeFolderDelegate(UUID userID, UUID folder);
-
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, UUID folderID)
         {
             PurgeFolderDelegate d = PurgeFolderAsync;
@@ -605,7 +606,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat("[AGENT INVENTORY]: Exception on purge folder for user {0}: {1}", remoteClient.AgentId, e.Message);
             }
         }
-
 
         private void PurgeFolderAsync(UUID userID, UUID folderID)
         {
