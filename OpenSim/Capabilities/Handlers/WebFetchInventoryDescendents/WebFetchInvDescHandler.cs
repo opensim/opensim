@@ -49,7 +49,7 @@ namespace OpenSim.Capabilities.Handlers
 
         private IInventoryService m_InventoryService;
         private ILibraryService m_LibraryService;
-        private object m_fetchLock = new Object();
+//        private object m_fetchLock = new Object();
 
         public WebFetchInvDescHandler(IInventoryService invService, ILibraryService libService) 
         {
@@ -59,8 +59,8 @@ namespace OpenSim.Capabilities.Handlers
 
         public string FetchInventoryDescendentsRequest(string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            lock (m_fetchLock)
-            {
+//            lock (m_fetchLock)
+//            {
 //                m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Received request {0}", request);
     
                 // nasty temporary hack here, the linden client falsely
@@ -135,7 +135,7 @@ namespace OpenSim.Capabilities.Handlers
 
                 return response;
 
-            }
+//            }
         }
 
         /// <summary>
@@ -188,9 +188,9 @@ namespace OpenSim.Capabilities.Handlers
             UUID agentID, UUID folderID, UUID ownerID,
             bool fetchFolders, bool fetchItems, int sortOrder, out int version)
         {
-            m_log.DebugFormat(
-                "[WEB FETCH INV DESC HANDLER]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
-                fetchFolders, fetchItems, folderID, agentID);
+//            m_log.DebugFormat(
+//                "[WEB FETCH INV DESC HANDLER]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
+//                fetchFolders, fetchItems, folderID, agentID);
 
             version = 0;
             InventoryFolderImpl fold;
@@ -220,7 +220,7 @@ namespace OpenSim.Capabilities.Handlers
             }
             else
             {
-                // Lost itemsm don't really need a version
+                // Lost items don't really need a version
                 version = 1;
             }
 
