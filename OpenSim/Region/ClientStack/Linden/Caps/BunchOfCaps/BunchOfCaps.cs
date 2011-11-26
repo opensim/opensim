@@ -134,7 +134,6 @@ namespace OpenSim.Region.ClientStack.Linden
             AddNewInventoryItem = m_Scene.AddUploadedInventoryItem;
             ItemUpdatedCall = m_Scene.CapsUpdateInventoryItemAsset;
             TaskScriptUpdatedCall = m_Scene.CapsUpdateTaskInventoryScriptAsset;
-            CAPSFetchInventoryDescendents = m_Scene.HandleFetchInventoryDescendentsCAPS;
             GetClient = m_Scene.SceneGraph.GetControllingClient;
         }
 
