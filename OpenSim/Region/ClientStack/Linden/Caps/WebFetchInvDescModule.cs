@@ -60,6 +60,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_fetchInventoryDescendents2Url;
         private string m_webFetchInventoryDescendentsUrl;
 
+        private WebFetchInvDescHandler m_webFetchHandler;
+
         #region ISharedRegionModule Members
 
         public void Initialise(IConfigSource source)
@@ -72,7 +74,9 @@ namespace OpenSim.Region.ClientStack.Linden
             m_webFetchInventoryDescendentsUrl = config.GetString("Cap_WebFetchInventoryDescendents", string.Empty);
 
             if (m_fetchInventoryDescendents2Url != string.Empty || m_webFetchInventoryDescendentsUrl != string.Empty)
+            {
                 m_Enabled = true;
+            }
         }
 
         public void AddRegion(Scene s)
@@ -97,8 +101,13 @@ namespace OpenSim.Region.ClientStack.Linden
             if (!m_Enabled)
                 return;
 
-            m_InventoryService = m_scene.InventoryService; ;
+            m_InventoryService = m_scene.InventoryService;
             m_LibraryService = m_scene.LibraryService;
+
+            // We'll reuse the same handler for all requests.
+            if (m_fetchInventoryDescendents2Url == "localhost" || m_webFetchInventoryDescendentsUrl == "localhost")
+                m_webFetchHandler = new WebFetchInvDescHandler(m_InventoryService, m_LibraryService);
+
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 
@@ -134,9 +143,8 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 capUrl = "/CAPS/" + UUID.Random();
 
-                WebFetchInvDescHandler webFetchHandler = new WebFetchInvDescHandler(m_InventoryService, m_LibraryService);
                 IRequestHandler reqHandler
-                    = new RestStreamHandler("POST", capUrl, webFetchHandler.FetchInventoryDescendentsRequest);
+                    = new RestStreamHandler("POST", capUrl, m_webFetchHandler.FetchInventoryDescendentsRequest);
 
                 caps.RegisterHandler(capName, reqHandler);
             }
