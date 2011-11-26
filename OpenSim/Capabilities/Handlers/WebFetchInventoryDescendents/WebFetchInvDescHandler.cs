@@ -184,6 +184,17 @@ namespace OpenSim.Capabilities.Handlers
             return reply;
         }
 
+        /// <summary>
+        /// Handle the caps inventory descendents fetch.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="folderID"></param>
+        /// <param name="ownerID"></param>
+        /// <param name="fetchFolders"></param>
+        /// <param name="fetchItems"></param>
+        /// <param name="sortOrder"></param>
+        /// <param name="version"></param>
+        /// <returns>An empty InventoryCollection if the inventory look up failed</returns>
         public InventoryCollection Fetch(
             UUID agentID, UUID folderID, UUID ownerID,
             bool fetchFolders, bool fetchItems, int sortOrder, out int version)
@@ -191,6 +202,8 @@ namespace OpenSim.Capabilities.Handlers
 //            m_log.DebugFormat(
 //                "[WEB FETCH INV DESC HANDLER]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
 //                fetchFolders, fetchItems, folderID, agentID);
+
+            // FIXME MAYBE: We're not handling sortOrder!
 
             version = 0;
             InventoryFolderImpl fold;

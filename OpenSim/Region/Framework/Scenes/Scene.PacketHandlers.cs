@@ -511,64 +511,6 @@ namespace OpenSim.Region.Framework.Scenes
             SendInventoryDelegate d = (SendInventoryDelegate)iar.AsyncState;
             d.EndInvoke(iar);
         }
-
-        /// <summary>
-        /// Handle the caps inventory descendents fetch.
-        ///
-        /// Since the folder structure is sent to the client on login, I believe we only need to handle items.
-        /// Diva comment 8/13/2009: what if someone gave us a folder in the meantime??
-        /// </summary>
-        /// <param name="agentID"></param>
-        /// <param name="folderID"></param>
-        /// <param name="ownerID"></param>
-        /// <param name="fetchFolders"></param>
-        /// <param name="fetchItems"></param>
-        /// <param name="sortOrder"></param>
-        /// <returns>null if the inventory look up failed</returns>
-        public InventoryCollection HandleFetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
-                                                   bool fetchFolders, bool fetchItems, int sortOrder, out int version)
-        {
-            m_log.DebugFormat(
-                "[INVENTORY CACHE]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
-                fetchFolders, fetchItems, folderID, agentID);
-
-            // FIXME MAYBE: We're not handling sortOrder!
-
-            // TODO: This code for looking in the folder for the library should be folded back into the
-            // CachedUserInfo so that this class doesn't have to know the details (and so that multiple libraries, etc.
-            // can be handled transparently).
-            InventoryFolderImpl fold;
-            if (LibraryService != null && LibraryService.LibraryRootFolder != null)
-                if ((fold = LibraryService.LibraryRootFolder.FindFolder(folderID)) != null)
-                {
-                    version = 0;
-                    InventoryCollection ret = new InventoryCollection();
-                    ret.Folders = new List<InventoryFolderBase>();
-                    ret.Items = fold.RequestListOfItems();
-
-                    return ret;
-                }
-
-            InventoryCollection contents = new InventoryCollection();
-
-            if (folderID != UUID.Zero)
-            {
-                contents = InventoryService.GetFolderContent(agentID, folderID); 
-                InventoryFolderBase containingFolder = new InventoryFolderBase();
-                containingFolder.ID = folderID;
-                containingFolder.Owner = agentID;
-                containingFolder = InventoryService.GetFolder(containingFolder);
-                version = containingFolder.Version;
-            }
-            else
-            {
-                // Lost itemsm don't really need a version
-                version = 1;
-            }
-
-            return contents;
-
-        }
         
         /// <summary>
         /// Handle an inventory folder creation request from the client.
