@@ -42,7 +42,6 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Capabilities.Handlers
 {
-
     public class WebFetchInvDescHandler 
     {
         private static readonly ILog m_log =
@@ -50,7 +49,7 @@ namespace OpenSim.Capabilities.Handlers
 
         private IInventoryService m_InventoryService;
         private ILibraryService m_LibraryService;
-        private object m_fetchLock = new Object();
+//        private object m_fetchLock = new Object();
 
         public WebFetchInvDescHandler(IInventoryService invService, ILibraryService libService) 
         {
@@ -60,37 +59,40 @@ namespace OpenSim.Capabilities.Handlers
 
         public string FetchInventoryDescendentsRequest(string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            // nasty temporary hack here, the linden client falsely
-            // identifies the uuid 00000000-0000-0000-0000-000000000000
-            // as a string which breaks us
-            //
-            // correctly mark it as a uuid
-            //
-            request = request.Replace("<string>00000000-0000-0000-0000-000000000000</string>", "<uuid>00000000-0000-0000-0000-000000000000</uuid>");
+//            lock (m_fetchLock)
+//            {
+//                m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Received request {0}", request);
+    
+                // nasty temporary hack here, the linden client falsely
+                // identifies the uuid 00000000-0000-0000-0000-000000000000
+                // as a string which breaks us
+                //
+                // correctly mark it as a uuid
+                //
+                request = request.Replace("<string>00000000-0000-0000-0000-000000000000</string>", "<uuid>00000000-0000-0000-0000-000000000000</uuid>");
+    
+                // another hack <integer>1</integer> results in a
+                // System.ArgumentException: Object type System.Int32 cannot
+                // be converted to target type: System.Boolean
+                //
+                request = request.Replace("<key>fetch_folders</key><integer>0</integer>", "<key>fetch_folders</key><boolean>0</boolean>");
+                request = request.Replace("<key>fetch_folders</key><integer>1</integer>", "<key>fetch_folders</key><boolean>1</boolean>");
+    
+                Hashtable hash = new Hashtable();
+                try
+                {
+                    hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
+                }
+                catch (LLSD.LLSDParseException e)
+                {
+                    m_log.ErrorFormat("[WEB FETCH INV DESC HANDLER]: Fetch error: {0}{1}" + e.Message, e.StackTrace);
+                    m_log.Error("Request: " + request);
+                }
+    
+                ArrayList foldersrequested = (ArrayList)hash["folders"];
+    
+                string response = "";
 
-            // another hack <integer>1</integer> results in a
-            // System.ArgumentException: Object type System.Int32 cannot
-            // be converted to target type: System.Boolean
-            //
-            request = request.Replace("<key>fetch_folders</key><integer>0</integer>", "<key>fetch_folders</key><boolean>0</boolean>");
-            request = request.Replace("<key>fetch_folders</key><integer>1</integer>", "<key>fetch_folders</key><boolean>1</boolean>");
-
-            Hashtable hash = new Hashtable();
-            try
-            {
-                hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
-            }
-            catch (LLSD.LLSDParseException pe)
-            {
-                m_log.Error("[AGENT INVENTORY]: Fetch error: " + pe.Message);
-                m_log.Error("Request: " + request.ToString());
-            }
-
-            ArrayList foldersrequested = (ArrayList)hash["folders"];
-
-            string response = "";
-            lock (m_fetchLock)
-            {
                 for (int i = 0; i < foldersrequested.Count; i++)
                 {
                     string inventoryitemstr = "";
@@ -104,7 +106,7 @@ namespace OpenSim.Capabilities.Handlers
                     }
                     catch (Exception e)
                     {
-                        m_log.Debug("[CAPS]: caught exception doing OSD deserialize" + e);
+                        m_log.Debug("[WEB FETCH INV DESC HANDLER]: caught exception doing OSD deserialize" + e);
                     }
                     LLSDInventoryDescendents reply = FetchInventoryReply(llsdRequest);
 
@@ -114,7 +116,6 @@ namespace OpenSim.Capabilities.Handlers
 
                     response += inventoryitemstr;
                 }
-
 
                 if (response.Length == 0)
                 {
@@ -129,11 +130,12 @@ namespace OpenSim.Capabilities.Handlers
                     response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
                 }
 
-                //m_log.DebugFormat("[CAPS]: Replying to CAPS fetch inventory request with following xml");
-                //m_log.Debug("[CAPS] "+response);
+//                m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Replying to CAPS fetch inventory request");
+                //m_log.Debug("[WEB FETCH INV DESC HANDLER] "+response);
 
-            }
-            return response;
+                return response;
+
+//            }
         }
 
         /// <summary>
@@ -155,7 +157,10 @@ namespace OpenSim.Capabilities.Handlers
             inv.Items = new List<InventoryItemBase>();
             int version = 0;
 
-            inv = Fetch(invFetch.owner_id, invFetch.folder_id, invFetch.owner_id, invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order, out version);
+            inv
+                = Fetch(
+                    invFetch.owner_id, invFetch.folder_id, invFetch.owner_id,
+                    invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order, out version);
 
             if (inv.Folders != null)
             {
@@ -179,16 +184,31 @@ namespace OpenSim.Capabilities.Handlers
             return reply;
         }
 
-        public InventoryCollection Fetch(UUID agentID, UUID folderID, UUID ownerID,
-                                            bool fetchFolders, bool fetchItems, int sortOrder, out int version)
+        /// <summary>
+        /// Handle the caps inventory descendents fetch.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="folderID"></param>
+        /// <param name="ownerID"></param>
+        /// <param name="fetchFolders"></param>
+        /// <param name="fetchItems"></param>
+        /// <param name="sortOrder"></param>
+        /// <param name="version"></param>
+        /// <returns>An empty InventoryCollection if the inventory look up failed</returns>
+        public InventoryCollection Fetch(
+            UUID agentID, UUID folderID, UUID ownerID,
+            bool fetchFolders, bool fetchItems, int sortOrder, out int version)
         {
-            m_log.DebugFormat(
-                "[WEBFETCHINVENTORYDESCENDANTS]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
-                fetchFolders, fetchItems, folderID, agentID);
+//            m_log.DebugFormat(
+//                "[WEB FETCH INV DESC HANDLER]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
+//                fetchFolders, fetchItems, folderID, agentID);
+
+            // FIXME MAYBE: We're not handling sortOrder!
 
             version = 0;
             InventoryFolderImpl fold;
             if (m_LibraryService != null && m_LibraryService.LibraryRootFolder != null && agentID == m_LibraryService.LibraryRootFolder.Owner)
+            {
                 if ((fold = m_LibraryService.LibraryRootFolder.FindFolder(folderID)) != null)
                 {
                     InventoryCollection ret = new InventoryCollection();
@@ -197,6 +217,7 @@ namespace OpenSim.Capabilities.Handlers
 
                     return ret;
                 }
+            }
 
             InventoryCollection contents = new InventoryCollection();
 
@@ -212,7 +233,7 @@ namespace OpenSim.Capabilities.Handlers
             }
             else
             {
-                // Lost itemsm don't really need a version
+                // Lost items don't really need a version
                 version = 1;
             }
 
@@ -230,10 +251,11 @@ namespace OpenSim.Capabilities.Handlers
             llsdFolder.folder_id = invFolder.ID;
             llsdFolder.parent_id = invFolder.ParentID;
             llsdFolder.name = invFolder.Name;
-            if (invFolder.Type < 0 || invFolder.Type >= TaskInventoryItem.Types.Length)
+
+            if (invFolder.Type == (short)AssetType.Unknown || !Enum.IsDefined(typeof(AssetType), (sbyte)invFolder.Type))
                 llsdFolder.type = "-1";
             else
-                llsdFolder.type = TaskInventoryItem.Types[invFolder.Type];
+                llsdFolder.type = Utils.AssetTypeToString((AssetType)invFolder.Type);
             llsdFolder.preferred_type = "-1";
 
             return llsdFolder;
@@ -254,16 +276,19 @@ namespace OpenSim.Capabilities.Handlers
             llsdItem.item_id = invItem.ID;
             llsdItem.name = invItem.Name;
             llsdItem.parent_id = invItem.Folder;
+
             try
             {
-                // TODO reevaluate after upgrade to libomv >= r2566. Probably should use UtilsConversions.
-                llsdItem.type = TaskInventoryItem.Types[invItem.AssetType];
-                llsdItem.inv_type = TaskInventoryItem.InvTypes[invItem.InvType];
+                llsdItem.type = Utils.AssetTypeToString((AssetType)invItem.AssetType);
+                llsdItem.inv_type = Utils.InventoryTypeToString((InventoryType)invItem.InvType);
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[CAPS]: Problem setting asset {0} inventory {1} types while converting inventory item {2}: {3}", invItem.AssetType, invItem.InvType, invItem.Name, e.Message);
+                m_log.ErrorFormat(
+                    "[WEB FETCH INV DESC HANDLER]: Problem setting asset {0} inventory {1} types while converting inventory item {2}: {3}",
+                    invItem.AssetType, invItem.InvType, invItem.Name, e.Message);
             }
+
             llsdItem.permissions = new LLSDPermissions();
             llsdItem.permissions.creator_id = invItem.CreatorIdAsUuid;
             llsdItem.permissions.base_mask = (int)invItem.CurrentPermissions;
@@ -294,6 +319,5 @@ namespace OpenSim.Capabilities.Handlers
 
             return llsdItem;
         }
-
     }
 }

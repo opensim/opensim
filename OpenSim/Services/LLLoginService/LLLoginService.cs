@@ -81,7 +81,7 @@ namespace OpenSim.Services.LLLoginService
         protected string m_DeniedClients;
 
         IConfig m_LoginServerConfig;
-        IConfig m_ClientsConfig;
+//        IConfig m_ClientsConfig;
 
         public LLLoginService(IConfigSource config, ISimulationService simService, ILibraryService libraryService)
         {

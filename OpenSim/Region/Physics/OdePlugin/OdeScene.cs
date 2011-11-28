@@ -156,7 +156,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool avCapsuleTilted = true; // true = old compatibility mode with leaning capsule; false = new corrected mode
         public bool IsAvCapsuleTilted { get { return avCapsuleTilted; } set { avCapsuleTilted = value; } }
         private float avDensity = 80f;
-        private float avHeightFudgeFactor = 0.52f;
+//        private float avHeightFudgeFactor = 0.52f;
         private float avMovementDivisorWalk = 1.3f;
         private float avMovementDivisorRun = 0.8f;
         private float minimumGroundFlightOffset = 3f;
@@ -316,7 +316,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private int m_physicsiterations = 10;
         private const float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
         private readonly PhysicsActor PANull = new NullPhysicsActor();
-        private float step_time = 0.0f;
+//        private float step_time = 0.0f;
 //Ckrinke: Comment out until used. We declare it, initialize it, but do not use it
 //Ckrinke        private int ms = 0;
         public IntPtr world;
@@ -479,7 +479,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_physicsiterations = physicsconfig.GetInt("world_internal_steps_without_collisions", 10);
 
                     avDensity = physicsconfig.GetFloat("av_density", 80f);
-                    avHeightFudgeFactor = physicsconfig.GetFloat("av_height_fudge_factor", 0.52f);
+//                    avHeightFudgeFactor = physicsconfig.GetFloat("av_height_fudge_factor", 0.52f);
                     avMovementDivisorWalk = physicsconfig.GetFloat("av_movement_divisor_walk", 1.3f);
                     avMovementDivisorRun = physicsconfig.GetFloat("av_movement_divisor_run", 0.8f);
                     avCapRadius = physicsconfig.GetFloat("av_capsule_radius", 0.37f);
@@ -1706,7 +1706,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             OdeCharacter newAv
                 = new OdeCharacter(
                     avName, this, pos, size, avPIDD, avPIDP,
-                    avCapRadius, avStandupTensor, avDensity, avHeightFudgeFactor,
+                    avCapRadius, avStandupTensor, avDensity,
                     avMovementDivisorWalk, avMovementDivisorRun);
 
             newAv.Flying = isFlying;

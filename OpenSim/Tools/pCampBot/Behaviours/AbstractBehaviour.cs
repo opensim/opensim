@@ -33,26 +33,17 @@ using pCampBot.Interfaces;
 
 namespace pCampBot
 {
-    /// <summary>
-    /// Click (grab) on random objects in the scene.
-    /// </summary>
-    /// <remarks>
-    /// The viewer itself does not give the option of grabbing objects that haven't been signalled as grabbable.
-    /// </remarks>
-    public class GrabbingBehaviour : AbstractBehaviour
+    public class AbstractBehaviour : IBehaviour
     {
-        public GrabbingBehaviour() { Name = "Grabbing"; }
+        public string Name { get; protected set; }
 
-        public override void Action()
+        public Bot Bot { get; protected set; }
+
+        public virtual void Action() {}
+
+        public virtual void Initialize(Bot bot)
         {
-            Dictionary<UUID, Primitive> objects = Bot.Objects;
-
-            Primitive prim = objects.ElementAt(Bot.Random.Next(0, objects.Count)).Value;
-
-            // This appears to be a typical message sent when a viewer user clicks a clickable object
-            Bot.Client.Self.Grab(prim.LocalID);
-            Bot.Client.Self.GrabUpdate(prim.ID, Vector3.Zero);
-            Bot.Client.Self.DeGrab(prim.LocalID);
+            Bot = bot;
         }
     }
 }

@@ -295,7 +295,7 @@ namespace OpenSim.Framework
                     return result;
                 }
             }
-            catch (Exception e)
+            catch
             {
                 // don't need to treat this as an error... we're just guessing anyway
 //                m_log.DebugFormat("[WEB UTIL] couldn't decode <{0}>: {1}",response,e.Message);
