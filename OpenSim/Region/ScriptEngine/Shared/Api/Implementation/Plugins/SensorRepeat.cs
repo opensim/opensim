@@ -140,7 +140,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 List<SenseRepeatClass> NewSensors = new List<SenseRepeatClass>();
                 foreach (SenseRepeatClass ts in SenseRepeaters)
                 {
-                    if (ts.localID != m_localID && ts.itemID != m_itemID)
+                    if (ts.localID != m_localID || ts.itemID != m_itemID)
                     {
                         NewSensors.Add(ts);
                     }

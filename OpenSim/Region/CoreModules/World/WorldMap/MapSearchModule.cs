@@ -92,7 +92,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 return;
             }
 
-m_log.DebugFormat("MAP NAME=({0})", mapName);
+//m_log.DebugFormat("MAP NAME=({0})", mapName);
             
             // try to fetch from GridServer
             List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);

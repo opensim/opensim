@@ -98,14 +98,17 @@ namespace OpenSim.Framework.Capabilities
         {
             get { return m_httpListener.UseSSL; }
         }
+
         public string SSLCommonName
         {
             get { return m_httpListener.SSLCommonName; }
         }
+
         public CapsHandlers CapsHandlers
         {
             get { return m_capsHandlers; }
         }
+
         public Dictionary<string, string> ExternalCapsHandlers
         {
             get { return m_externalCapsHandlers; }
@@ -157,11 +160,7 @@ namespace OpenSim.Framework.Capabilities
 
         /// <summary>
         /// Remove all CAPS service handlers.
-        ///
         /// </summary>
-        /// <param name="httpListener"></param>
-        /// <param name="path"></param>
-        /// <param name="restMethod"></param>
         public void DeregisterHandlers()
         {
             if (m_capsHandlers != null)

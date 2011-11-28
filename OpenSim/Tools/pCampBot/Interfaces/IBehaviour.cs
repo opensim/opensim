@@ -37,9 +37,18 @@ namespace pCampBot.Interfaces
         string Name { get; }
 
         /// <summary>
+        /// Initialize the behaviour for this bot.
+        /// </summary>
+        /// <remarks>
+        /// This must be invoked before Action() is called.
+        /// </remarks>
+        /// <param name="bot"></param>
+        void Initialize(Bot bot);
+
+        /// <summary>
         /// Action to take when this behaviour is invoked.
         /// </summary>
         /// <param name="bot"></param>
-        void Action(Bot bot);
+        void Action();
     }
 }

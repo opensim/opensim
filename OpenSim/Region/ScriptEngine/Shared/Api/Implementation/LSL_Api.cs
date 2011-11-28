@@ -8695,6 +8695,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                         res.Add(new LSL_Rotation(part.RotationOffset.X, part.RotationOffset.Y, part.RotationOffset.Z, part.RotationOffset.W));
                         break;
+                    case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                        res.Add(new LSL_Vector(GetPartLocalPos(part)));
+                        break;
                 }
             }
             return res;

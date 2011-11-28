@@ -38,38 +38,38 @@ namespace pCampBot
     /// <summary>
     /// Teleport to a random region on the grid.
     /// </summary>
-    public class TeleportBehaviour : IBehaviour
+    public class TeleportBehaviour : AbstractBehaviour
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public string Name { get { return "Teleport"; } }
+        public TeleportBehaviour() { Name = "Teleport"; }
 
-        public void Action(Bot bot)
+        public override void Action()
         {
-            Random rng = bot.Manager.Rng;
+            Random rng = Bot.Manager.Rng;
             GridRegion[] knownRegions;
 
-            lock (bot.Manager.RegionsKnown)
+            lock (Bot.Manager.RegionsKnown)
             {
-                if (bot.Manager.RegionsKnown.Count == 0)
+                if (Bot.Manager.RegionsKnown.Count == 0)
                 {
                     m_log.DebugFormat(
-                        "[TELEPORT BEHAVIOUR]: Ignoring teleport action for {0} since no regions are known yet", bot.Name);
+                        "[TELEPORT BEHAVIOUR]: Ignoring teleport action for {0} since no regions are known yet", Bot.Name);
                     return;
                 }
 
-                knownRegions = bot.Manager.RegionsKnown.Values.ToArray();
+                knownRegions = Bot.Manager.RegionsKnown.Values.ToArray();
             }
 
-            Simulator sourceRegion = bot.Client.Network.CurrentSim;
+            Simulator sourceRegion = Bot.Client.Network.CurrentSim;
             GridRegion destRegion = knownRegions[rng.Next(knownRegions.Length)];
             Vector3 destPosition = new Vector3(rng.Next(255), rng.Next(255), 50);
 
             m_log.DebugFormat(
                 "[TELEPORT BEHAVIOUR]: Teleporting {0} from {1} {2} to {3} {4}",
-                bot.Name, sourceRegion.Name, bot.Client.Self.SimPosition, destRegion.Name, destPosition);
+                Bot.Name, sourceRegion.Name, Bot.Client.Self.SimPosition, destRegion.Name, destPosition);
 
-            bot.Client.Self.Teleport(destRegion.RegionHandle, destPosition);
+            Bot.Client.Self.Teleport(destRegion.RegionHandle, destPosition);
         }
     }
 }
