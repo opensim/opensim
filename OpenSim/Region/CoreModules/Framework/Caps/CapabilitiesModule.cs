@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
@@ -46,6 +47,8 @@ namespace OpenSim.Region.CoreModules.Framework
     public class CapabilitiesModule : INonSharedRegionModule, ICapabilitiesModule
     { 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private string m_showCapsCommandFormat = "   {0,-38} {1,-60}\n";
         
         protected Scene m_scene;
         
@@ -68,7 +71,7 @@ namespace OpenSim.Region.CoreModules.Framework
             m_scene.RegisterModuleInterface<ICapabilitiesModule>(this);
             MainConsole.Instance.Commands.AddCommand("Capabilities", false, "show caps",
                 "show caps",
-                "Shows all registered capabilities", CapabilitiesCommand);
+                "Shows all registered capabilities", HandleShowCapsCommand);
         }
 
         public void RegionLoaded(Scene scene)
@@ -227,21 +230,23 @@ namespace OpenSim.Region.CoreModules.Framework
             }
         }
 
-        private void CapabilitiesCommand(string module, string[] cmdparams)
+        private void HandleShowCapsCommand(string module, string[] cmdparams)
         {
-            System.Text.StringBuilder caps = new System.Text.StringBuilder();
+            StringBuilder caps = new StringBuilder();
             caps.AppendFormat("Region {0}:\n", m_scene.RegionInfo.RegionName);
 
             foreach (KeyValuePair<UUID, Caps> kvp in m_capsObjects)
             {
                 caps.AppendFormat("** User {0}:\n", kvp.Key);
+
                 for (IDictionaryEnumerator kvp2 = kvp.Value.CapsHandlers.CapsDetails.GetEnumerator(); kvp2.MoveNext(); )
                 {
                     Uri uri = new Uri(kvp2.Value.ToString());
-                    caps.AppendFormat("   {0} = {1}\n", kvp2.Key, uri.PathAndQuery);
+                    caps.AppendFormat(m_showCapsCommandFormat, kvp2.Key, uri.PathAndQuery);
                 }
+
                 foreach (KeyValuePair<string, string> kvp3 in kvp.Value.ExternalCapsHandlers)
-                    caps.AppendFormat("   {0} = {1}\n", kvp3.Key, kvp3.Value);
+                    caps.AppendFormat(m_showCapsCommandFormat, kvp3.Key, kvp3.Value);
             }
 
             MainConsole.Instance.Output(caps.ToString());
