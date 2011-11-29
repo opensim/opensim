@@ -447,14 +447,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                 string path = request.RawUrl;
                 string handlerKey = GetHandlerKey(request.HttpMethod, path);
 
-                if (DebugLevel >= 1)
-                    m_log.DebugFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
-
                 if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {
-                    if (DebugLevel >= 2)
+                    if (DebugLevel >= 1)
                         m_log.DebugFormat(
-                            "[BASE HTTP SERVER]: Found stream handler {0} for request to {1}", handlerKey, path);
+                            "[BASE HTTP SERVER]: Found stream handler for {0} {1}",
+                            request.HttpMethod, request.Url.PathAndQuery);
 
                     // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
                     byte[] buffer = null;
@@ -487,7 +485,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                         string[] querystringkeys = request.QueryString.AllKeys;
                         string[] rHeaders = request.Headers.AllKeys;
-
 
                         foreach (string queryname in querystringkeys)
                         {
@@ -575,10 +572,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                         if (strAccept.Contains("application/llsd+xml") ||
                             strAccept.Contains("application/llsd+json"))
                         {
-                            if (DebugLevel >= 2)
+                            if (DebugLevel >= 1)
                                 m_log.DebugFormat(
-                                    "[BASE HTTP SERVER]: Found an application/llsd+xml accept header for request to {0}",
-                                    path);
+                                    "[BASE HTTP SERVER]: Found application/llsd+xml accept header handler for {0} {1}",
+                                    request.HttpMethod, request.Url.PathAndQuery);
 
                             HandleLLSDRequests(request, response);
                             return;
@@ -591,10 +588,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                     case null:
                     case "text/html":
 
-                        if (DebugLevel >= 2)
+                        if (DebugLevel >= 1)
                             m_log.DebugFormat(
-                                "[BASE HTTP SERVER]: Found a {0} content type for request to {1}",
-                                request.ContentType, path);
+                                "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
+                                request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
 
                         HandleHTTPRequest(request, response);
                         return;
@@ -603,10 +600,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                     case "application/xml+llsd":
                     case "application/llsd+json":
 
-                        if (DebugLevel >= 2)
+                        if (DebugLevel >= 1)
                             m_log.DebugFormat(
-                                "[BASE HTTP SERVER]: Found a {0} content type for request to {1}",
-                                request.ContentType, path);
+                                "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
+                                request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
 
                         HandleLLSDRequests(request, response);
                         return;
@@ -624,9 +621,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                         //m_log.Info("[Debug BASE HTTP SERVER]: Checking for LLSD Handler");
                         if (DoWeHaveALLSDHandler(request.RawUrl))
                         {
-                            if (DebugLevel >= 2)
+                            if (DebugLevel >= 1)
                                 m_log.DebugFormat(
-                                    "[BASE HTTP SERVER]: Found an LLSD handler for request to {0}", path);
+                                    "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
+                                    request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
 
                             HandleLLSDRequests(request, response);
                             return;
@@ -635,17 +633,19 @@ namespace OpenSim.Framework.Servers.HttpServer
 //                        m_log.DebugFormat("[BASE HTTP SERVER]: Checking for HTTP Handler for request {0}", request.RawUrl);
                         if (DoWeHaveAHTTPHandler(request.RawUrl))
                         {
-                            if (DebugLevel >= 2)
+                            if (DebugLevel >= 1)
                                 m_log.DebugFormat(
-                                    "[BASE HTTP SERVER]: Found an HTTP handler for request to {0}", path);
+                                    "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
+                                    request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
 
                             HandleHTTPRequest(request, response);
                             return;
                         }
 
-                        if (DebugLevel >= 2)
+                        if (DebugLevel >= 1)
                             m_log.DebugFormat(
-                                "[BASE HTTP SERVER]: Treating request to {0} as a generic XMLRPC request", path);
+                                "[BASE HTTP SERVER]: Assuming a generic XMLRPC request for {0} {1}",
+                                request.HttpMethod, request.Url.PathAndQuery);
 
                         // generic login request.
                         HandleXmlRpcRequests(request, response);
