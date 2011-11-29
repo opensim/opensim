@@ -244,8 +244,8 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", false, "debug http",
                                           "debug http <level>",
-                                          "Turn on inbound http request debugging for everything except the event queue (see debug eq)."
-                                          + "If level >= 2 then the handler used to service the request is logged.\n"
+                                          "Turn on inbound http request debugging for everything except the event queue (see debug eq).",
+                                            "If level >= 2 then the handler used to service the request is logged.\n"
                                           + "If level >= 1 then incoming HTTP requests are logged.\n"
                                           + "If level <= 0 then no extra http logging is done.\n",
                                           Debug);
@@ -345,7 +345,7 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", false, "backup",
                                           "backup",
-                                          "Persist objects to the database now", RunCommand);
+                                          "Persist currently unsaved object changes immediately instead of waiting for the normal persistence call.", RunCommand);
 
             m_console.Commands.AddCommand("region", false, "create region",
                                           "create region [\"region name\"] <region_file.ini>",
