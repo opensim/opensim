@@ -171,16 +171,13 @@ namespace OpenSim.Region.Physics.Meshing
 
             foreach (Vector3 v in meshIn.getVertexList())
             {
-                if (v != null)
-                {
-                    if (v.X < minX) minX = v.X;
-                    if (v.Y < minY) minY = v.Y;
-                    if (v.Z < minZ) minZ = v.Z;
+                if (v.X < minX) minX = v.X;
+                if (v.Y < minY) minY = v.Y;
+                if (v.Z < minZ) minZ = v.Z;
 
-                    if (v.X > maxX) maxX = v.X;
-                    if (v.Y > maxY) maxY = v.Y;
-                    if (v.Z > maxZ) maxZ = v.Z;
-                }
+                if (v.X > maxX) maxX = v.X;
+                if (v.Y > maxY) maxY = v.Y;
+                if (v.Z > maxZ) maxZ = v.Z;
             }
 
             return CreateSimpleBoxMesh(minX, maxX, minY, maxY, minZ, maxZ);
