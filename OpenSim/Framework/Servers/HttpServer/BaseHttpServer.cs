@@ -903,7 +903,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                     byte[] buf = Encoding.UTF8.GetBytes("Not found");
                     response.KeepAlive = false;
 
-                    m_log.ErrorFormat("[BASE HTTP SERVER]: Handler not found for http request {0}", request.RawUrl);
+                    m_log.ErrorFormat(
+                        "[BASE HTTP SERVER]: Handler not found for http request {0} {1}",
+                        request.HttpMethod, request.Url.PathAndQuery);
 
                     response.SendChunked = false;
                     response.ContentLength64 = buf.Length;

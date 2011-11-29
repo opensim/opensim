@@ -239,7 +239,7 @@ namespace OpenSim.Region.CoreModules.Framework
             {
                 caps.AppendFormat("** User {0}:\n", kvp.Key);
 
-                for (IDictionaryEnumerator kvp2 = kvp.Value.CapsHandlers.CapsDetails.GetEnumerator(); kvp2.MoveNext(); )
+                for (IDictionaryEnumerator kvp2 = kvp.Value.CapsHandlers.GetCapsDetails(false).GetEnumerator(); kvp2.MoveNext(); )
                 {
                     Uri uri = new Uri(kvp2.Value.ToString());
                     caps.AppendFormat(m_showCapsCommandFormat, kvp2.Key, uri.PathAndQuery);
