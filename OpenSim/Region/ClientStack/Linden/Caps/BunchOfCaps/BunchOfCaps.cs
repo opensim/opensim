@@ -56,8 +56,6 @@ namespace OpenSim.Region.ClientStack.Linden
     string assetName, string description, UUID assetID, UUID inventoryItem, UUID parentFolder,
     byte[] data, string inventoryType, string assetType);
 
-    public delegate void UploadedBakedTexture(UUID assetID, byte[] data);
-
     public delegate UUID UpdateItem(UUID itemID, byte[] data);
 
     public delegate void UpdateTaskScript(UUID itemID, UUID primID, bool isScriptRunning, byte[] data, ref ArrayList errors);
@@ -97,7 +95,6 @@ namespace OpenSim.Region.ClientStack.Linden
         private static readonly string m_notecardTaskUpdatePath = "0005/";
         //        private static readonly string m_fetchInventoryPath = "0006/";
         // private static readonly string m_remoteParcelRequestPath = "0009/";// This is in the LandManagementModule.
-        private static readonly string m_uploadBakedTexturePath = "0010/";// This is in the LandManagementModule.
 
 
         // These are callbacks which will be setup by the scene so that we can update scene data when we
@@ -164,8 +161,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 IRequestHandler req = new RestStreamHandler("POST", capsBase + m_notecardTaskUpdatePath, ScriptTaskInventory);
                 m_HostCapsObj.RegisterHandler("UpdateScriptTaskInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptTask", req);
-                m_HostCapsObj.RegisterHandler("UploadBakedTexture", new RestStreamHandler("POST", capsBase + m_uploadBakedTexturePath, UploadBakedTexture));
-
             }
             catch (Exception e)
             {
@@ -328,74 +323,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 foreach (Object item in e)
                     errors.Add(item);
             }
-        }
-
-        /// <summary>
-        /// Handle a request from the client for a Uri to upload a baked texture.
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="path"></param>
-        /// <param name="param"></param>
-        /// <param name="httpRequest"></param>
-        /// <param name="httpResponse"></param>
-        /// <returns>The upload response if the request is successful, null otherwise.</returns>
-        public string UploadBakedTexture(string request, string path,
-                string param, OSHttpRequest httpRequest,
-                OSHttpResponse httpResponse)
-        {
-            try
-            {
-//                m_log.Debug("[CAPS]: UploadBakedTexture Request in region: " + m_regionName);
-
-                string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath;
-                string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
-
-                BakedTextureUploader uploader =
-                    new BakedTextureUploader(capsBase + uploaderPath, m_HostCapsObj.HttpListener);
-                uploader.OnUpLoad += BakedTextureUploaded;
-
-                m_HostCapsObj.HttpListener.AddStreamHandler(
-                        new BinaryStreamHandler("POST", capsBase + uploaderPath,
-                        uploader.uploaderCaps));
-
-                string protocol = "http://";
-
-                if (m_HostCapsObj.SSLCaps)
-                    protocol = "https://";
-
-                string uploaderURL = protocol + m_HostCapsObj.HostName + ":" +
-                        m_HostCapsObj.Port.ToString() + capsBase + uploaderPath;
-
-                LLSDAssetUploadResponse uploadResponse =
-                        new LLSDAssetUploadResponse();
-                uploadResponse.uploader = uploaderURL;
-                uploadResponse.state = "upload";
-
-                return LLSDHelpers.SerialiseLLSDReply(uploadResponse);
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[CAPS]: " + e.ToString());
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Called when a baked texture has been successfully uploaded by a client.
-        /// </summary>
-        /// <param name="assetID"></param>
-        /// <param name="data"></param>
-        public void BakedTextureUploaded(UUID assetID, byte[] data)
-        {
-            //            m_log.WarnFormat("[CAPS]: Received baked texture {0}", assetID.ToString());
-
-            AssetBase asset;
-            asset = new AssetBase(assetID, "Baked Texture", (sbyte)AssetType.Texture, m_HostCapsObj.AgentID.ToString());
-            asset.Data = data;
-            asset.Temporary = true;
-            asset.Local = !m_persistBakedTextures; // Local assets aren't persisted, non-local are
-            m_assetService.Store(asset);
         }
 
         /// <summary>
@@ -1067,6 +994,7 @@ namespace OpenSim.Region.ClientStack.Linden
             // XXX Maybe this should be some meaningful error packet
             return null;
         }
+
         ///Left this in and commented in case there are unforseen issues
         //private void SaveAssetToFile(string filename, byte[] data)
         //{
@@ -1090,53 +1018,4 @@ namespace OpenSim.Region.ClientStack.Linden
             fs.Close();
         }
     }
-
-    public class BakedTextureUploader
-    {
-        public event UploadedBakedTexture OnUpLoad;
-        private UploadedBakedTexture handlerUpLoad = null;
-
-        private string uploaderPath = String.Empty;
-        private UUID newAssetID;
-        private IHttpServer httpListener;
-
-        public BakedTextureUploader(string path, IHttpServer httpServer)
-        {
-            newAssetID = UUID.Random();
-            uploaderPath = path;
-            httpListener = httpServer;
-            //                m_log.InfoFormat("[CAPS] baked texture upload starting for {0}",newAssetID);
-        }
-
-        /// <summary>
-        /// Handle raw uploaded baked texture data.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="path"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public string uploaderCaps(byte[] data, string path, string param)
-        {
-            handlerUpLoad = OnUpLoad;
-            if (handlerUpLoad != null)
-            {
-                Util.FireAndForget(delegate(object o) { handlerUpLoad(newAssetID, data); });
-            }
-
-            string res = String.Empty;
-            LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
-            uploadComplete.new_asset = newAssetID.ToString();
-            uploadComplete.new_inventory_item = UUID.Zero;
-            uploadComplete.state = "complete";
-
-            res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
-
-            httpListener.RemoveStreamHandler("POST", uploaderPath);
-
-            //                m_log.InfoFormat("[CAPS] baked texture upload completed for {0}",newAssetID);
-
-            return res;
-        }
-    }
-
 }
