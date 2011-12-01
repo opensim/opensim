@@ -846,6 +846,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGiveMoney(destination, amount);
         }
 
+        public LSL_String llTransferLindenDollars(string destination, int amount)
+        {
+            return m_LSL_Functions.llTransferLindenDollars(destination, amount);
+        }
+
         public void llGodLikeRezObject(string inventory, LSL_Vector pos)
         {
             m_LSL_Functions.llGodLikeRezObject(inventory, pos);

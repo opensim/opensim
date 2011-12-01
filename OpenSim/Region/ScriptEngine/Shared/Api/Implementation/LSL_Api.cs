@@ -11383,6 +11383,83 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     new DetectParams[0]));
         }
 
+        public LSL_String llTransferLindenDollars(string destination, int amount)
+        {
+            UUID txn = UUID.Random();
+
+            Util.FireAndForget(delegate(object x)
+            {
+                int replycode = 0;
+                string replydata = String.Empty;
+
+                try
+                {
+                    UUID invItemID=InventorySelf();
+                    if (invItemID == UUID.Zero)
+                    {
+                        replydata = "SERVICE_ERROR";
+                        return;
+                    }
+
+                    m_host.AddScriptLPS(1);
+
+                    m_host.TaskInventory.LockItemsForRead(true);
+                    TaskInventoryItem item = m_host.TaskInventory[invItemID];
+                    m_host.TaskInventory.LockItemsForRead(false);
+
+                    if (item.PermsGranter == UUID.Zero)
+                    {
+                        replydata = "MISSING_PERMISSION_DEBIT";
+                        return;
+                    }
+
+                    if ((item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
+                    {
+                        replydata = "MISSING_PERMISSION_DEBIT";
+                        return;
+                    }
+
+                    UUID toID = new UUID();
+
+                    if (!UUID.TryParse(destination, out toID))
+                    {
+                        replydata = "INVALID_AGENT";
+                        return;
+                    }
+
+                    IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
+
+                    if (money == null)
+                    {
+                        replydata = "TRANSFERS_DISABLED";
+                        return;
+                    }
+
+                    bool result = money.ObjectGiveMoney(
+                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount);
+
+                    if (result)
+                    {
+                        replycode = 1;
+                        return;
+                    }
+
+                    replydata = "LINDENDOLLAR_INSUFFICIENTFUNDS";
+                }
+                finally
+                {
+                    m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                            "transaction_result", new Object[] {
+                            new LSL_String(txn.ToString()),
+                            new LSL_Integer(replycode),
+                            new LSL_String(replydata) },
+                            new DetectParams[0]));
+                }
+            });
+
+            return txn.ToString();
+        }
+
         #endregion
     }
 

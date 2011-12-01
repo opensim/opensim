@@ -1171,6 +1171,16 @@ namespace OpenSim.Region.Framework.Scenes
                 if(m_hbRestarts > 10)
                     Environment.Exit(1);
                 m_log.ErrorFormat("[SCENE]: Restarting heartbeat thread because it hasn't reported in in region {0}", RegionInfo.RegionName);
+                int pid = System.Diagnostics.Process.GetCurrentProcess().Id;
+                
+System.Diagnostics.Process proc = new System.Diagnostics.Process();
+proc.EnableRaisingEvents=false; 
+proc.StartInfo.FileName = "/bin/kill";
+proc.StartInfo.Arguments = "-QUIT " + pid.ToString();
+proc.Start();
+proc.WaitForExit();
+Thread.Sleep(1000);
+Environment.Exit(1);
                 HeartbeatThread.Abort();
                 Watchdog.AbortThread(HeartbeatThread.ManagedThreadId);
                 HeartbeatThread = null;

@@ -200,6 +200,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llGiveInventory(string destination, string inventory);
               void llGiveInventoryList(string destination, string category, LSL_List inventory);
        LSL_Integer llGiveMoney(string destination, int amount);
+        LSL_String llTransferLindenDollars(string destination, int amount);
               void llGodLikeRezObject(string inventory, LSL_Vector pos);
          LSL_Float llGround(LSL_Vector offset);
         LSL_Vector llGroundContour(LSL_Vector offset);
