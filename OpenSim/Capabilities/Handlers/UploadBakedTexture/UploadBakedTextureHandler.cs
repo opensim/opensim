@@ -106,7 +106,7 @@ namespace OpenSim.Capabilities.Handlers
             }
             catch (Exception e)
             {
-                m_log.Error("[CAPS]: " + e.ToString());
+                m_log.Error("[UPLOAD BAKED TEXTURE HANDLER]: " + e.ToString());
             }
 
             return null;
@@ -132,6 +132,8 @@ namespace OpenSim.Capabilities.Handlers
 
     class BakedTextureUploader
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public event Action<UUID, byte[]> OnUpLoad;
 
         private string uploaderPath = String.Empty;
@@ -156,10 +158,12 @@ namespace OpenSim.Capabilities.Handlers
         public string uploaderCaps(byte[] data, string path, string param)
         {
             Action<UUID, byte[]> handlerUpLoad = OnUpLoad;
+
+            // Don't do this asynchronously, otherwise it's possible for the client to send set appearance information
+            // on another thread which might send out avatar updates before the asset has been put into the asset
+            // service.
             if (handlerUpLoad != null)
-            {
-                Util.FireAndForget(delegate(object o) { handlerUpLoad(newAssetID, data); });
-            }
+                handlerUpLoad(newAssetID, data);
 
             string res = String.Empty;
             LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
@@ -171,7 +175,7 @@ namespace OpenSim.Capabilities.Handlers
 
             httpListener.RemoveStreamHandler("POST", uploaderPath);
 
-            //                m_log.InfoFormat("[CAPS] baked texture upload completed for {0}",newAssetID);
+//            m_log.DebugFormat("[BAKED TEXTURE UPLOADER]: baked texture upload completed for {0}", newAssetID);
 
             return res;
         }
