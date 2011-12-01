@@ -238,7 +238,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 return string.Empty;
             }
 
-            Hashtable caps = m_HostCapsObj.CapsHandlers.CapsDetails;
+            Hashtable caps = m_HostCapsObj.CapsHandlers.GetCapsDetails(true);
+
             // Add the external too
             foreach (KeyValuePair<string, string> kvp in m_HostCapsObj.ExternalCapsHandlers)
                 caps[kvp.Key] = kvp.Value;

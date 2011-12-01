@@ -147,25 +147,25 @@ namespace OpenSim.Framework.Capabilities
         /// Return an LLSD-serializable Hashtable describing the
         /// capabilities and their handler details.
         /// </summary>
-        public Hashtable CapsDetails
+        /// <param name="excludeSeed">If true, then exclude the seed cap.</param>
+        public Hashtable GetCapsDetails(bool excludeSeed)
         {
-            get
-            {
-                Hashtable caps = new Hashtable();
-                string protocol = "http://";
-                
-                if (m_useSSL)
-                    protocol = "https://";
+            Hashtable caps = new Hashtable();
+            string protocol = "http://";
+            
+            if (m_useSSL)
+                protocol = "https://";
 
-                string baseUrl = protocol + m_httpListenerHostName + ":" + m_httpListenerPort.ToString();
-                foreach (string capsName in m_capsHandlers.Keys)
-                {
-                    // skip SEED cap
-                    if ("SEED" == capsName) continue;
-                    caps[capsName] = baseUrl + m_capsHandlers[capsName].Path;
-                }
-                return caps;
+            string baseUrl = protocol + m_httpListenerHostName + ":" + m_httpListenerPort.ToString();
+            foreach (string capsName in m_capsHandlers.Keys)
+            {
+                if (excludeSeed && "SEED" == capsName)
+                    continue;
+
+                caps[capsName] = baseUrl + m_capsHandlers[capsName].Path;
             }
+
+            return caps;
         }
     }
 }

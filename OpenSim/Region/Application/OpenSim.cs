@@ -242,6 +242,14 @@ namespace OpenSim
                                           + "If an avatar name is given then only packets from that avatar are logged",
                                           Debug);
 
+            m_console.Commands.AddCommand("region", false, "debug http",
+                                          "debug http <level>",
+                                          "Turn on inbound http request debugging for everything except the event queue (see debug eq).",
+                                            "If level >= 2 then the handler used to service the request is logged.\n"
+                                          + "If level >= 1 then incoming HTTP requests are logged.\n"
+                                          + "If level <= 0 then no extra http logging is done.\n",
+                                          Debug);
+
             m_console.Commands.AddCommand("region", false, "debug scene",
                                           "debug scene <cripting> <collisions> <physics>",
                                           "Turn on scene debugging", Debug);
@@ -337,7 +345,7 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", false, "backup",
                                           "backup",
-                                          "Persist objects to the database now", RunCommand);
+                                          "Persist currently unsaved object changes immediately instead of waiting for the normal persistence call.", RunCommand);
 
             m_console.Commands.AddCommand("region", false, "create region",
                                           "create region [\"region name\"] <region_file.ini>",
@@ -886,13 +894,30 @@ namespace OpenSim
                         if (int.TryParse(args[2], out newDebug))
                         {
                             m_sceneManager.SetDebugPacketLevelOnCurrentScene(newDebug, name);
+                            // We provide user information elsewhere if any clients had their debug level set.
+//                            MainConsole.Instance.OutputFormat("Debug packet level set to {0}", newDebug);
                         }
                         else
                         {
-                            MainConsole.Instance.Output("packet debug should be 0..255");
+                            MainConsole.Instance.Output("Usage: debug packet 0..255");
                         }
                     }
 
+                    break;
+
+                case "http":
+                    if (args.Length == 3)
+                    {
+                        int newDebug;
+                        if (int.TryParse(args[2], out newDebug))
+                        {
+                            MainServer.Instance.DebugLevel = newDebug;
+                            MainConsole.Instance.OutputFormat("Debug http level set to {0}", newDebug);
+                            break;
+                        }
+                    }
+
+                    MainConsole.Instance.Output("Usage: debug http 0..2");
                     break;
 
                 case "scene":
@@ -917,13 +942,13 @@ namespace OpenSim
                     }
                     else
                     {
-                        MainConsole.Instance.Output("debug scene <scripting> <collisions> <physics> (where inside <> is true/false)");
+                        MainConsole.Instance.Output("Usage: debug scene <scripting> <collisions> <physics> (where inside <> is true/false)");
                     }
 
                     break;
 
                 default:
-                    MainConsole.Instance.Output("Unknown debug");
+                    MainConsole.Instance.Output("Unknown debug command");
                     break;
             }
         }

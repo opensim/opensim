@@ -218,9 +218,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             m_scene.AddCommand(this, "debug permissions",
                     "debug permissions <true / false>",
-                    "Enable permissions debugging",
-                    HandleDebugPermissions);
-                    
+                    "Turn on permissions debugging",
+                    HandleDebugPermissions);                    
                     
             string grant = myConfig.GetString("GrantLSL","");
             if (grant.Length > 0) {

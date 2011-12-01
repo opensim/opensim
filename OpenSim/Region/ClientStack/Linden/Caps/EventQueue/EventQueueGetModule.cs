@@ -110,8 +110,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     false,
                     "debug eq",
                     "debug eq [0|1]",
+                    "Turn on event queue debugging",                                   
                     "debug eq 1 will turn on event queue debugging.  This will log all outgoing event queue messages to clients.\n"
-                        + "debug eq 1 will turn off event queue debugging.",
+                        + "debug eq 0 will turn off event queue debugging.",
                     HandleDebugEq);
             }
             else
