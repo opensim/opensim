@@ -131,8 +131,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public void ResetAnimations()
         {
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE ANIMATOR]: Resetting animations for {0} in {1}",
+//                m_scenePresence.Name, m_scenePresence.Scene.RegionInfo.RegionName);
+
             m_animations.Clear();
-            TrySetMovementAnimation("STAND");
         }
         
         /// <summary>
@@ -155,6 +158,14 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     SendAnimPack();
                 }
             }
+            // Don't leave this on since on teleports SP.HandleAgentUpdate() still hammers us for a while after it teleports
+//            else
+//            {
+//                m_log.WarnFormat(
+//                    "[SCENE PRESENCE ANIMATOR]: Tried to set movement animation {0} on child presence {1}",
+//                    anim, m_scenePresence.Name);
+//                throw new Exception(string.Format("aaargh on setting {0}", anim));
+//            }
         }
 
         /// <summary>
