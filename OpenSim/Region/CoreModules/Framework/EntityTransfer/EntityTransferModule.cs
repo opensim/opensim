@@ -495,7 +495,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // Well, this is it. The agent is over there.
                 KillEntity(sp.Scene, sp.LocalId);
 
-
                 // Now let's make it officially a child agent
                 sp.MakeChildAgent();
 
@@ -510,9 +509,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.Scene.IncomingCloseAgent(sp.UUID);
                 }
                 else
+                {
                     // now we have a child agent in this region. 
                     sp.Reset();
-
+                }
 
                 // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
                 if (sp.Scene.NeedSceneCacheClear(sp.UUID))
@@ -946,111 +946,121 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, GridRegion neighbourRegion,
             bool isFlying, string version)
         {
-            ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
-
-            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} to {2}-{3} running version {4}", agent.Firstname, agent.Lastname, neighbourx, neighboury, version);
-
-            Scene m_scene = agent.Scene;
-
-            if (neighbourRegion != null)
+            try
             {
-                if (!agent.ValidateAttachments())
-                    m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: Failed validation of all attachments for region crossing of {0} from {1} to {2}.  Continuing.",
-                        agent.Name, agent.Scene.RegionInfo.RegionName, neighbourRegion.RegionName);
-
-                pos = pos + (agent.Velocity);
-
-                SetInTransit(agent.UUID);
-                AgentData cAgent = new AgentData();
-                agent.CopyTo(cAgent);
-                cAgent.Position = pos;
-                if (isFlying)
-                    cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
-                cAgent.CallbackURI = m_scene.RegionInfo.ServerURI +
-                    "agent/" + agent.UUID.ToString() + "/" + m_scene.RegionInfo.RegionID.ToString() + "/release/";
-
-                if (!m_scene.SimulationService.UpdateAgent(neighbourRegion, cAgent))
+                ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
+    
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} to {2}-{3} running version {4}", agent.Firstname, agent.Lastname, neighbourx, neighboury, version);
+    
+                Scene m_scene = agent.Scene;
+    
+                if (neighbourRegion != null)
                 {
-                    // region doesn't take it
-                    ReInstantiateScripts(agent);
-                    ResetFromTransit(agent.UUID);
-                    return agent;
+                    if (!agent.ValidateAttachments())
+                        m_log.DebugFormat(
+                            "[ENTITY TRANSFER MODULE]: Failed validation of all attachments for region crossing of {0} from {1} to {2}.  Continuing.",
+                            agent.Name, agent.Scene.RegionInfo.RegionName, neighbourRegion.RegionName);
+    
+                    pos = pos + (agent.Velocity);
+    
+                    SetInTransit(agent.UUID);
+                    AgentData cAgent = new AgentData();
+                    agent.CopyTo(cAgent);
+                    cAgent.Position = pos;
+                    if (isFlying)
+                        cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+                    cAgent.CallbackURI = m_scene.RegionInfo.ServerURI +
+                        "agent/" + agent.UUID.ToString() + "/" + m_scene.RegionInfo.RegionID.ToString() + "/release/";
+    
+                    if (!m_scene.SimulationService.UpdateAgent(neighbourRegion, cAgent))
+                    {
+                        // region doesn't take it
+                        ReInstantiateScripts(agent);
+                        ResetFromTransit(agent.UUID);
+                        return agent;
+                    }
+    
+                    // Next, let's close the child agent connections that are too far away.
+                    agent.CloseChildAgents(neighbourx, neighboury);
+    
+                    //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
+                    agent.ControllingClient.RequestClientInfo();
+    
+                    //m_log.Debug("BEFORE CROSS");
+                    //Scene.DumpChildrenSeeds(UUID);
+                    //DumpKnownRegions();
+                    string agentcaps;
+                    if (!agent.KnownRegions.TryGetValue(neighbourRegion.RegionHandle, out agentcaps))
+                    {
+                        m_log.ErrorFormat("[ENTITY TRANSFER MODULE]: No ENTITY TRANSFER MODULE information for region handle {0}, exiting CrossToNewRegion.",
+                                         neighbourRegion.RegionHandle);
+                        return agent;
+                    }
+                    string capsPath = neighbourRegion.ServerURI + CapsUtil.GetCapsSeedPath(agentcaps);
+    
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
+    
+                    IEventQueue eq = agent.Scene.RequestModuleInterface<IEventQueue>();
+                    if (eq != null)
+                    {
+                        eq.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
+                                       capsPath, agent.UUID, agent.ControllingClient.SessionId);
+                    }
+                    else
+                    {
+                        agent.ControllingClient.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
+                                                    capsPath);
+                    }
+    
+                    if (!WaitForCallback(agent.UUID))
+                    {
+                        m_log.Debug("[ENTITY TRANSFER MODULE]: Callback never came in crossing agent");
+                        ReInstantiateScripts(agent);
+                        ResetFromTransit(agent.UUID);
+    
+                        // Yikes! We should just have a ref to scene here.
+                        //agent.Scene.InformClientOfNeighbours(agent);
+                        EnableChildAgents(agent);
+    
+                        return agent;
+                    }
+    
+                    agent.MakeChildAgent();
+    
+                    // now we have a child agent in this region. Request all interesting data about other (root) agents
+                    agent.SendOtherAgentsAvatarDataToMe();
+                    agent.SendOtherAgentsAppearanceToMe();
+    
+                    // Backwards compatibility
+                    if (version == "Unknown" || version == string.Empty)
+                    {
+                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Old neighbor, passing attachments one by one...");
+                        CrossAttachmentsIntoNewRegion(neighbourRegion, agent, true);
+                    }
+    
+                    AgentHasMovedAway(agent, false);
+    
+                    // the user may change their profile information in other region,
+                    // so the userinfo in UserProfileCache is not reliable any more, delete it
+                    // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
+                    if (agent.Scene.NeedSceneCacheClear(agent.UUID))
+                    {
+                        m_log.DebugFormat(
+                            "[ENTITY TRANSFER MODULE]: User {0} is going to another region", agent.UUID);
+                    }
                 }
-
-                // Next, let's close the child agent connections that are too far away.
-                agent.CloseChildAgents(neighbourx, neighboury);
-
-                //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
-                agent.ControllingClient.RequestClientInfo();
-
-                //m_log.Debug("BEFORE CROSS");
+    
+                //m_log.Debug("AFTER CROSS");
                 //Scene.DumpChildrenSeeds(UUID);
                 //DumpKnownRegions();
-                string agentcaps;
-                if (!agent.KnownRegions.TryGetValue(neighbourRegion.RegionHandle, out agentcaps))
-                {
-                    m_log.ErrorFormat("[ENTITY TRANSFER MODULE]: No ENTITY TRANSFER MODULE information for region handle {0}, exiting CrossToNewRegion.",
-                                     neighbourRegion.RegionHandle);
-                    return agent;
-                }
-                string capsPath = neighbourRegion.ServerURI + CapsUtil.GetCapsSeedPath(agentcaps);
-
-                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
-
-                IEventQueue eq = agent.Scene.RequestModuleInterface<IEventQueue>();
-                if (eq != null)
-                {
-                    eq.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
-                                   capsPath, agent.UUID, agent.ControllingClient.SessionId);
-                }
-                else
-                {
-                    agent.ControllingClient.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
-                                                capsPath);
-                }
-
-                if (!WaitForCallback(agent.UUID))
-                {
-                    m_log.Debug("[ENTITY TRANSFER MODULE]: Callback never came in crossing agent");
-                    ReInstantiateScripts(agent);
-                    ResetFromTransit(agent.UUID);
-
-                    // Yikes! We should just have a ref to scene here.
-                    //agent.Scene.InformClientOfNeighbours(agent);
-                    EnableChildAgents(agent);
-
-                    return agent;
-                }
-
-                agent.MakeChildAgent();
-
-                // now we have a child agent in this region. Request all interesting data about other (root) agents
-                agent.SendOtherAgentsAvatarDataToMe();
-                agent.SendOtherAgentsAppearanceToMe();
-
-                // Backwards compatibility
-                if (version == "Unknown" || version == string.Empty)
-                {
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Old neighbor, passing attachments one by one...");
-                    CrossAttachmentsIntoNewRegion(neighbourRegion, agent, true);
-                }
-
-                AgentHasMovedAway(agent, false);
-
-                // the user may change their profile information in other region,
-                // so the userinfo in UserProfileCache is not reliable any more, delete it
-                // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
-                if (agent.Scene.NeedSceneCacheClear(agent.UUID))
-                {
-                    m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: User {0} is going to another region", agent.UUID);
-                }
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[ENTITY TRANSFER MODULE]: Problem crossing user {0} to new region {1} from {2}.  Exception {3}{4}",
+                    agent.Name, neighbourRegion.RegionName, agent.Scene.RegionInfo.RegionName, e.Message, e.StackTrace);
             }
 
-            //m_log.Debug("AFTER CROSS");
-            //Scene.DumpChildrenSeeds(UUID);
-            //DumpKnownRegions();
             return agent;
         }
 

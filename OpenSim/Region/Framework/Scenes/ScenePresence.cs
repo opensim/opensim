@@ -995,13 +995,17 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// This turns a root agent into a child agent
+        /// </summary>
+        /// <remarks>
         /// when an agent departs this region for a neighbor, this gets called.
         ///
         /// It doesn't get called for a teleport.  Reason being, an agent that
         /// teleports out may not end up anywhere near this region
-        /// </summary>
+        /// </remarks>
         public void MakeChildAgent()
         {
+            m_log.DebugFormat("[SCENE PRESENCE]: Making {0} a child agent in {1}", Name, Scene.RegionInfo.RegionName);
+
             // Reset these so that teleporting in and walking out isn't seen
             // as teleporting back
             TeleportFlags = TeleportFlags.Default;
@@ -2295,11 +2299,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
             Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
-
-            // TODO: This doesn't prevent the user from walking yet.
-            // Setting parent ID would fix this, if we knew what value
-            // to use.  Or we could add a m_isSitting variable.
-            //Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
             SitGround = true;
             RemoveFromPhysicalScene();
         }
@@ -2908,9 +2907,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Reset()
         {
+//            m_log.DebugFormat("[SCENE PRESENCE]: Resetting {0} in {1}", Name, Scene.RegionInfo.RegionName);
+
             // Put the child agent back at the center
             AbsolutePosition 
                 = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f), 70);
+
             Animator.ResetAnimations();
         }
 
@@ -3133,7 +3135,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void CopyFrom(AgentData cAgent)
+        private void CopyFrom(AgentData cAgent)
         {
             m_originRegionID = cAgent.RegionID;
 
@@ -3192,13 +3194,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             catch { }
-            // Animations
-            try
-            {
-                Animator.ResetAnimations();
-                Animator.Animations.FromArray(cAgent.Anims);
-            }
-            catch {  }
+
+            Animator.Animations.FromArray(cAgent.Anims);
 
             if (cAgent.AttachmentObjects != null && cAgent.AttachmentObjects.Count > 0)
             {

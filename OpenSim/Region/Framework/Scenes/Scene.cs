@@ -3700,7 +3700,6 @@ namespace OpenSim.Region.Framework.Scenes
                     return false;
             }
 
-
             ScenePresence childAgentUpdate = WaitGetScenePresence(cAgentData.AgentID);
 
             if (childAgentUpdate != null)
