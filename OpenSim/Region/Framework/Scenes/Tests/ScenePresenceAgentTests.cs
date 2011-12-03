@@ -103,15 +103,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 
             Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(sp.UUID), Is.Not.Null);
-            Assert.That(scene.AuthenticateHandler.AgentCircuits.Count, Is.EqualTo(1));
-            Assert.That(scene.AuthenticateHandler.AgentCircuitsByUUID.Count, Is.EqualTo(1));
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
 
             scene.IncomingCloseAgent(sp.UUID);
 
             Assert.That(scene.GetScenePresence(sp.UUID), Is.Null);
             Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(sp.UUID), Is.Null);
-            Assert.That(scene.AuthenticateHandler.AgentCircuits.Count, Is.EqualTo(0));
-            Assert.That(scene.AuthenticateHandler.AgentCircuitsByUUID.Count, Is.EqualTo(0));
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(0));
         }
 
         /// <summary>
