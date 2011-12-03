@@ -166,6 +166,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// </summary>
         /// <remarks>
         /// Please note that unlike the other tests here, this doesn't rely on anything set up in the instance fields.
+        /// INCOMPLETE
         /// </remarks>
         [Test]
         public void TestChildAgentEstablishedInNeighbour()
