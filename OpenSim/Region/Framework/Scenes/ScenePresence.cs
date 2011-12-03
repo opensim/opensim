@@ -149,9 +149,9 @@ namespace OpenSim.Region.Framework.Scenes
         }
         private bool m_wasFlying;		// add for fly velocity control
 
-        private int m_lastColCount = -1;		//KF: Look for Collision chnages
-        private int m_updateCount = 0;			//KF: Update Anims for a while
-        private static readonly int UPDATE_COUNT = 10;		// how many frames to update for
+//        private int m_lastColCount = -1;		//KF: Look for Collision chnages
+//        private int m_updateCount = 0;			//KF: Update Anims for a while
+//        private static readonly int UPDATE_COUNT = 10;		// how many frames to update for
 
         private TeleportFlags m_teleportFlags;
         public TeleportFlags TeleportFlags
@@ -1366,14 +1366,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             #endregion Inputs
 
-            // Make anims work for client side autopilot
-            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0)
-                m_updateCount = UPDATE_COUNT;
-
-            // Make turning in place work
-            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0 ||
-                (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
-                m_updateCount = UPDATE_COUNT;
+//            // Make anims work for client side autopilot
+//            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0)
+//                m_updateCount = UPDATE_COUNT;
+//
+//            // Make turning in place work
+//            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0 ||
+//                (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
+//                m_updateCount = UPDATE_COUNT;
 
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
@@ -2297,7 +2297,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandleAgentSitOnGround()
         {
-            m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
+//            m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
             Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
             SitGround = true;
             RemoveFromPhysicalScene();
@@ -3290,11 +3290,11 @@ namespace OpenSim.Region.Framework.Scenes
             // as of this comment the interval is set in AddToPhysicalScene
             if (Animator != null)
             {
-                if (m_updateCount > 0)
-                {
+//                if (m_updateCount > 0)
+//                {
                     Animator.UpdateMovementAnimations();
-                    m_updateCount--;
-                }
+//                    m_updateCount--;
+//                }
             }
 
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
@@ -3302,13 +3302,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             CollisionPlane = Vector4.UnitW;
 
-            // No collisions at all means we may be flying. Update always
-            // to make falling work
-            if (m_lastColCount != coldata.Count || coldata.Count == 0)
-            {	
-                m_updateCount = UPDATE_COUNT;
-                m_lastColCount = coldata.Count;
-            }
+//            // No collisions at all means we may be flying. Update always
+//            // to make falling work
+//            if (m_lastColCount != coldata.Count || coldata.Count == 0)
+//            {
+//                m_updateCount = UPDATE_COUNT;
+//                m_lastColCount = coldata.Count;
+//            }
 
             if (coldata.Count != 0 && Animator != null)
             {
