@@ -1582,8 +1582,8 @@ namespace OpenSim.Region.Framework.Scenes
 //                    }
 //                }
 
-                if (update_movementflag && ParentID == 0)
-                    Animator.UpdateMovementAnimations();
+//                if (update_movementflag && ParentID == 0)
+//                    Animator.UpdateMovementAnimations();
             }
 
             m_scene.EventManager.TriggerOnClientMovement(this);
@@ -3279,8 +3279,18 @@ namespace OpenSim.Region.Framework.Scenes
                 ControllingClient.SendAgentAlertMessage("Physics is having a problem with your avatar.  You may not be able to move until you relog.", true);
         }
 
-        // Event called by the physics plugin to tell the avatar about a collision.
-        private void PhysicsCollisionUpdate(EventArgs e)
+        /// <summary>
+        /// Event called by the physics plugin to tell the avatar about a collision.
+        /// </summary>
+        /// <remarks>
+        /// This function is called continuously, even when there are no collisions.  If the avatar is walking on the
+        /// ground or a prim then there will be collision information between the avatar and the surface.
+        ///
+        /// FIXME: However, we can't safely avoid calling this yet where there are no collisions without analyzing whether
+        /// any part of this method is relying on an every-frame call.
+        /// </remarks>
+        /// <param name="e"></param>
+        public void PhysicsCollisionUpdate(EventArgs e)
         {
             if (IsChildAgent)
                 return;
