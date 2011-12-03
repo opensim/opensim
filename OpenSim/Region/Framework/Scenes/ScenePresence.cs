@@ -1582,8 +1582,8 @@ namespace OpenSim.Region.Framework.Scenes
 //                    }
 //                }
 
-                if (update_movementflag && ParentID == 0)
-                    Animator.UpdateMovementAnimations();
+//                if (update_movementflag && ParentID == 0)
+//                    Animator.UpdateMovementAnimations();
             }
 
             m_scene.EventManager.TriggerOnClientMovement(this);
