@@ -38,6 +38,9 @@ namespace OpenSim.Framework
         /// <summary>
         /// Agent circuits indexed by circuit code.
         /// </summary>
+        /// <remarks>
+        /// We lock this for operations both on this dictionary and on m_agentCircuitsByUUID
+        /// </remarks>
         private Dictionary<uint, AgentCircuitData> m_agentCircuits = new Dictionary<uint, AgentCircuitData>();
 
         /// <summary>
@@ -48,16 +51,20 @@ namespace OpenSim.Framework
         public virtual AuthenticateResponse AuthenticateSession(UUID sessionID, UUID agentID, uint circuitcode)
         {
             AgentCircuitData validcircuit = null;
-            if (m_agentCircuits.ContainsKey(circuitcode))
+
+            lock (m_agentCircuits)
             {
-                validcircuit = m_agentCircuits[circuitcode];
+                if (m_agentCircuits.ContainsKey(circuitcode))
+                    validcircuit = m_agentCircuits[circuitcode];
             }
+
             AuthenticateResponse user = new AuthenticateResponse();
+
             if (validcircuit == null)
             {
                 //don't have this circuit code in our list
                 user.Authorised = false;
-                return (user);
+                return user;
             }
 
             if ((sessionID == validcircuit.SessionID) && (agentID == validcircuit.AgentID))
@@ -79,7 +86,7 @@ namespace OpenSim.Framework
                 user.Authorised = false;
             }
 
-            return (user);
+            return user;
         }
 
         /// <summary>
@@ -129,17 +136,24 @@ namespace OpenSim.Framework
                 }
             }
         }
+
         public AgentCircuitData GetAgentCircuitData(uint circuitCode)
         {
             AgentCircuitData agentCircuit = null;
-            m_agentCircuits.TryGetValue(circuitCode, out agentCircuit);
+
+            lock (m_agentCircuits)
+                m_agentCircuits.TryGetValue(circuitCode, out agentCircuit);
+
             return agentCircuit;
         }
 
         public AgentCircuitData GetAgentCircuitData(UUID agentID)
         {
             AgentCircuitData agentCircuit = null;
-            m_agentCircuitsByUUID.TryGetValue(agentID, out agentCircuit);
+
+            lock (m_agentCircuits)
+                m_agentCircuitsByUUID.TryGetValue(agentID, out agentCircuit);
+
             return agentCircuit;
         }
 
@@ -149,23 +163,26 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public Dictionary<UUID, AgentCircuitData> GetAgentCircuits()
         {
-            lock (m_agentCircuitsByUUID)
+            lock (m_agentCircuits)
                 return new Dictionary<UUID, AgentCircuitData>(m_agentCircuitsByUUID);
         }
 
         public void UpdateAgentData(AgentCircuitData agentData)
         {
-            if (m_agentCircuits.ContainsKey((uint) agentData.circuitcode))
+            lock (m_agentCircuits)
             {
-                m_agentCircuits[(uint) agentData.circuitcode].firstname = agentData.firstname;
-                m_agentCircuits[(uint) agentData.circuitcode].lastname = agentData.lastname;
-                m_agentCircuits[(uint) agentData.circuitcode].startpos = agentData.startpos;
+                if (m_agentCircuits.ContainsKey((uint) agentData.circuitcode))
+                {
+                    m_agentCircuits[(uint) agentData.circuitcode].firstname = agentData.firstname;
+                    m_agentCircuits[(uint) agentData.circuitcode].lastname = agentData.lastname;
+                    m_agentCircuits[(uint) agentData.circuitcode].startpos = agentData.startpos;
 
-                // Updated for when we don't know them before calling Scene.NewUserConnection
-                m_agentCircuits[(uint) agentData.circuitcode].SecureSessionID = agentData.SecureSessionID;
-                m_agentCircuits[(uint) agentData.circuitcode].SessionID = agentData.SessionID;
+                    // Updated for when we don't know them before calling Scene.NewUserConnection
+                    m_agentCircuits[(uint) agentData.circuitcode].SecureSessionID = agentData.SecureSessionID;
+                    m_agentCircuits[(uint) agentData.circuitcode].SessionID = agentData.SessionID;
 
-                // m_log.Debug("update user start pos is " + agentData.startpos.X + " , " + agentData.startpos.Y + " , " + agentData.startpos.Z);
+                    // m_log.Debug("update user start pos is " + agentData.startpos.X + " , " + agentData.startpos.Y + " , " + agentData.startpos.Z);
+                }
             }
         }
 
@@ -189,24 +206,23 @@ namespace OpenSim.Framework
                     return true;
                 }
             }
-            return false;
 
+            return false;
         }
 
         public void UpdateAgentChildStatus(uint circuitcode, bool childstatus)
         {
-            if (m_agentCircuits.ContainsKey(circuitcode))
-            {
-                m_agentCircuits[circuitcode].child = childstatus;
-            }
+            lock (m_agentCircuits)
+                if (m_agentCircuits.ContainsKey(circuitcode))
+                    m_agentCircuits[circuitcode].child = childstatus;
         }
 
         public bool GetAgentChildStatus(uint circuitcode)
         {
-            if (m_agentCircuits.ContainsKey(circuitcode))
-            {
-                return m_agentCircuits[circuitcode].child;
-            }
+            lock (m_agentCircuits)
+                if (m_agentCircuits.ContainsKey(circuitcode))
+                    return m_agentCircuits[circuitcode].child;
+
             return false;
         }
     }
