@@ -158,14 +158,12 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     SendAnimPack();
                 }
             }
-            // Don't leave this on since on teleports SP.HandleAgentUpdate() still hammers us for a while after it teleports
-//            else
-//            {
-//                m_log.WarnFormat(
-//                    "[SCENE PRESENCE ANIMATOR]: Tried to set movement animation {0} on child presence {1}",
-//                    anim, m_scenePresence.Name);
-//                throw new Exception(string.Format("aaargh on setting {0}", anim));
-//            }
+            else
+            {
+                m_log.WarnFormat(
+                    "[SCENE PRESENCE ANIMATOR]: Tried to set movement animation {0} on child presence {1}",
+                    anim, m_scenePresence.Name);
+            }
         }
 
         /// <summary>

@@ -1293,11 +1293,11 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE PRESENCE]: In {0} received agent update from {1}",
 //                Scene.RegionInfo.RegionName, remoteClient.Name);
 
-            //if (IsChildAgent)
-            //{
+            if (IsChildAgent)
+            {
             //    // m_log.Debug("DEBUG: HandleAgentUpdate: child agent");
-            //    return;
-            //}
+                return;
+            }
 
             ++m_movementUpdateCount;
             if (m_movementUpdateCount < 1)
@@ -3280,6 +3280,9 @@ namespace OpenSim.Region.Framework.Scenes
         // Event called by the physics plugin to tell the avatar about a collision.
         private void PhysicsCollisionUpdate(EventArgs e)
         {
+            if (IsChildAgent)
+                return;
+            
             //if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))
             // The Physics Scene will send updates every 500 ms grep: PhysicsActor.SubscribeEvents(
             // as of this comment the interval is set in AddToPhysicalScene
