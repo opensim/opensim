@@ -49,6 +49,7 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common.Mock;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Tests.Common
 {
@@ -139,6 +140,7 @@ namespace OpenSim.Tests.Common
 
             testScene.RegionInfo.EstateSettings = new EstateSettings();
             testScene.LoginsDisabled = false;
+            testScene.RegisterRegionWithGrid();
 
             return testScene;
         }
@@ -222,6 +224,7 @@ namespace OpenSim.Tests.Common
             config.Configs["Modules"].Set("GridServices", "LocalGridServicesConnector");
             config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll:NullRegionData");
             config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
+            config.Configs["GridService"].Set("ConnectionString", "!static");
 
             LocalGridServicesConnector gridService = new LocalGridServicesConnector();
             gridService.Initialise(config);

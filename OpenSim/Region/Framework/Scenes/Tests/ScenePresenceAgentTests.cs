@@ -31,7 +31,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Timers;
-using Timer=System.Timers.Timer;
+using Timer = System.Timers.Timer;
 using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
@@ -39,11 +39,13 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.ClientStack.Linden;
 using OpenSim.Region.CoreModules.Framework.EntityTransfer;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
@@ -112,14 +114,40 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(0));
         }
 
+        [Test]
+        public void TestCreateChildScenePresence()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            LocalSimulationConnectorModule lsc = new LocalSimulationConnectorModule();
+
+            IConfigSource configSource = new IniConfigSource();
+            IConfig config = configSource.AddConfig("Modules");
+            config.Set("SimulationServices", "LocalSimulationConnectorModule");
+
+            TestScene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, configSource, lsc);
+
+            UUID agentId = TestHelpers.ParseTail(0x01);
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(agentId);
+
+            GridRegion region = scene.GridService.GetRegionByName(UUID.Zero, scene.RegionInfo.RegionName);
+            string reason;
+            scene.SimulationService.CreateAgent(region, acd, (uint)TeleportFlags.ViaLogin, out reason);
+
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(agentId), Is.Not.Null);
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
+        }
+
         /// <summary>
         /// Test that if a root agent logs into a region, a child agent is also established in the neighbouring region
         /// </summary>
         /// <remarks>
-        /// Please note that unlike the other tests here, this doesn't rely on structures
+        /// Please note that unlike the other tests here, this doesn't rely on anything set up in the instance fields.
         /// </remarks>
         [Test]
-        public void TestChildAgentEstablished()
+        public void TestChildAgentEstablishedInNeighbour()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -127,18 +155,25 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             UUID agent1Id = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
             TestScene myScene1 = SceneHelpers.SetupScene("Neighbour y", UUID.Random(), 1000, 1000);
-//            TestScene myScene2 = SceneHelpers.SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);
-            
-            IConfigSource configSource = new IniConfigSource();
-            configSource.AddConfig("Modules").Set("EntityTransferModule", "BasicEntityTransferModule");                      
-            EntityTransferModule etm = new EntityTransferModule();
-            
-            SceneHelpers.SetupSceneModules(myScene1, configSource, etm);            
-            
-            SceneHelpers.AddScenePresence(myScene1, agent1Id);
-//            ScenePresence childPresence = myScene2.GetScenePresence(agent1);
+            TestScene myScene2 = SceneHelpers.SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);
 
-            // TODO: Need to do a fair amount of work to allow synchronous establishment of child agents
+            IConfigSource configSource = new IniConfigSource();
+            IConfig config = configSource.AddConfig("Startup");
+            config.Set("serverside_object_permissions", true);
+            config.Set("EventQueue", true);
+
+            EntityTransferModule etm = new EntityTransferModule();
+
+            EventQueueGetModule eqgm1 = new EventQueueGetModule();
+            SceneHelpers.SetupSceneModules(myScene1, configSource, etm, eqgm1);
+
+            EventQueueGetModule eqgm2 = new EventQueueGetModule();
+            SceneHelpers.SetupSceneModules(myScene2, configSource, etm, eqgm2);
+            
+//            SceneHelpers.AddScenePresence(myScene1, agent1Id);
+//            ScenePresence childPresence = myScene2.GetScenePresence(agent1);
+//
+//            // TODO: Need to do a fair amount of work to allow synchronous establishment of child agents
 //            Assert.That(childPresence, Is.Not.Null);
 //            Assert.That(childPresence.IsChildAgent, Is.True);
         }
