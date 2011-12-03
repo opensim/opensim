@@ -135,6 +135,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             GridRegion region = scene.GridService.GetRegionByName(UUID.Zero, scene.RegionInfo.RegionName);
             string reason;
+
+            // *** This is the first stage, when a neighbouring region is told that a viewer is about to try and
+            // establish a child scene presence.  We pass in the circuit code that the client has to connect with ***
             // XXX: ViaLogin may not be correct here.
             scene.SimulationService.CreateAgent(region, acd, (uint)TeleportFlags.ViaLogin, out reason);
 
@@ -144,6 +147,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // There's no scene presence yet since only an agent circuit has been established.
             Assert.That(scene.GetScenePresence(agentId), Is.Null);
 
+            // *** This is the second stage, where the client established a child agent/scene presence using the
+            // circuit code given to the scene in stage 1 ***
             TestClient client = new TestClient(acd, scene);
             scene.AddNewClient(client, PresenceType.User);
 
@@ -247,48 +252,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            Assert.That(presence, Is.Null, "presence is not null");
 //        }
 
-        [Test]
-        public void T012_TestAddNeighbourRegion()
-        {
-            TestHelpers.InMethod();
-
-            string reason;
-
-            if (acd1 == null)
-                fixNullPresence();
-
-            scene.NewUserConnection(acd1, 0, out reason);
-            if (testclient == null)
-                testclient = new TestClient(acd1, scene);
-            scene.AddNewClient(testclient, PresenceType.User);
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-            presence.MakeRootAgent(new Vector3(90,90,90),false);
-
-            string cap = presence.ControllingClient.RequestClientInfo().CapsPath;
-
-            presence.AddNeighbourRegion(region2, cap);
-            presence.AddNeighbourRegion(region3, cap);
-
-            Assert.That(presence.KnownRegionCount, Is.EqualTo(2));
-        }
-
-        [Test]
-        public void T013_TestRemoveNeighbourRegion()
-        {
-            TestHelpers.InMethod();
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-            presence.RemoveNeighbourRegion(region3);
-
-            Assert.That(presence.KnownRegionCount,Is.EqualTo(1));
-            /*
-            presence.MakeChildAgent;
-            presence.MakeRootAgent;
-            CompleteAvatarMovement
-            */
-        }
-
         // I'm commenting this test because it does not represent
         // crossings. The Thread.Sleep's in here are not meaningful mocks,
         // and they sometimes fail in panda.
@@ -390,34 +353,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(timer,Is.GreaterThan(0),"Timed out waiting to cross 1->2.");
             Assert.That(presence2.IsChildAgent, Is.True, "Did not return from region as expected.");
             Assert.That(presence.IsChildAgent, Is.False, "Presence was not made root in old region again.");
-        }
-        
-        public void fixNullPresence()
-        {
-            string firstName = "testfirstname";
-
-            AgentCircuitData agent = new AgentCircuitData();
-            agent.AgentID = agent1;
-            agent.firstname = firstName;
-            agent.lastname = "testlastname";
-            agent.SessionID = UUID.Zero;
-            agent.SecureSessionID = UUID.Zero;
-            agent.circuitcode = 123;
-            agent.BaseFolder = UUID.Zero;
-            agent.InventoryFolder = UUID.Zero;
-            agent.startpos = Vector3.Zero;
-            agent.CapsPath = GetRandomCapsObjectPath();
-            agent.Appearance = new AvatarAppearance();
-
-            acd1 = agent;
-        }
-        
-        public static string GetRandomCapsObjectPath()
-        {
-            UUID caps = UUID.Random();
-            string capsPath = caps.ToString();
-            capsPath = capsPath.Remove(capsPath.Length - 4, 4);
-            return capsPath;
         }
     }
 }
