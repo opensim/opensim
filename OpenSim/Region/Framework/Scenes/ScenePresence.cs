@@ -3195,7 +3195,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch { }
 
-            Animator.Animations.FromArray(cAgent.Anims);
+            // FIXME: Why is this null check necessary?  Where are the cases where we get a null Anims object?
+            if (cAgent.Anims != null)
+                Animator.Animations.FromArray(cAgent.Anims);
 
             if (cAgent.AttachmentObjects != null && cAgent.AttachmentObjects.Count > 0)
             {
