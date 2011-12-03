@@ -260,7 +260,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; See http://opensimulator.org/wiki/GridInfo
 
     ; login uri: for grid this is the login server URI
-    login = http://127.0.0.1:9000/
+    login = http://127.0.0.1:8002/
 
     ; long grid name: the long name of your grid
     gridname = "the lost continent of hippo"
