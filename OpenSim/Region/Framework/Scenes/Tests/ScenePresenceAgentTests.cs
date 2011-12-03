@@ -131,13 +131,29 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             UUID agentId = TestHelpers.ParseTail(0x01);
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(agentId);
+            acd.child = true;
 
             GridRegion region = scene.GridService.GetRegionByName(UUID.Zero, scene.RegionInfo.RegionName);
             string reason;
+            // XXX: ViaLogin may not be correct here.
             scene.SimulationService.CreateAgent(region, acd, (uint)TeleportFlags.ViaLogin, out reason);
 
             Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(agentId), Is.Not.Null);
             Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
+
+            // There's no scene presence yet since only an agent circuit has been established.
+            Assert.That(scene.GetScenePresence(agentId), Is.Null);
+
+            TestClient client = new TestClient(acd, scene);
+            scene.AddNewClient(client, PresenceType.User);
+
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(agentId), Is.Not.Null);
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
+
+            ScenePresence sp = scene.GetScenePresence(agentId);
+            Assert.That(sp, Is.Not.Null);
+            Assert.That(sp.UUID, Is.EqualTo(agentId));
+            Assert.That(sp.IsChildAgent, Is.True);
         }
 
         /// <summary>
