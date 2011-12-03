@@ -3282,6 +3282,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Event called by the physics plugin to tell the avatar about a collision.
         /// </summary>
+        /// <remarks>
+        /// This function is called continuously, even when there are no collisions which might be very inefficient.
+        /// However, we can't avoid this yet since some of this method might currently rely on being called every frame.
+        /// </remarks>
         /// <param name="e"></param>
         public void PhysicsCollisionUpdate(EventArgs e)
         {
