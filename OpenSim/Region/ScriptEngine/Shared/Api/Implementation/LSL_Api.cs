@@ -5554,7 +5554,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 flags |= ScriptBaseClass.AGENT_TYPING;
             }
 
-            string agentMovementAnimation = agent.Animator.GetMovementAnimation();
+            string agentMovementAnimation = agent.Animator.CurrentMovementAnimation;
 
             if (agentMovementAnimation == "CROUCH")
             {
