@@ -59,6 +59,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             get { return m_movementAnimation; }
         }
         protected string m_movementAnimation = "CROUCH";
+        
         private int m_animTickFall;
         public int m_animTickJump;		// ScenePresence has to see this to control +Z force
         public bool m_jumping = false; 
@@ -146,6 +147,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             if (!m_scenePresence.IsChildAgent)
             {
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE ANIMATOR]: Setting movement animation {0} for {1}",
+//                    anim, m_scenePresence.Name);
+
                 if (m_animations.TrySetDefaultAnimation(
                     anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
                 {
@@ -169,7 +174,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// <summary>
         /// This method determines the proper movement related animation
         /// </summary>
-        public string GetMovementAnimation()
+        public string DetermineMovementAnimation()
         {
             const float FALL_DELAY = 800f;
             const float PREJUMP_DELAY = 200f;
@@ -283,7 +288,6 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             int jumptime;
             jumptime = Environment.TickCount - m_animTickJump;
 
-
             if ((move.Z > 0f) && (!m_jumping))
             {
                 // Start jumping, prejump
@@ -387,6 +391,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             #endregion Ground Movement
 
             m_falling = false;
+
             return m_movementAnimation;
         }
 
@@ -395,7 +400,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         public void UpdateMovementAnimations()
         {
-            m_movementAnimation = GetMovementAnimation();
+            m_movementAnimation = DetermineMovementAnimation();
             TrySetMovementAnimation(m_movementAnimation);
         }
 
