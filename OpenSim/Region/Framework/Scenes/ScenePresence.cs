@@ -3279,8 +3279,11 @@ namespace OpenSim.Region.Framework.Scenes
                 ControllingClient.SendAgentAlertMessage("Physics is having a problem with your avatar.  You may not be able to move until you relog.", true);
         }
 
-        // Event called by the physics plugin to tell the avatar about a collision.
-        private void PhysicsCollisionUpdate(EventArgs e)
+        /// <summary>
+        /// Event called by the physics plugin to tell the avatar about a collision.
+        /// </summary>
+        /// <param name="e"></param>
+        public void PhysicsCollisionUpdate(EventArgs e)
         {
             if (IsChildAgent)
                 return;
