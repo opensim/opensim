@@ -281,7 +281,7 @@ namespace OpenSim.Services.HypergridService
         }
 
         // We need to prevent foreign users with the same UUID as a local user
-        public bool AgentIsComingHome(UUID sessionID, string thisGridExternalName)
+        public bool IsAgentComingHome(UUID sessionID, string thisGridExternalName)
         {
             if (!m_TravelingAgents.ContainsKey(sessionID))
                 return false;
