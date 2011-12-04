@@ -547,8 +547,12 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                m_pos = value;
-                ParentPosition = Vector3.Zero;
+                // Don't update while sitting
+                if (ParentID == 0)
+                {
+                    m_pos = value;
+                    ParentPosition = Vector3.Zero;
+                }
 
 //                m_log.DebugFormat(
 //                    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
@@ -2756,6 +2760,9 @@ namespace OpenSim.Region.Framework.Scenes
         protected void CheckForBorderCrossing()
         {
             if (IsChildAgent)
+                return;
+
+            if (ParentID != 0)
                 return;
 
             Vector3 pos2 = AbsolutePosition;
