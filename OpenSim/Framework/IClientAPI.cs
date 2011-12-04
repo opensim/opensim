@@ -503,6 +503,7 @@ namespace OpenSim.Framework
     public delegate void SimWideDeletesDelegate(IClientAPI client,UUID agentID, int flags, UUID targetID);
     
     public delegate void SendPostcard(IClientAPI client);
+    public delegate void ChangeInventoryItemFlags(IClientAPI client, UUID itemID, uint flags);
 
     #endregion
 
@@ -1007,6 +1008,7 @@ namespace OpenSim.Framework
         event GroupVoteHistoryRequest OnGroupVoteHistoryRequest;
         event SimWideDeletesDelegate OnSimWideDeletes;
         event SendPostcard OnSendPostcard;
+        event ChangeInventoryItemFlags OnChangeInventoryItemFlags;
         event MuteListEntryUpdate OnUpdateMuteListEntry;
         event MuteListEntryRemove OnRemoveMuteListEntry;
         event GodlikeMessage onGodlikeMessage;

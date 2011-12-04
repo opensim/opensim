@@ -286,6 +286,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event GroupVoteHistoryRequest OnGroupVoteHistoryRequest;
         public event SimWideDeletesDelegate OnSimWideDeletes;
         public event SendPostcard OnSendPostcard;
+        public event ChangeInventoryItemFlags OnChangeInventoryItemFlags;
         public event MuteListEntryUpdate OnUpdateMuteListEntry;
         public event MuteListEntryRemove OnRemoveMuteListEntry;
         public event GodlikeMessage onGodlikeMessage;
@@ -5344,6 +5345,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.GroupVoteHistoryRequest, HandleGroupVoteHistoryRequest);
             AddLocalPacketHandler(PacketType.SimWideDeletes, HandleSimWideDeletes);
             AddLocalPacketHandler(PacketType.SendPostcard, HandleSendPostcard);
+            AddLocalPacketHandler(PacketType.ChangeInventoryItemFlags, HandleChangeInventoryItemFlags);
 
             AddGenericPacketHandler("autopilot", HandleAutopilot);
         }
@@ -9817,6 +9819,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (handlerSendPostcard != null)
             {
                 handlerSendPostcard(this);
+                return true;
+            }
+            return false;
+        }
+
+        private bool HandleChangeInventoryItemFlags(IClientAPI client, Packet packet)
+        {
+            ChangeInventoryItemFlagsPacket ChangeInventoryItemFlags =
+                (ChangeInventoryItemFlagsPacket)packet;
+            ChangeInventoryItemFlags handlerChangeInventoryItemFlags = OnChangeInventoryItemFlags;
+            if (handlerChangeInventoryItemFlags != null)
+            {
+                foreach(ChangeInventoryItemFlagsPacket.InventoryDataBlock b in ChangeInventoryItemFlags.InventoryData)
+                    handlerChangeInventoryItemFlags(this, b.ItemID, b.Flags);
                 return true;
             }
             return false;
