@@ -6211,8 +6211,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID agentId = new UUID();
             if (!UUID.TryParse(agent, out agentId))
                 return new LSL_Integer(0);
+            if (agentId == m_host.GroupID)
+                return new LSL_Integer(1);
             ScenePresence presence = World.GetScenePresence(agentId);
-            if (presence == null || presence.IsChildAgent) // Return flase for child agents
+            if (presence == null || presence.IsChildAgent) // Return false for child agents
                 return new LSL_Integer(0);
             IClientAPI client = presence.ControllingClient;
             if (m_host.GroupID == client.ActiveGroupId)
@@ -7554,7 +7556,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
                         LSL_Vector v;
                         v = rules.GetVector3Item(idx++);
-                        av.AbsolutePosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
+                        av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
                         av.SendAvatarDataToAllAgents();
 
                         break;
