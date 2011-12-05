@@ -11392,7 +11392,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Util.FireAndForget(delegate(object x)
             {
                 int replycode = 0;
-                string replydata = String.Empty;
+                string replydata = destination + "," + amount.ToString();
 
                 try
                 {
