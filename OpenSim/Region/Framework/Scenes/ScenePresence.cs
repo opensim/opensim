@@ -567,6 +567,13 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 OffsetPosition
         {
             get { return m_pos; }
+            set
+            {
+                // There is no offset position when not seated
+                if (ParentID == 0)
+                    return;
+                m_pos = value;
+            }
         }
 
         /// <summary>
