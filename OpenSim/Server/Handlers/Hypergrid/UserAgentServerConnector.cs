@@ -143,7 +143,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             UUID.TryParse(sessionID_str, out sessionID);
             string gridName = (string)requestData["externalName"];
 
-            bool success = m_HomeUsersService.AgentIsComingHome(sessionID, gridName);
+            bool success = m_HomeUsersService.IsAgentComingHome(sessionID, gridName);
 
             Hashtable hash = new Hashtable();
             hash["result"] = success.ToString();

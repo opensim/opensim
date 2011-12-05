@@ -358,7 +358,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             return null;
         }
 
-        public bool AgentIsComingHome(UUID sessionID, string thisGridExternalName)
+        public bool IsAgentComingHome(UUID sessionID, string thisGridExternalName)
         {
             Hashtable hash = new Hashtable();
             hash["sessionID"] = sessionID.ToString();

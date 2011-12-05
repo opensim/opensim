@@ -54,6 +54,8 @@ namespace OpenSim.Services.Connectors
         public virtual string Helo()
         {
             HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(m_ServerURI + "/helo");
+            // Eventually we need to switch to HEAD
+            /* req.Method = "HEAD"; */
 
             try
             {

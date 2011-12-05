@@ -40,23 +40,39 @@ namespace OpenSim.Data.Null
     {
         private static NullRegionData Instance = null;
 
+        /// <summary>
+        /// Should we use the static instance for all invocations?
+        /// </summary>
+        private bool m_useStaticInstance = true;
+
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         Dictionary<UUID, RegionData> m_regionData = new Dictionary<UUID, RegionData>();
 
         public NullRegionData(string connectionString, string realm)
         {
-            if (Instance == null)
+//            m_log.DebugFormat(
+//                "[NULL REGION DATA]: Constructor got connectionString {0}, realm {1}", connectionString, realm);
+
+            // The !static connection string is a hack so that regression tests can use this module without a high degree of fragility
+            // in having to deal with the static reference in the once-loaded NullRegionData class.
+            //
+            // In standalone operation, we have to use only one instance of this class since the login service and
+            // simulator have no other way of using a common data store.
+            if (connectionString == "!static")
+                m_useStaticInstance = false;
+            else if (Instance == null)
                 Instance = this;
-            //Console.WriteLine("[XXX] NullRegionData constructor");
         }
 
         private delegate bool Matcher(string value);
 
         public List<RegionData> Get(string regionName, UUID scopeID)
         {
-            if (Instance != this)
+            if (m_useStaticInstance && Instance != this)
                 return Instance.Get(regionName, scopeID);
+
+//            m_log.DebugFormat("[NULL REGION DATA]: Getting region {0}, scope {1}", regionName, scopeID);
 
             string cleanName = regionName.ToLower();
 
@@ -82,6 +98,7 @@ namespace OpenSim.Data.Null
                     cleanName = cleanName.Remove(cleanName.Length - 1);
                 }
             }
+
             Matcher queryMatch;
             if (wildcardPrefix && wildcardSuffix)
                 queryMatch = delegate(string s) { return s.Contains(cleanName); };
@@ -110,7 +127,7 @@ namespace OpenSim.Data.Null
 
         public RegionData Get(int posX, int posY, UUID scopeID)
         {
-            if (Instance != this)
+            if (m_useStaticInstance && Instance != this)
                 return Instance.Get(posX, posY, scopeID);
 
             List<RegionData> ret = new List<RegionData>();
@@ -129,7 +146,7 @@ namespace OpenSim.Data.Null
 
         public RegionData Get(UUID regionID, UUID scopeID)
         {
-            if (Instance != this)
+            if (m_useStaticInstance && Instance != this)
                 return Instance.Get(regionID, scopeID);
 
             if (m_regionData.ContainsKey(regionID))
@@ -140,7 +157,7 @@ namespace OpenSim.Data.Null
 
         public List<RegionData> Get(int startX, int startY, int endX, int endY, UUID scopeID)
         {
-            if (Instance != this)
+            if (m_useStaticInstance && Instance != this)
                 return Instance.Get(startX, startY, endX, endY, scopeID);
 
             List<RegionData> ret = new List<RegionData>();
@@ -156,8 +173,11 @@ namespace OpenSim.Data.Null
 
         public bool Store(RegionData data)
         {
-            if (Instance != this)
+            if (m_useStaticInstance && Instance != this)
                 return Instance.Store(data);
+
+//            m_log.DebugFormat(
+//                "[NULL REGION DATA]: Storing region {0} {1}, scope {2}", data.RegionName, data.RegionID, data.ScopeID);
 
             m_regionData[data.RegionID] = data;
 
@@ -166,7 +186,7 @@ namespace OpenSim.Data.Null
 
         public bool SetDataItem(UUID regionID, string item, string value)
         {
-            if (Instance != this)
+            if (m_useStaticInstance && Instance != this)
                 return Instance.SetDataItem(regionID, item, value);
 
             if (!m_regionData.ContainsKey(regionID))
@@ -179,8 +199,10 @@ namespace OpenSim.Data.Null
 
         public bool Delete(UUID regionID)
         {
-            if (Instance != this)
+            if (m_useStaticInstance && Instance != this)
                 return Instance.Delete(regionID);
+
+//            m_log.DebugFormat("[NULL REGION DATA]: Deleting region {0}", regionID);
 
             if (!m_regionData.ContainsKey(regionID))
                 return false;

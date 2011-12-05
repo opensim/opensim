@@ -49,6 +49,7 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common.Mock;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Tests.Common
 {
@@ -139,6 +140,7 @@ namespace OpenSim.Tests.Common
 
             testScene.RegionInfo.EstateSettings = new EstateSettings();
             testScene.LoginsDisabled = false;
+            testScene.RegisterRegionWithGrid();
 
             return testScene;
         }
@@ -222,6 +224,7 @@ namespace OpenSim.Tests.Common
             config.Configs["Modules"].Set("GridServices", "LocalGridServicesConnector");
             config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll:NullRegionData");
             config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
+            config.Configs["GridService"].Set("ConnectionString", "!static");
 
             LocalGridServicesConnector gridService = new LocalGridServicesConnector();
             gridService.Initialise(config);
@@ -393,27 +396,42 @@ namespace OpenSim.Tests.Common
         /// <returns></returns>
         public static ScenePresence AddScenePresence(Scene scene, AgentCircuitData agentData)
         {
-            string reason;
-
             // We emulate the proper login sequence here by doing things in four stages
 
-            // Stage 0: log the presence
+            // Stage 0: login
             scene.PresenceService.LoginAgent(agentData.AgentID.ToString(), agentData.SessionID, agentData.SecureSessionID);
 
-            // Stage 1: simulate login by telling the scene to expect a new user connection
-            if (!scene.NewUserConnection(agentData, (uint)TeleportFlags.ViaLogin, out reason))
+            // Stages 1 & 2
+            ScenePresence sp = IntroduceClientToScene(scene, agentData, TeleportFlags.ViaLogin);
+
+            // Stage 3: Complete the entrance into the region.  This converts the child agent into a root agent.
+            sp.CompleteMovement(sp.ControllingClient, true);
+
+            return sp;
+        }
+
+        private static ScenePresence IntroduceClientToScene(Scene scene, AgentCircuitData agentData, TeleportFlags tf)
+        {
+            string reason;
+
+            // Stage 1: tell the scene to expect a new user connection
+            if (!scene.NewUserConnection(agentData, (uint)tf, out reason))
                 Console.WriteLine("NewUserConnection failed: " + reason);
 
             // Stage 2: add the new client as a child agent to the scene
             TestClient client = new TestClient(agentData, scene);
             scene.AddNewClient(client, PresenceType.User);
 
-            // Stage 3: Complete the entrance into the region.  This converts the child agent into a root agent.
-            ScenePresence scp = scene.GetScenePresence(agentData.AgentID);
-            scp.CompleteMovement(client, true);
-            //scp.MakeRootAgent(new Vector3(90, 90, 90), true);
+            return scene.GetScenePresence(agentData.AgentID);
+        }
 
-            return scp;
+        public static ScenePresence AddChildScenePresence(Scene scene, UUID agentId)
+        {
+            AgentCircuitData acd = GenerateAgentData(agentId);
+            acd.child = true;
+
+            // XXX: ViaLogin may not be correct for child agents
+            return IntroduceClientToScene(scene, acd, TeleportFlags.ViaLogin);
         }
 
         /// <summary>

@@ -1341,7 +1341,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             string reason = String.Empty;
 
-
             bool regionAccepted = m_scene.SimulationService.CreateAgent(reg, a, (uint)TeleportFlags.Default, out reason); 
 
             if (regionAccepted && newAgent)
