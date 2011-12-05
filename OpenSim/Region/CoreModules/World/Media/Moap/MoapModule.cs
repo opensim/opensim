@@ -293,7 +293,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
         /// <param name="httpResponse"></param>
         /// <returns></returns>
         protected string HandleObjectMediaMessage(
-            string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+            string request, string path, string param, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[MOAP]: Got ObjectMedia path [{0}], raw request [{1}]", path, request);
          
@@ -474,7 +474,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
         /// <param name="httpResponse">/param>
         /// <returns></returns>
         protected string HandleObjectMediaNavigateMessage(
-            string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+            string request, string path, string param, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[MOAP]: Got ObjectMediaNavigate request [{0}]", request);
             

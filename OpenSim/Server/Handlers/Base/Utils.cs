@@ -70,7 +70,7 @@ namespace OpenSim.Server.Handlers.Base
             }
         }
 
-        public static bool GetAuthentication(OSHttpRequest httpRequest, out string authority, out string authKey)
+        public static bool GetAuthentication(IOSHttpRequest httpRequest, out string authority, out string authKey)
         {
             authority = string.Empty;
             authKey = string.Empty;

@@ -63,12 +63,12 @@ namespace OpenSim.Server.Handlers.Hypergrid
         }
 
         public override byte[] Handle(string path, Stream requestData,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             return OKResponse(httpResponse);
         }
 
-        private byte[] OKResponse(OSHttpResponse httpResponse)
+        private byte[] OKResponse(IOSHttpResponse httpResponse)
         {
             m_log.Debug("[HELO]: hi, GET was called");
             httpResponse.AddHeader("X-Handlers-Provided", m_HandlersType);
@@ -92,12 +92,12 @@ namespace OpenSim.Server.Handlers.Hypergrid
         }
 
         public override byte[] Handle(string path, Stream requestData,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             return OKResponse(httpResponse);
         }
 
-        private byte[] OKResponse(OSHttpResponse httpResponse)
+        private byte[] OKResponse(IOSHttpResponse httpResponse)
         {
             m_log.Debug("[HELO]: hi, HEAD was called");
             httpResponse.AddHeader("X-Handlers-Provided", m_HandlersType);

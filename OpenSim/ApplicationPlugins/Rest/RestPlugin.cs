@@ -328,7 +328,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// </summary>
         /// <param name="request">HTTP request header</param>
         /// <returns>true when the HTTP request came from god.</returns>
-        protected bool IsGod(OSHttpRequest request)
+        protected bool IsGod(IOSHttpRequest request)
         {
             string[] keys = request.Headers.GetValues("X-OpenSim-Godkey");
             if (null == keys) return false;
@@ -342,7 +342,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// HTTP header is indeed the password on file for the avatar
         /// specified by the UUID
         /// </summary>
-        protected bool IsVerifiedUser(OSHttpRequest request, UUID uuid)
+        protected bool IsVerifiedUser(IOSHttpRequest request, UUID uuid)
         {
             // XXX under construction
             return false;
@@ -377,7 +377,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// <param name="message">failure message</param>
         /// <remarks>This should probably set a return code as
         /// well. (?)</remarks>
-        protected string Failure(OSHttpResponse response, OSHttpStatusCode status,
+        protected string Failure(IOSHttpResponse response, OSHttpStatusCode status,
                                  string method, string format, params string[] msg)
         {
             string m = String.Format(format, msg);
@@ -396,7 +396,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// <param name="e">exception causing the failure message</param>
         /// <remarks>This should probably set a return code as
         /// well. (?)</remarks>
-        public string Failure(OSHttpResponse response, OSHttpStatusCode status,
+        public string Failure(IOSHttpResponse response, OSHttpStatusCode status,
                               string method, Exception e)
         {
             string m = String.Format("exception occurred: {0}", e.Message);

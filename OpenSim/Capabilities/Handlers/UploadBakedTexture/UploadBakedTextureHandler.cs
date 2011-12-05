@@ -73,7 +73,7 @@ namespace OpenSim.Capabilities.Handlers
         /// <param name="httpResponse"></param>
         /// <returns>The upload response if the request is successful, null otherwise.</returns>
         public string UploadBakedTexture(
-            string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+            string request, string path, string param, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             try
             {

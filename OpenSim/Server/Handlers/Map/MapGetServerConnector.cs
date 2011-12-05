@@ -80,7 +80,7 @@ namespace OpenSim.Server.Handlers.MapImage
             m_MapService = service;
         }
 
-        public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        public override byte[] Handle(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             byte[] result = new byte[0];
 

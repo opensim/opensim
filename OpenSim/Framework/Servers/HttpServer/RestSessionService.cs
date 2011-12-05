@@ -211,7 +211,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         public void Handle(string path, Stream request, Stream responseStream,
-                           OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                           IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             RestSessionObject<TRequest> deserial = default(RestSessionObject<TRequest>);
             bool fail = false;
@@ -270,7 +270,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         public void Handle(string path, Stream request, Stream responseStream,
-                           OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                           IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             TRequest deserial = default(TRequest);
             bool fail = false;

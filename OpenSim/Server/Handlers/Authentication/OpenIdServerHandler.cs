@@ -219,7 +219,7 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
         /// Handles all GET and POST requests for OpenID identifier pages and endpoint
         /// server communication
         /// </summary>
-        public void Handle(string path, Stream request, Stream response, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        public void Handle(string path, Stream request, Stream response, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             Uri providerEndpoint = new Uri(String.Format("{0}://{1}{2}", httpRequest.Url.Scheme, httpRequest.Url.Authority, httpRequest.Url.AbsolutePath));
 

@@ -71,7 +71,7 @@ namespace OpenSim.Server.Handlers.Authentication
         }
 
         public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             string[] p = SplitParams(path);
 

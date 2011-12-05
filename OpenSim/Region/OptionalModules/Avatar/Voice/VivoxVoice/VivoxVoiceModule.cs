@@ -421,7 +421,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             caps.RegisterHandler("ProvisionVoiceAccountRequest",
                                  new RestStreamHandler("POST", capsBase + m_provisionVoiceAccountRequestPath,
                                                        delegate(string request, string path, string param,
-                                                                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                                                        {
                                                            return ProvisionVoiceAccountRequest(scene, request, path, param,
                                                                                                agentID, caps);
@@ -429,7 +429,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             caps.RegisterHandler("ParcelVoiceInfoRequest",
                                  new RestStreamHandler("POST", capsBase + m_parcelVoiceInfoRequestPath,
                                                        delegate(string request, string path, string param,
-                                                                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                                                        {
                                                            return ParcelVoiceInfoRequest(scene, request, path, param,
                                                                                          agentID, caps);
@@ -437,7 +437,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             caps.RegisterHandler("ChatSessionRequest",
                                  new RestStreamHandler("POST", capsBase + m_chatSessionRequestPath,
                                                        delegate(string request, string path, string param,
-                                                                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                                                        {
                                                            return ChatSessionRequest(scene, request, path, param,
                                                                                      agentID, caps);

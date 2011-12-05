@@ -25,51 +25,35 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using Nini.Config;
-using log4net;
 using System;
-using System.Reflection;
+using System.Collections;
+using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml;
-using System.Xml.Serialization;
-using OpenSim.Server.Base;
-using OpenSim.Services.Interfaces;
-using OpenSim.Framework;
-using OpenSim.Framework.Servers.HttpServer;
+using System.Web;
 
-namespace OpenSim.Server.Handlers.Asset
+namespace OpenSim.Framework.Servers.HttpServer
 {
-    public class AssetServerDeleteHandler : BaseStreamHandler
+    public interface IOSHttpRequest
     {
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private IAssetService m_AssetService;
-        protected bool m_allowDelete;
-
-        public AssetServerDeleteHandler(IAssetService service, bool allowDelete) :
-                base("DELETE", "/assets")
-        {
-            m_AssetService = service;
-            m_allowDelete = allowDelete;
-        }
-
-        public override byte[] Handle(string path, Stream request,
-                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-        {
-            bool result = false;
-
-            string[] p = SplitParams(path);
-
-            if (p.Length > 0 && m_allowDelete)
-            {
-                result = m_AssetService.Delete(p[0]);
-            }
-
-            XmlSerializer xs = new XmlSerializer(typeof(bool));
-            return ServerUtils.SerializeResult(xs, result);
-        }
+        string[] AcceptTypes { get; }
+        Encoding ContentEncoding { get; }
+        long ContentLength { get; }
+        long ContentLength64 { get; }
+        string ContentType { get; }
+        HttpCookieCollection Cookies { get; }
+        bool HasEntityBody { get; }
+        NameValueCollection Headers { get; }
+        string HttpMethod { get; }
+        Stream InputStream { get; }
+        bool IsSecured { get; }
+        bool KeepAlive { get; }
+        NameValueCollection QueryString { get; }
+        Hashtable Query { get; }
+        string RawUrl { get; }
+        IPEndPoint RemoteIPEndPoint { get; }
+        Uri Url { get; }
+        string UserAgent { get; }
     }
 }
