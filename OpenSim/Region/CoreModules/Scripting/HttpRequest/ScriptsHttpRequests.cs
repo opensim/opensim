@@ -433,10 +433,12 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
                         // continue building the string
                         sb.Append(tempString);
+                        if (sb.Length > 2048)
+                            break;
                     }
                 } while (count > 0); // any more data to read?
 
-                ResponseBody = sb.ToString();
+                ResponseBody = sb.ToString().Replace("\r", "");
             }
             catch (Exception e)
             {
