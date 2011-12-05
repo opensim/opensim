@@ -574,15 +574,29 @@ namespace OpenSim.Data.MySQL
                         cmd.CommandText = "delete from terrain where RegionUUID = ?RegionUUID";
                         cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
 
-                        ExecuteNonQuery(cmd);
+                        using (MySqlCommand cmd2 = dbcon.CreateCommand())
+                        {
+                            try
+                            {
+                                cmd2.CommandText = "insert into terrain (RegionUUID, " +
+                                        "Revision, Heightfield) values (?RegionUUID, " +
+                                        "1, ?Heightfield)";
 
-                        cmd.CommandText = "insert into terrain (RegionUUID, " +
-                            "Revision, Heightfield) values (?RegionUUID, " +
-                            "1, ?Heightfield)";
+                                cmd2.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+                                cmd2.Parameters.AddWithValue("Heightfield", SerializeTerrain(ter));
 
-                        cmd.Parameters.AddWithValue("Heightfield", SerializeTerrain(ter));
-
-                        ExecuteNonQuery(cmd);
+                                ExecuteNonQuery(cmd);
+                                ExecuteNonQuery(cmd2);
+                            }
+                            catch
+                            {
+                                // If we get here there is a NaN in the terrain
+                                // and the terrain can't be saved. A crash here
+                                // is much better than losing all the work
+                                m_log.ErrorFormat("[DATA]: Unable to save terrain. Stopping simulator to prevent data loss");
+                                Environment.Exit(1);
+                            }
+                        }
                     }
                 }
             }
