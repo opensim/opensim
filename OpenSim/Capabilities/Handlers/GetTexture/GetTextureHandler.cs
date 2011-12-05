@@ -111,6 +111,10 @@ namespace OpenSim.Capabilities.Handlers
                 m_log.Warn("[GETTEXTURE]: Failed to parse a texture_id from GetTexture request: " + httpRequest.Url);
             }
 
+//            m_log.DebugFormat(
+//                "[GETTEXTURE]: For texture {0} sending back response {1}, data length {2}",
+//                textureID, httpResponse.StatusCode, httpResponse.ContentLength);
+
             httpResponse.Send();
             return null;
         }
@@ -210,7 +214,7 @@ namespace OpenSim.Capabilities.Handlers
         private void WriteTextureData(OSHttpRequest request, OSHttpResponse response, AssetBase texture, string format)
         {
             string range = request.Headers.GetOne("Range");
-            //m_log.DebugFormat("[GETTEXTURE]: Range {0}", range);
+
             if (!String.IsNullOrEmpty(range)) // JP2's only
             {
                 // Range request
@@ -222,23 +226,27 @@ namespace OpenSim.Capabilities.Handlers
                     if (start >= texture.Data.Length)
                     {
                         response.StatusCode = (int)System.Net.HttpStatusCode.RequestedRangeNotSatisfiable;
-                        return;
                     }
+                    else
+                    {
+                        end = Utils.Clamp(end, 0, texture.Data.Length - 1);
+                        start = Utils.Clamp(start, 0, end);
+                        int len = end - start + 1;
 
-                    end = Utils.Clamp(end, 0, texture.Data.Length - 1);
-                    start = Utils.Clamp(start, 0, end);
-                    int len = end - start + 1;
+                        //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
 
-                    //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
-
-                    if (len < texture.Data.Length)
+                        // Always return PartialContent, even if the range covered the entire data length
+                        // We were accidentally sending back 404 before in this situation
+                        // https://issues.apache.org/bugzilla/show_bug.cgi?id=51878 supports sending 206 even if the
+                        // entire range is requested, and viewer 3.2.2 (and very probably earlier) seems fine with this.
                         response.StatusCode = (int)System.Net.HttpStatusCode.PartialContent;
 
-                    response.ContentLength = len;
-                    response.ContentType = texture.Metadata.ContentType;
-                    response.AddHeader("Content-Range", String.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length));
-
-                    response.Body.Write(texture.Data, start, len);
+                        response.ContentLength = len;
+                        response.ContentType = texture.Metadata.ContentType;
+                        response.AddHeader("Content-Range", String.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length));
+    
+                        response.Body.Write(texture.Data, start, len);
+                    }
                 }
                 else
                 {
@@ -257,6 +265,10 @@ namespace OpenSim.Capabilities.Handlers
                     response.ContentType = "image/" + format;
                 response.Body.Write(texture.Data, 0, texture.Data.Length);
             }
+
+//            m_log.DebugFormat(
+//                "[GETTEXTURE]: For texture {0} requested range {1} responded {2} with content length {3} (actual {4})",
+//                texture.FullID, range, response.StatusCode, response.ContentLength, texture.Data.Length);
         }
 
         private bool TryParseRange(string header, out int start, out int end)
@@ -274,7 +286,6 @@ namespace OpenSim.Capabilities.Handlers
             start = end = 0;
             return false;
         }
-
 
         private byte[] ConvertTextureData(AssetBase texture, string format)
         {
