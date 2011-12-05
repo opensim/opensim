@@ -111,8 +111,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
         }
 
         private string HandleUntrustedSimulatorMessage(string request,
-                string path, string param, OSHttpRequest httpRequest,
-                OSHttpResponse httpResponse)
+                string path, string param, IOSHttpRequest httpRequest,
+                IOSHttpResponse httpResponse)
         {
             OSDMap osd = (OSDMap)OSDParser.DeserializeLLSDXml(request);
 
