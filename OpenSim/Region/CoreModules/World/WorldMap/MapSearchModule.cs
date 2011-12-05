@@ -96,8 +96,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             
             // try to fetch from GridServer
             List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
-            if (regionInfos.Count == 0)
-                remoteClient.SendAlertMessage("Hyperlink could not be established.");
+//            if (regionInfos.Count == 0)
+//                remoteClient.SendAlertMessage("Hyperlink could not be established.");
 
             //m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions", mapName, regionInfos.Count);
             List<MapBlockData> blocks = new List<MapBlockData>();
