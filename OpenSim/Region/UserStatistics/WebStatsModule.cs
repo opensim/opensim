@@ -306,7 +306,7 @@ namespace OpenSim.Region.UserStatistics
             caps.RegisterHandler("ViewerStats",
                                  new RestStreamHandler("POST", capsPath,
                                                        delegate(string request, string path, string param,
-                                                                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                                                        {
                                                            return ViewerStatsReport(request, path, param,
                                                                                   agentID, caps);

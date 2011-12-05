@@ -32,7 +32,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     public abstract class BaseStreamHandler : BaseRequestHandler, IStreamedRequestHandler
     {
         public abstract byte[] Handle(string path, Stream request,
-                                      OSHttpRequest httpRequest, OSHttpResponse httpResponse);
+                                      IOSHttpRequest httpRequest, IOSHttpResponse httpResponse);
 
         protected BaseStreamHandler(string httpMethod, string path) : base(httpMethod, path)
         {

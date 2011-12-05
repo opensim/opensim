@@ -77,7 +77,7 @@ namespace OpenSim.Server.Handlers.MapImage
             m_MapService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        public override byte[] Handle(string path, Stream requestData, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[MAP SERVICE IMAGE HANDLER]: Received {0}", path);
             StreamReader sr = new StreamReader(requestData);

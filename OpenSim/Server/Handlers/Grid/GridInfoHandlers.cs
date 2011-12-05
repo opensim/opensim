@@ -129,7 +129,7 @@ namespace OpenSim.Server.Handlers.Grid
         }
 
         public string RestGetGridInfoMethod(string request, string path, string param,
-                                            OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                            IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StringBuilder sb = new StringBuilder();
 

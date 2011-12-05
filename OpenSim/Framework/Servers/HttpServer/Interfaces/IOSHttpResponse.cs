@@ -26,15 +26,16 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Specialized;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Web;
-using OpenSim.Framework.Servers.HttpServer;
 
-namespace OpenSim.Tests.Common.Mock
+namespace OpenSim.Framework.Servers.HttpServer
 {
-    public class TestOSHttpResponse : IOSHttpResponse
+    public interface IOSHttpResponse
     {
         /// <summary>
         /// Content type property.
@@ -43,7 +44,7 @@ namespace OpenSim.Tests.Common.Mock
         /// Setting this property will also set IsContentTypeSet to
         /// true.
         /// </remarks>
-        public string ContentType { get; set; }
+        string ContentType { get; set; }
 
         /// <summary>
         /// Boolean property indicating whether the content type
@@ -61,26 +62,26 @@ namespace OpenSim.Tests.Common.Mock
         /// <summary>
         /// Length of the body content; 0 if there is no body.
         /// </summary>
-        public long ContentLength { get; set; }
+        long ContentLength { get; set; }
 
         /// <summary>
         /// Alias for ContentLength.
         /// </summary>
-        public long ContentLength64 { get; set; }
+        long ContentLength64 { get; set; }
 
         /// <summary>
         /// Encoding of the body content.
         /// </summary>
-        public Encoding ContentEncoding { get; set; }
+        Encoding ContentEncoding { get; set; }
 
-        public bool KeepAlive { get; set; }
+        bool KeepAlive { get; set; }
 
         /// <summary>
         /// Get or set the keep alive timeout property (default is
         /// 20). Setting this to 0 also disables KeepAlive. Setting
         /// this to something else but 0 also enable KeepAlive.
         /// </summary>
-        public int KeepAliveTimeout { get; set; }
+        int KeepAliveTimeout { get; set; }
 
         /// <summary>
         /// Return the output stream feeding the body.
@@ -88,36 +89,36 @@ namespace OpenSim.Tests.Common.Mock
         /// <remarks>
         /// On its way out...
         /// </remarks>
-        public Stream OutputStream { get; private set; }
+        Stream OutputStream { get; }
 
-        public string ProtocolVersion { get; set; }
+        string ProtocolVersion { get; set; }
 
         /// <summary>
         /// Return the output stream feeding the body.
         /// </summary>
-        public Stream Body { get; private set; }
+        Stream Body { get; }
 
         /// <summary>
         /// Set a redirct location.
         /// </summary>
-        public string RedirectLocation { private get; set; }
+        string RedirectLocation { set; }
 
         /// <summary>
         /// Chunk transfers.
         /// </summary>
-        public bool SendChunked { get; set; }
+        bool SendChunked { get; set; }
 
         /// <summary>
         /// HTTP status code.
         /// </summary>
-        public int StatusCode { get; set; }
+        int StatusCode { get; set; }
 
         /// <summary>
         /// HTTP status description.
         /// </summary>
-        public string StatusDescription { get; set; }
+        string StatusDescription { get; set; }
 
-        public bool ReuseContext { get; set; }
+        bool ReuseContext { get; set; }
 
         /// <summary>
         /// Add a header field and content to the response.
@@ -126,8 +127,12 @@ namespace OpenSim.Tests.Common.Mock
         /// name</param>
         /// <param name="value">string containing the header field
         /// value</param>
-        public void AddHeader(string key, string value) { throw new NotImplementedException(); }
+        void AddHeader(string key, string value);
 
-        public void Send() { }
+        /// <summary>
+        /// Send the response back to the remote client
+        /// </summary>
+        void Send();
     }
 }
+

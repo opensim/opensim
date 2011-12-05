@@ -801,7 +801,7 @@ namespace OpenSim
         public class SimStatusHandler : IStreamedRequestHandler
         {
             public byte[] Handle(string path, Stream request,
-                                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
                 return Util.UTF8.GetBytes("OK");
             }
@@ -838,7 +838,7 @@ namespace OpenSim
             }
             
             public byte[] Handle(string path, Stream request,
-                                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
                 return Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
             }
@@ -879,7 +879,7 @@ namespace OpenSim
             }
             
             public byte[] Handle(string path, Stream request,
-                                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
                 return Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
             }

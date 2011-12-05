@@ -40,7 +40,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
         #region POST methods
 
         public string PostHandler(string request, string path, string param,
-                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                  IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // foreach (string h in httpRequest.Headers.AllKeys)
             //     foreach (string v in httpRequest.Headers.GetValues(h))
@@ -92,7 +92,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             }
         }
 
-        public string CreateRegion(OSHttpRequest request, OSHttpResponse response)
+        public string CreateRegion(IOSHttpRequest request, IOSHttpResponse response)
         {
             RestXmlWriter rxw = new RestXmlWriter(new StringWriter());
 
@@ -108,7 +108,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             return rxw.ToString();
         }
 
-        public string LoadPrims(string requestBody, OSHttpRequest request, OSHttpResponse response, Scene scene)
+        public string LoadPrims(string requestBody, IOSHttpRequest request, IOSHttpResponse response, Scene scene)
         {
             IRegionSerialiserModule serialiser = scene.RequestModuleInterface<IRegionSerialiserModule>();
             if (serialiser != null)

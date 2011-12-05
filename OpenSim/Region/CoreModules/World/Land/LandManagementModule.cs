@@ -1393,7 +1393,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             caps.RegisterHandler("RemoteParcelRequest",
                                  new RestStreamHandler("POST", capsBase + remoteParcelRequestPath,
                                                        delegate(string request, string path, string param,
-                                                                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                                                            {
                                                                return RemoteParcelRequest(request, path, param, agentID, caps);
                                                            }));
@@ -1401,7 +1401,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             caps.RegisterHandler("ParcelPropertiesUpdate",
                                  new RestStreamHandler("POST", "/CAPS/" + parcelCapID,
                                                        delegate(string request, string path, string param,
-                                                                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                                                            {
                                                                return ProcessPropertiesUpdate(request, path, param, agentID, caps);
                                                            }));

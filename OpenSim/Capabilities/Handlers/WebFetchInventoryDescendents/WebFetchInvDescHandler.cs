@@ -57,7 +57,7 @@ namespace OpenSim.Capabilities.Handlers
             m_LibraryService = libService;
         }
 
-        public string FetchInventoryDescendentsRequest(string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        public string FetchInventoryDescendentsRequest(string request, string path, string param, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            lock (m_fetchLock)
 //            {

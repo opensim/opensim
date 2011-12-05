@@ -193,7 +193,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             caps.RegisterHandler("MapLayer",
                                  new RestStreamHandler("POST", capsBase + m_mapLayerPath,
                                                        delegate(string request, string path, string param,
-                                                                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                                                            {
                                                                return MapLayerRequest(request, path, param,
                                                                                       agentID, caps);

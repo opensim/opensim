@@ -272,7 +272,7 @@ namespace OpenSim.Server.Handlers.Simulation
         }
 
         public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[SIMULATION]: Stream handler called");
 
@@ -459,7 +459,7 @@ namespace OpenSim.Server.Handlers.Simulation
         }
 
         public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[SIMULATION]: Stream handler called");
 

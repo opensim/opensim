@@ -54,8 +54,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             m_FriendsModule = fmodule;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
-        OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        public override byte[] Handle(
+            string path, Stream requestData, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
             string body = sr.ReadToEnd();

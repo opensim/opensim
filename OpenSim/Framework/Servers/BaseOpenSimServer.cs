@@ -600,7 +600,7 @@ namespace OpenSim.Framework.Servers
             
         }
 
-        public string StatReport(OSHttpRequest httpRequest)
+        public string StatReport(IOSHttpRequest httpRequest)
         {
             // If we catch a request for "callback", wrap the response in the value for jsonp
             if (httpRequest.Query.ContainsKey("callback"))
