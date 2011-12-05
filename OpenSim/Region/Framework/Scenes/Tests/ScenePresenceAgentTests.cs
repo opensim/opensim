@@ -31,7 +31,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Timers;
-using Timer=System.Timers.Timer;
+using Timer = System.Timers.Timer;
 using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
@@ -39,11 +39,13 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.ClientStack.Linden;
 using OpenSim.Region.CoreModules.Framework.EntityTransfer;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
@@ -103,21 +105,71 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 
             Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(sp.UUID), Is.Not.Null);
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
 
             scene.IncomingCloseAgent(sp.UUID);
 
             Assert.That(scene.GetScenePresence(sp.UUID), Is.Null);
             Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(sp.UUID), Is.Null);
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestCreateChildScenePresence()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            LocalSimulationConnectorModule lsc = new LocalSimulationConnectorModule();
+
+            IConfigSource configSource = new IniConfigSource();
+            IConfig config = configSource.AddConfig("Modules");
+            config.Set("SimulationServices", "LocalSimulationConnectorModule");
+
+            TestScene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, configSource, lsc);
+
+            UUID agentId = TestHelpers.ParseTail(0x01);
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(agentId);
+            acd.child = true;
+
+            GridRegion region = scene.GridService.GetRegionByName(UUID.Zero, scene.RegionInfo.RegionName);
+            string reason;
+
+            // *** This is the first stage, when a neighbouring region is told that a viewer is about to try and
+            // establish a child scene presence.  We pass in the circuit code that the client has to connect with ***
+            // XXX: ViaLogin may not be correct here.
+            scene.SimulationService.CreateAgent(region, acd, (uint)TeleportFlags.ViaLogin, out reason);
+
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(agentId), Is.Not.Null);
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
+
+            // There's no scene presence yet since only an agent circuit has been established.
+            Assert.That(scene.GetScenePresence(agentId), Is.Null);
+
+            // *** This is the second stage, where the client established a child agent/scene presence using the
+            // circuit code given to the scene in stage 1 ***
+            TestClient client = new TestClient(acd, scene);
+            scene.AddNewClient(client, PresenceType.User);
+
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(agentId), Is.Not.Null);
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
+
+            ScenePresence sp = scene.GetScenePresence(agentId);
+            Assert.That(sp, Is.Not.Null);
+            Assert.That(sp.UUID, Is.EqualTo(agentId));
+            Assert.That(sp.IsChildAgent, Is.True);
         }
 
         /// <summary>
         /// Test that if a root agent logs into a region, a child agent is also established in the neighbouring region
         /// </summary>
         /// <remarks>
-        /// Please note that unlike the other tests here, this doesn't rely on structures
+        /// Please note that unlike the other tests here, this doesn't rely on anything set up in the instance fields.
+        /// INCOMPLETE
         /// </remarks>
         [Test]
-        public void TestChildAgentEstablished()
+        public void TestChildAgentEstablishedInNeighbour()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -125,18 +177,25 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             UUID agent1Id = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
             TestScene myScene1 = SceneHelpers.SetupScene("Neighbour y", UUID.Random(), 1000, 1000);
-//            TestScene myScene2 = SceneHelpers.SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);
-            
-            IConfigSource configSource = new IniConfigSource();
-            configSource.AddConfig("Modules").Set("EntityTransferModule", "BasicEntityTransferModule");                      
-            EntityTransferModule etm = new EntityTransferModule();
-            
-            SceneHelpers.SetupSceneModules(myScene1, configSource, etm);            
-            
-            SceneHelpers.AddScenePresence(myScene1, agent1Id);
-//            ScenePresence childPresence = myScene2.GetScenePresence(agent1);
+            TestScene myScene2 = SceneHelpers.SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);
 
-            // TODO: Need to do a fair amount of work to allow synchronous establishment of child agents
+            IConfigSource configSource = new IniConfigSource();
+            IConfig config = configSource.AddConfig("Startup");
+            config.Set("serverside_object_permissions", true);
+            config.Set("EventQueue", true);
+
+            EntityTransferModule etm = new EntityTransferModule();
+
+            EventQueueGetModule eqgm1 = new EventQueueGetModule();
+            SceneHelpers.SetupSceneModules(myScene1, configSource, etm, eqgm1);
+
+            EventQueueGetModule eqgm2 = new EventQueueGetModule();
+            SceneHelpers.SetupSceneModules(myScene2, configSource, etm, eqgm2);
+            
+//            SceneHelpers.AddScenePresence(myScene1, agent1Id);
+//            ScenePresence childPresence = myScene2.GetScenePresence(agent1);
+//
+//            // TODO: Need to do a fair amount of work to allow synchronous establishment of child agents
 //            Assert.That(childPresence, Is.Not.Null);
 //            Assert.That(childPresence.IsChildAgent, Is.True);
         }
@@ -193,48 +252,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //
 //            Assert.That(presence, Is.Null, "presence is not null");
 //        }
-
-        [Test]
-        public void T012_TestAddNeighbourRegion()
-        {
-            TestHelpers.InMethod();
-
-            string reason;
-
-            if (acd1 == null)
-                fixNullPresence();
-
-            scene.NewUserConnection(acd1, 0, out reason);
-            if (testclient == null)
-                testclient = new TestClient(acd1, scene);
-            scene.AddNewClient(testclient, PresenceType.User);
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-            presence.MakeRootAgent(new Vector3(90,90,90),false);
-
-            string cap = presence.ControllingClient.RequestClientInfo().CapsPath;
-
-            presence.AddNeighbourRegion(region2, cap);
-            presence.AddNeighbourRegion(region3, cap);
-
-            Assert.That(presence.KnownRegionCount, Is.EqualTo(2));
-        }
-
-        [Test]
-        public void T013_TestRemoveNeighbourRegion()
-        {
-            TestHelpers.InMethod();
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-            presence.RemoveNeighbourRegion(region3);
-
-            Assert.That(presence.KnownRegionCount,Is.EqualTo(1));
-            /*
-            presence.MakeChildAgent;
-            presence.MakeRootAgent;
-            CompleteAvatarMovement
-            */
-        }
 
         // I'm commenting this test because it does not represent
         // crossings. The Thread.Sleep's in here are not meaningful mocks,
@@ -337,34 +354,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(timer,Is.GreaterThan(0),"Timed out waiting to cross 1->2.");
             Assert.That(presence2.IsChildAgent, Is.True, "Did not return from region as expected.");
             Assert.That(presence.IsChildAgent, Is.False, "Presence was not made root in old region again.");
-        }
-        
-        public void fixNullPresence()
-        {
-            string firstName = "testfirstname";
-
-            AgentCircuitData agent = new AgentCircuitData();
-            agent.AgentID = agent1;
-            agent.firstname = firstName;
-            agent.lastname = "testlastname";
-            agent.SessionID = UUID.Zero;
-            agent.SecureSessionID = UUID.Zero;
-            agent.circuitcode = 123;
-            agent.BaseFolder = UUID.Zero;
-            agent.InventoryFolder = UUID.Zero;
-            agent.startpos = Vector3.Zero;
-            agent.CapsPath = GetRandomCapsObjectPath();
-            agent.Appearance = new AvatarAppearance();
-
-            acd1 = agent;
-        }
-        
-        public static string GetRandomCapsObjectPath()
-        {
-            UUID caps = UUID.Random();
-            string capsPath = caps.ToString();
-            capsPath = capsPath.Remove(capsPath.Length - 4, 4);
-            return capsPath;
         }
     }
 }

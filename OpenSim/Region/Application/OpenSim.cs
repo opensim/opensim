@@ -1039,7 +1039,7 @@ namespace OpenSim
                         {
                             //this.HttpServer.
                             acd.AppendFormat("{0}:\n", scene.RegionInfo.RegionName);
-                            foreach (AgentCircuitData aCircuit in scene.AuthenticateHandler.AgentCircuits.Values)
+                            foreach (AgentCircuitData aCircuit in scene.AuthenticateHandler.GetAgentCircuits().Values)
                                 acd.AppendFormat("\t{0} {1} ({2})\n", aCircuit.firstname, aCircuit.lastname, (aCircuit.child ? "Child" : "Root"));
                         }
                     );

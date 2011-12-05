@@ -45,9 +45,11 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 base(config, server, configName)
         {
             server.AddStreamHandler(new HeloServerGetHandler("opensim-robust"));
+            server.AddStreamHandler(new HeloServerHeadHandler("opensim-robust"));
         }
     }
 
+    [Obsolete]
     public class HeloServerGetHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -68,7 +70,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         private byte[] OKResponse(OSHttpResponse httpResponse)
         {
-            m_log.Debug("[HELO]: hi, I was called");
+            m_log.Debug("[HELO]: hi, GET was called");
             httpResponse.AddHeader("X-Handlers-Provided", m_HandlersType);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
             httpResponse.StatusDescription = "OK";
@@ -76,4 +78,34 @@ namespace OpenSim.Server.Handlers.Hypergrid
         }
 
     }
+
+    public class HeloServerHeadHandler : BaseStreamHandler
+    {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private string m_HandlersType;
+
+        public HeloServerHeadHandler(string handlersType) :
+            base("HEAD", "/helo")
+        {
+            m_HandlersType = handlersType;
+        }
+
+        public override byte[] Handle(string path, Stream requestData,
+                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        {
+            return OKResponse(httpResponse);
+        }
+
+        private byte[] OKResponse(OSHttpResponse httpResponse)
+        {
+            m_log.Debug("[HELO]: hi, HEAD was called");
+            httpResponse.AddHeader("X-Handlers-Provided", m_HandlersType);
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
+            httpResponse.StatusDescription = "OK";
+            return new byte[0];
+        }
+
+    }
+
 }

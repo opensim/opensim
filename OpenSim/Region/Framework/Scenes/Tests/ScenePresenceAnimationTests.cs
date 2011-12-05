@@ -25,53 +25,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using log4net;
 using System;
-using System.Net;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
+using System.Threading;
+using System.Timers;
 using Nini.Config;
+using NUnit.Framework;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.CoreModules.Framework.EntityTransfer;
+using OpenSim.Region.CoreModules.World.Serialiser;
+using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
+using OpenSim.Region.Physics.Manager;
+using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Services.Connectors
+namespace OpenSim.Region.Framework.Scenes.Tests
 {
-    public class HeloServicesConnector 
+    /// <summary>
+    /// Scene presence animation tests
+    /// </summary>
+    [TestFixture]
+    public class ScenePresenceAnimationTests
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
-
-        private string m_ServerURI = String.Empty;
-
-        public HeloServicesConnector()
+        [Test]
+        public void TestFlyingAnimation()
         {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            TestScene scene = SceneHelpers.SetupScene();
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
+            sp.PhysicsActor.Flying = true;
+            sp.PhysicsCollisionUpdate(new CollisionEventUpdate());
+
+            Assert.That(sp.Animator.CurrentMovementAnimation, Is.EqualTo("HOVER"));
         }
-
-        public HeloServicesConnector(string serverURI)
-        {
-            m_ServerURI = serverURI.TrimEnd('/');
-        }
-
-
-        public virtual string Helo()
-        {
-            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(m_ServerURI + "/helo");
-            // Eventually we need to switch to HEAD
-            /* req.Method = "HEAD"; */
-
-            try
-            {
-                WebResponse response = req.GetResponse();
-                if (response.Headers.Get("X-Handlers-Provided") == null) // just in case this ever returns a null
-                    return string.Empty;
-                return response.Headers.Get("X-Handlers-Provided");
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[HELO SERVICE]: Unable to perform HELO request to {0}: {1}", m_ServerURI, e.Message);
-            }
-
-            // fail
-            return string.Empty;
-        }
-
     }
 }

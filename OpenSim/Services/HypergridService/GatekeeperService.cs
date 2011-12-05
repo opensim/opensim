@@ -243,7 +243,7 @@ namespace OpenSim.Services.HypergridService
                     // Make sure this is the user coming home, and not a foreign user with same UUID as a local user
                     if (m_UserAgentService != null)
                     {
-                        if (!m_UserAgentService.AgentIsComingHome(aCircuit.SessionID, m_ExternalName))
+                        if (!m_UserAgentService.IsAgentComingHome(aCircuit.SessionID, m_ExternalName))
                         {
                             // Can't do, sorry
                             reason = "Unauthorized";

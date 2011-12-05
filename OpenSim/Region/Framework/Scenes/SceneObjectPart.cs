@@ -3325,9 +3325,14 @@ namespace OpenSim.Region.Framework.Scenes
                     if (hasHollow) ret += 1;
                     break;
                 case PrimType.SCULPT:
-                    ret = 1;
+                    // Special mesh handling
+                    if (Shape.SculptType == (byte)SculptType.Mesh)
+                        ret = 8; // if it's a mesh then max 8 faces
+                    else
+                        ret = 1; // if it's a sculpt then max 1 face
                     break;
             }
+
             return ret;
         }
 
@@ -3340,6 +3345,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (Shape.SculptEntry)
                 return PrimType.SCULPT;
+            
             if ((Shape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
             {
                 if (Shape.PathCurve == (byte)Extrusion.Straight)

@@ -350,7 +350,5 @@ namespace OpenSim.Capabilities.Handlers
             }
             return null;
         }
-
-
     }
 }

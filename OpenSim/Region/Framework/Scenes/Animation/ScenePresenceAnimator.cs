@@ -54,11 +54,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// <value>
         /// The current movement animation
         /// </value>
-        public string CurrentMovementAnimation
-        {
-            get { return m_movementAnimation; }
-        }
-        protected string m_movementAnimation = "CROUCH";
+        public string CurrentMovementAnimation { get; private set; }
+        
         private int m_animTickFall;
         public int m_animTickJump;		// ScenePresence has to see this to control +Z force
         public bool m_jumping = false; 
@@ -79,6 +76,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public ScenePresenceAnimator(ScenePresence sp)
         {
             m_scenePresence = sp;
+            CurrentMovementAnimation = "CROUCH";
         }
         
         public void AddAnimation(UUID animID, UUID objectID)
@@ -131,8 +129,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public void ResetAnimations()
         {
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE ANIMATOR]: Resetting animations for {0} in {1}",
+//                m_scenePresence.Name, m_scenePresence.Scene.RegionInfo.RegionName);
+
             m_animations.Clear();
-            TrySetMovementAnimation("STAND");
         }
         
         /// <summary>
@@ -143,6 +144,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             if (!m_scenePresence.IsChildAgent)
             {
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE ANIMATOR]: Setting movement animation {0} for {1}",
+//                    anim, m_scenePresence.Name);
+
                 if (m_animations.TrySetDefaultAnimation(
                     anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
                 {
@@ -155,12 +160,18 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     SendAnimPack();
                 }
             }
+            else
+            {
+                m_log.WarnFormat(
+                    "[SCENE PRESENCE ANIMATOR]: Tried to set movement animation {0} on child presence {1}",
+                    anim, m_scenePresence.Name);
+            }
         }
 
         /// <summary>
         /// This method determines the proper movement related animation
         /// </summary>
-        public string GetMovementAnimation()
+        private string DetermineMovementAnimation()
         {
             const float FALL_DELAY = 800f;
             const float PREJUMP_DELAY = 200f;
@@ -263,7 +274,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     return "FALLDOWN";
                 }
 
-                return m_movementAnimation;
+                return CurrentMovementAnimation;
             }
 
             #endregion Falling/Floating/Landing
@@ -273,7 +284,6 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             int jumptime;
             jumptime = Environment.TickCount - m_animTickJump;
-
 
             if ((move.Z > 0f) && (!m_jumping))
             {
@@ -318,7 +328,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             #region Ground Movement
 
-            if (m_movementAnimation == "FALLDOWN")
+            if (CurrentMovementAnimation == "FALLDOWN")
             {
                 m_falling = false;
                 m_animTickFall = Environment.TickCount;
@@ -331,16 +341,17 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 else
                     return "LAND";
             }
-            else if ((m_movementAnimation == "LAND") || (m_movementAnimation == "SOFT_LAND") || (m_movementAnimation == "STANDUP"))
+            else if ((CurrentMovementAnimation == "LAND") || (CurrentMovementAnimation == "SOFT_LAND") || (CurrentMovementAnimation == "STANDUP"))
             {
                 int landElapsed = Environment.TickCount - m_animTickFall;
                 int limit = 1000;
-                if(m_movementAnimation == "LAND") limit = 350;
+                if (CurrentMovementAnimation == "LAND")
+                    limit = 350;
                 // NB if the above is set too long a weird anim reset from some place prevents STAND from being sent to client
 
                 if ((m_animTickFall != 0) && (landElapsed <= limit))
                 {
-                    return m_movementAnimation;
+                    return CurrentMovementAnimation;
                 }
                 else
                 {
@@ -378,7 +389,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             #endregion Ground Movement
 
             m_falling = false;
-            return m_movementAnimation;
+
+            return CurrentMovementAnimation;
         }
 
         /// <summary>
@@ -386,8 +398,13 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         public void UpdateMovementAnimations()
         {
-            m_movementAnimation = GetMovementAnimation();
-            TrySetMovementAnimation(m_movementAnimation);
+            CurrentMovementAnimation = DetermineMovementAnimation();
+
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE ANIMATOR]: Determined animation {0} for {1} in UpdateMovementAnimations()",
+//                CurrentMovementAnimation, m_scenePresence.Name);
+
+            TrySetMovementAnimation(CurrentMovementAnimation);
         }
 
         public UUID[] GetAnimationArray()
