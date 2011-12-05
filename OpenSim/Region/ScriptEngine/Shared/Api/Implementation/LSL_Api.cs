@@ -1540,7 +1540,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
                 texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
                 tex.FaceTextures[face].RGBA = texcolor;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
@@ -1561,7 +1561,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
                     tex.DefaultTexture.RGBA = texcolor;
                 }
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
 
@@ -1586,7 +1586,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].TexMapType = textype;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
@@ -1599,7 +1599,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                     tex.DefaultTexture.TexMapType = textype;
                 }
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
         }
@@ -1614,7 +1614,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].Glow = glow;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
@@ -1627,7 +1627,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                     tex.DefaultTexture.Glow = glow;
                 }
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
         }
@@ -1664,7 +1664,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].Shiny = sval;
                 tex.FaceTextures[face].Bump = bump;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
@@ -1679,7 +1679,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     tex.DefaultTexture.Shiny = sval;
                     tex.DefaultTexture.Bump = bump;
                 }
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
         }
@@ -1694,7 +1694,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              {
                  tex.CreateFace((uint) face);
                  tex.FaceTextures[face].Fullbright = bright;
-                 part.UpdateTexture(tex);
+                 part.UpdateTextureEntry(tex.GetBytes());
                  return;
              }
              else if (face == ScriptBaseClass.ALL_SIDES)
@@ -1707,7 +1707,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                      }
                  }
                  tex.DefaultTexture.Fullbright = bright;
-                 part.UpdateTexture(tex);
+                 part.UpdateTextureEntry(tex.GetBytes());
                  return;
              }
          }
@@ -1776,7 +1776,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 texcolor = tex.CreateFace((uint)face).RGBA;
                 texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
                 tex.FaceTextures[face].RGBA = texcolor;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
@@ -1800,7 +1800,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     tex.DefaultTexture.RGBA = texcolor;
                 }
                 
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
         }
@@ -1969,7 +1969,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.TextureID = textureID;
                 tex.FaceTextures[face] = texface;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
@@ -1982,7 +1982,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
                 tex.DefaultTexture.TextureID = textureID;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
         }
@@ -2007,7 +2007,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 texface.RepeatU = (float)u;
                 texface.RepeatV = (float)v;
                 tex.FaceTextures[face] = texface;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
             if (face == ScriptBaseClass.ALL_SIDES)
@@ -2022,7 +2022,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 tex.DefaultTexture.RepeatU = (float)u;
                 tex.DefaultTexture.RepeatV = (float)v;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
         }
@@ -2046,7 +2046,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 texface.OffsetU = (float)u;
                 texface.OffsetV = (float)v;
                 tex.FaceTextures[face] = texface;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
             if (face == ScriptBaseClass.ALL_SIDES)
@@ -2061,7 +2061,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 tex.DefaultTexture.OffsetU = (float)u;
                 tex.DefaultTexture.OffsetV = (float)v;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
         }
@@ -2084,7 +2084,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.Rotation = (float)rotation;
                 tex.FaceTextures[face] = texface;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
             if (face == ScriptBaseClass.ALL_SIDES)
@@ -2097,7 +2097,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
                 tex.DefaultTexture.Rotation = (float)rotation;
-                part.UpdateTexture(tex);
+                part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
         }

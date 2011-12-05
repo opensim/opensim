@@ -55,7 +55,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)m_face);
                 texface.RGBA = new Color4(value.R,value.G,value.B,value.A);
                 tex.FaceTextures[m_face] = texface;
-                m_parent.UpdateTexture(tex);
+                m_parent.UpdateTextureEntry(tex.GetBytes());
             }
         }
 
@@ -72,7 +72,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)m_face);
                 texface.TextureID = value;
                 tex.FaceTextures[m_face] = texface;
-                m_parent.UpdateTexture(tex);
+                m_parent.UpdateTextureEntry(tex.GetBytes());
             }
         }
 
@@ -97,7 +97,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)m_face);
                 texface.Fullbright = value;
                 tex.FaceTextures[m_face] = texface;
-                m_parent.UpdateTexture(tex);
+                m_parent.UpdateTextureEntry(tex.GetBytes());
             }
         }
 
@@ -110,7 +110,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)m_face);
                 texface.Glow = (float) value;
                 tex.FaceTextures[m_face] = texface;
-                m_parent.UpdateTexture(tex);
+                m_parent.UpdateTextureEntry(tex.GetBytes());
             }
         }
 
@@ -123,7 +123,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)m_face);
                 texface.Shiny = value ? Shininess.High : Shininess.None;
                 tex.FaceTextures[m_face] = texface;
-                m_parent.UpdateTexture(tex);
+                m_parent.UpdateTextureEntry(tex.GetBytes());
             }
         }
 

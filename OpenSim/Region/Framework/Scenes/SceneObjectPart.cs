@@ -3231,7 +3231,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="face"></param>
         public void SetFaceColor(Vector3 color, int face)
         {
-            Primitive.TextureEntry tex = Shape.Textures;
+            // The only way to get a deep copy/ If we don't do this, we can
+            // mever detect color changes further down.
+            Byte[] buf = Shape.Textures.GetBytes();
+            Primitive.TextureEntry tex = new Primitive.TextureEntry(buf, 0, buf.Length);
             Color4 texcolor;
             if (face >= 0 && face < GetNumberOfSides())
             {
@@ -3240,8 +3243,7 @@ namespace OpenSim.Region.Framework.Scenes
                 texcolor.G = Util.Clip((float)color.Y, 0.0f, 1.0f);
                 texcolor.B = Util.Clip((float)color.Z, 0.0f, 1.0f);
                 tex.FaceTextures[face].RGBA = texcolor;
-                UpdateTexture(tex);
-                TriggerScriptChangedEvent(Changed.COLOR);
+                UpdateTextureEntry(tex.GetBytes());
                 return;
             }
             else if (face == ALL_SIDES)
@@ -3262,8 +3264,7 @@ namespace OpenSim.Region.Framework.Scenes
                     texcolor.B = Util.Clip((float)color.Z, 0.0f, 1.0f);
                     tex.DefaultTexture.RGBA = texcolor;
                 }
-                UpdateTexture(tex);
-                TriggerScriptChangedEvent(Changed.COLOR);
+                UpdateTextureEntry(tex.GetBytes());
                 return;
             }
         }
@@ -4591,46 +4592,46 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Update the textures on the part.
-        /// </summary>
-        /// <remarks>
-        /// Added to handle bug in libsecondlife's TextureEntry.ToBytes()
-        /// not handling RGBA properly. Cycles through, and "fixes" the color
-        /// info
-        /// </remarks>
-        /// <param name="tex"></param>
-        public void UpdateTexture(Primitive.TextureEntry tex)
-        {
-            //Color4 tmpcolor;
-            //for (uint i = 0; i < 32; i++)
-            //{
-            //    if (tex.FaceTextures[i] != null)
-            //    {
-            //        tmpcolor = tex.GetFace((uint) i).RGBA;
-            //        tmpcolor.A = tmpcolor.A*255;
-            //        tmpcolor.R = tmpcolor.R*255;
-            //        tmpcolor.G = tmpcolor.G*255;
-            //        tmpcolor.B = tmpcolor.B*255;
-            //        tex.FaceTextures[i].RGBA = tmpcolor;
-            //    }
-            //}
-            //tmpcolor = tex.DefaultTexture.RGBA;
-            //tmpcolor.A = tmpcolor.A*255;
-            //tmpcolor.R = tmpcolor.R*255;
-            //tmpcolor.G = tmpcolor.G*255;
-            //tmpcolor.B = tmpcolor.B*255;
-            //tex.DefaultTexture.RGBA = tmpcolor;
-            UpdateTextureEntry(tex.GetBytes());
-        }
-
-        /// <summary>
         /// Update the texture entry for this part.
         /// </summary>
         /// <param name="textureEntry"></param>
         public void UpdateTextureEntry(byte[] textureEntry)
         {
+            Primitive.TextureEntry newTex = new Primitive.TextureEntry(textureEntry, 0, textureEntry.Length);
+            Primitive.TextureEntry oldTex = Shape.Textures;
+
+            Changed changeFlags = 0;
+
+            for (int i = 0 ; i < GetNumberOfSides(); i++)
+            {
+                Primitive.TextureEntryFace newFace = newTex.DefaultTexture;
+                Primitive.TextureEntryFace oldFace = oldTex.DefaultTexture;
+
+                if (oldTex.FaceTextures[i] != null)
+                    oldFace = oldTex.FaceTextures[i];
+                if (newTex.FaceTextures[i] != null)
+                    newFace = newTex.FaceTextures[i];
+
+                Color4 oldRGBA = oldFace.RGBA;
+                Color4 newRGBA = newFace.RGBA;
+
+                if (oldRGBA.R != newRGBA.R ||
+                    oldRGBA.G != newRGBA.G ||
+                    oldRGBA.B != newRGBA.B ||
+                    oldRGBA.A != newRGBA.A)
+                    changeFlags |= Changed.COLOR;
+
+                if (oldFace.TextureID != newFace.TextureID)
+                    changeFlags |= Changed.TEXTURE;
+
+                // Max change, skip the rest of testing
+                if (changeFlags == (Changed.TEXTURE | Changed.COLOR))
+                    break;
+            }
+
             m_shape.TextureEntry = textureEntry;
-            TriggerScriptChangedEvent(Changed.TEXTURE);
+            if (changeFlags != 0)
+                TriggerScriptChangedEvent(changeFlags);
             UpdateFlag = UpdateRequired.FULL;
             ParentGroup.HasGroupChanged = true;
 
