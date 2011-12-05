@@ -220,8 +220,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Vector3 RotationAxis = Vector3.One;
 
-        public bool VolumeDetectActive; // XmlIgnore set to avoid problems with persistance until I come to care for this
-                                        // Certainly this must be a persistant setting finally
+        public bool VolumeDetectActive;
 
         public bool IsWaitingForFirstSpinUpdatePacket;
 
