@@ -92,11 +92,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 //            m_log.DebugFormat("[APPEARANCE INFO MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
             
             lock (m_scenes)
-                m_scenes[scene.RegionInfo.RegionID] = scene; 
+                m_scenes[scene.RegionInfo.RegionID] = scene;
+
+            scene.AddCommand(
+                this, "show appearance",
+                "show appearance [<first-name> <last-name>]",
+                "Synonym for 'appearance show'",
+                HandleShowAppearanceCommand);
             
             scene.AddCommand(
                 this, "appearance show",
-                "appearance show",
+                "appearance show [<first-name> <last-name>]",
                 "Show appearance information for each avatar in the simulator.",
                 "This command checks whether the simulator has all the baked textures required to display an avatar to other viewers.  "
                     + "\nIf not, then appearance is 'corrupt' and other avatars will continue to see it as a cloud."
