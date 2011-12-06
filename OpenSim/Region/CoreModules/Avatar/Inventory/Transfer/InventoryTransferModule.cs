@@ -244,7 +244,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     im.imSessionID = itemID.Guid;
                 }
 
-                im.offline = 1; // Remember these
+                im.offline = 0;
 
                 // Send the IM to the recipient. The item is already
                 // in their inventory, so it will not be lost if
