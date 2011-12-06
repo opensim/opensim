@@ -4307,6 +4307,9 @@ namespace OpenSim.Region.Framework.Scenes
             bool wasPhantom = ((Flags & PrimFlags.Phantom) != 0);
             bool wasVD = VolumeDetectActive;
 
+//            m_log.DebugFormat("[SOP]: Old states: phys: {0} temp: {1} phan: {2} vd: {3}", wasUsingPhysics, wasTemporary, wasPhantom, wasVD);
+//            m_log.DebugFormat("[SOP]: New states: phys: {0} temp: {1} phan: {2} vd: {3}", UsePhysics, SetTemporary, SetPhantom, SetVD);
+
             if ((UsePhysics == wasUsingPhysics) && (wasTemporary == SetTemporary) && (wasPhantom == SetPhantom) && (SetVD == wasVD))
                 return;
 
@@ -4335,6 +4338,11 @@ namespace OpenSim.Region.Framework.Scenes
                     // this will also cause the prim to be visible to physics
                     SetPhantom = false;
                 }
+            }
+            else if (wasVD)
+            {
+                // Correspondingly, if VD is turned off, also turn off phantom
+                SetPhantom = false;
             }
 
             if (UsePhysics && IsJoint())

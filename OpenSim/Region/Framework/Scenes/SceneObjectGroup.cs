@@ -2811,11 +2811,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                RootPart.UpdatePrimFlags(UsePhysics, IsTemporary, IsPhantom, SetVolumeDetect);
+                RootPart.UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect);
                 for (int i = 0; i < parts.Length; i++)
                 {
                     if (parts[i] != RootPart)
-                        parts[i].UpdatePrimFlags(UsePhysics, IsTemporary, IsPhantom, SetVolumeDetect);
+                        parts[i].UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect);
                 }
             }
         }
