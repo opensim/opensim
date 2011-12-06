@@ -139,6 +139,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                             MainConsole.Instance.OutputFormat(
                                 "Sending appearance information for {0} to all other avatars in {1}",
                                 sp.Name, scene.RegionInfo.RegionName);
+
+                            scene.AvatarFactory.SendAppearance(sp.UUID);
                         }
                     }
                     else
