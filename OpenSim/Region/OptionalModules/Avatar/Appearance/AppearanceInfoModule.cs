@@ -48,7 +48,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AppearanceInfoModule")]
     public class AppearanceInfoModule : ISharedRegionModule
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);                
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
         protected IAvatarFactoryModule m_avatarFactory;
@@ -112,7 +112,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
             {
                 foreach (Scene scene in m_scenes.Values)
                 {
-                    scene.ForEachRootScenePresence(sp => scene.AvatarFactory.SendAppearance(sp.UUID));
+                    scene.ForEachRootScenePresence(
+                        sp =>
+                        {
+                            MainConsole.Instance.OutputFormat(
+                                "Sending appearance information for {0} to all other avatars in {1}",
+                                sp.Name, scene.RegionInfo.RegionName);
+
+                            scene.AvatarFactory.SendAppearance(sp.UUID);
+                        }
+                    );
                 }
             }
         }
