@@ -77,8 +77,6 @@ namespace OpenSim.Capabilities.Handlers
         {
             try
             {
-//                m_log.Debug("[CAPS]: UploadBakedTexture Request in region: " + m_regionName);
-
                 string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath;
                 string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
