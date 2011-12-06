@@ -146,20 +146,13 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 ScenePresence sp = scene.GetScenePresence(toAgentID);
                 if (sp != null && !sp.IsChildAgent)
                 {
-//                    m_log.DebugFormat(
-//                        "[INSTANT MESSAGE]: Looking for root agent {0} in {1}", 
-//                        toAgentID.ToString(), scene.RegionInfo.RegionName);
-                                        
-                    ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
-                    if (!user.IsChildAgent)
-                    {
-              //          m_log.DebugFormat("[INSTANT MESSAGE]: Delivering to client");
-                        user.ControllingClient.SendInstantMessage(im);
+                    // Local message
+//                    m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", user.Name, toAgentID);
+                    sp.ControllingClient.SendInstantMessage(im);
 
-                        // Message sent
-                        result(true);
-                        return;
-                    }
+                    // Message sent
+                    result(true);
+                    return;
                 }
             }
 
@@ -172,10 +165,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 if (sp != null)
                 {
                     // Local message
-                    ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
-
-               //     m_log.DebugFormat("[INSTANT MESSAGE]: Delivering to client");
-                    user.ControllingClient.SendInstantMessage(im);
+//                    m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", user.Name, toAgentID);
+                    sp.ControllingClient.SendInstantMessage(im);
 
                     // Message sent
                     result(true);

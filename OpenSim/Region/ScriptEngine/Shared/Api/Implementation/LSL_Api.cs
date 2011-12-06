@@ -4368,22 +4368,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (agentItem == null)
                     return;
 
-                byte[] bucket = new byte[17];
+                byte[] bucket = new byte[1];
                 bucket[0] = (byte)assetType;
-                byte[] objBytes = agentItem.ID.GetBytes();
-                Array.Copy(objBytes, 0, bucket, 1, 16);
+                //byte[] objBytes = agentItem.ID.GetBytes();
+                //Array.Copy(objBytes, 0, bucket, 1, 16);
 
                 GridInstantMessage msg = new GridInstantMessage(World,
-                        m_host.UUID, m_host.Name+", an object owned by "+
-                        resolveName(m_host.OwnerID)+",", destId,
+                        m_host.OwnerID, m_host.Name, destId,
                         (byte)InstantMessageDialog.TaskInventoryOffered,
-                        false, objName+"\n"+m_host.Name+" is located at "+
+                        false, objName+". "+m_host.Name+" is located at "+
                         World.RegionInfo.RegionName+" "+
                         m_host.AbsolutePosition.ToString(),
                         agentItem.ID, true, m_host.AbsolutePosition,
                         bucket);
-                if (m_TransferModule != null)
-                    m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
+
+                ScenePresence sp;
+
+                if (World.TryGetScenePresence(destId, out sp))
+                {
+                    sp.ControllingClient.SendInstantMessage(msg);
+                }
+                else
+                {
+                    if (m_TransferModule != null)
+                        m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
+                }
                 
                 //This delay should only occur when giving inventory to avatars.
                 ScriptSleep(3000);
@@ -6708,16 +6717,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (folderID == UUID.Zero)
                 return;
 
-            byte[] bucket = new byte[17];
+            byte[] bucket = new byte[1];
             bucket[0] = (byte)AssetType.Folder;
-            byte[] objBytes = folderID.GetBytes();
-            Array.Copy(objBytes, 0, bucket, 1, 16);
+            //byte[] objBytes = folderID.GetBytes();
+            //Array.Copy(objBytes, 0, bucket, 1, 16);
 
             GridInstantMessage msg = new GridInstantMessage(World,
-                    m_host.UUID, m_host.Name+", an object owned by "+
-                    resolveName(m_host.OwnerID)+",", destID,
-                    (byte)InstantMessageDialog.InventoryOffered,
-                    false, category+"\n"+m_host.Name+" is located at "+
+                    m_host.OwnerID, m_host.Name, destID,
+                    (byte)InstantMessageDialog.TaskInventoryOffered,
+                    false, category+". "+m_host.Name+" is located at "+
                     World.RegionInfo.RegionName+" "+
                     m_host.AbsolutePosition.ToString(),
                     folderID, true, m_host.AbsolutePosition,
