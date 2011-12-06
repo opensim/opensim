@@ -97,36 +97,67 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                 "appearance show",
                 "Show appearance information for each avatar in the simulator.",
                 "At the moment this actually just checks that we have all the required baked textures.  If not, then appearance is 'corrupt' and other avatars will continue to see a cloud.",
-                ShowAppearanceInfo);
+                HandleShowAppearanceCommand);
 
             scene.AddCommand(
                 this, "appearance send",
-                "appearance send",
-                "Send appearance data for each avatar in the simulator to viewers.",
-                SendAppearance);
+                "appearance send [<first-name> <last-name>]",
+                "Send appearance data for each avatar in the simulator to other viewers."
+                    + "\nOptionally, you can specify that only a particular avatar's information is sent.",
+                HandleSendAppearanceCommand);
         }
 
-        private void SendAppearance(string module, string[] cmd)
+        private void HandleSendAppearanceCommand(string module, string[] cmd)
         {
+            if (cmd.Length != 2 && cmd.Length < 4)
+            {
+                MainConsole.Instance.OutputFormat("Usage: appearance send [<first-name> <last-name>]");
+                return;
+            }
+
+            bool targetNameSupplied = false;
+            string optionalTargetFirstName = null;
+            string optionalTargetLastName = null;
+
+            if (cmd.Length >= 4)
+            {
+                targetNameSupplied = true;
+                optionalTargetFirstName = cmd[2];
+                optionalTargetLastName = cmd[3];
+            }
+
             lock (m_scenes)
             {
                 foreach (Scene scene in m_scenes.Values)
                 {
-                    scene.ForEachRootScenePresence(
-                        sp =>
+                    if (targetNameSupplied)
+                    {
+                        ScenePresence sp = scene.GetScenePresence(optionalTargetFirstName, optionalTargetLastName);
+                        if (sp != null && !sp.IsChildAgent)
                         {
                             MainConsole.Instance.OutputFormat(
                                 "Sending appearance information for {0} to all other avatars in {1}",
                                 sp.Name, scene.RegionInfo.RegionName);
-
-                            scene.AvatarFactory.SendAppearance(sp.UUID);
                         }
-                    );
+                    }
+                    else
+                    {
+                        scene.ForEachRootScenePresence(
+                            sp =>
+                            {
+                                MainConsole.Instance.OutputFormat(
+                                    "Sending appearance information for {0} to all other avatars in {1}",
+                                    sp.Name, scene.RegionInfo.RegionName);
+    
+                                scene.AvatarFactory.SendAppearance(sp.UUID);
+                            }
+                        );
+                    }
                 }
             }
         }
 
-        protected void ShowAppearanceInfo(string module, string[] cmd)
+        protected void HandleShowAppearanceCommand(string module, string[] cmd)
         {     
             lock (m_scenes)
             {   
