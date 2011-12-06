@@ -96,14 +96,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                 this, "appearance show",
                 "appearance show",
                 "Show appearance information for each avatar in the simulator.",
-                "At the moment this actually just checks that we have all the required baked textures.  If not, then appearance is 'corrupt' and other avatars will continue to see a cloud.",
+                "Optionally, you can view just a particular avatar's appearance information"
+                    + "\nAt the moment this actually just checks that we have all the required baked textures.  If not, then appearance is 'corrupt' and other avatars will continue to see a cloud.",
                 HandleShowAppearanceCommand);
 
             scene.AddCommand(
                 this, "appearance send",
                 "appearance send [<first-name> <last-name>]",
-                "Send appearance data for each avatar in the simulator to other viewers."
-                    + "\nOptionally, you can specify that only a particular avatar's information is sent.",
+                "Send appearance data for each avatar in the simulator to other viewers.",
+                "Optionally, you can specify that only a particular avatar's appearance data is sent.",
                 HandleSendAppearanceCommand);
         }
 
@@ -148,7 +149,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                                 MainConsole.Instance.OutputFormat(
                                     "Sending appearance information for {0} to all other avatars in {1}",
                                     sp.Name, scene.RegionInfo.RegionName);
-    
+
                                 scene.AvatarFactory.SendAppearance(sp.UUID);
                             }
                         );
@@ -158,18 +159,49 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
         }
 
         protected void HandleShowAppearanceCommand(string module, string[] cmd)
-        {     
+        {
+            if (cmd.Length != 2 && cmd.Length < 4)
+            {
+                MainConsole.Instance.OutputFormat("Usage: appearance show [<first-name> <last-name>]");
+                return;
+            }
+
+            bool targetNameSupplied = false;
+            string optionalTargetFirstName = null;
+            string optionalTargetLastName = null;
+
+            if (cmd.Length >= 4)
+            {
+                targetNameSupplied = true;
+                optionalTargetFirstName = cmd[2];
+                optionalTargetLastName = cmd[3];
+            }
+
             lock (m_scenes)
             {   
                 foreach (Scene scene in m_scenes.Values)
                 {
-                    scene.ForEachRootScenePresence(
-                        delegate(ScenePresence sp)
+                    if (targetNameSupplied)
+                    {
+                        ScenePresence sp = scene.GetScenePresence(optionalTargetFirstName, optionalTargetLastName);
+                        if (sp != null && !sp.IsChildAgent)
                         {
                             bool bakedTextureValid = scene.AvatarFactory.ValidateBakedTextureCache(sp);
                             MainConsole.Instance.OutputFormat(
                                 "{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "corrupt");
-                        });
+                        }
+                    }
+                    else
+                    {
+                        scene.ForEachRootScenePresence(
+                            sp =>
+                            {
+                                bool bakedTextureValid = scene.AvatarFactory.ValidateBakedTextureCache(sp);
+                                MainConsole.Instance.OutputFormat(
+                                    "{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "corrupt");
+                            }
+                        );
+                    }
                 }
             }
         }      
