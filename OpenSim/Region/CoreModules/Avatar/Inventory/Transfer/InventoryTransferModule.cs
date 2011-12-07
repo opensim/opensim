@@ -474,8 +474,48 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 }
                 user.ControllingClient.SendInstantMessage(im);
             }
+            if (im.dialog == (byte) InstantMessageDialog.TaskInventoryOffered)
+            {
+                if (im.binaryBucket.Length < 1) // Invalid
+                    return;
+            
+                UUID recipientID = new UUID(im.toAgentID);
+
+                // Bucket is the asset type
+                AssetType assetType = (AssetType)im.binaryBucket[0];
+                
+                if (AssetType.Folder == assetType)
+                {
+                    UUID folderID = new UUID(im.imSessionID);
+
+                    InventoryFolderBase given =
+                            new InventoryFolderBase(folderID, recipientID);
+                    InventoryFolderBase folder =
+                            scene.InventoryService.GetFolder(given);
+
+                    if (folder != null)
+                        user.ControllingClient.SendBulkUpdateInventory(folder);
+                }
+                else
+                {
+                    UUID itemID = new UUID(im.imSessionID);
+
+                    InventoryItemBase given =
+                            new InventoryItemBase(itemID, recipientID);
+                    InventoryItemBase item =
+                            scene.InventoryService.GetItem(given);
+
+                    if (item != null)
+                    {
+                        user.ControllingClient.SendBulkUpdateInventory(item);
+                    }
+                }
+                user.ControllingClient.SendInstantMessage(im);
+            }
             else if (im.dialog == (byte) InstantMessageDialog.InventoryAccepted ||
-                     im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
+                     im.dialog == (byte) InstantMessageDialog.InventoryDeclined ||
+                     im.dialog == (byte) InstantMessageDialog.TaskInventoryDeclined ||
+                     im.dialog == (byte) InstantMessageDialog.TaskInventoryAccepted)
             {
                 user.ControllingClient.SendInstantMessage(im);
             }
