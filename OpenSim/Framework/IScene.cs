@@ -90,9 +90,9 @@ namespace OpenSim.Framework
         /// <summary>
         /// Is the agent denoted by the given agentID a child presence in this scene?
         /// </summary>
-        /// 
+        /// <remarks>
         /// Used by ClientView when a 'kick everyone' or 'estate message' occurs
-        /// 
+        /// </remarks>
         /// <param name="avatarID">AvatarID to lookup</param>
         /// <returns>true if the presence is a child agent, false if the presence is a root exception</returns>
         /// <exception cref="System.NullReferenceException">

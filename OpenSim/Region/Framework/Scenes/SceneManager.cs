@@ -545,6 +545,23 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        public bool TryGetRootScenePresence(UUID avatarId, out ScenePresence avatar)
+        {
+            lock (m_localScenes)
+            {
+                foreach (Scene scene in m_localScenes)
+                {
+                    avatar = scene.GetScenePresence(avatarId);
+
+                    if (avatar != null && !avatar.IsChildAgent)
+                        return true;
+                }
+            }
+
+            avatar = null;
+            return false;
+        }
+
         public bool TryGetAvatarsScene(UUID avatarId, out Scene scene)
         {
             ScenePresence avatar = null;
@@ -587,6 +604,22 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             avatar = null;
+            return false;
+        }
+
+        public bool TryGetRootScenePresenceByName(string firstName, string lastName, out ScenePresence sp)
+        {
+            lock (m_localScenes)
+            {
+                foreach (Scene scene in m_localScenes)
+                {
+                    sp = scene.GetScenePresence(firstName, lastName);
+                    if (sp != null && !sp.IsChildAgent)
+                        return true;
+                }
+            }
+
+            sp = null;
             return false;
         }
 

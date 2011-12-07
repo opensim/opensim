@@ -191,6 +191,12 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        /// <summary>
+        /// Try to get a scene presence from the scene
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="scenePresence">null if there is no scene presence with the given agent id</param>
+        /// <returns>true if there was a scene presence with the given id, false otherwise.</returns>
         public abstract bool TryGetScenePresence(UUID agentID, out ScenePresence scenePresence);
 
         #endregion
