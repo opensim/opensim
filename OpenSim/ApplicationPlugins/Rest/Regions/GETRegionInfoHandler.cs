@@ -40,7 +40,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
     {
         #region GET methods
         public string GetRegionInfoHandler(string request, string path, string param,
-                                           OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                           IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // foreach (string h in httpRequest.Headers.AllKeys)
             //     foreach (string v in httpRequest.Headers.GetValues(h))
@@ -64,7 +64,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             }
         }
 
-        public string GetRegionInfoHandlerRegions(OSHttpResponse httpResponse)
+        public string GetRegionInfoHandlerRegions(IOSHttpResponse httpResponse)
         {
             RestXmlWriter rxw = new RestXmlWriter(new StringWriter());
 

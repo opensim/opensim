@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     /// OSHttpResponse is the OpenSim representation of an HTTP
     /// response.
     /// </summary>
-    public class OSHttpResponse
+    public class OSHttpResponse : IOSHttpResponse
     {
         /// <summary>
         /// Content type property.
@@ -274,7 +274,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
             }
         }
-
 
         protected IHttpResponse _httpResponse;
         private IHttpClientContext _httpClientContext;

@@ -64,7 +64,7 @@ namespace OpenSim.Region.Framework.Scenes
             osXStatsURI = Util.SHA1Hash(regionInfo.osSecret);
         }
                     
-        public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        public byte[] Handle(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             return Util.UTF8.GetBytes(Report());
         }

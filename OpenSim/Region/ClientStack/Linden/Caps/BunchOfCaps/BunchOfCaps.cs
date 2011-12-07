@@ -223,7 +223,7 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="httpResponse">HTTP response header object</param>
         /// <returns></returns>
         public string SeedCapRequest(string request, string path, string param,
-                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                  IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.Debug("[CAPS]: Seed Caps Request in region: " + m_regionName);
 
@@ -256,7 +256,7 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="httpResponse">HTTP response header object</param>
         /// <returns></returns>
         public string ScriptTaskInventory(string request, string path, string param,
-                                          OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                          IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             try
             {
@@ -685,7 +685,7 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="param"></param>
         /// <returns></returns>
         public string NoteCardAgentInventory(string request, string path, string param,
-                                             OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                             IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             //m_log.Debug("[CAPS]: NoteCardAgentInventory Request in region: " + m_regionName + "\n" + request);
             //m_log.Debug("[CAPS]: NoteCardAgentInventory Request is: " + request);

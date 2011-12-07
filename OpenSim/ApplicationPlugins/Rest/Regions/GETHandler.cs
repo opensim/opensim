@@ -41,7 +41,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
     {
         #region GET methods
         public string GetHandler(string request, string path, string param,
-                                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // foreach (string h in httpRequest.Headers.AllKeys)
             //     foreach (string v in httpRequest.Headers.GetValues(h))
@@ -64,7 +64,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             }
         }
 
-        public string GetHandlerRegions(OSHttpResponse httpResponse)
+        public string GetHandlerRegions(IOSHttpResponse httpResponse)
         {
             RestXmlWriter rxw = new RestXmlWriter(new StringWriter());
 
@@ -95,7 +95,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             return rxw.ToString();
         }
 
-        public string GetHandlerRegion(OSHttpResponse httpResponse, string param)
+        public string GetHandlerRegion(IOSHttpResponse httpResponse, string param)
         {
             // be resilient and don't get confused by a terminating '/'
             param = param.TrimEnd(new char[]{'/'});
@@ -180,7 +180,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
         }
         #endregion GET methods
 
-        protected string RegionTerrain(OSHttpResponse httpResponse, Scene scene)
+        protected string RegionTerrain(IOSHttpResponse httpResponse, Scene scene)
         {
             httpResponse.SendChunked = true;
             httpResponse.ContentType = "text/xml";
@@ -190,7 +190,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             //               "GET", "terrain not implemented");
         }
 
-        protected string RegionStats(OSHttpResponse httpResponse, Scene scene)
+        protected string RegionStats(IOSHttpResponse httpResponse, Scene scene)
         {
             int users = scene.GetRootAgentCount();
             int objects = scene.Entities.Count - users;
@@ -213,7 +213,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             return rxw.ToString();
         }
 
-        protected string RegionPrims(OSHttpResponse httpResponse, Scene scene, Vector3 min, Vector3 max)
+        protected string RegionPrims(IOSHttpResponse httpResponse, Scene scene, Vector3 min, Vector3 max)
         {
             httpResponse.SendChunked = true;
             httpResponse.ContentType = "text/xml";

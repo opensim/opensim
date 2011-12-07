@@ -55,7 +55,7 @@ namespace OpenSim.Server.Handlers.Authorization
         }
 
         public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             XmlSerializer xs = new XmlSerializer(typeof (AuthorizationRequest));
             AuthorizationRequest Authorization = (AuthorizationRequest) xs.Deserialize(request);

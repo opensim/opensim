@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     {
         private BinaryMethod m_method;
 
-        public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        public override byte[] Handle(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             byte[] data = ReadFully(request);
             string param = GetParam(path);

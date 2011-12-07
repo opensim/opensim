@@ -59,7 +59,7 @@ namespace OpenSim.Server.Handlers.Neighbour
         }
 
         public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // Not implemented yet
             Console.WriteLine("--- Get region --- " + path);
@@ -84,7 +84,7 @@ namespace OpenSim.Server.Handlers.Neighbour
         }
 
         public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             byte[] result = new byte[0];
 
@@ -177,7 +177,7 @@ namespace OpenSim.Server.Handlers.Neighbour
         }
 
         public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // Not implemented yet
             httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
@@ -198,7 +198,7 @@ namespace OpenSim.Server.Handlers.Neighbour
         }
 
         public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // Not implemented yet
             httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;

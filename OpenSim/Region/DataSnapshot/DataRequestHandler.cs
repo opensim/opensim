@@ -74,7 +74,7 @@ namespace OpenSim.Region.DataSnapshot
         }
 
         public string OnDiscoveryAttempt(string request, string path, string param,
-                                         OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                                         IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             //Very static for now, flexible enough to add new formats
             LLSDDiscoveryResponse llsd_response = new LLSDDiscoveryResponse();

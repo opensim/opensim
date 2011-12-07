@@ -25,51 +25,39 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using Nini.Config;
-using log4net;
 using System;
-using System.Reflection;
-using System.IO;
+using System.Collections.Generic;
 using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml;
-using System.Xml.Serialization;
-using OpenSim.Server.Base;
-using OpenSim.Services.Interfaces;
+using log4net;
+using log4net.Config;
+using NUnit.Framework;
+using OpenMetaverse;
+using OpenSim.Capabilities.Handlers;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Server.Handlers.Asset
+namespace OpenSim.Capabilities.Handlers.GetTexture.Tests
 {
-    public class AssetServerDeleteHandler : BaseStreamHandler
+    [TestFixture]
+    public class GetTextureHandlerTests
     {
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private IAssetService m_AssetService;
-        protected bool m_allowDelete;
-
-        public AssetServerDeleteHandler(IAssetService service, bool allowDelete) :
-                base("DELETE", "/assets")
+        [Test]
+        public void TestTextureNotFound()
         {
-            m_AssetService = service;
-            m_allowDelete = allowDelete;
-        }
+            TestHelpers.InMethod();
 
-        public override byte[] Handle(string path, Stream request,
-                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-        {
-            bool result = false;
+            // Overkill - we only really need the asset service, not a whole scene.
+            Scene scene = SceneHelpers.SetupScene();
 
-            string[] p = SplitParams(path);
-
-            if (p.Length > 0 && m_allowDelete)
-            {
-                result = m_AssetService.Delete(p[0]);
-            }
-
-            XmlSerializer xs = new XmlSerializer(typeof(bool));
-            return ServerUtils.SerializeResult(xs, result);
+            GetTextureHandler handler = new GetTextureHandler(null, scene.AssetService);
+            TestOSHttpRequest req = new TestOSHttpRequest();
+            TestOSHttpResponse resp = new TestOSHttpResponse();
+            req.Url = new Uri("http://localhost/?texture_id=00000000-0000-1111-9999-000000000012");
+            handler.Handle(null, null, req, resp);
+            Assert.That(resp.StatusCode, Is.EqualTo((int)System.Net.HttpStatusCode.NotFound));
         }
     }
 }

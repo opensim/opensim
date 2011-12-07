@@ -45,7 +45,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         public void Handle(string path, Stream request, Stream responseStream,
-                           OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+                           IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             TRequest deserial;
             using (XmlTextReader xmlReader = new XmlTextReader(request))
