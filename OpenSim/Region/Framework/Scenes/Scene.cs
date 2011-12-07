@@ -3104,28 +3104,37 @@ namespace OpenSim.Region.Framework.Scenes
                     // Avatar is already disposed :/
                 }
 
-                m_eventManager.TriggerOnRemovePresence(agentID);
-
-                if (AttachmentsModule != null && !avatar.IsChildAgent && avatar.PresenceType != PresenceType.Npc)
-                    AttachmentsModule.SaveChangedAttachments(avatar);
-
-                ForEachClient(
-                    delegate(IClientAPI client)
-                    {
-                        //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
-                        try { client.SendKillObject(avatar.RegionHandle, new List<uint> { avatar.LocalId }); }
-                        catch (NullReferenceException) { }
-                    });
-
-                IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
-                if (agentTransactions != null)
+                try
                 {
-                    agentTransactions.RemoveAgentAssetTransactions(agentID);
+                    m_eventManager.TriggerOnRemovePresence(agentID);
+    
+                    if (AttachmentsModule != null && !avatar.IsChildAgent && avatar.PresenceType != PresenceType.Npc)
+                        AttachmentsModule.SaveChangedAttachments(avatar);
+    
+                    ForEachClient(
+                        delegate(IClientAPI client)
+                        {
+                            //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
+                            try { client.SendKillObject(avatar.RegionHandle, new List<uint> { avatar.LocalId }); }
+                            catch (NullReferenceException) { }
+                        });
+    
+                    IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
+                    if (agentTransactions != null)
+                    {
+                        agentTransactions.RemoveAgentAssetTransactions(agentID);
+                    }
                 }
-
-                // Remove the avatar from the scene
-                m_sceneGraph.RemoveScenePresence(agentID);
-                m_clientManager.Remove(agentID);
+                finally
+                {
+                    // Always clean these structures up so that any failure above doesn't cause them to remain in the
+                    // scene with possibly bad effects (e.g. continually timing out on unacked packets and triggering
+                    // the same cleanup exception continually.
+                    // TODO: This should probably extend to the whole method, but we don't want to also catch the NRE
+                    // since this would hide the underlying failure and other associated problems.
+                    m_sceneGraph.RemoveScenePresence(agentID);
+                    m_clientManager.Remove(agentID);
+                }
 
                 try
                 {
