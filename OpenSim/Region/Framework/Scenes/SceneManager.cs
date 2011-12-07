@@ -562,26 +562,6 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
-        public bool TryGetAvatarsScene(UUID avatarId, out Scene scene)
-        {
-            ScenePresence avatar = null;
-
-            lock (m_localScenes)
-            {
-                foreach (Scene mScene in m_localScenes)
-                {
-                    if (mScene.TryGetScenePresence(avatarId, out avatar))
-                    {
-                        scene = mScene;
-                        return true;
-                    }
-                }
-            }
-
-            scene = null;
-            return false;
-        }
-
         public void CloseScene(Scene scene)
         {
             lock (m_localScenes)
