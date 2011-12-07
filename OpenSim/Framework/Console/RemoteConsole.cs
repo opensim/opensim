@@ -232,9 +232,8 @@ namespace OpenSim.Framework.Console
 
             string uri = "/ReadResponses/" + sessionID.ToString() + "/";
 
-            m_Server.AddPollServiceHTTPHandler(uri, HandleHttpPoll,
-                    new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents,
-                    sessionID));
+            m_Server.AddPollServiceHTTPHandler(
+                uri, new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, sessionID));
 
             XmlDocument xmldoc = new XmlDocument();
             XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
@@ -264,11 +263,6 @@ namespace OpenSim.Framework.Console
             reply = CheckOrigin(reply);
 
             return reply;
-        }
-
-        private Hashtable HandleHttpPoll(Hashtable request)
-        {
-            return new Hashtable();
         }
 
         private Hashtable HandleHttpCloseSession(Hashtable request)
