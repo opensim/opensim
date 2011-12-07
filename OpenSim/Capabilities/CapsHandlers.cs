@@ -51,11 +51,10 @@ namespace OpenSim.Framework.Capabilities
         /// supplied BaseHttpServer.
         /// </summary>
         /// <param name="httpListener">base HTTP server</param>
-        /// <param name="httpListenerHostname">host name of the HTTP
-        /// server</param>
+        /// <param name="httpListenerHostname">host name of the HTTP server</param>
         /// <param name="httpListenerPort">HTTP port</param>
         public CapsHandlers(BaseHttpServer httpListener, string httpListenerHostname, uint httpListenerPort)
-         : this (httpListener,httpListenerHostname,httpListenerPort, false)
+            : this(httpListener,httpListenerHostname,httpListenerPort, false)
         {
         }
 
@@ -88,44 +87,52 @@ namespace OpenSim.Framework.Capabilities
         /// handler to be removed</param>
         public void Remove(string capsName)
         {
-            m_httpListener.RemoveStreamHandler("POST", m_capsHandlers[capsName].Path);
-            m_httpListener.RemoveStreamHandler("GET", m_capsHandlers[capsName].Path);
-            m_capsHandlers.Remove(capsName);
+            lock (m_capsHandlers)
+            {
+                m_httpListener.RemoveStreamHandler("POST", m_capsHandlers[capsName].Path);
+                m_httpListener.RemoveStreamHandler("GET", m_capsHandlers[capsName].Path);
+                m_capsHandlers.Remove(capsName);
+            }
         }
 
         public bool ContainsCap(string cap)
         {
-            return m_capsHandlers.ContainsKey(cap);
+            lock (m_capsHandlers)
+                return m_capsHandlers.ContainsKey(cap);
         }
 
         /// <summary>
         /// The indexer allows us to treat the CapsHandlers object
         /// in an intuitive dictionary like way.
         /// </summary>
-        /// <Remarks>
+        /// <remarks>
         /// The indexer will throw an exception when you try to
         /// retrieve a cap handler for a cap that is not contained in
         /// CapsHandlers.
-        /// </Remarks>
+        /// </remarks>
         public IRequestHandler this[string idx]
         {
             get
             {
-                return m_capsHandlers[idx];
+                lock (m_capsHandlers)
+                    return m_capsHandlers[idx];
             }
 
             set
             {
-                if (m_capsHandlers.ContainsKey(idx))
+                lock (m_capsHandlers)
                 {
-                    m_httpListener.RemoveStreamHandler("POST", m_capsHandlers[idx].Path);
-                    m_capsHandlers.Remove(idx);
+                    if (m_capsHandlers.ContainsKey(idx))
+                    {
+                        m_httpListener.RemoveStreamHandler("POST", m_capsHandlers[idx].Path);
+                        m_capsHandlers.Remove(idx);
+                    }
+    
+                    if (null == value) return;
+    
+                    m_capsHandlers[idx] = value;
+                    m_httpListener.AddStreamHandler(value);
                 }
-
-                if (null == value) return;
-
-                m_capsHandlers[idx] = value;
-                m_httpListener.AddStreamHandler(value);
             }
         }
 
@@ -137,9 +144,12 @@ namespace OpenSim.Framework.Capabilities
         {
             get
             {
-                string[] __keys = new string[m_capsHandlers.Keys.Count];
-                m_capsHandlers.Keys.CopyTo(__keys, 0);
-                return __keys;
+                lock (m_capsHandlers)
+                {
+                    string[] __keys = new string[m_capsHandlers.Keys.Count];
+                    m_capsHandlers.Keys.CopyTo(__keys, 0);
+                    return __keys;
+                }
             }
         }
 
@@ -157,12 +167,16 @@ namespace OpenSim.Framework.Capabilities
                 protocol = "https://";
 
             string baseUrl = protocol + m_httpListenerHostName + ":" + m_httpListenerPort.ToString();
-            foreach (string capsName in m_capsHandlers.Keys)
-            {
-                if (excludeSeed && "SEED" == capsName)
-                    continue;
 
-                caps[capsName] = baseUrl + m_capsHandlers[capsName].Path;
+            lock (m_capsHandlers)
+            {
+                foreach (string capsName in m_capsHandlers.Keys)
+                {
+                    if (excludeSeed && "SEED" == capsName)
+                        continue;
+
+                    caps[capsName] = baseUrl + m_capsHandlers[capsName].Path;
+                }
             }
 
             return caps;
