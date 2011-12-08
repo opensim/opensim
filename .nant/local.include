@@ -117,12 +117,10 @@
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.clientstack.lindencaps.tests)==0}" /> 
 
-<!--
   <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.region.clientstack.lindenudp.tests">
     <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.clientstack.lindenudp.tests)==0}" /> 
--->
 
   <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.region.scriptengine.tests">
     <arg value="./bin/OpenSim.Region.ScriptEngine.Tests.dll" />
@@ -351,7 +349,7 @@
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.servers.tests)==0}" /> 
-<!-- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.clientstack.lindenudp.tests)==0}" /> -->
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.clientstack.lindenudp.tests)==0}" />
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.scriptengine.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.coremodules.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.optionalmodules.tests)==0}" /> 

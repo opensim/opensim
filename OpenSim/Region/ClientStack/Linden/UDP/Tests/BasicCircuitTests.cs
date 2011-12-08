@@ -156,7 +156,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void TestAddClient()
         {
             TestHelpers.InMethod();
-            XmlConfigurator.Configure();
+//            XmlConfigurator.Configure();
 
             TestScene scene = SceneHelpers.SetupScene();
             uint myCircuitCode = 123456;
