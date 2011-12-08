@@ -379,6 +379,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             set { m_startpos = value; }
         }
         public UUID AgentId { get { return m_agentId; } }
+        public ISceneAgent SceneAgent { get; private set; }
         public UUID ActiveGroupId { get { return m_activeGroupID; } }
         public string ActiveGroupName { get { return m_activeGroupName; } }
         public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } }
@@ -508,6 +509,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Remove ourselves from the scene
             m_scene.RemoveClient(AgentId, true);
+            SceneAgent = null;
 
             // We can't reach into other scenes and close the connection
             // We need to do this over grid communications
@@ -687,7 +689,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public virtual void Start()
         {
-            m_scene.AddNewClient(this, PresenceType.User);
+            SceneAgent = m_scene.AddNewClient(this, PresenceType.User);
 
             RefreshGroupMembership();
         }

@@ -55,6 +55,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         private UUID m_agentID = UUID.Random();
 
+        public ISceneAgent SceneAgent { get; private set; }
+
         private string m_username;
         private string m_nick;
 
@@ -547,6 +549,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
             m_connected = false;
             m_client.Close();
+            SceneAgent = null;
         }
 
         public UUID SessionId
@@ -890,12 +893,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void Start()
         {
-            Scene.AddNewClient(this, PresenceType.User);
+            SceneAgent = m_scene.AddNewClient(this, PresenceType.User);
 
             // Mimicking LLClientView which gets always set appearance from client.
-            Scene scene = (Scene)Scene;
             AvatarAppearance appearance;
-            scene.GetAvatarAppearance(this, out appearance);
+            m_scene.GetAvatarAppearance(this, out appearance);
             OnSetAppearance(this, appearance.Texture, (byte[])appearance.VisualParams.Clone());
         }
 
