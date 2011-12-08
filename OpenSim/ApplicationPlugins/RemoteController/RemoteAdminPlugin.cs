@@ -213,7 +213,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 Hashtable requestData = (Hashtable) request.Params[0];
 
-                m_log.Info("[RADMIN]: Request to restart Region.");
                 CheckStringParameters(requestData, responseData, new string[] {"password"});
 
                 FailIfRemoteAdminNotAllowed((string)requestData["password"], responseData, remoteClient.Address.ToString());
