@@ -202,10 +202,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             ScenePresence sp = scene.GetScenePresence(myAgentUuid);
             Assert.That(sp.UUID, Is.EqualTo(myAgentUuid));
 
-            // FIXME: We're still replying to an ack when the client is not authorized, which is not correct behaviour.
-            Assert.That(llUdpServer.PacketsSent.Count, Is.EqualTo(2));
+            Assert.That(llUdpServer.PacketsSent.Count, Is.EqualTo(1));
 
-            Packet packet = llUdpServer.PacketsSent[1];
+            Packet packet = llUdpServer.PacketsSent[0];
             Assert.That(packet, Is.InstanceOf(typeof(PacketAckPacket)));
 
             PacketAckPacket ackPacket = packet as PacketAckPacket;

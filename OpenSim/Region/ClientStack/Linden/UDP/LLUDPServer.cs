@@ -905,23 +905,40 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //            DateTime startTime = DateTime.Now;
             object[] array = (object[])o;
             UDPPacketBuffer buffer = (UDPPacketBuffer)array[0];
-            UseCircuitCodePacket packet = (UseCircuitCodePacket)array[1];
+            UseCircuitCodePacket uccp = (UseCircuitCodePacket)array[1];
             
             m_log.DebugFormat("[LLUDPSERVER]: Handling UseCircuitCode request from {0}", buffer.RemoteEndPoint);
 
             IPEndPoint remoteEndPoint = (IPEndPoint)buffer.RemoteEndPoint;
 
-            // Begin the process of adding the client to the simulator
-            IClientAPI client = AddNewClient((UseCircuitCodePacket)packet, remoteEndPoint);
-
-            // Send ack straight away to let the viewer know that the connection is active.
-            // The client will be null if it already exists (e.g. if on a region crossing the client sends a use
-            // circuit code to the existing child agent.  This is not particularly obvious.
-            SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
-
-            // We only want to send initial data to new clients, not ones which are being converted from child to root.
-            if (client != null)
-                client.SceneAgent.SendInitialDataToMe();
+            AuthenticateResponse sessionInfo;
+            if (IsClientAuthorized(uccp, out sessionInfo))
+            {
+                // Begin the process of adding the client to the simulator
+                IClientAPI client
+                    = AddClient(
+                        uccp.CircuitCode.Code,
+                        uccp.CircuitCode.ID,
+                        uccp.CircuitCode.SessionID,
+                        remoteEndPoint,
+                        sessionInfo);
+        
+                // Send ack straight away to let the viewer know that the connection is active.
+                // The client will be null if it already exists (e.g. if on a region crossing the client sends a use
+                // circuit code to the existing child agent.  This is not particularly obvious.
+                SendAckImmediate(remoteEndPoint, uccp.Header.Sequence);
+        
+                // We only want to send initial data to new clients, not ones which are being converted from child to root.
+                if (client != null)
+                    client.SceneAgent.SendInitialDataToMe();
+            }
+            else
+            {
+                // Don't create clients for unauthorized requesters.
+                m_log.WarnFormat(
+                    "[LLUDPSERVER]: Connection request for client {0} connecting with unnotified circuit code {1} from {2}",
+                    uccp.CircuitCode.ID, uccp.CircuitCode.Code, remoteEndPoint);
+            }
 
             //            m_log.DebugFormat(
 //                "[LLUDPSERVER]: Handling UseCircuitCode request from {0} took {1}ms", 
@@ -969,36 +986,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             sessionInfo = m_circuitManager.AuthenticateSession(sessionID, agentID, circuitCode);
             return sessionInfo.Authorised;
-        }
-
-        /// <summary>
-        /// Add a new client.
-        /// </summary>
-        /// <param name="useCircuitCode"></param>
-        /// <param name="remoteEndPoint"></param>
-        /// <returns>
-        /// The client that was added or null if the client failed authorization or already existed.
-        /// </returns>
-        private IClientAPI AddNewClient(UseCircuitCodePacket useCircuitCode, IPEndPoint remoteEndPoint)
-        {
-            UUID agentID = useCircuitCode.CircuitCode.ID;
-            UUID sessionID = useCircuitCode.CircuitCode.SessionID;
-            uint circuitCode = useCircuitCode.CircuitCode.Code;
-
-            AuthenticateResponse sessionInfo;
-            if (IsClientAuthorized(useCircuitCode, out sessionInfo))
-            {
-                return AddClient(circuitCode, agentID, sessionID, remoteEndPoint, sessionInfo);
-            }
-            else
-            {
-                // Don't create circuits for unauthorized clients
-                m_log.WarnFormat(
-                    "[LLUDPSERVER]: Connection request for client {0} connecting with unnotified circuit code {1} from {2}",
-                    useCircuitCode.CircuitCode.ID, useCircuitCode.CircuitCode.Code, remoteEndPoint);
-
-                return null;
-            }
         }
 
         /// <summary>
