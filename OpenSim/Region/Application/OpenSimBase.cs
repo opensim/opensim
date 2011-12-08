@@ -62,6 +62,7 @@ namespace OpenSim
 
         // These are the names of the plugin-points extended by this
         // class during system startup.
+        //
 
         private const string PLUGIN_ASSET_CACHE = "/OpenSim/AssetCache";
         private const string PLUGIN_ASSET_SERVER_CLIENT = "/OpenSim/AssetClient";

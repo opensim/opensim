@@ -227,20 +227,16 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return new List<string>(m_HTTPHandlers.Keys);
         }
 
-        public bool AddPollServiceHTTPHandler(string methodName, GenericHTTPMethod handler, PollServiceEventArgs args)
+        public bool AddPollServiceHTTPHandler(string methodName, PollServiceEventArgs args)
         {
-            bool pollHandlerResult = false;
             lock (m_pollHandlers)
             {
                 if (!m_pollHandlers.ContainsKey(methodName))
                 {
-                    m_pollHandlers.Add(methodName,args);
-                    pollHandlerResult = true;
+                    m_pollHandlers.Add(methodName, args);
+                    return true;
                 }
             }
-
-            if (pollHandlerResult)
-                return AddHTTPHandler(methodName, handler);
 
             return false;
         }
@@ -1871,8 +1867,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             lock (m_pollHandlers)
                 m_pollHandlers.Remove(path);
-
-            RemoveHTTPHandler(httpMethod, path);
         }
 
         public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)
