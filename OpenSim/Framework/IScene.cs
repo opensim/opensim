@@ -74,9 +74,7 @@ namespace OpenSim.Framework
         /// <param name="client"></param>
         /// <param name="type">The type of agent to add.</param>
         /// <returns>
-        /// The scene agent if the new client was added.
-        /// Null if the required scene agent already existed or no scene agent was added because the required client circuit doesn't exist.
-        /// </returns>
+        /// The scene agent if the new client was added or if an agent that already existed.</returns>
         ISceneAgent AddNewClient(IClientAPI client, PresenceType type);
 
         /// <summary>

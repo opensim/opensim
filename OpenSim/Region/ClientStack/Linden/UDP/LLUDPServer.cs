@@ -897,12 +897,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IClientAPI client = AddNewClient((UseCircuitCodePacket)packet, remoteEndPoint);
 
             // Send ack straight away to let the viewer know that the connection is active.
+            // The client will be null if it already exists (e.g. if on a region crossing the client sends a use
+            // circuit code to the existing child agent.  This is not particularly obvious.
             SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
 
-            // FIXME: Nasty - this is the only way we currently know if Scene.AddNewClient() failed to find a
-            // circuit and bombed out early.  That check might be pointless since authorization is established
-            // up here.
-            if (client != null && client.SceneAgent != null)
+            // We only want to send initial data to new clients, not ones which are being converted from child to root.
+            if (client != null)
                 client.SceneAgent.SendInitialDataToMe();
 
             //            m_log.DebugFormat(
