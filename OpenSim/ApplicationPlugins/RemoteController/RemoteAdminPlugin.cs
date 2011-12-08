@@ -135,16 +135,22 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     availableMethods["admin_restart"] = XmlRpcRestartMethod;
                     availableMethods["admin_load_heightmap"] = XmlRpcLoadHeightmapMethod;
                     availableMethods["admin_save_heightmap"] = XmlRpcSaveHeightmapMethod;
+
+                    // Agent management
+                    availableMethods["admin_teleport_agent"] = XmlRpcTeleportAgentMethod;
+
                     // User management
                     availableMethods["admin_create_user"] = XmlRpcCreateUserMethod;
                     availableMethods["admin_create_user_email"] = XmlRpcCreateUserMethod;
                     availableMethods["admin_exists_user"] = XmlRpcUserExistsMethod;
                     availableMethods["admin_update_user"] = XmlRpcUpdateUserAccountMethod;
+
                     // Region state management
                     availableMethods["admin_load_xml"] = XmlRpcLoadXMLMethod;
                     availableMethods["admin_save_xml"] = XmlRpcSaveXMLMethod;
                     availableMethods["admin_load_oar"] = XmlRpcLoadOARMethod;
                     availableMethods["admin_save_oar"] = XmlRpcSaveOARMethod;
+
                     // Estate access list management
                     availableMethods["admin_acl_clear"] = XmlRpcAccessListClear;
                     availableMethods["admin_acl_add"] = XmlRpcAccessListAdd;
@@ -3073,6 +3079,112 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
+        public XmlRpcResponse XmlRpcTeleportAgentMethod(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                responseData["success"] = true;
+
+                Hashtable requestData = (Hashtable)request.Params[0];
+
+                CheckStringParameters(request, new string[] {"password"});
+
+                FailIfRemoteAdminNotAllowed((string)requestData["password"], remoteClient.Address.ToString());
+
+                UUID agentId;
+                string regionName = null;
+                Vector3 pos, lookAt;
+                bool agentSpecified = false;
+                ScenePresence sp = null;
+
+                if (requestData.Contains("agent_first_name") && requestData.Contains("agent_last_name"))
+                {
+                    string firstName = requestData["agent_first_name"].ToString();
+                    string lastName = requestData["agent_last_name"].ToString();
+                    m_application.SceneManager.TryGetRootScenePresenceByName(firstName, lastName, out sp);
+
+                    if (sp == null)
+                        throw new Exception(
+                            string.Format(
+                                "No agent found with agent_first_name {0} and agent_last_name {1}", firstName, lastName));
+                }
+                else if (requestData.Contains("agent_id"))
+                {
+                    string rawAgentId = (string)requestData["agent_id"];
+
+                    if (!UUID.TryParse(rawAgentId, out agentId))
+                        throw new Exception(string.Format("agent_id {0} does not have the correct id format", rawAgentId));
+
+                    m_application.SceneManager.TryGetRootScenePresence(agentId, out sp);
+
+                    if (sp == null)
+                        throw new Exception(string.Format("No agent with agent_id {0} found in this simulator", agentId));
+                }
+                else
+                {
+                    throw new Exception("No agent_id or agent_first_name and agent_last_name parameters specified");
+                }
+
+                if (requestData.Contains("region_name"))
+                    regionName = (string)requestData["region_name"];
+
+                pos.X = ParseFloat(requestData, "pos_x", sp.AbsolutePosition.X);
+                pos.Y = ParseFloat(requestData, "pos_y", sp.AbsolutePosition.Y);
+                pos.Z = ParseFloat(requestData, "pos_z", sp.AbsolutePosition.Z);
+                lookAt.X = ParseFloat(requestData, "lookat_x", sp.Lookat.X);
+                lookAt.Y = ParseFloat(requestData, "lookat_y", sp.Lookat.Y);
+                lookAt.Z = ParseFloat(requestData, "lookat_z", sp.Lookat.Z);
+
+                sp.Scene.RequestTeleportLocation(
+                    sp.ControllingClient, regionName, pos, lookAt, (uint)Constants.TeleportFlags.ViaLocation);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[RADMIN]: admin_teleport_agent exception: {0}{1}", e.Message, e.StackTrace);
+
+                responseData["success"] = false;
+                responseData["error"] = e.Message;
+            }
+            finally
+            {
+                response.Value = responseData;
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Parse a float with the given parameter name from a request data hash table.
+        /// </summary>
+        /// <remarks>
+        /// Will throw an exception if parameter is not a float.
+        /// Will not throw if parameter is not found, passes back default value instead.
+        /// </remarks>
+        /// <param name="requestData"></param>
+        /// <param name="paramName"></param>
+        /// <param name="defaultVal"></param>
+        /// <returns></returns>
+        private static float ParseFloat(Hashtable requestData, string paramName, float defaultVal)
+        {
+            if (requestData.Contains(paramName))
+            {
+                string rawVal = (string)requestData[paramName];
+                float val;
+
+                if (!float.TryParse(rawVal, out val))
+                    throw new Exception(string.Format("{0} {1} is not a valid float", paramName, rawVal));
+                else
+                    return val;
+            }
+            else
+            {
+                return defaultVal;
+            }
+        }
+
         private static void CheckStringParameters(XmlRpcRequest request, string[] param)
         {
             Hashtable requestData = (Hashtable) request.Params[0];
@@ -3252,6 +3364,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 return false;
             }
         }
+
         private bool LoadHeightmap(string file, UUID regionID)
         {
             m_log.InfoFormat("[RADMIN]: Terrain Loading: {0}", file);

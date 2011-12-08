@@ -3241,36 +3241,37 @@ namespace OpenSim.Region.Framework.Scenes
                     // Avatar is already disposed :/
                 }
 
-                m_log.Debug("[Scene] Beginning OnRemovePresence");
-                m_eventManager.TriggerOnRemovePresence(agentID);
-                m_log.Debug("[Scene] Finished OnRemovePresence");
-
-                if (AttachmentsModule != null && !avatar.IsChildAgent && avatar.PresenceType != PresenceType.Npc)
-                    AttachmentsModule.SaveChangedAttachments(avatar);
-
-                if (AttachmentsModule != null && !avatar.IsChildAgent && avatar.PresenceType != PresenceType.Npc)
-                    AttachmentsModule.SaveChangedAttachments(avatar);
-
-                ForEachClient(
-                    delegate(IClientAPI client)
-                    {
-                        //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
-                        try { client.SendKillObject(avatar.RegionHandle, new List<uint> { avatar.LocalId }); }
-                        catch (NullReferenceException) { }
-                    });
-
-                IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
-                if (agentTransactions != null)
+                try
                 {
-                    agentTransactions.RemoveAgentAssetTransactions(agentID);
+                    m_eventManager.TriggerOnRemovePresence(agentID);
+    
+                    if (AttachmentsModule != null && !avatar.IsChildAgent && avatar.PresenceType != PresenceType.Npc)
+                        AttachmentsModule.SaveChangedAttachments(avatar);
+    
+                    ForEachClient(
+                        delegate(IClientAPI client)
+                        {
+                            //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
+                            try { client.SendKillObject(avatar.RegionHandle, new List<uint> { avatar.LocalId }); }
+                            catch (NullReferenceException) { }
+                        });
+    
+                    IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
+                    if (agentTransactions != null)
+                    {
+                        agentTransactions.RemoveAgentAssetTransactions(agentID);
+                    }
                 }
-
-                // Remove the avatar from the scene
-                m_log.Debug("[Scene] Begin RemoveScenePresence");
-                m_sceneGraph.RemoveScenePresence(agentID);
-                m_log.Debug("[Scene] Finished RemoveScenePresence. Removing the client manager");
-                m_clientManager.Remove(agentID);
-                m_log.Debug("[Scene] Removed the client manager. Firing avatar.close");
+                finally
+                {
+                    // Always clean these structures up so that any failure above doesn't cause them to remain in the
+                    // scene with possibly bad effects (e.g. continually timing out on unacked packets and triggering
+                    // the same cleanup exception continually.
+                    // TODO: This should probably extend to the whole method, but we don't want to also catch the NRE
+                    // since this would hide the underlying failure and other associated problems.
+                    m_sceneGraph.RemoveScenePresence(agentID);
+                    m_clientManager.Remove(agentID);
+                }
 
                 try
                 {
@@ -4390,7 +4391,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="action"></param>
         public void ForEachRootScenePresence(Action<ScenePresence> action)
         {
-            if(m_sceneGraph != null)
+            if (m_sceneGraph != null)
             {
                 m_sceneGraph.ForEachAvatar(action);
             }
@@ -4470,9 +4471,9 @@ namespace OpenSim.Region.Framework.Scenes
             return m_sceneGraph.GetGroupByPrim(localID);
         }
 
-        public override bool TryGetScenePresence(UUID avatarId, out ScenePresence avatar)
+        public override bool TryGetScenePresence(UUID agentID, out ScenePresence sp)
         {
-            return m_sceneGraph.TryGetScenePresence(avatarId, out avatar);
+            return m_sceneGraph.TryGetScenePresence(agentID, out sp);
         }
 
         public bool TryGetAvatarByName(string avatarName, out ScenePresence avatar)

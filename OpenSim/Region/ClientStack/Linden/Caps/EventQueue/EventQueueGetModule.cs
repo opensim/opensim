@@ -361,7 +361,6 @@ namespace OpenSim.Region.ClientStack.Linden
             // This will persist this beyond the expiry of the caps handlers
             MainServer.Instance.AddPollServiceHTTPHandler(
                 capsBase + EventQueueGetUUID.ToString() + "/",
-                EventQueuePoll,
                 new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID));
 
             Random rnd = new Random(Environment.TickCount);
@@ -577,11 +576,6 @@ namespace OpenSim.Region.ClientStack.Linden
 //
 //            return responsedata;
 //        }
-
-        public Hashtable EventQueuePoll(Hashtable request)
-        {
-            return new Hashtable();
-        }
 
 //        public Hashtable EventQueuePath2(Hashtable request)
 //        {
