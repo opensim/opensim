@@ -2505,15 +2505,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendInitialDataToMe()
         {
-            // we created a new ScenePresence (a new child agent) in a fresh region.
-            // Request info about all the (root) agents in this region
-            // Note: This won't send data *to* other clients in that region (children don't send)
-            SendOtherAgentsAvatarDataToMe();
-            SendOtherAgentsAppearanceToMe();
-
             // Send all scene object to the new client
             Util.FireAndForget(delegate
             {
+                // we created a new ScenePresence (a new child agent) in a fresh region.
+                // Request info about all the (root) agents in this region
+                // Note: This won't send data *to* other clients in that region (children don't send)
+                SendOtherAgentsAvatarDataToMe();
+                SendOtherAgentsAppearanceToMe();
+
                 EntityBase[] entities = Scene.Entities.GetEntities();
                 foreach(EntityBase e in entities)
                 {
