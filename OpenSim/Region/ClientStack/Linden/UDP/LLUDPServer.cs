@@ -328,7 +328,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// The method to call if the packet is not acked by the client.  If null, then a standard
         /// resend of the packet is done.
         /// </param>
-        public void SendPacket(
+        public virtual void SendPacket(
             LLUDPClient udpClient, Packet packet, ThrottleOutPacketType category, bool allowSplitting, UnackedPacketMethod method)
         {
             // CoarseLocationUpdate packets cannot be split in an automated way
@@ -928,6 +928,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                buffer.RemoteEndPoint, (DateTime.Now - startTime).Milliseconds);
         }
 
+        /// <summary>
+        /// Send an ack immediately to the given endpoint.
+        /// </summary>
+        /// <remarks>
+        /// FIXME: Might be possible to use SendPacketData() like everything else, but this will require refactoring so
+        /// that we can obtain the UDPClient easily at this point.
+        /// </remarks>
+        /// <param name="remoteEndpoint"></param>
+        /// <param name="sequenceNumber"></param>
         private void SendAckImmediate(IPEndPoint remoteEndpoint, uint sequenceNumber)
         {
             PacketAckPacket ack = new PacketAckPacket();
@@ -936,6 +945,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ack.Packets[0] = new PacketAckPacket.PacketsBlock();
             ack.Packets[0].ID = sequenceNumber;
 
+            SendAckImmediate(remoteEndpoint, ack);
+        }
+
+        public virtual void SendAckImmediate(IPEndPoint remoteEndpoint, PacketAckPacket ack)
+        {
             byte[] packetData = ack.ToBytes();
             int length = packetData.Length;
 

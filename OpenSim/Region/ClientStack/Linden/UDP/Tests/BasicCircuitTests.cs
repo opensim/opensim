@@ -37,7 +37,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Region.ClientStack.LindenUDP
+namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {
     /// <summary>
     /// This will contain basic tests for the LindenUDP client stack
@@ -167,8 +167,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             uint port = 0;
             AgentCircuitManager acm = scene.AuthenticateHandler;
 
-            LLUDPServer llUdpServer
-                = new LLUDPServer(IPAddress.Any, ref port, 0, false, new IniConfigSource(), acm);
+            TestLLUDPServer llUdpServer
+                = new TestLLUDPServer(IPAddress.Any, ref port, 0, false, new IniConfigSource(), acm);
             llUdpServer.AddScene(scene);
 
             UseCircuitCodePacket uccp = new UseCircuitCodePacket();
@@ -201,6 +201,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Should succeed now
             ScenePresence sp = scene.GetScenePresence(myAgentUuid);
             Assert.That(sp.UUID, Is.EqualTo(myAgentUuid));
+
+            // FIXME: We're still replying to an ack when the client is not authorized, which is not correct behaviour.
+            Assert.That(llUdpServer.PacketsSent.Count, Is.EqualTo(2));
+
+            Packet packet = llUdpServer.PacketsSent[1];
+            Assert.That(packet, Is.InstanceOf(typeof(PacketAckPacket)));
+
+            PacketAckPacket ackPacket = packet as PacketAckPacket;
+            Assert.That(ackPacket.Packets.Length, Is.EqualTo(1));
+            Assert.That(ackPacket.Packets[0].ID, Is.EqualTo(0));
         }
 
 //        /// <summary>

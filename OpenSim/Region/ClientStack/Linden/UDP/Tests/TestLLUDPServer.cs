@@ -36,107 +36,106 @@ using OpenSim.Framework;
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {
     /// <summary>
-    /// This class enables synchronous testing of the LLUDPServer by allowing us to load our own data into the end 
-    /// receive event
+    /// This class enables regression testing of the LLUDPServer by allowing us to intercept outgoing data.
     /// </summary>
     public class TestLLUDPServer : LLUDPServer
     {
+        public List<Packet> PacketsSent { get; private set; }
+
         public TestLLUDPServer(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager circuitManager)
             : base(listenIP, ref port, proxyPortOffsetParm, allow_alternate_port, configSource, circuitManager)
-        {}
+        {
+            PacketsSent = new List<Packet>();
+        }
 
-        /// <summary>
-        /// The chunks of data to pass to the LLUDPServer when it calls EndReceive
-        /// </summary>
-        protected Queue<ChunkSenderTuple> m_chunksToLoad = new Queue<ChunkSenderTuple>();
-        
-//        protected override void BeginReceive()
-//        {
-//            if (m_chunksToLoad.Count > 0 && m_chunksToLoad.Peek().BeginReceiveException)
-//            {
-//                ChunkSenderTuple tuple = m_chunksToLoad.Dequeue();
-//                reusedEpSender = tuple.Sender;
-//                throw new SocketException();
-//            }
-//        }
-        
-//        protected override bool EndReceive(out int numBytes, IAsyncResult result, ref EndPoint epSender)
-//        {
-//            numBytes = 0;
-//
-//            //m_log.Debug("Queue size " + m_chunksToLoad.Count);
-//            
-//            if (m_chunksToLoad.Count <= 0)
-//                return false;
-//            
-//            ChunkSenderTuple tuple = m_chunksToLoad.Dequeue();
-//            RecvBuffer = tuple.Data;
-//            numBytes   = tuple.Data.Length;
-//            epSender   = tuple.Sender;
-//            
-//            return true;
-//        }
-        
-//        public override void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)
-//        {
-//            // Don't do anything just yet
-//        }
-        
-        /// <summary>
-        /// Signal that this chunk should throw an exception on Socket.BeginReceive()
-        /// </summary>
-        /// <param name="epSender"></param>
-        public void LoadReceiveWithBeginException(EndPoint epSender)
+        public override void SendAckImmediate(IPEndPoint remoteEndpoint, PacketAckPacket ack)
         {
-            ChunkSenderTuple tuple = new ChunkSenderTuple(epSender);
-            tuple.BeginReceiveException = true;
-            m_chunksToLoad.Enqueue(tuple);
+            PacketsSent.Add(ack);
         }
-        
-        /// <summary>
-        /// Load some data to be received by the LLUDPServer on the next receive call
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="epSender"></param>
-        public void LoadReceive(byte[] data, EndPoint epSender)
-        {
-            m_chunksToLoad.Enqueue(new ChunkSenderTuple(data, epSender));
-        }
-        
-        /// <summary>
-        /// Load a packet to be received by the LLUDPServer on the next receive call
-        /// </summary>
-        /// <param name="packet"></param>
-        public void LoadReceive(Packet packet, EndPoint epSender)
-        {
-            LoadReceive(packet.ToBytes(), epSender);
-        }
-        
-        /// <summary>
-        /// Calls the protected asynchronous result method.  This fires out all data chunks currently queued for send
-        /// </summary>
-        /// <param name="result"></param>
-        public void ReceiveData(IAsyncResult result)
-        {
-            // Doesn't work the same way anymore
-//            while (m_chunksToLoad.Count > 0)
-//                OnReceivedData(result);
-        }
-        
-        /// <summary>
-        /// Has a circuit with the given code been established?
-        /// </summary>
-        /// <param name="circuitCode"></param>
-        /// <returns></returns>
-        public bool HasCircuit(uint circuitCode)
-        {
-//            lock (clientCircuits_reverse)
-//            {
-//                return clientCircuits_reverse.ContainsKey(circuitCode);
-//            }
 
-            return true;
+        public override void SendPacket(
+            LLUDPClient udpClient, Packet packet, ThrottleOutPacketType category, bool allowSplitting, UnackedPacketMethod method)
+        {
+            PacketsSent.Add(packet);
         }
+
+////        /// <summary>
+////        /// The chunks of data to pass to the LLUDPServer when it calls EndReceive
+////        /// </summary>
+////        protected Queue<ChunkSenderTuple> m_chunksToLoad = new Queue<ChunkSenderTuple>();
+//        
+////        protected override void BeginReceive()
+////        {
+////            if (m_chunksToLoad.Count > 0 && m_chunksToLoad.Peek().BeginReceiveException)
+////            {
+////                ChunkSenderTuple tuple = m_chunksToLoad.Dequeue();
+////                reusedEpSender = tuple.Sender;
+////                throw new SocketException();
+////            }
+////        }
+//        
+////        protected override bool EndReceive(out int numBytes, IAsyncResult result, ref EndPoint epSender)
+////        {
+////            numBytes = 0;
+////
+////            //m_log.Debug("Queue size " + m_chunksToLoad.Count);
+////            
+////            if (m_chunksToLoad.Count <= 0)
+////                return false;
+////            
+////            ChunkSenderTuple tuple = m_chunksToLoad.Dequeue();
+////            RecvBuffer = tuple.Data;
+////            numBytes   = tuple.Data.Length;
+////            epSender   = tuple.Sender;
+////            
+////            return true;
+////        }
+//        
+////        public override void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)
+////        {
+////            // Don't do anything just yet
+////        }
+//        
+//        /// <summary>
+//        /// Signal that this chunk should throw an exception on Socket.BeginReceive()
+//        /// </summary>
+//        /// <param name="epSender"></param>
+//        public void LoadReceiveWithBeginException(EndPoint epSender)
+//        {
+//            ChunkSenderTuple tuple = new ChunkSenderTuple(epSender);
+//            tuple.BeginReceiveException = true;
+//            m_chunksToLoad.Enqueue(tuple);
+//        }
+//        
+//        /// <summary>
+//        /// Load some data to be received by the LLUDPServer on the next receive call
+//        /// </summary>
+//        /// <param name="data"></param>
+//        /// <param name="epSender"></param>
+//        public void LoadReceive(byte[] data, EndPoint epSender)
+//        {
+//            m_chunksToLoad.Enqueue(new ChunkSenderTuple(data, epSender));
+//        }
+//        
+//        /// <summary>
+//        /// Load a packet to be received by the LLUDPServer on the next receive call
+//        /// </summary>
+//        /// <param name="packet"></param>
+//        public void LoadReceive(Packet packet, EndPoint epSender)
+//        {
+//            LoadReceive(packet.ToBytes(), epSender);
+//        }
+//        
+//        /// <summary>
+//        /// Calls the protected asynchronous result method.  This fires out all data chunks currently queued for send
+//        /// </summary>
+//        /// <param name="result"></param>
+//        public void ReceiveData(IAsyncResult result)
+//        {
+//            // Doesn't work the same way anymore
+////            while (m_chunksToLoad.Count > 0)
+////                OnReceivedData(result);
+//        }
     }
     
     /// <summary>
