@@ -357,36 +357,24 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             m_log.Info("[RADMIN]: Dialog request started");
 
-            try
-            {
-                Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable)request.Params[0];
 
-                string message = (string)requestData["message"];
-                string fromuuid = (string)requestData["from"];
-                m_log.InfoFormat("[RADMIN]: Broadcasting: {0}", message);
+            string message = (string)requestData["message"];
+            string fromuuid = (string)requestData["from"];
+            m_log.InfoFormat("[RADMIN]: Broadcasting: {0}", message);
 
-                responseData["accepted"] = true;
-                responseData["success"] = true;
+            responseData["accepted"] = true;
+            responseData["success"] = true;
 
-                m_application.SceneManager.ForEachScene(
-                    delegate(Scene scene)
-                    {
-                        IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
-                        if (dialogModule != null)
-                            dialogModule.SendNotificationToUsersInRegion(UUID.Zero, fromuuid, message);
-                    });
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[RADMIN]: Broadcasting: failed: {0}", e.Message);
-                m_log.DebugFormat("[RADMIN]: Broadcasting: failed: {0}", e.ToString());
+            m_application.SceneManager.ForEachScene(
+                delegate(Scene scene)
+                {
+                    IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
+                    if (dialogModule != null)
+                        dialogModule.SendNotificationToUsersInRegion(UUID.Zero, fromuuid, message);
+                });
 
-                responseData["accepted"] = false;
-                responseData["success"] = false;
-                responseData["error"] = e.Message;
-            }
-
-            m_log.Info("[RADMIN]: Alert request complete");
+            m_log.Info("[RADMIN]: Dialog request complete");
         }
 
         private void XmlRpcLoadHeightmapMethod(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
