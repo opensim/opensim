@@ -2378,8 +2378,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Overridden Methods
 
-        private bool sendingPrims = false;
-
         public override void Update()
         {
             const float ROTATION_TOLERANCE = 0.01f;
