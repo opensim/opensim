@@ -611,11 +611,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             outgoingPacket.TickCount = Environment.TickCount & Int32.MaxValue;
         }
 
-        protected override void PacketReceived(UDPPacketBuffer buffer)
+        public override void PacketReceived(UDPPacketBuffer buffer)
         {
             // Debugging/Profiling
             //try { Thread.CurrentThread.Name = "PacketReceived (" + m_scene.RegionInfo.RegionName + ")"; }
             //catch (Exception) { }
+//            m_log.DebugFormat(
+//                "[LLUDPSERVER]: Packet received from {0} in {1}", buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
 
             LLUDPClient udpClient = null;
             Packet packet = null;
@@ -625,7 +627,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #region Decoding
 
             if (buffer.DataLength < 7)
+            {
+//                m_log.WarnFormat(
+//                    "[LLUDPSERVER]: Dropping undersized packet with {0} bytes received from {1} in {2}",
+//                    buffer.DataLength, buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
+
                 return; // Drop undersizd packet
+            }
 
             int headerLen = 7;
             if (buffer.Data[6] == 0xFF)
@@ -637,7 +645,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             if (buffer.DataLength < headerLen)
+            {
+//                m_log.WarnFormat(
+//                    "[LLUDPSERVER]: Dropping packet with malformed header received from {0} in {1}",
+//                    buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
+
                 return; // Malformed header
+            }
 
             try
             {
@@ -650,6 +664,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (IndexOutOfRangeException)
             {
+//                m_log.WarnFormat(
+//                    "[LLUDPSERVER]: Dropping short packet received from {0} in {1}",
+//                    buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
+
                 return; // Drop short packet
             }
             catch(Exception e)

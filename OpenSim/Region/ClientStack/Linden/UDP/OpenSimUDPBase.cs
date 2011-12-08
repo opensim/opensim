@@ -44,7 +44,7 @@ namespace OpenMetaverse
         /// This method is called when an incoming packet is received
         /// </summary>
         /// <param name="buffer">Incoming packet buffer</param>
-        protected abstract void PacketReceived(UDPPacketBuffer buffer);
+        public abstract void PacketReceived(UDPPacketBuffer buffer);
 
         /// <summary>UDP port to bind to in server mode</summary>
         protected int m_udpPort;
