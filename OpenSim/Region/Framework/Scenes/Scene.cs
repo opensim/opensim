@@ -2487,7 +2487,7 @@ namespace OpenSim.Region.Framework.Scenes
         #region Add/Remove Avatar Methods
 
         /// <summary>
-        /// Add a new client and create a child agent for it.
+        /// Add a new client and create a child scene presence for it.
         /// </summary>
         /// <param name="client"></param>
         /// <param name="type">The type of agent to add.</param>
@@ -2504,42 +2504,53 @@ namespace OpenSim.Region.Framework.Scenes
 
             CheckHeartbeat();
 
-            if (GetScenePresence(client.AgentId) == null) // ensure there is no SP here
+            ScenePresence sp = GetScenePresence(client.AgentId);
+
+            // XXX: Not sure how good it is to add a new client if a scene presence already exists.  Possibly this
+            // could occur if a viewer crashes and relogs before the old client is kicked out.  But this could cause
+            // other problems, and possible the code calling AddNewClient() should ensure that no client is already
+            // connected.
+            if (sp == null)
             {
-                m_log.Debug("[SCENE]: Adding new agent " + client.Name + " to scene " + RegionInfo.RegionName);
+                m_log.Debug("[SCENE]: Adding new child scene presence " + client.Name + " to scene " + RegionInfo.RegionName);
 
                 m_clientManager.Add(client);
                 SubscribeToClientEvents(client);
 
-                ScenePresence sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance, type);
+                sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance, type);
                 m_eventManager.TriggerOnNewPresence(sp);
 
                 sp.TeleportFlags = (TeleportFlags)aCircuit.teleportFlags;
 
-                // HERE!!! Do the initial attachments right here
-                // first agent upon login is a root agent by design.
-                // All other AddNewClient calls find aCircuit.child to be true
+                // The first agent upon login is a root agent by design.
+                // For this agent we will have to rez the attachments.
+                // All other AddNewClient calls find aCircuit.child to be true.
                 if (aCircuit.child == false)
                 {
+                    // We have to set SP to be a root agent here so that SP.MakeRootAgent() will later not try to
+                    // start the scripts again (since this is done in RezAttachments()).
+                    // XXX: This is convoluted.
                     sp.IsChildAgent = false;
 
                     if (AttachmentsModule != null)
                         Util.FireAndForget(delegate(object o) { AttachmentsModule.RezAttachments(sp); });
                 }
             }
-
-            ScenePresence createdSp = GetScenePresence(client.AgentId);
-            if (createdSp != null)
+            else
             {
-                m_LastLogin = Util.EnvironmentTickCount();
-
-                // Cache the user's name
-                CacheUserName(createdSp, aCircuit);
-
-                EventManager.TriggerOnNewClient(client);
-                if (vialogin)
-                    EventManager.TriggerOnClientLogin(client);
+                m_log.WarnFormat(
+                    "[SCENE]: Already found {0} scene presence for {1} in {2} when asked to add new scene presence",
+                    sp.IsChildAgent ? "child" : "root", sp.Name, RegionInfo.RegionName);
             }
+
+            m_LastLogin = Util.EnvironmentTickCount();
+
+            // Cache the user's name
+            CacheUserName(sp, aCircuit);
+
+            EventManager.TriggerOnNewClient(client);
+            if (vialogin)
+                EventManager.TriggerOnClientLogin(client);
 
             // Send all scene object to the new client
             Util.FireAndForget(delegate
