@@ -498,7 +498,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (m_deliverPackets == false) return false;
 
-            OutgoingPacket packet;
+            OutgoingPacket packet = null;
             OpenSim.Framework.LocklessQueue<OutgoingPacket> queue;
             TokenBucket bucket;
             bool packetSent = false;
@@ -530,32 +530,49 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // No dequeued packet waiting to be sent, try to pull one off
                     // this queue
                     queue = m_packetOutboxes[i];
-                    if (queue != null && queue.Dequeue(out packet))
+                    if (queue != null)
                     {
-                        // A packet was pulled off the queue. See if we have
-                        // enough tokens in the bucket to send it out
-                        if (bucket.RemoveTokens(packet.Buffer.DataLength))
+                        bool success = false;
+                        try
                         {
-                            // Send the packet
-                            m_udpServer.SendPacketFinal(packet);
-                            packetSent = true;
+                            success = queue.Dequeue(out packet);
+                        }
+                        catch
+                        {
+                            m_packetOutboxes[i] = new OpenSim.Framework.LocklessQueue<OutgoingPacket>();
+                        }
+                        if (success)
+                        {
+                            // A packet was pulled off the queue. See if we have
+                            // enough tokens in the bucket to send it out
+                            if (bucket.RemoveTokens(packet.Buffer.DataLength))
+                            {
+                                // Send the packet
+                                m_udpServer.SendPacketFinal(packet);
+                                packetSent = true;
+                            }
+                            else
+                            {
+                                // Save the dequeued packet for the next iteration
+                                m_nextPackets[i] = packet;
+                            }
+
+                            // If the queue is empty after this dequeue, fire the queue
+                            // empty callback now so it has a chance to fill before we 
+                            // get back here
+                            if (queue.Count == 0)
+                                emptyCategories |= CategoryToFlag(i);
                         }
                         else
                         {
-                            // Save the dequeued packet for the next iteration
-                            m_nextPackets[i] = packet;
-                        }
-
-                        // If the queue is empty after this dequeue, fire the queue
-                        // empty callback now so it has a chance to fill before we 
-                        // get back here
-                        if (queue.Count == 0)
+                            // No packets in this queue. Fire the queue empty callback
+                            // if it has not been called recently
                             emptyCategories |= CategoryToFlag(i);
+                        }
                     }
                     else
                     {
-                        // No packets in this queue. Fire the queue empty callback
-                        // if it has not been called recently
+                        m_packetOutboxes[i] = new OpenSim.Framework.LocklessQueue<OutgoingPacket>();
                         emptyCategories |= CategoryToFlag(i);
                     }
                 }
