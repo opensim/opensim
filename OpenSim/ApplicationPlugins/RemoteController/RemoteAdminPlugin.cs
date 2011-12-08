@@ -414,7 +414,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             LoadHeightmap(file, regionID);
 
-            responseData["success"] = false;
+            responseData["success"] = true;
 
             m_log.Info("[RADMIN]: Load height maps request complete");
         }
@@ -446,7 +446,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             terrainModule.SaveToFile(file);
 
-            responseData["success"] = false;
+            responseData["success"] = true;
 
             m_log.Info("[RADMIN]: Save height maps request complete");
         }
@@ -1558,7 +1558,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     options["profile"] = (string)requestData["profile"];
                 }
 
-                if (requestData["noassets"] == "true")
+                if (requestData["noassets"].ToString() == "true")
                 {
                     options["noassets"] = (string)requestData["noassets"] ;
                 }
