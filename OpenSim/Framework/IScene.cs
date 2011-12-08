@@ -68,12 +68,16 @@ namespace OpenSim.Framework
         event restart OnRestart;
 
         /// <summary>
-        /// Register the new client with the scene.  The client starts off as a child agent - the later agent crossing
-        /// will promote it to a root agent.
+        /// Add a new client and create a presence for it.  All clients except initial login clients will starts off as a child agent
+        /// - the later agent crossing will promote it to a root agent.
         /// </summary>
         /// <param name="client"></param>
         /// <param name="type">The type of agent to add.</param>
-        void AddNewClient(IClientAPI client, PresenceType type);
+        /// <returns>
+        /// The scene agent if the new client was added.
+        /// Null if the required scene agent already existed or no scene agent was added because the required client circuit doesn't exist.
+        /// </returns>
+        ISceneAgent AddNewClient(IClientAPI client, PresenceType type);
 
         /// <summary>
         /// Remove the given client from the scene.

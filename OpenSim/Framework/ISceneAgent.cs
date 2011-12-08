@@ -26,11 +26,8 @@
  */
 
 using System;
-using System.Collections.Generic;
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Framework
 {
     /// <summary>
     /// An agent in the scene.
@@ -38,39 +35,34 @@ namespace OpenSim.Region.Framework.Interfaces
     /// <remarks>
     /// Interface is a work in progress.  Please feel free to add other required properties and methods.
     /// </remarks>
-    public interface IScenePresence : ISceneAgent
+    public interface ISceneAgent : ISceneEntity
     {
+        /// <value>
+        /// The client controlling this presence
+        /// </value>
+        IClientAPI ControllingClient { get; }
+
         /// <summary>
-        /// The AttachmentsModule synchronizes on this to avoid race conditions between commands to add and remove attachments.
+        /// What type of presence is this?  User, NPC, etc.
+        /// </summary>
+        PresenceType PresenceType { get; }
+
+        /// <summary>
+        /// Avatar appearance data.
         /// </summary>
         /// <remarks>
-        /// All add and remove attachment operations must synchronize on this for the lifetime of their operations.
+        // Because appearance setting is in a module, we actually need
+        // to give it access to our appearance directly, otherwise we
+        // get a synchronization issue.
         /// </remarks>
-        Object AttachmentsSyncLock { get; }
+        AvatarAppearance Appearance { get; set; }
 
         /// <summary>
-        /// The scene objects attached to this avatar.
+        /// Send initial scene data to the client controlling this agent
         /// </summary>
-        /// <returns>
-        /// A copy of the list.
-        /// </returns>
         /// <remarks>
-        ///  Do not change this list directly - use the attachments module.
+        /// This includes scene object data and the appearance data of other avatars.
         /// </remarks>
-        List<SceneObjectGroup> GetAttachments();
-
-        /// <summary>
-        /// The scene objects attached to this avatar at a specific attachment point.
-        /// </summary>
-        /// <param name="attachmentPoint"></param>
-        /// <returns></returns>
-        List<SceneObjectGroup> GetAttachments(uint attachmentPoint);
-
-        bool HasAttachments();
-
-        // Don't use these methods directly.  Instead, use the AttachmentsModule
-        void AddAttachment(SceneObjectGroup gobj);
-        void RemoveAttachment(SceneObjectGroup gobj);
-        void ClearAttachments();
+        void SendInitialDataToMe();
     }
 }

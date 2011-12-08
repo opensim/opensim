@@ -54,7 +54,7 @@ namespace OpenSim.Tests.Common.Mock
         public Scene TeleportTargetScene;
         private TestClient TeleportSceneClient;
 
-        private IScene m_scene;
+        private Scene m_scene;
 
         // Properties so that we can get at received data for test purposes
         public List<UUID> ReceivedOfflineNotifications { get; private set; }
@@ -325,6 +325,8 @@ namespace OpenSim.Tests.Common.Mock
         /// </value>
         private UUID m_agentId;
 
+        public ISceneAgent SceneAgent { get { throw new NotImplementedException(); } }
+
         /// <value>
         /// The last caps seed url that this client was given.
         /// </value>
@@ -438,7 +440,7 @@ namespace OpenSim.Tests.Common.Mock
         /// </summary>
         /// <param name="agentData"></param>
         /// <param name="scene"></param>
-        public TestClient(AgentCircuitData agentData, IScene scene)
+        public TestClient(AgentCircuitData agentData, Scene scene)
         {
             m_agentId = agentData.AgentID;
             m_firstName = agentData.firstname;
@@ -904,6 +906,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public void Start()
         {
+            throw new NotImplementedException();
         }
 
         public void Stop()

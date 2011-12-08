@@ -707,6 +707,12 @@ namespace OpenSim.Framework
 
         UUID AgentId { get; }
 
+        /// <summary>
+        /// The scene agent for this client.  This will only be set if the client has an agent in a scene (i.e. if it
+        /// is connected).
+        /// </summary>
+        ISceneAgent SceneAgent { get; }
+
         UUID SessionId { get; }
 
         UUID SecureSessionId { get; }

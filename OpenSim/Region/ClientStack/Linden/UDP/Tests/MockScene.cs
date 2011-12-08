@@ -53,9 +53,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public override void Update() {}
         public override void LoadWorldMap() {}
         
-        public override void AddNewClient(IClientAPI client, PresenceType type)
+        public override ISceneAgent AddNewClient(IClientAPI client, PresenceType type)
         {
             client.OnObjectName += RecordObjectNameCall;
+
+            // FIXME
+            return null;
         }
         
         public override void RemoveClient(UUID agentID, bool someReason) {}

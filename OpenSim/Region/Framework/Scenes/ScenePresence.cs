@@ -794,15 +794,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             AdjustKnownSeeds();
 
-            // we created a new ScenePresence (a new child agent) in a fresh region.
-            // Request info about all the (root) agents in this region
-            // Note: This won't send data *to* other clients in that region (children don't send)
-
-// MIC: This gets called again in CompleteMovement
-            // SendInitialFullUpdateToAllClients();
-            SendOtherAgentsAvatarDataToMe();
-            SendOtherAgentsAppearanceToMe();
-
             RegisterToEvents();
             SetDirectionVectors();
 
@@ -1207,9 +1198,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            DateTime startTime = DateTime.Now;
             
-            m_log.DebugFormat(
-                "[SCENE PRESENCE]: Completing movement of {0} into region {1}", 
-                client.Name, Scene.RegionInfo.RegionName);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Completing movement of {0} into region {1}", 
+//                client.Name, Scene.RegionInfo.RegionName);
 
             Vector3 look = Velocity;
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
@@ -1241,7 +1232,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
 
             ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
-            SendInitialData();
+            ValidateAndSendAppearanceAndAgentData();
 
             // Create child agents in neighbouring regions
             if (openChildAgents && !IsChildAgent)
@@ -2531,11 +2522,31 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.SendCoarseLocationUpdate(avatarUUIDs, coarseLocations);
         }
 
+        public void SendInitialDataToMe()
+        {
+            // Send all scene object to the new client
+            Util.FireAndForget(delegate
+            {
+                // we created a new ScenePresence (a new child agent) in a fresh region.
+                // Request info about all the (root) agents in this region
+                // Note: This won't send data *to* other clients in that region (children don't send)
+                SendOtherAgentsAvatarDataToMe();
+                SendOtherAgentsAppearanceToMe();
+
+                EntityBase[] entities = Scene.Entities.GetEntities();
+                foreach(EntityBase e in entities)
+                {
+                    if (e != null && e is SceneObjectGroup)
+                        ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
+                }
+            });
+        }
+
         /// <summary>
         /// Do everything required once a client completes its movement into a region and becomes
         /// a root agent.
         /// </summary>
-        private void SendInitialData()
+        private void ValidateAndSendAppearanceAndAgentData()
         {
             //m_log.DebugFormat("[SCENE PRESENCE] SendInitialData: {0} ({1})", Name, UUID);
             // Moved this into CompleteMovement to ensure that Appearance is initialized before
