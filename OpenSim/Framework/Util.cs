@@ -58,10 +58,12 @@ namespace OpenSim.Framework
     /// <remarks>
     /// None is used to execute the method in the same thread that made the call.  It should only be used by regression
     /// test code that relies on predictable event ordering.
+    /// RegressionTest is used by regression tests.  It fires the call synchronously and does not catch any exceptions.
     /// </remarks>
     public enum FireAndForgetMethod
     {
         None,
+        RegressionTest,
         UnsafeQueueUserWorkItem,
         QueueUserWorkItem,
         BeginInvoke,
@@ -1556,27 +1558,38 @@ namespace OpenSim.Framework
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
-            // When OpenSim interacts with a database or sends data over the wire, it must send this in en_US culture
-            // so that we don't encounter problems where, for instance, data is saved with a culture that uses commas
-            // for decimals places but is read by a culture that treats commas as number seperators.
-            WaitCallback realCallback = delegate(object o)
-            {
-                Culture.SetCurrentCulture();
+            WaitCallback realCallback;
 
-                try
+            if (FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
+            {
+                // If we're running regression tests, then we want any exceptions to rise up to the test code.
+                realCallback = o => { Culture.SetCurrentCulture(); callback(o); };
+            }
+            else
+            {
+                // When OpenSim interacts with a database or sends data over the wire, it must send this in en_US culture
+                // so that we don't encounter problems where, for instance, data is saved with a culture that uses commas
+                // for decimals places but is read by a culture that treats commas as number seperators.
+                realCallback = o =>
                 {
-                    callback(o);
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat(
-                        "[UTIL]: Continuing after async_call_method thread terminated with exception {0}{1}",
-                        e.Message, e.StackTrace);
-                }
-            };
+                    Culture.SetCurrentCulture();
+
+                    try
+                    {
+                        callback(o);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[UTIL]: Continuing after async_call_method thread terminated with exception {0}{1}",
+                            e.Message, e.StackTrace);
+                    }
+                };
+            }
 
             switch (FireAndForgetMethod)
             {
+                case FireAndForgetMethod.RegressionTest:
                 case FireAndForgetMethod.None:
                     realCallback.Invoke(obj);
                     break;

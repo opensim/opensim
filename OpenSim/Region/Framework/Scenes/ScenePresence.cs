@@ -2397,8 +2397,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Overridden Methods
 
-        private bool sendingPrims = false;
-
         public override void Update()
         {
             const float ROTATION_TOLERANCE = 0.01f;
@@ -2569,7 +2567,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             
             // This agent just became root. We are going to tell everyone about it. The process of
-            // getting other avatars information was initiated in the constructor... don't do it 
+            // getting other avatars information was initiated elsewhere immediately after the child circuit connected... don't do it
             // again here... this comes after the cached appearance check because the avatars
             // appearance goes into the avatar update packet
             SendAvatarDataToAllAgents();

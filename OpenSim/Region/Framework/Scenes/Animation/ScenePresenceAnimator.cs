@@ -60,7 +60,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public int m_animTickJump;		// ScenePresence has to see this to control +Z force
         public bool m_jumping = false; 
         public float m_jumpVelocity = 0f;
-        private int m_landing = 0;
+//        private int m_landing = 0;
         public bool Falling
         {
             get { return m_falling; }

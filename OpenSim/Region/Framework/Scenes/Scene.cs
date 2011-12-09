@@ -2609,21 +2609,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Add/Remove Avatar Methods
 
-        /// <summary>
-        /// Add a new client and create a child scene presence for it.
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="type">The type of agent to add.</param>
         public override ISceneAgent AddNewClient(IClientAPI client, PresenceType type)
         {
+            // Validation occurs in LLUDPServer
             AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
-            bool vialogin = false;
 
-            if (aCircuit == null) // no good, didn't pass NewUserConnection successfully
-                return null;
-
-            vialogin = (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0 || 
-                       (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0;
+            bool vialogin
+                = (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0
+                    || (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0;
 
             CheckHeartbeat();
             ScenePresence presence;
