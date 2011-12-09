@@ -211,11 +211,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         #region admin stuff
-
-        public virtual bool PresenceChildStatus(UUID avatarID)
-        {
-            return false;
-        }
         
         public abstract void OtherRegionUp(GridRegion otherRegion);
 

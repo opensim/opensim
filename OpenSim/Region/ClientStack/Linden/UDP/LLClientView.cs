@@ -525,7 +525,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Kick(string message)
         {
-            if (!ChildAgentStatus())
+            if (!SceneAgent.IsChildAgent)
             {
                 KickUserPacket kupack = (KickUserPacket)PacketPool.Instance.GetPacket(PacketType.KickUser);
                 kupack.UserInfo.AgentID = AgentId;
@@ -2448,7 +2448,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="Message"></param>
         public void SendBlueBoxMessage(UUID FromAvatarID, String FromAvatarName, String Message)
         {
-            if (!ChildAgentStatus())
+            if (!SceneAgent.IsChildAgent)
                 SendInstantMessage(new GridInstantMessage(null, FromAvatarID, FromAvatarName, AgentId, 1, Message, false, new Vector3()));
 
             //SendInstantMessage(FromAvatarID, fromSessionID, Message, AgentId, SessionId, FromAvatarName, (byte)21,(uint) Util.UnixTimeSinceEpoch());
@@ -5052,14 +5052,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return m_groupPowers[groupID];
 
             return 0;
-        }
-
-        /// <summary>
-        /// This is a utility method used by single states to not duplicate kicks and blue card of death messages.
-        /// </summary>
-        public bool ChildAgentStatus()
-        {
-            return m_scene.PresenceChildStatus(AgentId);
         }
 
         #endregion
@@ -11625,7 +11617,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (logPacket)
                     m_log.DebugFormat(
                         "[CLIENT]: PACKET OUT to   {0} ({1}) in {2} - {3}",
-                        Name, ChildAgentStatus() ? "child" : "root ", m_scene.RegionInfo.RegionName, packet.Type);
+                        Name, SceneAgent.IsChildAgent ? "child" : "root ", m_scene.RegionInfo.RegionName, packet.Type);
             }
             
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting, method);
@@ -11682,7 +11674,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (logPacket)
                     m_log.DebugFormat(
                         "[CLIENT]: PACKET IN  from {0} ({1}) in {2} - {3}",
-                        Name, ChildAgentStatus() ? "child" : "root ", m_scene.RegionInfo.RegionName, packet.Type);
+                        Name, SceneAgent.IsChildAgent ? "child" : "root ", m_scene.RegionInfo.RegionName, packet.Type);
             }
 
             if (!ProcessPacketMethod(packet))

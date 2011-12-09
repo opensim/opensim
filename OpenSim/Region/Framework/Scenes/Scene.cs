@@ -4193,17 +4193,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Returns true if scene presence is a child (no avatar in this scene)
-        /// </summary>
-        /// <param name="avatarID"></param>
-        /// <returns></returns>
-        public override bool PresenceChildStatus(UUID avatarID)
-        {
-            ScenePresence sp;
-            return TryGetScenePresence(avatarID, out sp) && sp.IsChildAgent;
-        }
-
-        /// <summary>
         /// Performs action on all avatars in the scene (root scene presences)
         /// Avatars may be an NPC or a 'real' client.
         /// </summary>
