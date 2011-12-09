@@ -682,7 +682,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // If this is a linkset, we don't want the physics engine mucking up our group position here.
                 PhysicsActor actor = PhysActor;
-                if (actor != null && ParentID == 0)
+                if (ParentID == 0)
                 {
                     if (actor != null)
                         m_groupPosition = actor.Position;
@@ -1080,10 +1080,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (ParentGroup.IsAttachment)
-                    return GroupPosition;
-
-                return m_offsetPosition + m_groupPosition;
+                return GroupPosition + (m_offsetPosition * ParentGroup.RootPart.RotationOffset);
             }
         }
 
