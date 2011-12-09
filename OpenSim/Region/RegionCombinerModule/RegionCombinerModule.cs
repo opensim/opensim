@@ -67,11 +67,12 @@ namespace OpenSim.Region.RegionCombinerModule
         {
             IConfig myConfig = source.Configs["Startup"];
             enabledYN = myConfig.GetBoolean("CombineContiguousRegions", false);
-            //enabledYN = true;
+
             if (enabledYN)
-                MainConsole.Instance.Commands.AddCommand("RegionCombinerModule", false, "fix-phantoms",
-                    "Fix phantom objects", "Fixes phantom objects after an import to megaregions", FixPhantoms);
-            }
+                MainConsole.Instance.Commands.AddCommand(
+                    "RegionCombinerModule", false, "fix-phantoms", "fix-phantoms",
+                    "Fixes phantom objects after an import to megaregions", FixPhantoms);
+        }
 
         public void Close()
         {
