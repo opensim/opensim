@@ -114,6 +114,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return;
             }
 
+//            m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing any attachments for {0}", sp.Name);
+
             List<AvatarAttachment> attachments = sp.Appearance.GetAttachments();
             foreach (AvatarAttachment attach in attachments)
             {

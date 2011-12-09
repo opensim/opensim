@@ -221,6 +221,7 @@ namespace OpenSim.Capabilities.Handlers
                 int start, end;
                 if (TryParseRange(range, out start, out end))
                 {
+
                     // Before clamping start make sure we can satisfy it in order to avoid
                     // sending back the last byte instead of an error status
                     if (start >= texture.Data.Length)
@@ -266,9 +267,14 @@ namespace OpenSim.Capabilities.Handlers
                 response.Body.Write(texture.Data, 0, texture.Data.Length);
             }
 
-//            m_log.DebugFormat(
-//                "[GETTEXTURE]: For texture {0} requested range {1} responded {2} with content length {3} (actual {4})",
-//                texture.FullID, range, response.StatusCode, response.ContentLength, texture.Data.Length);
+//            if (response.StatusCode < 200 || response.StatusCode > 299)
+//                m_log.WarnFormat(
+//                    "[GETTEXTURE]: For texture {0} requested range {1} responded {2} with content length {3} (actual {4})",
+//                    texture.FullID, range, response.StatusCode, response.ContentLength, texture.Data.Length);
+//            else
+//                m_log.DebugFormat(
+//                    "[GETTEXTURE]: For texture {0} requested range {1} responded {2} with content length {3} (actual {4})",
+//                    texture.FullID, range, response.StatusCode, response.ContentLength, texture.Data.Length);
         }
 
         private bool TryParseRange(string header, out int start, out int end)

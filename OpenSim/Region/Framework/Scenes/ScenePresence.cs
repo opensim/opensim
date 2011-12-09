@@ -182,10 +182,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private const int LAND_VELOCITYMAG_MAX = 12;
 
-        public bool IsRestrictedToRegion;
-
-        public string JID = String.Empty;
-
         private float m_health = 100f;
 
         protected ulong crossingFromRegion;

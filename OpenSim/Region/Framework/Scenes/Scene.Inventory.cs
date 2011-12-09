@@ -319,11 +319,12 @@ namespace OpenSim.Region.Framework.Scenes
             // Passing something to another avatar or a an object will already
             InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
             item = InventoryService.GetItem(item);
-            if (item.Owner != remoteClient.AgentId)
-                return;
 
             if (item != null)
             {
+                if (item.Owner != remoteClient.AgentId)
+                    return;
+
                 if (UUID.Zero == transactionID)
                 {
                     item.Flags = (item.Flags & ~(uint)255) | (itemUpd.Flags & (uint)255);
@@ -371,8 +372,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                m_log.Error(
-                    "[AGENTINVENTORY]: Item ID " + itemID + " not found for an inventory item update.");
+                m_log.ErrorFormat(
+                    "[AGENTINVENTORY]: Item id {0} not found for an inventory item update for {1}.",
+                    itemID, remoteClient.Name);
             }
         }
 
