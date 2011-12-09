@@ -320,14 +320,14 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 
                 defonly = false; // found a non-default texture reference
 
-                if (!CheckBakedTextureAsset(sp, face.TextureID, idx))
+                if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
                 {
-                    // the asset didn't exist if we are only checking, then we found a bad
-                    // one and we're done otherwise, ask for a rebake
                     if (checkonly)
                         return false;
 
-                    m_log.InfoFormat("[AVFACTORY]: missing baked texture {0}, requesting rebake", face.TextureID);
+                    m_log.DebugFormat(
+                        "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
+                        face.TextureID, idx, sp.Name);
                     
                     sp.ControllingClient.SendRebakeAvatarTextures(face.TextureID);
                 }
@@ -337,24 +337,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             // If we only found default textures, then the appearance is not cached
             return (defonly ? false : true);
-        }
-
-        /// <summary>
-        /// Checks for the existance of a baked texture asset and
-        /// requests the viewer rebake if the asset is not found
-        /// </summary>
-        /// <param name="sp"></param>
-        /// <param name="textureID"></param>
-        /// <param name="idx"></param>
-        private bool CheckBakedTextureAsset(IScenePresence sp, UUID textureID, int idx)
-        {
-            if (m_scene.AssetService.Get(textureID.ToString()) == null)
-            {
-                m_log.WarnFormat("[AVFACTORY]: Missing baked texture {0} ({1}) for avatar {2}",
-                                 textureID, idx, sp.Name);
-                return false;
-            }
-            return true;
         }
 
         private Dictionary<BakeType, Primitive.TextureEntryFace> GetBakedTextureFaces(ScenePresence sp)
