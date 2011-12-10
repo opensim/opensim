@@ -140,6 +140,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event RequestMapName OnMapNameRequest;
         public event TeleportLocationRequest OnTeleportLocationRequest;
         public event TeleportLandmarkRequest OnTeleportLandmarkRequest;
+        public event TeleportCancel OnTeleportCancel;
         public event DisconnectUser OnDisconnectUser;
         public event RequestAvatarProperties OnRequestAvatarProperties;
         public event SetAlwaysRun OnSetAlwaysRun;
@@ -5231,6 +5232,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.MapBlockRequest, HandleMapBlockRequest, false);
             AddLocalPacketHandler(PacketType.MapNameRequest, HandleMapNameRequest, false);
             AddLocalPacketHandler(PacketType.TeleportLandmarkRequest, HandleTeleportLandmarkRequest);
+            AddLocalPacketHandler(PacketType.TeleportCancel, HandleTeleportCancel);
             AddLocalPacketHandler(PacketType.TeleportLocationRequest, HandleTeleportLocationRequest);
             AddLocalPacketHandler(PacketType.UUIDNameRequest, HandleUUIDNameRequest, false);
             AddLocalPacketHandler(PacketType.RegionHandleRequest, HandleRegionHandleRequest);
@@ -8466,6 +8468,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 tpCancel.Info.SessionID = tpReq.Info.SessionID;
                 OutPacket(tpCancel, ThrottleOutPacketType.Task);
 
+            }
+            return true;
+        }
+
+        private bool HandleTeleportCancel(IClientAPI sender, Packet Pack)
+        {
+            TeleportCancel handlerTeleportCancel = OnTeleportCancel;
+            if (handlerTeleportCancel != null)
+            {
+                handlerTeleportCancel(this);
             }
             return true;
         }
