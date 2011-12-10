@@ -755,6 +755,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         if (tainted)
                             objatt.HasGroupChanged = true;
     
+                        if (doc != null)
+                        {
+                            objatt.LoadScriptState(doc);
+                            objatt.ResetOwnerChangeFlag();
+                        }
+
                         // Fire after attach, so we don't get messy perms dialogs
                         // 4 == AttachedRez
                         objatt.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 4);
@@ -771,20 +777,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                             "[ATTACHMENTS MODULE]: Could not retrieve item {0} for attaching to avatar {1} at point {2}",
                             itemID, sp.Name, attachmentPt);
                     }
-
-                    if (doc != null)
-                    {
-                        objatt.LoadScriptState(doc);
-                        objatt.ResetOwnerChangeFlag();
-                    }
-
-                    // Fire after attach, so we don't get messy perms dialogs
-                    // 4 == AttachedRez
-                    objatt.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 4);
-                    objatt.ResumeScripts();
-
-                    // Do this last so that event listeners have access to all the effects of the attachment
-                    m_scene.EventManager.TriggerOnAttach(objatt.LocalId, itemID, sp.UUID);
                 }
             }
             

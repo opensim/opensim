@@ -1058,6 +1058,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (PhysicsActor != null)
                 isFlying = PhysicsActor.Flying;
             
+            m_log.DebugFormat("[SCENE PRESENCCE]: Local teleport, flying = {0}", isFlying);
             RemoveFromPhysicalScene();
             Velocity = Vector3.Zero;
             CheckLandingPoint(ref pos);
