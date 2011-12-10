@@ -48,6 +48,13 @@ namespace OpenSim.Framework
         PresenceType PresenceType { get; }
 
         /// <summary>
+        /// If true, then the agent has no avatar in the scene.
+        /// The agent exists to relay data from a region that neighbours the current position of the user's avatar.
+        /// Occasionally data is relayed, such as which a user clicks an item in a neighbouring region.
+        /// </summary>
+        bool IsChildAgent { get; }
+
+        /// <summary>
         /// Avatar appearance data.
         /// </summary>
         /// <remarks>

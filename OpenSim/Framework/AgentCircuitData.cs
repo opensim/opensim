@@ -311,7 +311,7 @@ namespace OpenSim.Framework
                 if (args.ContainsKey("packed_appearance") && (args["packed_appearance"].Type == OSDType.Map))
                 {
                     Appearance.Unpack((OSDMap)args["packed_appearance"]);
-                    m_log.InfoFormat("[AGENTCIRCUITDATA] unpacked appearance");
+//                    m_log.InfoFormat("[AGENTCIRCUITDATA] unpacked appearance");
                 }
                 else
                 {

@@ -624,19 +624,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        /// <summary>
-        /// If this is true, agent doesn't have a representation in this scene.
-        ///    this is an agent 'looking into' this scene from a nearby scene(region)
-        ///
-        /// if False, this agent has a representation in this scene
-        /// </summary>
-        private bool m_isChildAgent = true;
-
-        public bool IsChildAgent
-        {
-            get { return m_isChildAgent; }
-            set { m_isChildAgent = value; }
-        }
+        public bool IsChildAgent { get; set; }
 
         public uint ParentID
         {
@@ -753,6 +741,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             AttachmentsSyncLock = new Object();
 
+            IsChildAgent = true;
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             Animator = new ScenePresenceAnimator(this);
             PresenceType = type;

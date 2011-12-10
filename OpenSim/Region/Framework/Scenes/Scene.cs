@@ -787,7 +787,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            m_log.Info("[SCENE]: Using the " + m_priorityScheme + " prioritization scheme");
+            m_log.InfoFormat("[SCENE]: Using the {0} prioritization scheme", m_priorityScheme);
 
             #endregion Interest Management
 
@@ -918,9 +918,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    m_log.Info("[INTERGRID]: Got notice about far away Region: " + otherRegion.RegionName.ToString() +
-                               " at  (" + otherRegion.RegionLocX.ToString() + ", " +
-                               otherRegion.RegionLocY.ToString() + ")");
+                    m_log.InfoFormat(
+                        "[INTERGRID]: Got notice about far away Region: {0} at ({1}, {2})",
+                        otherRegion.RegionName, otherRegion.RegionLocX, otherRegion.RegionLocY);
                 }
             }
         }
@@ -1414,7 +1414,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (AccessViolationException e)
             {
-                m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                m_log.ErrorFormat(
+                    "[REGION]: Failed on region {0} with exception {1}{2}",
+                    RegionInfo.RegionName, e.Message, e.StackTrace);
             }
             //catch (NullReferenceException e)
             //{
@@ -1422,11 +1424,15 @@ namespace OpenSim.Region.Framework.Scenes
             //}
             catch (InvalidOperationException e)
             {
-                m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                m_log.ErrorFormat(
+                    "[REGION]: Failed on region {0} with exception {1}{2}",
+                    RegionInfo.RegionName, e.Message, e.StackTrace);
             }
             catch (Exception e)
             {
-                m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                m_log.ErrorFormat(
+                    "[REGION]: Failed on region {0} with exception {1}{2}",
+                    RegionInfo.RegionName, e.Message, e.StackTrace);
             }
 
             maintc = Util.EnvironmentTickCountSubtract(maintc);
@@ -1652,7 +1658,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (IOException e)
             {
-                m_log.Warn("[TERRAIN]: Scene.cs: LoadWorldMap() - Failed with exception " + e.ToString() + " Regenerating");
+                m_log.WarnFormat(
+                    "[TERRAIN]: Scene.cs: LoadWorldMap() - Regenerating as failed with exception {0}{1}",
+                    e.Message, e.StackTrace);
                 
                 // Non standard region size.    If there's an old terrain in the database, it might read past the buffer
                 #pragma warning disable 0162
@@ -1665,7 +1673,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (Exception e)
             {
-                m_log.Warn("[TERRAIN]: Scene.cs: LoadWorldMap() - Failed with exception " + e.ToString());
+                m_log.WarnFormat(
+                    "[TERRAIN]: Scene.cs: LoadWorldMap() - Failed with exception {0}{1}", e.Message, e.StackTrace);
             }
         }
 
@@ -1739,7 +1748,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             List<SceneObjectGroup> PrimsFromDB = SimulationDataService.LoadObjects(regionID);
 
-            m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count + " objects from the datastore");
+            m_log.InfoFormat("[SCENE]: Loaded {0} objects from the datastore", PrimsFromDB.Count);
 
             foreach (SceneObjectGroup group in PrimsFromDB)
             {
@@ -1753,7 +1762,6 @@ namespace OpenSim.Region.Framework.Scenes
 //                group.CheckSculptAndLoad();
             }
 
-            m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
             LoadingPrims = false;
             EventManager.TriggerPrimsLoaded(this);
         }
@@ -2413,7 +2421,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[SCENE]: Problem casting object: " + e.ToString());
+                m_log.WarnFormat("[SCENE]: Problem casting object, exception {0}{1}", e.Message, e.StackTrace);
                 return false;
             }
 
@@ -2496,8 +2504,7 @@ namespace OpenSim.Region.Framework.Scenes
             int flags = GetUserFlags(sceneObject.OwnerID);
             if (m_regInfo.EstateSettings.IsBanned(sceneObject.OwnerID, flags))
             {
-                m_log.Info("[INTERREGION]: Denied prim crossing for " +
-                        "banned avatar");
+                m_log.InfoFormat("[INTERREGION]: Denied prim crossing for banned avatar {0}", sceneObject.OwnerID);
 
                 return false;
             }
@@ -2565,8 +2572,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // Deny non attachments based on parcel settings
                     //
-                    m_log.Info("[INTERREGION]: Denied prim crossing " +
-                            "because of parcel settings");
+                    m_log.Info("[INTERREGION]: Denied prim crossing because of parcel settings");
 
                     DeleteSceneObject(sceneObject, false);
 
@@ -2629,7 +2635,8 @@ namespace OpenSim.Region.Framework.Scenes
             // connected.
             if (sp == null)
             {
-                m_log.Debug("[SCENE]: Adding new child scene presence " + client.Name + " to scene " + RegionInfo.RegionName);
+                m_log.DebugFormat(
+                    "[SCENE]: Adding new child scene presence {0} to scene {1}", client.Name, RegionInfo.RegionName);
 
                 m_clientManager.Add(client);
                 SubscribeToClientEvents(client);
@@ -3277,7 +3284,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[SCENE] Scene.cs:RemoveClient exception: " + e.ToString());
+                    m_log.ErrorFormat("[SCENE] Scene.cs:RemoveClient exception {0}{1}", e.Message, e.StackTrace);
                 }
                 m_log.Debug("[Scene] Done. Firing RemoveCircuit");
                 m_authenticateHandler.RemoveCircuit(avatar.ControllingClient.CircuitCode);
@@ -3426,7 +3433,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[CONNECTION BEGIN]: Exception verifying presence " + e.ToString());
+                        m_log.ErrorFormat(
+                            "[CONNECTION BEGIN]: Exception verifying presence {0}{1}", e.Message, e.StackTrace);
                         return false;
                     }
                 }
@@ -3443,7 +3451,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[CONNECTION BEGIN]: Exception authorizing user " + e.ToString());
+                    m_log.ErrorFormat(
+                        "[CONNECTION BEGIN]: Exception authorizing user {0}{1}", e.Message, e.StackTrace);
                     return false;
                 }
 
@@ -3664,7 +3673,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             else
+            {
                 m_log.ErrorFormat("[CONNECTION BEGIN]: Estate Settings is null!");
+            }
 
             IGroupsModule groupsModule =
                     RequestModuleInterface<IGroupsModule>();
@@ -3682,7 +3693,9 @@ namespace OpenSim.Region.Framework.Scenes
                         agentGroups.Add(GroupMembership[i].GroupID);
                 }
                 else
+                {
                     m_log.ErrorFormat("[CONNECTION BEGIN]: GroupMembership is null!");
+                }
             }
 
             bool groupAccess = false;
@@ -3700,7 +3713,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             else
+            {
                 m_log.ErrorFormat("[CONNECTION BEGIN]: EstateGroups is null!");
+            }
 
             if (!m_regInfo.EstateSettings.PublicAccess &&
                 !m_regInfo.EstateSettings.HasAccess(agent.AgentID) &&
@@ -3817,7 +3832,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[SCENE]: Unable to do agent crossing, exception {0}", e);
+                    m_log.ErrorFormat("[SCENE]: Unable to do agent crossing, exception {0}{1}", e.Message, e.StackTrace);
                 }
             }
             else
@@ -4143,7 +4158,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="cmdparams"></param>
         public void HandleEditCommand(string[] cmdparams)
         {
-            m_log.Debug("Searching for Primitive: '" + cmdparams[2] + "'");
+            m_log.DebugFormat("Searching for Primitive: '{0}'", cmdparams[2]);
 
             EntityBase[] entityList = GetEntities();
             foreach (EntityBase ent in entityList)
@@ -4159,7 +4174,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 new Vector3(Convert.ToSingle(cmdparams[3]), Convert.ToSingle(cmdparams[4]),
                                               Convert.ToSingle(cmdparams[5])));
 
-                            m_log.Debug("Edited scale of Primitive: " + part.Name);
+                            m_log.DebugFormat("Edited scale of Primitive: {0}", part.Name);
                         }
                     }
                 }
@@ -4187,7 +4202,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.DebugFormat("[SCENE]: returning land for {0},{1}", x, y);
             return LandChannel.GetLandObject((int)x, (int)y).LandData;
         }
-
 
         #endregion
 
@@ -4365,17 +4379,6 @@ namespace OpenSim.Region.Framework.Scenes
         public ScenePresence GetScenePresence(uint localID)
         {
             return m_sceneGraph.GetScenePresence(localID);
-        }
-
-        /// <summary>
-        /// Returns true if scene presence is a child (no avatar in this scene)
-        /// </summary>
-        /// <param name="avatarID"></param>
-        /// <returns></returns>
-        public override bool PresenceChildStatus(UUID avatarID)
-        {
-            ScenePresence sp;
-            return TryGetScenePresence(avatarID, out sp) && sp.IsChildAgent;
         }
 
         /// <summary>

@@ -219,7 +219,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                         {
                             if (client is LLClientView)
                             {
-                                bool isChild = scene.PresenceChildStatus(client.AgentId);
+                                bool isChild = client.SceneAgent.IsChildAgent;
                                 if (isChild && !showChildren)
                                     return;
                         
@@ -308,7 +308,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                         {
                             if (client is IStatsCollector)
                             {
-                                bool isChild = scene.PresenceChildStatus(client.AgentId);
+                                bool isChild = client.SceneAgent.IsChildAgent;
                                 if (isChild && !showChildren)
                                     return;
                         
@@ -404,7 +404,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                                     firstClient = false;
                                 }
 
-                                bool isChild = scene.PresenceChildStatus(client.AgentId);
+                                bool isChild = client.SceneAgent.IsChildAgent;
                                 if (isChild && !showChildren)
                                     return;
                         

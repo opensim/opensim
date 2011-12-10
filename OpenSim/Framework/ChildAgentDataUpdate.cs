@@ -335,7 +335,7 @@ namespace OpenSim.Framework
 
         public virtual OSDMap Pack()
         {
-            m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Pack data");
+//            m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Pack data");
 
             OSDMap args = new OSDMap();
             args["message_type"] = OSD.FromString("AgentData");

@@ -53,7 +53,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
         public const string SHOW_APPEARANCE_FORMAT = "{0,-9}  {1}";
 
         private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
-        private IAvatarFactoryModule m_avatarFactory;
+//        private IAvatarFactoryModule m_avatarFactory;
         
         public string Name { get { return "Appearance Information Module"; } }        
         
