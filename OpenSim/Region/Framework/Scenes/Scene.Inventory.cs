@@ -1105,6 +1105,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart part = GetSceneObjectPart(primLocalId);
 
+            // Can't move a null item
+            if (itemId == UUID.Zero)
+                return;
+
             if (null == part)
             {
                 m_log.WarnFormat(
