@@ -3135,30 +3135,28 @@ namespace OpenSim.Region.Framework.Scenes
             catch { }
 
             // Attachment objects
-            lock (m_attachments)
+            List<SceneObjectGroup> attachments = GetAttachments();
+            if (attachments.Count > 0)
             {
-                if (m_attachments.Count > 0)
-                {
-                    cAgent.AttachmentObjects = new List<ISceneObject>();
-                    cAgent.AttachmentObjectStates = new List<string>();
-    //                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
-                    InTransitScriptStates.Clear();
+                cAgent.AttachmentObjects = new List<ISceneObject>();
+                cAgent.AttachmentObjectStates = new List<string>();
+//                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
+                InTransitScriptStates.Clear();
 
-                    foreach (SceneObjectGroup sog in m_attachments)
-                    {
-                        // We need to make a copy and pass that copy
-                        // because of transfers withn the same sim
-                        ISceneObject clone = sog.CloneForNewScene();
-                        // Attachment module assumes that GroupPosition holds the offsets...!
-                        ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
-                        ((SceneObjectGroup)clone).IsAttachment = false;
-                        cAgent.AttachmentObjects.Add(clone);
-                        string state = sog.GetStateSnapshot();
-                        cAgent.AttachmentObjectStates.Add(state);
-                        InTransitScriptStates.Add(state);
-                        // Let's remove the scripts of the original object here
-                        sog.RemoveScriptInstances(true);
-                    }
+                foreach (SceneObjectGroup sog in attachments)
+                {
+                    // We need to make a copy and pass that copy
+                    // because of transfers withn the same sim
+                    ISceneObject clone = sog.CloneForNewScene();
+                    // Attachment module assumes that GroupPosition holds the offsets...!
+                    ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
+                    ((SceneObjectGroup)clone).IsAttachment = false;
+                    cAgent.AttachmentObjects.Add(clone);
+                    string state = sog.GetStateSnapshot();
+                    cAgent.AttachmentObjectStates.Add(state);
+                    InTransitScriptStates.Add(state);
+                    // Let's remove the scripts of the original object here
+                    sog.RemoveScriptInstances(true);
                 }
             }
         }
