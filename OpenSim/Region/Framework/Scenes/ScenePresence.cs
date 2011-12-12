@@ -118,7 +118,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// TODO: For some reason, we effectively have a list both here and in Appearance.  Need to work out if this is
         /// necessary.
         /// </remarks>
-        protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
+        private List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
 
         public Object AttachmentsSyncLock { get; private set; }
 
