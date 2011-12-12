@@ -5984,9 +5984,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // note: this may need some tweaking when walking downhill. you "fall down" for a brief instant
             // and don't collide when walking downhill, which instantly registers as in-air, briefly. should
             // there be some minimum non-collision threshold time before claiming the avatar is in-air?
-            if ((flags & ScriptBaseClass.AGENT_WALKING) == 0 &&
-                agent.PhysicsActor != null &&
-                !agent.PhysicsActor.IsColliding)
+            if ((flags & ScriptBaseClass.AGENT_WALKING) == 0 && !agent.IsColliding )
             {
                     flags |= ScriptBaseClass.AGENT_IN_AIR;
             }
