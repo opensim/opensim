@@ -356,7 +356,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TrySetCurrentScene(UUID regionID)
         {
-            m_log.Debug("Searching for Region: '" + regionID + "'");
+//            m_log.Debug("Searching for Region: '" + regionID + "'");
 
             lock (m_localScenes)
             {
