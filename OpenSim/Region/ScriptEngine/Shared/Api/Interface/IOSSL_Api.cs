@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections;
 using OpenSim.Region.ScriptEngine.Interfaces;
 
@@ -140,6 +141,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         string osGetScriptEngineName();
         string osGetSimulatorVersion();
+        Object osParseJSONNew(string JSON);
         Hashtable osParseJSON(string JSON);
 
         void osMessageObject(key objectUUID,string message);
