@@ -391,11 +391,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             space = d.HashSpaceCreate(IntPtr.Zero);
 
             contactgroup = d.JointGroupCreate(0);
-            //contactgroup
 
             d.WorldSetAutoDisableFlag(world, false);
+
             #if USE_DRAWSTUFF
-            
             Thread viewthread = new Thread(new ParameterizedThreadStart(startvisualization));
             viewthread.Start();
             #endif
