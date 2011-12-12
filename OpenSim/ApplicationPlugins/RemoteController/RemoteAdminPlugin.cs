@@ -1724,8 +1724,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
         private void XmlRpcRegionQueryMethod(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
         {
-            m_log.Info("[RADMIN]: Received Query XML Administrator Request");
-
             Hashtable responseData = (Hashtable)response.Value;
             Hashtable requestData = (Hashtable)request.Params[0];
 
@@ -1736,16 +1734,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 UUID region_uuid = (UUID) (string) requestData["region_uuid"];
                 if (!m_application.SceneManager.TrySetCurrentScene(region_uuid))
                     throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
-
-                m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_uuid.ToString());
             }
             else if (requestData.Contains("region_name"))
             {
                 string region_name = (string) requestData["region_name"];
                 if (!m_application.SceneManager.TrySetCurrentScene(region_name))
                     throw new Exception(String.Format("failed to switch to region {0}", region_name));
-
-                m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_name);
             }
             else
             {
@@ -1760,8 +1754,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             responseData["health"] = health;
             responseData["flags"] = flags;
             responseData["message"] = text;
-
-            m_log.Info("[RADMIN]: Query XML Administrator Request complete");
         }
 
         private void XmlRpcConsoleCommandMethod(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
