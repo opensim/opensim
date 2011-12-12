@@ -79,7 +79,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            Vector3 startPos = new Vector3(128, 128, 30);
 
             // For now, we'll make the scene presence fly to simplify this test, but this needs to change.
-            sp.PhysicsActor.Flying = true;
+            sp.Flying = true;
 
             m_scene.Update();
             Assert.That(sp.AbsolutePosition, Is.EqualTo(startPos));

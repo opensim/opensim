@@ -175,7 +175,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 
             // For now, we'll make the scene presence fly to simplify this test, but this needs to change.
-            npc.PhysicsActor.Flying = true;
+            npc.Flying = true;
 
             scene.Update();
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));

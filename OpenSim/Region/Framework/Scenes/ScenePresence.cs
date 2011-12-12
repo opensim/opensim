@@ -142,12 +142,27 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_userFlags; }
         }
-        private bool m_flyingOld;		// add for fly velocity control
+
+        // Flying
+        public bool Flying
+        {
+            get { return PhysicsActor != null && PhysicsActor.Flying; }
+            set { PhysicsActor.Flying = value; }
+        }
+
+        // add for fly velocity control
+        private bool FlyingOld {get; set;}
         public bool WasFlying
         {
-            get { return m_wasFlying; }
+            get; private set;
         }
-        private bool m_wasFlying;		// add for fly velocity control
+
+        public bool IsColliding
+        {
+            get { return PhysicsActor != null && PhysicsActor.IsColliding; }
+            // We would expect setting IsColliding to be private but it's used by a hack in Scene
+            set { PhysicsActor.IsColliding = value; }
+        }
 
 //        private int m_lastColCount = -1;		//KF: Look for Collision chnages
 //        private int m_updateCount = 0;			//KF: Update Anims for a while
@@ -682,9 +697,9 @@ namespace OpenSim.Region.Framework.Scenes
             set { 
                 if(value)
                 {
-                    if ((PhysicsActor != null) && PhysicsActor.Flying)
+                    if (Flying)
                         m_AgentControlFlags |= AgentManager.ControlFlags.AGENT_CONTROL_FLY;
-                    else if ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0)
+                    else
                         m_AgentControlFlags &= ~AgentManager.ControlFlags.AGENT_CONTROL_FLY;
                 }
                 m_inTransit = value;
@@ -908,11 +923,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (ForceFly)
             {
-                PhysicsActor.Flying = true;
+                Flying = true;
             }
             else if (FlyDisabled)
             {
-                PhysicsActor.Flying = false;
+                Flying = false;
             }
 
             // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
@@ -1037,10 +1052,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         public void Teleport(Vector3 pos)
         {
-            bool isFlying = false;
-            if (PhysicsActor != null)
-                isFlying = PhysicsActor.Flying;
-            
+            bool isFlying = Flying;
             RemoveFromPhysicalScene();
             Velocity = Vector3.Zero;
             AbsolutePosition = pos;
@@ -1051,10 +1063,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TeleportWithMomentum(Vector3 pos)
         {
-            bool isFlying = false;
-            if (PhysicsActor != null)
-                isFlying = PhysicsActor.Flying;
-
+            bool isFlying = Flying;
             RemoveFromPhysicalScene();
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
@@ -1188,8 +1197,8 @@ namespace OpenSim.Region.Framework.Scenes
                 AbsolutePosition = pos;
             }
 
-            bool m_flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
-            MakeRootAgent(AbsolutePosition, m_flying);
+            bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+            MakeRootAgent(AbsolutePosition, flying);
 
             if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
             {
@@ -1414,7 +1423,7 @@ namespace OpenSim.Region.Framework.Scenes
                 bool DCFlagKeyPressed = false;
                 Vector3 agent_control_v3 = Vector3.Zero;
 
-                bool oldflying = PhysicsActor.Flying;
+                bool oldflying = Flying;
 
                 if (ForceFly)
                     actor.Flying = true;
@@ -1434,7 +1443,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // use camera up angle when in mouselook and not flying or when holding the left mouse button down and not flying
                     // this prevents 'jumping' in inappropriate situations.
-                    if ((m_mouseLook && !PhysicsActor.Flying) || (m_leftButtonDown && !PhysicsActor.Flying))
+                    if (!Flying && (m_mouseLook || m_leftButtonDown))
                         dirVectors = GetWalkDirectionVectors();
                     else
                         dirVectors = Dir_Vectors;
@@ -1521,7 +1530,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // with something with the down arrow pressed.
 
                 // Only do this if we're flying
-                if (PhysicsActor != null && PhysicsActor.Flying && !ForceFly)
+                if (Flying && !ForceFly)
                 {
                     // Landing detection code
 
@@ -1529,7 +1538,7 @@ namespace OpenSim.Region.Framework.Scenes
                     bool controlland = (((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
                                         ((flags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
 
-                    if (PhysicsActor.Flying && PhysicsActor.IsColliding && controlland)
+                    if (Flying && IsColliding && controlland)
                     {
                         // nesting this check because LengthSquared() is expensive and we don't 
                         // want to do it every step when flying.
@@ -1742,9 +1751,9 @@ namespace OpenSim.Region.Framework.Scenes
                 Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
 
             if (noFly)
-                PhysicsActor.Flying = false;
+                Flying = false;
             else if (pos.Z > terrainHeight)
-                PhysicsActor.Flying = true;
+                Flying = true;
 
             LandAtTarget = landAtTarget;
             MovingToTarget = true;
@@ -2307,42 +2316,42 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 direc = vec * Rotation;
             direc.Normalize();
 
-            if (PhysicsActor.Flying != m_flyingOld)                // add for fly velocity control
+            if (Flying != FlyingOld)                // add for fly velocity control
             {
-                m_flyingOld = PhysicsActor.Flying;                 // add for fly velocity control
-                if (!PhysicsActor.Flying)
-                    m_wasFlying = true;      // add for fly velocity control
+                FlyingOld = Flying;                 // add for fly velocity control
+                if (!Flying)
+                    WasFlying = true;      // add for fly velocity control
             }
 
-            if (PhysicsActor.IsColliding == true)
-                m_wasFlying = false;        // add for fly velocity control
+            if (IsColliding)
+                WasFlying = false;        // add for fly velocity control
 
-            if ((vec.Z == 0f) && !PhysicsActor.Flying)
+            if ((vec.Z == 0f) && !Flying)
                 direc.Z = 0f; // Prevent camera WASD up.
 
             direc *= 0.03f * 128f * SpeedModifier;
 
             if (PhysicsActor != null)
             {
-                if (PhysicsActor.Flying)
+                if (Flying)
                 {
                     direc *= 4.0f;
                     //bool controlland = (((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) || ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
                     //if (controlland)
                     //    m_log.Info("[AGENT]: landCommand");
-                    //if (PhysicsActor.IsColliding)
+                    //if (IsColliding)
                     //    m_log.Info("[AGENT]: colliding");
-                    //if (PhysicsActor.Flying && PhysicsActor.IsColliding && controlland)
+                    //if (Flying && IsColliding && controlland)
                     //{
                     //    StopFlying();
                     //    m_log.Info("[AGENT]: Stop Flying");
                     //}
                 }
-                if (Animator.Falling && m_wasFlying)    // if falling from flying, disable motion add
+                if (Animator.Falling && WasFlying)    // if falling from flying, disable motion add
                 {
                     direc *= 0.0f;
                 }
-                else if (!PhysicsActor.Flying && PhysicsActor.IsColliding)
+                else if (!Flying && IsColliding)
                 {
                     if (direc.Z > 2.0f)
                     {
@@ -2809,7 +2818,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (m_requestedSitTargetUUID == UUID.Zero)
                         {
-                            bool isFlying = PhysicsActor.Flying;
+                            bool isFlying = Flying;
                             RemoveFromPhysicalScene();
 
                             Vector3 pos = AbsolutePosition;
@@ -2836,7 +2845,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (m_requestedSitTargetUUID == UUID.Zero)
                         {
-                            bool isFlying = PhysicsActor.Flying;
+                            bool isFlying = Flying;
                             RemoveFromPhysicalScene();
 
                             Vector3 pos = AbsolutePosition;
@@ -2886,7 +2895,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             try
             {
-                return m_scene.CrossAgentToNewRegion(this, PhysicsActor.Flying);
+                return m_scene.CrossAgentToNewRegion(this, Flying);
             }
             catch
             {
@@ -3162,7 +3171,7 @@ namespace OpenSim.Region.Framework.Scenes
             Appearance = new AvatarAppearance(cAgent.Appearance);
             if (PhysicsActor != null)
             {
-                bool isFlying = PhysicsActor.Flying;
+                bool isFlying = Flying;
                 RemoveFromPhysicalScene();
                 AddToPhysicalScene(isFlying);
             }
@@ -3265,7 +3274,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void OutOfBoundsCall(Vector3 pos)
         {
-            //bool flying = PhysicsActor.Flying;
+            //bool flying = Flying;
             //RemoveFromPhysicalScene();
 
             //AddToPhysicalScene(flying);

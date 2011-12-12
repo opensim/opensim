@@ -5083,7 +5083,7 @@ namespace OpenSim.Region.Framework.Scenes
                     presence.AbsolutePosition = presence.MoveToPositionTarget;
                     presence.ResetMoveToTarget();
 
-                    if (presence.PhysicsActor.Flying)
+                    if (presence.Flying)
                     {
                         // A horrible hack to stop the avatar dead in its tracks rather than having them overshoot
                         // the target if flying.
@@ -5091,16 +5091,16 @@ namespace OpenSim.Region.Framework.Scenes
                         // least be able to set collision status once, rather than 5 times to give it enough
                         // weighting so that that PhysicsActor thinks it really is colliding.
                         for (int i = 0; i < 5; i++)
-                            presence.PhysicsActor.IsColliding = true;
+                            presence.IsColliding = true;
 
                         if (presence.LandAtTarget)
-                            presence.PhysicsActor.Flying = false;
+                            presence.Flying = false;
 
 //                            Vector3 targetPos = presence.MoveToPositionTarget;
 //                            float terrainHeight = (float)presence.Scene.Heightmap[(int)targetPos.X, (int)targetPos.Y];
 //                            if (targetPos.Z - terrainHeight < 0.2)
 //                            {
-//                                presence.PhysicsActor.Flying = false;
+//                                presence.Flying = false;
 //                            }
                     }
 
