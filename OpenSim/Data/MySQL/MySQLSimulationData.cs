@@ -561,45 +561,46 @@ namespace OpenSim.Data.MySQL
 
         public virtual void StoreTerrain(double[,] ter, UUID regionID)
         {
-            m_log.Info("[REGION DB]: Storing terrain");
-
-            lock (m_dbLock)
+            Util.FireAndForget(delegate(object x)
             {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                double[,] oldTerrain = LoadTerrain(regionID);
+
+                m_log.Info("[REGION DB]: Storing terrain");
+
+                lock (m_dbLock)
                 {
-                    dbcon.Open();
-
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                     {
-                        cmd.CommandText = "delete from terrain where RegionUUID = ?RegionUUID";
-                        cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+                        dbcon.Open();
 
-                        using (MySqlCommand cmd2 = dbcon.CreateCommand())
+                        using (MySqlCommand cmd = dbcon.CreateCommand())
                         {
-                            try
-                            {
-                                cmd2.CommandText = "insert into terrain (RegionUUID, " +
-                                        "Revision, Heightfield) values (?RegionUUID, " +
-                                        "1, ?Heightfield)";
+                            cmd.CommandText = "delete from terrain where RegionUUID = ?RegionUUID";
+                            cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
 
-                                cmd2.Parameters.AddWithValue("RegionUUID", regionID.ToString());
-                                cmd2.Parameters.AddWithValue("Heightfield", SerializeTerrain(ter));
-
-                                ExecuteNonQuery(cmd);
-                                ExecuteNonQuery(cmd2);
-                            }
-                            catch
+                            using (MySqlCommand cmd2 = dbcon.CreateCommand())
                             {
-                                // If we get here there is a NaN in the terrain
-                                // and the terrain can't be saved. A crash here
-                                // is much better than losing all the work
-                                m_log.ErrorFormat("[DATA]: Unable to save terrain. Stopping simulator to prevent data loss");
-                                Environment.Exit(1);
+                                try
+                                {
+                                    cmd2.CommandText = "insert into terrain (RegionUUID, " +
+                                            "Revision, Heightfield) values (?RegionUUID, " +
+                                            "1, ?Heightfield)";
+
+                                    cmd2.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+                                    cmd2.Parameters.AddWithValue("Heightfield", SerializeTerrain(ter, oldTerrain));
+
+                                    ExecuteNonQuery(cmd);
+                                    ExecuteNonQuery(cmd2);
+                                }
+                                catch (Exception e)
+                                {
+                                    m_log.ErrorFormat(e.ToString());
+                                }
                             }
                         }
                     }
                 }
-            }
+            });
         }
 
         public virtual double[,] LoadTerrain(UUID regionID)
@@ -1411,7 +1412,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
-        private static Array SerializeTerrain(double[,] val)
+        private static Array SerializeTerrain(double[,] val, double[,] oldTerrain)
         {
             MemoryStream str = new MemoryStream(((int)Constants.RegionSize * (int)Constants.RegionSize) *sizeof (double));
             BinaryWriter bw = new BinaryWriter(str);
@@ -1420,7 +1421,11 @@ namespace OpenSim.Data.MySQL
             for (int x = 0; x < (int)Constants.RegionSize; x++)
                 for (int y = 0; y < (int)Constants.RegionSize; y++)
                 {
-                    double height = val[x, y];
+                    double height = 20.0;
+                    if (oldTerrain != null)
+                        height = oldTerrain[x, y];
+                    if (!double.IsNaN(val[x, y]))
+                        height = val[x, y];
                     if (height == 0.0)
                         height = double.Epsilon;
 
