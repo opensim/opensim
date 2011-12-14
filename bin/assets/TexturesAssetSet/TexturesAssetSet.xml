@@ -281,12 +281,6 @@
     <Key Name="assetType" Value="0" />
     <Key Name="fileName" Value="wood1.jp2" />
   </Section>
-  <Section Name="LOLCAT">
-    <Key Name="assetID" Value="13371337-1337-1337-1337-133713371337" />
-    <Key Name="name" Value="lolcat in ur assets" />
-    <Key Name="assetType" Value="0" />
-    <Key Name="fileName" Value="peaches.jp2" />
-  </Section>
   <Section Name="bricks">
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000001"/>
     <Key Name="name" Value="bricks"/>
