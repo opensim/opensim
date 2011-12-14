@@ -205,27 +205,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
 
         /// <summary>
-        /// Used to lock on manipulation of _taintedPrimL and _taintedPrimH
+        /// Prims that the simulator has created/deleted/updated and so need updating in ODE.
         /// </summary>
-        private readonly Object _taintedPrimLock = new Object();
-
-        /// <summary>
-        /// List of tainted prims.
-        /// </summary>
-        /// <remarks>
-        /// A tainted prim is one that has taints to process before performing any other operations.  The list is
-        /// cleared after processing.
-        /// </remarks>
-        private readonly List<OdePrim> _taintedPrimL = new List<OdePrim>();
-
-        /// <summary>
-        /// HashSet of tainted prims.
-        /// </summary>
-        /// <remarks>
-        /// A tainted prim is one that has taints to process before performing any other operations.  The hashset is
-        /// cleared after processing.
-        /// </remarks>
-        private readonly HashSet<OdePrim> _taintedPrimH = new HashSet<OdePrim>();
+        private readonly HashSet<OdePrim> _taintedPrims = new HashSet<OdePrim>();
 
         /// <summary>
         /// Record a character that has taints to be processed.
@@ -767,7 +749,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 catch (AccessViolationException)
                 {
-                    m_log.Warn("[ODE SCENE]: Unable to collide test a space");
+                    m_log.Error("[ODE SCENE]: Unable to collide test a space");
                     return;
                 }
                 //Colliding a space or a geom with a space or a geom. so drill down
@@ -829,7 +811,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[ODE SCENE]: Unable to collide test an object: {0}", e.Message);
+                m_log.ErrorFormat("[ODE SCENE]: Unable to collide test an object: {0}", e.Message);
                 return;
             }
 
@@ -1554,7 +1536,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 catch (AccessViolationException)
                 {
-                    m_log.WarnFormat("[ODE SCENE]: Unable to space collide {0}", Name);
+                    m_log.ErrorFormat("[ODE SCENE]: Unable to space collide {0}", Name);
                 }
                 
                 //float terrainheight = GetTerrainHeightAtXY(chr.Position.X, chr.Position.Y);
@@ -1585,13 +1567,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     removeprims = new List<OdePrim>();
                                 }
                                 removeprims.Add(chr);
-                                m_log.Debug("[ODE SCENE]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed.  Removed it from the active prim list.  This needs to be fixed!");
+                                m_log.Error(
+                                    "[ODE SCENE]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed.  Removed it from the active prim list.  This needs to be fixed!");
                             }
                         }
                     }
                     catch (AccessViolationException)
                     {
-                        m_log.Warn("[ODE SCENE]: Unable to space collide");
+                        m_log.Error("[ODE SCENE]: Unable to space collide");
                     }
                 }
             }
@@ -2621,17 +2604,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (actor is OdePrim)
             {
                 OdePrim taintedprim = ((OdePrim)actor);
-                lock (_taintedPrimLock)
-                {
-                    if (!(_taintedPrimH.Contains(taintedprim))) 
-                    {
-#if SPAM
-Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
-#endif
-                        _taintedPrimH.Add(taintedprim);                    // HashSet for searching
-                        _taintedPrimL.Add(taintedprim);                    // List for ordered readout
-                    }
-                }
+                lock (_taintedPrims)
+                    _taintedPrims.Add(taintedprim);
             }
             else if (actor is OdeCharacter)
             {
@@ -2750,9 +2724,9 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                             }
                         }
 
-                        lock (_taintedPrimLock)
+                        lock (_taintedPrims)
                         {
-                            foreach (OdePrim prim in _taintedPrimL)
+                            foreach (OdePrim prim in _taintedPrims)
                             {
                                 if (prim.m_taintremove)
                                 {
@@ -2777,12 +2751,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                             if (SupportsNINJAJoints)
                                 SimulatePendingNINJAJoints();
 
-                            if (_taintedPrimL.Count > 0)
-                            {
-//Console.WriteLine("Simulate calls Clear of _taintedPrim list");
-                                _taintedPrimH.Clear();
-                                _taintedPrimL.Clear();
-                            }
+                            _taintedPrims.Clear();
                         }
 
                         // Move characters
@@ -2854,7 +2823,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 foreach (OdeCharacter actor in _characters)
                 {
                     if (actor.bad)
-                        m_log.WarnFormat("[ODE SCENE]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
+                        m_log.ErrorFormat("[ODE SCENE]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
 
                     actor.UpdatePositionAndVelocity(defects);
                 }
