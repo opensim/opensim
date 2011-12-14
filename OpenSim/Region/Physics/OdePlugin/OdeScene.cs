@@ -1699,6 +1699,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void RemoveAvatar(PhysicsActor actor)
         {
+//            m_log.DebugFormat(
+//                "[ODE SCENE]: Removing physics character {0} {1} from physics scene {2}",
+//                actor.Name, actor.LocalID, Name);
+
             //m_log.Debug("[PHYSICS]:ODELOCK");
             ((OdeCharacter) actor).Destroy();
         }
@@ -1707,6 +1711,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (!_characters.Contains(chr))
             {
+//                m_log.DebugFormat(
+//                    "[ODE SCENE]: Adding physics character {0} {1} to physics scene {2}", chr.Name, chr.LocalID, Name);
+
                 _characters.Add(chr);
 
                 if (chr.bad)
@@ -1765,7 +1772,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
         {
-//            m_log.DebugFormat("[ODE SCENE]: Adding physics actor to {0} {1}", primName, localid);
+//            m_log.DebugFormat("[ODE SCENE]: Adding physics prim {0} {1} to physics scene {2}", primName, localid, Name);
 
             return AddPrim(primName, position, size, rotation, pbs, isPhysical, localid);
         }
