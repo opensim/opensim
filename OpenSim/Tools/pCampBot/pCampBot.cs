@@ -111,7 +111,7 @@ namespace pCampBot
                 "  -firstname         first name for the bots\n" +
                 "  -lastname          lastname for the bots.  Each lastname will have _<bot-number> appended, e.g. Ima Bot_0\n" +
                 "  -password          password for the bots\n" +
-                "  -b, behaviours     behaviours for bots.  Comma separated, e.g. p,g.  Default is p\n",
+                "  -b, behaviours     behaviours for bots.  Comma separated, e.g. p,g.  Default is p\n" +
                 "    current options are:" +
                 "       p (physics)" +
                 "       g (grab)" +
