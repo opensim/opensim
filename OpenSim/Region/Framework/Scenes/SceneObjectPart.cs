@@ -259,8 +259,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_passTouches;
 
-        private UpdateRequired m_updateFlag;
-
         private PhysicsActor m_physActor;
         protected Vector3 m_acceleration;
         protected Vector3 m_angularVelocity;
@@ -1004,11 +1002,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public UpdateRequired UpdateFlag
-        {
-            get { return m_updateFlag; }
-            set { m_updateFlag = value; }
-        }
+        public UpdateRequired UpdateFlag { get; set; }
         
         /// <summary>
         /// Used for media on a prim.
@@ -2949,6 +2943,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 case UpdateRequired.TERSE:
                 {
+                    ClearUpdateSchedule();
                     // Throw away duplicate or insignificant updates
                     if (!RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
                         !Acceleration.Equals(m_lastAcceleration) ||
@@ -2958,9 +2953,7 @@ namespace OpenSim.Region.Framework.Scenes
                         !OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
                         Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                     {
-
                         SendTerseUpdateToAllClients();
-                        ClearUpdateSchedule();
 
                         // Update the "last" values
                         m_lastPosition = OffsetPosition;
@@ -2974,12 +2967,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 case UpdateRequired.FULL:
                 {
+                    ClearUpdateSchedule();
                     SendFullUpdateToAllClients();
                     break;
                 }
             }
-
-            ClearUpdateSchedule();
         }
 
         /// <summary>

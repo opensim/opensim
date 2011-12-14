@@ -1373,6 +1373,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
+        // Send the parts of this SOG to a single client
+        // Used when the client initially connects and when client sends RequestPrim packet
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
             RootPart.SendFullUpdate(
