@@ -2612,12 +2612,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 OdeCharacter taintedchar = ((OdeCharacter)actor);
                 lock (_taintedActors)
                 {
-                    if (!(_taintedActors.Contains(taintedchar)))
-                    {
-                        _taintedActors.Add(taintedchar);
-                        if (taintedchar.bad)
-                            m_log.DebugFormat("[ODE SCENE]: Added BAD actor {0} to tainted actors", taintedchar.m_uuid);
-                    }
+                    _taintedActors.Add(taintedchar);
+                    if (taintedchar.bad)
+                        m_log.ErrorFormat("[ODE SCENE]: Added BAD actor {0} to tainted actors", taintedchar.m_uuid);
                 }
             }
         }
@@ -2714,14 +2711,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         lock (_taintedActors)
                         {
-                            if (_taintedActors.Count > 0)
-                            {
-                                foreach (OdeCharacter character in _taintedActors)
-                                    character.ProcessTaints();
+                            foreach (OdeCharacter character in _taintedActors)
+                                character.ProcessTaints();
 
-                                if (_taintedActors.Count > 0)
-                                    _taintedActors.Clear();
-                            }
+                            _taintedActors.Clear();
                         }
 
                         lock (_taintedPrims)
