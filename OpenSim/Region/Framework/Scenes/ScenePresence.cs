@@ -1149,13 +1149,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Sets avatar height in the physics plugin
         /// </summary>
+        /// <param name="height">New height of avatar</param>
         public void SetHeight(float height)
         {
             if (PhysicsActor != null && !IsChildAgent)
-            {
-                Vector3 SetSize = new Vector3(0.45f, 0.6f, height);
-                PhysicsActor.Size = SetSize;
-            }
+                PhysicsActor.Size = new Vector3(0.45f, 0.6f, height);
         }
 
         /// <summary>
@@ -3273,8 +3271,6 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
             PhysicsActor.SubscribeEvents(500);
             PhysicsActor.LocalID = LocalId;
-
-            SetHeight(Appearance.AvatarHeight);
         }
 
         private void OutOfBoundsCall(Vector3 pos)

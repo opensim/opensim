@@ -199,9 +199,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_colliderarr[i] = false;
             }
-            CAPSULE_LENGTH = (size.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
-            //m_log.Info("[ODE CHARACTER]: " + CAPSULE_LENGTH.ToString());
-            m_tainted_CAPSULE_LENGTH = CAPSULE_LENGTH;
+
+            // We can set taint and actual to be the same here, since the entire character will be set up when the
+            // m_tainted_isPhysical is processed.
+            SetTaintedCapsuleLength(size);
+            CAPSULE_LENGTH = m_tainted_CAPSULE_LENGTH;
 
             m_isPhysical = false; // current status: no ODE information exists
             m_tainted_isPhysical = true; // new tainted status: need to create ODE information
@@ -457,24 +459,28 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return new Vector3(CAPSULE_RADIUS * 2, CAPSULE_RADIUS * 2, CAPSULE_LENGTH); }
             set
             {
-                if (value.IsFinite())
-                {
-                    m_pidControllerActive = true;
-
-                    Vector3 SetSize = value;
-                    m_tainted_CAPSULE_LENGTH = (SetSize.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
-//                    m_log.Info("[ODE CHARACTER]: " + CAPSULE_LENGTH);
+                SetTaintedCapsuleLength(value);
 
                     // If we reset velocity here, then an avatar stalls when it crosses a border for the first time
                     // (as the height of the new root agent is set).
 //                    Velocity = Vector3.Zero;
 
-                    _parent_scene.AddPhysicsActorTaint(this);
-                }
-                else
-                {
-                    m_log.WarnFormat("[ODE CHARACTER]: Got a NaN Size from Scene on {0}", Name);
-                }
+                _parent_scene.AddPhysicsActorTaint(this);
+            }
+        }
+
+        private void SetTaintedCapsuleLength(Vector3 size)
+        {
+            if (size.IsFinite())
+            {
+                m_pidControllerActive = true;
+
+                m_tainted_CAPSULE_LENGTH = (size.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
+//                    m_log.Info("[ODE CHARACTER]: " + CAPSULE_LENGTH);
+            }
+            else
+            {
+                m_log.WarnFormat("[ODE CHARACTER]: Got a NaN Size for {0} in {1}", Name, _parent_scene.Name);
             }
         }
 
