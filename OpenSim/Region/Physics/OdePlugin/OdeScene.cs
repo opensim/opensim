@@ -1703,7 +1703,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 //                "[ODE SCENE]: Removing physics character {0} {1} from physics scene {2}",
 //                actor.Name, actor.LocalID, Name);
 
-            //m_log.Debug("[PHYSICS]:ODELOCK");
             ((OdeCharacter) actor).Destroy();
         }
 
@@ -1711,10 +1710,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (!_characters.Contains(chr))
             {
-//                m_log.DebugFormat(
-//                    "[ODE SCENE]: Adding physics character {0} {1} to physics scene {2}", chr.Name, chr.LocalID, Name);
-
                 _characters.Add(chr);
+
+//                m_log.DebugFormat(
+//                    "[ODE SCENE]: Adding physics character {0} {1} to physics scene {2}.  Count now {3}",
+//                    chr.Name, chr.LocalID, Name, _characters.Count);
 
                 if (chr.bad)
                     m_log.ErrorFormat("[ODE SCENE]: Added BAD actor {0} to characters list", chr.m_uuid);
@@ -1730,11 +1730,19 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal void RemoveCharacter(OdeCharacter chr)
         {
             if (_characters.Contains(chr))
+            {
                 _characters.Remove(chr);
+
+//                m_log.DebugFormat(
+//                    "[ODE SCENE]: Removing physics character {0} {1} from physics scene {2}.  Count now {3}",
+//                    chr.Name, chr.LocalID, Name, _characters.Count);
+            }
             else
+            {
                 m_log.ErrorFormat(
                     "[ODE SCENE]: Tried to remove character {0} {1} but they are not in the list!",
                     chr.Name, chr.LocalID);
+            }
         }
 
         private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
@@ -1772,7 +1780,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
         {
-//            m_log.DebugFormat("[ODE SCENE]: Adding physics prim {0} {1} to physics scene {2}", primName, localid, Name);
+            m_log.DebugFormat("[ODE SCENE]: Adding physics prim {0} {1} to physics scene {2}", primName, localid, Name);
 
             return AddPrim(primName, position, size, rotation, pbs, isPhysical, localid);
         }
@@ -2762,6 +2770,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             foreach (OdeCharacter actor in defects)
                             {
+                                m_log.ErrorFormat(
+                                    "[ODE SCENE]: Removing physics character {0} {1} from physics scene {2} due to defect found when moving",
+                                    actor.Name, actor.LocalID, Name);
+
                                 RemoveCharacter(actor);
                                 actor.DestroyOdeStructures();
                             }
@@ -2832,6 +2844,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     foreach (OdeCharacter actor in defects)
                     {
+                        m_log.ErrorFormat(
+                            "[ODE SCENE]: Removing physics character {0} {1} from physics scene {2} due to defect found when updating position and velocity",
+                            actor.Name, actor.LocalID, Name);
+
                         RemoveCharacter(actor);
                         actor.DestroyOdeStructures();
                     }

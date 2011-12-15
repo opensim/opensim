@@ -285,16 +285,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Properties
 
-        protected PhysicsActor m_physicsActor;
-
         /// <summary>
         /// Physical scene representation of this Avatar.
         /// </summary>
-        public PhysicsActor PhysicsActor
-        {
-            set { m_physicsActor = value; }
-            get { return m_physicsActor; }
-        }
+        public PhysicsActor PhysicsActor { get; private set; }
 
         private byte m_movementflag;
 
@@ -1032,18 +1026,19 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (PhysicsActor != null)
             {
-                try
-                {
-                    PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
-                    PhysicsActor.OnOutOfBounds -= OutOfBoundsCall;
-                    m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
-                    PhysicsActor.UnSubscribeEvents();
-                    PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
-                    PhysicsActor = null;
-                }
-                catch
-                { }
+//                PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
+                PhysicsActor.OnOutOfBounds -= OutOfBoundsCall;
+                m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
+                PhysicsActor.UnSubscribeEvents();
+                PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
+                PhysicsActor = null;
             }
+//            else
+//            {
+//                m_log.ErrorFormat(
+//                    "[SCENE PRESENCE]: Attempt to remove physics actor for {0} on {1} but this scene presence has no physics actor",
+//                    Name, Scene.RegionInfo.RegionName);
+//            }
         }
 
         /// <summary>
@@ -1925,7 +1920,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_log.DebugFormat("[SCENE PRESENCE]: {0} {1}", SitTargetisSet, SitTargetUnOccupied);
 
             if (PhysicsActor != null)
-                m_sitAvatarHeight = m_physicsActor.Size.Z;
+                m_sitAvatarHeight = PhysicsActor.Size.Z;
 
             bool canSit = false;
             pos = part.AbsolutePosition + offset;
@@ -2570,7 +2565,10 @@ namespace OpenSim.Region.Framework.Scenes
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
             {
-                m_log.Warn("[SCENE PRESENCE]: Attempt to send avatar data from a child agent");
+                m_log.WarnFormat(
+                    "[SCENE PRESENCE]: Attempt to send avatar data from a child agent for {0} in {1}",
+                    Name, Scene.RegionInfo.RegionName);
+
                 return;
             }
 
@@ -2628,7 +2626,10 @@ namespace OpenSim.Region.Framework.Scenes
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
             {
-                m_log.Warn("[SCENE PRESENCE]: Attempt to send avatar data from a child agent");
+                m_log.WarnFormat(
+                    "[SCENE PRESENCE]: Attempt to send avatar data from a child agent for {0} in {1}",
+                    Name, Scene.RegionInfo.RegionName);
+
                 return;
             }
             
@@ -3039,8 +3040,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             CameraPosition = cAgentData.Center + offset;
 
-            //SetHeight(cAgentData.AVHeight);
-
             if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
                 ControllingClient.SetChildAgentThrottle(cAgentData.Throttles);
 
@@ -3251,6 +3250,13 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE PRESENCE]: Adding physics actor for {0}, ifFlying = {1} in {2}",
 //                Name, isFlying, Scene.RegionInfo.RegionName);
 
+            if (PhysicsActor != null)
+            {
+                m_log.ErrorFormat(
+                    "[SCENE PRESENCE]: Adding physics actor for {0} to {1} but this scene presence already has a physics actor",
+                    Name, Scene.RegionInfo.RegionName);
+            }
+
             if (Appearance.AvatarHeight == 0)
                 Appearance.SetHeight();
 
@@ -3258,11 +3264,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 pVec = AbsolutePosition;
 
-            // Old bug where the height was in centimeters instead of meters
-            PhysicsActor = scene.AddAvatar(LocalId, Firstname + "." + Lastname, pVec,
-                                                 new Vector3(0f, 0f, Appearance.AvatarHeight), isFlying);
+            PhysicsActor = scene.AddAvatar(
+                LocalId, Firstname + "." + Lastname, pVec,
+                new Vector3(0f, 0f, Appearance.AvatarHeight), isFlying);
 
-            scene.AddPhysicsActorTaint(PhysicsActor);
             //PhysicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             PhysicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
             PhysicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong

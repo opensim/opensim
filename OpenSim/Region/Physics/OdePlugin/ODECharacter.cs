@@ -137,7 +137,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal IntPtr Body = IntPtr.Zero;
         private OdeScene _parent_scene;
         internal IntPtr Shell = IntPtr.Zero;
-        internal IntPtr Amotor = IntPtr.Zero;
+        private IntPtr Amotor = IntPtr.Zero;
         private d.Mass ShellMass;
 
         private int m_eventsubscription = 0;
@@ -549,8 +549,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get
             {
-                float AVvolume = (float) (Math.PI*Math.Pow(CAPSULE_RADIUS, 2)*CAPSULE_LENGTH);
-                return m_density*AVvolume;
+                float AVvolume = (float)(Math.PI * Math.Pow(CAPSULE_RADIUS, 2) * CAPSULE_LENGTH);
+                return m_density * AVvolume;
             }
         }
 
