@@ -415,7 +415,7 @@ namespace OpenSim.Region.RegionCombinerModule
                     //xxy
                     //xxx
                     //xxx
-                    if ((((int)conn.X * (int)Constants.RegionSize) + conn.YEnd
+                    if ((((int)conn.X * (int)Constants.RegionSize) + conn.XEnd
                         >= (regionConnections.X * (int)Constants.RegionSize))
                         && (((int)conn.Y * (int)Constants.RegionSize) + conn.YEnd
                         >= (regionConnections.Y * (int)Constants.RegionSize)))
