@@ -195,11 +195,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             //     new d.Matrix3(0.5f, 0.7071068f, 0.5f, -0.7071068f, 0f, 0.7071068f, 0.5f, -0.7071068f,
             //                   0.5f);
 
-            for (int i = 0; i < 11; i++)
-            {
-                m_colliderarr[i] = false;
-            }
-
             // We can set taint and actual to be the same here, since the entire character will be set up when the
             // m_tainted_isPhysical is processed.
             SetTaintedCapsuleLength(size);
