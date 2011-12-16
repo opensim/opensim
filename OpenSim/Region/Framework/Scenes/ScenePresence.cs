@@ -502,9 +502,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_pos = PhysicsActor.Position;
 
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE]: Set position {0} for {1} in {2} via getting AbsolutePosition!",
-//                        m_pos, Name, Scene.RegionInfo.RegionName);
+                    //m_log.DebugFormat(
+                    //    "[SCENE PRESENCE]: Set position {0} for {1} in {2} via getting AbsolutePosition!",
+                    //    m_pos, Name, Scene.RegionInfo.RegionName);
                 }
                 else
                 {
@@ -534,7 +534,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-
                 return m_pos;
             }
             set
@@ -554,9 +553,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_pos = value;
                 ParentPosition = Vector3.Zero;
 
-//                m_log.DebugFormat(
-//                    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
-//                    Scene.RegionInfo.RegionName, Name, m_pos);
+                //m_log.DebugFormat(
+                //    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
+                //    Scene.RegionInfo.RegionName, Name, m_pos);
             }
         }
 
@@ -3006,6 +3005,7 @@ namespace OpenSim.Region.Framework.Scenes
             CopyFrom(cAgentData);
         }
 
+        private static Vector3 marker = new Vector3(-1f, -1f, -1f);
         /// <summary>
         /// This updates important decision making data about a child agent
         /// The main purpose is to figure out what objects to send to a child agent that's in a neighboring region
@@ -3026,8 +3026,8 @@ namespace OpenSim.Region.Framework.Scenes
             // region's draw distance.
             // DrawDistance = cAgentData.Far;
             DrawDistance = Scene.DefaultDrawDistance;
-            
-            if (cAgentData.Position != new Vector3(-1f, -1f, -1f)) // UGH!!
+
+            if (cAgentData.Position != marker) // UGH!!
                 m_pos = cAgentData.Position + offset;
 
             if (Vector3.Distance(AbsolutePosition, posLastSignificantMove) >= Scene.ChildReprioritizationDistance)

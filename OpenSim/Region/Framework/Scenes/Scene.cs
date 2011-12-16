@@ -2512,7 +2512,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (sp == null)
             {
                 m_log.DebugFormat(
-                    "[SCENE]: Adding new child scene presence {0} to scene {1}", client.Name, RegionInfo.RegionName);
+                    "[SCENE]: Adding new child scene presence {0} to scene {1} at pos {2}", client.Name, RegionInfo.RegionName, client.StartPos);
 
                 m_clientManager.Add(client);
                 SubscribeToClientEvents(client);
@@ -3249,9 +3249,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Don't disable this log message - it's too helpful
             m_log.DebugFormat(
-                "[CONNECTION BEGIN]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, teleportflags {6})",
+                "[SCENE]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, teleportflags {6}, position {7})",
                 RegionInfo.RegionName, (agent.child ? "child" : "root"), agent.firstname, agent.lastname,
-                agent.AgentID, agent.circuitcode, teleportFlags);
+                agent.AgentID, agent.circuitcode, teleportFlags, agent.startpos);
 
             if (LoginsDisabled)
             {
@@ -3294,7 +3294,7 @@ namespace OpenSim.Region.Framework.Scenes
                     catch (Exception e)
                     {
                         m_log.ErrorFormat(
-                            "[CONNECTION BEGIN]: Exception verifying presence {0}{1}", e.Message, e.StackTrace);
+                            "[SCENE]: Exception verifying presence {0}{1}", e.Message, e.StackTrace);
                         return false;
                     }
                 }
@@ -3307,12 +3307,12 @@ namespace OpenSim.Region.Framework.Scenes
                 catch (Exception e)
                 {
                     m_log.ErrorFormat(
-                        "[CONNECTION BEGIN]: Exception authorizing user {0}{1}", e.Message, e.StackTrace);
+                        "[SCENE]: Exception authorizing user {0}{1}", e.Message, e.StackTrace);
                     return false;
                 }
 
                 m_log.InfoFormat(
-                    "[CONNECTION BEGIN]: Region {0} authenticated and authorized incoming {1} agent {2} {3} {4} (circuit code {5})",
+                    "[SCENE]: Region {0} authenticated and authorized incoming {1} agent {2} {3} {4} (circuit code {5})",
                     RegionInfo.RegionName, (agent.child ? "child" : "root"), agent.firstname, agent.lastname,
                     agent.AgentID, agent.circuitcode);
 
