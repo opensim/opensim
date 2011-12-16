@@ -259,6 +259,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         }
 
+        [Obsolete]
         public XmlRpcResponse GetOnlineFriends(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable hash = new Hashtable();

@@ -123,7 +123,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Destination region {0} is hyperlink", region.RegionID);
                 GridRegion real_destination = m_GatekeeperConnector.GetHyperlinkRegion(region, region.RegionID);
-                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: GetFinalDestination serveruri -> {0}", real_destination.ServerURI);
+                if (real_destination != null)
+                    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: GetFinalDestination serveruri -> {0}", real_destination.ServerURI);
+                else
+                    m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: GetHyperlinkRegion to Gatekeeper {0} failed", region.ServerURI);
                 return real_destination;
             }
             return region;
