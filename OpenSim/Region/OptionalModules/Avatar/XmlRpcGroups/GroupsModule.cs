@@ -29,24 +29,17 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Timers;
-
 using log4net;
 using Mono.Addins;
 using Nini.Config;
-
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-
 using OpenSim.Services.Interfaces;
-
 using DirFindFlags = OpenMetaverse.DirectoryManager.DirFindFlags;
-
-
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
@@ -90,7 +83,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         // Configuration settings
         private bool m_groupsEnabled = false;
         private bool m_groupNoticesEnabled = true;
-        private bool m_debugEnabled = true;
+        private bool m_debugEnabled = false;
 
         #region IRegionModuleBase Members
 

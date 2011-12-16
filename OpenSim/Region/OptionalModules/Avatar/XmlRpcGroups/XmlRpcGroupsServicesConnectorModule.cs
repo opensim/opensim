@@ -52,6 +52,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private bool m_debugEnabled = false;
+
         public const GroupPowers m_DefaultEveryonePowers = GroupPowers.AllowSetHome | 
             GroupPowers.Accountable | 
             GroupPowers.JoinChat | 
@@ -80,7 +82,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         // SessionID, List<AgentID>
         private Dictionary<UUID, List<UUID>> m_groupsAgentsDroppedFromChatSession = new Dictionary<UUID, List<UUID>>();
         private Dictionary<UUID, List<UUID>> m_groupsAgentsInvitedToChatSession = new Dictionary<UUID, List<UUID>>();
-
 
         #region IRegionModuleBase Members
 
@@ -115,7 +116,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     return;
                 }
 
-                m_log.InfoFormat("[XMLRPC-GROUPS-CONNECTOR]: Initializing {0}", this.Name);
+                m_log.DebugFormat("[XMLRPC-GROUPS-CONNECTOR]: Initializing {0}", this.Name);
 
                 m_groupsServerURI = groupsConfig.GetString("GroupsServerURI", string.Empty);
                 if ((m_groupsServerURI == null) ||
@@ -142,6 +143,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     m_log.InfoFormat("[XMLRPC-GROUPS-CONNECTOR]: Groups Cache Timeout set to {0}.", m_cacheTimeout);
                 }
 
+                m_debugEnabled = groupsConfig.GetBoolean("DebugEnabled", false);
+
                 // If we got all the config options we need, lets start'er'up
                 m_memoryCache = new ExpiringCache<string, XmlRpcResponse>();
                 m_connectorEnabled = true;
@@ -150,7 +153,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public void Close()
         {
-            m_log.InfoFormat("[XMLRPC-GROUPS-CONNECTOR]: Closing {0}", this.Name);
+            m_log.DebugFormat("[XMLRPC-GROUPS-CONNECTOR]: Closing {0}", this.Name);
         }
 
         public void AddRegion(OpenSim.Region.Framework.Scenes.Scene scene)
@@ -958,6 +961,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             
             if (resp == null)
             {
+                if (m_debugEnabled)
+                    m_log.DebugFormat("[XMLRPC-GROUPS-CONNECTOR]: Cache miss for key {0}", CacheKey);
+
                 string UserService;
                 UUID SessionID;
                 GetClientGroupRequestID(requestingAgentID, out UserService, out SessionID);
