@@ -784,7 +784,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void RegisterToEvents()
         {
             ControllingClient.OnCompleteMovementToRegion += CompleteMovement;
-            //ControllingClient.OnCompleteMovementToRegion += SendInitialData;
             ControllingClient.OnAgentUpdate += HandleAgentUpdate;
             ControllingClient.OnAgentRequestSit += HandleAgentRequestSit;
             ControllingClient.OnAgentSit += HandleAgentSit;
@@ -831,11 +830,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         #endregion
-
-        public uint GenerateClientFlags(UUID ObjectID)
-        {
-            return m_scene.Permissions.GenerateClientFlags(m_uuid, ObjectID);
-        }
 
         #region Status Methods
 

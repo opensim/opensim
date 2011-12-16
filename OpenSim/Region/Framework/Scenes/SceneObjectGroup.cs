@@ -1377,15 +1377,14 @@ namespace OpenSim.Region.Framework.Scenes
         // Used when the client initially connects and when client sends RequestPrim packet
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
-            RootPart.SendFullUpdate(
-                remoteClient, m_scene.Permissions.GenerateClientFlags(remoteClient.AgentId, RootPart.UUID));
+            RootPart.SendFullUpdate(remoteClient);
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
                 if (part != RootPart)
-                    part.SendFullUpdate(remoteClient, m_scene.Permissions.GenerateClientFlags(remoteClient.AgentId, part.UUID));
+                    part.SendFullUpdate(remoteClient);
             }
         }
 
