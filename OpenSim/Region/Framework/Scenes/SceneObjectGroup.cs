@@ -789,6 +789,10 @@ namespace OpenSim.Region.Framework.Scenes
             EntityIntersection result = new EntityIntersection();
 
             SceneObjectPart[] parts = m_parts.GetArray();
+
+            // Find closest hit here
+            float idist = float.MaxValue;
+
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
@@ -803,11 +807,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 EntityIntersection inter = part.TestIntersectionOBB(hRay, parentrotation, frontFacesOnly, faceCenters);
 
-                // This may need to be updated to the maximum draw distance possible..
-                // We might (and probably will) be checking for prim creation from other sims
-                // when the camera crosses the border.
-                float idist = Constants.RegionSize;
-
                 if (inter.HitTF)
                 {
                     // We need to find the closest prim to return to the testcaller along the ray
@@ -818,8 +817,9 @@ namespace OpenSim.Region.Framework.Scenes
                         result.obj = part;
                         result.normal = inter.normal;
                         result.distance = inter.distance;
+
+                        idist = inter.distance;
                     }
-                    
                 }
             }
             return result;

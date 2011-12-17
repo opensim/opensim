@@ -431,6 +431,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // avatar rotation. This may include a nonzero elevation if
                 // in mouselook.
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
+                if (avatar == null)
+                    return sensedEntities;
                 fromRegionPos = avatar.AbsolutePosition;
                 q = avatar.Rotation;
             }
@@ -444,6 +446,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             Action<ScenePresence> senseEntity = new Action<ScenePresence>(delegate(ScenePresence presence)
             {
+                if (presence.PresenceType == PresenceType.Npc)
+                    return;
+
                 if (presence.IsDeleted || presence.IsChildAgent || presence.GodLevel > 0.0)
                     return;
                 

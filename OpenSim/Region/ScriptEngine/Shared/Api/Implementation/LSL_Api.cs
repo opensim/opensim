@@ -85,7 +85,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// </summary>
     public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
         protected uint m_localID;
@@ -11124,153 +11124,382 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_SayShoutCount = 0;
         }
+
+        private struct Tri
+        {
+            public Vector3 p1;
+            public Vector3 p2;
+            public Vector3 p3;
+        }
+
+        private bool InBoundingBox(ScenePresence avatar, Vector3 point)
+        {
+            float height = avatar.Appearance.AvatarHeight;
+            Vector3 b1 = avatar.AbsolutePosition + new Vector3(-0.22f, -0.22f, -height/2);
+            Vector3 b2 = avatar.AbsolutePosition + new Vector3(0.22f, 0.22f, height/2);
+
+            if (point.X > b1.X && point.X < b2.X &&
+                point.Y > b1.Y && point.Y < b2.Y &&
+                point.Z > b1.Z && point.Z < b2.Z)
+                return true;
+            return false;
+        }
+
+        private ContactResult[] AvatarIntersection(Vector3 rayStart, Vector3 rayEnd)
+        {
+            List<ContactResult> contacts = new List<ContactResult>();
+
+            Vector3 ab = rayEnd - rayStart;
+
+            World.ForEachScenePresence(delegate(ScenePresence sp)
+            {
+                Vector3 ac = sp.AbsolutePosition - rayStart;
+                Vector3 bc = sp.AbsolutePosition - rayEnd;
+
+                double d = Math.Abs(Vector3.Mag(Vector3.Cross(ab, ac)) / Vector3.Distance(rayStart, rayEnd));
+
+                if (d > 1.5)
+                    return;
+
+                double d2 = Vector3.Dot(Vector3.Negate(ab), ac);
+
+                if (d2 > 0)
+                    return;
+
+                double dp = Math.Sqrt(Vector3.Mag(ac) * Vector3.Mag(ac) - d * d);
+                Vector3 p = rayStart + Vector3.Divide(Vector3.Multiply(ab, (float)dp), (float)Vector3.Mag(ab));
+
+                if (!InBoundingBox(sp, p))
+                    return;
+
+                ContactResult result = new ContactResult ();
+                result.ConsumerID = sp.LocalId;
+                result.Depth = Vector3.Distance(rayStart, p);
+                result.Normal = Vector3.Zero;
+                result.Pos = p;
+
+                contacts.Add(result);
+            });
+
+            return contacts.ToArray();
+        }
+
+        private ContactResult[] ObjectIntersection(Vector3 rayStart, Vector3 rayEnd)
+        {
+            Ray ray = new Ray(rayStart, Vector3.Normalize(rayEnd - rayStart));
+            List<ContactResult> contacts = new List<ContactResult>();
+
+            Vector3 ab = rayEnd - rayStart;
+
+            World.ForEachSOG(delegate(SceneObjectGroup group)
+            {
+                if (m_host.ParentGroup == group)
+                    return;
+
+                if (group.IsAttachment)
+                    return;
+
+                // Find the radius ouside of which we don't even need to hit test
+                float minX;
+                float maxX;
+                float minY;
+                float maxY;
+                float minZ;
+                float maxZ;
+
+                float radius = 0.0f;
+
+                group.GetAxisAlignedBoundingBoxRaw(out minX, out maxX, out minY, out maxY, out minZ, out maxZ);
+
+                if (Math.Abs(minX) > radius)
+                    radius = Math.Abs(minX);
+                if (Math.Abs(minY) > radius)
+                    radius = Math.Abs(minY);
+                if (Math.Abs(minZ) > radius)
+                    radius = Math.Abs(minZ);
+                if (Math.Abs(maxX) > radius)
+                    radius = Math.Abs(maxX);
+                if (Math.Abs(maxY) > radius)
+                    radius = Math.Abs(maxY);
+                if (Math.Abs(maxZ) > radius)
+                    radius = Math.Abs(maxZ);
+
+                Vector3 ac = group.AbsolutePosition - rayStart;
+                Vector3 bc = group.AbsolutePosition - rayEnd;
+
+                double d = Math.Abs(Vector3.Mag(Vector3.Cross(ab, ac)) / Vector3.Distance(rayStart, rayEnd));
+
+                // Too far off ray, don't bother
+                if (d > radius)
+                    return;
+
+                // Behind ray, drop
+                double d2 = Vector3.Dot(Vector3.Negate(ab), ac);
+                if (d2 > 0)
+                    return;
+
+                EntityIntersection intersection = group.TestIntersection(ray, true, false);
+                // Miss.
+                if (!intersection.HitTF)
+                    return;
+
+                ContactResult result = new ContactResult ();
+                result.ConsumerID = group.LocalId;
+                result.Depth = intersection.distance;
+                result.Normal = intersection.normal;
+                result.Pos = intersection.ipoint;
+
+                contacts.Add(result);
+            });
+
+            return contacts.ToArray();
+        }
+
+        private ContactResult? GroundIntersection(Vector3 rayStart, Vector3 rayEnd)
+        {
+            double[,] heightfield = World.Heightmap.GetDoubles();
+            List<ContactResult> contacts = new List<ContactResult>();
+
+            double min = 2048.0;
+            double max = 0.0;
+
+            // Find the min and max of the heightfield
+            for (int x = 0 ; x < World.Heightmap.Width ; x++)
+            {
+                for (int y = 0 ; y < World.Heightmap.Height ; y++)
+                {
+                    if (heightfield[x, y] > max)
+                        max = heightfield[x, y];
+                    if (heightfield[x, y] < min)
+                        min = heightfield[x, y];
+                }
+            }
+
+
+            // A ray extends past rayEnd, but doesn't go back before
+            // rayStart. If the start is above the highest point of the ground
+            // and the ray goes up, we can't hit the ground. Ever.
+            if (rayStart.Z > max && rayEnd.Z >= rayStart.Z)
+                return null;
+
+            // Same for going down
+            if (rayStart.Z < min && rayEnd.Z <= rayStart.Z)
+                return null;
+
+            List<Tri> trilist = new List<Tri>();
+
+            // Create our triangle list
+            for (int x = 1 ; x < World.Heightmap.Width ; x++)
+            {
+                for (int y = 1 ; y < World.Heightmap.Height ; y++)
+                {
+                    Tri t1 = new Tri();
+                    Tri t2 = new Tri();
+                    
+                    Vector3 p1 = new Vector3(x-1, y-1, (float)heightfield[x-1, y-1]);
+                    Vector3 p2 = new Vector3(x, y-1, (float)heightfield[x, y-1]);
+                    Vector3 p3 = new Vector3(x, y, (float)heightfield[x, y]);
+                    Vector3 p4 = new Vector3(x-1, y, (float)heightfield[x-1, y]);
+
+                    t1.p1 = p1;
+                    t1.p2 = p2;
+                    t1.p3 = p3;
+
+                    t2.p1 = p3;
+                    t2.p2 = p4;
+                    t2.p3 = p1;
+
+                    trilist.Add(t1);
+                    trilist.Add(t2);
+                }
+            }
+
+            // Ray direction
+            Vector3 rayDirection = rayEnd - rayStart;
+
+            foreach (Tri t in trilist)
+            {
+                // Compute triangle plane normal and edges
+                Vector3 u = t.p2 - t.p1;
+                Vector3 v = t.p3 - t.p1;
+                Vector3 n = Vector3.Cross(u, v);
+
+                if (n == Vector3.Zero)
+                    continue;
+
+                Vector3 w0 = rayStart - t.p1;
+                double a = -Vector3.Dot(n, w0);
+                double b = Vector3.Dot(n, rayDirection);
+
+                // Not intersecting the plane, or in plane (same thing)
+                // Ignoring this MAY cause the ground to not be detected
+                // sometimes
+                if (Math.Abs(b) < 0.000001)
+                    continue;
+                
+                double r = a / b;
+
+                // ray points away from plane
+                if (r < 0.0)
+                    continue;
+
+                Vector3 ip = rayStart + Vector3.Multiply(rayDirection, (float)r);
+
+                float uu = Vector3.Dot(u, u);
+                float uv = Vector3.Dot(u, v);
+                float vv = Vector3.Dot(v, v);
+                Vector3 w = ip - t.p1;
+                float wu = Vector3.Dot(w, u);
+                float wv = Vector3.Dot(w, v);
+                float d = uv * uv - uu * vv;
+
+                float cs = (uv * wv - vv * wu) / d;
+                if (cs < 0 || cs > 1.0)
+                    continue;
+                float ct = (uv * wu - uu * wv) / d;
+                if (ct < 0 || (cs + ct) > 1.0)
+                    continue;
+
+                // Add contact point
+                ContactResult result = new ContactResult ();
+                result.ConsumerID = 0;
+                result.Depth = Vector3.Distance(rayStart, ip);
+                result.Normal = n;
+                result.Pos = ip;
+
+                contacts.Add(result);
+            }
+
+            if (contacts.Count == 0)
+                return null;
+
+            contacts.Sort(delegate(ContactResult a, ContactResult b)
+            {
+                return (int)(a.Depth - b.Depth);
+            });
+
+            return contacts[0];
+        }
+
         public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
         {
+            LSL_List list = new LSL_List();
+
             m_host.AddScriptLPS(1);
 
-            Vector3 dir = new Vector3((float)(end-start).x, (float)(end-start).y, (float)(end-start).z);
-            Vector3 startvector = new Vector3((float)start.x, (float)start.y, (float)start.z);
-            Vector3 endvector = new Vector3((float)end.x, (float)end.y, (float)end.z);
+            Vector3 rayStart = new Vector3((float)start.x, (float)start.y, (float)start.z);
+            Vector3 rayEnd = new Vector3((float)end.x, (float)end.y, (float)end.z);
+            Vector3 dir = rayEnd - rayStart;
 
-            int count = 0;
-//            int detectPhantom = 0;
+            int count = 1;
+            bool detectPhantom = false;
             int dataFlags = 0;
             int rejectTypes = 0;
 
             for (int i = 0; i < options.Length; i += 2)
             {
                 if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_MAX_HITS)
-                {
                     count = options.GetLSLIntegerItem(i + 1);
-                }
-//                else if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_DETECT_PHANTOM)
-//                {
-//                    detectPhantom = options.GetLSLIntegerItem(i + 1);
-//                }
+                else if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_DETECT_PHANTOM)
+                    detectPhantom = (options.GetLSLIntegerItem(i + 1) > 0);
                 else if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_DATA_FLAGS)
-                {
                     dataFlags = options.GetLSLIntegerItem(i + 1);
-                }
                 else if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_REJECT_TYPES)
-                {
                     rejectTypes = options.GetLSLIntegerItem(i + 1);
-                }
             }
 
-            LSL_List list = new LSL_List();
-            List<ContactResult> results = World.PhysicsScene.RaycastWorld(startvector, dir, dir.Length(), count);
+            if (count > 16)
+                count = 16;
 
-            double distance = Util.GetDistanceTo(startvector, endvector);
-
-            if (distance == 0)
-                distance = 0.001;
-
-            Vector3 posToCheck = startvector;
-            ITerrainChannel channel = World.RequestModuleInterface<ITerrainChannel>();
+            List<ContactResult> results = new List<ContactResult>();
 
             bool checkTerrain = !((rejectTypes & ScriptBaseClass.RC_REJECT_LAND) == ScriptBaseClass.RC_REJECT_LAND);
             bool checkAgents = !((rejectTypes & ScriptBaseClass.RC_REJECT_AGENTS) == ScriptBaseClass.RC_REJECT_AGENTS);
             bool checkNonPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_NONPHYSICAL) == ScriptBaseClass.RC_REJECT_NONPHYSICAL);
             bool checkPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_PHYSICAL) == ScriptBaseClass.RC_REJECT_PHYSICAL);
 
-            for (float i = 0; i <= distance; i += 0.1f)
+            if (checkTerrain)
             {
-                posToCheck = startvector  + (dir * (i / (float)distance));
-
-                if (checkTerrain && channel[(int)(posToCheck.X + startvector.X), (int)(posToCheck.Y + startvector.Y)] < posToCheck.Z)
-                {
-                    ContactResult result = new ContactResult();
-                    result.ConsumerID = 0;
-                    result.Depth = 0;
-                    result.Normal = Vector3.Zero;
-                    result.Pos = posToCheck;
-                    results.Add(result);
-                    checkTerrain = false;
-                }
-
-                if (checkAgents)
-                {
-                    World.ForEachRootScenePresence(delegate(ScenePresence sp)
-                    {
-                        if (sp.AbsolutePosition.ApproxEquals(posToCheck, sp.PhysicsActor.Size.X))
-                        {
-                            ContactResult result = new ContactResult ();
-                            result.ConsumerID = sp.LocalId;
-                            result.Depth = 0;
-                            result.Normal = Vector3.Zero;
-                            result.Pos = posToCheck;
-                            results.Add(result);
-                        }
-                    });
-                }
+                ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
+                if (groundContact != null)
+                    results.Add((ContactResult)groundContact);
             }
 
-            int refcount = 0;
+            if (checkAgents)
+            {
+                ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
+                foreach (ContactResult r in agentHits)
+                    results.Add(r);
+            }
+
+            if (checkPhysical || checkNonPhysical)
+            {
+                ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd);
+                foreach (ContactResult r in objectHits)
+                    results.Add(r);
+            }
+
+            results.Sort(delegate(ContactResult a, ContactResult b)
+            {
+                return (int)(a.Depth - b.Depth);
+            });
+            
+            int values = 0;
             foreach (ContactResult result in results)
             {
-                if ((rejectTypes & ScriptBaseClass.RC_REJECT_LAND)
-                    == ScriptBaseClass.RC_REJECT_LAND && result.ConsumerID == 0)
-                    continue;
+                UUID itemID = UUID.Zero;
+                int linkNum = 0;
 
-                ISceneEntity entity = World.GetSceneObjectPart(result.ConsumerID);
-
-                if (entity == null && (rejectTypes & ScriptBaseClass.RC_REJECT_AGENTS) != ScriptBaseClass.RC_REJECT_AGENTS)
-                    entity = World.GetScenePresence(result.ConsumerID); //Only check if we should be looking for agents
-
-                if (entity == null)
+                SceneObjectPart part = World.GetSceneObjectPart(result.ConsumerID);
+                // It's a prim!
+                if (part != null)
                 {
-                    list.Add(UUID.Zero);
-
-                    if ((dataFlags & ScriptBaseClass.RC_GET_LINK_NUM) == ScriptBaseClass.RC_GET_LINK_NUM)
-                        list.Add(0);
-
-                    list.Add(result.Pos);
-
-                    if ((dataFlags & ScriptBaseClass.RC_GET_NORMAL) == ScriptBaseClass.RC_GET_NORMAL)
-                        list.Add(result.Normal);
-
-                    continue; //Can't find it, so add UUID.Zero
-                }
-
-                /*if (detectPhantom == 0 && intersection.obj is ISceneChildEntity &&
-                    ((ISceneChildEntity)intersection.obj).PhysActor == null)
-                    continue;*/ //Can't do this ATM, physics engine knows only of non phantom objects
-
-                if (entity is SceneObjectPart)
-                {
-                    if (((SceneObjectPart)entity).PhysActor != null && ((SceneObjectPart)entity).PhysActor.IsPhysical)
+                    if (part.PhysActor != null)
                     {
-                        if (!checkPhysical)
+                        if (part.PhysActor.IsPhysical && !checkPhysical)
+                            continue;
+                        if (!part.PhysActor.IsPhysical && !checkNonPhysical)
                             continue;
                     }
                     else
                     {
-                        if (!checkNonPhysical)
+                        if (!detectPhantom)
                             continue;
                     }
+
+                    if ((dataFlags & ScriptBaseClass.RC_GET_ROOT_KEY) == ScriptBaseClass.RC_GET_ROOT_KEY)
+                        itemID = part.ParentGroup.UUID;
+                    else
+                        itemID = part.UUID;
+
+                    linkNum = part.LinkNum;
+                }
+                else
+                {
+                    ScenePresence sp = World.GetScenePresence(result.ConsumerID);
+                    /// It it a boy? a girl?
+                    if (sp != null)
+                        itemID = sp.UUID;
                 }
 
-                refcount++;
-                if ((dataFlags & ScriptBaseClass.RC_GET_ROOT_KEY) == ScriptBaseClass.RC_GET_ROOT_KEY && entity is SceneObjectPart)
-                    list.Add(((SceneObjectPart)entity).ParentGroup.UUID);
-                else
-                    list.Add(entity.UUID);
+                list.Add(new LSL_String(itemID.ToString()));
+                list.Add(new LSL_String(result.Pos.ToString()));
 
                 if ((dataFlags & ScriptBaseClass.RC_GET_LINK_NUM) == ScriptBaseClass.RC_GET_LINK_NUM)
-                {
-                    if (entity is SceneObjectPart)
-                        list.Add(((SceneObjectPart)entity).LinkNum);
-                    else
-                        list.Add(0);
-                }
+                    list.Add(new LSL_Integer(linkNum));
 
-                list.Add(result.Pos);
 
                 if ((dataFlags & ScriptBaseClass.RC_GET_NORMAL) == ScriptBaseClass.RC_GET_NORMAL)
-                    list.Add(result.Normal);
+                    list.Add(new LSL_Vector(result.Normal.X, result.Normal.Y, result.Normal.Z));
+                
+                values++;
+                count--;
+
+                if (count == 0)
+                    break;
             }
 
-            list.Add(refcount); //The status code, either the # of contacts, RCERR_SIM_PERF_LOW, or RCERR_CAST_TIME_EXCEEDED
+            list.Add(new LSL_Integer(values));
 
             return list;
         }
