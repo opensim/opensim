@@ -3211,6 +3211,8 @@ namespace OpenSim.Region.Framework.Scenes
                 part.Inventory.ChangeInventoryGroup(GroupID);
             }
 
+            HasGroupChanged = true;
+            
             // Don't trigger the update here - otherwise some client issues occur when multiple updates are scheduled
             // for the same object with very different properties.  The caller must schedule the update.
             //ScheduleGroupForFullUpdate();

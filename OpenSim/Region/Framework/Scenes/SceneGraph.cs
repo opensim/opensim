@@ -575,20 +575,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected internal void HandleObjectGroupUpdate(
-            IClientAPI remoteClient, UUID GroupID, uint objectLocalID, UUID Garbage)
-        {
-            if (!remoteClient.IsGroupMember(GroupID))
-                return;
-
-            SceneObjectGroup group = GetGroupByPrim(objectLocalID);
-            if (group != null)
-            {
-                if (group.OwnerID == remoteClient.AgentId)
-                    group.SetGroup(GroupID, remoteClient);
-            }
-        }
-
         protected internal ScenePresence CreateAndAddChildScenePresence(
             IClientAPI client, AvatarAppearance appearance, PresenceType type)
         {

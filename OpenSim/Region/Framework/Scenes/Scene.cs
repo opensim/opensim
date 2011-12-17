@@ -2776,7 +2776,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void SubscribeToClientParcelEvents(IClientAPI client)
         {
-            client.OnObjectGroupRequest += m_sceneGraph.HandleObjectGroupUpdate;
             client.OnParcelReturnObjectsRequest += LandChannel.ReturnObjectsInParcel;
             client.OnParcelSetOtherCleanTime += LandChannel.SetParcelOtherCleanTime;
             client.OnParcelBuy += ProcessParcelBuy;
@@ -2903,7 +2902,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void UnSubscribeToClientParcelEvents(IClientAPI client)
         {
-            client.OnObjectGroupRequest -= m_sceneGraph.HandleObjectGroupUpdate;
             client.OnParcelReturnObjectsRequest -= LandChannel.ReturnObjectsInParcel;
             client.OnParcelSetOtherCleanTime -= LandChannel.SetParcelOtherCleanTime;
             client.OnParcelBuy -= ProcessParcelBuy;
@@ -4287,7 +4285,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Get a scene object group that contains the prim with the given local id
         /// </summary>
         /// <param name="localID"></param>
-        /// <returns>null if no scene object group containing that prim is found</returns>
+        /// <returns>null if no scene object group containing that prim is found</returns>        
         public SceneObjectGroup GetGroupByPrim(uint localID)
         {
             return m_sceneGraph.GetGroupByPrim(localID);
