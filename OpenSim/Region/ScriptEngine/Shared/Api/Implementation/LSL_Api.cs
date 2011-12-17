@@ -11184,7 +11184,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return contacts.ToArray();
         }
 
-        private ContactResult[] ObjectIntersection(Vector3 rayStart, Vector3 rayEnd)
+        private ContactResult[] ObjectIntersection(Vector3 rayStart, Vector3 rayEnd, bool includePhysical, bool includeNonPhysical, bool includePhantom)
         {
             Ray ray = new Ray(rayStart, Vector3.Normalize(rayEnd - rayStart));
             List<ContactResult> contacts = new List<ContactResult>();
@@ -11198,6 +11198,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (group.IsAttachment)
                     return;
+
+                if (group.RootPart.PhysActor == null)
+                {
+                    if (!includePhantom)
+                        return;
+                }
+                else
+                {
+                    if (group.RootPart.PhysActor.IsPhysical)
+                    {
+                        if (!includePhysical)
+                            return;
+                    }
+                    else
+                    {
+                        if (!includeNonPhysical)
+                            return;
+                    }
+                }
 
                 // Find the radius ouside of which we don't even need to hit test
                 float minX;
@@ -11434,7 +11453,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (checkPhysical || checkNonPhysical)
             {
-                ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd);
+                ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd, checkPhysical, checkNonPhysical, detectPhantom);
                 foreach (ContactResult r in objectHits)
                     results.Add(r);
             }
@@ -11454,19 +11473,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // It's a prim!
                 if (part != null)
                 {
-                    if (part.PhysActor != null)
-                    {
-                        if (part.PhysActor.IsPhysical && !checkPhysical)
-                            continue;
-                        if (!part.PhysActor.IsPhysical && !checkNonPhysical)
-                            continue;
-                    }
-                    else
-                    {
-                        if (!detectPhantom)
-                            continue;
-                    }
-
                     if ((dataFlags & ScriptBaseClass.RC_GET_ROOT_KEY) == ScriptBaseClass.RC_GET_ROOT_KEY)
                         itemID = part.ParentGroup.UUID;
                     else
