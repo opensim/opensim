@@ -2955,7 +2955,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (byebyeRegions.Count > 0)
             {
                 m_log.Debug("[SCENE PRESENCE]: Closing " + byebyeRegions.Count + " child agents");
-                m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, byebyeRegions);
+                Util.FireAndForget(delegate 
+                { 
+                    m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, byebyeRegions); 
+                });
             }
             
             foreach (ulong handle in byebyeRegions)
