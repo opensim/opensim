@@ -796,6 +796,7 @@ namespace OpenSim
                     break;
 
                 case "backup":
+                    MainConsole.Instance.Output("Triggering save of pending object updates to persistent store");
                     m_sceneManager.BackupCurrentScene();
                     break;
 
@@ -806,7 +807,7 @@ namespace OpenSim
                     if (m_sceneManager.TryGetScene(regRemoveName, out removeScene))
                         RemoveRegion(removeScene, false);
                     else
-                        MainConsole.Instance.Output("no region with that name");
+                        MainConsole.Instance.Output("No region with that name");
                     break;
 
                 case "delete-region":
