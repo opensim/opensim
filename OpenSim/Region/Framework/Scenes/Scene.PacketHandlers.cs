@@ -116,18 +116,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void RequestPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            EntityBase[] entityList = GetEntities();
-            foreach (EntityBase ent in entityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    if (((SceneObjectGroup)ent).LocalId == primLocalID)
-                    {
-                        ((SceneObjectGroup)ent).SendFullUpdateToClient(remoteClient);
-                        return;
-                    }
-                }
-            }
+            SceneObjectGroup sog = GetGroupByPrim(primLocalID);
+
+            if (sog != null)
+                sog.SendFullUpdateToClient(remoteClient);
         }
 
         /// <summary>
@@ -137,46 +129,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            EntityBase[] entityList = GetEntities();
-            foreach (EntityBase ent in entityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    if (((SceneObjectGroup) ent).LocalId == primLocalID)
-                    {
-                        ((SceneObjectGroup) ent).SendPropertiesToClient(remoteClient);
-                        ((SceneObjectGroup) ent).IsSelected = true;
-                        // A prim is only tainted if it's allowed to be edited by the person clicking it.
-                        if (Permissions.CanEditObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId) 
-                            || Permissions.CanMoveObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId))
-                        {
-                            EventManager.TriggerParcelPrimCountTainted();
-                        }
-                        break;
-                    }
-                    else 
-                    {
-                        // We also need to check the children of this prim as they
-                        // can be selected as well and send property information
-                        bool foundPrim = false;
-                        
-                        SceneObjectGroup sog = ent as SceneObjectGroup;
+            SceneObjectPart part = GetSceneObjectPart(primLocalID);
 
-                        SceneObjectPart[] partList = sog.Parts;
-                        foreach (SceneObjectPart part in partList)
-                        {
-                            if (part.LocalId == primLocalID) 
-                            {
-                                part.SendPropertiesToClient(remoteClient);
-                                foundPrim = true;
-                                break;
-                            }
-                        }
-                            
-                        if (foundPrim) 
-                            break;
-                   }
+            if (null == part)
+                return;
+
+            if (part.IsRoot)
+            {
+                SceneObjectGroup sog = part.ParentGroup;
+                sog.SendPropertiesToClient(remoteClient);
+                sog.IsSelected = true;
+
+                // A prim is only tainted if it's allowed to be edited by the person clicking it.
+                if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
+                    || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
+                {
+                    EventManager.TriggerParcelPrimCountTainted();
                 }
+            }
+            else
+            {
+                 part.SendPropertiesToClient(remoteClient);
             }
         }
 
@@ -250,121 +223,81 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void ProcessObjectGrab(uint localID, Vector3 offsetPos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
-            EntityBase[] EntityList = GetEntities();
+            SceneObjectPart part = GetSceneObjectPart(localID);
+            
+            if (part == null)
+                return;
+
+            SceneObjectGroup obj = part.ParentGroup;
 
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
 
-            foreach (EntityBase ent in EntityList)
+            // Currently only grab/touch for the single prim
+            // the client handles rez correctly
+            obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
+    
+            // If the touched prim handles touches, deliver it
+            // If not, deliver to root prim
+            if ((part.ScriptEvents & scriptEvents.touch_start) != 0)
+                EventManager.TriggerObjectGrab(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
+
+            // Deliver to the root prim if the touched prim doesn't handle touches
+            // or if we're meant to pass on touches anyway. Don't send to root prim
+            // if prim touched is the root prim as we just did it
+            if (((part.ScriptEvents & scriptEvents.touch_start) == 0) ||
+                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId))) 
             {
-                if (ent is SceneObjectGroup)
-                {
-                    SceneObjectGroup obj = ent as SceneObjectGroup;
-                    if (obj != null)
-                    {
-                        // Is this prim part of the group
-                        if (obj.HasChildPrim(localID))
-                        {
-                            // Currently only grab/touch for the single prim
-                            // the client handles rez correctly
-                            obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
-
-                            SceneObjectPart part = obj.GetChildPart(localID);
-
-                            // If the touched prim handles touches, deliver it
-                            // If not, deliver to root prim
-                            if ((part.ScriptEvents & scriptEvents.touch_start) != 0) 
-                                EventManager.TriggerObjectGrab(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
-                            // Deliver to the root prim if the touched prim doesn't handle touches
-                            // or if we're meant to pass on touches anyway. Don't send to root prim
-                            // if prim touched is the root prim as we just did it
-                            if (((part.ScriptEvents & scriptEvents.touch_start) == 0) ||
-                                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId))) 
-                            {
-                                EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
-                            }
-
-                            return;
-                        }
-                    }
-                }
+                EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
             }
         }
 
-        public virtual void ProcessObjectGrabUpdate(UUID objectID, Vector3 offset, Vector3 pos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
+        public virtual void ProcessObjectGrabUpdate(
+            UUID objectID, Vector3 offset, Vector3 pos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
-            EntityBase[] EntityList = GetEntities();
+            SceneObjectPart part = GetSceneObjectPart(objectID);
+            if (part == null)
+                return;
+
+            SceneObjectGroup obj = part.ParentGroup;
 
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
 
-            foreach (EntityBase ent in EntityList)
+            // If the touched prim handles touches, deliver it
+            // If not, deliver to root prim
+            if ((part.ScriptEvents & scriptEvents.touch) != 0)
+                EventManager.TriggerObjectGrabbing(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
+            // Deliver to the root prim if the touched prim doesn't handle touches
+            // or if we're meant to pass on touches anyway. Don't send to root prim
+            // if prim touched is the root prim as we just did it
+            if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
+                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId)))
             {
-                if (ent is SceneObjectGroup)
-                {
-                    SceneObjectGroup obj = ent as SceneObjectGroup;
-                    if (obj != null)
-                    {
-                        // Is this prim part of the group
-                        if (obj.HasChildPrim(objectID))
-                        {
-                            SceneObjectPart part = obj.GetChildPart(objectID);
-
-                            // If the touched prim handles touches, deliver it
-                            // If not, deliver to root prim
-                            if ((part.ScriptEvents & scriptEvents.touch) != 0)
-                                EventManager.TriggerObjectGrabbing(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
-                            // Deliver to the root prim if the touched prim doesn't handle touches
-                            // or if we're meant to pass on touches anyway. Don't send to root prim
-                            // if prim touched is the root prim as we just did it
-                            if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
-                                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId)))
-                            {
-                                EventManager.TriggerObjectGrabbing(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
-                            }
-
-                            return;
-                        }
-                    }
-                }
+                EventManager.TriggerObjectGrabbing(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
             }
         }
 
         public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
-            EntityBase[] EntityList = GetEntities();
+            SceneObjectPart part = GetSceneObjectPart(localID);
+            if (part == null)
+                return;
+
+            SceneObjectGroup obj = part.ParentGroup;
 
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
 
-            foreach (EntityBase ent in EntityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    SceneObjectGroup obj = ent as SceneObjectGroup;
-
-                    // Is this prim part of the group
-                    if (obj.HasChildPrim(localID))
-                    {
-                        SceneObjectPart part=obj.GetChildPart(localID);
-                        if (part != null)
-                        {
-                            // If the touched prim handles touches, deliver it
-                            // If not, deliver to root prim
-                            if ((part.ScriptEvents & scriptEvents.touch_end) != 0)
-                                EventManager.TriggerObjectDeGrab(part.LocalId, 0, remoteClient, surfaceArg);
-                            else
-                                EventManager.TriggerObjectDeGrab(obj.RootPart.LocalId, part.LocalId, remoteClient, surfaceArg);
-
-                            return;
-                        }
-                        return;
-                    }
-                }
-            }
+            // If the touched prim handles touches, deliver it
+            // If not, deliver to root prim
+            if ((part.ScriptEvents & scriptEvents.touch_end) != 0)
+                EventManager.TriggerObjectDeGrab(part.LocalId, 0, remoteClient, surfaceArg);
+            else
+                EventManager.TriggerObjectDeGrab(obj.RootPart.LocalId, part.LocalId, remoteClient, surfaceArg);
         }
 
         public void ProcessAvatarPickerRequest(IClientAPI client, UUID avatarID, UUID RequestID, string query)
