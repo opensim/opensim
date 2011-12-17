@@ -13,7 +13,10 @@
     ; Change the connection string to your db details
     ;StorageProvider = "OpenSim.Data.MySQL.dll"
     ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;"
-    ; Uncomment this line if you are using MySQL and want to use a different database for estates
+
+    ; Uncomment this line if you are using MySQL and want to use a different database for estates.
+    ; The usual application for this is to allow estates to be spread out across multiple simulators by share the same database.
+    ; Most people won't need to do this so only uncomment if you know what you're doing.
     ;EstateConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;"
 
     ; MSSQL
