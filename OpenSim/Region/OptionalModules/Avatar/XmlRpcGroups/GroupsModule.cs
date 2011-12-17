@@ -332,15 +332,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         private void HandleObjectGroupUpdate(
             IClientAPI remoteClient, UUID GroupID, uint objectLocalID, UUID Garbage)
         {
-            GroupMembershipData gmd = GetMembershipData(GroupID, remoteClient.AgentId);
-
-            if (gmd == null)
+            // XXX: Might be better to get rid of this special casing and have GetMembershipData return something
+            // reasonable for a UUID.Zero group.
+            if (GroupID != UUID.Zero)
             {
-//                m_log.WarnFormat(
-//                    "[GROUPS]: User {0} is not a member of group {1} so they can't update {2} to this group",
-//                    remoteClient.Name, GroupID, objectLocalID);
-
-                return;
+                GroupMembershipData gmd = GetMembershipData(GroupID, remoteClient.AgentId);
+    
+                if (gmd == null)
+                {
+//                    m_log.WarnFormat(
+//                        "[GROUPS]: User {0} is not a member of group {1} so they can't update {2} to this group",
+//                        remoteClient.Name, GroupID, objectLocalID);
+    
+                    return;
+                }
             }
 
             SceneObjectGroup so = ((Scene)remoteClient.Scene).GetGroupByPrim(objectLocalID);
