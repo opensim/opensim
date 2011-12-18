@@ -2886,8 +2886,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Send a full update to the client for the given part
         /// </summary>
         /// <param name="remoteClient"></param>
-        /// <param name="clientFlags"></param>
-        protected internal void SendFullUpdate(IClientAPI remoteClient, uint clientFlags)
+        protected internal void SendFullUpdate(IClientAPI remoteClient)
         {
             if (ParentGroup == null)
                 return;
@@ -2899,16 +2898,16 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (ParentGroup.IsAttachment)
                 {
-                    SendFullUpdateToClient(remoteClient, AttachedPos, clientFlags);
+                    SendFullUpdateToClient(remoteClient, AttachedPos);
                 }
                 else
                 {
-                    SendFullUpdateToClient(remoteClient, AbsolutePosition, clientFlags);
+                    SendFullUpdateToClient(remoteClient, AbsolutePosition);
                 }
             }
             else
             {
-                SendFullUpdateToClient(remoteClient, clientFlags);
+                SendFullUpdateToClient(remoteClient);
             }
         }
 
@@ -2922,7 +2921,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             ParentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
             {
-                SendFullUpdate(avatar.ControllingClient, avatar.GenerateClientFlags(UUID));
+                SendFullUpdate(avatar.ControllingClient);
             });
         }
 
@@ -2930,12 +2929,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// Sends a full update to the client
         /// </summary>
         /// <param name="remoteClient"></param>
-        /// <param name="clientFlags"></param>
-        public void SendFullUpdateToClient(IClientAPI remoteClient, uint clientflags)
+        public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
-            Vector3 lPos;
-            lPos = OffsetPosition;
-            SendFullUpdateToClient(remoteClient, lPos, clientflags);
+            SendFullUpdateToClient(remoteClient, OffsetPosition);
         }
 
         /// <summary>
@@ -2943,8 +2939,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="lPos"></param>
-        /// <param name="clientFlags"></param>
-        public void SendFullUpdateToClient(IClientAPI remoteClient, Vector3 lPos, uint clientFlags)
+        public void SendFullUpdateToClient(IClientAPI remoteClient, Vector3 lPos)
         {
             if (ParentGroup == null)
                 return;
@@ -2961,15 +2956,10 @@ namespace OpenSim.Region.Framework.Scenes
                 (ParentGroup.AttachmentPoint >= 31) && (ParentGroup.AttachmentPoint <= 38))
                 return;
 
-            clientFlags &= ~(uint) PrimFlags.CreateSelected;
-
             if (remoteClient.AgentId == OwnerID)
             {
                 if ((Flags & PrimFlags.CreateSelected) != 0)
-                {
-                    clientFlags |= (uint) PrimFlags.CreateSelected;
                     Flags &= ~PrimFlags.CreateSelected;
-                }
             }
             //bool isattachment = IsAttachment;
             //if (LocalId != ParentGroup.RootPart.LocalId)
@@ -3403,6 +3393,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetGroup(UUID groupID, IClientAPI client)
         {
+            // Scene.AddNewPrims() calls with client == null so can't use this.
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT PART]: Setting group for {0} to {1} for {2}",
+//                Name, groupID, OwnerID);
+
             GroupID = groupID;
             if (client != null)
                 SendPropertiesToClient(client);

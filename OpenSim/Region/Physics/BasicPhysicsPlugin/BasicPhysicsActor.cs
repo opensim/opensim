@@ -44,8 +44,9 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         private bool flying;
         private bool iscolliding;
 
-        public BasicActor()
+        public BasicActor(Vector3 size)
         {
+            Size = size;
         }
 
         public override int PhysicsActorType

@@ -1588,6 +1588,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TriggerRequestChangeWaterHeight(float height)
         {
+            if (height < 0)
+            {
+                // ignore negative water height
+                return;
+            }
+
             RequestChangeWaterHeight handlerRequestChangeWaterHeight = OnRequestChangeWaterHeight;
             if (handlerRequestChangeWaterHeight != null)
             {

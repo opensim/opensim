@@ -188,6 +188,18 @@ namespace OpenSim
                 }
             }
 
+            // Hook up to the watchdog timer
+            Watchdog.OnWatchdogTimeout += WatchdogTimeoutHandler;
+
+            PrintFileToConsole("startuplogo.txt");
+
+            // For now, start at the 'root' level by default
+            if (m_sceneManager.Scenes.Count == 1) // If there is only one region, select it
+                ChangeSelectedRegion("region",
+                                     new string[] {"change", "region", m_sceneManager.Scenes[0].RegionInfo.RegionName});
+            else
+                ChangeSelectedRegion("region", new string[] {"change", "region", "root"});
+
             //Run Startup Commands
             if (String.IsNullOrEmpty(m_startupCommandsFile))
             {
@@ -206,18 +218,6 @@ namespace OpenSim
                 m_scriptTimer.Interval = 1200*1000;
                 m_scriptTimer.Elapsed += RunAutoTimerScript;
             }
-
-            // Hook up to the watchdog timer
-            Watchdog.OnWatchdogTimeout += WatchdogTimeoutHandler;
-
-            PrintFileToConsole("startuplogo.txt");
-
-            // For now, start at the 'root' level by default
-            if (m_sceneManager.Scenes.Count == 1) // If there is only one region, select it
-                ChangeSelectedRegion("region",
-                                     new string[] {"change", "region", m_sceneManager.Scenes[0].RegionInfo.RegionName});
-            else
-                ChangeSelectedRegion("region", new string[] {"change", "region", "root"});
         }
 
         /// <summary>
@@ -796,6 +796,7 @@ namespace OpenSim
                     break;
 
                 case "backup":
+                    MainConsole.Instance.Output("Triggering save of pending object updates to persistent store");
                     m_sceneManager.BackupCurrentScene();
                     break;
 
@@ -806,7 +807,7 @@ namespace OpenSim
                     if (m_sceneManager.TryGetScene(regRemoveName, out removeScene))
                         RemoveRegion(removeScene, false);
                     else
-                        MainConsole.Instance.Output("no region with that name");
+                        MainConsole.Instance.Output("No region with that name");
                     break;
 
                 case "delete-region":

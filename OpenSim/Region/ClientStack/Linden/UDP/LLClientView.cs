@@ -10464,6 +10464,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             return true;
         }
+
         private bool HandleGroupRoleMembersRequest(IClientAPI sender, Packet Pack)
         {
             GroupRoleMembersRequestPacket groupRoleMembersRequest =

@@ -29,24 +29,17 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Timers;
-
 using log4net;
 using Mono.Addins;
 using Nini.Config;
-
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-
 using OpenSim.Services.Interfaces;
-
 using DirFindFlags = OpenMetaverse.DirectoryManager.DirFindFlags;
-
-
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
@@ -90,7 +83,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         // Configuration settings
         private bool m_groupsEnabled = false;
         private bool m_groupNoticesEnabled = true;
-        private bool m_debugEnabled = true;
+        private bool m_debugEnabled = false;
 
         #region IRegionModuleBase Members
 
@@ -225,6 +218,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             client.OnUUIDGroupNameRequest += HandleUUIDGroupNameRequest;
+            client.OnObjectGroupRequest += HandleObjectGroupUpdate;
             client.OnAgentDataUpdateRequest += OnAgentDataUpdateRequest;
             client.OnDirFindQuery += OnDirFindQuery;
             client.OnRequestAvatarProperties += OnRequestAvatarProperties;
@@ -232,7 +226,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // Used for Notices and Group Invites/Accept/Reject
             client.OnInstantMessage += OnInstantMessage;
 
-            // Send client thier groups information.
+            // Send client their groups information.
             SendAgentGroupDataUpdate(client, client.AgentId);
         }
 
@@ -333,6 +327,35 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
 
             remoteClient.SendGroupNameReply(GroupID, GroupName);
+        }
+
+        private void HandleObjectGroupUpdate(
+            IClientAPI remoteClient, UUID GroupID, uint objectLocalID, UUID Garbage)
+        {
+            // XXX: Might be better to get rid of this special casing and have GetMembershipData return something
+            // reasonable for a UUID.Zero group.
+            if (GroupID != UUID.Zero)
+            {
+                GroupMembershipData gmd = GetMembershipData(GroupID, remoteClient.AgentId);
+    
+                if (gmd == null)
+                {
+//                    m_log.WarnFormat(
+//                        "[GROUPS]: User {0} is not a member of group {1} so they can't update {2} to this group",
+//                        remoteClient.Name, GroupID, objectLocalID);
+    
+                    return;
+                }
+            }
+
+            SceneObjectGroup so = ((Scene)remoteClient.Scene).GetGroupByPrim(objectLocalID);
+            if (so != null)
+            {
+                if (so.OwnerID == remoteClient.AgentId)
+                {
+                    so.SetGroup(GroupID, remoteClient);
+                }
+            }
         }
 
         private void OnInstantMessage(IClientAPI remoteClient, GridInstantMessage im)

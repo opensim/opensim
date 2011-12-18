@@ -56,7 +56,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         }
         public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
         {
-            BasicActor act = new BasicActor();
+            BasicActor act = new BasicActor(size);
             act.Position = position;
             act.Flying = isFlying;
             _actors.Add(act);

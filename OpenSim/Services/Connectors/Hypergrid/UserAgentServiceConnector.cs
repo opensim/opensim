@@ -484,6 +484,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             return friendsOnline;
         }
 
+        [Obsolete]
         public List<UUID> GetOnlineFriends(UUID userID, List<string> friends)
         {
             Hashtable hash = new Hashtable();

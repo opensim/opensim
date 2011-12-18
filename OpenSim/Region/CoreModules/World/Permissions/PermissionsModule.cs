@@ -384,9 +384,15 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_debugPermissions)
                 m_log.Debug("[PERMISSIONS]: " + permissionCalled + " was called from " + m_scene.RegionInfo.RegionName);
         }
-    
-        // Checks if the given group is active and if the user is a group member
-        // with the powers requested (powers = 0 for no powers check)
+
+        /// <summary>
+        /// Checks if the given group is active and if the user is a group member
+        /// with the powers requested (powers = 0 for no powers check)
+        /// </summary>
+        /// <param name="groupID"></param>
+        /// <param name="userID"></param>
+        /// <param name="powers"></param>
+        /// <returns></returns>
         protected bool IsGroupMember(UUID groupID, UUID userID, ulong powers)
         {
             if (null == m_groupsModule)

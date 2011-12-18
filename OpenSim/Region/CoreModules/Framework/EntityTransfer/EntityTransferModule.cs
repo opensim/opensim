@@ -1236,7 +1236,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
                     agent.BaseFolder = UUID.Zero;
                     agent.InventoryFolder = UUID.Zero;
-                    agent.startpos = new Vector3(128, 128, 70);
+                    agent.startpos = sp.AbsolutePosition + CalculateOffset(sp, neighbour);
                     agent.child = true;
                     agent.Appearance = sp.Appearance;
                     if (currentAgentCircuit != null)
@@ -1327,6 +1327,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
                 count++;
             }
+        }
+
+        Vector3 CalculateOffset(ScenePresence sp, GridRegion neighbour)
+        {
+            int rRegionX = (int)sp.Scene.RegionInfo.RegionLocX;
+            int rRegionY = (int)sp.Scene.RegionInfo.RegionLocY;
+            int tRegionX = neighbour.RegionLocX / (int)Constants.RegionSize;
+            int tRegionY = neighbour.RegionLocY / (int)Constants.RegionSize;
+            int shiftx = (rRegionX - tRegionX) * (int)Constants.RegionSize;
+            int shifty = (rRegionY - tRegionY) * (int)Constants.RegionSize;
+            return new Vector3(shiftx, shifty, 0f);
         }
 
         private void InformClientOfNeighbourCompleted(IAsyncResult iar)
