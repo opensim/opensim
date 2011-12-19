@@ -31,9 +31,10 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
+    public delegate void ReportOutputAction(string format, params object[] args);
+
     public interface IAvatarFactoryModule
     {
-
         void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams);
 
         /// <summary>
@@ -63,5 +64,13 @@ namespace OpenSim.Region.Framework.Interfaces
         bool ValidateBakedTextureCache(IScenePresence sp);
         void QueueAppearanceSend(UUID agentid);
         void QueueAppearanceSave(UUID agentid);
+
+        /// <summary>
+        /// Get a report about the current state of a scene presence's baked appearance textures.
+        /// </summary>
+        /// <param name="sp"></param>
+        /// <param name="reportOutputAction"></param>
+        /// <returns></returns>
+        void WriteBakedTexturesReport(IScenePresence sp, ReportOutputAction reportOutputAction);
     }
 }

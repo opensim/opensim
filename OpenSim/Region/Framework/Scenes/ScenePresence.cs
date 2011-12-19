@@ -2667,7 +2667,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendAppearanceToAgent(ScenePresence avatar)
         {
 //            m_log.DebugFormat(
-//                "[SCENE PRESENCE] Send appearance from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
+//                "[SCENE PRESENCE]: Sending appearance data from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
 
             avatar.ControllingClient.SendAppearance(
                 UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());

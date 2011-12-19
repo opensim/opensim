@@ -441,6 +441,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public LLClientView(EndPoint remoteEP, Scene scene, LLUDPServer udpServer, LLUDPClient udpClient, AuthenticateResponse sessionInfo,
             UUID agentId, UUID sessionId, uint circuitCode)
         {
+//            DebugPacketLevel = 1;
+
             RegisterInterface<IClientIM>(this);
             RegisterInterface<IClientChat>(this);
             RegisterInterface<IClientIPEndpoint>(this);
@@ -6001,7 +6003,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // for the client session anyway, in order to protect ourselves against bad code in plugins
                 try
                 {
-
                     byte[] visualparams = new byte[appear.VisualParam.Length];
                     for (int i = 0; i < appear.VisualParam.Length; i++)
                         visualparams[i] = appear.VisualParam[i].ParamValue;
@@ -11219,9 +11220,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Send a response back to a client when it asks the asset server (via the region server) if it has
         /// its appearance texture cached.
-        ///
-        /// At the moment, we always reply that there is no cached texture.
         /// </summary>
+        /// <remarks>
+        /// At the moment, we always reply that there is no cached texture.
+        /// </remarks>
         /// <param name="simclient"></param>
         /// <param name="packet"></param>
         /// <returns></returns>
@@ -11231,7 +11233,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AgentCachedTexturePacket cachedtex = (AgentCachedTexturePacket)packet;
             AgentCachedTextureResponsePacket cachedresp = (AgentCachedTextureResponsePacket)PacketPool.Instance.GetPacket(PacketType.AgentCachedTextureResponse);
 
-            if (cachedtex.AgentData.SessionID != SessionId) return false;
+            if (cachedtex.AgentData.SessionID != SessionId)
+                return false;
 
             // TODO: don't create new blocks if recycling an old packet
             cachedresp.AgentData.AgentID = AgentId;
@@ -11629,6 +11632,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (DebugPacketLevel <= 50 && packet.Type == PacketType.ImprovedTerseObjectUpdate)
                     logPacket = false;
 
+                if (DebugPacketLevel <= 25 && packet.Type == PacketType.ObjectPropertiesFamily)
+                    logPacket = false;
+
                 if (logPacket)
                     m_log.DebugFormat(
                         "[CLIENT]: PACKET OUT to   {0} ({1}) in {2} - {3}",
@@ -11684,6 +11690,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     logPacket = false;
 
                 if (DebugPacketLevel <= 100 && (packet.Type == PacketType.ViewerEffect || packet.Type == PacketType.AgentAnimation))
+                    logPacket = false;
+
+                if (DebugPacketLevel <= 25 && packet.Type == PacketType.RequestObjectPropertiesFamily)
                     logPacket = false;
 
                 if (logPacket)
