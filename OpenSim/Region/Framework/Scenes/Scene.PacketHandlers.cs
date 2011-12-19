@@ -154,6 +154,45 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Handle the update of an object's user group.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="groupID"></param>
+        /// <param name="objectLocalID"></param>
+        /// <param name="Garbage"></param>
+        private void HandleObjectGroupUpdate(
+            IClientAPI remoteClient, UUID groupID, uint objectLocalID, UUID Garbage)
+        {
+            if (m_groupsModule == null)
+                return;
+
+            // XXX: Might be better to get rid of this special casing and have GetMembershipData return something
+            // reasonable for a UUID.Zero group.
+            if (groupID != UUID.Zero)
+            {
+                GroupMembershipData gmd = m_groupsModule.GetMembershipData(groupID, remoteClient.AgentId);
+    
+                if (gmd == null)
+                {
+//                    m_log.WarnFormat(
+//                        "[GROUPS]: User {0} is not a member of group {1} so they can't update {2} to this group",
+//                        remoteClient.Name, GroupID, objectLocalID);
+    
+                    return;
+                }
+            }
+
+            SceneObjectGroup so = ((Scene)remoteClient.Scene).GetGroupByPrim(objectLocalID);
+            if (so != null)
+            {
+                if (so.OwnerID == remoteClient.AgentId)
+                {
+                    so.SetGroup(groupID, remoteClient);
+                }
+            }
+        }
+
+        /// <summary>
         /// Handle the deselection of a prim from the client.
         /// </summary>
         /// <param name="primLocalID"></param>
