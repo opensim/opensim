@@ -4895,8 +4895,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.Scale = new Vector3(0.45f, 0.6f, 1.9f);
             update.Text = Utils.EmptyBytes;
             update.TextColor = new byte[4];
+
+            // Don't send texture anim for avatars - this has no meaning for them.
             update.TextureAnim = Utils.EmptyBytes;
-            update.TextureEntry = (data.Appearance.Texture != null) ? data.Appearance.Texture.GetBytes() : Utils.EmptyBytes;
+
+            // Don't send texture entry for avatars here - this is accomplished via the AvatarAppearance packet
+            update.TextureEntry = Utils.EmptyBytes;
+//            update.TextureEntry = (data.Appearance.Texture != null) ? data.Appearance.Texture.GetBytes() : Utils.EmptyBytes;
+
             update.UpdateFlags = (uint)(
                 PrimFlags.Physics | PrimFlags.ObjectModify | PrimFlags.ObjectCopy | PrimFlags.ObjectAnyOwner |
                 PrimFlags.ObjectYouOwner | PrimFlags.ObjectMove | PrimFlags.InventoryEmpty | PrimFlags.ObjectTransfer |
