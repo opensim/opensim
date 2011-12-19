@@ -139,6 +139,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected IDialogModule m_dialogModule;
         protected IEntityTransferModule m_teleportModule;
         protected ICapabilitiesModule m_capsModule;
+        protected IGroupsModule m_groupsModule;
 
         /// <summary>
         /// Current scene frame number
@@ -1164,6 +1165,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_dialogModule = RequestModuleInterface<IDialogModule>();
             m_capsModule = RequestModuleInterface<ICapabilitiesModule>();
             m_teleportModule = RequestModuleInterface<IEntityTransferModule>();
+            m_groupsModule = RequestModuleInterface<IGroupsModule>();
         }
 
         #endregion
@@ -2733,6 +2735,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectDescription += m_sceneGraph.PrimDescription;
             client.OnObjectIncludeInSearch += m_sceneGraph.MakeObjectSearchable;
             client.OnObjectOwner += ObjectOwner;
+            client.OnObjectGroupRequest += HandleObjectGroupUpdate;
         }
 
         public virtual void SubscribeToClientPrimRezEvents(IClientAPI client)
@@ -3520,15 +3523,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat("[CONNECTION BEGIN]: Estate Settings is null!");
             }
 
-            IGroupsModule groupsModule =
-                    RequestModuleInterface<IGroupsModule>();
-
             List<UUID> agentGroups = new List<UUID>();
 
-            if (groupsModule != null)
+            if (m_groupsModule != null)
             {
-                GroupMembershipData[] GroupMembership =
-                        groupsModule.GetMembershipData(agent.AgentID);
+                GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(agent.AgentID);
 
                 if (GroupMembership != null)
                 {
