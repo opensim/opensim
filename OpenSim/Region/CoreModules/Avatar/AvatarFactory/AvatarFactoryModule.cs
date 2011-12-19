@@ -417,10 +417,13 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         m_savequeue.Remove(avatarID);
                     }
                 }
-            }
 
-            if (m_savequeue.Count == 0 && m_sendqueue.Count == 0)
-                m_updateTimer.Stop();
+                // We must lock both queues here so that QueueAppearanceSave() or *Send() don't m_updateTimer.Start() on
+                // another thread inbetween the first count calls and m_updateTimer.Stop() on this thread.
+                lock (m_sendqueue)
+                    if (m_savequeue.Count == 0 && m_sendqueue.Count == 0)
+                        m_updateTimer.Stop();
+            }
         }
 
         private void SaveAppearance(UUID agentid)
