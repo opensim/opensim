@@ -1545,7 +1545,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     options["profile"] = (string)requestData["profile"];
                 }
 
-                if (requestData["noassets"].ToString() == "true")
+                if ((string)requestData["noassets"] == "true")
                 {
                     options["noassets"] = (string)requestData["noassets"] ;
                 }

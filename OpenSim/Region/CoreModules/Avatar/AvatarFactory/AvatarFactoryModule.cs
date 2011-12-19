@@ -26,16 +26,15 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+using System.Text;
+using System.Timers;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-
-using System.Threading;
-using System.Timers;
-using System.Collections.Generic;
-
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
@@ -45,6 +44,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
     public class AvatarFactoryModule : IAvatarFactoryModule, IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public const string BAKED_TEXTURES_REPORT_FORMAT = "{0,-9}  {1}";
+
         private Scene m_scene = null;
 
         private int m_savetime = 5; // seconds to wait before saving changed appearance
@@ -147,9 +149,13 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 // Process the baked texture array
                 if (textureEntry != null)
                 {
+                    m_log.InfoFormat("[AVFACTORY]: received texture update for {0}", sp.UUID);
+
+//                    WriteBakedTexturesReport(sp, m_log.DebugFormat);
+
                     changed = sp.Appearance.SetTextureEntries(textureEntry) || changed;
 
-                    m_log.InfoFormat("[AVFACTORY]: received texture update for {0}", sp.UUID);
+//                    WriteBakedTexturesReport(sp, m_log.DebugFormat);
                     ValidateBakedTextureCache(sp, false);
 
                     // This appears to be set only in the final stage of the appearance
@@ -254,9 +260,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         }
 
         /// <summary>
-        /// Queue up a request to send appearance, makes it possible to
-        /// accumulate changes without sending out each one separately.
+        /// Queue up a request to send appearance.
         /// </summary>
+        /// <remarks>
+        /// Makes it possible to accumulate changes without sending out each one separately.
+        /// </remarks>
+        /// <param name="agentId"></param>
         public void QueueAppearanceSend(UUID agentid)
         {
 //            m_log.DebugFormat("[AVFACTORY]: Queue appearance send for {0}", agentid);
@@ -404,10 +413,13 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         m_savequeue.Remove(avatarID);
                     }
                 }
-            }
 
-            if (m_savequeue.Count == 0 && m_sendqueue.Count == 0)
-                m_updateTimer.Stop();
+                // We must lock both queues here so that QueueAppearanceSave() or *Send() don't m_updateTimer.Start() on
+                // another thread inbetween the first count calls and m_updateTimer.Stop() on this thread.
+                lock (m_sendqueue)
+                    if (m_savequeue.Count == 0 && m_sendqueue.Count == 0)
+                        m_updateTimer.Stop();
+            }
         }
 
         private void SaveAppearance(UUID agentid)
@@ -553,5 +565,37 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
         }
         #endregion
+
+        public void WriteBakedTexturesReport(IScenePresence sp, ReportOutputAction outputAction)
+        {
+            outputAction("For {0} in {1}", sp.Name, m_scene.RegionInfo.RegionName);
+            outputAction(BAKED_TEXTURES_REPORT_FORMAT, "Bake Type", "UUID");
+
+            Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures = GetBakedTextureFaces(sp.UUID);
+
+            foreach (BakeType bt in bakedTextures.Keys)
+            {
+                string rawTextureID;
+
+                if (bakedTextures[bt] == null)
+                {
+                    rawTextureID = "not set";
+                }
+                else
+                {
+                    rawTextureID = bakedTextures[bt].TextureID.ToString();
+
+                    if (m_scene.AssetService.Get(rawTextureID) == null)
+                        rawTextureID += " (not found)";
+                    else
+                        rawTextureID += " (uploaded)";
+                }
+
+                outputAction(BAKED_TEXTURES_REPORT_FORMAT, bt, rawTextureID);
+            }
+
+            bool bakedTextureValid = m_scene.AvatarFactory.ValidateBakedTextureCache(sp);
+            outputAction("{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "corrupt");
+        }
     }
 }

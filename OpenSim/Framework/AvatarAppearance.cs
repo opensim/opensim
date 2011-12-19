@@ -264,10 +264,12 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Set up appearance textures.
-        /// Returns boolean that indicates whether the new entries actually change the
-        /// existing values.
+        /// Set up appearance texture ids.
         /// </summary>
+        /// <returns>
+        /// True if any existing texture id was changed by the new data.
+        /// False if there were no changes or no existing texture ids.
+        /// </returns>
         public virtual bool SetTextureEntries(Primitive.TextureEntry textureEntry)
         {
             if (textureEntry == null)
@@ -284,25 +286,30 @@ namespace OpenSim.Framework
 
                 if (newface == null)
                 {
-                    if (oldface == null) continue;
+                    if (oldface == null)
+                        continue;
                 }
                 else
                 {
-                    if (oldface != null && oldface.TextureID == newface.TextureID) continue;
+                    if (oldface != null && oldface.TextureID == newface.TextureID)
+                        continue;
                 }
 
                 changed = true;
             }
 
             m_texture = textureEntry;
+            
             return changed;
         }
 
         /// <summary>
         /// Set up visual parameters for the avatar and refresh the avatar height
-        /// Returns boolean that indicates whether the new entries actually change the
-        /// existing values.
         /// </summary>
+        /// <returns>
+        /// True if any existing visual parameter was changed by the new data.
+        /// False if there were no changes or no existing visual parameters.
+        /// </returns>
         public virtual bool SetVisualParams(byte[] visualParams)
         {
             if (visualParams == null)
