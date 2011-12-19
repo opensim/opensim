@@ -2532,7 +2532,10 @@ namespace OpenSim.Region.Framework.Scenes
             // again here... this comes after the cached appearance check because the avatars
             // appearance goes into the avatar update packet
             SendAvatarDataToAllAgents();
-            SendAppearanceToAgent(this);
+
+            // Sending us our own appearance does not seem to be necessary, and the viewer warns in the log if you do
+            // this.
+//            SendAppearanceToAgent(this);
 
             // If we are using the the cached appearance then send it out to everyone
             if (cachedappearance)
