@@ -80,6 +80,7 @@ what it is today.
 * dmiles (Daxtron Labs)
 * dslake (Intel)
 * FredoChaplin
+* Garmin Kawaguichi
 * Gerhard
 * Godfrey
 * Grumly57

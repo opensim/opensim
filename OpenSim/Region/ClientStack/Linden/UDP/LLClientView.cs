@@ -441,6 +441,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public LLClientView(EndPoint remoteEP, Scene scene, LLUDPServer udpServer, LLUDPClient udpClient, AuthenticateResponse sessionInfo,
             UUID agentId, UUID sessionId, uint circuitCode)
         {
+//            DebugPacketLevel = 1;
+
             RegisterInterface<IClientIM>(this);
             RegisterInterface<IClientChat>(this);
             RegisterInterface<IClientIPEndpoint>(this);
@@ -4893,8 +4895,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.Scale = new Vector3(0.45f, 0.6f, 1.9f);
             update.Text = Utils.EmptyBytes;
             update.TextColor = new byte[4];
+
+            // Don't send texture anim for avatars - this has no meaning for them.
             update.TextureAnim = Utils.EmptyBytes;
-            update.TextureEntry = (data.Appearance.Texture != null) ? data.Appearance.Texture.GetBytes() : Utils.EmptyBytes;
+
+            // Don't send texture entry for avatars here - this is accomplished via the AvatarAppearance packet
+            update.TextureEntry = Utils.EmptyBytes;
+//            update.TextureEntry = (data.Appearance.Texture != null) ? data.Appearance.Texture.GetBytes() : Utils.EmptyBytes;
+
             update.UpdateFlags = (uint)(
                 PrimFlags.Physics | PrimFlags.ObjectModify | PrimFlags.ObjectCopy | PrimFlags.ObjectAnyOwner |
                 PrimFlags.ObjectYouOwner | PrimFlags.ObjectMove | PrimFlags.InventoryEmpty | PrimFlags.ObjectTransfer |
@@ -6001,7 +6009,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // for the client session anyway, in order to protect ourselves against bad code in plugins
                 try
                 {
-
                     byte[] visualparams = new byte[appear.VisualParam.Length];
                     for (int i = 0; i < appear.VisualParam.Length; i++)
                         visualparams[i] = appear.VisualParam[i].ParamValue;
@@ -10345,6 +10352,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             return true;
         }
+
         private bool HandleGroupRoleMembersRequest(IClientAPI sender, Packet Pack)
         {
             GroupRoleMembersRequestPacket groupRoleMembersRequest =
@@ -11218,9 +11226,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Send a response back to a client when it asks the asset server (via the region server) if it has
         /// its appearance texture cached.
-        ///
-        /// At the moment, we always reply that there is no cached texture.
         /// </summary>
+        /// <remarks>
+        /// At the moment, we always reply that there is no cached texture.
+        /// </remarks>
         /// <param name="simclient"></param>
         /// <param name="packet"></param>
         /// <returns></returns>
@@ -11230,7 +11239,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AgentCachedTexturePacket cachedtex = (AgentCachedTexturePacket)packet;
             AgentCachedTextureResponsePacket cachedresp = (AgentCachedTextureResponsePacket)PacketPool.Instance.GetPacket(PacketType.AgentCachedTextureResponse);
 
-            if (cachedtex.AgentData.SessionID != SessionId) return false;
+            if (cachedtex.AgentData.SessionID != SessionId)
+                return false;
 
             // TODO: don't create new blocks if recycling an old packet
             cachedresp.AgentData.AgentID = AgentId;
@@ -11628,6 +11638,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (DebugPacketLevel <= 50 && packet.Type == PacketType.ImprovedTerseObjectUpdate)
                     logPacket = false;
 
+                if (DebugPacketLevel <= 25 && packet.Type == PacketType.ObjectPropertiesFamily)
+                    logPacket = false;
+
                 if (logPacket)
                     m_log.DebugFormat(
                         "[CLIENT]: PACKET OUT to   {0} ({1}) in {2} - {3}",
@@ -11683,6 +11696,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     logPacket = false;
 
                 if (DebugPacketLevel <= 100 && (packet.Type == PacketType.ViewerEffect || packet.Type == PacketType.AgentAnimation))
+                    logPacket = false;
+
+                if (DebugPacketLevel <= 25 && packet.Type == PacketType.RequestObjectPropertiesFamily)
                     logPacket = false;
 
                 if (logPacket)

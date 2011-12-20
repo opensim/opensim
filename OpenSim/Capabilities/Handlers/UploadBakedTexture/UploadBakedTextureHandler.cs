@@ -104,7 +104,7 @@ namespace OpenSim.Capabilities.Handlers
             }
             catch (Exception e)
             {
-                m_log.Error("[UPLOAD BAKED TEXTURE HANDLER]: " + e.ToString());
+                m_log.ErrorFormat("[UPLOAD BAKED TEXTURE HANDLER]: {0}{1}", e.Message, e.StackTrace);
             }
 
             return null;
@@ -117,7 +117,7 @@ namespace OpenSim.Capabilities.Handlers
         /// <param name="data"></param>
         private void BakedTextureUploaded(UUID assetID, byte[] data)
         {
-            //            m_log.WarnFormat("[CAPS]: Received baked texture {0}", assetID.ToString());
+//            m_log.DebugFormat("[UPLOAD BAKED TEXTURE HANDLER]: Received baked texture {0}", assetID.ToString());
 
             AssetBase asset;
             asset = new AssetBase(assetID, "Baked Texture", (sbyte)AssetType.Texture, m_HostCapsObj.AgentID.ToString());

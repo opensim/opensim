@@ -139,6 +139,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected IDialogModule m_dialogModule;
         protected IEntityTransferModule m_teleportModule;
         protected ICapabilitiesModule m_capsModule;
+        protected IGroupsModule m_groupsModule;
 
         /// <summary>
         /// Current scene frame number
@@ -1164,6 +1165,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_dialogModule = RequestModuleInterface<IDialogModule>();
             m_capsModule = RequestModuleInterface<ICapabilitiesModule>();
             m_teleportModule = RequestModuleInterface<IEntityTransferModule>();
+            m_groupsModule = RequestModuleInterface<IGroupsModule>();
         }
 
         #endregion
@@ -2733,6 +2735,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectDescription += m_sceneGraph.PrimDescription;
             client.OnObjectIncludeInSearch += m_sceneGraph.MakeObjectSearchable;
             client.OnObjectOwner += ObjectOwner;
+            client.OnObjectGroupRequest += HandleObjectGroupUpdate;
         }
 
         public virtual void SubscribeToClientPrimRezEvents(IClientAPI client)
@@ -2776,7 +2779,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void SubscribeToClientParcelEvents(IClientAPI client)
         {
-            client.OnObjectGroupRequest += m_sceneGraph.HandleObjectGroupUpdate;
             client.OnParcelReturnObjectsRequest += LandChannel.ReturnObjectsInParcel;
             client.OnParcelSetOtherCleanTime += LandChannel.SetParcelOtherCleanTime;
             client.OnParcelBuy += ProcessParcelBuy;
@@ -2903,7 +2905,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void UnSubscribeToClientParcelEvents(IClientAPI client)
         {
-            client.OnObjectGroupRequest -= m_sceneGraph.HandleObjectGroupUpdate;
             client.OnParcelReturnObjectsRequest -= LandChannel.ReturnObjectsInParcel;
             client.OnParcelSetOtherCleanTime -= LandChannel.SetParcelOtherCleanTime;
             client.OnParcelBuy -= ProcessParcelBuy;
@@ -3522,15 +3523,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat("[CONNECTION BEGIN]: Estate Settings is null!");
             }
 
-            IGroupsModule groupsModule =
-                    RequestModuleInterface<IGroupsModule>();
-
             List<UUID> agentGroups = new List<UUID>();
 
-            if (groupsModule != null)
+            if (m_groupsModule != null)
             {
-                GroupMembershipData[] GroupMembership =
-                        groupsModule.GetMembershipData(agent.AgentID);
+                GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(agent.AgentID);
 
                 if (GroupMembership != null)
                 {
@@ -4287,7 +4284,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Get a scene object group that contains the prim with the given local id
         /// </summary>
         /// <param name="localID"></param>
-        /// <returns>null if no scene object group containing that prim is found</returns>
+        /// <returns>null if no scene object group containing that prim is found</returns>        
         public SceneObjectGroup GetGroupByPrim(uint localID)
         {
             return m_sceneGraph.GetGroupByPrim(localID);

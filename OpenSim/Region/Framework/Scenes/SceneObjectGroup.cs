@@ -1373,19 +1373,23 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        // Send the parts of this SOG to a single client
-        // Used when the client initially connects and when client sends RequestPrim packet
+        /// <summary>
+        /// Send the parts of this SOG to a single client
+        /// </summary>
+        /// <remarks>
+        /// Used when the client initially connects and when client sends RequestPrim packet
+        /// </remarks>
+        /// <param name="remoteClient"></param>
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
-            RootPart.SendFullUpdate(
-                remoteClient, m_scene.Permissions.GenerateClientFlags(remoteClient.AgentId, RootPart.UUID));
+            RootPart.SendFullUpdate(remoteClient);
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
                 if (part != RootPart)
-                    part.SendFullUpdate(remoteClient, m_scene.Permissions.GenerateClientFlags(remoteClient.AgentId, part.UUID));
+                    part.SendFullUpdate(remoteClient);
             }
         }
 
@@ -1679,10 +1683,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Reset the UUIDs for all the prims that make up this group.
-        ///
+        /// </summary>
+        /// <remarks>
         /// This is called by methods which want to add a new group to an existing scene, in order
         /// to ensure that there are no clashes with groups already present.
-        /// </summary>
+        /// </remarks>
         public void ResetIDs()
         {
             lock (m_parts.SyncRoot)
@@ -3206,6 +3211,8 @@ namespace OpenSim.Region.Framework.Scenes
                 part.Inventory.ChangeInventoryGroup(GroupID);
             }
 
+            HasGroupChanged = true;
+            
             // Don't trigger the update here - otherwise some client issues occur when multiple updates are scheduled
             // for the same object with very different properties.  The caller must schedule the update.
             //ScheduleGroupForFullUpdate();

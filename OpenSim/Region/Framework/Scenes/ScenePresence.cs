@@ -784,7 +784,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void RegisterToEvents()
         {
             ControllingClient.OnCompleteMovementToRegion += CompleteMovement;
-            //ControllingClient.OnCompleteMovementToRegion += SendInitialData;
             ControllingClient.OnAgentUpdate += HandleAgentUpdate;
             ControllingClient.OnAgentRequestSit += HandleAgentRequestSit;
             ControllingClient.OnAgentSit += HandleAgentSit;
@@ -831,11 +830,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         #endregion
-
-        public uint GenerateClientFlags(UUID ObjectID)
-        {
-            return m_scene.Permissions.GenerateClientFlags(m_uuid, ObjectID);
-        }
 
         #region Status Methods
 
@@ -2538,7 +2532,10 @@ namespace OpenSim.Region.Framework.Scenes
             // again here... this comes after the cached appearance check because the avatars
             // appearance goes into the avatar update packet
             SendAvatarDataToAllAgents();
-            SendAppearanceToAgent(this);
+
+            // Sending us our own appearance does not seem to be necessary, and the viewer warns in the log if you do
+            // this.
+//            SendAppearanceToAgent(this);
 
             // If we are using the the cached appearance then send it out to everyone
             if (cachedappearance)
@@ -2673,7 +2670,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendAppearanceToAgent(ScenePresence avatar)
         {
 //            m_log.DebugFormat(
-//                "[SCENE PRESENCE] Send appearance from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
+//                "[SCENE PRESENCE]: Sending appearance data from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
 
             avatar.ControllingClient.SendAppearance(
                 UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());

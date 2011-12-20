@@ -34,6 +34,7 @@ namespace OpenSim.Framework
         string Name { get; set; }
         UUID UUID { get; }
         uint LocalId { get; }
+
         Vector3 AbsolutePosition { get; }
     }
 }
