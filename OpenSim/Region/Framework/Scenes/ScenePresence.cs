@@ -285,16 +285,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Properties
 
-        protected PhysicsActor m_physicsActor;
-
         /// <summary>
         /// Physical scene representation of this Avatar.
         /// </summary>
-        public PhysicsActor PhysicsActor
-        {
-            set { m_physicsActor = value; }
-            get { return m_physicsActor; }
-        }
+        public PhysicsActor PhysicsActor { get; private set; }
 
         private byte m_movementflag;
 
@@ -508,9 +502,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_pos = PhysicsActor.Position;
 
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE]: Set position {0} for {1} in {2} via getting AbsolutePosition!",
-//                        m_pos, Name, Scene.RegionInfo.RegionName);
+                    //m_log.DebugFormat(
+                    //    "[SCENE PRESENCE]: Set position {0} for {1} in {2} via getting AbsolutePosition!",
+                    //    m_pos, Name, Scene.RegionInfo.RegionName);
                 }
                 else
                 {
@@ -540,7 +534,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-
                 return m_pos;
             }
             set
@@ -560,9 +553,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_pos = value;
                 ParentPosition = Vector3.Zero;
 
-//                m_log.DebugFormat(
-//                    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
-//                    Scene.RegionInfo.RegionName, Name, m_pos);
+                //m_log.DebugFormat(
+                //    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
+                //    Scene.RegionInfo.RegionName, Name, m_pos);
             }
         }
 
@@ -791,7 +784,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void RegisterToEvents()
         {
             ControllingClient.OnCompleteMovementToRegion += CompleteMovement;
-            //ControllingClient.OnCompleteMovementToRegion += SendInitialData;
             ControllingClient.OnAgentUpdate += HandleAgentUpdate;
             ControllingClient.OnAgentRequestSit += HandleAgentRequestSit;
             ControllingClient.OnAgentSit += HandleAgentSit;
@@ -838,11 +830,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         #endregion
-
-        public uint GenerateClientFlags(UUID ObjectID)
-        {
-            return m_scene.Permissions.GenerateClientFlags(m_uuid, ObjectID);
-        }
 
         #region Status Methods
 
@@ -1032,18 +1019,19 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (PhysicsActor != null)
             {
-                try
-                {
-                    PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
-                    PhysicsActor.OnOutOfBounds -= OutOfBoundsCall;
-                    m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
-                    PhysicsActor.UnSubscribeEvents();
-                    PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
-                    PhysicsActor = null;
-                }
-                catch
-                { }
+//                PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
+                PhysicsActor.OnOutOfBounds -= OutOfBoundsCall;
+                m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
+                PhysicsActor.UnSubscribeEvents();
+                PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
+                PhysicsActor = null;
             }
+//            else
+//            {
+//                m_log.ErrorFormat(
+//                    "[SCENE PRESENCE]: Attempt to remove physics actor for {0} on {1} but this scene presence has no physics actor",
+//                    Name, Scene.RegionInfo.RegionName);
+//            }
         }
 
         /// <summary>
@@ -1154,13 +1142,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Sets avatar height in the physics plugin
         /// </summary>
+        /// <param name="height">New height of avatar</param>
         public void SetHeight(float height)
         {
             if (PhysicsActor != null && !IsChildAgent)
-            {
-                Vector3 SetSize = new Vector3(0.45f, 0.6f, height);
-                PhysicsActor.Size = SetSize;
-            }
+                PhysicsActor.Size = new Vector3(0.45f, 0.6f, height);
         }
 
         /// <summary>
@@ -1925,7 +1911,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_log.DebugFormat("[SCENE PRESENCE]: {0} {1}", SitTargetisSet, SitTargetUnOccupied);
 
             if (PhysicsActor != null)
-                m_sitAvatarHeight = m_physicsActor.Size.Z;
+                m_sitAvatarHeight = PhysicsActor.Size.Z;
 
             bool canSit = false;
             pos = part.AbsolutePosition + offset;
@@ -2570,7 +2556,10 @@ namespace OpenSim.Region.Framework.Scenes
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
             {
-                m_log.Warn("[SCENE PRESENCE]: Attempt to send avatar data from a child agent");
+                m_log.WarnFormat(
+                    "[SCENE PRESENCE]: Attempt to send avatar data from a child agent for {0} in {1}",
+                    Name, Scene.RegionInfo.RegionName);
+
                 return;
             }
 
@@ -2628,7 +2617,10 @@ namespace OpenSim.Region.Framework.Scenes
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
             {
-                m_log.Warn("[SCENE PRESENCE]: Attempt to send avatar data from a child agent");
+                m_log.WarnFormat(
+                    "[SCENE PRESENCE]: Attempt to send avatar data from a child agent for {0} in {1}",
+                    Name, Scene.RegionInfo.RegionName);
+
                 return;
             }
             
@@ -2675,7 +2667,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendAppearanceToAgent(ScenePresence avatar)
         {
 //            m_log.DebugFormat(
-//                "[SCENE PRESENCE] Send appearance from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
+//                "[SCENE PRESENCE]: Sending appearance data from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
 
             avatar.ControllingClient.SendAppearance(
                 UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());
@@ -2957,7 +2949,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (byebyeRegions.Count > 0)
             {
                 m_log.Debug("[SCENE PRESENCE]: Closing " + byebyeRegions.Count + " child agents");
-                m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, byebyeRegions);
+                Util.FireAndForget(delegate 
+                { 
+                    m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, byebyeRegions); 
+                });
             }
             
             foreach (ulong handle in byebyeRegions)
@@ -3007,6 +3002,7 @@ namespace OpenSim.Region.Framework.Scenes
             CopyFrom(cAgentData);
         }
 
+        private static Vector3 marker = new Vector3(-1f, -1f, -1f);
         /// <summary>
         /// This updates important decision making data about a child agent
         /// The main purpose is to figure out what objects to send to a child agent that's in a neighboring region
@@ -3027,8 +3023,8 @@ namespace OpenSim.Region.Framework.Scenes
             // region's draw distance.
             // DrawDistance = cAgentData.Far;
             DrawDistance = Scene.DefaultDrawDistance;
-            
-            if (cAgentData.Position != new Vector3(-1f, -1f, -1f)) // UGH!!
+
+            if (cAgentData.Position != marker) // UGH!!
                 m_pos = cAgentData.Position + offset;
 
             if (Vector3.Distance(AbsolutePosition, posLastSignificantMove) >= Scene.ChildReprioritizationDistance)
@@ -3038,8 +3034,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             CameraPosition = cAgentData.Center + offset;
-
-            //SetHeight(cAgentData.AVHeight);
 
             if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
                 ControllingClient.SetChildAgentThrottle(cAgentData.Throttles);
@@ -3251,6 +3245,13 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE PRESENCE]: Adding physics actor for {0}, ifFlying = {1} in {2}",
 //                Name, isFlying, Scene.RegionInfo.RegionName);
 
+            if (PhysicsActor != null)
+            {
+                m_log.ErrorFormat(
+                    "[SCENE PRESENCE]: Adding physics actor for {0} to {1} but this scene presence already has a physics actor",
+                    Name, Scene.RegionInfo.RegionName);
+            }
+
             if (Appearance.AvatarHeight == 0)
                 Appearance.SetHeight();
 
@@ -3258,18 +3259,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 pVec = AbsolutePosition;
 
-            // Old bug where the height was in centimeters instead of meters
-            PhysicsActor = scene.AddAvatar(LocalId, Firstname + "." + Lastname, pVec,
-                                                 new Vector3(0f, 0f, Appearance.AvatarHeight), isFlying);
+            PhysicsActor = scene.AddAvatar(
+                LocalId, Firstname + "." + Lastname, pVec,
+                new Vector3(0f, 0f, Appearance.AvatarHeight), isFlying);
 
-            scene.AddPhysicsActorTaint(PhysicsActor);
             //PhysicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             PhysicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
             PhysicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
             PhysicsActor.SubscribeEvents(500);
             PhysicsActor.LocalID = LocalId;
-
-            SetHeight(Appearance.AvatarHeight);
         }
 
         private void OutOfBoundsCall(Vector3 pos)

@@ -139,6 +139,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected IDialogModule m_dialogModule;
         protected IEntityTransferModule m_teleportModule;
         protected ICapabilitiesModule m_capsModule;
+        protected IGroupsModule m_groupsModule;
 
         /// <summary>
         /// Current scene frame number
@@ -1164,6 +1165,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_dialogModule = RequestModuleInterface<IDialogModule>();
             m_capsModule = RequestModuleInterface<ICapabilitiesModule>();
             m_teleportModule = RequestModuleInterface<IEntityTransferModule>();
+            m_groupsModule = RequestModuleInterface<IGroupsModule>();
         }
 
         #endregion
@@ -2512,7 +2514,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (sp == null)
             {
                 m_log.DebugFormat(
-                    "[SCENE]: Adding new child scene presence {0} to scene {1}", client.Name, RegionInfo.RegionName);
+                    "[SCENE]: Adding new child scene presence {0} to scene {1} at pos {2}", client.Name, RegionInfo.RegionName, client.StartPos);
 
                 m_clientManager.Add(client);
                 SubscribeToClientEvents(client);
@@ -2733,6 +2735,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectDescription += m_sceneGraph.PrimDescription;
             client.OnObjectIncludeInSearch += m_sceneGraph.MakeObjectSearchable;
             client.OnObjectOwner += ObjectOwner;
+            client.OnObjectGroupRequest += HandleObjectGroupUpdate;
         }
 
         public virtual void SubscribeToClientPrimRezEvents(IClientAPI client)
@@ -2776,7 +2779,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void SubscribeToClientParcelEvents(IClientAPI client)
         {
-            client.OnObjectGroupRequest += m_sceneGraph.HandleObjectGroupUpdate;
             client.OnParcelReturnObjectsRequest += LandChannel.ReturnObjectsInParcel;
             client.OnParcelSetOtherCleanTime += LandChannel.SetParcelOtherCleanTime;
             client.OnParcelBuy += ProcessParcelBuy;
@@ -2903,7 +2905,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void UnSubscribeToClientParcelEvents(IClientAPI client)
         {
-            client.OnObjectGroupRequest -= m_sceneGraph.HandleObjectGroupUpdate;
             client.OnParcelReturnObjectsRequest -= LandChannel.ReturnObjectsInParcel;
             client.OnParcelSetOtherCleanTime -= LandChannel.SetParcelOtherCleanTime;
             client.OnParcelBuy -= ProcessParcelBuy;
@@ -3249,9 +3250,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Don't disable this log message - it's too helpful
             m_log.DebugFormat(
-                "[CONNECTION BEGIN]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, teleportflags {6})",
+                "[SCENE]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, teleportflags {6}, position {7})",
                 RegionInfo.RegionName, (agent.child ? "child" : "root"), agent.firstname, agent.lastname,
-                agent.AgentID, agent.circuitcode, teleportFlags);
+                agent.AgentID, agent.circuitcode, teleportFlags, agent.startpos);
 
             if (LoginsDisabled)
             {
@@ -3294,7 +3295,7 @@ namespace OpenSim.Region.Framework.Scenes
                     catch (Exception e)
                     {
                         m_log.ErrorFormat(
-                            "[CONNECTION BEGIN]: Exception verifying presence {0}{1}", e.Message, e.StackTrace);
+                            "[SCENE]: Exception verifying presence {0}{1}", e.Message, e.StackTrace);
                         return false;
                     }
                 }
@@ -3307,12 +3308,12 @@ namespace OpenSim.Region.Framework.Scenes
                 catch (Exception e)
                 {
                     m_log.ErrorFormat(
-                        "[CONNECTION BEGIN]: Exception authorizing user {0}{1}", e.Message, e.StackTrace);
+                        "[SCENE]: Exception authorizing user {0}{1}", e.Message, e.StackTrace);
                     return false;
                 }
 
                 m_log.InfoFormat(
-                    "[CONNECTION BEGIN]: Region {0} authenticated and authorized incoming {1} agent {2} {3} {4} (circuit code {5})",
+                    "[SCENE]: Region {0} authenticated and authorized incoming {1} agent {2} {3} {4} (circuit code {5})",
                     RegionInfo.RegionName, (agent.child ? "child" : "root"), agent.firstname, agent.lastname,
                     agent.AgentID, agent.circuitcode);
 
@@ -3522,15 +3523,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat("[CONNECTION BEGIN]: Estate Settings is null!");
             }
 
-            IGroupsModule groupsModule =
-                    RequestModuleInterface<IGroupsModule>();
-
             List<UUID> agentGroups = new List<UUID>();
 
-            if (groupsModule != null)
+            if (m_groupsModule != null)
             {
-                GroupMembershipData[] GroupMembership =
-                        groupsModule.GetMembershipData(agent.AgentID);
+                GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(agent.AgentID);
 
                 if (GroupMembership != null)
                 {
@@ -4287,7 +4284,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Get a scene object group that contains the prim with the given local id
         /// </summary>
         /// <param name="localID"></param>
-        /// <returns>null if no scene object group containing that prim is found</returns>
+        /// <returns>null if no scene object group containing that prim is found</returns>        
         public SceneObjectGroup GetGroupByPrim(uint localID)
         {
             return m_sceneGraph.GetGroupByPrim(localID);
