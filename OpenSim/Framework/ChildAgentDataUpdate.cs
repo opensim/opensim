@@ -478,7 +478,7 @@ namespace OpenSim.Framework
         /// <param name="hash"></param>
         public virtual void Unpack(OSDMap args, IScene scene)
         {
-            m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Unpack data");
+            //m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Unpack data");
 
             if (args.ContainsKey("region_id"))
                 UUID.TryParse(args["region_id"].AsString(), out RegionID);

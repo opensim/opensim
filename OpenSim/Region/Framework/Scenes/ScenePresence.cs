@@ -2554,10 +2554,7 @@ namespace OpenSim.Region.Framework.Scenes
             // again here... this comes after the cached appearance check because the avatars
             // appearance goes into the avatar update packet
             SendAvatarDataToAllAgents();
-
-            // Sending us our own appearance does not seem to be necessary, and the viewer warns in the log if you do
-            // this.
-//            SendAppearanceToAgent(this);
+            SendAppearanceToAgent(this);
 
             // If we are using the the cached appearance then send it out to everyone
             if (cachedappearance)
@@ -2977,7 +2974,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (byebyeRegions.Count > 0)
             {
                 m_log.Debug("[SCENE PRESENCE]: Closing " + byebyeRegions.Count + " child agents");
-                m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, byebyeRegions);
+                Util.FireAndForget(delegate 
+                { 
+                    m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, byebyeRegions); 
+                });
             }
             
             foreach (ulong handle in byebyeRegions)
