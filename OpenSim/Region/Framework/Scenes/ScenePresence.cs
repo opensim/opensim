@@ -1161,10 +1161,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void CompleteMovement(IClientAPI client, bool openChildAgents)
         {
 //            DateTime startTime = DateTime.Now;
-            
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Completing movement of {0} into region {1}", 
-//                client.Name, Scene.RegionInfo.RegionName);
+
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Completing movement of {0} into region {1} in position {2}",
+                client.Name, Scene.RegionInfo.RegionName, AbsolutePosition);
 
             Vector3 look = Velocity;
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
@@ -2383,9 +2383,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastVelocity = Velocity;
                 }
 
-                // followed suggestion from mic bowman. reversed the two lines below.
-                if (ParentID == 0 && PhysicsActor != null || ParentID != 0) // Check that we have a physics actor or we're sitting on something
-                    CheckForBorderCrossing();
+                CheckForBorderCrossing();
 
                 CheckForSignificantMovement(); // sends update to the modules.
             }
@@ -2741,7 +2739,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         protected void CheckForBorderCrossing()
         {
-            if (IsChildAgent)
+            // Check that we we are not a child and have a physics actor or we're sitting on something
+            if (IsChildAgent || (ParentID == 0 && PhysicsActor != null || ParentID != 0)) 
                 return;
 
             Vector3 pos2 = AbsolutePosition;
@@ -2757,7 +2756,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (!IsInTransit)
             {
                 // Checks if where it's headed exists a region
-
                 bool needsTransit = false;
                 if (m_scene.TestBorderCross(pos2, Cardinals.W))
                 {
@@ -2828,7 +2826,7 @@ namespace OpenSim.Region.Framework.Scenes
                             Velocity = Vector3.Zero;
                             AbsolutePosition = pos;
 
-//                            m_log.DebugFormat("[SCENE PRESENCE]: Prevented flyoff for {0} at {1}", Name, AbsolutePosition);
+                            m_log.DebugFormat("[SCENE PRESENCE]: Prevented flyoff for {0} at {1}", Name, AbsolutePosition);
 
                             AddToPhysicalScene(isFlying);
                         }
@@ -2861,22 +2859,16 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             else
-            {
-                // We must remove the agent from the physical scene if it has been placed in transit.  If we don't,
-                // then this method continues to be called from ScenePresence.Update() until the handover of the client between
-                // regions is completed.  Since this handover can take more than 1000ms (due to the 1000ms
-                // event queue polling response from the server), this results in the avatar pausing on the border
-                // for the handover period.
-                RemoveFromPhysicalScene();
-                
+            {               
                 // This constant has been inferred from experimentation
                 // I'm not sure what this value should be, so I tried a few values.
                 timeStep = 0.04f;
                 pos2 = AbsolutePosition;
                 pos2.X = pos2.X + (vel.X * timeStep);
                 pos2.Y = pos2.Y + (vel.Y * timeStep);
-                pos2.Z = pos2.Z + (vel.Z * timeStep);
+                // Don't touch the Z
                 m_pos = pos2;
+                m_log.ErrorFormat("m_pos={0}", m_pos);
             }
         }
 
