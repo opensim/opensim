@@ -574,6 +574,8 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 OffsetPosition
         {
             get { return m_pos; }
+            // Don't remove setter. It's not currently used in core but
+            // upcoming Avination code needs it.
             set
             {
                 // There is no offset position when not seated
@@ -2762,7 +2764,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent) 
                 return;
 
-            if (ParentID != 0)
+            // If we don't have a PhysActor, we can't cross anyway
+            // Also don't do this while sat, sitting avatars cross with the
+            // object they sit on.
+            if (ParentID != 0 || PhysActor == null)
                 return;
 
             if (!IsInTransit)
