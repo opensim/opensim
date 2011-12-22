@@ -79,6 +79,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public bool m_physicalPrim;
 
+        /// <summary>
+        /// Controls whether prims can be collided with.
+        /// </summary>
+        /// <remarks>
+        /// If this is set to false then prims cannot be subject to physics either.
+        /// </summary>
+        public bool CollidablePrims { get; private set; }
+
         public float m_maxNonphys = 256;
         public float m_maxPhys = 10;
         public bool m_clampPrimSize;
@@ -651,6 +659,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
 
                 m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
+                CollidablePrims = startupConfig.GetBoolean("collidable_prim", true);
 
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", m_maxNonphys);
                 if (RegionInfo.NonphysPrimMax > 0)
