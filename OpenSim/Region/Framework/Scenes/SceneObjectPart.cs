@@ -1521,6 +1521,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="VolumeDetectActive"></param>
         public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive)
         {
+            if (!ParentGroup.Scene.CollidablePrims)
+                return;
+
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT PART]: Applying physics to {0} {1}, m_physicalPrim {2}",
 //                Name, LocalId, UUID, m_physicalPrim);
@@ -1790,7 +1793,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="isNew"></param>
         public void DoPhysicsPropertyUpdate(bool UsePhysics, bool isNew)
         {
-            if (!ParentGroup.Scene.m_physicalPrim && UsePhysics)
+            if (!ParentGroup.Scene.PhysicalPrims && UsePhysics)
                 return;
 
             if (IsJoint())
@@ -4375,7 +4378,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParentGroup.Scene == null)
                     return;
 
-                if (PhysActor == null)
+                if (ParentGroup.Scene.CollidablePrims && PhysActor == null)
                 {
                     // It's not phantom anymore. So make sure the physics engine get's knowledge of it
                     PhysActor = ParentGroup.Scene.PhysicsScene.AddPrimShape(
