@@ -2736,137 +2736,141 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         protected void CheckForBorderCrossing()
         {
-            // Check that we we are not a child and have a physics actor or we're sitting on something
-            if (IsChildAgent || (ParentID == 0 && PhysicsActor != null || ParentID != 0)) 
+            // Check that we we are not a child
+            if (IsChildAgent) 
                 return;
 
-            Vector3 pos2 = AbsolutePosition;
-            Vector3 vel = Velocity;
-            int neighbor = 0;
-            int[] fix = new int[2];
-
-            float timeStep = 0.1f;
-            pos2.X = pos2.X + (vel.X*timeStep);
-            pos2.Y = pos2.Y + (vel.Y*timeStep);
-            pos2.Z = pos2.Z + (vel.Z*timeStep);
-
-            if (!IsInTransit)
+            // We only do this if we have a physics actor or we're sitting on something
+            if (ParentID == 0 && PhysicsActor != null || ParentID != 0)
             {
-                // Checks if where it's headed exists a region
-                bool needsTransit = false;
-                if (m_scene.TestBorderCross(pos2, Cardinals.W))
-                {
-                    if (m_scene.TestBorderCross(pos2, Cardinals.S))
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.SW, ref fix);
-                    }
-                    else if (m_scene.TestBorderCross(pos2, Cardinals.N))
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.NW, ref fix);
-                    }
-                    else
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.W, ref fix);
-                    }
-                }
-                else if (m_scene.TestBorderCross(pos2, Cardinals.E))
-                {
-                    if (m_scene.TestBorderCross(pos2, Cardinals.S))
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.SE, ref fix);
-                    }
-                    else if (m_scene.TestBorderCross(pos2, Cardinals.N))
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.NE, ref fix);
-                    }
-                    else
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.E, ref fix);
-                    }
-                }
-                else if (m_scene.TestBorderCross(pos2, Cardinals.S))
-                {
-                    needsTransit = true;
-                    neighbor = m_scene.HaveNeighbor(Cardinals.S, ref fix);
-                }
-                else if (m_scene.TestBorderCross(pos2, Cardinals.N))
-                {
-                    needsTransit = true;
-                    neighbor = m_scene.HaveNeighbor(Cardinals.N, ref fix);
-                }
+                Vector3 pos2 = AbsolutePosition;
+                Vector3 vel = Velocity;
+                int neighbor = 0;
+                int[] fix = new int[2];
 
-                // Makes sure avatar does not end up outside region
-                if (neighbor <= 0)
-                {
-                    if (needsTransit)
-                    {
-                        if (m_requestedSitTargetUUID == UUID.Zero)
-                        {
-                            bool isFlying = Flying;
-                            RemoveFromPhysicalScene();
-
-                            Vector3 pos = AbsolutePosition;
-                            if (AbsolutePosition.X < 0)
-                                pos.X += Velocity.X * 2;
-                            else if (AbsolutePosition.X > Constants.RegionSize)
-                                pos.X -= Velocity.X * 2;
-                            if (AbsolutePosition.Y < 0)
-                                pos.Y += Velocity.Y * 2;
-                            else if (AbsolutePosition.Y > Constants.RegionSize)
-                                pos.Y -= Velocity.Y * 2;
-                            Velocity = Vector3.Zero;
-                            AbsolutePosition = pos;
-
-                            m_log.DebugFormat("[SCENE PRESENCE]: Prevented flyoff for {0} at {1}", Name, AbsolutePosition);
-
-                            AddToPhysicalScene(isFlying);
-                        }
-                    }
-                }
-                else if (neighbor > 0)
-                {
-                    if (!CrossToNewRegion())
-                    {
-                        if (m_requestedSitTargetUUID == UUID.Zero)
-                        {
-                            bool isFlying = Flying;
-                            RemoveFromPhysicalScene();
-
-                            Vector3 pos = AbsolutePosition;
-                            if (AbsolutePosition.X < 0)
-                                pos.X += Velocity.X * 2;
-                            else if (AbsolutePosition.X > Constants.RegionSize)
-                                pos.X -= Velocity.X * 2;
-                            if (AbsolutePosition.Y < 0)
-                                pos.Y += Velocity.Y * 2;
-                            else if (AbsolutePosition.Y > Constants.RegionSize)
-                                pos.Y -= Velocity.Y * 2;
-                            Velocity = Vector3.Zero;
-                            AbsolutePosition = pos;
-
-                            AddToPhysicalScene(isFlying);
-                        }
-                    }
-                }
-            }
-            else
-            {               
-                // This constant has been inferred from experimentation
-                // I'm not sure what this value should be, so I tried a few values.
-                timeStep = 0.04f;
-                pos2 = AbsolutePosition;
+                float timeStep = 0.1f;
                 pos2.X = pos2.X + (vel.X * timeStep);
                 pos2.Y = pos2.Y + (vel.Y * timeStep);
-                // Don't touch the Z
-                m_pos = pos2;
-                m_log.ErrorFormat("m_pos={0}", m_pos);
-            }
+                pos2.Z = pos2.Z + (vel.Z * timeStep);
+
+                if (!IsInTransit)
+                {
+                    // Checks if where it's headed exists a region
+                    bool needsTransit = false;
+                    if (m_scene.TestBorderCross(pos2, Cardinals.W))
+                    {
+                        if (m_scene.TestBorderCross(pos2, Cardinals.S))
+                        {
+                            needsTransit = true;
+                            neighbor = m_scene.HaveNeighbor(Cardinals.SW, ref fix);
+                        }
+                        else if (m_scene.TestBorderCross(pos2, Cardinals.N))
+                        {
+                            needsTransit = true;
+                            neighbor = m_scene.HaveNeighbor(Cardinals.NW, ref fix);
+                        }
+                        else
+                        {
+                            needsTransit = true;
+                            neighbor = m_scene.HaveNeighbor(Cardinals.W, ref fix);
+                        }
+                    }
+                    else if (m_scene.TestBorderCross(pos2, Cardinals.E))
+                    {
+                        if (m_scene.TestBorderCross(pos2, Cardinals.S))
+                        {
+                            needsTransit = true;
+                            neighbor = m_scene.HaveNeighbor(Cardinals.SE, ref fix);
+                        }
+                        else if (m_scene.TestBorderCross(pos2, Cardinals.N))
+                        {
+                            needsTransit = true;
+                            neighbor = m_scene.HaveNeighbor(Cardinals.NE, ref fix);
+                        }
+                        else
+                        {
+                            needsTransit = true;
+                            neighbor = m_scene.HaveNeighbor(Cardinals.E, ref fix);
+                        }
+                    }
+                    else if (m_scene.TestBorderCross(pos2, Cardinals.S))
+                    {
+                        needsTransit = true;
+                        neighbor = m_scene.HaveNeighbor(Cardinals.S, ref fix);
+                    }
+                    else if (m_scene.TestBorderCross(pos2, Cardinals.N))
+                    {
+                        needsTransit = true;
+                        neighbor = m_scene.HaveNeighbor(Cardinals.N, ref fix);
+                    }
+
+                    // Makes sure avatar does not end up outside region
+                    if (neighbor <= 0)
+                    {
+                        if (needsTransit)
+                        {
+                            if (m_requestedSitTargetUUID == UUID.Zero)
+                            {
+                                bool isFlying = Flying;
+                                RemoveFromPhysicalScene();
+
+                                Vector3 pos = AbsolutePosition;
+                                if (AbsolutePosition.X < 0)
+                                    pos.X += Velocity.X * 2;
+                                else if (AbsolutePosition.X > Constants.RegionSize)
+                                    pos.X -= Velocity.X * 2;
+                                if (AbsolutePosition.Y < 0)
+                                    pos.Y += Velocity.Y * 2;
+                                else if (AbsolutePosition.Y > Constants.RegionSize)
+                                    pos.Y -= Velocity.Y * 2;
+                                Velocity = Vector3.Zero;
+                                AbsolutePosition = pos;
+
+                                m_log.DebugFormat("[SCENE PRESENCE]: Prevented flyoff for {0} at {1}", Name, AbsolutePosition);
+
+                                AddToPhysicalScene(isFlying);
+                            }
+                        }
+                    }
+                    else if (neighbor > 0)
+                    {
+                        if (!CrossToNewRegion())
+                        {
+                            if (m_requestedSitTargetUUID == UUID.Zero)
+                            {
+                                bool isFlying = Flying;
+                                RemoveFromPhysicalScene();
+
+                                Vector3 pos = AbsolutePosition;
+                                if (AbsolutePosition.X < 0)
+                                    pos.X += Velocity.X * 2;
+                                else if (AbsolutePosition.X > Constants.RegionSize)
+                                    pos.X -= Velocity.X * 2;
+                                if (AbsolutePosition.Y < 0)
+                                    pos.Y += Velocity.Y * 2;
+                                else if (AbsolutePosition.Y > Constants.RegionSize)
+                                    pos.Y -= Velocity.Y * 2;
+                                Velocity = Vector3.Zero;
+                                AbsolutePosition = pos;
+
+                                AddToPhysicalScene(isFlying);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // This constant has been inferred from experimentation
+                    // I'm not sure what this value should be, so I tried a few values.
+                    timeStep = 0.04f;
+                    pos2 = AbsolutePosition;
+                    pos2.X = pos2.X + (vel.X * timeStep);
+                    pos2.Y = pos2.Y + (vel.Y * timeStep);
+                    // Don't touch the Z
+                    m_pos = pos2;
+                    m_log.DebugFormat("[SCENE PRESENCE]: In transit m_pos={0}", m_pos);
+                }
+            }   
         }
 
         /// <summary>
