@@ -110,7 +110,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private const uint m_regionWidth = Constants.RegionSize;
         private const uint m_regionHeight = Constants.RegionSize;
 
-        private float ODE_STEPSIZE = 0.020f;
+        private float ODE_STEPSIZE = 0.0178f;
         private float metersInSpace = 29.9f;
         private float m_timeDilation = 1.0f;
 
@@ -456,7 +456,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     mAvatarObjectContactFriction = physicsconfig.GetFloat("m_avatarobjectcontact_friction", 75f);
                     mAvatarObjectContactBounce = physicsconfig.GetFloat("m_avatarobjectcontact_bounce", 0.1f);
 
-                    ODE_STEPSIZE = physicsconfig.GetFloat("world_stepsize", 0.020f);
+                    ODE_STEPSIZE = physicsconfig.GetFloat("world_stepsize", ODE_STEPSIZE);
                     m_physicsiterations = physicsconfig.GetInt("world_internal_steps_without_collisions", 10);
 
                     avDensity = physicsconfig.GetFloat("av_density", 80f);
