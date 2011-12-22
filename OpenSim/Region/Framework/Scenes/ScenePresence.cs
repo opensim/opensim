@@ -118,7 +118,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// TODO: For some reason, we effectively have a list both here and in Appearance.  Need to work out if this is
         /// necessary.
         /// </remarks>
-        protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
+        private List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
 
         public Object AttachmentsSyncLock { get; private set; }
 
@@ -550,8 +550,12 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                m_pos = value;
-                ParentPosition = Vector3.Zero;
+                // Don't update while sitting
+                if (ParentID == 0)
+                {
+                    m_pos = value;
+                    ParentPosition = Vector3.Zero;
+                }
 
                 //m_log.DebugFormat(
                 //    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
@@ -566,6 +570,13 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 OffsetPosition
         {
             get { return m_pos; }
+            set
+            {
+                // There is no offset position when not seated
+                if (ParentID == 0)
+                    return;
+                m_pos = value;
+            }
         }
 
         /// <summary>
@@ -2740,8 +2751,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent) 
                 return;
 
-            // We only do this if we have a physics actor or we're sitting on something
-            if (ParentID == 0 && PhysicsActor != null || ParentID != 0)
+            if (ParentID != 0)
+                return;
+
+            if (!IsInTransit)
             {
                 Vector3 pos2 = AbsolutePosition;
                 Vector3 vel = Velocity;
@@ -3100,30 +3113,28 @@ namespace OpenSim.Region.Framework.Scenes
             catch { }
 
             // Attachment objects
-            lock (m_attachments)
+            List<SceneObjectGroup> attachments = GetAttachments();
+            if (attachments.Count > 0)
             {
-                if (m_attachments.Count > 0)
-                {
-                    cAgent.AttachmentObjects = new List<ISceneObject>();
-                    cAgent.AttachmentObjectStates = new List<string>();
-    //                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
-                    InTransitScriptStates.Clear();
+                cAgent.AttachmentObjects = new List<ISceneObject>();
+                cAgent.AttachmentObjectStates = new List<string>();
+//                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
+                InTransitScriptStates.Clear();
 
-                    foreach (SceneObjectGroup sog in m_attachments)
-                    {
-                        // We need to make a copy and pass that copy
-                        // because of transfers withn the same sim
-                        ISceneObject clone = sog.CloneForNewScene();
-                        // Attachment module assumes that GroupPosition holds the offsets...!
-                        ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
-                        ((SceneObjectGroup)clone).IsAttachment = false;
-                        cAgent.AttachmentObjects.Add(clone);
-                        string state = sog.GetStateSnapshot();
-                        cAgent.AttachmentObjectStates.Add(state);
-                        InTransitScriptStates.Add(state);
-                        // Let's remove the scripts of the original object here
-                        sog.RemoveScriptInstances(true);
-                    }
+                foreach (SceneObjectGroup sog in attachments)
+                {
+                    // We need to make a copy and pass that copy
+                    // because of transfers withn the same sim
+                    ISceneObject clone = sog.CloneForNewScene();
+                    // Attachment module assumes that GroupPosition holds the offsets...!
+                    ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
+                    ((SceneObjectGroup)clone).IsAttachment = false;
+                    cAgent.AttachmentObjects.Add(clone);
+                    string state = sog.GetStateSnapshot();
+                    cAgent.AttachmentObjectStates.Add(state);
+                    InTransitScriptStates.Add(state);
+                    // Let's remove the scripts of the original object here
+                    sog.RemoveScriptInstances(true);
                 }
             }
         }
@@ -3531,26 +3542,29 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="args">The arguments for the event</param>
         public void SendScriptEventToAttachments(string eventName, Object[] args)
         {
-            if (m_scriptEngines.Length == 0)
-                return;
-
-            lock (m_attachments)
+            Util.FireAndForget(delegate(object x)
             {
-                foreach (SceneObjectGroup grp in m_attachments)
-                {
-                    // 16384 is CHANGED_ANIMATION
-                    //
-                    // Send this to all attachment root prims
-                    //
-                    foreach (IScriptModule m in m_scriptEngines)
-                    {
-                        if (m == null) // No script engine loaded
-                            continue;
+                if (m_scriptEngines.Length == 0)
+                    return;
 
-                        m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { (int)Changed.ANIMATION });
+                lock (m_attachments)
+                {
+                    foreach (SceneObjectGroup grp in m_attachments)
+                    {
+                        // 16384 is CHANGED_ANIMATION
+                        //
+                        // Send this to all attachment root prims
+                        //
+                        foreach (IScriptModule m in m_scriptEngines)
+                        {
+                            if (m == null) // No script engine loaded
+                                continue;
+
+                            m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { (int)Changed.ANIMATION });
+                        }
                     }
                 }
-            }
+            });
         }
 
         internal void PushForce(Vector3 impulse)
