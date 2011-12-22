@@ -2767,7 +2767,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we don't have a PhysActor, we can't cross anyway
             // Also don't do this while sat, sitting avatars cross with the
             // object they sit on.
-            if (ParentID != 0 || PhysActor == null)
+            if (ParentID != 0 || PhysicsActor == null)
                 return;
 
             if (!IsInTransit)
