@@ -261,7 +261,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract Vector3 Torque { get; set; }
         public abstract float CollisionScore { get; set;}
-        public abstract Vector3 Acceleration { get; }
+        public abstract Vector3 Acceleration { get; set; }
         public abstract Quaternion Orientation { get; set; }
         public abstract int PhysicsActorType { get; set; }
         public abstract bool IsPhysical { get; set; }
@@ -458,6 +458,7 @@ namespace OpenSim.Region.Physics.Manager
         public override Vector3 Acceleration
         {
             get { return Vector3.Zero; }
+            set { }
         }
 
         public override bool IsPhysical

@@ -231,6 +231,7 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override Vector3 Acceleration
         {
             get { return _acceleration; }
+            set { _acceleration = value; }
         }
 
         public override bool Kinematic
@@ -249,11 +250,6 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override void LockAngularMotion(Vector3 axis)
         {
-        }
-
-        public void SetAcceleration(Vector3 accel)
-        {
-            _acceleration = accel;
         }
 
         public override void AddForce(Vector3 force, bool pushforce)

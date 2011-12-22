@@ -2497,6 +2497,7 @@ Console.WriteLine(" JointCreateFixed");
         public override Vector3 Acceleration
         {
             get { return _acceleration; }
+            set { _acceleration = value; }
         }
 
         public override void AddForce(Vector3 force, bool pushforce)

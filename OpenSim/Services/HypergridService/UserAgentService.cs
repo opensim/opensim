@@ -161,6 +161,14 @@ namespace OpenSim.Services.HypergridService
         {
             m_log.DebugFormat("[USER AGENT SERVICE]: Request to login user {0} {1} (@{2}) to grid {3}", 
                 agentCircuit.firstname, agentCircuit.lastname, ((clientIP == null) ? "stored IP" : clientIP.Address.ToString()), gatekeeper.ServerURI);
+
+            if (m_UserAccountService.GetUserAccount(UUID.Zero, agentCircuit.AgentID) == null)
+            {
+                m_log.WarnFormat("[USER AGENT SERVICE]: Someone attempted to lauch a foreign user from here {0} {1}", agentCircuit.firstname, agentCircuit.lastname);
+                reason = "Forbidden to launch your agents from here";
+                return false;
+            }
+
             // Take the IP address + port of the gatekeeper (reg) plus the info of finalDestination
             GridRegion region = new GridRegion(gatekeeper);
             region.ServerURI = gatekeeper.ServerURI;

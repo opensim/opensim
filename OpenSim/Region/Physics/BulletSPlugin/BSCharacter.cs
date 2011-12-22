@@ -231,7 +231,8 @@ public class BSCharacter : PhysicsActor
         } 
     }
     public override Vector3 Acceleration { 
-        get { return _acceleration; } 
+        get { return _acceleration; }
+        set { _acceleration = value; }
     }
     public override Quaternion Orientation { 
         get { return _orientation; } 

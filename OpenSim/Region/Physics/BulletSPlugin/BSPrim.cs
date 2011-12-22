@@ -417,7 +417,8 @@ public sealed class BSPrim : PhysicsActor
         } 
     }
     public override OMV.Vector3 Acceleration { 
-        get { return _acceleration; } 
+        get { return _acceleration; }
+        set { _acceleration = value; }
     }
     public override OMV.Quaternion Orientation { 
         get { return _orientation; } 
