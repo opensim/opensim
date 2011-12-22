@@ -1742,7 +1742,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="isNew"></param>
         public void DoPhysicsPropertyUpdate(bool UsePhysics, bool isNew)
         {
-            if (!ParentGroup.Scene.m_physicalPrim && UsePhysics)
+            if (!ParentGroup.Scene.PhysicalPrims && UsePhysics)
                 return;
 
             if (IsJoint())

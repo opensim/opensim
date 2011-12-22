@@ -77,7 +77,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Controls whether physics can be applied to prims.  Even if false, prims still have entries in a
         /// PhysicsScene in order to perform collision detection
         /// </summary>
-        public bool m_physicalPrim;
+        public bool PhysicalPrims { get; private set; }
 
         /// <summary>
         /// Controls whether prims can be collided with.
@@ -658,7 +658,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
 
-                m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
+                PhysicalPrims = startupConfig.GetBoolean("physical_prim", true);
                 CollidablePrims = startupConfig.GetBoolean("collidable_prim", true);
 
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", m_maxNonphys);
