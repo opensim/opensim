@@ -273,7 +273,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public bool UsesPhysics
         {
-            get { return (RootPart.Flags & PrimFlags.TemporaryOnRez) != 0; }
+            get { return (RootPart.Flags & PrimFlags.Physics) != 0; }
         }
 
         /// <summary>
