@@ -1705,6 +1705,30 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             uint x = 0, y = 0;
             Utils.LongToUInts(newRegionHandle, out x, out y);
             GridRegion destination = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID, (int)x, (int)y);
+
+            if (destination == null || !CrossPrimGroupIntoNewRegion(destination, grp, silent))
+            {
+                m_log.InfoFormat("[ENTITY TRANSFER MODULE] cross region transfer failed for object {0}",grp.UUID);
+
+                // We are going to move the object back to the old position so long as the old position
+                // is in the region
+                oldGroupPosition.X = Util.Clamp<float>(oldGroupPosition.X,1.0f,(float)Constants.RegionSize-1);
+                oldGroupPosition.Y = Util.Clamp<float>(oldGroupPosition.Y,1.0f,(float)Constants.RegionSize-1);
+                oldGroupPosition.Z = Util.Clamp<float>(oldGroupPosition.Z,1.0f,4096.0f);
+
+                grp.RootPart.GroupPosition = oldGroupPosition;
+
+                // Need to turn off the physics flags, otherwise the object will continue to attempt to
+                // move out of the region creating an infinite loop of failed attempts to cross
+                grp.UpdatePrimFlags(grp.RootPart.LocalId,false,grp.IsTemporary,grp.IsPhantom,false);
+
+                grp.ScheduleGroupForFullUpdate();
+            }
+
+
+
+
+
             if (destination != null && !CrossPrimGroupIntoNewRegion(destination, grp, silent))
             {
                 grp.RootPart.GroupPosition = oldGroupPosition;
