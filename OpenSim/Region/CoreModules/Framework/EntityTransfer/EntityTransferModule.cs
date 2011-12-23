@@ -1724,16 +1724,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 grp.ScheduleGroupForFullUpdate();
             }
-
-
-
-
-
-            if (destination != null && !CrossPrimGroupIntoNewRegion(destination, grp, silent))
-            {
-                grp.RootPart.GroupPosition = oldGroupPosition;
-                grp.ScheduleGroupForFullUpdate();
-            }
         }
 
 
