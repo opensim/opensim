@@ -486,6 +486,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.ParentGroup.Scene.RegionInfo.WindlightSettings.valid = false;
             if (m_host.ParentGroup.Scene.SimulationDataService != null)
                 m_host.ParentGroup.Scene.SimulationDataService.RemoveRegionWindlightSettings(m_host.ParentGroup.Scene.RegionInfo.RegionID);
+            m_host.ParentGroup.Scene.EventManager.TriggerOnSaveNewWindlightProfile();
         }
         /// <summary>
         /// Set the current Windlight scene to a target avatar
