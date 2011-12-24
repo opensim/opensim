@@ -385,8 +385,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 string assetServerURL = string.Empty;
                 if (InventoryAccessModule.IsForeignUser(AgentID, out assetServerURL))
                 {
-                    m_log.DebugFormat("[J2KIMAGE]: texture {0} not found in local asset storage. Trying user's storage.", id);
-                    AssetService.Get(assetServerURL + "/" + id, InventoryAccessModule, AssetReceived);
+                    if (!assetServerURL.EndsWith("/") && !assetServerURL.EndsWith("="))
+                        assetServerURL = assetServerURL + "/";
+
+                    m_log.DebugFormat("[J2KIMAGE]: texture {0} not found in local asset storage. Trying user's storage.", assetServerURL + id);
+                    AssetService.Get(assetServerURL + id, InventoryAccessModule, AssetReceived);
                     return;
                 }
             }
