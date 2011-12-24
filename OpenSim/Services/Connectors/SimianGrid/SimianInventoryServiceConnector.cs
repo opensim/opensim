@@ -92,7 +92,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianInventoryServiceConnector(string url)
         {
+            if (!url.EndsWith("/") && !url.EndsWith("="))
+                url = url + '/';
             m_serverUrl = url;
+
         }
 
         public void Initialise(IConfigSource source)
