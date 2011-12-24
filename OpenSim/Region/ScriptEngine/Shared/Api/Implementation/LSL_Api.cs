@@ -7592,6 +7592,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             currentPosition = GetSetPosTarget(part, v, currentPosition);
 
                             break;
+                        case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                            if (remain < 1)
+                                return;
+
+                            v=rules.GetVector3Item(idx++);
+                            positionChanged = true;
+                            currentPosition = GetSetPosTarget(part, v, currentPosition);
+
+                            break;
                         case (int)ScriptBaseClass.PRIM_SIZE:
                             if (remain < 1)
                                 return;
