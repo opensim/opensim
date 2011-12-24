@@ -673,6 +673,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 return _acceleration; 
             }
+            set { _acceleration = value; }
         }
 
 
