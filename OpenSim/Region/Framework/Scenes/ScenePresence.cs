@@ -1978,7 +1978,7 @@ namespace OpenSim.Region.Framework.Scenes
                 forceMouselook = part.GetForceMouselook();
 
                 ControllingClient.SendSitResponse(
-                    targetID, offset, sitOrientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
+                    part.UUID, offset, sitOrientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
 
                 m_requestedSitTargetUUID = targetID;
 
