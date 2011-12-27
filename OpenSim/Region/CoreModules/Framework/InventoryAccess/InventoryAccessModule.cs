@@ -476,8 +476,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             IClientAPI remoteClient)
         {
             uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move) | 7;
+            // For the porposes of inventory, an object is modify if the prims
+            // are modify. This allows renaming an object that contains no
+            // mod items.
             foreach (SceneObjectGroup grp in objsForEffectivePermissions)
-                effectivePerms &= grp.GetEffectivePermissions(true);
+            {
+                uint groupPerms = grp.GetEffectivePermissions(true);
+                if ((grp.RootPart.BaseMask & (uint)PermissionMask.Modify) != 0)
+                    groupPerms |= (uint)PermissionMask.Modify;
+
+                effectivePerms &= groupPerms;
+            }
             effectivePerms |= (uint)PermissionMask.Move;
 
             if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
@@ -644,7 +653,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     if (so.RootPart.FromFolderID != UUID.Zero)
                     {
                         InventoryFolderBase f = new InventoryFolderBase(so.RootPart.FromFolderID, userID);
-                        folder = m_Scene.InventoryService.GetFolder(f);
+                        if (f != null)
+                            folder = m_Scene.InventoryService.GetFolder(f);
                     }
                 }
 
@@ -682,12 +692,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 return null;
             }
-
-
-
-
-
-
 
             item.Owner = remoteClient.AgentId;
 
@@ -784,8 +788,31 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
             }
 
+            int primcount = 0;
+            foreach (SceneObjectGroup g in objlist)
+                primcount += g.PrimCount;
+
+            if (!m_Scene.Permissions.CanRezObject(
+                primcount, remoteClient.AgentId, pos)
+                && !attachment)
+            {
+                // The client operates in no fail mode. It will
+                // have already removed the item from the folder
+                // if it's no copy.
+                // Put it back if it's not an attachment
+                //
+                if (item != null)
+                {
+                    if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!attachment))
+                        remoteClient.SendBulkUpdateInventory(item);
+                }
+
+                return null;
+            }
+
             if (item != null && !DoPreRezWhenFromItem(remoteClient, item, objlist, pos, attachment))
                 return null;
+
             for (int i = 0; i < objlist.Count; i++)
             {
                 group = objlist[i];
@@ -853,48 +880,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                     rootPart.ScheduleFullUpdate();
                 }
-
-                if ((rootPart.OwnerID != item.Owner) ||
-                                (item.CurrentPermissions & 16) != 0 || // Magic number
-                                (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
-                {
-                    //Need to kill the for sale here
-                    rootPart.ObjectSaleType = 0;
-                    rootPart.SalePrice = 10;
-
-                    if (m_Scene.Permissions.PropagatePermissions())
-                    {
-                        foreach (SceneObjectPart part in group.Parts)
-                        {
-                            if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
-                            {
-                                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
-                                    part.EveryoneMask = item.EveryOnePermissions;
-                                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
-                                    part.NextOwnerMask = item.NextPermissions;
-                                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
-                                    part.GroupMask = item.GroupPermissions;
-                            }
-                        }
-
-                        foreach (SceneObjectPart part in group.Parts)
-                        {
-                            part.LastOwnerID = part.OwnerID;
-                            part.OwnerID = item.Owner;
-                            part.Inventory.ChangeInventoryOwner(item.Owner);
-                        }
-
-                        group.ApplyNextOwnerPermissions();
-                    }
-                }
-
-//                        m_log.DebugFormat(
-//                            "[InventoryAccessModule]: Rezzed {0} {1} {2} for {3}",
-//                            group.Name, group.LocalId, group.UUID, remoteClient.Name);
             }
 
-                        group.SetGroup(remoteClient.ActiveGroupId, remoteClient);
-                        // TODO: Remove the magic number badness
+            group.SetGroup(remoteClient.ActiveGroupId, remoteClient);
+
             if (item != null)
                 DoPostRezWhenFromItem(item, attachment);
 
@@ -934,25 +923,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
             }
 
-            int primcount = 0;
-            foreach (SceneObjectGroup g in objlist)
-                primcount += g.PrimCount;
-
-            if (!m_Scene.Permissions.CanRezObject(
-                primcount, remoteClient.AgentId, pos)
-                && !isAttachment)
-            {
-                // The client operates in no fail mode. It will
-                // have already removed the item from the folder
-                // if it's no copy.
-                // Put it back if it's not an attachment
-                //
-                if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!isAttachment))
-                    remoteClient.SendBulkUpdateInventory(item);
-
-                return false;
-            }
-
             for (int i = 0; i < objlist.Count; i++)
             {
                 SceneObjectGroup so = objlist[i];
@@ -968,14 +938,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     rootPart.Name = item.Name;
                     rootPart.Description = item.Description;
-                    rootPart.ObjectSaleType = item.SaleType;
-                    rootPart.SalePrice = item.SalePrice;
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectSlamSale) != 0)
+                    {
+                        rootPart.ObjectSaleType = item.SaleType;
+                        rootPart.SalePrice = item.SalePrice;
+                    }
                 }
 
                 rootPart.FromFolderID = item.Folder;
     
                 if ((rootPart.OwnerID != item.Owner) ||
-                    (item.CurrentPermissions & 16) != 0)
+                    (item.CurrentPermissions & 16) != 0 ||
+                    (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
                 {
                     //Need to kill the for sale here
                     rootPart.ObjectSaleType = 0;
@@ -985,31 +959,43 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     {
                         foreach (SceneObjectPart part in so.Parts)
                         {
-                            if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
-                            {
-                                part.EveryoneMask = item.EveryOnePermissions;
-                                part.NextOwnerMask = item.NextPermissions;
-                            }
                             part.GroupMask = 0; // DO NOT propagate here
+
+                            part.LastOwnerID = part.OwnerID;
+                            part.OwnerID = item.Owner;
+                            part.Inventory.ChangeInventoryOwner(item.Owner);
                         }
     
                         so.ApplyNextOwnerPermissions();
+
+                        // In case the user has changed flags on a received item
+                        // we have to apply those changes after the slam. Else we
+                        // get a net loss of permissions
+                        foreach (SceneObjectPart part in so.Parts)
+                        {
+                            if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
+                            {
+                                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                                    part.EveryoneMask = item.EveryOnePermissions & part.BaseMask;
+                                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                                    part.NextOwnerMask = item.NextPermissions & part.BaseMask;
+                            }
+                        }
                     }
                 }
-    
-                foreach (SceneObjectPart part in so.Parts)
+                else
                 {
-                    part.FromUserInventoryItemID = fromUserInventoryItemId;
-
-                    if ((part.OwnerID != item.Owner) ||
-                        (item.CurrentPermissions & 16) != 0)
+                    foreach (SceneObjectPart part in so.Parts)
                     {
-                        part.Inventory.ChangeInventoryOwner(item.Owner);
-                        part.GroupMask = 0; // DO NOT propagate here
-                    }
+                        part.FromUserInventoryItemID = fromUserInventoryItemId;
 
-                    part.EveryoneMask = item.EveryOnePermissions;
-                    part.NextOwnerMask = item.NextPermissions;
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                            part.EveryoneMask = item.EveryOnePermissions;
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                            part.NextOwnerMask = item.NextPermissions;
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                            part.GroupMask = item.GroupPermissions;
+                    }
                 }
     
                 rootPart.TrimPermissions();
