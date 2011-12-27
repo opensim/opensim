@@ -70,7 +70,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void sendDetailedEstateData(IClientAPI remote_client, UUID invoice)
         {
-            m_log.DebugFormat("[ESTATE]: Invoice is {0}", invoice.ToString());
             uint sun = 0;
 
             if (!Scene.RegionInfo.EstateSettings.UseGlobalTime)
