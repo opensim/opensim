@@ -25,6 +25,7 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Xml;
 
 using Prebuild.Core.Attributes;
@@ -49,6 +50,8 @@ namespace Prebuild.Core.Nodes
 		private readonly Dictionary<string, bool> m_Links = new Dictionary<string, bool>();
 		private readonly Dictionary<string, string> m_LinkPaths = new Dictionary<string, string>();
         private readonly Dictionary<string, bool> m_PreservePaths = new Dictionary<string, bool>();
+        private readonly Dictionary<string, string> m_DestinationPath = new Dictionary<string, string>();
+        private readonly NameValueCollection m_CopyFiles = new NameValueCollection();
 
 		#endregion
 
@@ -61,6 +64,16 @@ namespace Prebuild.Core.Nodes
 				return m_Files.Count;
 			}
 		}
+
+        public string[] Destinations
+        {
+            get { return m_CopyFiles.AllKeys; }
+        }
+
+        public int CopyFiles
+        {
+            get { return m_CopyFiles.Count; }
+        }
 
 		#endregion
 
@@ -75,6 +88,20 @@ namespace Prebuild.Core.Nodes
 
 			return m_BuildActions[file];
 		}
+
+        public string GetDestinationPath(string file)
+        {
+            if( !m_DestinationPath.ContainsKey(file))
+            {
+                return null;
+            }
+            return m_DestinationPath[file];
+        }
+
+        public string[] SourceFiles(string dest)
+        {
+            return m_CopyFiles.GetValues(dest);
+        }
 
 		public CopyToOutput GetCopyToOutput(string file)
 		{
@@ -178,6 +205,13 @@ namespace Prebuild.Core.Nodes
                                 m_BuildActions[file] = GetBuildActionByFileName(file);
 						    else
                                 m_BuildActions[file] = matchNode.BuildAction.Value;
+
+                            if (matchNode.BuildAction == BuildAction.Copy)
+                            {
+                                m_CopyFiles.Add(matchNode.DestinationPath, file);
+                                m_DestinationPath[file] = matchNode.DestinationPath;
+                            }
+
 						    m_SubTypes[file] = matchNode.SubType == null ? GetSubTypeByFileName(file) : matchNode.SubType.Value;
                             m_ResourceNames[ file ] = matchNode.ResourceName;
                             m_PreservePaths[ file ] = matchNode.PreservePath;

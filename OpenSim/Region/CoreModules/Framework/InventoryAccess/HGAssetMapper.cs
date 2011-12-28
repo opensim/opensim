@@ -73,7 +73,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         public AssetBase FetchAsset(string url, UUID assetID)
         {
-            AssetBase asset = m_scene.AssetService.Get(url + "/" + assetID.ToString());
+            if (!url.EndsWith("/") && !url.EndsWith("="))
+                url = url + "/";
+
+            AssetBase asset = m_scene.AssetService.Get(url + assetID.ToString());
 
             if (asset != null)
             {
@@ -87,6 +90,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             if (asset != null)
             {
+                if (!url.EndsWith("/") && !url.EndsWith("="))
+                    url = url + "/";
+
                 // See long comment in AssetCache.AddAsset
                 if (!asset.Temporary || asset.Local)
                 {
@@ -99,7 +105,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     Copy(asset, asset1);
                     try
                     {
-                        asset1.ID = url + "/" + asset.ID;
+                        asset1.ID = url + asset.ID;
                     }
                     catch
                     {
