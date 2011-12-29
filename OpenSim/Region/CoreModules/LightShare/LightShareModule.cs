@@ -153,10 +153,18 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         public void SendProfileToClient(IClientAPI client, RegionLightShareData wl)
         {
-            if (m_enableWindlight && m_scene.RegionInfo.WindlightSettings.valid)
+            if (m_enableWindlight)
             {
-                List<byte[]> param = compileWindlightSettings(wl);
-                client.SendGenericMessage("Windlight", param);
+                if (m_scene.RegionInfo.WindlightSettings.valid)
+                {
+                    List<byte[]> param = compileWindlightSettings(wl);
+                    client.SendGenericMessage("Windlight", param);
+                }
+                else
+                {
+                    List<byte[]> param = new List<byte[]>();
+                    client.SendGenericMessage("WindlightReset", param);
+                }
             }
         }
 
@@ -175,8 +183,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         private void EventManager_OnSaveNewWindlightProfile()
         {
-            if (m_scene.RegionInfo.WindlightSettings.valid)
-                m_scene.ForEachRootClient(SendProfileToClient);
+            m_scene.ForEachRootClient(SendProfileToClient);
         }
 
         public void PostInitialise()
