@@ -37,11 +37,13 @@ namespace OpenSim.Services.Interfaces
     {
         public UserAccount()
         {
+            LocalToGrid = true;
         }
 
         public UserAccount(UUID principalID)
         {
             PrincipalID = principalID;
+            LocalToGrid = true;
         }
 
         /// <summary>
@@ -70,6 +72,7 @@ namespace OpenSim.Services.Interfaces
             Email = email;
             ServiceURLs = new Dictionary<string, object>();
             Created = Util.UnixTimeSinceEpoch();
+            LocalToGrid = true;
         }
 
         public UserAccount(UUID scopeID, UUID principalID, string firstName, string lastName, string email)
@@ -81,6 +84,7 @@ namespace OpenSim.Services.Interfaces
             Email = email;
             ServiceURLs = new Dictionary<string, object>();
             Created = Util.UnixTimeSinceEpoch();
+            LocalToGrid = true;
         }
 
         public string FirstName;
@@ -91,6 +95,7 @@ namespace OpenSim.Services.Interfaces
         public int UserLevel;
         public int UserFlags;
         public string UserTitle;
+        public Boolean LocalToGrid;
 
         public Dictionary<string, object> ServiceURLs;
 
@@ -119,6 +124,8 @@ namespace OpenSim.Services.Interfaces
                 UserFlags = Convert.ToInt32(kvp["UserFlags"].ToString());
             if (kvp.ContainsKey("UserTitle"))
                 UserTitle = kvp["UserTitle"].ToString();
+            if (kvp.ContainsKey("LocalToGrid"))
+                Boolean.TryParse(kvp["LocalToGrid"].ToString(), out LocalToGrid);
 
             if (kvp.ContainsKey("Created"))
                 Created = Convert.ToInt32(kvp["Created"].ToString());
@@ -152,6 +159,7 @@ namespace OpenSim.Services.Interfaces
             result["UserLevel"] = UserLevel.ToString();
             result["UserFlags"] = UserFlags.ToString();
             result["UserTitle"] = UserTitle;
+            result["LocalToGrid"] = LocalToGrid.ToString();
 
             string str = string.Empty;
             foreach (KeyValuePair<string, object> kvp in ServiceURLs)
