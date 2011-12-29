@@ -227,8 +227,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
             GridRegion homeGatekeeper = MakeRegion(aCircuit);
             
-            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: teleporting user {0} {1} home to {2} via {3}:{4}:{5}",
-                aCircuit.firstname, aCircuit.lastname, finalDestination.RegionName, homeGatekeeper.ExternalHostName, homeGatekeeper.HttpPort, homeGatekeeper.RegionName);
+            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: teleporting user {0} {1} home to {2} via {3}:{4}",
+                aCircuit.firstname, aCircuit.lastname, finalDestination.RegionName, homeGatekeeper.ServerURI, homeGatekeeper.RegionName);
 
             DoTeleport(sp, homeGatekeeper, finalDestination, position, lookAt, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome), eq);
         }
@@ -347,6 +347,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             region.ExternalHostName = uri.Host;
             region.HttpPort = (uint)uri.Port;
+            region.ServerURI = uri.ToString();
             region.RegionName = string.Empty;
             region.InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), (int)0);
             return region;
