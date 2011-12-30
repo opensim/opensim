@@ -37,13 +37,11 @@ namespace OpenSim.Services.Interfaces
     {
         public UserAccount()
         {
-            LocalToGrid = true;
         }
 
         public UserAccount(UUID principalID)
         {
             PrincipalID = principalID;
-            LocalToGrid = true;
         }
 
         /// <summary>
@@ -72,7 +70,6 @@ namespace OpenSim.Services.Interfaces
             Email = email;
             ServiceURLs = new Dictionary<string, object>();
             Created = Util.UnixTimeSinceEpoch();
-            LocalToGrid = true;
         }
 
         public UserAccount(UUID scopeID, UUID principalID, string firstName, string lastName, string email)
@@ -84,7 +81,6 @@ namespace OpenSim.Services.Interfaces
             Email = email;
             ServiceURLs = new Dictionary<string, object>();
             Created = Util.UnixTimeSinceEpoch();
-            LocalToGrid = true;
         }
 
         public string FirstName;
@@ -95,7 +91,7 @@ namespace OpenSim.Services.Interfaces
         public int UserLevel;
         public int UserFlags;
         public string UserTitle;
-        public Boolean LocalToGrid;
+        public Boolean LocalToGrid = true;
 
         public Dictionary<string, object> ServiceURLs;
 
