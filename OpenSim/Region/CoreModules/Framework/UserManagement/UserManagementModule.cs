@@ -425,6 +425,15 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         //}
 
+        public bool IsLocalGridUser(UUID uuid)
+        {
+            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, uuid);
+            if (account == null || (account != null && !account.LocalToGrid))
+                return false;
+
+            return true;
+        }
+
         #endregion IUserManagement
 
         private void HandleShowUsers(string module, string[] cmd)
