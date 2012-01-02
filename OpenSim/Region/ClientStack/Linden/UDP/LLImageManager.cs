@@ -39,6 +39,9 @@ using log4net;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
+    /// <summary>
+    /// This class handles UDP texture requests.
+    /// </summary>
     public class LLImageManager
     {
         private sealed class J2KImageComparer : IComparer<J2KImage>
@@ -228,15 +231,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             image.PriorityQueueHandle = null;
 
             lock (m_syncRoot)
+            {
                 try { m_priorityQueue.Add(ref image.PriorityQueueHandle, image); }
                 catch (Exception) { }
+            }
         }
 
         void RemoveImageFromQueue(J2KImage image)
         {
             lock (m_syncRoot)
+            {
                 try { m_priorityQueue.Delete(image.PriorityQueueHandle); }
                 catch (Exception) { }
+            }
         }
 
         void UpdateImageInQueue(J2KImage image)
