@@ -211,7 +211,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Priority Queue Helpers
 
-        J2KImage GetHighestPriorityImage()
+        private J2KImage GetHighestPriorityImage()
         {
             J2KImage image = null;
 
@@ -226,7 +226,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return image;
         }
 
-        void AddImageToQueue(J2KImage image)
+        private void AddImageToQueue(J2KImage image)
         {
             image.PriorityQueueHandle = null;
 
@@ -237,7 +237,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        void RemoveImageFromQueue(J2KImage image)
+        private void RemoveImageFromQueue(J2KImage image)
         {
             lock (m_syncRoot)
             {
@@ -246,7 +246,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        void UpdateImageInQueue(J2KImage image)
+        private void UpdateImageInQueue(J2KImage image)
         {
             lock (m_syncRoot)
             {
