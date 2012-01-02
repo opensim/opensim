@@ -170,6 +170,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         public AssetBase GetCached(string id)
         {
+//            m_log.DebugFormat("[LOCAL ASSET SERVICES CONNECTOR]: Cache request for {0}", id);
+
             if (m_Cache != null)
                 return m_Cache.Get(id);
 

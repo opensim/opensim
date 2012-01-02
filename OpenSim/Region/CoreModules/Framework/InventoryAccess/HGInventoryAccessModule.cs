@@ -124,8 +124,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         protected override string GenerateLandmark(ScenePresence presence, out string prefix, out string suffix)
         {
-            UserAccount account = m_Scene.UserAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, presence.UUID);
-            if (account == null)
+            if (UserManagementModule != null && !UserManagementModule.IsLocalGridUser(presence.UUID))
                 prefix = "HG ";
             else
                 prefix = string.Empty;
@@ -210,12 +209,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         public override bool IsForeignUser(UUID userID, out string assetServerURL)
         {
             assetServerURL = string.Empty;
-            UserAccount account = null;
-            if (m_Scene.UserAccountService != null)
-                account = m_Scene.UserAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, userID);
 
-            if (account == null) // foreign
-            {
+            if (UserManagementModule != null && !UserManagementModule.IsLocalGridUser(userID))
+            { // foreign 
                 ScenePresence sp = null;
                 if (m_Scene.TryGetScenePresence(userID, out sp))
                 {

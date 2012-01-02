@@ -382,23 +382,5 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             return result;
         }
 
-        #region IHyperAssetService
-
-        public string GetUserAssetServer(UUID userID)
-        {
-            UserAccount account = m_aScene.UserAccountService.GetUserAccount(m_aScene.RegionInfo.ScopeID, userID);
-
-            if (account != null && account.ServiceURLs.ContainsKey("AssetServerURI") && account.ServiceURLs["AssetServerURI"] != null)
-                return account.ServiceURLs["AssetServerURI"].ToString();
-
-            return string.Empty;
-        }
-
-        public string GetSimAssetServer()
-        {
-            return m_LocalAssetServiceURI;
-        }
-
-        #endregion
     }
 }

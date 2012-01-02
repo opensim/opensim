@@ -218,9 +218,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// <param name="userID"></param>
         private void CacheInventoryServiceURL(UUID userID)
         {
-            if (m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, userID) == null)
+            if (UserManagementModule != null && !UserManagementModule.IsLocalGridUser(userID))
             {
-                // The user does not have a local account; let's cache its service URL
+                // The user is not local; let's cache its service URL
                 string inventoryURL = string.Empty;
                 ScenePresence sp = null;
                 foreach (Scene scene in m_Scenes)

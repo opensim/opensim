@@ -332,6 +332,9 @@ namespace OpenSim.Services.Connectors.Hypergrid
                         UInt32.TryParse((string)hash["http_port"], out p);
                         region.HttpPort = p;
                     }
+                    if (hash.ContainsKey("server_uri") && hash["server_uri"] != null)
+                        region.ServerURI = (string)hash["server_uri"];
+
                     if (hash["internal_port"] != null)
                     {
                         int p = 0;

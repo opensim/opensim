@@ -62,7 +62,7 @@ namespace OpenSim.Services.Connectors
                     else
                     {
                         serverURI = serverURI + "xxx";
-                        m_ServerURI = serverURI.Replace("?" + uri.Query, "");
+                        m_ServerURI = serverURI.Replace(uri.Query, "");
                         m_ServerURI = m_ServerURI.TrimEnd('/') + "/helo/";
                     }
                 }

@@ -292,6 +292,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
             account.UserFlags = response["UserFlags"].AsInteger();
             account.UserLevel = response["AccessLevel"].AsInteger();
             account.UserTitle = response["UserTitle"].AsString();
+            account.LocalToGrid = true;
+            if (response.ContainsKey("LocalToGrid"))
+                account.LocalToGrid = (response["LocalToGrid"].AsString() == "true" ? true : false);
+                
             GetFirstLastName(response["Name"].AsString(), out account.FirstName, out account.LastName);
 
             // Cache the user account info

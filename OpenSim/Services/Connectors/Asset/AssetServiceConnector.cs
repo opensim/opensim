@@ -199,6 +199,8 @@ namespace OpenSim.Services.Connectors
 
         public AssetBase GetCached(string id)
         {
+//            m_log.DebugFormat("[ASSET SERVICE CONNECTOR]: Cache request for {0}", id);
+
             if (m_Cache != null)
                 return m_Cache.Get(id);
 
