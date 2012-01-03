@@ -14,6 +14,9 @@ namespace OpenSim.Region.Framework.Interfaces
         string GetUserHomeURL(UUID uuid);
         string GetUserUUI(UUID uuid);
         string GetUserServerURL(UUID uuid, string serverType);
+        int GetUserFlags(UUID userID);
+        int GetUserCreated(UUID userID);
+        string GetUserTitle(UUID userID);
 
         /// <summary>
         /// Add a user.
