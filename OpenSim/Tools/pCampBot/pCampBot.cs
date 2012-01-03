@@ -112,10 +112,10 @@ namespace pCampBot
                 "  -lastname          lastname for the bots.  Each lastname will have _<bot-number> appended, e.g. Ima Bot_0\n" +
                 "  -password          password for the bots\n" +
                 "  -b, behaviours     behaviours for bots.  Comma separated, e.g. p,g.  Default is p\n" +
-                "    current options are:" +
-                "       p (physics)" +
-                "       g (grab)" +
-                "       t (teleport)" +
+                "    current options are:\n" +
+                "       p (physics)\n" +
+                "       g (grab)\n" +
+                "       t (teleport)\n" +
 //                "       c (cross)" +
                 "  -wear              set appearance folder to load from (default: no)\n" +
                 "  -h, -help          show this message");
