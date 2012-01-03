@@ -240,78 +240,84 @@ namespace OpenSim.Capabilities.Handlers
 
                 if (containingFolder != null)
                 {
+//                    m_log.DebugFormat(
+//                        "[WEB FETCH INV DESC HANDLER]: Retrieved folder {0} {1} for agent id {2}",
+//                        containingFolder.Name, containingFolder.ID, agentID);
+
                     version = containingFolder.Version;
-
-                    if (fetchItems)
-                    {
-                        /*
-                        List<InventoryItemBase> linkedItemsToAdd = new List<InventoryItemBase>();
-
-                        foreach (InventoryItemBase item in contents.Items)
-                        {
-                            if (item.AssetType == (int)AssetType.Link)
-                            {
-                                InventoryItemBase linkedItem = m_InventoryService.GetItem(new InventoryItemBase(item.AssetID));
-
-                                // Take care of genuinely broken links where the target doesn't exist
-                                // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
-                                // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
-                                // rather than having to keep track of every folder requested in the recursion.
-                                if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link && linkedItem.AssetType == (int)AssetType.Object)
-                                    linkedItemsToAdd.Add(linkedItem);
-                            }
-                        }
-
-                        foreach (InventoryItemBase linkedItem in linkedItemsToAdd)
-                        {
-                            m_log.DebugFormat(
-                                "[WEB FETCH INV DESC HANDLER]: Inserted linked item {0} for link in folder {1} for agent {2}",
-                                linkedItem.Name, folderID, agentID);
-
-                            contents.Items.Insert(0, linkedItem);
-                        }
-                        */
-
-                        /*
-                        // If the folder requested contains links, then we need to send those folders first, otherwise the links
-                        // will be broken in the viewer.
-                        HashSet<UUID> linkedItemFolderIdsToSend = new HashSet<UUID>();
-                        foreach (InventoryItemBase item in contents.Items)
-                        {
-                            if (item.AssetType == (int)AssetType.Link)
-                            {
-                                InventoryItemBase linkedItem = m_InventoryService.GetItem(new InventoryItemBase(item.AssetID));
-
-                                // Take care of genuinely broken links where the target doesn't exist
-                                // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
-                                // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
-                                // rather than having to keep track of every folder requested in the recursion.
-                                if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link)
-                                {
-                                    // We don't need to send the folder if source and destination of the link are in the same
-                                    // folder.
-                                    if (linkedItem.Folder != containingFolder.ID)
-                                        linkedItemFolderIdsToSend.Add(linkedItem.Folder);
-                                }
-                            }
-                        }
-    
-                        foreach (UUID linkedItemFolderId in linkedItemFolderIdsToSend)
-                        {
-                            m_log.DebugFormat(
-                                "[WEB FETCH INV DESC HANDLER]: Recursively fetching folder {0} linked by item in folder {1} for agent {2}",
-                                linkedItemFolderId, folderID, agentID);
-
-                            int dummyVersion;
-                            InventoryCollection linkedCollection
-                                = Fetch(
-                                    agentID, linkedItemFolderId, ownerID, fetchFolders, fetchItems, sortOrder, out dummyVersion);
-
-                            contents.Folders.AddRange(linkedCollection.Folders);
-                            contents.Items.AddRange(linkedCollection.Items);
-                        }
-                        */
-                    }
+//
+//                    if (fetchItems)
+//                    {
+//                        List<InventoryItemBase> linkedItemsToAdd = new List<InventoryItemBase>();
+//
+//                        foreach (InventoryItemBase item in contents.Items)
+//                        {
+//                            if (item.AssetType == (int)AssetType.Link)
+//                            {
+//                                InventoryItemBase linkedItem = m_InventoryService.GetItem(new InventoryItemBase(item.AssetID));
+//
+//                                // Take care of genuinely broken links where the target doesn't exist
+//                                // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
+//                                // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
+//                                // rather than having to keep track of every folder requested in the recursion.
+//                                if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link)
+//                                    linkedItemsToAdd.Insert(0, linkedItem);
+//                            }
+//                        }
+//
+//                        foreach (InventoryItemBase linkedItem in linkedItemsToAdd)
+//                        {
+//                            m_log.DebugFormat(
+//                                "[WEB FETCH INV DESC HANDLER]: Inserted linked item {0} for link in folder {1} for agent {2}",
+//                                linkedItem.Name, folderID, agentID);
+//
+//                            contents.Items.Add(linkedItem);
+//                        }
+//
+//                        // If the folder requested contains links, then we need to send those folders first, otherwise the links
+//                        // will be broken in the viewer.
+//                        HashSet<UUID> linkedItemFolderIdsToSend = new HashSet<UUID>();
+//                        foreach (InventoryItemBase item in contents.Items)
+//                        {
+//                            if (item.AssetType == (int)AssetType.Link)
+//                            {
+//                                InventoryItemBase linkedItem = m_InventoryService.GetItem(new InventoryItemBase(item.AssetID));
+//
+//                                // Take care of genuinely broken links where the target doesn't exist
+//                                // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
+//                                // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
+//                                // rather than having to keep track of every folder requested in the recursion.
+//                                if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link)
+//                                {
+//                                    // We don't need to send the folder if source and destination of the link are in the same
+//                                    // folder.
+//                                    if (linkedItem.Folder != containingFolder.ID)
+//                                        linkedItemFolderIdsToSend.Add(linkedItem.Folder);
+//                                }
+//                            }
+//                        }
+//    
+//                        foreach (UUID linkedItemFolderId in linkedItemFolderIdsToSend)
+//                        {
+//                            m_log.DebugFormat(
+//                                "[WEB FETCH INV DESC HANDLER]: Recursively fetching folder {0} linked by item in folder {1} for agent {2}",
+//                                linkedItemFolderId, folderID, agentID);
+//
+//                            int dummyVersion;
+//                            InventoryCollection linkedCollection
+//                                = Fetch(
+//                                    agentID, linkedItemFolderId, ownerID, fetchFolders, fetchItems, sortOrder, out dummyVersion);
+//
+//                            InventoryFolderBase linkedFolder = new InventoryFolderBase(linkedItemFolderId);
+//                            linkedFolder.Owner = agentID;
+//                            linkedFolder = m_InventoryService.GetFolder(linkedFolder);
+//
+////                            contents.Folders.AddRange(linkedCollection.Folders);
+//
+//                            contents.Folders.Add(linkedFolder);
+//                            contents.Items.AddRange(linkedCollection.Items);
+//                        }
+//                    }
                 }
             }
             else
