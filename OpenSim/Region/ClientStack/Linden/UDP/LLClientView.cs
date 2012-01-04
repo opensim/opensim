@@ -348,7 +348,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected Dictionary<PacketType, PacketProcessor> m_packetHandlers = new Dictionary<PacketType, PacketProcessor>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
         protected Scene m_scene;
-        protected LLImageManager m_imageManager;
+        private LLImageManager m_imageManager;
         protected string m_firstName;
         protected string m_lastName;
         protected Thread m_clientThread;
@@ -499,8 +499,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IsActive = false;
 
             // Shutdown the image manager
-            if (m_imageManager != null)
-                m_imageManager.Close();
+            m_imageManager.Close();
 
             // Fire the callback for this connection closing
             if (OnConnectionClosed != null)
@@ -3940,14 +3939,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             if ((categories & ThrottleOutPacketTypeFlags.Texture) != 0)
-            {
-                ProcessTextureRequests();
-            }
-        }
-
-        void ProcessTextureRequests()
-        {
-            if (m_imageManager != null)
                 m_imageManager.ProcessImageQueue(m_udpServer.TextureSendLimit);
         }
 
@@ -7479,12 +7470,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if ((ImageType)block.Type == ImageType.Baked)
                     args.Priority *= 2.0f;
 
-                // in the end, we null this, so we have to check if it's null
-                if (m_imageManager != null)
-                {
-                    m_imageManager.EnqueueReq(args);
-                }
+                m_imageManager.EnqueueReq(args);
             }
+
             return true;
         }
 
