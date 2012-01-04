@@ -103,6 +103,10 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
             // If it's cached, return the cached results
             if (m_decodedCache.TryGetValue(assetID, out result))
             {
+//                m_log.DebugFormat(
+//                    "[J2KDecoderModule]: Returning existing cached {0} layers j2k decode for {1}",
+//                    result.Length, assetID);
+
                 callback(assetID, result);
             }
             else

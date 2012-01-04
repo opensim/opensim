@@ -577,7 +577,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Add a handler for the given packet type.
         /// </summary>
         /// <remarks>
-        /// The packet is handled on its own thread.  If packets must be handled in the order in which thye
+        /// The packet is handled on its own thread.  If packets must be handled in the order in which they
         /// are received then please use the synchronous version of this method.
         /// </remarks>
         /// <param name="packetType"></param>
