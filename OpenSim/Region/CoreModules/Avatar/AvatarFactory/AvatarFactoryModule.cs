@@ -343,12 +343,21 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
                     continue;
 
-                if (missingTexturesOnly && m_scene.AssetService.Get(face.TextureID.ToString()) != null)
-                    continue;
+                if (missingTexturesOnly)
+                {
+                    if (m_scene.AssetService.Get(face.TextureID.ToString()) != null)
+                        continue;
+                    else
+                        m_log.DebugFormat(
+                            "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
+                            face.TextureID, idx, sp.Name);
+                }
                 else
+                {
                     m_log.DebugFormat(
-                        "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
+                        "[AVFACTORY]: Requesting rebake of {0} ({1}) for {2}.",
                         face.TextureID, idx, sp.Name);
+                }
 
                 sp.ControllingClient.SendRebakeAvatarTextures(face.TextureID);
             }

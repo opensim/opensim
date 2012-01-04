@@ -114,6 +114,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                 "Send appearance data for each avatar in the simulator to other viewers.",
                 "Optionally, you can specify that only a particular avatar's appearance data is sent.",
                 HandleSendAppearanceCommand);
+
+            scene.AddCommand(
+                this, "appearance rebake",
+                "appearance rebake <first-name> <last-name>",
+                "Send a request to the user's viewer for it to rebake and reupload its appearance textures.",
+                "This is currently done for all baked texture references previously received, whether the simulator can find the asset or not."
+                    + "\nThis will only work for texture ids that the viewer has already uploaded."
+                    + "\nIf the viewer has not yet sent the server any texture ids then nothing will happen"
+                    + "\nsince requests can only be made for ids that the client has already sent us",
+                HandleRebakeAppearanceCommand);
         }
 
         private void HandleSendAppearanceCommand(string module, string[] cmd)
@@ -210,6 +220,34 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                     }
                 }
             }
-        }      
+        }
+
+        private void HandleRebakeAppearanceCommand(string module, string[] cmd)
+        {
+            if (cmd.Length != 4)
+            {
+                MainConsole.Instance.OutputFormat("Usage: appearance rebake <first-name> <last-name>");
+                return;
+            }
+
+            string firstname = cmd[2];
+            string lastname = cmd[3];
+
+            lock (m_scenes)
+            {
+                foreach (Scene scene in m_scenes.Values)
+                {
+                    ScenePresence sp = scene.GetScenePresence(firstname, lastname);
+                    if (sp != null && !sp.IsChildAgent)
+                    {
+                        MainConsole.Instance.OutputFormat(
+                            "Requesting rebake of uploaded textures for {0}",
+                            sp.Name, scene.RegionInfo.RegionName);
+
+                        scene.AvatarFactory.RequestRebake(sp, false);
+                    }
+                }
+            }
+        }
     }
 }
