@@ -61,7 +61,29 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns>true if a valid agent was found, false otherwise</returns>
         bool SaveBakedTextures(UUID agentId);
 
+        /// <summary>
+        /// Validate that OpenSim can find the baked textures need to display a given avatar
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="checkonly"></param>
+        /// <returns>
+        /// true if all the baked textures referenced by the texture IDs exist or the appearance is only using default textures.  false otherwise.
+        /// </returns>
         bool ValidateBakedTextureCache(IScenePresence sp);
+
+        /// <summary>
+        /// Request a rebake of textures for an avatar.
+        /// </summary>
+        /// <remarks>
+        /// This will send the request to the viewer, since it's there that the rebake is done.
+        /// </remarks>
+        /// <param name="sp">Avatar to rebake.</param>
+        /// <param name="missingTexturesOnly">
+        /// If true, only request a rebake for the textures that are missing.
+        /// If false then we request a rebake of all textures for which we already have references.
+        /// </param>
+        void RequestRebake(IScenePresence sp, bool missingTexturesOnly);
+
         void QueueAppearanceSend(UUID agentid);
         void QueueAppearanceSave(UUID agentid);
 
