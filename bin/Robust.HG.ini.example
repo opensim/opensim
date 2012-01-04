@@ -82,6 +82,8 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ; *
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
+	HypergridLinker = true
+
     ; Realm = "regions"
     ; AllowDuplicateNames = "True"
 

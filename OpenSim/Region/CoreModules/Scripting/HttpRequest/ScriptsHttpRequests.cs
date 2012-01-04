@@ -411,8 +411,21 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 }
 
                 Request.Timeout = HttpTimeout;
-                // execute the request
-                response = (HttpWebResponse) Request.GetResponse();
+                try
+                {
+                    // execute the request
+                    response = (HttpWebResponse) Request.GetResponse();
+                }
+                catch (WebException e)
+                {
+                    if (e.Status != WebExceptionStatus.ProtocolError)
+                    {
+                        throw;
+                    }
+                    response = (HttpWebResponse)e.Response;
+                }
+
+                Status = (int)response.StatusCode;
 
                 Stream resStream = response.GetResponseStream();
 
@@ -436,17 +449,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             }
             catch (Exception e)
             {
-                if (e is WebException && ((WebException)e).Status == WebExceptionStatus.ProtocolError)
-                {
-                    HttpWebResponse webRsp = (HttpWebResponse)((WebException)e).Response;
-                    Status = (int)webRsp.StatusCode;
-                    ResponseBody = webRsp.StatusDescription;
-                }
-                else
-                {
-                    Status = (int)OSHttpStatusCode.ClientErrorJoker;
-                    ResponseBody = e.Message;
-                }
+                Status = (int)OSHttpStatusCode.ClientErrorJoker;
+                ResponseBody = e.Message;
 
                 _finished = true;
                 return;
@@ -457,7 +461,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     response.Close();
             }
 
-            Status = (int)OSHttpStatusCode.SuccessOk;
             _finished = true;
         }
 

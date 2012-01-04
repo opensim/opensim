@@ -29,7 +29,9 @@ using log4net;
 using Nini.Config;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Reflection;
+using System.Web;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors.Hypergrid;
@@ -73,11 +75,26 @@ namespace OpenSim.Services.Connectors
             if (Uri.TryCreate(id, UriKind.Absolute, out assetUri) &&
                     assetUri.Scheme == Uri.UriSchemeHttp)
             {
-                url = "http://" + assetUri.Authority;
-                assetID = assetUri.LocalPath.Trim(new char[] {'/'});
+                // Simian
+                if (assetUri.Query != string.Empty)
+                {
+                    NameValueCollection qscoll = HttpUtility.ParseQueryString(assetUri.Query);
+                    assetID = qscoll["id"];
+                    if (assetID != null)
+                        url = id.Replace(assetID, ""); // Malformed again, as simian expects
+                    else
+                        url = id; // !!! best effort
+                }
+                else // robust
+                {
+                    url = "http://" + assetUri.Authority;
+                    assetID = assetUri.LocalPath.Trim(new char[] { '/' });
+                }
+
                 return true;
             }
 
+            m_log.DebugFormat("[HG ASSET SERVICE]: Malformed URL {0}", id);
             return false;
         }
 

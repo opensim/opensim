@@ -52,6 +52,7 @@ namespace Prebuild.Core.Nodes
 		private bool m_Link;
 		private string m_LinkPath;
         private bool m_PreservePath;
+        private string m_Destination = "";
         private readonly List<ExcludeNode> m_Exclusions = new List<ExcludeNode>();
 
 		#endregion
@@ -80,6 +81,13 @@ namespace Prebuild.Core.Nodes
 			}
 		}
 
+        public string DestinationPath
+        {
+            get
+            {
+                return m_Destination;
+            }
+        }
 		/// <summary>
 		/// 
 		/// </summary>
@@ -285,12 +293,14 @@ namespace Prebuild.Core.Nodes
 			}
 			string path = Helper.AttributeValue(node, "path", ".");
 			string pattern = Helper.AttributeValue(node, "pattern", "*");
+            string destination = Helper.AttributeValue(node, "destination", string.Empty);
 			bool recurse = (bool)Helper.TranslateValue(typeof(bool), Helper.AttributeValue(node, "recurse", "false"));
 			bool useRegex = (bool)Helper.TranslateValue(typeof(bool), Helper.AttributeValue(node, "useRegex", "false"));
 			string buildAction = Helper.AttributeValue(node, "buildAction", String.Empty);
 			if (buildAction != string.Empty)
 				m_BuildAction = (BuildAction)Enum.Parse(typeof(BuildAction), buildAction);
-			
+
+
 			//TODO: Figure out where the subtype node is being assigned
 			//string subType = Helper.AttributeValue(node, "subType", string.Empty);
 			//if (subType != String.Empty)
@@ -304,11 +314,12 @@ namespace Prebuild.Core.Nodes
 			}
             m_PreservePath = bool.Parse( Helper.AttributeValue( node, "preservePath", bool.FalseString ) );
 
+            if ( buildAction == "Copy")
+                m_Destination = destination;
 
 			if(path != null && path.Length == 0)
-			{
 				path = ".";//use current directory
-			}
+            
 			//throw new WarningException("Match must have a 'path' attribute");
 
 			if(pattern == null)

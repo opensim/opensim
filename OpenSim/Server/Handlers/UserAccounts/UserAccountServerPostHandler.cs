@@ -231,7 +231,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
             int userLevel = 0;
             if (request.ContainsKey("UserLevel") && int.TryParse(request["UserLevel"].ToString(), out userLevel))
-                existingAccount.UserFlags = userLevel;
+                existingAccount.UserLevel = userLevel;
 
             int userFlags = 0;
             if (request.ContainsKey("UserFlags") && int.TryParse(request["UserFlags"].ToString(), out userFlags))

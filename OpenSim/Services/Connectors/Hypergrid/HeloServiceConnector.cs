@@ -47,13 +47,36 @@ namespace OpenSim.Services.Connectors
 
         public HeloServicesConnector(string serverURI)
         {
-            m_ServerURI = serverURI.TrimEnd('/');
+            if (!serverURI.EndsWith("="))
+                m_ServerURI = serverURI.TrimEnd('/') + "/helo/";
+            else
+            {
+                // Simian sends malformed urls like this:
+                // http://valley.virtualportland.org/simtest/Grid/?id=
+                //
+                try
+                {
+                    Uri uri = new Uri(serverURI + "xxx");
+                    if (uri.Query == string.Empty)
+                        m_ServerURI = serverURI.TrimEnd('/') + "/helo/";
+                    else
+                    {
+                        serverURI = serverURI + "xxx";
+                        m_ServerURI = serverURI.Replace(uri.Query, "");
+                        m_ServerURI = m_ServerURI.TrimEnd('/') + "/helo/";
+                    }
+                }
+                catch (UriFormatException e)
+                {
+                    m_log.WarnFormat("[HELO SERVICE]: Malformed URL {0}", serverURI);
+                }
+            }
         }
 
 
         public virtual string Helo()
         {
-            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(m_ServerURI + "/helo");
+            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(m_ServerURI);
             // Eventually we need to switch to HEAD
             /* req.Method = "HEAD"; */
 

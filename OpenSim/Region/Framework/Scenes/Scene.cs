@@ -77,7 +77,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// Controls whether physics can be applied to prims.  Even if false, prims still have entries in a
         /// PhysicsScene in order to perform collision detection
         /// </summary>
-        public bool m_physicalPrim;
+        public bool PhysicalPrims { get; private set; }
+
+        /// <summary>
+        /// Controls whether prims can be collided with.
+        /// </summary>
+        /// <remarks>
+        /// If this is set to false then prims cannot be subject to physics either.
+        /// </summary>
+        public bool CollidablePrims { get; private set; }
 
         public float m_maxNonphys = 256;
         public float m_maxPhys = 10;
@@ -650,7 +658,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
 
-                m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
+                PhysicalPrims = startupConfig.GetBoolean("physical_prim", true);
+                CollidablePrims = startupConfig.GetBoolean("collidable_prim", true);
 
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", m_maxNonphys);
                 if (RegionInfo.NonphysPrimMax > 0)
@@ -701,7 +710,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (maptileRefresh != 0)
                     {
                         m_mapGenerationTimer.Interval = maptileRefresh * 1000;
-                        m_mapGenerationTimer.Elapsed += RegenerateMaptile;
+                        m_mapGenerationTimer.Elapsed += RegenerateMaptileAndReregister;
                         m_mapGenerationTimer.AutoReset = true;
                         m_mapGenerationTimer.Start();
                     }
@@ -1638,21 +1647,17 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_sceneGridService.SetScene(this);
 
+            //// Unfortunately this needs to be here and it can't be async.
+            //// The map tile image is stored in RegionSettings, but it also needs to be
+            //// stored in the GridService, because that's what the world map module uses
+            //// to send the map image UUIDs (of other regions) to the viewer...
+            if (m_generateMaptiles)
+                RegenerateMaptile();
+
             GridRegion region = new GridRegion(RegionInfo);
             string error = GridService.RegisterRegion(RegionInfo.ScopeID, region);
             if (error != String.Empty)
-            {
                 throw new Exception(error);
-            }
-
-            // Generate the maptile asynchronously, because sometimes it can be very slow and we
-            // don't want this to delay starting the region.
-            if (m_generateMaptiles)
-            {
-                Util.FireAndForget(delegate {
-                    RegenerateMaptile(null, null);
-                });
-            }
         }
 
         #endregion
@@ -5023,11 +5028,22 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public void RegenerateMaptile(object sender, ElapsedEventArgs e)
+        private void RegenerateMaptile()
         {
             IWorldMapModule mapModule = RequestModuleInterface<IWorldMapModule>();
             if (mapModule != null)
                 mapModule.GenerateMaptile();
+        }
+
+        private void RegenerateMaptileAndReregister(object sender, ElapsedEventArgs e)
+        {
+            RegenerateMaptile();
+
+            // We need to propagate the new image UUID to the grid service
+            // so that all simulators can retrieve it
+            string error = GridService.RegisterRegion(RegionInfo.ScopeID, new GridRegion(RegionInfo));
+            if (error != string.Empty)
+                throw new Exception(error);
         }
 
         // This method is called across the simulation connector to

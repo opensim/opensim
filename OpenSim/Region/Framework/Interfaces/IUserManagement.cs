@@ -14,6 +14,9 @@ namespace OpenSim.Region.Framework.Interfaces
         string GetUserHomeURL(UUID uuid);
         string GetUserUUI(UUID uuid);
         string GetUserServerURL(UUID uuid, string serverType);
+        int GetUserFlags(UUID userID);
+        int GetUserCreated(UUID userID);
+        string GetUserTitle(UUID userID);
 
         /// <summary>
         /// Add a user.
@@ -48,5 +51,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="firstName"></param>
         /// <param name="profileURL"></param>
         void AddUser(UUID uuid, string firstName, string lastName, string profileURL);
+
+        bool IsLocalGridUser(UUID uuid);
     }
 }

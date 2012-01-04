@@ -86,6 +86,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianAssetServiceConnector(string url)
         {
+            if (!url.EndsWith("/") && !url.EndsWith("="))
+                url = url + '/';
             m_serverUrl = url;
         }
 

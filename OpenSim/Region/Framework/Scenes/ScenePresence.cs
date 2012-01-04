@@ -118,7 +118,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// TODO: For some reason, we effectively have a list both here and in Appearance.  Need to work out if this is
         /// necessary.
         /// </remarks>
-        protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
+        private List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
 
         public Object AttachmentsSyncLock { get; private set; }
 
@@ -550,8 +550,12 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                m_pos = value;
-                ParentPosition = Vector3.Zero;
+                // Don't update while sitting
+                if (ParentID == 0)
+                {
+                    m_pos = value;
+                    ParentPosition = Vector3.Zero;
+                }
 
                 //m_log.DebugFormat(
                 //    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
@@ -566,6 +570,15 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 OffsetPosition
         {
             get { return m_pos; }
+            // Don't remove setter. It's not currently used in core but
+            // upcoming Avination code needs it.
+            set
+            {
+                // There is no offset position when not seated
+                if (ParentID == 0)
+                    return;
+                m_pos = value;
+            }
         }
 
         /// <summary>
@@ -1161,10 +1174,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void CompleteMovement(IClientAPI client, bool openChildAgents)
         {
 //            DateTime startTime = DateTime.Now;
-            
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Completing movement of {0} into region {1}", 
-//                client.Name, Scene.RegionInfo.RegionName);
+
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Completing movement of {0} into region {1} in position {2}",
+                client.Name, Scene.RegionInfo.RegionName, AbsolutePosition);
 
             Vector3 look = Velocity;
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
@@ -2383,9 +2396,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastVelocity = Velocity;
                 }
 
-                // followed suggestion from mic bowman. reversed the two lines below.
-                if (ParentID == 0 && PhysicsActor != null || ParentID != 0) // Check that we have a physics actor or we're sitting on something
-                    CheckForBorderCrossing();
+                CheckForBorderCrossing();
 
                 CheckForSignificantMovement(); // sends update to the modules.
             }
@@ -2738,143 +2749,146 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         protected void CheckForBorderCrossing()
         {
-            if (IsChildAgent)
+            // Check that we we are not a child
+            if (IsChildAgent) 
                 return;
 
-            Vector3 pos2 = AbsolutePosition;
-            Vector3 vel = Velocity;
-            int neighbor = 0;
-            int[] fix = new int[2];
-
-            float timeStep = 0.1f;
-            pos2.X = pos2.X + (vel.X*timeStep);
-            pos2.Y = pos2.Y + (vel.Y*timeStep);
-            pos2.Z = pos2.Z + (vel.Z*timeStep);
+            // If we don't have a PhysActor, we can't cross anyway
+            // Also don't do this while sat, sitting avatars cross with the
+            // object they sit on.
+            if (ParentID != 0 || PhysicsActor == null)
+                return;
 
             if (!IsInTransit)
             {
-                // Checks if where it's headed exists a region
+                Vector3 pos2 = AbsolutePosition;
+                Vector3 vel = Velocity;
+                int neighbor = 0;
+                int[] fix = new int[2];
 
-                bool needsTransit = false;
-                if (m_scene.TestBorderCross(pos2, Cardinals.W))
-                {
-                    if (m_scene.TestBorderCross(pos2, Cardinals.S))
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.SW, ref fix);
-                    }
-                    else if (m_scene.TestBorderCross(pos2, Cardinals.N))
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.NW, ref fix);
-                    }
-                    else
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.W, ref fix);
-                    }
-                }
-                else if (m_scene.TestBorderCross(pos2, Cardinals.E))
-                {
-                    if (m_scene.TestBorderCross(pos2, Cardinals.S))
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.SE, ref fix);
-                    }
-                    else if (m_scene.TestBorderCross(pos2, Cardinals.N))
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.NE, ref fix);
-                    }
-                    else
-                    {
-                        needsTransit = true;
-                        neighbor = m_scene.HaveNeighbor(Cardinals.E, ref fix);
-                    }
-                }
-                else if (m_scene.TestBorderCross(pos2, Cardinals.S))
-                {
-                    needsTransit = true;
-                    neighbor = m_scene.HaveNeighbor(Cardinals.S, ref fix);
-                }
-                else if (m_scene.TestBorderCross(pos2, Cardinals.N))
-                {
-                    needsTransit = true;
-                    neighbor = m_scene.HaveNeighbor(Cardinals.N, ref fix);
-                }
-
-                // Makes sure avatar does not end up outside region
-                if (neighbor <= 0)
-                {
-                    if (needsTransit)
-                    {
-                        if (m_requestedSitTargetUUID == UUID.Zero)
-                        {
-                            bool isFlying = Flying;
-                            RemoveFromPhysicalScene();
-
-                            Vector3 pos = AbsolutePosition;
-                            if (AbsolutePosition.X < 0)
-                                pos.X += Velocity.X * 2;
-                            else if (AbsolutePosition.X > Constants.RegionSize)
-                                pos.X -= Velocity.X * 2;
-                            if (AbsolutePosition.Y < 0)
-                                pos.Y += Velocity.Y * 2;
-                            else if (AbsolutePosition.Y > Constants.RegionSize)
-                                pos.Y -= Velocity.Y * 2;
-                            Velocity = Vector3.Zero;
-                            AbsolutePosition = pos;
-
-//                            m_log.DebugFormat("[SCENE PRESENCE]: Prevented flyoff for {0} at {1}", Name, AbsolutePosition);
-
-                            AddToPhysicalScene(isFlying);
-                        }
-                    }
-                }
-                else if (neighbor > 0)
-                {
-                    if (!CrossToNewRegion())
-                    {
-                        if (m_requestedSitTargetUUID == UUID.Zero)
-                        {
-                            bool isFlying = Flying;
-                            RemoveFromPhysicalScene();
-
-                            Vector3 pos = AbsolutePosition;
-                            if (AbsolutePosition.X < 0)
-                                pos.X += Velocity.X * 2;
-                            else if (AbsolutePosition.X > Constants.RegionSize)
-                                pos.X -= Velocity.X * 2;
-                            if (AbsolutePosition.Y < 0)
-                                pos.Y += Velocity.Y * 2;
-                            else if (AbsolutePosition.Y > Constants.RegionSize)
-                                pos.Y -= Velocity.Y * 2;
-                            Velocity = Vector3.Zero;
-                            AbsolutePosition = pos;
-
-                            AddToPhysicalScene(isFlying);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // We must remove the agent from the physical scene if it has been placed in transit.  If we don't,
-                // then this method continues to be called from ScenePresence.Update() until the handover of the client between
-                // regions is completed.  Since this handover can take more than 1000ms (due to the 1000ms
-                // event queue polling response from the server), this results in the avatar pausing on the border
-                // for the handover period.
-                RemoveFromPhysicalScene();
-                
-                // This constant has been inferred from experimentation
-                // I'm not sure what this value should be, so I tried a few values.
-                timeStep = 0.04f;
-                pos2 = AbsolutePosition;
+                float timeStep = 0.1f;
                 pos2.X = pos2.X + (vel.X * timeStep);
                 pos2.Y = pos2.Y + (vel.Y * timeStep);
                 pos2.Z = pos2.Z + (vel.Z * timeStep);
-                m_pos = pos2;
-            }
+
+                if (!IsInTransit)
+                {
+                    // Checks if where it's headed exists a region
+                    bool needsTransit = false;
+                    if (m_scene.TestBorderCross(pos2, Cardinals.W))
+                    {
+                        if (m_scene.TestBorderCross(pos2, Cardinals.S))
+                        {
+                            needsTransit = true;
+                            neighbor = m_scene.HaveNeighbor(Cardinals.SW, ref fix);
+                        }
+                        else if (m_scene.TestBorderCross(pos2, Cardinals.N))
+                        {
+                            needsTransit = true;
+                            neighbor = m_scene.HaveNeighbor(Cardinals.NW, ref fix);
+                        }
+                        else
+                        {
+                            needsTransit = true;
+                            neighbor = m_scene.HaveNeighbor(Cardinals.W, ref fix);
+                        }
+                    }
+                    else if (m_scene.TestBorderCross(pos2, Cardinals.E))
+                    {
+                        if (m_scene.TestBorderCross(pos2, Cardinals.S))
+                        {
+                            needsTransit = true;
+                            neighbor = m_scene.HaveNeighbor(Cardinals.SE, ref fix);
+                        }
+                        else if (m_scene.TestBorderCross(pos2, Cardinals.N))
+                        {
+                            needsTransit = true;
+                            neighbor = m_scene.HaveNeighbor(Cardinals.NE, ref fix);
+                        }
+                        else
+                        {
+                            needsTransit = true;
+                            neighbor = m_scene.HaveNeighbor(Cardinals.E, ref fix);
+                        }
+                    }
+                    else if (m_scene.TestBorderCross(pos2, Cardinals.S))
+                    {
+                        needsTransit = true;
+                        neighbor = m_scene.HaveNeighbor(Cardinals.S, ref fix);
+                    }
+                    else if (m_scene.TestBorderCross(pos2, Cardinals.N))
+                    {
+                        needsTransit = true;
+                        neighbor = m_scene.HaveNeighbor(Cardinals.N, ref fix);
+                    }
+
+                    // Makes sure avatar does not end up outside region
+                    if (neighbor <= 0)
+                    {
+                        if (needsTransit)
+                        {
+                            if (m_requestedSitTargetUUID == UUID.Zero)
+                            {
+                                bool isFlying = Flying;
+                                RemoveFromPhysicalScene();
+
+                                Vector3 pos = AbsolutePosition;
+                                if (AbsolutePosition.X < 0)
+                                    pos.X += Velocity.X * 2;
+                                else if (AbsolutePosition.X > Constants.RegionSize)
+                                    pos.X -= Velocity.X * 2;
+                                if (AbsolutePosition.Y < 0)
+                                    pos.Y += Velocity.Y * 2;
+                                else if (AbsolutePosition.Y > Constants.RegionSize)
+                                    pos.Y -= Velocity.Y * 2;
+                                Velocity = Vector3.Zero;
+                                AbsolutePosition = pos;
+
+//                                m_log.DebugFormat("[SCENE PRESENCE]: Prevented flyoff for {0} at {1}", Name, AbsolutePosition);
+
+                                AddToPhysicalScene(isFlying);
+                            }
+                        }
+                    }
+                    else if (neighbor > 0)
+                    {
+                        if (!CrossToNewRegion())
+                        {
+                            if (m_requestedSitTargetUUID == UUID.Zero)
+                            {
+                                bool isFlying = Flying;
+                                RemoveFromPhysicalScene();
+
+                                Vector3 pos = AbsolutePosition;
+                                if (AbsolutePosition.X < 0)
+                                    pos.X += Velocity.X * 2;
+                                else if (AbsolutePosition.X > Constants.RegionSize)
+                                    pos.X -= Velocity.X * 2;
+                                if (AbsolutePosition.Y < 0)
+                                    pos.Y += Velocity.Y * 2;
+                                else if (AbsolutePosition.Y > Constants.RegionSize)
+                                    pos.Y -= Velocity.Y * 2;
+                                Velocity = Vector3.Zero;
+                                AbsolutePosition = pos;
+
+                                AddToPhysicalScene(isFlying);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // This constant has been inferred from experimentation
+                    // I'm not sure what this value should be, so I tried a few values.
+                    timeStep = 0.04f;
+                    pos2 = AbsolutePosition;
+                    pos2.X = pos2.X + (vel.X * timeStep);
+                    pos2.Y = pos2.Y + (vel.Y * timeStep);
+                    // Don't touch the Z
+                    m_pos = pos2;
+                    m_log.DebugFormat("[SCENE PRESENCE]: In transit m_pos={0}", m_pos);
+                }
+            }   
         }
 
         /// <summary>
@@ -3104,30 +3118,28 @@ namespace OpenSim.Region.Framework.Scenes
             catch { }
 
             // Attachment objects
-            lock (m_attachments)
+            List<SceneObjectGroup> attachments = GetAttachments();
+            if (attachments.Count > 0)
             {
-                if (m_attachments.Count > 0)
-                {
-                    cAgent.AttachmentObjects = new List<ISceneObject>();
-                    cAgent.AttachmentObjectStates = new List<string>();
-    //                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
-                    InTransitScriptStates.Clear();
+                cAgent.AttachmentObjects = new List<ISceneObject>();
+                cAgent.AttachmentObjectStates = new List<string>();
+//                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
+                InTransitScriptStates.Clear();
 
-                    foreach (SceneObjectGroup sog in m_attachments)
-                    {
-                        // We need to make a copy and pass that copy
-                        // because of transfers withn the same sim
-                        ISceneObject clone = sog.CloneForNewScene();
-                        // Attachment module assumes that GroupPosition holds the offsets...!
-                        ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
-                        ((SceneObjectGroup)clone).IsAttachment = false;
-                        cAgent.AttachmentObjects.Add(clone);
-                        string state = sog.GetStateSnapshot();
-                        cAgent.AttachmentObjectStates.Add(state);
-                        InTransitScriptStates.Add(state);
-                        // Let's remove the scripts of the original object here
-                        sog.RemoveScriptInstances(true);
-                    }
+                foreach (SceneObjectGroup sog in attachments)
+                {
+                    // We need to make a copy and pass that copy
+                    // because of transfers withn the same sim
+                    ISceneObject clone = sog.CloneForNewScene();
+                    // Attachment module assumes that GroupPosition holds the offsets...!
+                    ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
+                    ((SceneObjectGroup)clone).IsAttachment = false;
+                    cAgent.AttachmentObjects.Add(clone);
+                    string state = sog.GetStateSnapshot();
+                    cAgent.AttachmentObjectStates.Add(state);
+                    InTransitScriptStates.Add(state);
+                    // Let's remove the scripts of the original object here
+                    sog.RemoveScriptInstances(true);
                 }
             }
         }
@@ -3535,26 +3547,29 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="args">The arguments for the event</param>
         public void SendScriptEventToAttachments(string eventName, Object[] args)
         {
-            if (m_scriptEngines.Length == 0)
-                return;
-
-            lock (m_attachments)
+            Util.FireAndForget(delegate(object x)
             {
-                foreach (SceneObjectGroup grp in m_attachments)
-                {
-                    // 16384 is CHANGED_ANIMATION
-                    //
-                    // Send this to all attachment root prims
-                    //
-                    foreach (IScriptModule m in m_scriptEngines)
-                    {
-                        if (m == null) // No script engine loaded
-                            continue;
+                if (m_scriptEngines.Length == 0)
+                    return;
 
-                        m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { (int)Changed.ANIMATION });
+                lock (m_attachments)
+                {
+                    foreach (SceneObjectGroup grp in m_attachments)
+                    {
+                        // 16384 is CHANGED_ANIMATION
+                        //
+                        // Send this to all attachment root prims
+                        //
+                        foreach (IScriptModule m in m_scriptEngines)
+                        {
+                            if (m == null) // No script engine loaded
+                                continue;
+
+                            m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { (int)Changed.ANIMATION });
+                        }
                     }
                 }
-            }
+            });
         }
 
         internal void PushForce(Vector3 impulse)

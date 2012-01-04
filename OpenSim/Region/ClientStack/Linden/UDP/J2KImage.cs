@@ -56,9 +56,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public IAssetService AssetService;
         public UUID AgentID;
         public IInventoryAccessModule InventoryAccessModule;
-        public OpenJPEG.J2KLayerInfo[] Layers;
-        public bool IsDecoded;
-        public bool HasAsset;
+        private OpenJPEG.J2KLayerInfo[] m_layers;
+        public bool IsDecoded { get; private set; }
+        public bool HasAsset { get; private set; }
         public C5.IPriorityQueueHandle<J2KImage> PriorityQueueHandle;
 
         private uint m_currentPacket;
@@ -170,14 +170,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (DiscardLevel >= 0 || m_stopPacket == 0)
                     {
                         // This shouldn't happen, but if it does, we really can't proceed
-                        if (Layers == null)
+                        if (m_layers == null)
                         {
                             m_log.Warn("[J2KIMAGE]: RunUpdate() called with missing Layers. Canceling texture transfer");
                             m_currentPacket = m_stopPacket;
                             return;
                         }
 
-                        int maxDiscardLevel = Math.Max(0, Layers.Length - 1);
+                        int maxDiscardLevel = Math.Max(0, m_layers.Length - 1);
 
                         // Treat initial texture downloads with a DiscardLevel of -1 a request for the highest DiscardLevel
                         if (DiscardLevel < 0 && m_stopPacket == 0)
@@ -187,9 +187,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         DiscardLevel = (sbyte)Math.Min(DiscardLevel, maxDiscardLevel);
 
                         //Calculate the m_stopPacket
-                        if (Layers.Length > 0)
+                        if (m_layers.Length > 0)
                         {
-                            m_stopPacket = (uint)GetPacketForBytePosition(Layers[(Layers.Length - 1) - DiscardLevel].End);
+                            m_stopPacket = (uint)GetPacketForBytePosition(m_layers[(m_layers.Length - 1) - DiscardLevel].End);
                             //I don't know why, but the viewer seems to expect the final packet if the file
                             //is just one packet bigger.
                             if (TexturePacketCount() == m_stopPacket + 1)
@@ -341,7 +341,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void J2KDecodedCallback(UUID AssetId, OpenJPEG.J2KLayerInfo[] layers)
         {
-            Layers = layers;
+            m_layers = layers;
             IsDecoded = true;
             RunUpdate();
         }
@@ -385,8 +385,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 string assetServerURL = string.Empty;
                 if (InventoryAccessModule.IsForeignUser(AgentID, out assetServerURL))
                 {
-                    m_log.DebugFormat("[J2KIMAGE]: texture {0} not found in local asset storage. Trying user's storage.", id);
-                    AssetService.Get(assetServerURL + "/" + id, InventoryAccessModule, AssetReceived);
+                    if (!assetServerURL.EndsWith("/") && !assetServerURL.EndsWith("="))
+                        assetServerURL = assetServerURL + "/";
+
+                    m_log.DebugFormat("[J2KIMAGE]: texture {0} not found in local asset storage. Trying user's storage.", assetServerURL + id);
+                    AssetService.Get(assetServerURL + id, InventoryAccessModule, AssetReceived);
                     return;
                 }
             }

@@ -100,6 +100,8 @@ namespace OpenSim.Services.Connectors
 
         public AssetBase Get(string id)
         {
+//            m_log.DebugFormat("[ASSET SERVICE CONNECTOR]: Synchronous get request for {0}", id);
+
             string uri = m_ServerURI + "/assets/" + id;
 
             AssetBase asset = null;
@@ -119,6 +121,8 @@ namespace OpenSim.Services.Connectors
 
         public AssetBase GetCached(string id)
         {
+//            m_log.DebugFormat("[ASSET SERVICE CONNECTOR]: Cache request for {0}", id);
+
             if (m_Cache != null)
                 return m_Cache.Get(id);
 
@@ -177,6 +181,8 @@ namespace OpenSim.Services.Connectors
 
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
+//            m_log.DebugFormat("[ASSET SERVICE CONNECTOR]: Potentially asynchronous get request for {0}", id);
+
             string uri = m_ServerURI + "/assets/" + id;
 
             AssetBase asset = null;

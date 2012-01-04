@@ -161,6 +161,14 @@ namespace OpenSim.Services.HypergridService
         {
             m_log.DebugFormat("[USER AGENT SERVICE]: Request to login user {0} {1} (@{2}) to grid {3}", 
                 agentCircuit.firstname, agentCircuit.lastname, ((clientIP == null) ? "stored IP" : clientIP.Address.ToString()), gatekeeper.ServerURI);
+
+            if (m_UserAccountService.GetUserAccount(UUID.Zero, agentCircuit.AgentID) == null)
+            {
+                m_log.WarnFormat("[USER AGENT SERVICE]: Someone attempted to lauch a foreign user from here {0} {1}", agentCircuit.firstname, agentCircuit.lastname);
+                reason = "Forbidden to launch your agents from here";
+                return false;
+            }
+
             // Take the IP address + port of the gatekeeper (reg) plus the info of finalDestination
             GridRegion region = new GridRegion(gatekeeper);
             region.ServerURI = gatekeeper.ServerURI;
@@ -478,6 +486,31 @@ namespace OpenSim.Services.HypergridService
             }
 
             return online;
+        }
+
+        public Dictionary<string, object> GetUserInfo(UUID  userID)
+        {
+            Dictionary<string, object> info = new Dictionary<string, object>();
+
+            if (m_UserAccountService == null)
+            {
+                m_log.WarnFormat("[USER AGENT SERVICE]: Unable to get user flags because user account service is missing");
+                info["result"] = "fail";
+                info["message"] = "UserAccountService is missing!";
+                return info;
+            }
+
+            UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero /*!!!*/, userID);
+
+            if (account != null)
+            {
+                info.Add("user_flags", (object)account.UserFlags);
+                info.Add("user_created", (object)account.Created);
+                info.Add("user_title", (object)account.UserTitle);
+                info.Add("result", "success");
+            }
+
+            return info;
         }
 
         public Dictionary<string, object> GetServerURLs(UUID userID)

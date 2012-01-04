@@ -62,7 +62,11 @@ namespace Prebuild.Core.Nodes
 		/// <summary>
 		/// 
 		/// </summary>
-		Page
+		Page,
+        /// <summary>
+        /// 
+        /// </summary>
+        Copy
 	}
 
 	/// <summary>
@@ -244,6 +248,9 @@ namespace Prebuild.Core.Nodes
 			string subType = Helper.AttributeValue(node, "subType", string.Empty);
 			if (subType != String.Empty)
 				m_SubType = (SubType)Enum.Parse(typeof(SubType), subType);
+
+            Console.WriteLine("[FileNode]:BuildAction is {0}", buildAction);
+
 
 			m_ResourceName = Helper.AttributeValue(node, "resourceName", m_ResourceName.ToString());
 			this.m_Link = bool.Parse(Helper.AttributeValue(node, "link", bool.FalseString));

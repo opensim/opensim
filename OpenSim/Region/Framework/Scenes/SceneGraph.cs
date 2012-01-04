@@ -333,7 +333,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (rot != null)
                 sceneObject.UpdateGroupRotationR((Quaternion)rot);
 
-            //group.ApplyPhysics(m_physicalPrim);
             if (sceneObject.RootPart.PhysActor != null && sceneObject.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)
             {
                 sceneObject.RootPart.ApplyImpulse((vel * sceneObject.GetMass()), false);

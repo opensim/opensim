@@ -50,6 +50,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        IUserManagement m_uMan;
+        IUserManagement UserManagementModule
+        {
+            get
+            {
+                if (m_uMan == null)
+                    m_uMan = m_Scenes[0].RequestModuleInterface<IUserManagement>();
+                return m_uMan;
+            }
+        }
+
         #region ISharedRegionModule
         public override string Name
         {
@@ -369,9 +380,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         protected override FriendInfo[] GetFriendsFromService(IClientAPI client)
         {
 //            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering GetFriendsFromService for {0}", client.Name);
+            Boolean agentIsLocal = true;
+            if (UserManagementModule != null)
+                agentIsLocal = UserManagementModule.IsLocalGridUser(client.AgentId);
 
-            UserAccount account1 = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, client.AgentId);
-            if (account1 != null)
+            if (agentIsLocal)
                 return base.GetFriendsFromService(client);
 
             FriendInfo[] finfos = new FriendInfo[0];
@@ -392,16 +405,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override bool StoreRights(UUID agentID, UUID friendID, int rights)
         {
-            UserAccount account1 = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, agentID);
-            UserAccount account2 = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, friendID);
+            Boolean agentIsLocal = true;
+            Boolean friendIsLocal = true;
+            if (UserManagementModule != null)
+            {
+                agentIsLocal = UserManagementModule.IsLocalGridUser(agentID);
+                friendIsLocal = UserManagementModule.IsLocalGridUser(friendID);
+            }
+
             // Are they both local users?
-            if (account1 != null && account2 != null)
+            if (agentIsLocal && friendIsLocal)
             {
                 // local grid users
                 return base.StoreRights(agentID, friendID, rights);
             }
 
-            if (account1 != null) // agent is local, friend is foreigner
+            if (agentIsLocal) // agent is local, friend is foreigner
             {
                 FriendInfo[] finfos = GetFriends(agentID);
                 FriendInfo finfo = GetFriend(finfos, friendID);
@@ -412,7 +431,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 }
             }
 
-            if (account2 != null) // agent is foreigner, friend is local
+            if (friendIsLocal) // agent is foreigner, friend is local
             {
                 string agentUUI = GetUUI(friendID, agentID);
                 if (agentUUI != string.Empty)
@@ -427,10 +446,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override void StoreBackwards(UUID friendID, UUID agentID)
         {
-            UserAccount account1 = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, agentID);
-            UserAccount account2 = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, friendID);
+            Boolean agentIsLocal = true;
+            Boolean friendIsLocal = true;
+            if (UserManagementModule != null)
+            {
+                agentIsLocal = UserManagementModule.IsLocalGridUser(agentID);
+                friendIsLocal = UserManagementModule.IsLocalGridUser(friendID);
+            }
+
             // Are they both local users?
-            if (account1 != null && account2 != null)
+            if (agentIsLocal && friendIsLocal)
             {
                 // local grid users
                 m_log.DebugFormat("[HGFRIENDS MODULE]: Users are both local");
@@ -444,10 +469,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override void StoreFriendships(UUID agentID, UUID friendID)
         {
-            UserAccount agentAccount = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, agentID);
-            UserAccount friendAccount = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, friendID);
+            Boolean agentIsLocal = true;
+            Boolean friendIsLocal = true;
+            if (UserManagementModule != null)
+            {
+                agentIsLocal = UserManagementModule.IsLocalGridUser(agentID);
+                friendIsLocal = UserManagementModule.IsLocalGridUser(friendID);
+            }
+
             // Are they both local users?
-            if (agentAccount != null && friendAccount != null)
+            if (agentIsLocal && friendIsLocal)
             {
                 // local grid users
                 m_log.DebugFormat("[HGFRIENDS MODULE]: Users are both local");
@@ -465,13 +496,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             string agentFriendService = string.Empty;
             string friendFriendService = string.Empty;
 
-            if (agentClient != null)
+            if (agentIsLocal)
             {
                 agentClientCircuit = ((Scene)(agentClient.Scene)).AuthenticateHandler.GetAgentCircuitData(agentClient.CircuitCode);
                 agentUUI = Util.ProduceUserUniversalIdentifier(agentClientCircuit);
                 agentFriendService = agentClientCircuit.ServiceURLs["FriendsServerURI"].ToString();
             }
-            if (friendClient != null)
+            if (friendIsLocal)
             {
                 friendClientCircuit = ((Scene)(friendClient.Scene)).AuthenticateHandler.GetAgentCircuitData(friendClient.CircuitCode);
                 friendUUI = Util.ProduceUserUniversalIdentifier(friendClientCircuit);
@@ -484,7 +515,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // Generate a random 8-character hex number that will sign this friendship
             string secret = UUID.Random().ToString().Substring(0, 8);
 
-            if (agentAccount != null) // agent is local, 'friend' is foreigner
+            if (agentIsLocal) // agent is local, 'friend' is foreigner
             {
                 // This may happen when the agent returned home, in which case the friend is not there
                 // We need to look for its information in the friends list itself
@@ -520,7 +551,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     friendsConn.NewFriendship(friendID, agentUUI + ";" + secret);
                 }
             }
-            else if (friendAccount != null) // 'friend' is local,  agent is foreigner
+            else if (friendIsLocal) // 'friend' is local,  agent is foreigner
             {
                 // store in the local friends service a reference to the foreign agent
                 FriendsService.StoreFriend(friendID.ToString(), agentUUI + ";" + secret, 1);
@@ -553,10 +584,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override bool DeleteFriendship(UUID agentID, UUID exfriendID)
         {
-            UserAccount agentAccount = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, agentID);
-            UserAccount friendAccount = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, exfriendID);
+            Boolean agentIsLocal = true;
+            Boolean friendIsLocal = true;
+            if (UserManagementModule != null)
+            {
+                agentIsLocal = UserManagementModule.IsLocalGridUser(agentID);
+                friendIsLocal = UserManagementModule.IsLocalGridUser(exfriendID);
+            }
+
             // Are they both local users?
-            if (agentAccount != null && friendAccount != null)
+            if (agentIsLocal && friendIsLocal)
             {
                 // local grid users
                 return base.DeleteFriendship(agentID, exfriendID);
@@ -566,7 +603,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             string agentUUI = string.Empty;
             string friendUUI = string.Empty;
 
-            if (agentAccount != null) // agent is local, 'friend' is foreigner
+            if (agentIsLocal) // agent is local, 'friend' is foreigner
             {
                 // We need to look for its information in the friends list itself
                 FriendInfo[] finfos = GetFriends(agentID);
@@ -587,7 +624,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     return true;
                 }
             }
-            else if (friendAccount != null) // agent is foreigner, 'friend' is local
+            else if (friendIsLocal) // agent is foreigner, 'friend' is local
             {
                 agentUUI = GetUUI(exfriendID, agentID);
 
