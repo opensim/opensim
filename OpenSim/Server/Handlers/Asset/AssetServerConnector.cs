@@ -26,7 +26,11 @@
  */
 
 using System;
+using System.IO;
 using Nini.Config;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
@@ -67,6 +71,127 @@ namespace OpenSim.Server.Handlers.Asset
             server.AddStreamHandler(new AssetServerGetHandler(m_AssetService));
             server.AddStreamHandler(new AssetServerPostHandler(m_AssetService));
             server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService, allowDelete));
+
+            MainConsole.Instance.Commands.AddCommand("kfs", false,
+                    "show digest",
+                    "show digest <ID>",
+                    "Show asset digest",
+                    HandleShowDigest);
+
+            MainConsole.Instance.Commands.AddCommand("kfs", false,
+                    "delete asset",
+                    "delete asset <ID>",
+                    "Delete asset from database",
+                    HandleDeleteAsset);
+
+            MainConsole.Instance.Commands.AddCommand("kfs", false,
+                    "dump asset",
+                    "dump asset <ID>",
+                    "Dump asset to a file",
+                    "The filename is the same as the ID given.",
+                    HandleDumpAsset);
+        }
+
+        void HandleDeleteAsset(string module, string[] args)
+        {
+            if (args.Length < 3)
+            {
+                MainConsole.Instance.Output("Syntax: delete asset <ID>");
+                return;
+            }
+
+            AssetBase asset = m_AssetService.Get(args[2]);
+
+            if (asset == null || asset.Data.Length == 0)
+            {
+                MainConsole.Instance.Output("Asset not found");
+                return;
+            }
+
+            m_AssetService.Delete(args[2]);
+
+            //MainConsole.Instance.Output("Asset deleted");
+            // TODO: Implement this
+
+            MainConsole.Instance.Output("Asset deletion not supported by database");
+        }
+
+        void HandleDumpAsset(string module, string[] args)
+        {
+            if (args.Length < 3)
+            {
+                MainConsole.Instance.Output("Usage is dump asset <ID>");
+                return;
+            }
+
+            UUID assetId;
+            string rawAssetId = args[2];
+
+            if (!UUID.TryParse(rawAssetId, out assetId))
+            {
+                MainConsole.Instance.OutputFormat("ERROR: {0} is not a valid ID format", rawAssetId);
+                return;
+            }
+            
+            AssetBase asset = m_AssetService.Get(assetId.ToString());
+            if (asset == null)
+            {                
+                MainConsole.Instance.OutputFormat("ERROR: No asset found with ID {0}", assetId);
+                return;                
+            }
+            
+            string fileName = rawAssetId;
+            
+            using (FileStream fs = new FileStream(fileName, FileMode.CreateNew))
+            {
+                using (BinaryWriter bw = new BinaryWriter(fs))
+                {
+                    bw.Write(asset.Data);
+                }
+            }   
+            
+            MainConsole.Instance.OutputFormat("Asset dumped to file {0}", fileName);
+        }
+
+        void HandleShowDigest(string module, string[] args)
+        {
+            if (args.Length < 3)
+            {
+                MainConsole.Instance.Output("Syntax: show digest <ID>");
+                return;
+            }
+
+            AssetBase asset = m_AssetService.Get(args[2]);
+
+            if (asset == null || asset.Data.Length == 0)
+            {
+                MainConsole.Instance.Output("Asset not found");
+                return;
+            }
+
+            int i;
+
+            MainConsole.Instance.OutputFormat("Name: {0}", asset.Name);
+            MainConsole.Instance.OutputFormat("Description: {0}", asset.Description);
+            MainConsole.Instance.OutputFormat("Type: {0} (type number = {1})", (AssetType)asset.Type, asset.Type);
+            MainConsole.Instance.OutputFormat("Content-type: {0}", asset.Metadata.ContentType);
+            MainConsole.Instance.OutputFormat("Flags: {0}", asset.Metadata.Flags);
+
+            for (i = 0 ; i < 5 ; i++)
+            {
+                int off = i * 16;
+                if (asset.Data.Length <= off)
+                    break;
+                int len = 16;
+                if (asset.Data.Length < off + len)
+                    len = asset.Data.Length - off;
+
+                byte[] line = new byte[len];
+                Array.Copy(asset.Data, off, line, 0, len);
+
+                string text = BitConverter.ToString(line);
+                MainConsole.Instance.Output(String.Format("{0:x4}: {1}", off, text));
+            }
         }
     }
 }
