@@ -481,13 +481,14 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
                 SceneObjectPart[] parts = m_parts.GetArray();
+                bool triggerScriptEvent = m_rootPart.GroupPosition != val;
+                if (m_dupeInProgress)
+                    triggerScriptEvent = false;
                 foreach (SceneObjectPart part in parts)
                 {
                     part.GroupPosition = val;
-                    if (!m_dupeInProgress)
-                    {
+                    if (triggerScriptEvent)
                         part.TriggerScriptChangedEvent(Changed.POSITION);
-                    }
                 }
                 if (!m_dupeInProgress)
                 {
