@@ -91,6 +91,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             server.AddXmlRPCHandler("status_notification", StatusNotification, false);
             server.AddXmlRPCHandler("get_online_friends", GetOnlineFriends, false);
+            server.AddXmlRPCHandler("get_user_info", GetUserInfo, false);
             server.AddXmlRPCHandler("get_server_urls", GetServerURLs, false);
 
             server.AddXmlRPCHandler("locate_user", LocateUser, false);
@@ -297,6 +298,38 @@ namespace OpenSim.Server.Handlers.Hypergrid
             response.Value = hash;
             return response;
 
+        }
+
+        public XmlRpcResponse GetUserInfo(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            Hashtable hash = new Hashtable();
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            // This needs checking!
+            if (requestData.ContainsKey("userID"))
+            {
+                string userID_str = (string)requestData["userID"];
+                UUID userID = UUID.Zero;
+                UUID.TryParse(userID_str, out userID);
+
+                //int userFlags = m_HomeUsersService.GetUserFlags(userID);
+                Dictionary<string,object> userInfo = m_HomeUsersService.GetUserInfo(userID);
+                if (userInfo.Count > 0)
+                {
+                    foreach (KeyValuePair<string, object> kvp in userInfo)
+                    {
+                        hash[kvp.Key] = kvp.Value;
+                    }
+                }
+                else
+                {
+                    hash["result"] = "failure";
+                }
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = hash;
+            return response;
         }
 
         public XmlRpcResponse GetServerURLs(XmlRpcRequest request, IPEndPoint remoteClient)

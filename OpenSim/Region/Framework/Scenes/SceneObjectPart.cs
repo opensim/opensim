@@ -2015,13 +2015,9 @@ namespace OpenSim.Region.Framework.Scenes
             axPos *= parentRot;
             Vector3 translationOffsetPosition = axPos;
             if(_parentID == 0)
-            {
-     	       return GroupPosition;
-     	    }
-     	    else
-     	    {
-            	return ParentGroup.AbsolutePosition + translationOffsetPosition; //KF: Fix child prim position
-            }
+                return GroupPosition;
+            else
+                return ParentGroup.AbsolutePosition + translationOffsetPosition;
         }
 
         /// <summary>

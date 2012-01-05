@@ -559,6 +559,60 @@ namespace OpenSim.Services.Connectors.Hypergrid
             return online;
         }
 
+        public Dictionary<string,object> GetUserInfo (UUID userID)
+        {
+            Hashtable hash = new Hashtable();
+            hash["userID"] = userID.ToString();
+
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
+
+            XmlRpcRequest request = new XmlRpcRequest("get_user_info", paramList);
+
+            Dictionary<string, object> info = new Dictionary<string, object>();
+            XmlRpcResponse response = null;
+            try
+            {
+                response = request.Send(m_ServerURL, 10000);
+            }
+            catch
+            {
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0} for GetUserInfo", m_ServerURL);
+                return info;
+            }
+
+            if (response.IsFault)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} for GetServerURLs returned an error: {1}", m_ServerURL, response.FaultString);
+                return info;
+            }
+
+            hash = (Hashtable)response.Value;
+            try
+            {
+                if (hash == null)
+                {
+                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: GetUserInfo Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
+                    return info;
+                }
+
+                // Here is the actual response
+                foreach (object key in hash.Keys)
+                {
+                    if (hash[key] != null)
+                    {
+                        info.Add(key.ToString(), hash[key]);
+                    }
+                }
+            }
+            catch
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on GetOnlineFriends response.");
+            }
+
+            return info;
+        }
+
         public Dictionary<string, object> GetServerURLs(UUID userID)
         {
             Hashtable hash = new Hashtable();

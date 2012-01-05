@@ -486,6 +486,31 @@ namespace OpenSim.Services.HypergridService
             return online;
         }
 
+        public Dictionary<string, object> GetUserInfo(UUID  userID)
+        {
+            Dictionary<string, object> info = new Dictionary<string, object>();
+
+            if (m_UserAccountService == null)
+            {
+                m_log.WarnFormat("[USER AGENT SERVICE]: Unable to get user flags because user account service is missing");
+                info["result"] = "fail";
+                info["message"] = "UserAccountService is missing!";
+                return info;
+            }
+
+            UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero /*!!!*/, userID);
+
+            if (account != null)
+            {
+                info.Add("user_flags", (object)account.UserFlags);
+                info.Add("user_created", (object)account.Created);
+                info.Add("user_title", (object)account.UserTitle);
+                info.Add("result", "success");
+            }
+
+            return info;
+        }
+
         public Dictionary<string, object> GetServerURLs(UUID userID)
         {
             if (m_UserAccountService == null)
