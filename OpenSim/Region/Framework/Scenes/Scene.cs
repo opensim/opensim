@@ -5303,7 +5303,7 @@ Environment.Exit(1);
             }
         }
 
-        private void RegenerateMaptileAndReregister(object sender, ElapsedEventArgs e)
+        public void RegenerateMaptileAndReregister(object sender, ElapsedEventArgs e)
         {
             RegenerateMaptile();
 
