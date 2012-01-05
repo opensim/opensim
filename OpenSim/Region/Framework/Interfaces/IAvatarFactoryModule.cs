@@ -82,7 +82,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// If true, only request a rebake for the textures that are missing.
         /// If false then we request a rebake of all textures for which we already have references.
         /// </param>
-        void RequestRebake(IScenePresence sp, bool missingTexturesOnly);
+        /// <returns>
+        /// Number of rebake requests made.  This will depend upon whether we've previously received texture IDs.
+        /// </returns>
+        int RequestRebake(IScenePresence sp, bool missingTexturesOnly);
 
         void QueueAppearanceSend(UUID agentid);
         void QueueAppearanceSave(UUID agentid);
