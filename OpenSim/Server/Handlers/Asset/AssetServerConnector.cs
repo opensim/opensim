@@ -157,7 +157,7 @@ namespace OpenSim.Server.Handlers.Asset
         {
             if (args.Length < 3)
             {
-                MainConsole.Instance.Output("Syntax: show digest <ID>");
+                MainConsole.Instance.Output("Syntax: show asset <ID>");
                 return;
             }
 
