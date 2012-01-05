@@ -55,6 +55,7 @@ namespace OpenSim.Services.Interfaces
         void LogoutAgent(UUID userID, UUID sessionID);
         GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
         Dictionary<string, object> GetServerURLs(UUID userID);
+        Dictionary<string,object> GetUserInfo(UUID userID);
 
         string LocateUser(UUID userID);
         // Tries to get the universal user identifier for the targetUserId

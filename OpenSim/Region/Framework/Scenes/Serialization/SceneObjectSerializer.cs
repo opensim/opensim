@@ -1279,7 +1279,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString(name, flagsStr.Replace(",", ""));
         }
 
-        static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv, Dictionary<string, object> options, Scene scene)
+        public static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv, Dictionary<string, object> options, Scene scene)
         {
             if (tinv.Count > 0) // otherwise skip this
             {
@@ -1333,7 +1333,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
         }
 
-        static void WriteShape(XmlTextWriter writer, PrimitiveBaseShape shp, Dictionary<string, object> options)
+        public static void WriteShape(XmlTextWriter writer, PrimitiveBaseShape shp, Dictionary<string, object> options)
         {
             if (shp != null)
             {
@@ -1508,7 +1508,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             return obj;
         }
 
-        static TaskInventoryDictionary ReadTaskInventory(XmlTextReader reader, string name)
+        public static TaskInventoryDictionary ReadTaskInventory(XmlTextReader reader, string name)
         {
             TaskInventoryDictionary tinv = new TaskInventoryDictionary();
 
@@ -1548,7 +1548,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <param name="name">The name of the xml element containing the shape</param>
         /// <param name="errors">true if any errors were encountered during parsing, false otherwise</param>
         /// <returns>The shape parsed</returns>
-        static PrimitiveBaseShape ReadShape(XmlTextReader reader, string name, out bool errors)
+        public static PrimitiveBaseShape ReadShape(XmlTextReader reader, string name, out bool errors)
         {
             errors = false;
 

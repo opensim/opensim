@@ -43,7 +43,7 @@ using OpenSim.Services.Interfaces;
 namespace OpenSim.Region.CoreModules.Avatar.Profile
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class BasicProfileModule : ISharedRegionModule
+    public class BasicProfileModule : IProfileModule, ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -57,6 +57,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
 
         public void Initialise(IConfigSource config)
         {
+            // This can be reduced later as the loader will determine 
+            // whether we are needed
             if (config.Configs["Profile"] != null)
             {
                 if (config.Configs["Profile"].GetString("Module", string.Empty) != "BasicProfileModule")
@@ -65,14 +67,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
 
             m_log.DebugFormat("[PROFILE MODULE]: Basic Profile Module enabled");
             m_Enabled = true;
-
         }
 
         public void AddRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
-
+            
             lock (m_Scenes)
             {
                 if (!m_Scenes.Contains(scene))
@@ -80,6 +81,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
                     m_Scenes.Add(scene);
                     // Hook up events
                     scene.EventManager.OnNewClient += OnNewClient;
+                    scene.RegisterModuleInterface<IProfileModule>(this);
                 }
             }
         }
@@ -116,7 +118,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
 
         public Type ReplaceableInterface
         {
-            get { return null; }
+            get { return typeof(IProfileModule); }
         }
 
         #endregion

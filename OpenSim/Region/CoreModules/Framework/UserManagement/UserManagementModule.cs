@@ -50,6 +50,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         public string LastName { get; set; }
         public string HomeURL { get; set; }
         public Dictionary<string, object> ServerURLs { get; set; }
+        public string Title { get; set; }
+        public int Flags { get; set; }
+        public int Created { get; set; }
     }
 
     public class UserManagementModule : ISharedRegionModule, IUserManagement
@@ -281,6 +284,94 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             return string.Empty;
         }
 
+        public int GetUserFlags(UUID userID)
+        {
+            UserData userdata;
+            lock (m_UserCache)
+                m_UserCache.TryGetValue(userID, out userdata);
+
+            if (userdata.Flags == -1)
+                GetUserInfo(userID);
+
+            if (userdata.Flags != -1)
+                return userdata.Flags;
+
+            return 0;
+        }
+
+        public int GetUserCreated(UUID userID)
+        {
+            UserData userdata;
+            lock (m_UserCache)
+                m_UserCache.TryGetValue(userID, out userdata);
+
+            if (userdata.Flags == -1)
+                GetUserInfo(userID);
+
+            if (userdata.Created != -1)
+                return userdata.Created;
+
+            return 0;
+        }
+
+        public string GetUserTitle(UUID userID)
+        {
+            UserData userdata;
+            lock (m_UserCache)
+                m_UserCache.TryGetValue(userID, out userdata);
+
+            if (userdata.Flags == -1)
+                GetUserInfo(userID);
+
+            if (userdata.Created != -1)
+                return userdata.Title;
+
+            return string.Empty;
+        }
+
+        // This will cache the user data
+        // Change this to return bool
+        private bool GetUserInfo(UUID userID)
+        {
+            UserData userdata;
+            lock (m_UserCache)
+                m_UserCache.TryGetValue(userID, out userdata);
+
+            if (userdata != null)
+            {
+//                m_log.DebugFormat("[USER MANAGEMENT MODULE]: Requested url type {0} for {1}", serverType, userID);
+
+                if (userdata.Flags >= 0)
+                {
+                    // This is already populated
+                    return true;
+                }
+
+                if (userdata.HomeURL != null && userdata.HomeURL != string.Empty)
+                {
+                    m_log.DebugFormat(
+                        "[USER MANAGEMENT MODULE]: Requesting user flags from '{0}' for {1}",
+                        userdata.HomeURL, userID);
+
+                    UserAgentServiceConnector uConn = new UserAgentServiceConnector(userdata.HomeURL);
+                    Dictionary<string, object> info = uConn.GetUserInfo(userID);
+
+                    // Pull our data now
+                    if (info["result"].ToString() == "success")
+                    {
+                        userdata.Flags = (int)info["user_flags"];
+                        userdata.Created = (int)info["user_created"];
+                        userdata.Title = (string)info["user_title"];
+
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+
         public string GetUserUUI(UUID userID)
         {
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, userID);
@@ -352,6 +443,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             {
                 UserData user = new UserData();
                 user.Id = id;
+                user.Flags = -1;
+                user.Created = -1;
 
                 if (creatorData != null && creatorData != string.Empty)
                 {

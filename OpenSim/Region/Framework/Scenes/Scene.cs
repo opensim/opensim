@@ -1236,6 +1236,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
+                m_eventManager.TriggerOnRegionStarted(this);
                 while (!shuttingdown)
                     Update();
             }
