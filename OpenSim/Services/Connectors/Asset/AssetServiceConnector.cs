@@ -90,10 +90,6 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("Asset connector init error");
             }
 
-            MainConsole.Instance.Commands.AddCommand("asset", false, "dump asset",
-                                          "dump asset <id> <file>",
-                                          "dump one cached asset", HandleDumpAsset);
-
             m_retryTimer = new Timer();
             m_retryTimer.Elapsed += new ElapsedEventHandler(retryCheck);
             m_retryTimer.Interval = 60000;
