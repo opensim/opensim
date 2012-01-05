@@ -175,6 +175,8 @@ namespace OpenSim.Server.Handlers.Asset
             MainConsole.Instance.OutputFormat("Description: {0}", asset.Description);
             MainConsole.Instance.OutputFormat("Type: {0} (type number = {1})", (AssetType)asset.Type, asset.Type);
             MainConsole.Instance.OutputFormat("Content-type: {0}", asset.Metadata.ContentType);
+            MainConsole.Instance.OutputFormat("Size: {0} bytes", asset.Data.Length);
+            MainConsole.Instance.OutputFormat("Temporary: {0}", asset.Temporary ? "yes" : "no");
             MainConsole.Instance.OutputFormat("Flags: {0}", asset.Metadata.Flags);
 
             for (i = 0 ; i < 5 ; i++)
