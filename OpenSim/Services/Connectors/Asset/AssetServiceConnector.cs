@@ -84,11 +84,14 @@ namespace OpenSim.Services.Connectors
             string serviceURI = assetConfig.GetString("AssetServerURI",
                     String.Empty);
 
+            m_ServerURI = serviceURI;
+
             if (serviceURI == String.Empty)
             {
                 m_log.Error("[ASSET CONNECTOR]: No Server URI named in section AssetService");
                 throw new Exception("Asset connector init error");
             }
+
 
             m_retryTimer = new Timer();
             m_retryTimer.Elapsed += new ElapsedEventHandler(retryCheck);
