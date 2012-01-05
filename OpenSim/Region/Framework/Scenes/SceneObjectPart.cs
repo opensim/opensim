@@ -1960,19 +1960,13 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 GetWorldPosition()
         {
             Quaternion parentRot = ParentGroup.RootPart.RotationOffset;
-
             Vector3 axPos = OffsetPosition;
-
             axPos *= parentRot;
             Vector3 translationOffsetPosition = axPos;
-            
-//            m_log.DebugFormat("[SCENE OBJECT PART]: Found group pos {0} for part {1}", GroupPosition, Name);
-            
-            Vector3 worldPos = GroupPosition + translationOffsetPosition;
-                
-//            m_log.DebugFormat("[SCENE OBJECT PART]: Found world pos {0} for part {1}", worldPos, Name);
-            
-            return worldPos;
+            if(_parentID == 0)
+                return GroupPosition;
+            else
+                return ParentGroup.AbsolutePosition + translationOffsetPosition;
         }
 
         /// <summary>

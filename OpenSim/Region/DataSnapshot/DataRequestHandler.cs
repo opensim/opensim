@@ -67,7 +67,7 @@ namespace OpenSim.Region.DataSnapshot
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            m_log.Info("[DATASNAPSHOT]: Registering service discovery capability for " + agentID);
+//            m_log.InfoFormat("[DATASNAPSHOT]: Registering service discovery capability for {0}", agentID);
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
             caps.RegisterHandler("PublicSnapshotDataInfo",
                 new RestStreamHandler("POST", capsBase + m_discoveryPath, OnDiscoveryAttempt));
