@@ -107,9 +107,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else
                     {
-                        m_log.DebugFormat(
-                            "[LL IMAGE MANAGER]: Received duplicate of existing request for {0}, start packet {1} from {2}",
-                            newRequest.RequestedAssetID, newRequest.PacketNumber, m_client.Name);
+//                        m_log.DebugFormat(
+//                            "[LL IMAGE MANAGER]: Received duplicate of existing request for {0}, start packet {1} from {2}",
+//                            newRequest.RequestedAssetID, newRequest.PacketNumber, m_client.Name);
 
                         //m_log.DebugFormat("[TEX]: (UPD) ID={0}: D={1}, S={2}, P={3}",
                         //    newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
@@ -168,9 +168,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else
                     {
-                        m_log.DebugFormat(
-                            "[LL IMAGE MANAGER]: Received request for {0}, start packet {1} from {2}",
-                            newRequest.RequestedAssetID, newRequest.PacketNumber, m_client.Name);
+//                        m_log.DebugFormat(
+//                            "[LL IMAGE MANAGER]: Received request for {0}, start packet {1} from {2}",
+//                            newRequest.RequestedAssetID, newRequest.PacketNumber, m_client.Name);
 
                         //m_log.DebugFormat("[TEX]: (NEW) ID={0}: D={1}, S={2}, P={3}",
                         //    newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
