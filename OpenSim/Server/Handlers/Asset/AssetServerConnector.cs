@@ -73,10 +73,10 @@ namespace OpenSim.Server.Handlers.Asset
             server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService, allowDelete));
 
             MainConsole.Instance.Commands.AddCommand("kfs", false,
-                    "show digest",
-                    "show digest <ID>",
-                    "Show asset digest",
-                    HandleShowDigest);
+                    "show asset",
+                    "show asset <ID>",
+                    "Show asset information",
+                    HandleShowAsset);
 
             MainConsole.Instance.Commands.AddCommand("kfs", false,
                     "delete asset",
@@ -153,7 +153,7 @@ namespace OpenSim.Server.Handlers.Asset
             MainConsole.Instance.OutputFormat("Asset dumped to file {0}", fileName);
         }
 
-        void HandleShowDigest(string module, string[] args)
+        void HandleShowAsset(string module, string[] args)
         {
             if (args.Length < 3)
             {

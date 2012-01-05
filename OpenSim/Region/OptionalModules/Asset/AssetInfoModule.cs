@@ -88,6 +88,14 @@ namespace OpenSim.Region.OptionalModules.Asset
                 m_scene = scene;
 
             MainConsole.Instance.Commands.AddCommand(
+                "asset",
+                false,
+                "show asset",
+                "show asset <ID>",
+                "Show asset information",
+                HandleShowAsset);
+
+            MainConsole.Instance.Commands.AddCommand(
                 "asset", false, "dump asset",
                 "dump asset <id>",
                 "Dump an asset",
@@ -129,6 +137,49 @@ namespace OpenSim.Region.OptionalModules.Asset
             }   
             
             MainConsole.Instance.OutputFormat("Asset dumped to file {0}", fileName);
+        }
+
+        void HandleShowAsset(string module, string[] args)
+        {
+            if (args.Length < 3)
+            {
+                MainConsole.Instance.Output("Syntax: show asset <ID>");
+                return;
+            }
+
+            AssetBase asset = m_scene.AssetService.Get(args[2]);
+
+            if (asset == null || asset.Data.Length == 0)
+            {
+                MainConsole.Instance.Output("Asset not found");
+                return;
+            }
+
+            int i;
+
+            MainConsole.Instance.OutputFormat("Name: {0}", asset.Name);
+            MainConsole.Instance.OutputFormat("Description: {0}", asset.Description);
+            MainConsole.Instance.OutputFormat("Type: {0} (type number = {1})", (AssetType)asset.Type, asset.Type);
+            MainConsole.Instance.OutputFormat("Content-type: {0}", asset.Metadata.ContentType);
+            MainConsole.Instance.OutputFormat("Size: {0} bytes", asset.Data.Length);
+            MainConsole.Instance.OutputFormat("Temporary: {0}", asset.Temporary ? "yes" : "no");
+            MainConsole.Instance.OutputFormat("Flags: {0}", asset.Metadata.Flags);
+
+            for (i = 0 ; i < 5 ; i++)
+            {
+                int off = i * 16;
+                if (asset.Data.Length <= off)
+                    break;
+                int len = 16;
+                if (asset.Data.Length < off + len)
+                    len = asset.Data.Length - off;
+
+                byte[] line = new byte[len];
+                Array.Copy(asset.Data, off, line, 0, len);
+
+                string text = BitConverter.ToString(line);
+                MainConsole.Instance.Output(String.Format("{0:x4}: {1}", off, text));
+            }
         }
     }
 }
