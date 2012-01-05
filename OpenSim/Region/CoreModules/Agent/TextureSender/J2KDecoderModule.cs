@@ -137,14 +137,9 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
             }
         }
 
-        /// <summary>
-        /// Provides a synchronous decode so that caller can be assured that this executes before the next line
-        /// </summary>
-        /// <param name="assetID"></param>
-        /// <param name="j2kData"></param>
-        public void Decode(UUID assetID, byte[] j2kData)
+        public bool Decode(UUID assetID, byte[] j2kData)
         {
-            DoJ2KDecode(assetID, j2kData);
+            return DoJ2KDecode(assetID, j2kData);
         }
 
         #endregion IJ2KDecoder
@@ -154,10 +149,12 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         /// </summary>
         /// <param name="assetID">UUID of Asset</param>
         /// <param name="j2kData">JPEG2000 data</param>
-        private void DoJ2KDecode(UUID assetID, byte[] j2kData)
+        private bool DoJ2KDecode(UUID assetID, byte[] j2kData)
         {
 //            m_log.DebugFormat(
 //                "[J2KDecoderModule]: Doing J2K decoding of {0} bytes for asset {1}", j2kData.Length, assetID);
+
+            bool decodedSuccessfully = true;
 
             //int DecodeTime = 0;
             //DecodeTime = Environment.TickCount;
@@ -196,6 +193,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     catch (Exception ex)
                     {
                         m_log.Warn("[J2KDecoderModule]: CSJ2K threw an exception decoding texture " + assetID + ": " + ex.Message);
+                        decodedSuccessfully = false;
                     }
                 }
                 else
@@ -204,6 +202,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     if (!OpenJPEG.DecodeLayerBoundaries(j2kData, out layers, out components))
                     {
                         m_log.Warn("[J2KDecoderModule]: OpenJPEG failed to decode texture " + assetID);
+                        decodedSuccessfully = false;
                     }
                 }
 
@@ -212,6 +211,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     m_log.Warn("[J2KDecoderModule]: Failed to decode layer data for texture " + assetID + ", guessing sane defaults");
                     // Layer decoding completely failed. Guess at sane defaults for the layer boundaries
                     layers = CreateDefaultLayers(j2kData.Length);
+                    decodedSuccessfully = false;
                 }
 
                 // Cache Decoded layers
@@ -231,6 +231,8 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     m_notifyList.Remove(assetID);
                 }
             }
+
+            return decodedSuccessfully;
         }
 
         private OpenJPEG.J2KLayerInfo[] CreateDefaultLayers(int j2kLength)
