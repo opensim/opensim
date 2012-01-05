@@ -133,13 +133,20 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
                 // Do Decode!
                 if (decode)
-                    DoJ2KDecode(assetID, j2kData);
+                    Decode(assetID, j2kData);
             }
         }
 
         public bool Decode(UUID assetID, byte[] j2kData)
         {
-            return DoJ2KDecode(assetID, j2kData);
+            OpenJPEG.J2KLayerInfo[] layers;
+            int components;
+            return Decode(assetID, j2kData, out layers, out components);
+        }
+
+        public bool Decode(UUID assetID, byte[] j2kData, out OpenJPEG.J2KLayerInfo[] layers, out int components)
+        {
+            return DoJ2KDecode(assetID, j2kData, out layers, out components);
         }
 
         #endregion IJ2KDecoder
@@ -149,7 +156,10 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         /// </summary>
         /// <param name="assetID">UUID of Asset</param>
         /// <param name="j2kData">JPEG2000 data</param>
-        private bool DoJ2KDecode(UUID assetID, byte[] j2kData)
+        /// <param name="layers">layer data</param>
+        /// <param name="components">number of components</param>
+        /// <returns>true if decode was successful.  false otherwise.</returns>
+        private bool DoJ2KDecode(UUID assetID, byte[] j2kData, out OpenJPEG.J2KLayerInfo[] layers, out int components)
         {
 //            m_log.DebugFormat(
 //                "[J2KDecoderModule]: Doing J2K decoding of {0} bytes for asset {1}", j2kData.Length, assetID);
@@ -158,7 +168,9 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
             //int DecodeTime = 0;
             //DecodeTime = Environment.TickCount;
-            OpenJPEG.J2KLayerInfo[] layers;
+
+            // We don't get this from CSJ2K.  Is it relevant?
+            components = 0;
 
             if (!TryLoadCacheForAsset(assetID, out layers))
             {
@@ -198,7 +210,6 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                 }
                 else
                 {
-                    int components;
                     if (!OpenJPEG.DecodeLayerBoundaries(j2kData, out layers, out components))
                     {
                         m_log.Warn("[J2KDecoderModule]: OpenJPEG failed to decode texture " + assetID);

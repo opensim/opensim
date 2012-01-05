@@ -34,6 +34,7 @@ using log4net;
 using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
@@ -137,9 +138,18 @@ namespace OpenSim.Region.OptionalModules.Agent.TextureSender
                 return;
             }
 
-            if (decoder.Decode(assetId, asset.Data))
-                MainConsole.Instance.OutputFormat("Successfully decoded asset {0}", assetId);
+            OpenJPEG.J2KLayerInfo[] layers;
+            int components;
+            if (decoder.Decode(assetId, asset.Data, out layers, out components))
+            {
+                MainConsole.Instance.OutputFormat(
+                    "Successfully decoded asset {0} with {1} layers and {2} components",
+                    assetId, layers.Length, components);
+            }
             else
-                MainConsole.Instance.OutputFormat("Decode of asset {0} failed", assetId);     }
+            {
+                MainConsole.Instance.OutputFormat("Decode of asset {0} failed", assetId);
+            }
+        }
     }
 }
