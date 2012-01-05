@@ -102,7 +102,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     m_currentPacket = 2;
                 }
-                
+
                 while (sendMore && packetsSent < packetsToSend && m_currentPacket <= m_stopPacket)
                 {
                     sendMore = SendPacket(client);
@@ -114,17 +114,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return (m_currentPacket > m_stopPacket);
         }
 
+        /// <summary>
+        /// This is where we decide what we need to update
+        /// and assign the real discardLevel and packetNumber
+        /// assuming of course that the connected client might be bonkers
+        /// </summary>
         public void RunUpdate()
         {
-            //This is where we decide what we need to update
-            //and assign the real discardLevel and packetNumber
-            //assuming of course that the connected client might be bonkers
-
             if (!HasAsset)
             {
                 if (!m_assetRequested)
                 {
                     m_assetRequested = true;
+//                    m_log.DebugFormat("[J2KIMAGE]: Requesting asset {0}", TextureID);
                     AssetService.Get(TextureID.ToString(), this, AssetReceived);
                 }
             }
@@ -137,6 +139,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         //Request decode
                         m_decodeRequested = true;
+
+//                        m_log.DebugFormat("[J2KIMAGE]: Requesting decode of asset {0}", TextureID);
+
                         // Do we have a jpeg decoder?
                         if (J2KDecoder != null)
                         {
@@ -149,7 +154,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 // Send it off to the jpeg decoder
                                 J2KDecoder.BeginDecode(TextureID, m_asset, J2KDecodedCallback);
                             }
-
                         }
                         else
                         {
@@ -328,14 +332,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (m_currentPacket == 0)
                 return 0;
+
             if (m_currentPacket == 1)
                 return FIRST_PACKET_SIZE;
 
             int result = FIRST_PACKET_SIZE + ((int)m_currentPacket - 2) * IMAGE_PACKET_SIZE;
+
             if (result < 0)
-            {
                 result = FIRST_PACKET_SIZE;
-            }
+
             return result;
         }
 
@@ -374,7 +379,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             UUID assetID = UUID.Zero;
             if (asset != null)
+            {
                 assetID = asset.FullID;
+            }
             else if ((InventoryAccessModule != null) && (sender != InventoryAccessModule))
             {
                 // Unfortunately we need this here, there's no other way.
@@ -395,7 +402,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             AssetDataCallback(assetID, asset);
-
         }
     }
 }
