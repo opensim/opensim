@@ -42,6 +42,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
     public enum ThreatLevel
     {
+        NoAccess = -1,
         None = 0,
         Nuisance = 1,
         VeryLow = 2,
