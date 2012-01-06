@@ -159,6 +159,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             string risk = m_ScriptEngine.Config.GetString("OSFunctionThreatLevel", "VeryLow");
             switch (risk)
             {
+            case "NoAccess":
+                m_MaxThreatLevel = ThreatLevel.NoAccess;
+                break;
             case "None":
                 m_MaxThreatLevel = ThreatLevel.None;
                 break;
