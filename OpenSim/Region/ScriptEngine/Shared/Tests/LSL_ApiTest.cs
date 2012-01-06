@@ -201,20 +201,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             CheckllRot2Euler(new LSL_Types.Quaternion(-0.092302, -0.701059, -0.092302, -0.701059));
         }
 
-        // Testing Rot2Euler this way instead of comparing against expected angles because
-        // 1. There are several ways to get to the original Quaternion. For example a rotation
-        //    of PI and -PI will give the same result. But PI and -PI aren't equal.
-        // 2. This method checks to see if the calculated angles from a quaternion can be used
-        //    to create a new quaternion to produce the same rotation.
-        // However, can't compare the newly calculated quaternion against the original because
-        // once again, there are multiple quaternions that give the same result. For instance
-        //  <X, Y, Z, S> == <-X, -Y, -Z, -S>.  Additionally, the magnitude of S can be changed
-        // and will still result in the same rotation if the values for X, Y, Z are also changed
-        // to compensate.
-        // However, if two quaternions represent the same rotation, then multiplying the first
-        // quaternion by the conjugate of the second, will give a third quaternion representing
-        // a zero rotation. This can be tested for by looking at the X, Y, Z values which should
-        // be zero.
+        /// <summary>
+        /// Check an llRot2Euler conversion.
+        /// </summary>
+        /// <remarks>
+        /// Testing Rot2Euler this way instead of comparing against expected angles because
+        /// 1. There are several ways to get to the original Quaternion. For example a rotation
+        ///    of PI and -PI will give the same result. But PI and -PI aren't equal.
+        /// 2. This method checks to see if the calculated angles from a quaternion can be used
+        ///    to create a new quaternion to produce the same rotation.
+        /// However, can't compare the newly calculated quaternion against the original because
+        /// once again, there are multiple quaternions that give the same result. For instance
+        ///  <X, Y, Z, S> == <-X, -Y, -Z, -S>.  Additionally, the magnitude of S can be changed
+        /// and will still result in the same rotation if the values for X, Y, Z are also changed
+        /// to compensate.
+        /// However, if two quaternions represent the same rotation, then multiplying the first
+        /// quaternion by the conjugate of the second, will give a third quaternion representing
+        /// a zero rotation. This can be tested for by looking at the X, Y, Z values which should
+        /// be zero.
+        /// </remarks>
+        /// <param name="rot"></param>
         private void CheckllRot2Euler(LSL_Types.Quaternion rot)
         {
             // Call LSL function to convert quaternion rotaion to euler radians.

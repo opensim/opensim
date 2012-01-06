@@ -468,10 +468,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
 
-        // Using algorithm based off http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/quat_2_euler_paper_ver2-1.pdf
-        // to avoid issues with singularity and rounding with Y rotation of +/- PI/2
+        /// <summary>
+        /// Convert an LSL rotation to a Euler vector.
+        /// </summary>
+        /// <remarks>
+        /// Using algorithm based off http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/quat_2_euler_paper_ver2-1.pdf
+        /// to avoid issues with singularity and rounding with Y rotation of +/- PI/2
+        /// </remarks>
+        /// <param name="r"></param>
+        /// <returns></returns>
         public LSL_Vector llRot2Euler(LSL_Rotation r)
         {
+            m_host.AddScriptLPS(1);
+
             LSL_Vector v = new LSL_Vector(0.0, 0.0, 1.0) * r;   // Z axis unit vector unaffected by Z rotation component of r.
             double m = LSL_Vector.Mag(v);                       // Just in case v isn't normalized, need magnitude for Asin() operation later.
             if (m == 0.0) return new LSL_Vector();
@@ -482,6 +491,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Rotate X axis unit vector by r and unwind the X and Y rotations leaving only the Z rotation
             v = new LSL_Vector(1.0, 0.0, 0.0) * ((r * new LSL_Rotation(Math.Sin(-x / 2.0), 0.0, 0.0, Math.Cos(-x / 2.0))) * new LSL_Rotation(0.0, Math.Sin(-y / 2.0), 0.0, Math.Cos(-y / 2.0)));
             double z = Math.Atan2(v.y, v.x);
+
             return new LSL_Vector(x, y, z);
         }
 
