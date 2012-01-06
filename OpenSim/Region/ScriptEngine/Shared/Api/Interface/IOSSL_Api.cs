@@ -185,6 +185,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osNpcSit(key npc, key target, int options);
         void osNpcStand(LSL_Key npc);
         void osNpcRemove(key npc);
+        public void osNpcPlayAnimation(LSL_Key npc, string animation);
+        public void osNpcStopAnimation(LSL_Key npc, string animation);
 
         LSL_Key osOwnerSaveAppearance(string notecard);
         LSL_Key osAgentSaveAppearance(key agentId, string notecard);
