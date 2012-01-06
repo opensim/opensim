@@ -996,13 +996,24 @@ namespace OpenSim.Region.Framework.Scenes
                 if (item == null)
                     return;
 
-                if (item.Type == 10)
-                {
-                    part.RemoveScriptEvents(itemID);
-                    EventManager.TriggerRemoveScript(localID, itemID);
-                }
+                InventoryFolderBase destFolder = InventoryService.GetFolderForType(remoteClient.AgentId, AssetType.TrashFolder);
 
-                group.RemoveInventoryItem(localID, itemID);
+                // Move the item to trash. If this is a copiable item, only
+                // a copy will be moved and we will still need to delete
+                // the item from the prim. If it was no copy, is will be
+                // deleted by this method.
+                MoveTaskInventoryItem(remoteClient, destFolder.ID, part, itemID);
+
+                if (group.GetInventoryItem(localID, itemID) != null)
+                {
+                    if (item.Type == 10)
+                    {
+                        part.RemoveScriptEvents(itemID);
+                        EventManager.TriggerRemoveScript(localID, itemID);
+                    }
+
+                    group.RemoveInventoryItem(localID, itemID);
+                }
                 part.SendPropertiesToClient(remoteClient);
             }
         }
@@ -1065,7 +1076,15 @@ namespace OpenSim.Region.Framework.Scenes
             if (!Permissions.BypassPermissions())
             {
                 if ((taskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                {
+                    if (taskItem.Type == 10)
+                    {
+                        part.RemoveScriptEvents(itemId);
+                        EventManager.TriggerRemoveScript(part.LocalId, itemId);
+                    }
+
                     part.Inventory.RemoveInventoryItem(itemId);
+                }
             }
 
             return agentItem;
