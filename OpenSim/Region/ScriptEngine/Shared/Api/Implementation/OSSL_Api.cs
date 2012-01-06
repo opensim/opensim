@@ -2350,7 +2350,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (module != null)
             {
                 UUID npcID = new UUID(npc.m_string);
-                if (module.IsNPC(npcID))
+                if (module.IsNPC(npcID, m_host.ParentGroup.Scene))
                 {
                     UUID ownerID = module.GetOwner(npcID);
                     if (ownerID == UUID.Zero || ownerID == m_host.OwnerID)
@@ -2367,7 +2367,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (module != null)
             {
                 UUID npcID = new UUID(npc.m_string);
-                if (module.IsNPC(npcID))
+                if (module.IsNPC(npcID, m_host.ParentGroup.Scene))
                 {
                     UUID ownerID = module.GetOwner(npcID);
                     if (ownerID == UUID.Zero || ownerID == m_host.OwnerID)
