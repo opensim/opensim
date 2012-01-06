@@ -888,6 +888,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osAvatarPlayAnimation");
 
+            AvatarPlayAnimation(avatar, animation);
+        }
+
+        private void AvatarPlayAnimation(string avatar, string animation)
+        {
             UUID avatarID = (UUID)avatar;
 
             m_host.AddScriptLPS(1);
@@ -921,6 +926,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osAvatarStopAnimation");
 
+            AvatarStopAnimation(avatar, animation);
+        }
+
+        private void AvatarStopAnimation(string avatar, string animation)
+        {
             UUID avatarID = (UUID)avatar;
 
             m_host.AddScriptLPS(1);
@@ -2329,6 +2339,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (module != null)
             {
                 module.DeleteNPC(new UUID(npc.m_string), m_host.OwnerID, World);
+            }
+        }
+
+        public void osNpcPlayAnimation(LSL_Key npc, string animation)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osPlayAnimation");
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID npcID = new UUID(npc.m_string);
+                if (module.IsNPC(npcID))
+                {
+                    UUID ownerID = module.GetOwner(npcID);
+                    if (ownerID == UUID.Zero || ownerID == m_host.OwnerID)
+                        AvatarPlayAnimation(npcID.ToString(), animation);
+                }
+            }
+        }
+
+        public void osNpcStopAnimation(LSL_Key npc, string animation)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcStopAnimation");
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID npcID = new UUID(npc.m_string);
+                if (module.IsNPC(npcID))
+                {
+                    UUID ownerID = module.GetOwner(npcID);
+                    if (ownerID == UUID.Zero || ownerID == m_host.OwnerID)
+                        AvatarStopAnimation(npcID.ToString(), animation);
+                }
             }
         }
 

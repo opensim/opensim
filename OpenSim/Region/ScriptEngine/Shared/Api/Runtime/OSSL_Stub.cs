@@ -553,6 +553,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcRemove(npc);
         }
 
+        public void osNpcPlayAnimation(LSL_Key npc, string animation)
+        {
+            m_OSSL_Functions.osNpcPlayAnimation(npc, animation);
+        }
+
+        public void osNpcStopAnimation(LSL_Key npc, string animation)
+        {
+            m_OSSL_Functions.osNpcStopAnimation(npc, animation);
+        }
+
         public LSL_Key osOwnerSaveAppearance(string notecard)
         {
             return m_OSSL_Functions.osOwnerSaveAppearance(notecard);
