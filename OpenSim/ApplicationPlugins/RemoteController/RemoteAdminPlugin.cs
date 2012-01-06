@@ -257,17 +257,13 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 m_log.Info("[RADMIN]: Request to restart Region.");
 
-                CheckStringParameters(requestData, responseData, new string[] {"regionID"});
+                CheckRegionParams(requestData, responseData);
 
-                UUID regionID = new UUID((string) requestData["regionID"]);
-
-                Scene rebootedScene;
+                Scene rebootedScene = null;
+                GetSceneFromRegionParams(requestData, responseData, out rebootedScene);
 
                 responseData["success"] = false;
                 responseData["accepted"] = true;
-                if (!m_application.SceneManager.TryGetScene(regionID, out rebootedScene))
-                    throw new Exception("region not found");
-
                 responseData["rebooting"] = true;
 
                 IRestartModule restartModule = rebootedScene.RequestModuleInterface<IRestartModule>();
@@ -329,14 +325,15 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             // }
 
             CheckStringParameters(requestData, responseData, new string[] {"filename", "regionid"});
+            CheckRegionParams(requestData, responseData);
 
-            string file = (string) requestData["filename"];
-            UUID regionID = (UUID) (string) requestData["regionid"];
-            m_log.InfoFormat("[RADMIN]: Terrain Loading: {0}", file);
+            Scene scene = null;
+            GetSceneFromRegionParams(requestData, responseData, out scene);
+            string file = (string)requestData["filename"];
 
             responseData["accepted"] = true;
 
-            LoadHeightmap(file, regionID);
+            LoadHeightmap(file, scene.RegionInfo.RegionID);
 
             responseData["success"] = true;
 
@@ -353,17 +350,15 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 //                m_log.DebugFormat("[RADMIN]: Save Terrain: XmlRpc {0}", request.ToString());
 
             CheckStringParameters(requestData, responseData, new string[] { "filename", "regionid" });
+            CheckRegionParams(requestData, responseData);
+
+            Scene region = null;
+            GetSceneFromRegionParams(requestData, responseData, out region);
 
             string file = (string)requestData["filename"];
-            UUID regionID = (UUID)(string)requestData["regionid"];
             m_log.InfoFormat("[RADMIN]: Terrain Saving: {0}", file);
 
             responseData["accepted"] = true;
-
-            Scene region = null;
-
-            if (!m_application.SceneManager.TryGetScene(regionID, out region))
-                throw new Exception("1: unable to get a scene with that name");
 
             ITerrainModule terrainModule = region.RequestModuleInterface<ITerrainModule>();
             if (null == terrainModule) throw new Exception("terrain module not available");
@@ -732,7 +727,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 responseData["success"] = true;
                 responseData["region_name"] = region.RegionName;
-                responseData["region_uuid"] = region.RegionID.ToString();
+                responseData["region_id"] = region.RegionID.ToString();
+                responseData["region_uuid"] = region.RegionID.ToString(); //Deprecate July 2012
 
                 m_log.Info("[RADMIN]: CreateRegion: request complete");
             }
@@ -774,16 +770,16 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             lock (m_requestLock)
             {
                 CheckStringParameters(requestData, responseData, new string[] {"region_name"});
+                CheckRegionParams(requestData, responseData);
 
                 Scene scene = null;
-                string regionName = (string) requestData["region_name"];
-                if (!m_application.SceneManager.TryGetScene(regionName, out scene))
-                    throw new Exception(String.Format("region \"{0}\" does not exist", regionName));
+                GetSceneFromRegionParams(requestData, responseData, out scene);
 
                 m_application.RemoveRegion(scene, true);
 
                 responseData["success"] = true;
-                responseData["region_name"] = regionName;
+                responseData["region_name"] = scene.RegionInfo.RegionName;
+                responseData["region_id"] = scene.RegionInfo.RegionID;
 
                 m_log.Info("[RADMIN]: DeleteRegion: request complete");
             }
@@ -823,44 +819,21 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             Hashtable responseData = (Hashtable)response.Value;
             Hashtable requestData = (Hashtable)request.Params[0];
-            Scene scene = null;
 
             lock (m_requestLock)
             {
-                if (requestData.ContainsKey("region_id") &&
-                    !String.IsNullOrEmpty((string) requestData["region_id"]))
-                {
-                    // Region specified by UUID
-                    UUID regionID = (UUID) (string) requestData["region_id"];
-                    if (!m_application.SceneManager.TryGetScene(regionID, out scene))
-                        throw new Exception(String.Format("region \"{0}\" does not exist", regionID));
+                CheckRegionParams(requestData, responseData);
 
-                    m_application.CloseRegion(scene);
+                Scene scene = null;
+                GetSceneFromRegionParams(requestData, responseData, out scene);
 
-                    responseData["success"] = true;
-                    responseData["region_id"] = regionID;
+                m_application.CloseRegion(scene);
 
-                    response.Value = responseData;
-                }
-                else if (
-                    requestData.ContainsKey("region_name")
-                         && !String.IsNullOrEmpty((string) requestData["region_name"]))
-                {
-                    // Region specified by name
+                responseData["success"] = true;
+                responseData["region_name"] = scene.RegionInfo.RegionName;
+                responseData["region_id"] = scene.RegionInfo.RegionID;
 
-                    string regionName = (string) requestData["region_name"];
-                    if (!m_application.SceneManager.TryGetScene(regionName, out scene))
-                        throw new Exception(String.Format("region \"{0}\" does not exist", regionName));
-
-                    m_application.CloseRegion(scene);
-
-                    responseData["success"] = true;
-                    responseData["region_name"] = regionName;
-                }
-                else
-                {
-                    throw new Exception("no region specified");
-                }
+                response.Value = responseData;
 
                 m_log.Info("[RADMIN]: CloseRegion: request complete");
             }
@@ -907,12 +880,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             lock (m_requestLock)
             {
-                CheckStringParameters(requestData, responseData, new string[] {"region_name"});
+                CheckRegionParams(requestData, responseData);
 
                 Scene scene = null;
-                string regionName = (string) requestData["region_name"];
-                if (!m_application.SceneManager.TryGetScene(regionName, out scene))
-                    throw new Exception(String.Format("region \"{0}\" does not exist", regionName));
+                GetSceneFromRegionParams(requestData, responseData, out scene);
 
                 // Modify access
                 scene.RegionInfo.EstateSettings.PublicAccess =
@@ -942,7 +913,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 }
 
                 responseData["success"] = true;
-                responseData["region_name"] = regionName;
+                responseData["region_name"] = scene.RegionInfo.RegionName;
+                responseData["region_id"] = scene.RegionInfo.RegionID;
 
                 m_log.Info("[RADMIN]: ModifyRegion: request complete");
             }
@@ -1338,22 +1310,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 try
                 {
                     CheckStringParameters(requestData, responseData, new string[] {"filename"});
+                    CheckRegionParams(requestData, responseData);
+
+                    Scene scene = null;
+                    GetSceneFromRegionParams(requestData, responseData, out scene);
 
                     string filename = (string) requestData["filename"];
-                    Scene scene = null;
-                    if (requestData.Contains("region_uuid"))
-                    {
-                        UUID region_uuid = (UUID) (string) requestData["region_uuid"];
-                        if (!m_application.SceneManager.TryGetScene(region_uuid, out scene))
-                            throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
-                    }
-                    else if (requestData.Contains("region_name"))
-                    {
-                        string region_name = (string) requestData["region_name"];
-                        if (!m_application.SceneManager.TryGetScene(region_name, out scene))
-                            throw new Exception(String.Format("failed to switch to region {0}", region_name));
-                    }
-                    else throw new Exception("neither region_name nor region_uuid given");
                     
                     bool mergeOar = false;
                     bool skipAssets = false;
@@ -1434,22 +1396,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             try
             {
                 CheckStringParameters(requestData, responseData, new string[] {"filename"});
+                CheckRegionParams(requestData, responseData);
+
+                Scene scene = null;
+                GetSceneFromRegionParams(requestData, responseData, out scene);
 
                 string filename = (string)requestData["filename"];
-                Scene scene = null;
-                if (requestData.Contains("region_uuid"))
-                {
-                    UUID region_uuid = (UUID) (string) requestData["region_uuid"];
-                    if (!m_application.SceneManager.TryGetScene(region_uuid, out scene))
-                        throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
-                }
-                else if (requestData.Contains("region_name"))
-                {
-                    string region_name = (string) requestData["region_name"];
-                    if (!m_application.SceneManager.TryGetScene(region_name, out scene))
-                        throw new Exception(String.Format("failed to switch to region {0}", region_name));
-                }
-                else throw new Exception("neither region_name nor region_uuid given");
 
                 Dictionary<string, object> options = new Dictionary<string, object>();
 
@@ -1521,25 +1473,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 try
                 {
                     CheckStringParameters(requestData, responseData, new string[] {"filename"});
+                    CheckRegionParams(requestData, responseData);
+
+                    Scene scene = null;
+                    GetSceneFromRegionParams(requestData, responseData, out scene);
 
                     string filename = (string) requestData["filename"];
-                    if (requestData.Contains("region_uuid"))
-                    {
-                        UUID region_uuid = (UUID) (string) requestData["region_uuid"];
-                        if (!m_application.SceneManager.TrySetCurrentScene(region_uuid))
-                            throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
-
-                        m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_uuid.ToString());
-                    }
-                    else if (requestData.Contains("region_name"))
-                    {
-                        string region_name = (string) requestData["region_name"];
-                        if (!m_application.SceneManager.TrySetCurrentScene(region_name))
-                            throw new Exception(String.Format("failed to switch to region {0}", region_name));
-
-                        m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_name);
-                    }
-                    else throw new Exception("neither region_name nor region_uuid given");
 
                     responseData["switched"] = true;
 
@@ -1587,23 +1526,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             try
             {
                 CheckStringParameters(requestData, responseData, new string[] {"filename"});
+                CheckRegionParams(requestData, responseData);
+
+                Scene scene = null;
+                GetSceneFromRegionParams(requestData, responseData, out scene);
 
                 string filename = (string) requestData["filename"];
-                if (requestData.Contains("region_uuid"))
-                {
-                    UUID region_uuid = (UUID) (string) requestData["region_uuid"];
-                    if (!m_application.SceneManager.TrySetCurrentScene(region_uuid))
-                        throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
-                    m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_uuid.ToString());
-                }
-                else if (requestData.Contains("region_name"))
-                {
-                    string region_name = (string) requestData["region_name"];
-                    if (!m_application.SceneManager.TrySetCurrentScene(region_name))
-                        throw new Exception(String.Format("failed to switch to region {0}", region_name));
-                    m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_name);
-                }
-                else throw new Exception("neither region_name nor region_uuid given");
 
                 responseData["switched"] = true;
 
@@ -1647,33 +1575,15 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             Hashtable responseData = (Hashtable)response.Value;
             Hashtable requestData = (Hashtable)request.Params[0];
 
-            responseData["success"] = true;
+            CheckRegionParams(requestData, responseData);
 
-            if (requestData.Contains("region_uuid"))
-            {
-                UUID region_uuid = (UUID) (string) requestData["region_uuid"];
-                if (!m_application.SceneManager.TrySetCurrentScene(region_uuid))
-                    throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+            Scene scene = null;
+            GetSceneFromRegionParams(requestData, responseData, out scene);
 
-                m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_uuid.ToString());
-            }
-            else if (requestData.Contains("region_name"))
-            {
-                string region_name = (string) requestData["region_name"];
-                if (!m_application.SceneManager.TrySetCurrentScene(region_name))
-                    throw new Exception(String.Format("failed to switch to region {0}", region_name));
-
-                m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_name);
-            }
-            else
-            {
-                throw new Exception("neither region_name nor region_uuid given");
-            }
-
-            Scene scene = m_application.SceneManager.CurrentScene;
             int health = scene.GetHealth();
             responseData["health"] = health;
 
+            responseData["success"] = true;
             m_log.Info("[RADMIN]: Query XML Administrator Request complete");
         }
 
@@ -1700,24 +1610,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             responseData["success"] = true;
 
-            if (requestData.Contains("region_uuid"))
-            {
-                UUID region_uuid = (UUID) (string) requestData["region_uuid"];
-                if (!m_application.SceneManager.TrySetCurrentScene(region_uuid))
-                    throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
-                m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_uuid.ToString());
-            }
-            else if (requestData.Contains("region_name"))
-            {
-                string region_name = (string) requestData["region_name"];
-                if (!m_application.SceneManager.TrySetCurrentScene(region_name))
-                    throw new Exception(String.Format("failed to switch to region {0}", region_name));
+            CheckRegionParams(requestData, responseData);
 
-                m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_name);
-            }
-            else throw new Exception("neither region_name nor region_uuid given");
+            Scene scene = null;
+            GetSceneFromRegionParams(requestData, responseData, out scene);
 
-            Scene scene = m_application.SceneManager.CurrentScene;
             scene.RegionInfo.EstateSettings.EstateAccess = new UUID[]{};
 
             if (scene.RegionInfo.Persistent)
@@ -1733,32 +1630,17 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             Hashtable responseData = (Hashtable)response.Value;
             Hashtable requestData = (Hashtable)request.Params[0];
 
-            if (requestData.Contains("region_uuid"))
-            {
-                UUID region_uuid = (UUID) (string) requestData["region_uuid"];
-                if (!m_application.SceneManager.TrySetCurrentScene(region_uuid))
-                    throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
-                m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_uuid.ToString());
-            }
-            else if (requestData.Contains("region_name"))
-            {
-                string region_name = (string) requestData["region_name"];
-                if (!m_application.SceneManager.TrySetCurrentScene(region_name))
-                    throw new Exception(String.Format("failed to switch to region {0}", region_name));
-                m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_name);
-            }
-            else
-            {
-                throw new Exception("neither region_name nor region_uuid given");
-            }
+            CheckRegionParams(requestData, responseData);
+
+            Scene scene = null;
+            GetSceneFromRegionParams(requestData, responseData, out scene);
 
             int addedUsers = 0;
 
             if (requestData.Contains("users"))
             {
-                UUID scopeID = m_application.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
-                IUserAccountService userService = m_application.SceneManager.CurrentOrFirstScene.UserAccountService;
-                Scene scene = m_application.SceneManager.CurrentScene;
+                UUID scopeID = scene.RegionInfo.ScopeID;
+                IUserAccountService userService = scene.UserAccountService;
                 Hashtable users = (Hashtable) requestData["users"];
                 List<UUID> uuids = new List<UUID>();
                 foreach (string name in users.Values)
@@ -1797,32 +1679,18 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             Hashtable responseData = (Hashtable)response.Value;
             Hashtable requestData = (Hashtable)request.Params[0];
 
-            responseData["success"] = true;
+            CheckRegionParams(requestData, responseData);
 
-            if (requestData.Contains("region_uuid"))
-            {
-                UUID region_uuid = (UUID) (string) requestData["region_uuid"];
-                if (!m_application.SceneManager.TrySetCurrentScene(region_uuid))
-                    throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
-                m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_uuid.ToString());
-            }
-            else if (requestData.Contains("region_name"))
-            {
-                string region_name = (string) requestData["region_name"];
-                if (!m_application.SceneManager.TrySetCurrentScene(region_name))
-                    throw new Exception(String.Format("failed to switch to region {0}", region_name));
-                m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_name);
-            }
-            else throw new Exception("neither region_name nor region_uuid given");
+            Scene scene = null;
+            GetSceneFromRegionParams(requestData, responseData, out scene);
 
             int removedUsers = 0;
 
             if (requestData.Contains("users"))
             {
-                UUID scopeID = m_application.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
-                IUserAccountService userService = m_application.SceneManager.CurrentOrFirstScene.UserAccountService;
+                UUID scopeID = scene.RegionInfo.ScopeID;
+                IUserAccountService userService = scene.UserAccountService;
                 //UserProfileCacheService ups = m_application.CommunicationsManager.UserProfileCacheService;
-                Scene scene = m_application.SceneManager.CurrentScene;
                 Hashtable users = (Hashtable) requestData["users"];
                 List<UUID> uuids = new List<UUID>();
                 foreach (string name in users.Values)
@@ -1849,6 +1717,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
 
             responseData["removed"] = removedUsers;
+            responseData["success"] = true;
 
             m_log.Info("[RADMIN]: Access List Remove Request complete");
         }
@@ -1860,32 +1729,18 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             Hashtable responseData = (Hashtable)response.Value;
             Hashtable requestData = (Hashtable)request.Params[0];
 
-            responseData["success"] = true;
+            CheckRegionParams(requestData, responseData);
 
-            if (requestData.Contains("region_uuid"))
-            {
-                UUID region_uuid = (UUID) (string) requestData["region_uuid"];
-                if (!m_application.SceneManager.TrySetCurrentScene(region_uuid))
-                    throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
-                m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_uuid.ToString());
-            }
-            else if (requestData.Contains("region_name"))
-            {
-                string region_name = (string) requestData["region_name"];
-                if (!m_application.SceneManager.TrySetCurrentScene(region_name))
-                    throw new Exception(String.Format("failed to switch to region {0}", region_name));
-                m_log.InfoFormat("[RADMIN]: Switched to region {0}", region_name);
-            }
-            else throw new Exception("neither region_name nor region_uuid given");
+            Scene scene = null;
+            GetSceneFromRegionParams(requestData, responseData, out scene);
 
-            Scene scene = m_application.SceneManager.CurrentScene;
             UUID[] accessControlList = scene.RegionInfo.EstateSettings.EstateAccess;
             Hashtable users = new Hashtable();
 
             foreach (UUID user in accessControlList)
             {
-                UUID scopeID = m_application.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
-                UserAccount account = m_application.SceneManager.CurrentOrFirstScene.UserAccountService.GetUserAccount(scopeID, user);
+                UUID scopeID = scene.RegionInfo.ScopeID;
+                UserAccount account = scene.UserAccountService.GetUserAccount(scopeID, user);
                 if (account != null)
                 {
                     users[user.ToString()] = account.FirstName + " " + account.LastName;
@@ -1893,6 +1748,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
 
             responseData["users"] = users;
+            responseData["success"] = true;
 
             m_log.Info("[RADMIN]: Access List List Request complete");
         }
@@ -2008,6 +1864,126 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     throw new Exception(String.Format("missing integer parameter {0}", parameter));
                 }
             }
+        }
+
+        private void CheckRegionParams(Hashtable requestData, Hashtable responseData)
+        {
+            //Checks if region parameters exist and gives exeption if no parameters are given
+            if ((requestData.ContainsKey("region_id") && !String.IsNullOrEmpty((string)requestData["region_id"])) ||
+                (requestData.ContainsKey("region_name") && !String.IsNullOrEmpty((string)requestData["region_name"])))
+            {
+                return;
+            }
+            #region Deprecate July 2012
+            //region_ID, regionid, region_uuid will be deprecated in July 2012!!!!!!
+            else if (requestData.ContainsKey("regionid") &&
+                !String.IsNullOrEmpty((string)requestData["regionid"]))
+            {
+                m_log.WarnFormat("[RADMIN]: Use of parameter regionid will be deprecated as of July 2012. Use region_id instead");
+            }
+            else if (requestData.ContainsKey("region_ID") &&
+                !String.IsNullOrEmpty((string)requestData["region_ID"]))
+            {
+                m_log.WarnFormat("[RADMIN]: Use of parameter region_ID will be deprecated as of July 2012. Use region_id instead");
+            }
+            else if (requestData.ContainsKey("regionID") &&
+                !String.IsNullOrEmpty((string)requestData["regionID"]))
+            {
+                m_log.WarnFormat("[RADMIN]: Use of parameter regionID will be deprecated as of July 2012. Use region_id instead");
+            }
+            else if (requestData.ContainsKey("region_uuid") &&
+                !String.IsNullOrEmpty((string)requestData["region_uuid"]))
+            {
+                m_log.WarnFormat("[RADMIN]: Use of parameter region_uuid will be deprecated as of July 2012. Use region_id instead");
+            }
+            #endregion
+            else
+            {
+                responseData["accepted"] = false;
+                throw new Exception("no region_name or region_id given");
+            }
+        }
+
+        private void GetSceneFromRegionParams(Hashtable requestData, Hashtable responseData, out Scene scene)
+        {
+            scene = null;
+
+            if (requestData.ContainsKey("region_id") &&
+                !String.IsNullOrEmpty((string)requestData["region_id"]))
+            {
+                UUID regionID = (UUID)(string)requestData["region_id"];
+                if (!m_application.SceneManager.TryGetScene(regionID, out scene))
+                {
+                    responseData["error"] = String.Format("Region ID {0} not found", regionID);
+                    throw new Exception(String.Format("Region ID {0} not found", regionID));
+                }
+            }
+            #region Deprecate July 2012
+            else if (requestData.ContainsKey("regionid") &&
+                !String.IsNullOrEmpty((string)requestData["regionid"]))
+            {
+                m_log.WarnFormat("[RADMIN]: Use of parameter regionid will be deprecated as of July 2012. Use region_id instead");
+
+                UUID regionID = (UUID)(string)requestData["regionid"];
+                if (!m_application.SceneManager.TryGetScene(regionID, out scene))
+                {
+                    responseData["error"] = String.Format("Region ID {0} not found", regionID);
+                    throw new Exception(String.Format("Region ID {0} not found", regionID));
+                }
+            }
+            else if (requestData.ContainsKey("region_ID") &&
+                !String.IsNullOrEmpty((string)requestData["region_ID"]))
+            {
+                m_log.WarnFormat("[RADMIN]: Use of parameter region_ID will be deprecated as of July 2012. Use region_id instead");
+
+                UUID regionID = (UUID)(string)requestData["region_ID"];
+                if (!m_application.SceneManager.TryGetScene(regionID, out scene))
+                {
+                    responseData["error"] = String.Format("Region ID {0} not found", regionID);
+                    throw new Exception(String.Format("Region ID {0} not found", regionID));
+                }
+            }
+            else if (requestData.ContainsKey("regionID") &&
+                !String.IsNullOrEmpty((string)requestData["regionID"]))
+            {
+                m_log.WarnFormat("[RADMIN]: Use of parameter regionID will be deprecated as of July 2012. Use region_id instead");
+
+                UUID regionID = (UUID)(string)requestData["regionID"];
+                if (!m_application.SceneManager.TryGetScene(regionID, out scene))
+                {
+                    responseData["error"] = String.Format("Region ID {0} not found", regionID);
+                    throw new Exception(String.Format("Region ID {0} not found", regionID));
+                }
+            }
+            else if (requestData.ContainsKey("region_uuid") &&
+                !String.IsNullOrEmpty((string)requestData["region_uuid"]))
+            {
+                m_log.WarnFormat("[RADMIN]: Use of parameter region_uuid will be deprecated as of July 2012. Use region_id instead");
+
+                UUID regionID = (UUID)(string)requestData["region_uuid"];
+                if (!m_application.SceneManager.TryGetScene(regionID, out scene))
+                {
+                    responseData["error"] = String.Format("Region ID {0} not found", regionID);
+                    throw new Exception(String.Format("Region ID {0} not found", regionID));
+                }
+            }
+            #endregion
+            else if (requestData.ContainsKey("region_name") &&
+                !String.IsNullOrEmpty((string)requestData["region_name"]))
+            {
+                string regionName = (string)requestData["region_name"];
+                if (!m_application.SceneManager.TryGetScene(regionName, out scene))
+                {
+                    responseData["error"] = String.Format("Region {0} not found", regionName);
+                    throw new Exception(String.Format("Region {0} not found", regionName));
+                }
+            }
+            else
+            {
+                responseData["error"] = "no region_name or region_id given";
+                throw new Exception("no region_name or region_id given");
+            }
+            return;
         }
 
         private bool GetBoolean(Hashtable requestData, string tag, bool defaultValue)
