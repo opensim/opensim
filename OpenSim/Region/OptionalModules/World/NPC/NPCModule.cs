@@ -91,9 +91,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
 
         public UUID CreateNPC(
-            string firstname, string lastname, Vector3 position, Scene scene, AvatarAppearance appearance)
+            string firstname, string lastname, Vector3 position, UUID owner, Scene scene, AvatarAppearance appearance)
         {
-            NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, scene);
+            NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, owner, scene);
             npcAvatar.CircuitCode = (uint)Util.RandomClass.Next(0, int.MaxValue);
 
             m_log.DebugFormat(
@@ -234,12 +234,30 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return false;
         }
 
-        public bool DeleteNPC(UUID agentID, Scene scene)
+        public UUID GetOwner(UUID agentID)
         {
             lock (m_avatars)
             {
-                if (m_avatars.ContainsKey(agentID))
+                NPCAvatar av;
+                if (m_avatars.TryGetValue(agentID, out av))
                 {
+                    return av.OwnerID;
+                }
+            }
+
+            return UUID.Zero;
+        }
+
+        public bool DeleteNPC(UUID agentID, UUID callerID, Scene scene)
+        {
+            lock (m_avatars)
+            {
+                NPCAvatar av;
+                if (m_avatars.TryGetValue(agentID, out av))
+                {
+                    if (av.OwnerID != UUID.Zero && callerID != UUID.Zero && av.OwnerID != callerID)
+                        return false;
+
                     scene.RemoveClient(agentID, false);
                     m_avatars.Remove(agentID);
 
