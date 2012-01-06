@@ -245,7 +245,7 @@ namespace OpenSim.Capabilities.Handlers
 //                        containingFolder.Name, containingFolder.ID, agentID);
 
                     version = containingFolder.Version;
-//
+
 //                    if (fetchItems)
 //                    {
 //                        List<InventoryItemBase> linkedItemsToAdd = new List<InventoryItemBase>();

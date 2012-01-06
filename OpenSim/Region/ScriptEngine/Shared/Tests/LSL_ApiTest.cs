@@ -75,32 +75,49 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestllAngleBetween()
         {
-            CheckllAngleBetween(new Vector3(1, 0, 0), 0);
-            CheckllAngleBetween(new Vector3(1, 0, 0), 90);
-            CheckllAngleBetween(new Vector3(1, 0, 0), 180);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 0,   1, 1);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 90,  1, 1);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 180, 1, 1);
 
-            CheckllAngleBetween(new Vector3(0, 1, 0), 0);
-            CheckllAngleBetween(new Vector3(0, 1, 0), 90);
-            CheckllAngleBetween(new Vector3(0, 1, 0), 180);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 0,   1, 1);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 90,  1, 1);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 180, 1, 1);
 
-            CheckllAngleBetween(new Vector3(0, 0, 1), 0);
-            CheckllAngleBetween(new Vector3(0, 0, 1), 90);
-            CheckllAngleBetween(new Vector3(0, 0, 1), 180);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 0,   1, 1);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 90,  1, 1);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 180, 1, 1);
 
-            CheckllAngleBetween(new Vector3(1, 1, 1), 0);
-            CheckllAngleBetween(new Vector3(1, 1, 1), 90);
-            CheckllAngleBetween(new Vector3(1, 1, 1), 180);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 0,   1, 1);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 90,  1, 1);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 180, 1, 1);
+            
+            CheckllAngleBetween(new Vector3(1, 0, 0), 0,   1.6f, 1.8f);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 90,  0.3f, 3.9f);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 180, 8.8f, 7.4f);
+            
+            CheckllAngleBetween(new Vector3(0, 1, 0), 0,   9.8f, -9.4f);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 90,  8.4f, -8.2f);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 180, 0.4f, -5.8f);
+            
+            CheckllAngleBetween(new Vector3(0, 0, 1), 0,   -6.8f, 3.4f);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 90,  -3.6f, 5.6f);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 180, -3.8f, 1.1f);
+            
+            CheckllAngleBetween(new Vector3(1, 1, 1), 0,   -7.7f, -2.0f);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 90,  -3.0f, -9.1f);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 180, -7.9f, -8.0f);
         }
 
-        private void CheckllAngleBetween(Vector3 axis,float originalAngle)
+        private void CheckllAngleBetween(Vector3 axis,float originalAngle, float denorm1, float denorm2)
         {
             Quaternion rotation1 = Quaternion.CreateFromAxisAngle(axis, 0);
             Quaternion rotation2 = Quaternion.CreateFromAxisAngle(axis, ToRadians(originalAngle));
+            rotation1 *= denorm1;
+            rotation2 *= denorm2;
 
             double deducedAngle = FromLslFloat(m_lslApi.llAngleBetween(ToLslQuaternion(rotation2), ToLslQuaternion(rotation1)));
 
-            Assert.Greater(deducedAngle, ToRadians(originalAngle) - ANGLE_ACCURACY_IN_RADIANS);
-            Assert.Less(deducedAngle, ToRadians(originalAngle) + ANGLE_ACCURACY_IN_RADIANS);
+            Assert.That(deducedAngle, Is.EqualTo(ToRadians(originalAngle)).Within(ANGLE_ACCURACY_IN_RADIANS), "TestllAngleBetween check fail");
         }
 
         #region Conversions to and from LSL_Types
@@ -201,20 +218,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             CheckllRot2Euler(new LSL_Types.Quaternion(-0.092302, -0.701059, -0.092302, -0.701059));
         }
 
-        // Testing Rot2Euler this way instead of comparing against expected angles because
-        // 1. There are several ways to get to the original Quaternion. For example a rotation
-        //    of PI and -PI will give the same result. But PI and -PI aren't equal.
-        // 2. This method checks to see if the calculated angles from a quaternion can be used
-        //    to create a new quaternion to produce the same rotation.
-        // However, can't compare the newly calculated quaternion against the original because
-        // once again, there are multiple quaternions that give the same result. For instance
-        //  <X, Y, Z, S> == <-X, -Y, -Z, -S>.  Additionally, the magnitude of S can be changed
-        // and will still result in the same rotation if the values for X, Y, Z are also changed
-        // to compensate.
-        // However, if two quaternions represent the same rotation, then multiplying the first
-        // quaternion by the conjugate of the second, will give a third quaternion representing
-        // a zero rotation. This can be tested for by looking at the X, Y, Z values which should
-        // be zero.
+        /// <summary>
+        /// Check an llRot2Euler conversion.
+        /// </summary>
+        /// <remarks>
+        /// Testing Rot2Euler this way instead of comparing against expected angles because
+        /// 1. There are several ways to get to the original Quaternion. For example a rotation
+        ///    of PI and -PI will give the same result. But PI and -PI aren't equal.
+        /// 2. This method checks to see if the calculated angles from a quaternion can be used
+        ///    to create a new quaternion to produce the same rotation.
+        /// However, can't compare the newly calculated quaternion against the original because
+        /// once again, there are multiple quaternions that give the same result. For instance
+        ///  <X, Y, Z, S> == <-X, -Y, -Z, -S>.  Additionally, the magnitude of S can be changed
+        /// and will still result in the same rotation if the values for X, Y, Z are also changed
+        /// to compensate.
+        /// However, if two quaternions represent the same rotation, then multiplying the first
+        /// quaternion by the conjugate of the second, will give a third quaternion representing
+        /// a zero rotation. This can be tested for by looking at the X, Y, Z values which should
+        /// be zero.
+        /// </remarks>
+        /// <param name="rot"></param>
         private void CheckllRot2Euler(LSL_Types.Quaternion rot)
         {
             // Call LSL function to convert quaternion rotaion to euler radians.
