@@ -42,18 +42,25 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly Vector3 m_startPos;
         private readonly UUID m_uuid = UUID.Random();
         private readonly Scene m_scene;
+        private readonly UUID m_ownerID;
 
-        public NPCAvatar(string firstname, string lastname, Vector3 position, Scene scene)
+        public NPCAvatar(string firstname, string lastname, Vector3 position, UUID ownerID, Scene scene)
         {
             m_firstname = firstname;
             m_lastname = lastname;
             m_startPos = position;
             m_scene = scene;
+            m_ownerID = ownerID;
         }
 
         public IScene Scene
         {
             get { return m_scene; }
+        }
+
+        public UUID OwnerID
+        {
+            get { return m_ownerID; }
         }
 
         public ISceneAgent SceneAgent { get { throw new NotImplementedException(); } }

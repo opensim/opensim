@@ -2067,10 +2067,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return retVal;
         }
 
+        public LSL_Key osNpcCreateOwned(string firstname, string lastname, LSL_Vector position, string notecard)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcCreateOwned");
+            return NpcCreate(firstname, lastname, position, notecard, true);
+        }
+
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard)
         {
-            CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
+            CheckThreatLevel(ThreatLevel.High, "osNpcCreated");
+            return NpcCreate(firstname, lastname, position, notecard, false);
+        }
 
+        private LSL_Key NpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, bool owned)
+        {
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
             {
@@ -2099,11 +2109,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (appearance == null)
                     return new LSL_Key(UUID.Zero.ToString());
 
+                UUID ownerID = UUID.Zero;
+                if (owned)
+                    ownerID = m_host.OwnerID;
                 UUID x = module.CreateNPC(firstname,
                                           lastname,
                                           new Vector3((float) position.x, (float) position.y, (float) position.z),
-                                          World,
-                                          appearance);
+                                          ownerID,
+                                          World,appearance);
 
                 return new LSL_Key(x.ToString());
             }
@@ -2130,6 +2143,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return new LSL_Key(UUID.Zero.ToString());
 
                 if (!npcModule.IsNPC(npcId, m_host.ParentGroup.Scene))
+                    return new LSL_Key(UUID.Zero.ToString());
+
+                UUID ownerID = npcModule.GetOwner(npcId);
+                if (ownerID != UUID.Zero && ownerID != m_host.OwnerID)
                     return new LSL_Key(UUID.Zero.ToString());
 
                 return SaveAppearanceToNotecard(npcId, notecard);
@@ -2311,7 +2328,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
             {
-                module.DeleteNPC(new UUID(npc.m_string), World);
+                module.DeleteNPC(new UUID(npc.m_string), m_host.OwnerID, World);
             }
         }
 

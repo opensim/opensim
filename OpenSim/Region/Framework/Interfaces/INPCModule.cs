@@ -42,7 +42,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="scene"></param>
         /// <param name="appearance">The avatar appearance to use for the new NPC.</param>
         /// <returns>The UUID of the ScenePresence created.</returns>
-        UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, AvatarAppearance appearance);
+        UUID CreateNPC(string firstname, string lastname, Vector3 position, UUID owner, Scene scene, AvatarAppearance appearance);
 
         /// <summary>
         /// Check if the agent is an NPC.
@@ -117,6 +117,13 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="agentID">The UUID of the NPC</param>
         /// <param name="scene"></param>
         /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
-        bool DeleteNPC(UUID agentID, Scene scene);
+        bool DeleteNPC(UUID agentID, UUID CallerID, Scene scene);
+
+        /// <summary>
+        /// Get the owner of a NPC
+        /// </summary>
+        /// <param name="agentID">The UUID of the NPC</param>
+        /// <returns>UUID of owner if the NPC exists, UUID.Zero  if there was no such agent, the agent is unowned  or the agent was not an NPC</returns>
+        UUID GetOwner(UUID agentID);
     }
 }
