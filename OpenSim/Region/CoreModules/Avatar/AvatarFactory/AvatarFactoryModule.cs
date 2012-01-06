@@ -321,8 +321,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             return (defonly ? false : true);
         }
 
-        public void RequestRebake(IScenePresence sp, bool missingTexturesOnly)
+        public int RequestRebake(IScenePresence sp, bool missingTexturesOnly)
         {
+            int texturesRebaked = 0;
+
             for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
             {
                 int idx = AvatarAppearance.BAKE_INDICES[i];
@@ -359,8 +361,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         face.TextureID, idx, sp.Name);
                 }
 
+                texturesRebaked++;
                 sp.ControllingClient.SendRebakeAvatarTextures(face.TextureID);
             }
+
+            return texturesRebaked;
         }
 
         #endregion

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,32 +26,11 @@
  */
 
 using OpenMetaverse;
-using OpenMetaverse.Imaging;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Framework
 {
-    public delegate void DecodedCallback(UUID AssetId, OpenJPEG.J2KLayerInfo[] layers);
-
-    public interface IJ2KDecoder
+    public interface ISearchModule
     {
-        void BeginDecode(UUID assetID, byte[] j2kData, DecodedCallback callback);
 
-        /// <summary>
-        /// Provides a synchronous decode so that caller can be assured that this executes before the next line
-        /// </summary>
-        /// <param name="assetID"></param>
-        /// <param name="j2kData"></param>
-        /// <returns>true if decode was successful.  false otherwise.</returns>
-        bool Decode(UUID assetID, byte[] j2kData);
-
-        /// <summary>
-        /// Provides a synchronous decode so that caller can be assured that this executes before the next line
-        /// </summary>
-        /// <param name="assetID"></param>
-        /// <param name="j2kData"></param>
-        /// <param name="layers">layer data</param>
-        /// <param name="components">number of components</param>
-        /// <returns>true if decode was successful.  false otherwise.</returns>
-        bool Decode(UUID assetID, byte[] j2kData, out OpenJPEG.J2KLayerInfo[] layers, out int components);
     }
 }

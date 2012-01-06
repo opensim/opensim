@@ -26,94 +26,80 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Text;
+using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Server.Base;
-using OpenSim.Services.Interfaces;
-using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Server.Handlers.Base;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Server.Handlers.Asset
+namespace OpenSim.Region.OptionalModules.Asset
 {
-    public class AssetServiceConnector : ServiceConnector
+    /// <summary>
+    /// A module that just holds commands for inspecting assets.
+    /// </summary>
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AssetInfoModule")]
+    public class AssetInfoModule : ISharedRegionModule
     {
-        private IAssetService m_AssetService;
-        private string m_ConfigName = "AssetService";
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public AssetServiceConnector(IConfigSource config, IHttpServer server, string configName) :
-                base(config, server, configName)
+        private Scene m_scene;
+        
+        public string Name { get { return "Asset Information Module"; } }
+        
+        public Type ReplaceableInterface { get { return null; } }
+        
+        public void Initialise(IConfigSource source)
         {
-            if (configName != String.Empty)
-                m_ConfigName = configName;
-
-            IConfig serverConfig = config.Configs[m_ConfigName];
-            if (serverConfig == null)
-                throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
-
-            string assetService = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
-
-            if (assetService == String.Empty)
-                throw new Exception("No LocalServiceModule in config file");
-
-            Object[] args = new Object[] { config };
-            m_AssetService =
-                    ServerUtils.LoadPlugin<IAssetService>(assetService, args);
-
-            if (m_AssetService == null)
-                throw new Exception(String.Format("Failed to load AssetService from {0}; config is {1}", assetService, m_ConfigName));
-
-            bool allowDelete = serverConfig.GetBoolean("AllowRemoteDelete", false);
-
-            server.AddStreamHandler(new AssetServerGetHandler(m_AssetService));
-            server.AddStreamHandler(new AssetServerPostHandler(m_AssetService));
-            server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService, allowDelete));
-
-            MainConsole.Instance.Commands.AddCommand("kfs", false,
-                    "show asset",
-                    "show asset <ID>",
-                    "Show asset information",
-                    HandleShowAsset);
-
-            MainConsole.Instance.Commands.AddCommand("kfs", false,
-                    "delete asset",
-                    "delete asset <ID>",
-                    "Delete asset from database",
-                    HandleDeleteAsset);
-
-            MainConsole.Instance.Commands.AddCommand("kfs", false,
-                    "dump asset",
-                    "dump asset <ID>",
-                    "Dump asset to a file",
-                    "The filename is the same as the ID given.",
-                    HandleDumpAsset);
+//            m_log.DebugFormat("[ASSET INFO MODULE]: INITIALIZED MODULE");
         }
-
-        void HandleDeleteAsset(string module, string[] args)
+        
+        public void PostInitialise()
         {
-            if (args.Length < 3)
-            {
-                MainConsole.Instance.Output("Syntax: delete asset <ID>");
-                return;
-            }
+//            m_log.DebugFormat("[ASSET INFO MODULE]: POST INITIALIZED MODULE");
+        }
+        
+        public void Close()
+        {
+//            m_log.DebugFormat("[ASSET INFO MODULE]: CLOSED MODULE");
+        }
+        
+        public void AddRegion(Scene scene)
+        {
+//            m_log.DebugFormat("[ASSET INFO MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
+        }
+        
+        public void RemoveRegion(Scene scene)
+        {
+//            m_log.DebugFormat("[ASSET INFO MODULE]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
+        }        
+        
+        public void RegionLoaded(Scene scene)
+        {
+//            m_log.DebugFormat("[ASSET INFO MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
 
-            AssetBase asset = m_AssetService.Get(args[2]);
+            if (m_scene == null)
+                m_scene = scene;
 
-            if (asset == null || asset.Data.Length == 0)
-            {
-                MainConsole.Instance.Output("Asset not found");
-                return;
-            }
+            MainConsole.Instance.Commands.AddCommand(
+                "asset",
+                false,
+                "show asset",
+                "show asset <ID>",
+                "Show asset information",
+                HandleShowAsset);
 
-            m_AssetService.Delete(args[2]);
-
-            //MainConsole.Instance.Output("Asset deleted");
-            // TODO: Implement this
-
-            MainConsole.Instance.Output("Asset deletion not supported by database");
+            MainConsole.Instance.Commands.AddCommand(
+                "asset", false, "dump asset",
+                "dump asset <id>",
+                "Dump an asset",
+                HandleDumpAsset);
         }
 
         void HandleDumpAsset(string module, string[] args)
@@ -133,7 +119,7 @@ namespace OpenSim.Server.Handlers.Asset
                 return;
             }
             
-            AssetBase asset = m_AssetService.Get(assetId.ToString());
+            AssetBase asset = m_scene.AssetService.Get(assetId.ToString());
             if (asset == null)
             {                
                 MainConsole.Instance.OutputFormat("ERROR: No asset found with ID {0}", assetId);
@@ -161,7 +147,7 @@ namespace OpenSim.Server.Handlers.Asset
                 return;
             }
 
-            AssetBase asset = m_AssetService.Get(args[2]);
+            AssetBase asset = m_scene.AssetService.Get(args[2]);
 
             if (asset == null || asset.Data.Length == 0)
             {

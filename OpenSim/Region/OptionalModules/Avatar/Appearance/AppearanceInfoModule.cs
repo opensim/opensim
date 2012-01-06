@@ -240,11 +240,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                     ScenePresence sp = scene.GetScenePresence(firstname, lastname);
                     if (sp != null && !sp.IsChildAgent)
                     {
-                        MainConsole.Instance.OutputFormat(
-                            "Requesting rebake of uploaded textures for {0}",
-                            sp.Name, scene.RegionInfo.RegionName);
+                        int rebakesRequested = scene.AvatarFactory.RequestRebake(sp, false);
 
-                        scene.AvatarFactory.RequestRebake(sp, false);
+                        if (rebakesRequested > 0)
+                            MainConsole.Instance.OutputFormat(
+                                "Requesting rebake of {0} uploaded textures for {1} in {2}",
+                                rebakesRequested, sp.Name, scene.RegionInfo.RegionName);
+                        else
+                            MainConsole.Instance.OutputFormat(
+                                "No texture IDs available for rebake request for {0} in {1}",
+                                sp.Name, scene.RegionInfo.RegionName);
                     }
                 }
             }
