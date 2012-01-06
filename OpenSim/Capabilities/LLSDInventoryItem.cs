@@ -95,4 +95,11 @@ namespace OpenSim.Framework.Capabilities
         public UUID owner_id; 
         public int version;
     }
+
+    [OSDMap]
+    public class LLSDFetchInventory
+    {
+        public UUID agent_id;
+        public OSDArray items = new OSDArray();
+    }
 }
