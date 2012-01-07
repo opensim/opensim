@@ -61,11 +61,12 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public bool m_jumping = false; 
         public float m_jumpVelocity = 0f;
 //        private int m_landing = 0;
-        public bool Falling
-        {
-            get { return m_falling; }
-        }
-        private bool m_falling = false;
+
+        /// <summary>
+        /// Is the avatar falling?
+        /// </summary>
+        public bool Falling { get; private set; }
+
         private float m_fallHeight;
 
         /// <value>
@@ -223,7 +224,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 m_animTickFall = 0;
                 m_animTickJump = 0;
                 m_jumping = false;
-                m_falling = false;
+                Falling = false;
                 m_jumpVelocity = 0f;
                 actor.Selected = false;
                 m_fallHeight = actor.Position.Z;    // save latest flying height
@@ -259,7 +260,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 float fallVelocity = (actor != null) ? actor.Velocity.Z : 0.0f;
 
                 if (!m_jumping && (fallVelocity < -3.0f))
-                    m_falling = true;
+                    Falling = true;
 
                 if (m_animTickFall == 0 || (fallVelocity >= 0.0f))
                 {
@@ -289,7 +290,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 // Start jumping, prejump
                 m_animTickFall = 0;
                 m_jumping = true;
-                m_falling = false;
+                Falling = false;
                 actor.Selected = true;      // borrowed for jumping flag
                 m_animTickJump = Environment.TickCount;
                 m_jumpVelocity = 0.35f;
@@ -302,7 +303,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 {
                     // end jumping
                     m_jumping = false;
-                    m_falling = false;
+                    Falling = false;
                     actor.Selected = false;      // borrowed for jumping flag
                     m_jumpVelocity = 0f;
                     m_animTickFall = Environment.TickCount;
@@ -329,7 +330,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             if (CurrentMovementAnimation == "FALLDOWN")
             {
-                m_falling = false;
+                Falling = false;
                 m_animTickFall = Environment.TickCount;
                 // TODO: SOFT_LAND support
                 float fallHeight = m_fallHeight - actor.Position.Z;
@@ -363,7 +364,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (move.X != 0f || move.Y != 0f)
             {
                 m_fallHeight = actor.Position.Z;    // save latest flying height
-                m_falling = false;
+                Falling = false;
                 // Walking / crouchwalking / running
                 if (move.Z < 0f)
                     return "CROUCHWALK";
@@ -374,7 +375,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             }
             else if (!m_jumping)
             {
-                m_falling = false;
+                Falling = false;
                 // Not walking
                 if (move.Z < 0)
                     return "CROUCH";
@@ -387,7 +388,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             }
             #endregion Ground Movement
 
-            m_falling = false;
+            Falling = false;
 
             return CurrentMovementAnimation;
         }
