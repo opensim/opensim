@@ -223,7 +223,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 m_animTickFall = 0;
                 m_animTickJump = 0;
                 m_jumping = false;
-                m_falling = true;
+                m_falling = false;
                 m_jumpVelocity = 0f;
                 actor.Selected = false;
                 m_fallHeight = actor.Position.Z;    // save latest flying height
@@ -238,10 +238,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 }
                 else if (move.Z < 0f)
                 {
-                    if (actor != null && actor.IsColliding) 
-                    {
+                    if (actor != null && actor.IsColliding)
                         return "LAND";
-                }
                     else
                         return "HOVER_DOWN";
                 }
@@ -260,7 +258,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 float fallElapsed = (float)(Environment.TickCount - m_animTickFall);
                 float fallVelocity = (actor != null) ? actor.Velocity.Z : 0.0f;
 
-                if (!m_jumping && (fallVelocity < -3.0f) ) m_falling = true;
+                if (!m_jumping && (fallVelocity < -3.0f))
+                    m_falling = true;
 
                 if (m_animTickFall == 0 || (fallVelocity >= 0.0f))
                 {
@@ -297,9 +296,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 return "PREJUMP";
             }
 
-            if(m_jumping)
+            if (m_jumping)
             {
-                if ( (jumptime > (JUMP_PERIOD * 1.5f)) && actor.IsColliding)
+                if ((jumptime > (JUMP_PERIOD * 1.5f)) && actor.IsColliding)
                 {
                     // end jumping
                     m_jumping = false;
