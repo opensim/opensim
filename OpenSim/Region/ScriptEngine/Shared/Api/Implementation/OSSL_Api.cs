@@ -2344,7 +2344,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osNpcPlayAnimation(LSL_Key npc, string animation)
         {
-            CheckThreatLevel(ThreatLevel.High, "osPlayAnimation");
+            CheckThreatLevel(ThreatLevel.High, "osNpcPlayAnimation");
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
