@@ -2100,10 +2100,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private LSL_Key NpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, bool owned)
         {
+            string groupTitle = String.Empty;
+
             if (firstname != String.Empty || lastname != String.Empty)
             {
                 if (firstname != "Shown outfit:")
-                    firstname = "NPC: " + firstname;
+                    groupTitle = "- NPC -";
             }
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
@@ -2143,6 +2145,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                           ownerID,
                                           World,appearance);
 
+                ScenePresence sp;
+                if (World.TryGetScenePresence(x, out sp))
+                {
+                    sp.Grouptitle = groupTitle;
+                    sp.SendAvatarDataToAllAgents();
+                }
                 return new LSL_Key(x.ToString());
             }
 
