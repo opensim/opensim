@@ -66,7 +66,7 @@ namespace OpenSim.Services.Connectors
                         m_ServerURI = m_ServerURI.TrimEnd('/') + "/helo/";
                     }
                 }
-                catch (UriFormatException e)
+                catch (UriFormatException)
                 {
                     m_log.WarnFormat("[HELO SERVICE]: Malformed URL {0}", serverURI);
                 }

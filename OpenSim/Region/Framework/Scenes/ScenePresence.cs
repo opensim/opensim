@@ -1282,8 +1282,8 @@ namespace OpenSim.Region.Framework.Scenes
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
 //            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: In {0} received agent update from {1}",
-//                Scene.RegionInfo.RegionName, remoteClient.Name);
+//                "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
+//                Scene.RegionInfo.RegionName, remoteClient.Name, agentData.ControlFlags);
 
             if (IsChildAgent)
             {
@@ -2323,6 +2323,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
         public void AddNewMovement(Vector3 vec)
         {
+//            m_log.DebugFormat("[SCENE PRESENCE]: Adding new movement {0} for {1}", vec, Name);
+
             Vector3 direc = vec * Rotation;
             direc.Normalize();
 
