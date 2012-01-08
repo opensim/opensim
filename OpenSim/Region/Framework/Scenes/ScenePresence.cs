@@ -1180,6 +1180,23 @@ namespace OpenSim.Region.Framework.Scenes
                 client.Name, Scene.RegionInfo.RegionName, AbsolutePosition);
 
             Vector3 look = Velocity;
+
+            // Place avatar according to parcel owner teleport routing...
+            ILandObject land = Scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
+
+            if (land != null)
+            {
+                // Land owner should be able to land anywhere, others honor settings
+                if (land.LandData.OwnerID != client.AgentId)
+                {
+                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero)
+                    {
+                        AbsolutePosition = land.LandData.UserLocation;
+                        look = land.LandData.UserLookAt;
+                    }
+                }
+            }
+
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
             {
                 look = new Vector3(0.99f, 0.042f, 0);
