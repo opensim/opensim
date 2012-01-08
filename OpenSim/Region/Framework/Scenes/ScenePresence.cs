@@ -1188,6 +1188,7 @@ namespace OpenSim.Region.Framework.Scenes
                 client.Name, Scene.RegionInfo.RegionName, AbsolutePosition);
 
             Vector3 look = Velocity;
+
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
             {
                 look = new Vector3(0.99f, 0.042f, 0);
@@ -3816,7 +3817,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_reprioritization_called = false;
             }
         }
-        
+
         private void CheckLandingPoint(ref Vector3 pos)
         {
             // Never constrain lures
