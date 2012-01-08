@@ -892,6 +892,8 @@ namespace OpenSim.Region.Framework.Scenes
                 pos.Y = crossedBorder.BorderLine.Z - 1;
             }
 
+            CheckAndAdjustLandingPoint(ref pos);
+
             if (pos.X < 0f || pos.Y < 0f || pos.Z < 0f)
             {
                 m_log.WarnFormat(
@@ -1056,6 +1058,7 @@ namespace OpenSim.Region.Framework.Scenes
             bool isFlying = Flying;
             RemoveFromPhysicalScene();
             Velocity = Vector3.Zero;
+            CheckLandingPoint(ref pos);
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
 
@@ -1066,6 +1069,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool isFlying = Flying;
             RemoveFromPhysicalScene();
+            CheckLandingPoint(ref pos);
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
 
@@ -1180,22 +1184,6 @@ namespace OpenSim.Region.Framework.Scenes
                 client.Name, Scene.RegionInfo.RegionName, AbsolutePosition);
 
             Vector3 look = Velocity;
-
-            // Place avatar according to parcel owner teleport routing...
-            ILandObject land = Scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
-
-            if (land != null)
-            {
-                // Land owner should be able to land anywhere, others honor settings
-                if (land.LandData.OwnerID != client.AgentId)
-                {
-                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero)
-                    {
-                        AbsolutePosition = land.LandData.UserLocation;
-                        look = land.LandData.UserLookAt;
-                    }
-                }
-            }
 
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
             {
@@ -3818,6 +3806,60 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_reprioritization_timer.Enabled = m_reprioritizing = m_reprioritization_called;
                 m_reprioritization_called = false;
+            }
+        }
+
+        private void CheckLandingPoint(ref Vector3 pos)
+        {
+            // Never constrain lures
+            if ((TeleportFlags & TeleportFlags.ViaLure) != 0)
+                return;
+
+            if (m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
+                return;
+
+            ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
+
+            if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
+                land.LandData.UserLocation != Vector3.Zero &&
+                land.LandData.OwnerID != m_uuid &&
+                (!m_scene.Permissions.IsGod(m_uuid)) &&
+                (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)))
+            {
+                float curr = Vector3.Distance(AbsolutePosition, pos);
+                if (Vector3.Distance(land.LandData.UserLocation, pos) < curr)
+                    pos = land.LandData.UserLocation;
+                else
+                    ControllingClient.SendAlertMessage("Can't teleport closer to destination");
+            }
+        }
+
+        private void CheckAndAdjustLandingPoint(ref Vector3 pos)
+        {
+            ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
+            if (land != null)
+            {
+                // If we come in via login, landmark or map, we want to
+                // honor landing points. If we come in via Lure, we want
+                // to ignore them.
+                if ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)) == (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID) ||
+                    (m_teleportFlags & TeleportFlags.ViaLandmark) != 0 ||
+                    (m_teleportFlags & TeleportFlags.ViaLocation) != 0)
+                {
+                    // Don't restrict gods, estate managers, or land owners to
+                    // the TP point. This behaviour mimics agni.
+                    if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
+                        land.LandData.UserLocation != Vector3.Zero &&
+                        GodLevel < 200 &&
+                        ((land.LandData.OwnerID != m_uuid &&
+                        (!m_scene.Permissions.IsGod(m_uuid)) &&
+                        (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid))) || (m_teleportFlags & TeleportFlags.ViaLocation) != 0))
+                    {
+                        pos = land.LandData.UserLocation;
+                    }
+                }
+
+                land.SendLandUpdateToClient(ControllingClient);
             }
         }
     }
