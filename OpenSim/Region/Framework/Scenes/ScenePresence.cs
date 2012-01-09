@@ -3842,7 +3842,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // If we come in via login, landmark or map, we want to
                 // honor landing points. If we come in via Lure, we want
                 // to ignore them.
-                if ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaHGLogin | TeleportFlags.ViaRegionID)) == (TeleportFlags.ViaLogin | TeleportFlags.ViaHGLogin | TeleportFlags.ViaRegionID) ||
+                if ((m_teleportFlags & (TeleportFlags.ViaLogin | (TeleportFlags)Constants.TeleportFlags.ViaHGLogin | TeleportFlags.ViaRegionID)) == (TeleportFlags.ViaLogin | (TeleportFlags)Constants.TeleportFlags.ViaHGLogin | TeleportFlags.ViaRegionID) ||
                     (m_teleportFlags & TeleportFlags.ViaLandmark) != 0 ||
                     (m_teleportFlags & TeleportFlags.ViaLocation) != 0)
                 {
