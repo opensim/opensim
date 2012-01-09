@@ -3836,23 +3836,23 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void CheckAndAdjustLandingPoint(ref Vector3 pos)
         {
-            // Some debugging help to show all the TeleportFlags we have...
-            bool HG = false;
-            if((m_teleportFlags & (TeleportFlags)Constants.TeleportFlags.ViaHGLogin) == (TeleportFlags)Constants.TeleportFlags.ViaHGLogin)
-                HG = true;
-
-            m_log.InfoFormat("[SCENE PRESENCE]: TELEPORT ******************");
-
-            for (uint i = 0; i <= 30 ; i++)
-            {
-                if((m_teleportFlags & (TeleportFlags)i) == (TeleportFlags)i)
-                    if (HG == false)
-                        m_log.InfoFormat("[SCENE PRESENCE]: Teleport Flags include {0}", ((TeleportFlags) i).ToString());
-                    else
-                        m_log.InfoFormat("[SCENE PRESENCE]: HG Teleport Flags include {0}", ((TeleportFlags)i).ToString());
-            }
-
-            m_log.InfoFormat("[SCENE PRESENCE]: TELEPORT ******************");
+//            // Some temporary debugging help to show all the TeleportFlags we have...
+//            bool HG = false;
+//            if((m_teleportFlags & (TeleportFlags)Constants.TeleportFlags.ViaHGLogin) == (TeleportFlags)Constants.TeleportFlags.ViaHGLogin)
+//                HG = true;
+//
+//            m_log.InfoFormat("[SCENE PRESENCE]: TELEPORT ******************");
+//
+//            for (uint i = 0; i <= 30 ; i++)
+//            {
+//                if((m_teleportFlags & (TeleportFlags)i) == (TeleportFlags)i)
+//                    if (HG == false)
+//                        m_log.InfoFormat("[SCENE PRESENCE]: Teleport Flags include {0}", ((TeleportFlags) i).ToString());
+//                    else
+//                        m_log.InfoFormat("[SCENE PRESENCE]: HG Teleport Flags include {0}", ((TeleportFlags)i).ToString());
+//            }
+//
+//            m_log.InfoFormat("[SCENE PRESENCE]: TELEPORT ******************");
 
             ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
             if (land != null)
@@ -3873,7 +3873,8 @@ namespace OpenSim.Region.Framework.Scenes
                         GodLevel < 200 &&
                         ((land.LandData.OwnerID != m_uuid &&
                         (!m_scene.Permissions.IsGod(m_uuid)) &&
-                        (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid))) || (m_teleportFlags & TeleportFlags.ViaLocation) != 0))
+                        (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid))) || (m_teleportFlags & TeleportFlags.ViaLocation) != 0) ||
+                        ((m_teleportFlags & (TeleportFlags)Constants.TeleportFlags.ViaHGLogin) == (TeleportFlags)Constants.TeleportFlags.ViaHGLogin))
                     {
                         pos = land.LandData.UserLocation;
                     }
