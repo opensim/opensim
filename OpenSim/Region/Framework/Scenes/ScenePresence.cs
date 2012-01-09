@@ -3842,9 +3842,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // If we come in via login, landmark or map, we want to
                 // honor landing points. If we come in via Lure, we want
                 // to ignore them.
-                if ((m_teleportFlags & (TeleportFlags.ViaLogin | (TeleportFlags)Constants.TeleportFlags.ViaHGLogin | TeleportFlags.ViaRegionID)) == (TeleportFlags.ViaLogin | (TeleportFlags)Constants.TeleportFlags.ViaHGLogin | TeleportFlags.ViaRegionID) ||
+                if ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)) ==
+                    (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID) ||
                     (m_teleportFlags & TeleportFlags.ViaLandmark) != 0 ||
-                    (m_teleportFlags & TeleportFlags.ViaLocation) != 0)
+                    (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
+                    ((m_teleportFlags & (TeleportFlags)Constants.TeleportFlags.ViaHGLogin) == (TeleportFlags)Constants.TeleportFlags.ViaHGLogin))
                 {
                     // Don't restrict gods, estate managers, or land owners to
                     // the TP point. This behaviour mimics agni.
