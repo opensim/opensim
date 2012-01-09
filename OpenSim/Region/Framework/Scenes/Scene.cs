@@ -65,6 +65,7 @@ namespace OpenSim.Region.Framework.Scenes
         #region Fields
 
         public bool EmergencyMonitoring = false;
+        public bool DEBUG = false;
 
         public SynchronizeSceneHandler SynchronizeScene;
         public SimStatsReporter StatsReporter;
@@ -649,6 +650,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // Region config overrides global config
                 //
                 IConfig startupConfig = m_config.Configs["Startup"];
+
+                DEBUG = startupConfig.GetBoolean("DEBUG", false);
 
                 m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
                 m_useBackup = startupConfig.GetBoolean("UseSceneBackup", m_useBackup);

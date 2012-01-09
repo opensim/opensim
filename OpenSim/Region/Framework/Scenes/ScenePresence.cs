@@ -3841,7 +3841,9 @@ namespace OpenSim.Region.Framework.Scenes
             ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
             if (land != null)
             {
-                TeleportFlagsDebug();
+                if (Scene.DEBUG)
+                    TeleportFlagsDebug();
+
                 // If we come in via login, landmark or map, we want to
                 // honor landing points. If we come in via Lure, we want
                 // to ignore them.
