@@ -3836,15 +3836,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void CheckAndAdjustLandingPoint(ref Vector3 pos)
         {
-//            // Some temporary debugging help to show all the TeleportFlags we have...
+            // Some temporary debugging help to show all the TeleportFlags we have...
 //            bool HG = false;
 //            if((m_teleportFlags & (TeleportFlags)Constants.TeleportFlags.ViaHGLogin) == (TeleportFlags)Constants.TeleportFlags.ViaHGLogin)
 //                HG = true;
 //
 //            m_log.InfoFormat("[SCENE PRESENCE]: TELEPORT ******************");
 //
-//            for (uint i = 0; i <= 30 ; i++)
+//            uint i = 0u;
+//            for (int x = 0; x <= 30 ; x++, i = 1u << x)
 //            {
+//                i = 1u << x;
+//
 //                if((m_teleportFlags & (TeleportFlags)i) == (TeleportFlags)i)
 //                    if (HG == false)
 //                        m_log.InfoFormat("[SCENE PRESENCE]: Teleport Flags include {0}", ((TeleportFlags) i).ToString());
