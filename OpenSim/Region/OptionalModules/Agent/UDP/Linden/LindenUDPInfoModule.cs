@@ -289,7 +289,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 if (images.Length > 0)
                 {
                     report.AppendFormat(
-                    "{0,-36}  {1,-8}  {2,-9}  {3,-9}  {4,-9}  {5,-7}\n",
+                    "{0,-36}  {1,-8}  {2,-10}  {3,-9}  {4,-9}  {5,-7}\n",
                     "Texture ID",
                     "Last Seq",
                     "Priority",
@@ -299,7 +299,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
     
                     foreach (J2KImage image in images)
                         report.AppendFormat(
-                            "{0,36}  {1,8}  {2,9}  {3,10}  {4,9}  {5,7}\n",
+                            "{0,36}  {1,8}  {2,10}  {3,10}  {4,9}  {5,7}\n",
                             image.TextureID, image.LastSequence, image.Priority, image.StartPacket, image.HasAsset, image.IsDecoded);
                 }
             }
