@@ -245,6 +245,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_shuttingdown = true;
         }
 
+        /// <summary>
+        /// Returns an array containing all the images in the queue.
+        /// </summary>
+        /// <returns></returns>
+        public J2KImage[] GetImages()
+        {
+            lock (m_priorityQueue)
+                return m_priorityQueue.ToArray();
+        }
+
         #region Priority Queue Helpers
 
         private J2KImage GetHighestPriorityImage()
