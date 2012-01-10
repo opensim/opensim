@@ -496,13 +496,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             string agentFriendService = string.Empty;
             string friendFriendService = string.Empty;
 
-            if (agentIsLocal)
+            if (agentClient != null)
             {
                 agentClientCircuit = ((Scene)(agentClient.Scene)).AuthenticateHandler.GetAgentCircuitData(agentClient.CircuitCode);
                 agentUUI = Util.ProduceUserUniversalIdentifier(agentClientCircuit);
                 agentFriendService = agentClientCircuit.ServiceURLs["FriendsServerURI"].ToString();
             }
-            if (friendIsLocal)
+            if (friendClient != null)
             {
                 friendClientCircuit = ((Scene)(friendClient.Scene)).AuthenticateHandler.GetAgentCircuitData(friendClient.CircuitCode);
                 friendUUI = Util.ProduceUserUniversalIdentifier(friendClientCircuit);
