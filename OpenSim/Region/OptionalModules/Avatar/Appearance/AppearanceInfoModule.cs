@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using log4net;
@@ -124,6 +125,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                     + "\nIf the viewer has not yet sent the server any texture ids then nothing will happen"
                     + "\nsince requests can only be made for ids that the client has already sent us",
                 HandleRebakeAppearanceCommand);
+
+            scene.AddCommand(
+                this, "appearance find",
+                "appearance find <uuid-or-start-of-uuid>",
+                "Find out which avatar uses the given asset as a baked texture, if any.",
+                "You can specify just the beginning of the uuid, e.g. 2008a8d.  A longer UUID must be in dashed format.",
+                HandleFindAppearanceCommand);
         }
 
         private void HandleSendAppearanceCommand(string module, string[] cmd)
@@ -252,6 +260,48 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                                 sp.Name, scene.RegionInfo.RegionName);
                     }
                 }
+            }
+        }
+
+        protected void HandleFindAppearanceCommand(string module, string[] cmd)
+        {
+            if (cmd.Length != 3)
+            {
+                MainConsole.Instance.OutputFormat("Usage: appearance find <uuid-or-start-of-uuid>");
+                return;
+            }
+
+            string rawUuid = cmd[2];
+
+            HashSet<ScenePresence> matchedAvatars = new HashSet<ScenePresence>();
+
+            lock (m_scenes)
+            {
+                foreach (Scene scene in m_scenes.Values)
+                {
+                    scene.ForEachRootScenePresence(
+                        sp =>
+                        {
+                            Dictionary<BakeType, Primitive.TextureEntryFace> bakedFaces = scene.AvatarFactory.GetBakedTextureFaces(sp.UUID);
+                            foreach (Primitive.TextureEntryFace face in bakedFaces.Values)
+                            {
+                                if (face != null && face.TextureID.ToString().StartsWith(rawUuid))
+                                    matchedAvatars.Add(sp);
+                            }
+                        });
+                }
+            }
+
+            if (matchedAvatars.Count == 0)
+            {
+                MainConsole.Instance.OutputFormat("{0} did not match any baked avatar textures in use", rawUuid);
+            }
+            else
+            {
+                MainConsole.Instance.OutputFormat(
+                    "{0} matched {1}",
+                    rawUuid,
+                    string.Join(", ", matchedAvatars.ToList().ConvertAll<string>(sp => sp.Name).ToArray()));
             }
         }
     }
