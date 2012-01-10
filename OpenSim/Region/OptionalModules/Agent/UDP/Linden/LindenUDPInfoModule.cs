@@ -87,7 +87,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "Show priority queue data for each client", 
                 "Without the 'full' option, only root agents are shown."
                   + "  With the 'full' option child agents are also shown.",                                          
-                ShowPQueuesReport);   
+                (mod, cmd) => MainConsole.Instance.Output(GetPQueuesReport(cmd)));
             
             scene.AddCommand(
                 this, "show queues",
@@ -95,13 +95,13 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "Show queue data for each client", 
                 "Without the 'full' option, only root agents are shown."
                   + "  With the 'full' option child agents are also shown.",                                          
-                ShowQueuesReport);
+                (mod, cmd) => MainConsole.Instance.Output(GetQueuesReport(cmd)));
 
             scene.AddCommand(
-                this, "show image queue",
-                "show image queue <first-name> <last-name>",
-                "Show the image queue (textures downloaded via UDP) for a particular client.",
-                ShowImageQueuesReport);
+                this, "show image queues",
+                "show image queues <first-name> <last-name>",
+                "Show the image queues (textures downloaded via UDP) for a particular client.",
+                (mod, cmd) => MainConsole.Instance.Output(GetImageQueuesReport(cmd)));
             
             scene.AddCommand(
                 this, "show throttles",
@@ -109,7 +109,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "Show throttle settings for each client and for the server overall", 
                 "Without the 'full' option, only root agents are shown."
                   + "  With the 'full' option child agents are also shown.",                                          
-                ShowThrottlesReport);
+                (mod, cmd) => MainConsole.Instance.Output(GetThrottlesReport(cmd)));
 
             scene.AddCommand(
                 this, "emergency-monitoring",
@@ -130,26 +130,6 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[LINDEN UDP INFO MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
-        }                 
-
-        protected void ShowPQueuesReport(string module, string[] cmd)
-        {                       
-            MainConsole.Instance.Output(GetPQueuesReport(cmd));
-        }
-        
-        protected void ShowQueuesReport(string module, string[] cmd)
-        {                       
-            MainConsole.Instance.Output(GetQueuesReport(cmd));
-        }
-
-        protected void ShowImageQueuesReport(string module, string[] cmd)
-        {                       
-            MainConsole.Instance.Output(GetImageQueuesReport(cmd));
-        }
-        
-        protected void ShowThrottlesReport(string module, string[] cmd)
-        {
-            MainConsole.Instance.Output(GetThrottlesReport(cmd));
         }
 
         protected void EmergencyMonitoring(string module, string[] cmd)
@@ -177,7 +157,6 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 entry.Length > maxLength ? entry.Substring(0, maxLength) : entry, 
                 "");
         }
-        
 
         /// <summary>
         /// Generate UDP Queue data report for each client
@@ -261,7 +240,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
         {
             if (showParams.Length < 5 || showParams.Length > 6)
             {
-                MainConsole.Instance.OutputFormat("Usage: show image queue <first-name> <last-name> [full]");
+                MainConsole.Instance.OutputFormat("Usage: show image queues <first-name> <last-name> [full]");
                 return "";
             }
 
