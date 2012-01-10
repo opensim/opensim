@@ -250,8 +250,10 @@ namespace OpenSim
                                           + "If level <= 0 then no extra http logging is done.\n",
                                           Debug);
 
+            m_console.Commands.AddCommand("region", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
+
             m_console.Commands.AddCommand("region", false, "debug scene",
-                                          "debug scene <cripting> <collisions> <physics>",
+                                          "debug scene <scripting> <collisions> <physics>",
                                           "Turn on scene debugging", Debug);
 
             m_console.Commands.AddCommand("region", false, "change region",
@@ -946,6 +948,21 @@ namespace OpenSim
                         MainConsole.Instance.Output("Usage: debug scene <scripting> <collisions> <physics> (where inside <> is true/false)");
                     }
 
+                    break;
+
+                case "teleport":
+                    foreach(Scene s in m_sceneManager.Scenes)
+                    {
+                        if (s.DEBUG)
+                        {
+                            s.DEBUG = false;
+                            MainConsole.Instance.Output("Teleport debugging is disabled!");
+                        }
+                        else{
+                            s.DEBUG = true;
+                            MainConsole.Instance.Output("Teleport debugging is enabled!");
+                        }
+                    }
                     break;
 
                 default:
