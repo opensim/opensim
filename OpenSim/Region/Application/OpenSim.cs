@@ -253,7 +253,7 @@ namespace OpenSim
             m_console.Commands.AddCommand("region", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
 
             m_console.Commands.AddCommand("region", false, "debug scene",
-                                          "debug scene <cripting> <collisions> <physics>",
+                                          "debug scene <scripting> <collisions> <physics>",
                                           "Turn on scene debugging", Debug);
 
             m_console.Commands.AddCommand("region", false, "change region",
