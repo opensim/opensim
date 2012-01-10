@@ -306,6 +306,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
 
+        /// <summary>
+        /// Handles UDP texture download.
+        /// </summary>
+        public LLImageManager ImageManager { get; private set; }
+
         private readonly LLUDPServer m_udpServer;
         private readonly LLUDPClient m_udpClient;
         private readonly UUID m_sessionId;
@@ -351,7 +356,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected Dictionary<PacketType, PacketProcessor> m_packetHandlers = new Dictionary<PacketType, PacketProcessor>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
         protected Scene m_scene;
-        private LLImageManager m_imageManager;
         protected string m_firstName;
         protected string m_lastName;
         protected Thread m_clientThread;
@@ -470,7 +474,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
             m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
-            m_imageManager = new LLImageManager(this, m_assetService, Scene.RequestModuleInterface<IJ2KDecoder>());
+            ImageManager = new LLImageManager(this, m_assetService, Scene.RequestModuleInterface<IJ2KDecoder>());
             m_channelVersion = Util.StringToBytes256(scene.GetSimulatorVersion());
             m_agentId = agentId;
             m_sessionId = sessionId;
@@ -522,7 +526,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IsActive = false;
 
             // Shutdown the image manager
-            m_imageManager.Close();
+            ImageManager.Close();
 
             // Fire the callback for this connection closing
             if (OnConnectionClosed != null)
@@ -3983,7 +3987,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             if ((categories & ThrottleOutPacketTypeFlags.Texture) != 0)
-                m_imageManager.ProcessImageQueue(m_udpServer.TextureSendLimit);
+                ImageManager.ProcessImageQueue(m_udpServer.TextureSendLimit);
         }
 
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
@@ -7531,7 +7535,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if ((ImageType)block.Type == ImageType.Baked)
                     args.Priority *= 2.0f;
 
-                m_imageManager.EnqueueReq(args);
+                ImageManager.EnqueueReq(args);
             }
 
             return true;
