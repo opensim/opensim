@@ -651,8 +651,6 @@ namespace OpenSim.Region.Framework.Scenes
                 //
                 IConfig startupConfig = m_config.Configs["Startup"];
 
-                DEBUG = startupConfig.GetBoolean("DEBUG", false);
-
                 m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
                 m_useBackup = startupConfig.GetBoolean("UseSceneBackup", m_useBackup);
                 if (!m_useBackup)
