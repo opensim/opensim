@@ -3860,17 +3860,18 @@ namespace OpenSim.Region.Framework.Scenes
                     (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID) ||
                     (m_teleportFlags & TeleportFlags.ViaLandmark) != 0 ||
                     (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
-                    ((m_teleportFlags & (TeleportFlags)Constants.TeleportFlags.ViaHGLogin) == (TeleportFlags)Constants.TeleportFlags.ViaHGLogin))
+                    (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0)
                 {
                     // Don't restrict gods, estate managers, or land owners to
                     // the TP point. This behaviour mimics agni.
                     if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
                         land.LandData.UserLocation != Vector3.Zero &&
                         GodLevel < 200 &&
-                        ((land.LandData.OwnerID != m_uuid &&
-                        (!m_scene.Permissions.IsGod(m_uuid)) &&
-                        (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid))) || (m_teleportFlags & TeleportFlags.ViaLocation) != 0) ||
-                        ((m_teleportFlags & (TeleportFlags)Constants.TeleportFlags.ViaHGLogin) == (TeleportFlags)Constants.TeleportFlags.ViaHGLogin))
+                        ((land.LandData.OwnerID != m_uuid && 
+                          !m_scene.Permissions.IsGod(m_uuid) &&
+                          !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)) || 
+                         (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
+                         (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0))
                     {
                         pos = land.LandData.UserLocation;
                     }

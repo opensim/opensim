@@ -149,7 +149,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 // Process the baked texture array
                 if (textureEntry != null)
                 {
-                    m_log.InfoFormat("[AVFACTORY]: received texture update for {0}", sp.UUID);
+                    m_log.InfoFormat("[AVFACTORY]: Received texture update for {0} {1}", sp.Name, sp.UUID);
 
 //                    WriteBakedTexturesReport(sp, m_log.DebugFormat);
 
@@ -315,7 +315,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     return false;
             }
 
-            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0}", sp.UUID);
+            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0} {1}", sp.Name, sp.UUID);
 
             // If we only found default textures, then the appearance is not cached
             return (defonly ? false : true);
