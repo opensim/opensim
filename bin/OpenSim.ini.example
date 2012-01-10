@@ -36,6 +36,12 @@
 
 
 [Startup]
+
+    ;# {DEBUG} {} {Turn on debugging methods. Temporary for debugging teleport routing. We can remove it when that is done, or leave it if it would prove to be useful for other things.} {true false} false
+    ;; Turn on debugging methods where available.
+    ;; from the selected region_info_source.
+    ; DEBUG = false
+
     ;# {ConsolePrompt} {} {ConsolePrompt} {} "Region (\R) "
     ;; Console prompt
     ;; Certain special characters can be used to customize the prompt
