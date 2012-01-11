@@ -54,7 +54,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// Deserialize a scene object from the original xml format
         /// </summary>
         /// <param name="xmlData"></param>
-        /// <returns></returns>
+        /// <returns>The scene object deserialized.  Null on failure.</returns>
         public static SceneObjectGroup FromOriginalXmlFormat(string xmlData)
         {
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
