@@ -204,7 +204,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.ControllingClient.SendTeleportStart(teleportFlags);
 
                     sp.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
-                    sp.TeleportFlags = (TeleportFlags)teleportFlags;
+                    sp.TeleportFlags = (Constants.TeleportFlags)teleportFlags;
                     sp.Teleport(position);
 
                     foreach (SceneObjectGroup grp in sp.GetAttachments())
