@@ -2089,6 +2089,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return NpcCreate(firstname, lastname, position, notecard, false);
         }
 
+        public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, int options)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
+            return NpcCreate(firstname, lastname, position, notecard, (options & ScriptBaseClass.OS_NPC_NOT_OWNED) == 0);
+        }
+
         private LSL_Key NpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, bool owned)
         {
             INPCModule module = World.RequestModuleInterface<INPCModule>();

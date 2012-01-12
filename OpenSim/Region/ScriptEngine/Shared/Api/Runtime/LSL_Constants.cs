@@ -606,6 +606,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public const int OS_NPC_SIT_NOW = 0;
 
+        public const int OS_NPC_CREATOR_OWNED = 0x1;
+        public const int OS_NPC_NOT_OWNED = 0x2;
+
         public const string URL_REQUEST_GRANTED = "URL_REQUEST_GRANTED";
         public const string URL_REQUEST_DENIED = "URL_REQUEST_DENIED";
 
