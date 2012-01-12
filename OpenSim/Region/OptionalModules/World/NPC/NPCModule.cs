@@ -266,16 +266,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return UUID.Zero;
         }
 
-        public bool DeleteNPC(UUID agentID, UUID callerID, Scene scene)
+        public bool DeleteNPC(UUID agentID, Scene scene)
         {
             lock (m_avatars)
             {
                 NPCAvatar av;
                 if (m_avatars.TryGetValue(agentID, out av))
                 {
-                    if (!CheckPermissions(av, callerID));
-                        return false;
-
                     scene.RemoveClient(agentID, false);
                     m_avatars.Remove(agentID);
 
