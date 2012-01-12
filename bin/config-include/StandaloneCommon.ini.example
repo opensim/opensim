@@ -48,13 +48,13 @@
     AssetLoaderArgs = "assets/AssetSets.xml"
 
 [HGInventoryService]
-    ProfileServerURI = "http://127.0.0.1:9000/profiles"
+    HomeURI = "http://127.0.0.1:9000"
 
 [HGAssetService]
-    ProfileServerURI = "http://127.0.0.1:9000/profiles"
+    HomeURI = "http://127.0.0.1:9000"
 
 [HGInventoryAccessModule]
-    ProfileServerURI = "http://127.0.0.1:9000/profiles"
+    HomeURI = "http://127.0.0.1:9000"
 	Gatekeeper = "http://127.0.0.1:9000"
 
     ;; If you want to protect your assets from being copied by foreign visitors

@@ -125,8 +125,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             Dictionary<string, object> options = new Dictionary<string, object>();
 
             OptionSet ops = new OptionSet();
-//            ops.Add("v|version=", delegate(string v) { options["version"] = v; });
-            ops.Add("p|profile=", delegate(string v) { options["profile"] = v; });
+            
+            // legacy argument [obsolete]
+            ops.Add("p|profile=", delegate(string v) { Console.WriteLine("\n WARNING: -profile option is obsolete and it will not work. Use -home instead.\n"); });
+            // preferred
+            ops.Add("h|home=", delegate(string v) { options["home"] = v; });
+
             ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
             ops.Add("perm=", delegate(string v) { options["checkPermissions"] = v; });
 

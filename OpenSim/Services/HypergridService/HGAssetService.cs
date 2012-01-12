@@ -53,7 +53,7 @@ namespace OpenSim.Services.HypergridService
             LogManager.GetLogger(
             MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ProfileServiceURL;
+        private string m_HomeURL;
         private IUserAccountService m_UserAccountService;
 
         private UserAccountCache m_Cache;
@@ -74,7 +74,10 @@ namespace OpenSim.Services.HypergridService
             if (m_UserAccountService == null)
                 throw new Exception(String.Format("Unable to create UserAccountService from {0}", userAccountsDll));
 
-            m_ProfileServiceURL = assetConfig.GetString("ProfileServerURI", string.Empty);
+            // legacy configuration [obsolete]
+            m_HomeURL = assetConfig.GetString("ProfileServerURI", string.Empty);
+            // Preferred
+            m_HomeURL = assetConfig.GetString("HomeURI", m_HomeURL);
 
             m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
         }
@@ -134,13 +137,13 @@ namespace OpenSim.Services.HypergridService
 
             UserAccount creator = m_Cache.GetUser(meta.CreatorID);
             if (creator != null)
-                meta.CreatorID = m_ProfileServiceURL + "/" + meta.CreatorID + ";" + creator.FirstName + " " + creator.LastName;
+                meta.CreatorID = meta.CreatorID + ";" + m_HomeURL + "/" + creator.FirstName + " " + creator.LastName;
         }
 
         protected byte[] AdjustIdentifiers(byte[] data)
         {
             string xml = Utils.BytesToString(data);
-            return Utils.StringToBytes(ExternalRepresentationUtils.RewriteSOP(xml, m_ProfileServiceURL, m_Cache, UUID.Zero));
+            return Utils.StringToBytes(ExternalRepresentationUtils.RewriteSOP(xml, m_HomeURL, m_Cache, UUID.Zero));
         }
 
     }

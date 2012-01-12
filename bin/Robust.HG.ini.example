@@ -380,7 +380,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; For the InventoryServiceInConnector
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGInventoryService"
 	UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-	ProfileServerURI = "http://127.0.0.1:8002/user"
+	HomeURI = "http://127.0.0.1:8002"
 
 ; * The interface that local users get when they are in other grids.
 ; * This restricts the access that the rest of the world has to
@@ -389,7 +389,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [HGAssetService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGAssetService"
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-    ProfileServerURI = "http://127.0.0.1:8002/user"
+    HomeURI = "http://127.0.0.1:8002"
 
 [HGFriendsService]
     LocalServiceModule = "OpenSim.Services.FriendsService.dll:FriendsService"
