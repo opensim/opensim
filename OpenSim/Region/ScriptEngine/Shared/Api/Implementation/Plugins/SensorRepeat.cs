@@ -463,12 +463,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 toRegionPos = presence.AbsolutePosition;
                 dis = Math.Abs(Util.GetDistanceTo(toRegionPos, fromRegionPos));
 
-                if (presence.PresenceType == PresenceType.Npc && npcModule != null)
-                {
-                    UUID npcOwner = npcModule.GetOwner(presence.UUID);
-                    if (npcOwner != UUID.Zero && npcOwner != SensePoint.OwnerID)
-                        return;
-                }
+                // Disabled for now since all osNpc* methods check for appropriate ownership permission.
+                // Perhaps could be re-enabled as an NPC setting at some point since being able to make NPCs not
+                // sensed might be useful.
+//                if (presence.PresenceType == PresenceType.Npc && npcModule != null)
+//                {
+//                    UUID npcOwner = npcModule.GetOwner(presence.UUID);
+//                    if (npcOwner != UUID.Zero && npcOwner != SensePoint.OwnerID)
+//                        return;
+//                }
 
                 // are they in range
                 if (dis <= ts.range)
