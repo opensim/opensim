@@ -119,6 +119,26 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         }
 
         [Test]
+        public void TestRemove()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
+//            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
+
+            Vector3 startPos = new Vector3(128, 128, 30);
+            INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
+            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, UUID.Zero, scene, sp.Appearance);
+
+            npcModule.DeleteNPC(npcId, scene);
+
+            ScenePresence deletedNpc = scene.GetScenePresence(npcId);
+
+            Assert.That(deletedNpc, Is.Null);
+        }
+
+        [Test]
         public void TestAttachments()
         {
             TestHelpers.InMethod();
