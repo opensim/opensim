@@ -2107,7 +2107,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private LSL_Key NpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, bool owned)
         {
             if (!owned)
-                OSSL_Error("Unowned NPCs are unsupported");
+                OSSLError("Unowned NPCs are unsupported");
             
             string groupTitle = String.Empty;
 
