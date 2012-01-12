@@ -53,6 +53,14 @@ namespace OpenSim.Region.Framework.Interfaces
         bool IsNPC(UUID agentID, Scene scene);
 
         /// <summary>
+        /// Check if the caller has permission to manipulate the given NPC.
+        /// </summary>
+        /// <param name="npcID"></param>
+        /// <param name="callerID"></param>
+        /// <returns>true if they do, false if they don't or if there's no NPC with the given ID.</returns>
+        bool CheckPermissions(UUID npcID, UUID callerID);
+
+        /// <summary>
         /// Set the appearance for an NPC.
         /// </summary>
         /// <param name="agentID"></param>

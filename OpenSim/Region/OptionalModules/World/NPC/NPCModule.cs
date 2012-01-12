@@ -56,6 +56,24 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             }
         }
 
+        public void PostInitialise()
+        {
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "NPCModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+
         public bool IsNPC(UUID agentId, Scene scene)
         {
             // FIXME: This implementation could not just use the ScenePresence.PresenceType (and callers could inspect
@@ -255,7 +273,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 NPCAvatar av;
                 if (m_avatars.TryGetValue(agentID, out av))
                 {
-                    if (av.OwnerID != UUID.Zero && callerID != UUID.Zero && av.OwnerID != callerID)
+                    if (!CheckPermissions(av, callerID));
                         return false;
 
                     scene.RemoveClient(agentID, false);
@@ -268,22 +286,27 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return false;
         }
 
-        public void PostInitialise()
+        public bool CheckPermissions(UUID npcID, UUID callerID)
         {
+            lock (m_avatars)
+            {
+                NPCAvatar av;
+                if (m_avatars.TryGetValue(npcID, out av))
+                    return CheckPermissions(av, callerID);
+                else
+                    return false;
+            }
         }
 
-        public void Close()
+        /// <summary>
+        /// Check if the caller has permission to manipulate the given NPC.
+        /// </summary>
+        /// <param name="av"></param>
+        /// <param name="callerID"></param>
+        /// <returns>true if they do, false if they don't.</returns>
+        private bool CheckPermissions(NPCAvatar av, UUID callerID)
         {
-        }
-
-        public string Name
-        {
-            get { return "NPCModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
+            return callerID == UUID.Zero || av.OwnerID == UUID.Zero || av.OwnerID == callerID;
         }
     }
 }

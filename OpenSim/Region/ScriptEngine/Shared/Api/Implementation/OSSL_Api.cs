@@ -2152,11 +2152,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!UUID.TryParse(npc.m_string, out npcId))
                     return new LSL_Key(UUID.Zero.ToString());
 
-                if (!npcModule.IsNPC(npcId, m_host.ParentGroup.Scene))
-                    return new LSL_Key(UUID.Zero.ToString());
-
-                UUID ownerID = npcModule.GetOwner(npcId);
-                if (ownerID != UUID.Zero && ownerID != m_host.OwnerID)
+                if (!npcModule.CheckPermissions(npcId, m_host.OwnerID))
                     return new LSL_Key(UUID.Zero.ToString());
 
                 return SaveAppearanceToNotecard(npcId, notecard);
