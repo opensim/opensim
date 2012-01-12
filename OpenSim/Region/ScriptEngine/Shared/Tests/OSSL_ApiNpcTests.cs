@@ -77,10 +77,63 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         }
 
         /// <summary>
-        /// Test creation of an NPC where the appearance data comes from an avatar already in the region.
+        /// Test removal of an owned NPC.
         /// </summary>
         [Test]
-        public void TestOsNpcRemove()
+        public void TestOsNpcRemoveOwned()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            // Store an avatar with a different height from default in a notecard.
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UUID otherUserId = TestHelpers.ParseTail(0x2);
+            float newHeight = 1.9f;
+
+            SceneHelpers.AddScenePresence(m_scene, otherUserId);
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
+            sp.Appearance.AvatarHeight = newHeight;
+
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId);
+            SceneObjectPart part = so.RootPart;
+            m_scene.AddSceneObject(so);
+
+            SceneObjectGroup otherSo = SceneHelpers.CreateSceneObject(1, otherUserId);
+            SceneObjectPart otherPart = otherSo.RootPart;
+            m_scene.AddSceneObject(otherSo);
+
+            OSSL_Api osslApi = new OSSL_Api();
+            osslApi.Initialize(m_engine, part, part.LocalId, part.UUID);
+
+            OSSL_Api otherOsslApi = new OSSL_Api();
+            otherOsslApi.Initialize(m_engine, otherPart, otherPart.LocalId, otherPart.UUID);
+
+            string notecardName = "appearanceNc";
+            osslApi.osOwnerSaveAppearance(notecardName);
+
+            string npcRaw
+                = osslApi.osNpcCreate(
+                    "Jane", "Doe", new LSL_Types.Vector3(128, 128, 128), notecardName, ScriptBaseClass.OS_NPC_CREATOR_OWNED);
+            
+            otherOsslApi.osNpcRemove(npcRaw);
+
+            // Should still be around
+            UUID npcId = new UUID(npcRaw);
+            ScenePresence npc = m_scene.GetScenePresence(npcId);
+            Assert.That(npc, Is.Not.Null);
+
+            osslApi.osNpcRemove(npcRaw);
+
+            npc = m_scene.GetScenePresence(npcId);
+
+        }
+
+        /// <summary>
+        /// Test removal of an unowned NPC.
+        /// </summary>
+        [Test]
+        public void TestOsNpcRemoveUnowned()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
