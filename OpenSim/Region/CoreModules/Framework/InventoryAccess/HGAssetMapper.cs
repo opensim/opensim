@@ -55,16 +55,16 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //        private Dictionary<string, InventoryClient> m_inventoryServers = new Dictionary<string, InventoryClient>();
 
         private Scene m_scene;
-        private string m_ProfileServerURI;
+        private string m_HomeURI;
 
         #endregion
 
         #region Constructor
 
-        public HGAssetMapper(Scene scene, string profileURL)
+        public HGAssetMapper(Scene scene, string homeURL)
         {
             m_scene = scene;
-            m_ProfileServerURI = profileURL;
+            m_HomeURI = homeURL;
         }
 
         #endregion
@@ -150,7 +150,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 UUID.TryParse(meta.CreatorID, out uuid);
                 UserAccount creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid); 
                 if (creator != null)
-                    meta.CreatorID = m_ProfileServerURI + "/" + meta.CreatorID + ";" + creator.FirstName + " " + creator.LastName;
+                    meta.CreatorID = m_HomeURI + ";" + creator.FirstName + " " + creator.LastName;
             }
         }
 
@@ -193,7 +193,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (!hasCreatorData && creator != null)
                 {
                     XmlElement creatorData = doc.CreateElement("CreatorData");
-                    creatorData.InnerText = m_ProfileServerURI + "/" + creator.PrincipalID + ";" + creator.FirstName + " " + creator.LastName;
+                    creatorData.InnerText = m_HomeURI + ";" + creator.FirstName + " " + creator.LastName;
                     sop.AppendChild(creatorData);
                 }
             }
