@@ -405,7 +405,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private string m_creatorData = string.Empty;
         /// <summary>
-        /// Data about the creator in the form profile_url;name
+        /// Data about the creator in the form home_url;name
         /// </summary>
         public string CreatorData 
         {
@@ -416,7 +416,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Used by the DB layer to retrieve / store the entire user identification.
         /// The identification can either be a simple UUID or a string of the form
-        /// uuid[;profile_url[;name]]
+        /// uuid[;home_url[;name]]
         /// </summary>
         public string CreatorIdentification
         {

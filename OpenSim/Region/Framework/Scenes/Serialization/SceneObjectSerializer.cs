@@ -54,7 +54,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// Deserialize a scene object from the original xml format
         /// </summary>
         /// <param name="xmlData"></param>
-        /// <returns></returns>
+        /// <returns>The scene object deserialized.  Null on failure.</returns>
         public static SceneObjectGroup FromOriginalXmlFormat(string xmlData)
         {
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
@@ -1147,12 +1147,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             if (sop.CreatorData != null && sop.CreatorData != string.Empty)
                 writer.WriteElementString("CreatorData", sop.CreatorData);
-            else if (options.ContainsKey("profile"))
+            else if (options.ContainsKey("home"))
             {
                 if (m_UserManagement == null)
                     m_UserManagement = sop.ParentGroup.Scene.RequestModuleInterface<IUserManagement>();
                 string name = m_UserManagement.GetUserName(sop.CreatorID);
-                writer.WriteElementString("CreatorData", (string)options["profile"] + "/" + sop.CreatorID + ";" + name);
+                writer.WriteElementString("CreatorData", (string)options["home"] + ";" + name);
             }
 
             WriteUUID(writer, "FolderID", sop.FolderID, options);
@@ -1298,12 +1298,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                     if (item.CreatorData != null && item.CreatorData != string.Empty)
                         writer.WriteElementString("CreatorData", item.CreatorData);
-                    else if (options.ContainsKey("profile"))
+                    else if (options.ContainsKey("home"))
                     {
                         if (m_UserManagement == null)
                             m_UserManagement = scene.RequestModuleInterface<IUserManagement>();
                         string name = m_UserManagement.GetUserName(item.CreatorID);
-                        writer.WriteElementString("CreatorData", (string)options["profile"] + "/" + item.CreatorID + ";" + name);
+                        writer.WriteElementString("CreatorData", (string)options["home"] + ";" + name);
                     }
 
                     writer.WriteElementString("Description", item.Description);

@@ -54,7 +54,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             get { return m_assMapper; }
         }
 
-        private string m_ProfileServerURI;
+        private string m_HomeURI;
         private bool m_OutboundPermission;
         private string m_ThisGatekeeper;
 
@@ -84,7 +84,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     IConfig thisModuleConfig = source.Configs["HGInventoryAccessModule"];
                     if (thisModuleConfig != null)
                     {
-                        m_ProfileServerURI = thisModuleConfig.GetString("ProfileServerURI", string.Empty);
+                        // legacy configuration [obsolete]
+                        m_HomeURI = thisModuleConfig.GetString("ProfileServerURI", string.Empty);
+                        // preferred
+                        m_HomeURI = thisModuleConfig.GetString("HomeURI", m_HomeURI);
                         m_OutboundPermission = thisModuleConfig.GetBoolean("OutboundPermission", true);
                         m_ThisGatekeeper = thisModuleConfig.GetString("Gatekeeper", string.Empty);
                     }
@@ -100,7 +103,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return;
 
             base.AddRegion(scene);
-            m_assMapper = new HGAssetMapper(scene, m_ProfileServerURI);
+            m_assMapper = new HGAssetMapper(scene, m_HomeURI);
             scene.EventManager.OnNewInventoryItemUploadComplete += UploadInventoryItem;
 
         }

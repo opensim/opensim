@@ -55,7 +55,7 @@ namespace OpenSim.Services.HypergridService
 
         protected new IXInventoryData m_Database;
 
-        private string m_ProfileServiceURL;
+        private string m_HomeURL;
         private IUserAccountService m_UserAccountService;
 
         private UserAccountCache m_Cache;
@@ -100,7 +100,10 @@ namespace OpenSim.Services.HypergridService
                 if (m_UserAccountService == null)
                     throw new Exception(String.Format("Unable to create UserAccountService from {0}", userAccountsDll));
 
-                m_ProfileServiceURL = invConfig.GetString("ProfileServerURI", string.Empty);
+                // legacy configuration [obsolete]
+                m_HomeURL = invConfig.GetString("ProfileServerURI", string.Empty);
+                // Preferred
+                m_HomeURL = invConfig.GetString("HomeURI", m_HomeURL);
 
                 m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
             }
@@ -321,7 +324,7 @@ namespace OpenSim.Services.HypergridService
 
             // Adjust the creator data
             if (user != null && it != null && (it.CreatorData == null || it.CreatorData == string.Empty))
-                it.CreatorData = m_ProfileServiceURL + "/" + it.CreatorId + ";" + user.FirstName + " " + user.LastName;
+                it.CreatorData = m_HomeURL + ";" + user.FirstName + " " + user.LastName;
 
             return it;
         }

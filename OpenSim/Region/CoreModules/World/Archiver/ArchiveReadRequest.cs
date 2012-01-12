@@ -422,6 +422,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             string extension = filename.Substring(i);
             string uuid = filename.Remove(filename.Length - extension.Length);
 
+            if (m_scene.AssetService.GetMetadata(uuid) != null)
+            {
+                // m_log.DebugFormat("[ARCHIVER]: found existing asset {0}",uuid);
+                return true;
+            }
+
             if (ArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))
             {
                 sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];

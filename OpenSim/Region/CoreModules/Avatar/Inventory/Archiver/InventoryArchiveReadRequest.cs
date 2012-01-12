@@ -493,7 +493,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         }
                         else
                         {
-                            sceneObjects.Add(SceneObjectSerializer.FromOriginalXmlFormat(xmlData));
+                            SceneObjectGroup deserializedObject = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+
+                            if (deserializedObject != null)
+                                sceneObjects.Add(deserializedObject);
                         }
                         
                         foreach (SceneObjectGroup sog in sceneObjects)

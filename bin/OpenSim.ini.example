@@ -171,9 +171,9 @@
     ; physics = basicphysics
     ; physics = POS
 
-    ;# {permissionmodules} {} {Permission modules to use (may specify multiple modules, separated by space} {} DefaultPermissionsModule
-    ;; Permission modules to use, separated by space.
-    ; permissionmodules = "DefaultPermissionsModule"
+    ;# {permissionmodules} {} {Permission modules to use (may specify multiple modules, separated by comma} {} DefaultPermissionsModule
+    ;; Permission modules to use, separated by comma.
+    ; permissionmodules = DefaultPermissionsModule
 
     ;# {serverside_object_permissions} {permissionmodules:DefaultPermissionsModule} {Activate permission handling by the sim?} {true false} true
     ;; These are the parameters for the default permissions module

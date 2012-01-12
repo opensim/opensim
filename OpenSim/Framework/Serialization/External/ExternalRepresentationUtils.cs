@@ -44,13 +44,13 @@ namespace OpenSim.Framework.Serialization.External
         /// with creator data added to it.
         /// </summary>
         /// <param name="xml">The SceneObjectPart represented in XML2</param>
-        /// <param name="profileURL">The URL of the profile service for the creator</param>
+        /// <param name="homeURL">The URL of the user agents service (home) for the creator</param>
         /// <param name="userService">The service for retrieving user account information</param>
         /// <param name="scopeID">The scope of the user account information (Grid ID)</param>
         /// <returns>The SceneObjectPart represented in XML2</returns>
-        public static string RewriteSOP(string xml, string profileURL, IUserAccountService userService, UUID scopeID)
+        public static string RewriteSOP(string xml, string homeURL, IUserAccountService userService, UUID scopeID)
         {
-            if (xml == string.Empty || profileURL == string.Empty || userService == null)
+            if (xml == string.Empty || homeURL == string.Empty || userService == null)
                 return xml;
 
             XmlDocument doc = new XmlDocument();
@@ -83,7 +83,7 @@ namespace OpenSim.Framework.Serialization.External
                 if (!hasCreatorData && creator != null)
                 {
                     XmlElement creatorData = doc.CreateElement("CreatorData");
-                    creatorData.InnerText = profileURL + "/" + creator.PrincipalID + ";" + creator.FirstName + " " + creator.LastName;
+                    creatorData.InnerText = homeURL + ";" + creator.FirstName + " " + creator.LastName;
                     sop.AppendChild(creatorData);
                 }
             }
