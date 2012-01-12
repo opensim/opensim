@@ -413,14 +413,13 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             user.Id = uuid;
             user.FirstName = first;
             user.LastName = last;
-            // user.ProfileURL = we should initialize this to the default
 
             AddUserInternal(user);
         }
 
-        public void AddUser(UUID uuid, string first, string last, string profileURL)
+        public void AddUser(UUID uuid, string first, string last, string homeURL)
         {
-            AddUser(uuid, profileURL + ";" + first + " " + last);
+            AddUser(uuid, homeURL + ";" + first + " " + last);
         }
 
         public void AddUser (UUID id, string creatorData)
@@ -491,36 +490,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 //                "[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}",
 //                user.Id, user.FirstName, user.LastName, user.HomeURL);
         }
-
-        //public void AddUser(UUID uuid, string userData)
-        //{
-        //    if (m_UserCache.ContainsKey(uuid))
-        //        return;
-
-        //    UserData user = new UserData();
-        //    user.Id = uuid;
-
-        //    // userData = <profile url>;<name>
-        //    string[] parts = userData.Split(';');
-        //    if (parts.Length >= 1)
-        //        user.ProfileURL = parts[0].Trim();
-        //    if (parts.Length >= 2)
-        //    {
-        //        string[] name = parts[1].Trim().Split(' ');
-        //        if (name.Length >= 1)
-        //            user.FirstName = name[0];
-        //        if (name.Length >= 2)
-        //            user.LastName = name[1];
-        //        else
-        //            user.LastName = "?";
-        //    }
-
-        //    lock (m_UserCache)
-        //        m_UserCache.Add(uuid, user);
-
-        //    m_log.DebugFormat("[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}", user.Id, user.FirstName, user.LastName, user.ProfileURL);
-
-        //}
 
         public bool IsLocalGridUser(UUID uuid)
         {
