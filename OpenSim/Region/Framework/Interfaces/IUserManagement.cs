@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="uuid"></param>
         /// <param name="firstName"></param>
         /// <param name="profileURL"></param>
-        void AddUser(UUID uuid, string firstName, string lastName, string profileURL);
+        void AddUser(UUID uuid, string firstName, string lastName, string homeURL);
 
         bool IsLocalGridUser(UUID uuid);
     }

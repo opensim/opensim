@@ -2077,16 +2077,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return retVal;
         }
 
-        public LSL_Key osNpcCreateOwned(string firstname, string lastname, LSL_Vector position, string notecard)
-        {
-            CheckThreatLevel(ThreatLevel.High, "osNpcCreateOwned");
-            return NpcCreate(firstname, lastname, position, notecard, true);
-        }
-
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
-            return NpcCreate(firstname, lastname, position, notecard, false);
+            return NpcCreate(firstname, lastname, position, notecard, true);
+        }
+
+        public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, int options)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
+            return NpcCreate(firstname, lastname, position, notecard, (options & ScriptBaseClass.OS_NPC_NOT_OWNED) == 0);
         }
 
         private LSL_Key NpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, bool owned)
@@ -2152,11 +2152,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!UUID.TryParse(npc.m_string, out npcId))
                     return new LSL_Key(UUID.Zero.ToString());
 
-                if (!npcModule.IsNPC(npcId, m_host.ParentGroup.Scene))
-                    return new LSL_Key(UUID.Zero.ToString());
-
-                UUID ownerID = npcModule.GetOwner(npcId);
-                if (ownerID != UUID.Zero && ownerID != m_host.OwnerID)
+                if (!npcModule.CheckPermissions(npcId, m_host.OwnerID))
                     return new LSL_Key(UUID.Zero.ToString());
 
                 return SaveAppearanceToNotecard(npcId, notecard);
@@ -2175,6 +2171,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 UUID npcId;
                 if (!UUID.TryParse(npc.m_string, out npcId))
+                    return;
+
+                if (!npcModule.CheckPermissions(npcId, m_host.OwnerID))
                     return;
 
                 string appearanceSerialized = LoadNotecard(notecard);
@@ -2200,7 +2199,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!UUID.TryParse(npc.m_string, out npcId))
                     return new LSL_Vector(0, 0, 0);
 
-                if (!npcModule.IsNPC(npcId, m_host.ParentGroup.Scene))
+                if (!npcModule.CheckPermissions(npcId, m_host.OwnerID))
                     return new LSL_Vector(0, 0, 0);
 
                 Vector3 pos = World.GetScenePresence(npcId).AbsolutePosition;
@@ -2220,6 +2219,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 UUID npcId;
                 if (!UUID.TryParse(npc.m_string, out npcId))
                     return;
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
                 
                 Vector3 pos = new Vector3((float) position.x, (float) position.y, (float) position.z);
                 module.MoveToTarget(npcId, World, pos, false, true);
@@ -2235,6 +2237,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 UUID npcId;
                 if (!UUID.TryParse(npc.m_string, out npcId))
+                    return;
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
                     return;
 
                 Vector3 pos = new Vector3((float)target.x, (float)target.y, (float)target.z);
@@ -2258,7 +2263,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!UUID.TryParse(npc.m_string, out npcId))
                     return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
 
-                if (!npcModule.IsNPC(npcId, m_host.ParentGroup.Scene))
+                if (!npcModule.CheckPermissions(npcId, m_host.OwnerID))
                     return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
 
                 ScenePresence sp = World.GetScenePresence(npcId);
@@ -2281,7 +2286,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!UUID.TryParse(npc.m_string, out npcId))
                     return;
 
-                if (!npcModule.IsNPC(npcId, m_host.ParentGroup.Scene))
+                if (!npcModule.CheckPermissions(npcId, m_host.OwnerID))
                     return;
 
                 ScenePresence sp = World.GetScenePresence(npcId);
@@ -2295,7 +2300,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
-                module.StopMoveToTarget(new UUID(npc.m_string), World);
+            {
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+
+                module.StopMoveToTarget(npcId, World);
+            }
         }
 
         public void osNpcSay(LSL_Key npc, string message)
@@ -2305,7 +2317,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
             {
-                module.Say(new UUID(npc.m_string), World, message);
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+
+                module.Say(npcId, World, message);
             }
         }
 
@@ -2316,7 +2333,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
             {
-                module.Sit(new UUID(npc.m_string), new UUID(target.m_string), World);
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+
+                module.Sit(npcId, new UUID(target.m_string), World);
             }
         }
 
@@ -2327,7 +2349,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
             {
-                module.Stand(new UUID(npc.m_string), World);
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+
+                module.Stand(npcId, World);
             }
         }
 
@@ -2338,7 +2365,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
             {
-                module.DeleteNPC(new UUID(npc.m_string), m_host.OwnerID, World);
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+
+                module.DeleteNPC(npcId, World);
             }
         }
 
@@ -2350,12 +2382,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (module != null)
             {
                 UUID npcID = new UUID(npc.m_string);
-                if (module.IsNPC(npcID, m_host.ParentGroup.Scene))
-                {
-                    UUID ownerID = module.GetOwner(npcID);
-                    if (ownerID == UUID.Zero || ownerID == m_host.OwnerID)
-                        AvatarPlayAnimation(npcID.ToString(), animation);
-                }
+
+                if (module.CheckPermissions(npcID, m_host.OwnerID))
+                    AvatarPlayAnimation(npcID.ToString(), animation);
             }
         }
 
@@ -2367,12 +2396,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (module != null)
             {
                 UUID npcID = new UUID(npc.m_string);
-                if (module.IsNPC(npcID, m_host.ParentGroup.Scene))
-                {
-                    UUID ownerID = module.GetOwner(npcID);
-                    if (ownerID == UUID.Zero || ownerID == m_host.OwnerID)
-                        AvatarStopAnimation(npcID.ToString(), animation);
-                }
+
+                if (module.CheckPermissions(npcID, m_host.OwnerID))
+                    AvatarPlayAnimation(npcID.ToString(), animation);
             }
         }
 

@@ -488,9 +488,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom);
         }
 
-        public key osNpcCreateOwned(string user, string name, vector position, key cloneFrom)
+        public key osNpcCreate(string user, string name, vector position, key cloneFrom, int options)
         {
-            return m_OSSL_Functions.osNpcCreateOwned(user, name, position, cloneFrom);
+            return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom, options);
         }
 
         public key osNpcSaveAppearance(key npc, string notecard)
