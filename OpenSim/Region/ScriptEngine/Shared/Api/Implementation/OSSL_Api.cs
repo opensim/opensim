@@ -2077,12 +2077,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return retVal;
         }
 
-        public LSL_Key osNpcCreateOwned(string firstname, string lastname, LSL_Vector position, string notecard)
-        {
-            CheckThreatLevel(ThreatLevel.High, "osNpcCreateOwned");
-            return NpcCreate(firstname, lastname, position, notecard, true);
-        }
-
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
