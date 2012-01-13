@@ -2865,13 +2865,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
             // set the rotation of the object, copy that behavior
-            if (m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
+            if (strength == 0 || m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
             {
                 llSetRot(rot);
             }
             else
             {
-                m_host.startLookAt(Rot2Quaternion(rot), (float)damping, (float)strength);
+                m_host.StartLookAt(Rot2Quaternion(rot), (float)strength, (float)damping);
             }
         }
 
@@ -3251,13 +3251,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
             // set the rotation of the object, copy that behavior
-            if (m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
+            if (strength == 0 || m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
             {
                 llSetLocalRot(target);
             }
             else
             {
-                m_host.RotLookAt(Rot2Quaternion(target), (float)damping, (float)strength);
+                m_host.RotLookAt(Rot2Quaternion(target), (float)strength, (float)damping);
             }
         }
 

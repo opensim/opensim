@@ -1613,12 +1613,6 @@ namespace OpenSim.Region.Framework.Scenes
                 RootPart.PhysActor.PIDActive = false;
         }
         
-        public void stopLookAt()
-        {
-            if (RootPart.PhysActor != null)
-                RootPart.PhysActor.APIDActive = false;
-        }
-
         /// <summary>
         /// Uses a PID to attempt to clamp the object on the Z axis at the given height over tau seconds.
         /// </summary>
