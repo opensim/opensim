@@ -335,54 +335,70 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         {
             UserData oldUser;
             //lock the whole block - prevent concurrent update
-            lock (m_UserCache) {
+            lock (m_UserCache)
+            {
                 m_UserCache.TryGetValue (id, out oldUser);
-                if (oldUser != null) {
-                    if (creatorData == null || creatorData == String.Empty) {
+                if (oldUser != null)
+                {
+                    if (creatorData == null || creatorData == String.Empty)
+                    {
                         //ignore updates without creator data
                         return;
                     }
                     //try update unknown users
                     //and creator's home URL's
-                    if ((oldUser.FirstName == "Unknown" && !creatorData.Contains ("Unknown")) || (oldUser.HomeURL != null && !creatorData.StartsWith (oldUser.HomeURL))) {
+                    if ((oldUser.FirstName == "Unknown" && !creatorData.Contains ("Unknown")) || (oldUser.HomeURL != null && !creatorData.StartsWith (oldUser.HomeURL)))
+                    {
                         m_UserCache.Remove (id);
-//                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: Re-adding user with id {0}, creatorData [{1}] and old HomeURL {2}", id, creatorData,oldUser.HomeURL);
-                    } else {
+//                      m_log.DebugFormat("[USER MANAGEMENT MODULE]: Re-adding user with id {0}, creatorData [{1}] and old HomeURL {2}", id, creatorData,oldUser.HomeURL);
+                    }
+                    else
+                    {
                         //we have already a valid user within the cache
                         return;
                     }
                 }
-//                 m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, creatorData {1}", id, creatorData);
-                
-                UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount (m_Scenes[0].RegionInfo.ScopeID, id);
-                
-                if (account != null) {
+//              m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, creatorData {1}", id, creatorData);
+
+                UserAccount account = m_Scenes [0].UserAccountService.GetUserAccount (m_Scenes [0].RegionInfo.ScopeID, id);
+
+                if (account != null)
+                {
                     AddUser (id, account.FirstName, account.LastName);
-                } else {
+                }
+                else
+                {
                     UserData user = new UserData ();
                     user.Id = id;
-                    
-                    if (creatorData != null && creatorData != string.Empty) {
+
+                    if (creatorData != null && creatorData != string.Empty)
+                    {
                         //creatorData = <endpoint>;<name>
-                        
+
                         string[] parts = creatorData.Split (';');
-                        if (parts.Length >= 1) {
-                            user.HomeURL = parts[0];
-                            try {
-                                Uri uri = new Uri (parts[0]);
+                        if (parts.Length >= 1)
+                        {
+                            user.HomeURL = parts [0];
+                            try
+                            {
+                                Uri uri = new Uri (parts [0]);
                                 user.LastName = "@" + uri.Authority;
-                            } catch (UriFormatException) {
-                                m_log.DebugFormat ("[SCENE]: Unable to parse Uri {0}", parts[0]);
+                            }
+                            catch (UriFormatException)
+                            {
+                                m_log.DebugFormat ("[SCENE]: Unable to parse Uri {0}", parts [0]);
                                 user.LastName = "@unknown";
                             }
                         }
                         if (parts.Length >= 2)
-                            user.FirstName = parts[1].Replace (' ', '.');
-                    } else {
+                            user.FirstName = parts [1].Replace (' ', '.');
+                    }
+                    else
+                    {
                         user.FirstName = "Unknown";
                         user.LastName = "User";
                     }
-                    
+
                     AddUserInternal (user);
                 }
             }
