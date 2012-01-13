@@ -127,6 +127,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             npc = m_scene.GetScenePresence(npcId);
 
+            // Now the owner deleted it and it's gone
+            Assert.That(npc, Is.Null);
         }
 
         /// <summary>
