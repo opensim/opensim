@@ -2861,11 +2861,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // we need to convert from a vector describing
             // the angles of rotation in radians into rotation value
 
-            LSL_Types.Quaternion rot = llEuler2Rot(angle);
-            Quaternion rotation = new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
-            m_host.startLookAt(rotation, (float)damping, (float)strength);
-            // Orient the object to the angle calculated
-            //llSetRot(rot);
+            LSL_Rotation rot = llEuler2Rot(angle);
+            
+            // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
+            // set the rotation of the object, copy that behavior
+            if (m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
+            {
+                llSetRot(rot);
+            }
+            else
+            {
+                m_host.startLookAt(Rot2Quaternion(rot), (float)damping, (float)strength);
+            }
         }
 
         public void llStopLookAt()
@@ -3241,8 +3248,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRotLookAt(LSL_Rotation target, double strength, double damping)
         {
             m_host.AddScriptLPS(1);
-            Quaternion rot = new Quaternion((float)target.x, (float)target.y, (float)target.z, (float)target.s);
-            m_host.RotLookAt(rot, (float)strength, (float)damping);
+            
+            // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
+            // set the rotation of the object, copy that behavior
+            if (m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
+            {
+                llSetLocalRot(target);
+            }
+            else
+            {
+                m_host.RotLookAt(Rot2Quaternion(target), (float)damping, (float)strength);
+            }
         }
 
         public LSL_Integer llStringLength(string str)
