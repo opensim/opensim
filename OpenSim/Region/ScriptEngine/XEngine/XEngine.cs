@@ -273,11 +273,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             MainConsole.Instance.Commands.AddCommand(
-                "scripts", false, "scripts show", "scripts show", "Show script information",
-                "Show information on all scripts known to the script engine", HandleShowScripts);
+                "scripts", false, "scripts show", "scripts show [<script-item-uuid>]", "Show script information",
+                "Show information on all scripts known to the script engine."
+                    + "If a <script-item-uuid> is given then only information on that script will be shown.",
+                HandleShowScripts);
 
             MainConsole.Instance.Commands.AddCommand(
-                "scripts", false, "show scripts", "show scripts", "Show script information",
+                "scripts", false, "show scripts", "show scripts [<script-item-uuid>]", "Show script information",
                 "Synonym for scripts show command", HandleShowScripts);
 
             MainConsole.Instance.Commands.AddCommand(
@@ -306,43 +308,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 "Starts all stopped scripts."
                     + "If a <script-item-uuid> is given then only that script will be started.  Otherwise, all suitable scripts are started.",
                 (module, cmdparams) => HandleScriptsAction(cmdparams, HandleStartScript));
-        }
-
-        public void HandleShowScripts(string module, string[] cmdparams)
-        {
-            lock (m_Scripts)
-            {
-                MainConsole.Instance.OutputFormat(
-                    "Showing {0} scripts in {1}", m_Scripts.Count, m_Scene.RegionInfo.RegionName);
-
-                foreach (IScriptInstance instance in m_Scripts.Values)
-                {
-                    SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
-                    string status;
-
-                    if (instance.ShuttingDown)
-                    {
-                        status = "shutting down";
-                    }
-                    else if (instance.Suspended)
-                    {
-                        status = "suspended";
-                    }
-                    else if (!instance.Running)
-                    {
-                        status = "stopped";
-                    }
-                    else
-                    {
-                        status = "running";
-                    }
-
-                    MainConsole.Instance.OutputFormat(
-                        "{0}.{1}, item UUID {2}, prim UUID {3} @ {4} ({5})",
-                        instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID,
-                        sop.AbsolutePosition, status);
-                }
-            }
         }
 
         /// <summary>
@@ -392,6 +357,48 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     }
                 }
             }
+        }
+
+        public void HandleShowScripts(string module, string[] cmdparams)
+        {
+            if (cmdparams.Length == 2)
+            {
+                lock (m_Scripts)
+                {
+                    MainConsole.Instance.OutputFormat(
+                        "Showing {0} scripts in {1}", m_Scripts.Count, m_Scene.RegionInfo.RegionName);
+                }
+            }
+
+            HandleScriptsAction(cmdparams, HandleShowScript);
+        }
+
+        private void HandleShowScript(IScriptInstance instance)
+        {
+            SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
+            string status;
+
+            if (instance.ShuttingDown)
+            {
+                status = "shutting down";
+            }
+            else if (instance.Suspended)
+            {
+                status = "suspended";
+            }
+            else if (!instance.Running)
+            {
+                status = "stopped";
+            }
+            else
+            {
+                status = "running";
+            }
+
+            MainConsole.Instance.OutputFormat(
+                "{0}.{1}, item UUID {2}, prim UUID {3} @ {4} ({5})",
+                instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID,
+                sop.AbsolutePosition, status);
         }
 
         private void HandleSuspendScript(IScriptInstance instance)
