@@ -31,8 +31,21 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
+    public delegate void ScriptRemoved(UUID script);
+    public delegate void ObjectRemoved(UUID prim);
+
     public interface IScriptModule: INonSharedRegionModule
     {
+        /// <summary>
+        /// Triggered when a script is removed from the script module.
+        /// </summary>
+        event ScriptRemoved OnScriptRemoved;
+
+        /// <summary>
+        /// Triggered when an object is removed via the script module.
+        /// </summary>
+        event ObjectRemoved OnObjectRemoved;
+
         string ScriptEngineName { get; }
 
         string GetXMLState(UUID itemID);

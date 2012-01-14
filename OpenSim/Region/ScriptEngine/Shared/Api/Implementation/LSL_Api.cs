@@ -126,11 +126,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_TransferModule =
                     m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
-            if (m_UrlModule != null)
-            {
-                m_ScriptEngine.OnScriptRemoved += m_UrlModule.ScriptRemoved;
-                m_ScriptEngine.OnObjectRemoved += m_UrlModule.ObjectRemoved;
-            }
 
             AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
