@@ -3039,7 +3039,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llLookAt(LSL_Vector target, double strength, double damping)
         {
-            /*
             m_host.AddScriptLPS(1);
             // Determine where we are looking from
             LSL_Vector from = llGetPos();
@@ -3058,69 +3057,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // we need to convert from a vector describing
             // the angles of rotation in radians into rotation value
 
-<<<<<<< HEAD:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
-            LSL_Types.Quaternion rot = llEuler2Rot(angle);
-
-            // This would only work if your physics system contains an APID controller:
-            // Quaternion rotation = new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
-            // m_host.startLookAt(rotation, (float)damping, (float)strength);
-            
-            // Orient the object to the angle calculated
-            llSetRot(rot);
-            */
-
-            //The above code, while nice, doesn't replicate the behaviour of SL and tends to "roll" the object.
-            //There's probably a smarter way of doing this, my rotation math-fu is weak.
-            // http://bugs.meta7.com/view.php?id=28
-            //                                       - Tom
-
-			/* And the following does not do the job either. It has to be performed inside the ODE glue-code. -.- .._.
-			LSL_Rotation newrot = llGetRot() * llRotBetween(new LSL_Vector(1.0d, 0.0d, 0.0d) * llGetRot(), new LSL_Vector(0.0d, 0.0d, -1.0d));
-            llSetRot(newrot * llRotBetween(new LSL_Vector(0.0d,0.0d,1.0d) * newrot, target - llGetPos()));
-			*/
-            if (m_host.PhysActor != null && !m_host.PhysActor.IsPhysical)
-            {
-                // Part is non-phys, convert this to a llSetRot()
-                Vector3 tgt = new Vector3((float)target.x, (float)target.y, (float)target.z);
-                Vector3 dir = tgt - m_host.GroupPosition;
-				dir.Normalize();
-                float tzrot = (float)Math.Atan2(dir.Y, dir.X);
-                float txy = (float)Math.Sqrt((dir.X * dir.X) + (dir.Y * dir.Y));
-                float terot = (float)Math.Atan2(-dir.Z, txy);
-                LSL_Vector az = new LSL_Vector(0.0f, 0.0f, tzrot);
-                LSL_Vector ae = new LSL_Vector(0.0f, terot, 0.0f);
-                LSL_Types.Quaternion spin =  llEuler2Rot(az);
-                LSL_Types.Quaternion rot =  llEuler2Rot(ae) * spin;
-=======
             LSL_Rotation rot = llEuler2Rot(angle);
-            
+
             // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
             // set the rotation of the object, copy that behavior
             if (strength == 0 || m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
             {
->>>>>>> master:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
                 llSetRot(rot);
             }
             else
             {
-<<<<<<< HEAD:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
-    			// Physical, send the target vector to RotLookAt method inside a 'rotation', the .w -99.9 value indicates it is really a LookAt.
-    			Quaternion q = new Quaternion((float)target.x, (float)target.y, (float)target.z, -99.9f);
-    			m_host.RotLookAt(q, (float)strength, (float)damping);
-            }
-
-        }
-        
-        public void llRotLookAt(LSL_Rotation target, double strength, double damping)
-        {
-            m_host.AddScriptLPS(1);
-//            NotImplemented("llRotLookAt");
-            m_host.RotLookAt(Rot2Quaternion(target), (float)strength, (float)damping);
-            
-=======
                 m_host.StartLookAt(Rot2Quaternion(rot), (float)strength, (float)damping);
             }
->>>>>>> master:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
         }
 
         public void llStopLookAt()
@@ -3543,8 +3491,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
         }
 
-<<<<<<< HEAD:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
-=======
         public void llRotLookAt(LSL_Rotation target, double strength, double damping)
         {
             m_host.AddScriptLPS(1);
@@ -3561,7 +3507,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
->>>>>>> master:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
         public LSL_Integer llStringLength(string str)
         {
             m_host.AddScriptLPS(1);

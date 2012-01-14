@@ -2747,11 +2747,6 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void RotLookAt(Quaternion target, float strength, float damping)
         {
-        	m_parentGroup.rotLookAt(target, strength, damping);  // This calls method in SceneObjectGroup.
-        }
-
-        public void rotLookAt(Quaternion target, float strength, float damping)
-        {
             if (ParentGroup.IsAttachment)
             {
                 /*
