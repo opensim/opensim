@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Mail;
 using System.Net.Security;
 using System.Text;
 using System.Threading;
@@ -111,21 +112,36 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             X509Chain  chain,
             SslPolicyErrors  sslPolicyErrors)
         {
-            HttpWebRequest Request = (HttpWebRequest)sender;
-
-            if (Request.Headers.Get("NoVerifyCert") != null)
+            // If this is a web request we need to check the headers first
+            // We may want to ignore SSL
+            if (sender is HttpWebRequest)
             {
+                HttpWebRequest Request = (HttpWebRequest)sender;
+                ServicePoint sp = Request.ServicePoint;
+
+                // We don't case about encryption, get out of here
+                if (Request.Headers.Get("NoVerifyCert") != null)
+                {
+                    return true;
+                }
+
+                // If there was an upstream cert verification error, bail
+                if ((((int)sslPolicyErrors) & ~4) != 0)
+                    return false;
+
+                // Check for policy and execute it if defined
+                if (ServicePointManager.CertificatePolicy != null)
+                {
+                    return ServicePointManager.CertificatePolicy.CheckValidationResult (sp, certificate, Request, 0);
+                }
+
                 return true;
             }
-            
+
+            // If it's not HTTP, trust .NET to check it
             if ((((int)sslPolicyErrors) & ~4) != 0)
                 return false;
 
-            if (ServicePointManager.CertificatePolicy != null)
-            {
-                ServicePoint sp = Request.ServicePoint;
-                return ServicePointManager.CertificatePolicy.CheckValidationResult (sp, certificate, Request, 0);
-            }
             return true;
         }
         #region IHttpRequestModule Members
