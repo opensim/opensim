@@ -25,57 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using log4net;
+
 using System;
-using OpenSim.Region.ScriptEngine.Shared;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Interfaces;
-using OpenMetaverse;
-using Nini.Config;
-using OpenSim.Region.ScriptEngine.Interfaces;
-using Amib.Threading;
-using OpenSim.Framework;
 
-namespace OpenSim.Region.ScriptEngine.Interfaces
+namespace OpenSim.Region.Framework.Interfaces
 {
-    /// <summary>
-    /// An interface for a script API module to communicate with
-    /// the engine it's running under
-    /// </summary>
-    public interface IScriptEngine
+    public interface IRegionReadyModule
     {
-        /// <summary>
-        /// Queue an event for execution
-        /// </summary>
-        IScriptWorkItem QueueEventHandler(object parms);
-
-        Scene World { get; }
-
-        IScriptModule ScriptModule { get; }
-
-        /// <summary>
-        /// Post an event to a single script
-        /// </summary>
-        bool PostScriptEvent(UUID itemID, EventParams parms);
-        
-        /// <summary>
-        /// Post event to an entire prim
-        /// </summary>
-        bool PostObjectEvent(uint localID, EventParams parms);
-
-        DetectParams GetDetectParams(UUID item, int number);
-        void SetMinEventDelay(UUID itemID, double delay);
-        int GetStartParameter(UUID itemID);
-
-        void SetScriptState(UUID itemID, bool state);
-        bool GetScriptState(UUID itemID);
-        void SetState(UUID itemID, string newState);
-        void ApiResetScript(UUID itemID);
-        void ResetScript(UUID itemID);
-        IConfig Config { get; }
-        IConfigSource ConfigSource { get; }
-        string ScriptEngineName { get; }
-        string ScriptEnginePath { get; }
-        IScriptApi GetApi(UUID itemID, string name);
+        void OarLoadingAlert(string msg);
     }
 }
+

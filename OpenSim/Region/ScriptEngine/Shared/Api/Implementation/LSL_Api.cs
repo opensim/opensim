@@ -140,11 +140,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_TransferModule =
                     m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
-            if (m_UrlModule != null)
-            {
-                m_ScriptEngine.OnScriptRemoved += m_UrlModule.ScriptRemoved;
-                m_ScriptEngine.OnObjectRemoved += m_UrlModule.ObjectRemoved;
-            }
 
             AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
@@ -3063,6 +3058,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // we need to convert from a vector describing
             // the angles of rotation in radians into rotation value
 
+<<<<<<< HEAD:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
             LSL_Types.Quaternion rot = llEuler2Rot(angle);
 
             // This would only work if your physics system contains an APID controller:
@@ -3095,10 +3091,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSL_Vector ae = new LSL_Vector(0.0f, terot, 0.0f);
                 LSL_Types.Quaternion spin =  llEuler2Rot(az);
                 LSL_Types.Quaternion rot =  llEuler2Rot(ae) * spin;
+=======
+            LSL_Rotation rot = llEuler2Rot(angle);
+            
+            // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
+            // set the rotation of the object, copy that behavior
+            if (strength == 0 || m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
+            {
+>>>>>>> master:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
                 llSetRot(rot);
             }
             else
             {
+<<<<<<< HEAD:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
     			// Physical, send the target vector to RotLookAt method inside a 'rotation', the .w -99.9 value indicates it is really a LookAt.
     			Quaternion q = new Quaternion((float)target.x, (float)target.y, (float)target.z, -99.9f);
     			m_host.RotLookAt(q, (float)strength, (float)damping);
@@ -3112,6 +3117,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 //            NotImplemented("llRotLookAt");
             m_host.RotLookAt(Rot2Quaternion(target), (float)strength, (float)damping);
             
+=======
+                m_host.StartLookAt(Rot2Quaternion(rot), (float)strength, (float)damping);
+            }
+>>>>>>> master:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
         }
 
         public void llStopLookAt()
@@ -3534,6 +3543,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
         }
 
+<<<<<<< HEAD:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
+=======
+        public void llRotLookAt(LSL_Rotation target, double strength, double damping)
+        {
+            m_host.AddScriptLPS(1);
+            
+            // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
+            // set the rotation of the object, copy that behavior
+            if (strength == 0 || m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
+            {
+                llSetLocalRot(target);
+            }
+            else
+            {
+                m_host.RotLookAt(Rot2Quaternion(target), (float)strength, (float)damping);
+            }
+        }
+
+>>>>>>> master:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
         public LSL_Integer llStringLength(string str)
         {
             m_host.AddScriptLPS(1);

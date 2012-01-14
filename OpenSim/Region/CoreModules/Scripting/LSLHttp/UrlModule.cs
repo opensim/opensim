@@ -132,6 +132,12 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         public void RegionLoaded(Scene scene)
         {
+            IScriptModule[] scriptModules = scene.RequestModuleInterfaces<IScriptModule>();
+            foreach (IScriptModule scriptModule in scriptModules)
+            {
+                scriptModule.OnScriptRemoved += ScriptRemoved;
+                scriptModule.OnObjectRemoved += ObjectRemoved;
+            }
         }
 
         public void RemoveRegion(Scene scene)
@@ -289,6 +295,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         public void ScriptRemoved(UUID itemID)
         {
+//            m_log.DebugFormat("[URL MODULE]: Removing script {0}", itemID);
+            
             lock (m_UrlMap)
             {
                 List<string> removeURLs = new List<string>();

@@ -226,11 +226,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Quaternion SpinOldOrientation = Quaternion.Identity;
 
-        public Quaternion m_APIDTarget = Quaternion.Identity;
-
-        public float m_APIDDamp = 0;
-        
-        public float m_APIDStrength = 0;
+        protected int m_APIDIterations = 0;
+        protected Quaternion m_APIDTarget = Quaternion.Identity;
+        protected float m_APIDDamp = 0;
+        protected float m_APIDStrength = 0;
 
         /// <summary>
         /// This part's inventory
@@ -578,22 +577,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        
-        public Quaternion APIDTarget
+        protected Quaternion APIDTarget
         {
             get { return m_APIDTarget; }
             set { m_APIDTarget = value; }
         }
 
         
-        public float APIDDamp
+        protected float APIDDamp
         {
             get { return m_APIDDamp; }
             set { m_APIDDamp = value; }
         }
 
         
-        public float APIDStrength
+        protected float APIDStrength
         {
             get { return m_APIDStrength; }
             set { m_APIDStrength = value; }
@@ -2768,17 +2766,26 @@ namespace OpenSim.Region.Framework.Scenes
                 APIDDamp = damping;
                 APIDStrength = strength;
                 APIDTarget = target;
+
+                if (APIDStrength <= 0)
+                {
+                    m_log.WarnFormat("[SceneObjectPart] Invalid rotation strength {0}",APIDStrength);
+                    return;
+                }
+                
+                m_APIDIterations = 1 + (int)(Math.PI * APIDStrength);
             }
+
+            // Necessary to get the lookat deltas applied
+            ParentGroup.QueueForUpdateCheck();
         }
 
-        public void startLookAt(Quaternion rot, float damp, float strength)
+        public void StartLookAt(Quaternion target, float strength, float damping)
         {
-            APIDDamp = damp;
-            APIDStrength = strength;
-            APIDTarget = rot;
+            RotLookAt(target,strength,damping);
         }
 
-        public void stopLookAt()
+        public void StopLookAt()
         {
             APIDTarget = Quaternion.Identity;
         }
@@ -3466,13 +3473,6 @@ namespace OpenSim.Region.Framework.Scenes
                 ParentGroup.HasGroupChanged = true;
                 ScheduleFullUpdate();
             }
-        }
-        
-        public void StopLookAt()
-        {
-            ParentGroup.stopLookAt();
-
-            ParentGroup.ScheduleGroupForTerseUpdate();
         }
         
         /// <summary>
@@ -4790,24 +4790,20 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (APIDTarget != Quaternion.Identity)
                 {
-                    if (Single.IsNaN(APIDTarget.W) == true)
+                    if (m_APIDIterations <= 1)
                     {
+                        UpdateRotation(APIDTarget);
                         APIDTarget = Quaternion.Identity;
                         return;
                     }
-                    Quaternion rot = RotationOffset;
-                    Quaternion dir = (rot - APIDTarget);
-                    float speed = ((APIDStrength / APIDDamp) * (float)(Math.PI / 180.0f));
-                    if (dir.Z > speed)
-                    {
-                        rot.Z -= speed;
-                    }
-                    if (dir.Z < -speed)
-                    {
-                        rot.Z += speed;
-                    }
-                    rot.Normalize();
+
+                    Quaternion rot = Quaternion.Slerp(RotationOffset,APIDTarget,1.0f/(float)m_APIDIterations);
                     UpdateRotation(rot);
+
+                    m_APIDIterations--;
+
+                    // This ensures that we'll check this object on the next iteration
+                    ParentGroup.QueueForUpdateCheck();
                 }
             }
             catch (Exception ex)

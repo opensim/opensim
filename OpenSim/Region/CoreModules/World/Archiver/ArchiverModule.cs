@@ -98,6 +98,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             
             OptionSet options = new OptionSet().Add("m|merge", delegate (string v) { mergeOar = v != null; });
             options.Add("s|skip-assets", delegate (string v) { skipAssets = v != null; });
+
+            // Send a message to the region ready module
+            IRegionReadyModule rready = m_scene.RequestModuleInterface<IRegionReadyModule>();
+
+            if (rready != null)
+            {
+                rready.OarLoadingAlert("load");
+            }
             
             List<string> mainParams = options.Parse(cmdparams);
           
@@ -125,7 +133,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             Dictionary<string, object> options = new Dictionary<string, object>();
 
             OptionSet ops = new OptionSet();
-            
+
             // legacy argument [obsolete]
             ops.Add("p|profile=", delegate(string v) { Console.WriteLine("\n WARNING: -profile option is obsolete and it will not work. Use -home instead.\n"); });
             // preferred
