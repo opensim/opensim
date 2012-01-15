@@ -254,8 +254,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 // Will need some controls around this
                 m_scene.LoginsDisabled = true;
                 m_scene.LoginLock = true;
-                RRAlert("loading oar");
-                RRAlert("disabled");
+                if ( m_uri != string.Empty )
+                {
+                    RRAlert("loading oar");
+                    RRAlert("disabled");
+                }
             }
         }
 
