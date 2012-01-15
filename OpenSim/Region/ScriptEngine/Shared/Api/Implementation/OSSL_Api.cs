@@ -739,7 +739,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             // High because there is no security check. High griefer potential
             //
-            CheckThreatLevel(ThreatLevel.High, "osTeleportAgent");
+            CheckThreatLevel(ThreatLevel.Severe, "osTeleportAgent");
 
             TeleportAgent(agent, regionName, position, lookat, false);
         }
@@ -756,11 +756,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     // For osTeleportAgent, agent must be over owners land to avoid abuse
                     // For osTeleportOwner, this restriction isn't necessary
-                    if (relaxRestrictions ||
-                        m_host.OwnerID
-                        == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
-                    {
+
+                    // commented out because its redundant and uneeded please remove eventually.
+                    // if (relaxRestrictions ||
+                    //    m_host.OwnerID
+                    //    == World.LandChannel.GetLandObject(
+                    //        presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
+                    // {
+
                         // We will launch the teleport on a new thread so that when the script threads are terminated
                         // before teleport in ScriptInstance.GetXMLState(), we don't end up aborting the one doing the teleporting.                        
                         Util.FireAndForget(
@@ -769,7 +772,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation));
 
                         ScriptSleep(5000);
-                    }
+
+                    // }
+
                 }
             }
         }
@@ -778,7 +783,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             // High because there is no security check. High griefer potential
             //
-            CheckThreatLevel(ThreatLevel.High, "osTeleportAgent");
+            CheckThreatLevel(ThreatLevel.Severe, "osTeleportAgent");
 
             TeleportAgent(agent, regionX, regionY, position, lookat, false);
         }
@@ -797,11 +802,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     // For osTeleportAgent, agent must be over owners land to avoid abuse
                     // For osTeleportOwner, this restriction isn't necessary
-                    if (relaxRestrictions ||
-                        m_host.OwnerID
-                        == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
-                    {
+
+                    // commented out because its redundant and uneeded please remove eventually.
+                    // if (relaxRestrictions ||
+                    //    m_host.OwnerID
+                    //    == World.LandChannel.GetLandObject(
+                    //        presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
+                    // {
+
                         // We will launch the teleport on a new thread so that when the script threads are terminated
                         // before teleport in ScriptInstance.GetXMLState(), we don't end up aborting the one doing the teleporting.
                         Util.FireAndForget(
@@ -810,7 +818,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation));
 
                         ScriptSleep(5000);
-                    }
+
+                   //  }
+
                 }
             }
         }
