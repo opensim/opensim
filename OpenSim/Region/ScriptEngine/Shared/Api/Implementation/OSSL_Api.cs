@@ -2116,13 +2116,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 AvatarAppearance appearance = null;
 
-                UUID id;
-                if (UUID.TryParse(notecard, out id))
-                {
-                    ScenePresence clonePresence = World.GetScenePresence(id);
-                    if (clonePresence != null)
-                        appearance = clonePresence.Appearance;
-                }
+//                UUID id;
+//                if (UUID.TryParse(notecard, out id))
+//                {
+//                    ScenePresence clonePresence = World.GetScenePresence(id);
+//                    if (clonePresence != null)
+//                        appearance = clonePresence.Appearance;
+//                }
 
                 if (appearance == null)
                 {
