@@ -472,6 +472,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return false;
         }
 
+        public GridUserInfo[] GetGridUserInfo(string[] userIDs)
+        {
+            return new GridUserInfo[0];
+         }
         #endregion Helpers
     }
 }

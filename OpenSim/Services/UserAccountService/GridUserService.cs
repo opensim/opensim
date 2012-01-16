@@ -73,6 +73,16 @@ namespace OpenSim.Services.UserAccountService
             return info;
         }
 
+        public GridUserInfo[] GetGridUserInfo(string[] userIDs)
+        {
+            List<GridUserInfo> ret = new List<GridUserInfo>();
+
+            foreach (string id in userIDs)
+                ret.Add(GetGridUserInfo(id));
+
+            return ret.ToArray();
+        }
+
         public GridUserInfo LoggedIn(string userID)
         {
             m_log.DebugFormat("[GRID USER SERVICE]: User {0} is online", userID);
