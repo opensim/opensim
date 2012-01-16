@@ -1212,7 +1212,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_callbackURI = null;
             }
 
-            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
+//            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
 
             ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
             ValidateAndSendAppearanceAndAgentData();
