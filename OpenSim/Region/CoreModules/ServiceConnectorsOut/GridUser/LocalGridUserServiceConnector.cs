@@ -171,6 +171,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
         {
             return m_GridUserService.GetGridUserInfo(userID);
         }
+        public GridUserInfo[] GetGridUserInfo(string[] userID)
+        {
+            return m_GridUserService.GetGridUserInfo(userID);
+        }
 
         #endregion
 

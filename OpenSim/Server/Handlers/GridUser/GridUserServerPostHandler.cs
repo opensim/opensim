@@ -88,6 +88,8 @@ namespace OpenSim.Server.Handlers.GridUser
                         return SetPosition(request);
                     case "getgriduserinfo":
                         return GetGridUserInfo(request);
+                    case "getgriduserinfos":
+                        return GetGridUserInfos(request);
                 }
                 m_log.DebugFormat("[GRID USER HANDLER]: unknown method request: {0}", method);
             }
@@ -191,6 +193,46 @@ namespace OpenSim.Server.Handlers.GridUser
             UTF8Encoding encoding = new UTF8Encoding();
             return encoding.GetBytes(xmlString);
 
+        }
+
+        byte[] GetGridUserInfos(Dictionary<string, object> request)
+        {
+
+            string[] userIDs;
+
+            if (!request.ContainsKey("AgentIDs"))
+            {
+                m_log.DebugFormat("[GRID USER HANDLER]: GetGridUserInfos called without required uuids argument");
+                return FailureResult();
+            }
+
+            if (!(request["AgentIDs"] is List<string>))
+            {
+                m_log.DebugFormat("[GRID USER HANDLER]: GetGridUserInfos input argument was of unexpected type {0}", request["uuids"].GetType().ToString());
+                return FailureResult();
+            }
+
+            userIDs = ((List<string>)request["AgentIDs"]).ToArray();
+
+            GridUserInfo[] pinfos = m_GridUserService.GetGridUserInfo(userIDs);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if ((pinfos == null) || ((pinfos != null) && (pinfos.Length == 0)))
+                result["result"] = "null";
+            else
+            {
+                int i = 0;
+                foreach (GridUserInfo pinfo in pinfos)
+                {
+                    Dictionary<string, object> rinfoDict = pinfo.ToKeyValuePairs();
+                    result["griduser" + i] = rinfoDict;
+                    i++;
+                }
+            }
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
         }
 
         private bool UnpackArgs(Dictionary<string, object> request, out string user, out UUID region, out Vector3 position, out Vector3 lookAt)
