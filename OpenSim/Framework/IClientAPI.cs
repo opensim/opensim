@@ -1074,7 +1074,15 @@ namespace OpenSim.Framework
         void SendWindData(Vector2[] windSpeeds);
         void SendCloudData(float[] cloudCover);
 
+        /// <summary>
+        /// Sent when an agent completes its movement into a region.
+        /// </summary>
+        /// <remarks>
+        /// This packet marks completion of the arrival of a root avatar in a region, whether through login, region
+        /// crossing or direct teleport.
+        /// </remarks>
         void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look);
+
         void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint);
         
         /// <summary>
