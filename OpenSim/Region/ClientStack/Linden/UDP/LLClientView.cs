@@ -785,9 +785,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(handshake, ThrottleOutPacketType.Task);
         }
 
-        /// <summary>
-        ///
-        /// </summary>
         public void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {
             AgentMovementCompletePacket mov = (AgentMovementCompletePacket)PacketPool.Instance.GetPacket(PacketType.AgentMovementComplete);
@@ -3497,6 +3494,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry)
         {
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Sending avatar appearance for {0} with {1} bytes to {2} {3}",
+//                agentID, textureEntry.Length, Name, AgentId);
+
             AvatarAppearancePacket avp = (AvatarAppearancePacket)PacketPool.Instance.GetPacket(PacketType.AvatarAppearance);
             // TODO: don't create new blocks if recycling an old packet
             avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[218];
@@ -3518,7 +3519,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId, UUID[] objectIDs)
         {
-            //m_log.DebugFormat("[CLIENT]: Sending animations to {0}", Name);
+//            m_log.DebugFormat("[LLCLIENTVIEW]: Sending animations for {0} to {1}", sourceAgentId, Name);
 
             AvatarAnimationPacket ani = (AvatarAnimationPacket)PacketPool.Instance.GetPacket(PacketType.AvatarAnimation);
             // TODO: don't create new blocks if recycling an old packet
@@ -3553,6 +3554,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void SendAvatarDataImmediate(ISceneEntity avatar)
         {
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Sending immediate object update for avatar {0} {1} to {2} {3}",
+//                avatar.Name, avatar.UUID, Name, AgentId);
+            
             ScenePresence presence = avatar as ScenePresence;
             if (presence == null)
                 return;
@@ -3562,7 +3567,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             objupdate.RegionData.RegionHandle = presence.RegionHandle;
             objupdate.RegionData.TimeDilation = ushort.MaxValue;
-
+            
             objupdate.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
             objupdate.ObjectData[0] = CreateAvatarUpdateBlock(presence);
 
