@@ -2406,7 +2406,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!module.CheckPermissions(npcId, m_host.OwnerID))
                     return;
 
-                module.DeleteNPC(npcId, World);
+                Util.FireAndForget(delegate(object x) {
+                    module.DeleteNPC(npcId, World);
+                });
             }
         }
 
