@@ -4612,7 +4612,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             if (landData.SimwideArea > 0)
             {
-                int simulatorCapacity = (int)((double)(landData.SimwideArea * m_scene.RegionInfo.ObjectCapacity) * m_scene.RegionInfo.RegionSettings.ObjectBonus) / 65536;
+                int simulatorCapacity = (int)((long)landData.SimwideArea * (long)m_scene.RegionInfo.ObjectCapacity * (long)m_scene.RegionInfo.RegionSettings.ObjectBonus / 65536L);
                 // Never report more than sim total capacity
                 if (simulatorCapacity > m_scene.RegionInfo.ObjectCapacity)
                     simulatorCapacity = m_scene.RegionInfo.ObjectCapacity;
