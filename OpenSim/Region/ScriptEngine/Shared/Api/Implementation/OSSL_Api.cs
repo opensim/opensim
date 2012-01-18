@@ -1948,10 +1948,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             Nick,
             Name,
-            Login
+            Login,
+            Custom
         };
 
         private string GridUserInfo(InfoType type)
+        {
+            return GridUserInfo(type, "");
+        }
+
+        private string GridUserInfo(InfoType type, string key)
         {
             string retval = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
@@ -1982,6 +1988,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 case InfoType.Login:
                     retval = json["login"];
+                    break;
+
+                case InfoType.Custom:
+                    retval = json[key];
                     break;
 
                 default:
@@ -2050,6 +2060,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 loginURI = GridUserInfo(InfoType.Login);
 
             return loginURI;
+        }
+
+        public string osGetGridCustom(string key)
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridCustom");
+            m_host.AddScriptLPS(1);
+
+            string retval = String.Empty;
+            IConfigSource config = m_ScriptEngine.ConfigSource;
+
+            if (config.Configs["GridInfo"] != null)
+                retval = config.Configs["GridInfo"].GetString(key, retval);
+
+            if (String.IsNullOrEmpty(retval))
+                retval = GridUserInfo(InfoType.Custom, key);
+
+            return retval;
         }
 
         public LSL_String osFormatString(string str, LSL_List strings)
