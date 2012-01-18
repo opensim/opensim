@@ -452,6 +452,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetGridLoginURI();
         }
 
+        public string osGetGridCustom(string key)
+        {
+            return m_OSSL_Functions.osGetGridCustom(key);
+        }
+
         public LSL_String osFormatString(string str, LSL_List strings)
         {
             return m_OSSL_Functions.osFormatString(str, strings);
