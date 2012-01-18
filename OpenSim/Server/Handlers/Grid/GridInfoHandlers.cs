@@ -37,6 +37,7 @@ using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Server.Handlers.Grid
 {
@@ -141,6 +142,20 @@ namespace OpenSim.Server.Handlers.Grid
             sb.Append("</gridinfo>\n");
 
             return sb.ToString();
+        }
+
+        public string JsonGetGridInfoMethod(string request, string path, string param,
+                                            IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        {
+
+            OSDMap map = new OSDMap();
+
+            foreach (string k in _info.Keys)
+            {
+                map[k] = OSD.FromString(_info[k].ToString());
+            }
+
+            return OSDParser.SerializeJsonString(map).ToString();
         }
     }
 }
