@@ -58,6 +58,12 @@
     ;
     InventoryServerURI = "http://mygridserver.com:8003"
 
+[GridInfo]
+   ;
+   ; Change this to your grid info service
+   ;
+   GridInfoURI = "http://mygridserver.com:8002"
+
 [GridService]
     ;
     ; Change this to your grid-wide grid server
