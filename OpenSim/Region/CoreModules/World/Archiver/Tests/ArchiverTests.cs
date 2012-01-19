@@ -344,7 +344,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             {
                 using (BinaryReader br = new BinaryReader(resource))
                 {
-                    // FIXME: Use the inspector insteadthere are so many forums and lists already, though admittedly none of them are suitable for cross virtual-enivornemnt discussion
+                    // FIXME: Use the inspector instead
                     soundData = br.ReadBytes(99999999);
                     UUID soundUuid = UUID.Parse("00000000-0000-0000-0000-000000000001");
                     string soundAssetFileName 

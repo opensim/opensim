@@ -55,16 +55,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_shuttingdown;
         private AssetBase m_missingImage;
-        private LLClientView m_client; //Client we're assigned to
+        private IClientAPI m_client; //Client we're assigned to
         private IAssetService m_assetCache; //Asset Cache
         private IJ2KDecoder m_j2kDecodeModule; //Our J2K module
         private C5.IntervalHeap<J2KImage> m_priorityQueue = new C5.IntervalHeap<J2KImage>(10, new J2KImageComparer());
         private object m_syncRoot = new object();
 
-        public LLClientView Client { get { return m_client; } }
+        public IClientAPI Client { get { return m_client; } }
         public AssetBase MissingImage { get { return m_missingImage; } }
 
-        public LLImageManager(LLClientView client, IAssetService pAssetCache, IJ2KDecoder pJ2kDecodeModule)
+        public LLImageManager(IClientAPI client, IAssetService pAssetCache, IJ2KDecoder pJ2kDecodeModule)
         {
             m_client = client;
             m_assetCache = pAssetCache;

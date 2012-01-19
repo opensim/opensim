@@ -82,7 +82,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="packetsToSend">Maximum number of packets to send during this call</param>
         /// <param name="packetsSent">Number of packets sent during this call</param>
         /// <returns>True if the transfer completes at the current discard level, otherwise false</returns>
-        public bool SendPackets(LLClientView client, int packetsToSend, out int packetsSent)
+        public bool SendPackets(IClientAPI client, int packetsToSend, out int packetsSent)
         {
             packetsSent = 0;
 
@@ -212,7 +212,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private bool SendFirstPacket(LLClientView client)
+        private bool SendFirstPacket(IClientAPI client)
         {
             if (client == null)
                 return false;
@@ -247,7 +247,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return false;
         }
 
-        private bool SendPacket(LLClientView client)
+        private bool SendPacket(IClientAPI client)
         {
             if (client == null)
                 return false;

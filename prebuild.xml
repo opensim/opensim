@@ -3164,12 +3164,14 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenSim.Tests.Common"/>
 
       <Files>
         <Match pattern="*.cs" recurse="false"/>
+        <Match buildAction="EmbeddedResource" path="Resources" pattern="*"/>
       </Files>
     </Project>
 
