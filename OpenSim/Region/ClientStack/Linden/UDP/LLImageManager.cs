@@ -246,6 +246,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
+        /// Clear the image queue.
+        /// </summary>
+        /// <returns>The number of requests cleared.</returns>
+        public int ClearImageQueue()
+        {
+            int requestsDeleted;
+
+            lock (m_priorityQueue)
+            {
+                requestsDeleted = m_priorityQueue.Count;
+
+                // Surprisingly, there doesn't seem to be a clear method at this time.
+                while (!m_priorityQueue.IsEmpty)
+                    m_priorityQueue.DeleteMax();
+            }
+
+            return requestsDeleted;
+        }
+
+        /// <summary>
         /// Returns an array containing all the images in the queue.
         /// </summary>
         /// <returns></returns>
