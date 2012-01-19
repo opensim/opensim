@@ -44,7 +44,7 @@ namespace OpenSim.Server.Handlers.Grid
     public class GridInfoHandlers
     {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        private IConfigSource m_Config;
         private Hashtable _info = new Hashtable();
 
         /// <summary>
@@ -60,6 +60,7 @@ namespace OpenSim.Server.Handlers.Grid
         /// </remarks>
         public GridInfoHandlers(IConfigSource configSource)
         {
+            m_Config = configSource;
             loadGridInfo(configSource);
         }
 
@@ -144,15 +145,49 @@ namespace OpenSim.Server.Handlers.Grid
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Get GridInfo in json format: Used bu the OSSL osGetGrid*
+        /// Adding the SRV_HomeIRI to the kvp returned for use in scripts
+        /// </summary>
+        /// <returns>
+        /// json string
+        /// </returns>
+        /// <param name='request'>
+        /// Request.
+        /// </param>
+        /// <param name='path'>
+        ///  /json_grid_info
+        /// </param>
+        /// <param name='param'>
+        /// Parameter.
+        /// </param>
+        /// <param name='httpRequest'>
+        /// Http request.
+        /// </param>
+        /// <param name='httpResponse'>
+        /// Http response.
+        /// </param>
         public string JsonGetGridInfoMethod(string request, string path, string param,
                                             IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
+            string HomeURI = String.Empty;
+            IConfig cfg = m_Config.Configs["LoginService"];
+
+            if (null != cfg)
+            {
+                HomeURI = cfg.GetString("SRV_HomeURI", HomeURI);
+            }
 
             OSDMap map = new OSDMap();
 
             foreach (string k in _info.Keys)
             {
                 map[k] = OSD.FromString(_info[k].ToString());
+            }
+
+            if (!String.IsNullOrEmpty(HomeURI))
+            {
+                map["HomeURI"] = OSD.FromString(HomeURI);
             }
 
             return OSDParser.SerializeJsonString(map).ToString();
