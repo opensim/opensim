@@ -448,13 +448,17 @@ namespace OpenSim.Framework
         public string GetOtherSetting(string key)
         {
             string val;
-            m_otherSettings.TryGetValue(key, out val);
-            return val;
+            string keylower = key.ToLower();
+            if (m_otherSettings.TryGetValue(keylower, out val))
+                return val;
+            m_log.DebugFormat("[RegionInfo] Could not locate value for parameter {0}", key);
+            return null;
         }
 
         public void SetOtherSetting(string key, string value)
         {
-            m_otherSettings[key] = value;
+            string keylower = key.ToLower();
+            m_otherSettings[keylower] = value;
         }
 
         private void ReadNiniConfig(IConfigSource source, string name)
@@ -496,12 +500,12 @@ namespace OpenSim.Framework
             HashSet<String> allKeys = new HashSet<String>();
             foreach (string s in config.GetKeys())
             {
-                allKeys.Add(s.ToLower());
+                allKeys.Add(s);
             }
 
             // RegionUUID
             //
-            allKeys.Remove(("RegionUUID").ToLower());
+            allKeys.Remove("RegionUUID");
             string regionUUID = config.GetString("RegionUUID", string.Empty);
             if (regionUUID == String.Empty)
             {
@@ -516,7 +520,7 @@ namespace OpenSim.Framework
 
             // Location
             //
-            allKeys.Remove(("Location").ToLower());
+            allKeys.Remove("Location");
             string location = config.GetString("Location", String.Empty);
             if (location == String.Empty)
             {
@@ -532,7 +536,7 @@ namespace OpenSim.Framework
             // InternalAddress
             //
             IPAddress address;
-            allKeys.Remove(("InternalAddress").ToLower());
+            allKeys.Remove("InternalAddress");
             if (config.Contains("InternalAddress"))
             {
                 address = IPAddress.Parse(config.GetString("InternalAddress", String.Empty));
@@ -546,7 +550,7 @@ namespace OpenSim.Framework
             // InternalPort
             //
             int port;
-            allKeys.Remove(("InternalPort").ToLower());
+            allKeys.Remove("InternalPort");
             if (config.Contains("InternalPort"))
             {
                 port = config.GetInt("InternalPort", 9000);
@@ -560,7 +564,7 @@ namespace OpenSim.Framework
 
             // AllowAlternatePorts
             //
-            allKeys.Remove(("AllowAlternatePorts").ToLower());
+            allKeys.Remove("AllowAlternatePorts");
             if (config.Contains("AllowAlternatePorts"))
             {
                 m_allow_alternate_ports = config.GetBoolean("AllowAlternatePorts", true);
@@ -574,7 +578,7 @@ namespace OpenSim.Framework
 
             // ExternalHostName
             //
-            allKeys.Remove(("ExternalHostName").ToLower());
+            allKeys.Remove("ExternalHostName");
             string externalName;
             if (config.Contains("ExternalHostName"))
             {
@@ -599,29 +603,30 @@ namespace OpenSim.Framework
 
             // RegionType
             m_regionType = config.GetString("RegionType", String.Empty);
-            allKeys.Remove(("RegionType").ToLower());
+            allKeys.Remove("RegionType");
 
             // Prim stuff
             //
             m_nonphysPrimMax = config.GetInt("NonphysicalPrimMax", 256);
-            allKeys.Remove(("NonphysicalPrimMax").ToLower());
+            allKeys.Remove("NonphysicalPrimMax");
             m_physPrimMax = config.GetInt("PhysicalPrimMax", 10);
-            allKeys.Remove(("PhysicalPrimMax").ToLower());
+            allKeys.Remove("PhysicalPrimMax");
             m_clampPrimSize = config.GetBoolean("ClampPrimSize", false);
-            allKeys.Remove(("ClampPrimSize").ToLower());
+            allKeys.Remove("ClampPrimSize");
             m_objectCapacity = config.GetInt("MaxPrims", 15000);
-            allKeys.Remove(("MaxPrims").ToLower());
+            allKeys.Remove("MaxPrims");
             m_agentCapacity = config.GetInt("MaxAgents", 100);
-            allKeys.Remove(("MaxAgents").ToLower());
+            allKeys.Remove("MaxAgents");
 
             // Multi-tenancy
             //
             ScopeID = new UUID(config.GetString("ScopeID", UUID.Zero.ToString()));
-            allKeys.Remove(("ScopeID").ToLower());
+            allKeys.Remove("ScopeID");
 
             foreach (String s in allKeys)
             {
-                m_otherSettings.Add(s, config.GetString(s));
+                string val = config.GetString(s);
+                SetOtherSetting(s, config.GetString(s));
             }
         }
 
