@@ -1949,6 +1949,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Nick,
             Name,
             Login,
+            Home,
             Custom
         };
 
@@ -1988,6 +1989,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 case InfoType.Login:
                     retval = json["login"];
+                    break;
+
+                case InfoType.Home:
+                    retval = json["home"];
                     break;
 
                 case InfoType.Custom:
@@ -2060,6 +2065,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 loginURI = GridUserInfo(InfoType.Login);
 
             return loginURI;
+        }
+
+        public string osGetGridHomeURI()
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridHomeURI");
+            m_host.AddScriptLPS(1);
+
+            string HomeURI = String.Empty;
+            IConfigSource config = m_ScriptEngine.ConfigSource;
+
+            if (config.Configs["LoginService"] != null)
+                HomeURI = config.Configs["LoginService"].GetString("SRV_HomeURI", HomeURI);
+
+            if (String.IsNullOrEmpty(HomeURI))
+                HomeURI = GridUserInfo(InfoType.Home);
+
+            return HomeURI;
         }
 
         public string osGetGridCustom(string key)

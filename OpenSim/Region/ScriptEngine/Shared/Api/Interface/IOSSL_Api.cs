@@ -160,6 +160,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osGetGridNick();
         string osGetGridName();
         string osGetGridLoginURI();
+        string osGetGridHomeURI();
         string osGetGridCustom(string key);
 
         LSL_String osFormatString(string str, LSL_List strings);
