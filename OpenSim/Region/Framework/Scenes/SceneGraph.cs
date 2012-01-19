@@ -311,6 +311,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// 
         /// This method does not send updates to the client - callers need to handle this themselves.
+        /// Caller should also trigger EventManager.TriggerObjectAddedToScene
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup"></param>
         /// <param name="pos">Position of the object.  If null then the position stored in the object is used.</param>
@@ -925,7 +926,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="fullID"></param>
         /// <returns>null if no scene object group containing that prim is found</returns>
-        private SceneObjectGroup GetGroupByPrim(UUID fullID)
+        public SceneObjectGroup GetGroupByPrim(UUID fullID)
         {
             SceneObjectGroup sog;
             lock (SceneObjectGroupsByFullPartID)

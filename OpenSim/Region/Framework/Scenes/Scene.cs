@@ -4296,6 +4296,16 @@ namespace OpenSim.Region.Framework.Scenes
             return m_sceneGraph.GetGroupByPrim(localID);
         }
 
+        /// <summary>
+        /// Get a scene object group that contains the prim with the given uuid
+        /// </summary>
+        /// <param name="fullID"></param>
+        /// <returns>null if no scene object group containing that prim is found</returns>     
+        public SceneObjectGroup GetGroupByPrim(UUID fullID)
+        {
+            return m_sceneGraph.GetGroupByPrim(fullID);
+        }
+
         public override bool TryGetScenePresence(UUID agentID, out ScenePresence sp)
         {
             return m_sceneGraph.TryGetScenePresence(agentID, out sp);
