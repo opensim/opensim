@@ -45,24 +45,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
     [TestFixture]
     public class LLImageManagerTests
     {
-        [Test]
-        public void TestRequestAndSendImage()
+        private AssetBase m_testImageAsset;
+        private LLImageManager llim;
+        private TestClient tc;
+
+        [TestFixtureSetUp]
+        public void FixtureInit()
         {
-            TestHelpers.InMethod();
-//            XmlConfigurator.Configure();
-
-            UUID imageId = TestHelpers.ParseTail(0x1);
-            string creatorId = TestHelpers.ParseTail(0x2).ToString();
-            UUID userId = TestHelpers.ParseTail(0x3);
-
-            J2KDecoderModule j2kdm = new J2KDecoderModule();
-
-            Scene scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(scene, j2kdm);
-
-            TestClient tc = new TestClient(SceneHelpers.GenerateAgentData(userId), scene);
-            LLImageManager llim = new LLImageManager(tc, scene.AssetService, j2kdm);
-
             using (
                 Stream resource
                     = GetType().Assembly.GetManifestResourceStream(
@@ -70,14 +59,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             {
                 using (BinaryReader br = new BinaryReader(resource))
                 {
-                    AssetBase asset = new AssetBase(imageId, "Test Image", (sbyte)AssetType.Texture, creatorId);
-                    asset.Data = br.ReadBytes(99999999);
-                    scene.AssetService.Store(asset);
+                    m_testImageAsset
+                        = new AssetBase(
+                            TestHelpers.ParseTail(0x1),
+                            "Test Image",
+                            (sbyte)AssetType.Texture,
+                            TestHelpers.ParseTail(0x2).ToString());
+
+                    m_testImageAsset.Data = br.ReadBytes(99999999);
                 }
             }
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            UUID userId = TestHelpers.ParseTail(0x3);
+
+            J2KDecoderModule j2kdm = new J2KDecoderModule();
+
+            Scene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, j2kdm);
+
+            scene.AssetService.Store(m_testImageAsset);
+
+            tc = new TestClient(SceneHelpers.GenerateAgentData(userId), scene);
+            llim = new LLImageManager(tc, scene.AssetService, j2kdm);
+        }
+
+        [Test]
+        public void TestRequestAndSendImage()
+        {
+            TestHelpers.InMethod();
+//            XmlConfigurator.Configure();
 
             TextureRequestArgs args = new TextureRequestArgs();
-            args.RequestedAssetID = TestHelpers.ParseTail(0x1);
+            args.RequestedAssetID = m_testImageAsset.FullID;
             args.DiscardLevel = 0;
             args.PacketNumber = 1;
             args.Priority = 5;
@@ -95,33 +112,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             TestHelpers.InMethod();
 //            XmlConfigurator.Configure();
 
-            UUID imageId = TestHelpers.ParseTail(0x1);
-            string creatorId = TestHelpers.ParseTail(0x2).ToString();
-            UUID userId = TestHelpers.ParseTail(0x3);
-
-            J2KDecoderModule j2kdm = new J2KDecoderModule();
-
-            Scene scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(scene, j2kdm);
-
-            TestClient tc = new TestClient(SceneHelpers.GenerateAgentData(userId), scene);
-            LLImageManager llim = new LLImageManager(tc, scene.AssetService, j2kdm);
-
-            using (
-                Stream resource
-                    = GetType().Assembly.GetManifestResourceStream(
-                        "OpenSim.Region.ClientStack.LindenUDP.Tests.Resources.4-tile2.jp2"))
-            {
-                using (BinaryReader br = new BinaryReader(resource))
-                {
-                    AssetBase asset = new AssetBase(imageId, "Test Image", (sbyte)AssetType.Texture, creatorId);
-                    asset.Data = br.ReadBytes(99999999);
-                    scene.AssetService.Store(asset);
-                }
-            }
-
             TextureRequestArgs args = new TextureRequestArgs();
-            args.RequestedAssetID = imageId;
+            args.RequestedAssetID = m_testImageAsset.FullID;
             args.DiscardLevel = 0;
             args.PacketNumber = 1;
             args.Priority = 5;
@@ -130,7 +122,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 
             // Now create a discard request
             TextureRequestArgs discardArgs = new TextureRequestArgs();
-            discardArgs.RequestedAssetID = imageId;
+            discardArgs.RequestedAssetID = m_testImageAsset.FullID;
             discardArgs.DiscardLevel = -1;
             discardArgs.PacketNumber = 1;
             discardArgs.Priority = 0;
