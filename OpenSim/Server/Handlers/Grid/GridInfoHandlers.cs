@@ -187,7 +187,7 @@ namespace OpenSim.Server.Handlers.Grid
 
             if (!String.IsNullOrEmpty(HomeURI))
             {
-                map["HomeURI"] = OSD.FromString(HomeURI);
+                map["home"] = OSD.FromString(HomeURI);
             }
 
             return OSDParser.SerializeJsonString(map).ToString();
