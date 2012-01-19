@@ -2733,6 +2733,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup == null)
                 return;
 
+            ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
+
             ParentGroup.QueueForUpdateCheck();
 
             int timeNow = Util.UnixTimeSinceEpoch();
@@ -2764,6 +2766,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (ParentGroup == null)
                 return;
+
+            ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
 
             // This was pulled from SceneViewer. Attachments always receive full updates.
             // I could not verify if this is a requirement but this maintains existing behavior

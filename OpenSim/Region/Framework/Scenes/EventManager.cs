@@ -398,6 +398,9 @@ namespace OpenSim.Region.Framework.Scenes
         public event SceneObjectPartCopyDelegate OnSceneObjectPartCopy;
         public delegate void SceneObjectPartCopyDelegate(SceneObjectPart copy, SceneObjectPart original, bool userExposed);
 
+        public delegate void SceneObjectPartUpdated(SceneObjectPart sop);
+        public event SceneObjectPartUpdated OnSceneObjectPartUpdated;
+
         public delegate void RegionUp(GridRegion region);
         public event RegionUp OnRegionUp;
 
@@ -2197,6 +2200,27 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerOnSceneObjectPartCopy failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerSceneObjectPartUpdated(SceneObjectPart sop)
+        {
+            SceneObjectPartUpdated handler = OnSceneObjectPartUpdated;
+            if (handler != null)
+            {
+                foreach (SceneObjectPartUpdated d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(sop);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerSceneObjectPartUpdated failed - continuing.  {0} {1}", 
                             e.Message, e.StackTrace);
                     }
                 }
