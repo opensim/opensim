@@ -101,9 +101,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 // Do a linear search for this texture download
                 lock (m_syncRoot)
-                {
                     m_priorityQueue.Find(delegate(J2KImage img) { return img.TextureID == newRequest.RequestedAssetID; }, out imgrequest);
-                }
 
                 if (imgrequest != null)
                 {
@@ -124,8 +122,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                            "[LL IMAGE MANAGER]: Received duplicate of existing request for {0}, start packet {1} from {2}",
 //                            newRequest.RequestedAssetID, newRequest.PacketNumber, m_client.Name);
 
-                        //m_log.DebugFormat("[TEX]: (UPD) ID={0}: D={1}, S={2}, P={3}",
-                        //    newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
+//                        m_log.DebugFormat("[TEX]: (UPD) ID={0}: D={1}, S={2}, P={3}",
+//                            newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
 
                         //Check the packet sequence to make sure this isn't older than
                         //one we've already received

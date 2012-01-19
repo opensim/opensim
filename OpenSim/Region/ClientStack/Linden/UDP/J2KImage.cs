@@ -45,6 +45,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private const int IMAGE_PACKET_SIZE = 1000;
         private const int FIRST_PACKET_SIZE = 600;
 
+        /// <summary>
+        /// If we've requested an asset but not received it in this ticks timeframe, then allow a duplicate
+        /// request from the client to trigger a fresh asset request.
+        /// </summary>
+        /// <remarks>
+        /// There are 10,000 ticks in a millisecond
+        /// </remarks>
+        private const int ASSET_REQUEST_TIMEOUT = 100000000;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public uint LastSequence;
@@ -57,8 +66,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public UUID AgentID;
         public IInventoryAccessModule InventoryAccessModule;
         private OpenJPEG.J2KLayerInfo[] m_layers;
+
+        /// <summary>
+        /// Has this request decoded the asset data?
+        /// </summary>
         public bool IsDecoded { get; private set; }
+
+        /// <summary>
+        /// Has this request received the required asset data?
+        /// </summary>
         public bool HasAsset { get; private set; }
+
+        /// <summary>
+        /// Time in milliseconds at which the asset was requested.
+        /// </summary>
+        public long AssetRequestTime { get; private set; }
+
         public C5.IPriorityQueueHandle<J2KImage> PriorityQueueHandle;
 
         private uint m_currentPacket;
@@ -123,10 +146,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (!HasAsset)
             {
-                if (!m_assetRequested)
+                if (!m_assetRequested || DateTime.UtcNow.Ticks > AssetRequestTime + ASSET_REQUEST_TIMEOUT)
                 {
+//                    m_log.DebugFormat(
+//                        "[J2KIMAGE]: Requesting asset {0} from request in packet {1}, already requested? {2}, due to timeout? {3}",
+//                        TextureID, LastSequence, m_assetRequested, DateTime.UtcNow.Ticks > AssetRequestTime + ASSET_REQUEST_TIMEOUT);
+
                     m_assetRequested = true;
-//                    m_log.DebugFormat("[J2KIMAGE]: Requesting asset {0}", TextureID);
+                    AssetRequestTime = DateTime.UtcNow.Ticks;
+
                     AssetService.Get(TextureID.ToString(), this, AssetReceived);
                 }
             }
