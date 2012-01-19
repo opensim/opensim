@@ -46,6 +46,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
     public class LLImageManagerTests
     {
         private AssetBase m_testImageAsset;
+        private Scene scene;
         private LLImageManager llim;
         private TestClient tc;
 
@@ -78,20 +79,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 
             J2KDecoderModule j2kdm = new J2KDecoderModule();
 
-            Scene scene = SceneHelpers.SetupScene();
+            scene = SceneHelpers.SetupScene();
             SceneHelpers.SetupSceneModules(scene, j2kdm);
-
-            scene.AssetService.Store(m_testImageAsset);
 
             tc = new TestClient(SceneHelpers.GenerateAgentData(userId), scene);
             llim = new LLImageManager(tc, scene.AssetService, j2kdm);
         }
 
         [Test]
-        public void TestRequestAndSendImage()
+        public void TestSendImage()
         {
             TestHelpers.InMethod();
 //            XmlConfigurator.Configure();
+
+            scene.AssetService.Store(m_testImageAsset);
 
             TextureRequestArgs args = new TextureRequestArgs();
             args.RequestedAssetID = m_testImageAsset.FullID;
@@ -107,10 +108,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         }
 
         [Test]
-        public void TestRequestAndDiscardImage()
+        public void TestDiscardImage()
         {
             TestHelpers.InMethod();
 //            XmlConfigurator.Configure();
+
+            scene.AssetService.Store(m_testImageAsset);
 
             TextureRequestArgs args = new TextureRequestArgs();
             args.RequestedAssetID = m_testImageAsset.FullID;
@@ -132,6 +135,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             llim.ProcessImageQueue(20);
 
             Assert.That(tc.SentImageDataPackets.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestMissingImage()
+        {
+            TestHelpers.InMethod();
+//            XmlConfigurator.Configure();
+
+            TextureRequestArgs args = new TextureRequestArgs();
+            args.RequestedAssetID = m_testImageAsset.FullID;
+            args.DiscardLevel = 0;
+            args.PacketNumber = 1;
+            args.Priority = 5;
+            args.requestSequence = 1;
+
+            llim.EnqueueReq(args);
+            llim.ProcessImageQueue(20);
+
+            Assert.That(tc.SentImageDataPackets.Count, Is.EqualTo(0));
+            Assert.That(tc.SentImageNotInDatabasePackets.Count, Is.EqualTo(1));
         }
     }
 }

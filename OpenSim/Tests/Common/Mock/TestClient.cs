@@ -60,6 +60,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public List<ImageDataPacket> SentImageDataPackets { get; private set; }
         public List<ImagePacketPacket> SentImagePacketPackets { get; private set; }
+        public List<ImageNotInDatabasePacket> SentImageNotInDatabasePackets { get; private set; }
 
 // disable warning: public events, part of the public API
 #pragma warning disable 67
@@ -455,6 +456,7 @@ namespace OpenSim.Tests.Common.Mock
 
             SentImageDataPackets = new List<ImageDataPacket>();
             SentImagePacketPackets = new List<ImagePacketPacket>();
+            SentImageNotInDatabasePackets = new List<ImageNotInDatabasePacket>();
         }
 
         /// <summary>
@@ -822,6 +824,10 @@ namespace OpenSim.Tests.Common.Mock
 
         public void SendImageNotFound(UUID imageid)
         {
+            ImageNotInDatabasePacket p = new ImageNotInDatabasePacket();
+            p.ImageID.ID = imageid;
+
+            SentImageNotInDatabasePackets.Add(p);
         }
 
         public void SendShutdownConnectionNotice()
