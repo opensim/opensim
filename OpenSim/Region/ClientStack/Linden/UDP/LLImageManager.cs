@@ -55,18 +55,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_shuttingdown;
         private AssetBase m_missingImage;
-        private IClientAPI m_client; //Client we're assigned to
-        private IAssetService m_assetCache; //Asset Cache
-        private IJ2KDecoder m_j2kDecodeModule; //Our J2K module
+        private IAssetService m_assetCache;
+        private IJ2KDecoder m_j2kDecodeModule;
+
+        /// <summary>
+        /// Priority queue for determining which image to send first.
+        /// </summary>
         private C5.IntervalHeap<J2KImage> m_priorityQueue = new C5.IntervalHeap<J2KImage>(10, new J2KImageComparer());
+
+        /// <summary>
+        /// Used to control thread access to the priority queue.
+        /// </summary>
         private object m_syncRoot = new object();
 
-        public IClientAPI Client { get { return m_client; } }
+        /// <summary>
+        /// Client served by this image manager
+        /// </summary>
+        public IClientAPI Client { get; private set; }
+
         public AssetBase MissingImage { get { return m_missingImage; } }
 
         public LLImageManager(IClientAPI client, IAssetService pAssetCache, IJ2KDecoder pJ2kDecodeModule)
         {
-            m_client = client;
+            Client = client;
             m_assetCache = pAssetCache;
 
             if (pAssetCache != null)
@@ -111,8 +122,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                            "[LL IMAGE MANAGER]: Received duplicate of existing request for {0}, start packet {1} from {2}",
 //                            newRequest.RequestedAssetID, newRequest.PacketNumber, m_client.Name);
 
-                        //m_log.DebugFormat("[TEX]: (UPD) ID={0}: D={1}, S={2}, P={3}",
-                        //    newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
+//                        m_log.DebugFormat("[TEX]: (UPD) ID={0}: D={1}, S={2}, P={3}",
+//                            newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
 
                         //Check the packet sequence to make sure this isn't older than
                         //one we've already received
@@ -178,8 +189,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         imgrequest = new J2KImage(this);
                         imgrequest.J2KDecoder = m_j2kDecodeModule;
                         imgrequest.AssetService = m_assetCache;
-                        imgrequest.AgentID = m_client.AgentId;
-                        imgrequest.InventoryAccessModule = m_client.Scene.RequestModuleInterface<IInventoryAccessModule>();
+                        imgrequest.AgentID = Client.AgentId;
+                        imgrequest.InventoryAccessModule = Client.Scene.RequestModuleInterface<IInventoryAccessModule>();
                         imgrequest.DiscardLevel = newRequest.DiscardLevel;
                         imgrequest.StartPacket = Math.Max(1, newRequest.PacketNumber);
                         imgrequest.Priority = newRequest.Priority;
@@ -210,7 +221,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (image.IsDecoded)
                 {
                     int sent;
-                    bool imageDone = image.SendPackets(m_client, packetsToSend - packetsSent, out sent);
+                    bool imageDone = image.SendPackets(Client, packetsToSend - packetsSent, out sent);
                     packetsSent += sent;
 
                     // If the send is complete, destroy any knowledge of this transfer
