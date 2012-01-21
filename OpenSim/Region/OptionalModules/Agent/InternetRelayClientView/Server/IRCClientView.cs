@@ -658,6 +658,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event ModifyTerrain OnModifyTerrain;
         public event BakeTerrain OnBakeTerrain;
         public event EstateChangeInfo OnEstateChangeInfo;
+        public event EstateManageTelehub OnEstateManageTelehub;
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
         public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
@@ -1535,6 +1536,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public void SendEventInfoReply(EventData info)
         {
             
+        }
+
+        public void SendTelehubInfo(UUID ObjectID, string ObjectName, Vector3 ObjectPos, Quaternion ObjectRot, List<Vector3> SpawnPoint)
+        {
+
         }
 
         public void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags)

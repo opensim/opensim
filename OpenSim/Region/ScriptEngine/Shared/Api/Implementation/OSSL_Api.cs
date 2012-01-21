@@ -1953,6 +1953,69 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        private enum InfoType
+        {
+            Nick,
+            Name,
+            Login,
+            Home,
+            Custom
+        };
+
+        private string GridUserInfo(InfoType type)
+        {
+            return GridUserInfo(type, "");
+        }
+
+        private string GridUserInfo(InfoType type, string key)
+        {
+            string retval = String.Empty;
+            IConfigSource config = m_ScriptEngine.ConfigSource;
+            string url = config.Configs["GridInfo"].GetString("GridInfoURI", String.Empty);
+
+            if (String.IsNullOrEmpty(url))
+                return "Configuration Error!";
+
+            string verb ="/json_grid_info";
+            OSDMap json = new OSDMap();
+
+            OSDMap info =  WebUtil.GetFromService(String.Format("{0}{1}",url,verb), 3000);
+
+            if (info["Success"] != true)
+                return "Get GridInfo Failed!";
+
+            json = (OSDMap)OSDParser.DeserializeJson(info["_RawResult"].AsString());
+
+            switch (type)
+            {
+                case InfoType.Nick:
+                    retval = json["gridnick"];
+                    break;
+
+                case InfoType.Name:
+                    retval = json["gridname"];
+                    break;
+
+                case InfoType.Login:
+                    retval = json["login"];
+                    break;
+
+                case InfoType.Home:
+                    retval = json["home"];
+                    break;
+
+                case InfoType.Custom:
+                    retval = json[key];
+                    break;
+
+                default:
+                    retval = "error";
+                    break;
+            }
+
+            return retval;
+        }
+
         /// <summary>
         /// Get the nickname of this grid, as set in the [GridInfo] config section.
         /// </summary>
@@ -1966,10 +2029,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridNick");
             m_host.AddScriptLPS(1);
-            string nick = "hippogrid";
+
+            string nick = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
+
             if (config.Configs["GridInfo"] != null)
                 nick = config.Configs["GridInfo"].GetString("gridnick", nick);
+
+            if (String.IsNullOrEmpty(nick))
+                nick = GridUserInfo(InfoType.Nick);
+
             return nick;
         }
 
@@ -1977,10 +2046,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridName");
             m_host.AddScriptLPS(1);
-            string name = "the lost continent of hippo";
+
+            string name = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
+
             if (config.Configs["GridInfo"] != null)
                 name = config.Configs["GridInfo"].GetString("gridname", name);
+
+            if (String.IsNullOrEmpty(name))
+                name = GridUserInfo(InfoType.Name);
+
             return name;
         }
 
@@ -1988,11 +2063,51 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridLoginURI");
             m_host.AddScriptLPS(1);
-            string loginURI = "http://127.0.0.1:9000/";
+
+            string loginURI = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
+
             if (config.Configs["GridInfo"] != null)
                 loginURI = config.Configs["GridInfo"].GetString("login", loginURI);
+
+            if (String.IsNullOrEmpty(loginURI))
+                loginURI = GridUserInfo(InfoType.Login);
+
             return loginURI;
+        }
+
+        public string osGetGridHomeURI()
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridHomeURI");
+            m_host.AddScriptLPS(1);
+
+            string HomeURI = String.Empty;
+            IConfigSource config = m_ScriptEngine.ConfigSource;
+
+            if (config.Configs["LoginService"] != null)
+                HomeURI = config.Configs["LoginService"].GetString("SRV_HomeURI", HomeURI);
+
+            if (String.IsNullOrEmpty(HomeURI))
+                HomeURI = GridUserInfo(InfoType.Home);
+
+            return HomeURI;
+        }
+
+        public string osGetGridCustom(string key)
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridCustom");
+            m_host.AddScriptLPS(1);
+
+            string retval = String.Empty;
+            IConfigSource config = m_ScriptEngine.ConfigSource;
+
+            if (config.Configs["GridInfo"] != null)
+                retval = config.Configs["GridInfo"].GetString(key, retval);
+
+            if (String.IsNullOrEmpty(retval))
+                retval = GridUserInfo(InfoType.Custom, key);
+
+            return retval;
         }
 
         public LSL_String osFormatString(string str, LSL_List strings)

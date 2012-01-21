@@ -100,12 +100,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             options.Add("s|skip-assets", delegate (string v) { skipAssets = v != null; });
 
             // Send a message to the region ready module
+            /* bluewall* Disable this for the time being
             IRegionReadyModule rready = m_scene.RequestModuleInterface<IRegionReadyModule>();
 
             if (rready != null)
             {
                 rready.OarLoadingAlert("load");
             }
+            */
             
             List<string> mainParams = options.Parse(cmdparams);
           

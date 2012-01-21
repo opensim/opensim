@@ -220,6 +220,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event BakeTerrain OnBakeTerrain;
         public event RequestTerrain OnUploadTerrain;
         public event EstateChangeInfo OnEstateChangeInfo;
+        public event EstateManageTelehub OnEstateManageTelehub;
         public event EstateRestartSimRequest OnEstateRestartSimRequest;
         public event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
         public event UpdateEstateAccessDeltaRequest OnUpdateEstateAccessDeltaRequest;
@@ -4534,6 +4535,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.ParamList = returnblock;
             packet.Header.Reliable = false;
             //m_log.Debug("[ESTATE]: SIM--->" + packet.ToString());
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
+        public void SendTelehubInfo(UUID ObjectID, string ObjectName, Vector3 ObjectPos, Quaternion ObjectRot, List<Vector3> SpawnPoint)
+        {
+            TelehubInfoPacket packet = (TelehubInfoPacket)PacketPool.Instance.GetPacket(PacketType.TelehubInfo);
+            packet.TelehubBlock.ObjectID = ObjectID;
+            packet.TelehubBlock.ObjectName = Utils.StringToBytes(ObjectName);
+            packet.TelehubBlock.TelehubPos = ObjectPos;
+            packet.TelehubBlock.TelehubRot = ObjectRot;
+
+            packet.SpawnPointBlock = new TelehubInfoPacket.SpawnPointBlockBlock[SpawnPoint.Count];
+            for (int n = 0; n < SpawnPoint.Count; n++)
+            {
+                packet.SpawnPointBlock[n] = new TelehubInfoPacket.SpawnPointBlockBlock{SpawnPointPos = SpawnPoint[n]};
+            }
+
             OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
@@ -8981,7 +8999,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool HandleEstateOwnerMessage(IClientAPI sender, Packet Pack)
         {
             EstateOwnerMessagePacket messagePacket = (EstateOwnerMessagePacket)Pack;
-            //m_log.Debug(messagePacket.ToString());
+            // m_log.InfoFormat("[LLCLIENTVIEW]: Packet: {0}", Utils.BytesToString(messagePacket.MethodData.Method));
             GodLandStatRequest handlerLandStatRequest;
 
             #region Packet Session and User Check
@@ -9280,6 +9298,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     return true;
 
+                case "telehub":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        UUID invoice = messagePacket.MethodData.Invoice;
+                        UUID SenderID = messagePacket.AgentData.AgentID;
+                        UInt32 param1 = Convert.ToUInt32(Utils.BytesToString(messagePacket.ParamList[1].Parameter));
+
+                        string command = (string)Utils.BytesToString(messagePacket.ParamList[0].Parameter);
+
+                        EstateManageTelehub handlerEstateManageTelehub = OnEstateManageTelehub;
+                        if (handlerEstateManageTelehub != null)
+                        {
+                            handlerEstateManageTelehub(this, invoice, SenderID, command, param1);
+                        }
+                    }
+                    return true;
+
                 default:
                     m_log.Error("EstateOwnerMessage: Unknown method requested\n" + messagePacket);
                     return true;
@@ -9291,8 +9326,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //lsrp.RequestData.ReportType; // 1 = colliders, 0 = scripts
             //lsrp.RequestData.RequestFlags;
             //lsrp.RequestData.Filter;
-
-//            return true;
         }
 
         private bool HandleRequestRegionInfo(IClientAPI sender, Packet Pack)

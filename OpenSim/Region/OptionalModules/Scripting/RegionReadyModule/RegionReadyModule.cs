@@ -243,6 +243,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 
         public void OarLoadingAlert(string msg)
         {
+            // Let's bypass this for now until some better feedback can be established
+            //
+            return;
+
             if (msg == "load")
             {
                 m_scene.EventManager.OnEmptyScriptCompileQueue += OnEmptyScriptCompileQueue;
@@ -251,7 +255,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 m_scene.EventManager.OnRezScript  += OnRezScript;
                 m_oarFileLoading = true;
                 m_firstEmptyCompileQueue = true;
-                // Will need some controls around this
+                
                 m_scene.LoginsDisabled = true;
                 m_scene.LoginLock = true;
                 if ( m_uri != string.Empty )
