@@ -53,6 +53,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         protected EstateManagementCommands m_commands;                
 
         private EstateTerrainXferHandler TerrainUploader;
+        private TelehubManager m_Telehub;
 
         public event ChangeDelegate OnRegionInfoChange;
         public event ChangeDelegate OnEstateInfoChange;
@@ -599,6 +600,65 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
         }
 
+        private void handleOnEstateManageTelehub (IClientAPI client, UUID invoice, UUID senderID, string cmd, uint param1)
+        {
+            uint ObjectLocalID;
+            SceneObjectPart part;
+            // UUID EstateID = Scene.RegionInfo.EstateSettings.EstateID;
+            TelehubManager.Telehub telehub;
+
+            switch (cmd)
+            {
+                case "info ui":
+                    // Send info:
+                    if (m_Telehub.HasTelehub)
+                    {
+                        telehub = m_Telehub.TelehubVals();
+                        client.SendTelehubInfo(telehub.ObjectID, telehub.ObjectName, telehub.ObjectPosition,
+                                               telehub.ObjectRotation, telehub.SpawnPoint);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                    break;
+
+                case "connect":
+                    // Add the Telehub
+                    part = Scene.GetSceneObjectPart((uint)param1);
+                    telehub = m_Telehub.Connect(part);
+                    client.SendTelehubInfo(telehub.ObjectID, telehub.ObjectName, telehub.ObjectPosition,
+                                           telehub.ObjectRotation, telehub.SpawnPoint);
+                    break;
+
+                case "delete":
+                    // Disconnect Telehub
+                    part = Scene.GetSceneObjectPart((uint)param1);
+                    telehub = m_Telehub.DisConnect(part);
+                    client.SendTelehubInfo(telehub.ObjectID, telehub.ObjectName, telehub.ObjectPosition,
+                                           telehub.ObjectRotation, telehub.SpawnPoint);
+                    break;
+
+                case "spawnpoint add":
+                    // Add SpawnPoint to the Telehub
+                    part = Scene.GetSceneObjectPart((uint)param1);
+                    telehub = m_Telehub.AddSpawnPoint(part.AbsolutePosition);
+                    client.SendTelehubInfo(telehub.ObjectID, telehub.ObjectName, telehub.ObjectPosition,
+                                           telehub.ObjectRotation, telehub.SpawnPoint);
+                    break;
+
+                case "spawnpoint remove":
+                    // Remove SpawnPoint from Telehub
+                    telehub = m_Telehub.RemoveSpawnPoint((int)param1);
+                    client.SendTelehubInfo(telehub.ObjectID, telehub.ObjectName, telehub.ObjectPosition,
+                                           telehub.ObjectRotation, telehub.SpawnPoint);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
         private void SendSimulatorBlueBoxMessage(
             IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)
         {
@@ -1055,7 +1115,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             Scene.RegisterModuleInterface<IEstateModule>(this);
             Scene.EventManager.OnNewClient += EventManager_OnNewClient;
             Scene.EventManager.OnRequestChangeWaterHeight += changeWaterHeight;
-            
+
+            m_Telehub = new TelehubManager(scene);
+
             m_commands = new EstateManagementCommands(this);
             m_commands.Initialise();
         }
@@ -1109,6 +1171,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             client.OnEstateRestartSimRequest += handleEstateRestartSimRequest;
             client.OnEstateChangeCovenantRequest += handleChangeEstateCovenantRequest;
             client.OnEstateChangeInfo += handleEstateChangeInfo;
+            client.OnEstateManageTelehub += handleOnEstateManageTelehub;
             client.OnUpdateEstateAccessDeltaRequest += handleEstateAccessDeltaRequest;
             client.OnSimulatorBlueBoxMessageRequest += SendSimulatorBlueBoxMessage;
             client.OnEstateBlueBoxMessageRequest += SendEstateBlueBoxMessage;

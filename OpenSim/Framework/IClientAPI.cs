@@ -358,6 +358,8 @@ namespace OpenSim.Framework
 
     public delegate void EstateChangeInfo(IClientAPI client, UUID invoice, UUID senderID, UInt32 param1, UInt32 param2);
 
+    public delegate void EstateManageTelehub(IClientAPI client, UUID invoice, UUID senderID, string cmd, UInt32 param1);
+
     public delegate void RequestTerrain(IClientAPI remoteClient, string clientFileName);
 
     public delegate void BakeTerrain(IClientAPI remoteClient);
@@ -769,6 +771,7 @@ namespace OpenSim.Framework
         event ModifyTerrain OnModifyTerrain;
         event BakeTerrain OnBakeTerrain;
         event EstateChangeInfo OnEstateChangeInfo;
+        event EstateManageTelehub OnEstateManageTelehub;
         // [Obsolete("LLClientView Specific.")]
         event SetAppearance OnSetAppearance;
         // [Obsolete("LLClientView Specific - Replace and rename OnAvatarUpdate. Difference from SetAppearance?")]
@@ -1140,6 +1143,8 @@ namespace OpenSim.Framework
         void SendTakeControls(int controls, bool passToAgent, bool TakeControls);
 
         void SendTaskInventory(UUID taskID, short serial, byte[] fileName);
+
+        void SendTelehubInfo(UUID ObjectID, string ObjectName, Vector3 ObjectPos, Quaternion ObjectRot, List<Vector3> SpawnPoint);
 
         /// <summary>
         /// Used by the server to inform the client of new inventory items and folders.

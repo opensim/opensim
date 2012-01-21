@@ -193,6 +193,7 @@ namespace OpenSim.Tests.Common.Mock
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
         public event EstateChangeInfo OnEstateChangeInfo;
+        public event EstateManageTelehub OnEstateManageTelehub;
 
         public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
 
@@ -942,6 +943,10 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
         public void SendHealth(float health)
+        {
+        }
+
+        public void SendTelehubInfo(UUID ObjectID, string ObjectName, Vector3 ObjectPos, Quaternion ObjectRot, List<Vector3> SpawnPoint)
         {
         }
 
