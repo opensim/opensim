@@ -9242,9 +9242,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         UUID invoice = messagePacket.MethodData.Invoice;
                         UUID SenderID = messagePacket.AgentData.AgentID;
-                        UInt32 param1 = Convert.ToUInt32(Utils.BytesToString(messagePacket.ParamList[1].Parameter));
+                        UInt32 param1 = 0u;
 
                         string command = (string)Utils.BytesToString(messagePacket.ParamList[0].Parameter);
+
+                        if (command != "info ui")
+                        {
+                            try
+                            {
+                                param1 = Convert.ToUInt32(Utils.BytesToString(messagePacket.ParamList[1].Parameter));
+                            }
+                            catch (Exception ex)
+                            {
+
+                            }
+                        }
 
                         EstateManageTelehub handlerEstateManageTelehub = OnEstateManageTelehub;
                         if (handlerEstateManageTelehub != null)
