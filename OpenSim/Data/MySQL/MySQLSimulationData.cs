@@ -996,7 +996,11 @@ namespace OpenSim.Data.MySQL
                             "use_estate_sun, fixed_sun, sun_position, " +
                             "covenant, Sandbox, sunvectorx, sunvectory, " +
                             "sunvectorz, loaded_creation_datetime, " +
-                            "loaded_creation_id, map_tile_ID) values (?RegionUUID, ?BlockTerraform, " +
+                            "loaded_creation_id, map_tile_ID, " +
+                            "TelehubEnabled, TelehubObject, TelehubName, " +
+                            "TelehubPosX, TelehubPosY, TelehubPosZ, " +
+                            "TelehubRotX, TelehubRotY, TelehubRotZ, TelehubRotW) " +
+                             "values (?RegionUUID, ?BlockTerraform, " +
                             "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
                             "?AllowLandResell, ?AllowLandJoinDivide, " +
                             "?BlockShowInSearch, ?AgentLimit, ?ObjectBonus, " +
@@ -1011,7 +1015,10 @@ namespace OpenSim.Data.MySQL
                             "?SunPosition, ?Covenant, ?Sandbox, " +
                             "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                             "?LoadedCreationDateTime, ?LoadedCreationID, " +
-                            "?TerrainImageID)";
+                            "?TerrainImageID, " +
+                             "?TelehubEnabled, ?TelehubObject, ?TelehubName, " +
+                             "?TelehubPosX, ?TelehubPosY, ?TelehubPosZ, " +
+                             "?TelehubRotX, ?TelehubRotY, ?TelehubRotZ, ?TelehubRotW )";
 
                         FillRegionSettingsCommand(cmd, rs);
 
@@ -1643,7 +1650,16 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("LoadedCreationDateTime", settings.LoadedCreationDateTime);
             cmd.Parameters.AddWithValue("LoadedCreationID", settings.LoadedCreationID);
             cmd.Parameters.AddWithValue("TerrainImageID", settings.TerrainImageID);
-
+            cmd.Parameters.AddWithValue("TelehubEnabled", settings.HasTelehub);
+            cmd.Parameters.AddWithValue("TelehubObject", settings.TelehubObject);
+            cmd.Parameters.AddWithValue("TelehubName", settings.TelehubName);
+            cmd.Parameters.AddWithValue("TelehubPosX", settings.TelehubPos.X);
+            cmd.Parameters.AddWithValue("TelehubPosY", settings.TelehubPos.Y);
+            cmd.Parameters.AddWithValue("TelehubPosZ", settings.TelehubPos.Z);
+            cmd.Parameters.AddWithValue("TelehubRotX", settings.TelehubRot.X);
+            cmd.Parameters.AddWithValue("TelehubRotY", settings.TelehubRot.Y);
+            cmd.Parameters.AddWithValue("TelehubRotZ", settings.TelehubRot.Z);
+            cmd.Parameters.AddWithValue("TelehubRotW", settings.TelehubRot.W);
         }
 
         /// <summary>
