@@ -157,7 +157,6 @@ namespace OpenSim.Data.MySQL
             DoCreate(es);
 
             LoadBanList(es);
-            LoadSpawnPoints(es);
 
             es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
             es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
@@ -211,7 +210,6 @@ namespace OpenSim.Data.MySQL
             }
 
             LoadBanList(es);
-            LoadSpawnPoints(es);
             es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
             es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
             es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");
@@ -298,72 +296,9 @@ namespace OpenSim.Data.MySQL
             }
 
             SaveBanList(es);
-            SaveSpawnPoints(es);
             SaveUUIDList(es.EstateID, "estate_managers", es.EstateManagers);
             SaveUUIDList(es.EstateID, "estate_users", es.EstateAccess);
             SaveUUIDList(es.EstateID, "estate_groups", es.EstateGroups);
-        }
-
-        private void LoadSpawnPoints(EstateSettings es)
-        {
-            es.ClearSpawnPoints();
-
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-            {
-                dbcon.Open();
-
-                using (MySqlCommand cmd = dbcon.CreateCommand())
-                {
-                    uint EstateID = es.EstateID;
-                    cmd.CommandText = "select PointX, PointY, PointZ from spawn_points where EstateID = ?EstateID";
-                    cmd.Parameters.AddWithValue("?EstateID", es.EstateID);
-
-                    using (IDataReader r = cmd.ExecuteReader())
-                    {
-                        while (r.Read())
-                        {
-                            Vector3 point = new Vector3();
-
-                            point.X = (float)r["PointX"];
-                            point.Y = (float)r["PointY"];
-                            point.Z = (float)r["PointZ"];
-
-                            es.AddSpawnPoint(point);
-                        }
-                    }
-                }
-            }
-        }
-
-        private void SaveSpawnPoints(EstateSettings es)
-        {
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-            {
-                dbcon.Open();
-
-                using (MySqlCommand cmd = dbcon.CreateCommand())
-                {
-                    cmd.CommandText = "delete from spawn_points where EstateID = ?EstateID";
-                    cmd.Parameters.AddWithValue("?EstateID", es.EstateID.ToString());
-
-                    cmd.ExecuteNonQuery();
-
-                    cmd.Parameters.Clear();
-
-                    cmd.CommandText = "insert into spawn_points (EstateID, PointX, PointY, PointZ) values ( ?EstateID, ?PointX, ?PointY,?PointZ)";
-
-                    foreach (Vector3 p in es.SpawnPoints())
-                    {
-                        cmd.Parameters.AddWithValue("?EstateID", es.EstateID.ToString());
-                        cmd.Parameters.AddWithValue("?PointX", p.X);
-                        cmd.Parameters.AddWithValue("?PointY", p.Y);
-                        cmd.Parameters.AddWithValue("?PointZ", p.Z);
-
-                        cmd.ExecuteNonQuery();
-                        cmd.Parameters.Clear();
-                    }
-                }
-            }
         }
 
         private void LoadBanList(EstateSettings es)

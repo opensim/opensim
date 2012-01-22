@@ -846,6 +846,8 @@ namespace OpenSim.Data.MySQL
                 }
             }
 
+            LoadSpawnPoints(rs);
+
             return rs;
         }
 
@@ -1017,6 +1019,7 @@ namespace OpenSim.Data.MySQL
                     }
                 }
             }
+            SaveSpawnPoints(rs);
         }
 
         public List<LandData> LoadLandObjects(UUID regionUUID)
@@ -1825,6 +1828,73 @@ namespace OpenSim.Data.MySQL
                     }
 
                     cmd.Dispose();
+                }
+            }
+        }
+
+        private void LoadSpawnPoints(RegionSettings rs)
+        {
+            rs.ClearSpawnPoints();
+
+            lock (m_dbLock)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "select PointX, PointY, PointZ from spawn_points where RegionID = ?RegionID";
+                        cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
+
+                        using (IDataReader r = cmd.ExecuteReader())
+                        {
+                            while (r.Read())
+                            {
+                                Vector3 point = new Vector3();
+
+                                point.X = (float)r["PointX"];
+                                point.Y = (float)r["PointY"];
+                                point.Z = (float)r["PointZ"];
+
+                                rs.AddSpawnPoint(point);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void SaveSpawnPoints(RegionSettings rs)
+        {
+            lock (m_dbLock)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "delete from spawn_points where RegionID = ?RegionID";
+                        cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
+
+                        cmd.ExecuteNonQuery();
+
+                        cmd.Parameters.Clear();
+
+                        cmd.CommandText = "insert into spawn_points (RegionID, PointX, PointY, PointZ) values ( ?EstateID, ?PointX, ?PointY,?PointZ)";
+
+                        foreach (Vector3 p in rs.SpawnPoints())
+                        {
+                            cmd.Parameters.AddWithValue("?EstateID", rs.RegionUUID.ToString());
+                            cmd.Parameters.AddWithValue("?PointX", p.X);
+                            cmd.Parameters.AddWithValue("?PointY", p.Y);
+                            cmd.Parameters.AddWithValue("?PointZ", p.Z);
+
+                            cmd.ExecuteNonQuery();
+                            cmd.Parameters.Clear();
+                        }
+                    }
                 }
             }
         }

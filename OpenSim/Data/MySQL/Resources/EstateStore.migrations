@@ -78,25 +78,4 @@ ALTER TABLE estate_settings AUTO_INCREMENT = 100;
 COMMIT;
 
 
-:VERSION 33         #--------------------- ( Supporting Telehubs
 
-BEGIN;
-CREATE TABLE IF NOT EXISTS `spawn_points` (
-  `EstateID` varchar(36) COLLATE utf8_unicode_ci NOT NULL,
-  `PointX` float NOT NULL,
-  `PointY` float NOT NULL,
-  `PointZ` float NOT NULL,
-  KEY `EstateID` (`EstateID`)
-) ENGINE=Innodb;
-
-ALTER TABLE `estate_settings` ADD COLUMN `TelehubObject` varchar(36) NOT NULL;
-ALTER TABLE `estate_settings` ADD COLUMN `TelehubName` varchar(255) NOT NULL;
-ALTER TABLE `estate_settings` ADD COLUMN `TelehubEnabled` tinyint(4) NOT NULL;
-ALTER TABLE `estate_settings` ADD COLUMN `TelehubPosX` float NOT NULL;
-ALTER TABLE `estate_settings` ADD COLUMN `TelehubPosY` float NOT NULL;
-ALTER TABLE `estate_settings` ADD COLUMN `TelehubPosZ` float NOT NULL;
-ALTER TABLE `estate_settings` ADD COLUMN `TelehubRotX` float NOT NULL;
-ALTER TABLE `estate_settings` ADD COLUMN `TelehubRotY` float NOT NULL;
-ALTER TABLE `estate_settings` ADD COLUMN `TelehubRotZ` float NOT NULL;
-ALTER TABLE `estate_settings` ADD COLUMN `TelehubRotW` float NOT NULL;
-COMMIT;

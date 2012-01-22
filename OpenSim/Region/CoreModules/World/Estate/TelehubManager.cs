@@ -44,7 +44,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
         UUID EstateID;
         bool m_HasTelehub = false;
         Scene m_Scene;
-        EstateSettings m_EstateSettings;
         // This will get an option...
         Vector3 InitialSpawnPoint = new Vector3(0.0f,0.0f,0.0f);
 
@@ -56,7 +55,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
         public TelehubManager(Scene scene)
         {
             m_Scene = scene;
-            m_EstateSettings = m_Scene.RegionInfo.EstateSettings;
         }
 
         // Fill our Telehub struct with values
@@ -76,17 +74,17 @@ namespace OpenSim.Region.CoreModules.World.Estate
         // Connect the Telehub
         public bool Connect(SceneObjectPart part)
         {
-            m_EstateSettings.ClearSpawnPoints();
+            m_Scene.RegionInfo.RegionSettings.ClearSpawnPoints();
 
-            m_EstateSettings.TelehubObject = part.UUID;
-            m_EstateSettings.TelehubName = part.Name;
-            m_EstateSettings.TelehubPos = part.AbsolutePosition;
-            m_EstateSettings.TelehubRot = part.GetWorldRotation();
+            m_Scene.RegionInfo.RegionSettings.TelehubObject = part.UUID;
+            m_Scene.RegionInfo.RegionSettings.TelehubName = part.Name;
+            m_Scene.RegionInfo.RegionSettings.TelehubPos = part.AbsolutePosition;
+            m_Scene.RegionInfo.RegionSettings.TelehubRot = part.GetWorldRotation();
 
             // Clear this for now
-            m_EstateSettings.AddSpawnPoint(InitialSpawnPoint);
-            m_EstateSettings.HasTelehub = true;
-            m_EstateSettings.Save();
+            m_Scene.RegionInfo.RegionSettings.AddSpawnPoint(InitialSpawnPoint);
+            m_Scene.RegionInfo.RegionSettings.HasTelehub = true;
+            m_Scene.RegionInfo.RegionSettings.Save();
             return true;
         }
 
@@ -96,14 +94,14 @@ namespace OpenSim.Region.CoreModules.World.Estate
             bool result = false;
 
             try{
-                m_EstateSettings.TelehubObject = UUID.Zero;
-                m_EstateSettings.TelehubName = String.Empty;
-                m_EstateSettings.TelehubPos = Vector3.Zero;
+                m_Scene.RegionInfo.RegionSettings.TelehubObject = UUID.Zero;
+                m_Scene.RegionInfo.RegionSettings.TelehubName = String.Empty;
+                m_Scene.RegionInfo.RegionSettings.TelehubPos = Vector3.Zero;
                 // This is probably wrong! But, HasTelehub will block access
-                m_EstateSettings.TelehubRot = Quaternion.Identity;
-                m_EstateSettings.ClearSpawnPoints();
-                m_EstateSettings.HasTelehub = false;
-                m_EstateSettings.Save();
+                m_Scene.RegionInfo.RegionSettings.TelehubRot = Quaternion.Identity;
+                m_Scene.RegionInfo.RegionSettings.ClearSpawnPoints();
+                m_Scene.RegionInfo.RegionSettings.HasTelehub = false;
+                m_Scene.RegionInfo.RegionSettings.Save();
                 result = true;
             }
             catch (Exception ex)
@@ -122,20 +120,20 @@ namespace OpenSim.Region.CoreModules.World.Estate
         public bool AddSpawnPoint(Vector3 point)
         {
 
-            float dist = (float) Util.GetDistanceTo(m_EstateSettings.TelehubPos, point);
-            Vector3 nvec = Util.GetNormalizedVector(point - m_EstateSettings.TelehubPos);
+            float dist = (float) Util.GetDistanceTo(m_Scene.RegionInfo.RegionSettings.TelehubPos, point);
+            Vector3 nvec = Util.GetNormalizedVector(point - m_Scene.RegionInfo.RegionSettings.TelehubPos);
             Vector3 spoint = nvec * dist;
 
-            m_EstateSettings.AddSpawnPoint(spoint);
-            m_EstateSettings.Save();
+            m_Scene.RegionInfo.RegionSettings.AddSpawnPoint(spoint);
+            m_Scene.RegionInfo.RegionSettings.Save();
             return true;
         }
 
         // Remove a SpawnPoint from the Telehub
         public bool RemoveSpawnPoint(int spawnpoint)
         {
-            m_EstateSettings.RemoveSpawnPoint(spawnpoint);
-            m_EstateSettings.Save();
+            m_Scene.RegionInfo.RegionSettings.RemoveSpawnPoint(spawnpoint);
+            m_Scene.RegionInfo.RegionSettings.Save();
 
             return true;
         }

@@ -609,9 +609,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             {
                 case "info ui":
                     // Send info:
-                    if (Scene.RegionInfo.EstateSettings.HasTelehub)
+                    if (Scene.RegionInfo.RegionSettings.HasTelehub)
                     {
-                        EstateSettings settings = this.Scene.RegionInfo.EstateSettings;
+                        RegionSettings settings = this.Scene.RegionInfo.RegionSettings;
                             client.SendTelehubInfo(settings.TelehubObject, settings.TelehubName, settings.TelehubPos,
                                                settings.TelehubRot, settings.SpawnPoints());
                     }
@@ -626,7 +626,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     part = Scene.GetSceneObjectPart((uint)param1);
                     if (m_Telehub.Connect(part))
                     {
-                        EstateSettings settings = this.Scene.RegionInfo.EstateSettings;
+                        RegionSettings settings = this.Scene.RegionInfo.RegionSettings;
                             client.SendTelehubInfo(settings.TelehubObject, settings.TelehubName, settings.TelehubPos,
                                                settings.TelehubRot, settings.SpawnPoints());
                     }
@@ -637,7 +637,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     part = Scene.GetSceneObjectPart((uint)param1);
                     if (m_Telehub.DisConnect(part))
                     {
-                        EstateSettings settings = this.Scene.RegionInfo.EstateSettings;
+                        RegionSettings settings = this.Scene.RegionInfo.RegionSettings;
                             client.SendTelehubInfo(settings.TelehubObject, settings.TelehubName, settings.TelehubPos,
                                                settings.TelehubRot, settings.SpawnPoints());
                     }
@@ -648,7 +648,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     part = Scene.GetSceneObjectPart((uint)param1);
                     if( m_Telehub.AddSpawnPoint(part.AbsolutePosition))
                     {
-                        EstateSettings settings = this.Scene.RegionInfo.EstateSettings;
+                        RegionSettings settings = this.Scene.RegionInfo.RegionSettings;
                             client.SendTelehubInfo(settings.TelehubObject, settings.TelehubName, settings.TelehubPos,
                                                settings.TelehubRot, settings.SpawnPoints());
                     }
@@ -658,7 +658,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     // Remove SpawnPoint from Telehub
                     if (m_Telehub.RemoveSpawnPoint((int)param1))
                     {
-                        EstateSettings settings = this.Scene.RegionInfo.EstateSettings;
+                        RegionSettings settings = this.Scene.RegionInfo.RegionSettings;
                             client.SendTelehubInfo(settings.TelehubObject, settings.TelehubName, settings.TelehubPos,
                                                settings.TelehubRot, settings.SpawnPoints());
                     }
