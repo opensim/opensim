@@ -851,7 +851,7 @@ CREATE TABLE IF NOT EXISTS `spawn_points` (
   `PointX` float NOT NULL,
   `PointY` float NOT NULL,
   `PointZ` float NOT NULL,
-  KEY `EstateID` (`EstateID`)
+  KEY `RegionID` (`RegionID`)
 ) ENGINE=Innodb;
 
 ALTER TABLE `regionsettings` ADD COLUMN `TelehubObject` varchar(36) NOT NULL;
