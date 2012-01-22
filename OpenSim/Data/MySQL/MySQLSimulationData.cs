@@ -1299,6 +1299,20 @@ namespace OpenSim.Data.MySQL
                 newSettings.LoadedCreationID = (String) row["loaded_creation_id"];
 
             newSettings.TerrainImageID = DBGuid.FromDB(row["map_tile_ID"]);
+            newSettings.HasTelehub = Convert.ToBoolean(row["TelehubEnabled"]);
+            newSettings.TelehubObject = DBGuid.FromDB(row["TelehubObject"]);
+            newSettings.TelehubName = (string) row["TelehubName"];
+            newSettings.TelehubPos = new Vector3 (
+                                                    Convert.ToSingle(row["TelehubPosX"]),
+                                                    Convert.ToSingle(row["TelehubPosY"]),
+                                                    Convert.ToSingle(row["TelehubPosZ"])
+                                                  );
+            newSettings.TelehubRot = new Quaternion (
+                                                      Convert.ToSingle(row["TelehubRotX"]),
+                                                      Convert.ToSingle(row["TelehubRotY"]),
+                                                      Convert.ToSingle(row["TelehubRotZ"]),
+                                                      Convert.ToSingle(row["TelehubRotW"])
+                                                    );
 
             return newSettings;
         }
