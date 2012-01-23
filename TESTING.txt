@@ -69,3 +69,6 @@ Example
 
 nunit-console2 OpenSim.Framework.Tests.dll (on linux)
 nunit-console OpenSim.Framework.Tests.dll (on windows)
+
+See the file OpenSim/Data/Tests/Resources/TestDataConnections.ini
+for information to setup testing for data
