@@ -463,17 +463,14 @@ namespace OpenSim.Framework
         }
 
         // Connected Telehub position
-        private float m_TelehubPosX;
-        private float m_TelehubPosY;
-        private float m_TelehubPosZ;
+        private Vector3 m_TelehubPos;
         public Vector3 TelehubPos
         {
             get
             {
                 if (HasTelehub)
                 {
-                    Vector3 Pos = new Vector3(m_TelehubPosX, m_TelehubPosY, m_TelehubPosZ);
-                    return Pos;
+                    return m_TelehubPos;
                 }
                 else
                 {
@@ -482,53 +479,18 @@ namespace OpenSim.Framework
             }
             set
             {
-
-                m_TelehubPosX = value.X;
-                m_TelehubPosY = value.Y;
-                m_TelehubPosZ = value.Z;
+                m_TelehubPos = value;
             }
         }
 
         // Connected Telehub rotation
-        private float m_TelehubRotX;
-        private float m_TelehubRotY;
-        private float m_TelehubRotZ;
-        private float m_TelehubRotW;
+        private Quaternion m_TelehubRot;
         public Quaternion TelehubRot
         {
             get
-            {
-                if (HasTelehub)
-                {
-                    Quaternion quat = new Quaternion();
-
-                    quat.X = m_TelehubRotX;
-                    quat.Y = m_TelehubRotY;
-                    quat.Z = m_TelehubRotZ;
-                    quat.W = m_TelehubRotW;
-
-                    return quat;
-                }
-                else
-                {
-                    // What else to do??
-                    Quaternion quat = new Quaternion();
-
-                    quat.X = m_TelehubRotX;
-                    quat.X = m_TelehubRotY;
-                    quat.X = m_TelehubRotZ;
-                    quat.X = m_TelehubRotW;
-
-                    return quat;
-                }
-            }
+            { return m_TelehubRot; }
             set
-            {
-                m_TelehubRotX = value.X;
-                m_TelehubRotY = value.Y;
-                m_TelehubRotZ = value.Z;
-                m_TelehubRotW = value.W;
-            }
+            { m_TelehubRot = value; }
         }
 
         // Our Connected Telehub's SpawnPoints

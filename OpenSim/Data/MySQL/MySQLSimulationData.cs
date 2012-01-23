@@ -1011,7 +1011,11 @@ namespace OpenSim.Data.MySQL
                             "use_estate_sun, fixed_sun, sun_position, " +
                             "covenant, Sandbox, sunvectorx, sunvectory, " +
                             "sunvectorz, loaded_creation_datetime, " +
-                            "loaded_creation_id, map_tile_ID, block_search, casino) values (?RegionUUID, ?BlockTerraform, " +
+                            "loaded_creation_id, map_tile_ID, block_search, casino, " +
+                            "TelehubEnabled, TelehubObject, TelehubName, " +
+                            "TelehubPosX, TelehubPosY, TelehubPosZ, " +
+                            "TelehubRotX, TelehubRotY, TelehubRotZ, TelehubRotW) " +
+                             "values (?RegionUUID, ?BlockTerraform, " +
                             "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
                             "?AllowLandResell, ?AllowLandJoinDivide, " +
                             "?BlockShowInSearch, ?AgentLimit, ?ObjectBonus, " +
@@ -1026,7 +1030,10 @@ namespace OpenSim.Data.MySQL
                             "?SunPosition, ?Covenant, ?Sandbox, " +
                             "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                             "?LoadedCreationDateTime, ?LoadedCreationID, " +
-                            "?TerrainImageID, ?block_search, ?casino)";
+                            "?TerrainImageID, ?block_search, ?casino, " +
+                            "?TelehubEnabled, ?TelehubObject, ?TelehubName, " +
+                            "?TelehubPosX, ?TelehubPosY, ?TelehubPosZ, " +
+                            "?TelehubRotX, ?TelehubRotY, ?TelehubRotZ, ?TelehubRotW )";
 
                         FillRegionSettingsCommand(cmd, rs);
 
@@ -1314,6 +1321,20 @@ namespace OpenSim.Data.MySQL
                 newSettings.LoadedCreationID = (String) row["loaded_creation_id"];
 
             newSettings.TerrainImageID = DBGuid.FromDB(row["map_tile_ID"]);
+            newSettings.HasTelehub = Convert.ToBoolean(row["TelehubEnabled"]);
+            newSettings.TelehubObject = DBGuid.FromDB(row["TelehubObject"]);
+            newSettings.TelehubName = (string) row["TelehubName"];
+            newSettings.TelehubPos = new Vector3 (
+                                                    Convert.ToSingle(row["TelehubPosX"]),
+                                                    Convert.ToSingle(row["TelehubPosY"]),
+                                                    Convert.ToSingle(row["TelehubPosZ"])
+                                                  );
+            newSettings.TelehubRot = new Quaternion (
+                                                      Convert.ToSingle(row["TelehubRotX"]),
+                                                      Convert.ToSingle(row["TelehubRotY"]),
+                                                      Convert.ToSingle(row["TelehubRotZ"]),
+                                                      Convert.ToSingle(row["TelehubRotW"])
+                                                    );
 
             newSettings.GodBlockSearch = Convert.ToBoolean(row["block_search"]);
             newSettings.Casino = Convert.ToBoolean(row["casino"]);
@@ -1654,6 +1675,16 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("block_search", settings.GodBlockSearch);
             cmd.Parameters.AddWithValue("casino", settings.Casino);
 
+            cmd.Parameters.AddWithValue("TelehubEnabled", settings.HasTelehub);
+            cmd.Parameters.AddWithValue("TelehubObject", settings.TelehubObject);
+            cmd.Parameters.AddWithValue("TelehubName", settings.TelehubName);
+            cmd.Parameters.AddWithValue("TelehubPosX", settings.TelehubPos.X);
+            cmd.Parameters.AddWithValue("TelehubPosY", settings.TelehubPos.Y);
+            cmd.Parameters.AddWithValue("TelehubPosZ", settings.TelehubPos.Z);
+            cmd.Parameters.AddWithValue("TelehubRotX", settings.TelehubRot.X);
+            cmd.Parameters.AddWithValue("TelehubRotY", settings.TelehubRot.Y);
+            cmd.Parameters.AddWithValue("TelehubRotZ", settings.TelehubRot.Z);
+            cmd.Parameters.AddWithValue("TelehubRotW", settings.TelehubRot.W);
         }
 
         /// <summary>
@@ -1906,11 +1937,11 @@ namespace OpenSim.Data.MySQL
 
                         cmd.Parameters.Clear();
 
-                        cmd.CommandText = "insert into spawn_points (RegionID, PointX, PointY, PointZ) values ( ?EstateID, ?PointX, ?PointY,?PointZ)";
+                        cmd.CommandText = "insert into spawn_points (RegionID, PointX, PointY, PointZ) values ( ?RegionID, ?PointX, ?PointY,?PointZ)";
 
                         foreach (Vector3 p in rs.SpawnPoints())
                         {
-                            cmd.Parameters.AddWithValue("?EstateID", rs.RegionUUID.ToString());
+                            cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
                             cmd.Parameters.AddWithValue("?PointX", p.X);
                             cmd.Parameters.AddWithValue("?PointY", p.Y);
                             cmd.Parameters.AddWithValue("?PointZ", p.Z);
