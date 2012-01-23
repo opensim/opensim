@@ -1912,11 +1912,11 @@ namespace OpenSim.Data.MySQL
 
                         cmd.Parameters.Clear();
 
-                        cmd.CommandText = "insert into spawn_points (RegionID, PointX, PointY, PointZ) values ( ?EstateID, ?PointX, ?PointY,?PointZ)";
+                        cmd.CommandText = "insert into spawn_points (RegionID, PointX, PointY, PointZ) values ( ?RegionID, ?PointX, ?PointY,?PointZ)";
 
                         foreach (Vector3 p in rs.SpawnPoints())
                         {
-                            cmd.Parameters.AddWithValue("?EstateID", rs.RegionUUID.ToString());
+                            cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
                             cmd.Parameters.AddWithValue("?PointX", p.X);
                             cmd.Parameters.AddWithValue("?PointY", p.Y);
                             cmd.Parameters.AddWithValue("?PointZ", p.Z);
