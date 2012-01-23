@@ -109,10 +109,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             try
             {
-                float dist = (float) Util.GetDistanceTo(m_Scene.RegionInfo.RegionSettings.TelehubPos, point);
-                Vector3 nvec = Util.GetNormalizedVector(point - m_Scene.RegionInfo.RegionSettings.TelehubPos);
+                Vector3 thPos = m_Scene.RegionInfo.RegionSettings.TelehubPos;
+                Quaternion thRot = m_Scene.RegionInfo.RegionSettings.TelehubRot;
+
+                float dist = (float) Util.GetDistanceTo(thPos, point);
+                Vector3 nvec = Util.GetNormalizedVector(point - thPos);
                 Vector3 spoint = nvec * dist;
-    
+
                 m_Scene.RegionInfo.RegionSettings.AddSpawnPoint(spoint);
                 m_Scene.RegionInfo.RegionSettings.Save();
                 result = true;
