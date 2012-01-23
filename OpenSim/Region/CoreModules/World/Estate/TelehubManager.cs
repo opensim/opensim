@@ -109,11 +109,18 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             try
             {
-                Vector3 thPos = m_Scene.RegionInfo.RegionSettings.TelehubPos;
-                Quaternion thRot = m_Scene.RegionInfo.RegionSettings.TelehubRot;
+                // Need to update the position in case the Telehubn has been moved
+                UUID TelehubID = m_Scene.RegionInfo.RegionSettings.TelehubObject;
+                SceneObjectPart part = m_Scene.GetSceneObjectPart(TelehubID);
 
-                float dist = (float) Util.GetDistanceTo(thPos, point);
-                Vector3 nvec = Util.GetNormalizedVector(point - thPos);
+                Vector3 TelehubPos = part.AbsolutePosition;
+                Quaternion TelehubRot = part.GetWorldRotation();
+
+                m_Scene.RegionInfo.RegionSettings.TelehubPos = TelehubPos;
+                m_Scene.RegionInfo.RegionSettings.TelehubRot = TelehubRot;
+
+                float dist = (float) Util.GetDistanceTo(TelehubPos, point);
+                Vector3 nvec = Util.GetNormalizedVector(point - TelehubPos);
                 Vector3 spoint = nvec * dist;
 
                 m_Scene.RegionInfo.RegionSettings.AddSpawnPoint(spoint);
