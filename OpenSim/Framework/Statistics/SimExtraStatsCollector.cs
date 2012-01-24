@@ -148,7 +148,8 @@ namespace OpenSim.Framework.Statistics
         /// cover situations where the inventory service accepts the request but never returns any data, since
         /// we do not yet timeout this situation.
         /// </summary>
-        public long InventoryServiceRetrievalFailures { get { return inventoryServiceRetrievalFailures; } }
+        /// <remarks>Commented out because we do not cache inventory at this point</remarks>
+//        public long InventoryServiceRetrievalFailures { get { return inventoryServiceRetrievalFailures; } }
 
         /// <summary>
         /// Retrieve the total frame time (in ms) of the last frame
@@ -219,10 +220,10 @@ namespace OpenSim.Framework.Statistics
             assetServiceRequestFailures++;
         }
 
-        public void AddInventoryServiceRetrievalFailure()
-        {
-            inventoryServiceRetrievalFailures++;
-        }
+//        public void AddInventoryServiceRetrievalFailure()
+//        {
+//            inventoryServiceRetrievalFailures++;
+//        }
 
         /// <summary>
         /// Register as a packet queue stats provider
@@ -328,13 +329,13 @@ Asset service request failures: {3}" + Environment.NewLine,
                     "Abnormal client thread terminations: {0}" + Environment.NewLine,
                     abnormalClientThreadTerminations));
 
-            sb.Append(Environment.NewLine);
-            sb.Append("INVENTORY STATISTICS");
-            sb.Append(Environment.NewLine);
-            sb.Append(
-                string.Format(
-                    "Initial inventory caching failures: {0}" + Environment.NewLine,
-                    InventoryServiceRetrievalFailures));
+//            sb.Append(Environment.NewLine);
+//            sb.Append("INVENTORY STATISTICS");
+//            sb.Append(Environment.NewLine);
+//            sb.Append(
+//                string.Format(
+//                    "Initial inventory caching failures: {0}" + Environment.NewLine,
+//                    InventoryServiceRetrievalFailures));
 
             sb.Append(Environment.NewLine);
             sb.Append("FRAME STATISTICS");
@@ -399,8 +400,8 @@ Asset service request failures: {3}" + Environment.NewLine,
                     AssetServiceRequestFailures));
             args["abnormalClientThreadTerminations"] = OSD.FromString (String.Format ("{0:0.##}",
                     abnormalClientThreadTerminations));
-            args["InventoryServiceRetrievalFailures"] = OSD.FromString (String.Format ("{0:0.##}",
-                    InventoryServiceRetrievalFailures));
+//            args["InventoryServiceRetrievalFailures"] = OSD.FromString (String.Format ("{0:0.##}",
+//                    InventoryServiceRetrievalFailures));
             args["Dilatn"] = OSD.FromString (String.Format ("{0:0.##}", timeDilation));
             args["SimFPS"] = OSD.FromString (String.Format ("{0:0.##}", simFps));
             args["PhyFPS"] = OSD.FromString (String.Format ("{0:0.##}", physicsFps));
