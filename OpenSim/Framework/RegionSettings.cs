@@ -26,11 +26,53 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
+    public struct SpawnPoint
+    {
+        public float Yaw;
+        public float Pitch;
+        public float Distance;
+
+        public void SetLocation(Vector3 pos, Quaternion rot, Vector3 point)
+        {
+            // The point is an absolute position, so we need the relative
+            // location to the spawn point
+            Vector3 offset = point - pos;
+            Distance = Vector3.Mag(offset);
+
+            // Next we need to rotate this vector into the spawn point's
+            // coordinate system
+            rot.W = -rot.W;
+            offset = offset * rot;
+
+            Vector3 dir = Vector3.Normalize(offset);
+
+            // Get the bearing (yaw)
+            Yaw = (float)Math.Atan2(dir.Y, dir.X);
+
+            // Get the elevation (pitch)
+            Pitch = (float)-Math.Atan2(dir.Z, Math.Sqrt(dir.X * dir.X + dir.Y * dir.Y));
+        }
+
+        public Vector3 GetLocation(Vector3 pos, Quaternion rot)
+        {
+            Quaternion y = Quaternion.CreateFromEulers(0, 0, Yaw);
+            Quaternion p = Quaternion.CreateFromEulers(0, Pitch, 0);
+
+            Vector3 dir = new Vector3(1, 0, 0) * p * y;
+            Vector3 offset = dir * (float)Distance;
+
+            offset *= rot;
+
+            return pos + offset;
+        }
+    }
+
     public class RegionSettings
     {
         public delegate void SaveDelegate(RegionSettings rs);
@@ -397,5 +439,49 @@ namespace OpenSim.Framework
             set { m_LoadedCreationID = value; }
         }
 
+        // Connected Telehub object
+        private UUID m_TelehubObject;
+        public UUID TelehubObject
+        {
+            get
+            {
+                return m_TelehubObject;
+            }
+            set
+            {
+                m_TelehubObject = value;
+            }
+        }
+
+        // Our Connected Telehub's SpawnPoints
+        public List<SpawnPoint> l_SpawnPoints = new List<SpawnPoint>();
+
+        // Add a SpawnPoint
+        // ** These are not region coordinates **
+        // They are relative to the Telehub coordinates
+        //
+        public void AddSpawnPoint(SpawnPoint point)
+        {
+            l_SpawnPoints.Add(point);
+        }
+
+        // Remove a SpawnPoint
+        public void RemoveSpawnPoint(int point_index)
+        {
+            l_SpawnPoints.RemoveAt(point_index);
+        }
+
+        // Return the List of SpawnPoints
+        public List<SpawnPoint> SpawnPoints()
+        {
+            return l_SpawnPoints;
+
+        }
+
+        // Clear the SpawnPoints List of all entries
+        public void ClearSpawnPoints()
+        {
+            l_SpawnPoints.Clear();
+        }
     }
 }
