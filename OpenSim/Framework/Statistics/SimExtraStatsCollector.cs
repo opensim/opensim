@@ -42,15 +42,15 @@ namespace OpenSim.Framework.Statistics
     {
         private long abnormalClientThreadTerminations;
 
-        private long assetsInCache;
-        private long texturesInCache;
-        private long assetCacheMemoryUsage;
-        private long textureCacheMemoryUsage;
-        private TimeSpan assetRequestTimeAfterCacheMiss;
-        private long blockedMissingTextureRequests;
+//        private long assetsInCache;
+//        private long texturesInCache;
+//        private long assetCacheMemoryUsage;
+//        private long textureCacheMemoryUsage;
+//        private TimeSpan assetRequestTimeAfterCacheMiss;
+//        private long blockedMissingTextureRequests;
 
-        private long assetServiceRequestFailures;
-        private long inventoryServiceRetrievalFailures;
+//        private long assetServiceRequestFailures;
+//        private long inventoryServiceRetrievalFailures;
 
         private volatile float timeDilation;
         private volatile float simFps;
@@ -79,27 +79,27 @@ namespace OpenSim.Framework.Statistics
         /// </summary>
         public long AbnormalClientThreadTerminations { get { return abnormalClientThreadTerminations; } }
 
-        /// <summary>
-        /// These statistics are being collected by push rather than pull.  Pull would be simpler, but I had the
-        /// notion of providing some flow statistics (which pull wouldn't give us).  Though admittedly these
-        /// haven't yet been implemented...
-        /// </summary>
-        public long AssetsInCache { get { return assetsInCache; } }
-        
-        /// <value>
-        /// Currently unused
-        /// </value>
-        public long TexturesInCache { get { return texturesInCache; } }
-        
-        /// <value>
-        /// Currently misleading since we can't currently subtract removed asset memory usage without a performance hit
-        /// </value>
-        public long AssetCacheMemoryUsage { get { return assetCacheMemoryUsage; } }
-        
-        /// <value>
-        /// Currently unused
-        /// </value>
-        public long TextureCacheMemoryUsage { get { return textureCacheMemoryUsage; } }
+//        /// <summary>
+//        /// These statistics are being collected by push rather than pull.  Pull would be simpler, but I had the
+//        /// notion of providing some flow statistics (which pull wouldn't give us).  Though admittedly these
+//        /// haven't yet been implemented...
+//        /// </summary>
+//        public long AssetsInCache { get { return assetsInCache; } }
+//        
+//        /// <value>
+//        /// Currently unused
+//        /// </value>
+//        public long TexturesInCache { get { return texturesInCache; } }
+//        
+//        /// <value>
+//        /// Currently misleading since we can't currently subtract removed asset memory usage without a performance hit
+//        /// </value>
+//        public long AssetCacheMemoryUsage { get { return assetCacheMemoryUsage; } }
+//        
+//        /// <value>
+//        /// Currently unused
+//        /// </value>
+//        public long TextureCacheMemoryUsage { get { return textureCacheMemoryUsage; } }
 
         public float TimeDilation { get { return timeDilation; } }
         public float SimFps { get { return simFps; } }
@@ -123,25 +123,25 @@ namespace OpenSim.Framework.Statistics
         public float ActiveScripts { get { return activeScripts; } }
         public float ScriptLinesPerSecond { get { return scriptLinesPerSecond; } }
         
-        /// <summary>
-        /// This is the time it took for the last asset request made in response to a cache miss.
-        /// </summary>
-        public TimeSpan AssetRequestTimeAfterCacheMiss { get { return assetRequestTimeAfterCacheMiss; } }
-
-        /// <summary>
-        /// Number of persistent requests for missing textures we have started blocking from clients.  To some extent
-        /// this is just a temporary statistic to keep this problem in view - the root cause of this lies either
-        /// in a mishandling of the reply protocol, related to avatar appearance or may even originate in graphics
-        /// driver bugs on clients (though this seems less likely).
-        /// </summary>
-        public long BlockedMissingTextureRequests { get { return blockedMissingTextureRequests; } }
-
-        /// <summary>
-        /// Record the number of times that an asset request has failed.  Failures are effectively exceptions, such as
-        /// request timeouts.  If an asset service replies that a particular asset cannot be found, this is not counted
-        /// as a failure
-        /// </summary>
-        public long AssetServiceRequestFailures { get { return assetServiceRequestFailures; } }
+//        /// <summary>
+//        /// This is the time it took for the last asset request made in response to a cache miss.
+//        /// </summary>
+//        public TimeSpan AssetRequestTimeAfterCacheMiss { get { return assetRequestTimeAfterCacheMiss; } }
+//
+//        /// <summary>
+//        /// Number of persistent requests for missing textures we have started blocking from clients.  To some extent
+//        /// this is just a temporary statistic to keep this problem in view - the root cause of this lies either
+//        /// in a mishandling of the reply protocol, related to avatar appearance or may even originate in graphics
+//        /// driver bugs on clients (though this seems less likely).
+//        /// </summary>
+//        public long BlockedMissingTextureRequests { get { return blockedMissingTextureRequests; } }
+//
+//        /// <summary>
+//        /// Record the number of times that an asset request has failed.  Failures are effectively exceptions, such as
+//        /// request timeouts.  If an asset service replies that a particular asset cannot be found, this is not counted
+//        /// as a failure
+//        /// </summary>
+//        public long AssetServiceRequestFailures { get { return assetServiceRequestFailures; } }
 
         /// <summary>
         /// Number of known failures to retrieve avatar inventory from the inventory service.  This does not
@@ -172,53 +172,53 @@ namespace OpenSim.Framework.Statistics
             abnormalClientThreadTerminations++;
         }
 
-        public void AddAsset(AssetBase asset)
-        {
-            assetsInCache++;
-            //assetCacheMemoryUsage += asset.Data.Length;
-        }
-        
-        public void RemoveAsset(UUID uuid)
-        {
-            assetsInCache--;
-        }
-
-        public void AddTexture(AssetBase image)
-        {
-            if (image.Data != null)
-            {
-                texturesInCache++;
-
-                // This could have been a pull stat, though there was originally a nebulous idea to measure flow rates
-                textureCacheMemoryUsage += image.Data.Length;
-            }
-        }
-
-        /// <summary>
-        /// Signal that the asset cache has been cleared.
-        /// </summary>
-        public void ClearAssetCacheStatistics()
-        {
-            assetsInCache = 0;
-            assetCacheMemoryUsage = 0;
-            texturesInCache = 0;
-            textureCacheMemoryUsage = 0;
-        }
-        
-        public void AddAssetRequestTimeAfterCacheMiss(TimeSpan ts)
-        {
-            assetRequestTimeAfterCacheMiss = ts;
-        }
-
-        public void AddBlockedMissingTextureRequest()
-        {
-            blockedMissingTextureRequests++;
-        }
-
-        public void AddAssetServiceRequestFailure()
-        {
-            assetServiceRequestFailures++;
-        }
+//        public void AddAsset(AssetBase asset)
+//        {
+//            assetsInCache++;
+//            //assetCacheMemoryUsage += asset.Data.Length;
+//        }
+//        
+//        public void RemoveAsset(UUID uuid)
+//        {
+//            assetsInCache--;
+//        }
+//
+//        public void AddTexture(AssetBase image)
+//        {
+//            if (image.Data != null)
+//            {
+//                texturesInCache++;
+//
+//                // This could have been a pull stat, though there was originally a nebulous idea to measure flow rates
+//                textureCacheMemoryUsage += image.Data.Length;
+//            }
+//        }
+//
+//        /// <summary>
+//        /// Signal that the asset cache has been cleared.
+//        /// </summary>
+//        public void ClearAssetCacheStatistics()
+//        {
+//            assetsInCache = 0;
+//            assetCacheMemoryUsage = 0;
+//            texturesInCache = 0;
+//            textureCacheMemoryUsage = 0;
+//        }
+//        
+//        public void AddAssetRequestTimeAfterCacheMiss(TimeSpan ts)
+//        {
+//            assetRequestTimeAfterCacheMiss = ts;
+//        }
+//
+//        public void AddBlockedMissingTextureRequest()
+//        {
+//            blockedMissingTextureRequests++;
+//        }
+//
+//        public void AddAssetServiceRequestFailure()
+//        {
+//            assetServiceRequestFailures++;
+//        }
 
 //        public void AddInventoryServiceRetrievalFailure()
 //        {
@@ -291,8 +291,8 @@ namespace OpenSim.Framework.Statistics
         public override string Report()
         {
             StringBuilder sb = new StringBuilder(Environment.NewLine);
-            sb.Append("ASSET STATISTICS");
-            sb.Append(Environment.NewLine);
+//            sb.Append("ASSET STATISTICS");
+//            sb.Append(Environment.NewLine);
                         
             /*
             sb.Append(
@@ -308,7 +308,8 @@ Asset service request failures: {6}"+ Environment.NewLine,
                     BlockedMissingTextureRequests,
                     AssetServiceRequestFailures));
             */
-            
+
+            /*
             sb.Append(
                 string.Format(
 @"Asset cache contains   {0,6} assets
@@ -319,7 +320,7 @@ Asset service request failures: {3}" + Environment.NewLine,
                     assetRequestTimeAfterCacheMiss.Milliseconds / 1000.0,
                     BlockedMissingTextureRequests,
                     AssetServiceRequestFailures));
-            
+                    */
 
             sb.Append(Environment.NewLine);
             sb.Append("CONNECTION STATISTICS");
@@ -391,15 +392,15 @@ Asset service request failures: {3}" + Environment.NewLine,
         public override string XReport(string uptime, string version)
         {
             OSDMap args = new OSDMap(30);
-            args["AssetsInCache"] = OSD.FromString (String.Format ("{0:0.##}", AssetsInCache));
-            args["TimeAfterCacheMiss"] = OSD.FromString (String.Format ("{0:0.##}",
-                    assetRequestTimeAfterCacheMiss.Milliseconds / 1000.0));
-            args["BlockedMissingTextureRequests"] = OSD.FromString (String.Format ("{0:0.##}",
-                    BlockedMissingTextureRequests));
-            args["AssetServiceRequestFailures"] = OSD.FromString (String.Format ("{0:0.##}",
-                    AssetServiceRequestFailures));
-            args["abnormalClientThreadTerminations"] = OSD.FromString (String.Format ("{0:0.##}",
-                    abnormalClientThreadTerminations));
+//            args["AssetsInCache"] = OSD.FromString (String.Format ("{0:0.##}", AssetsInCache));
+//            args["TimeAfterCacheMiss"] = OSD.FromString (String.Format ("{0:0.##}",
+//                    assetRequestTimeAfterCacheMiss.Milliseconds / 1000.0));
+//            args["BlockedMissingTextureRequests"] = OSD.FromString (String.Format ("{0:0.##}",
+//                    BlockedMissingTextureRequests));
+//            args["AssetServiceRequestFailures"] = OSD.FromString (String.Format ("{0:0.##}",
+//                    AssetServiceRequestFailures));
+//            args["abnormalClientThreadTerminations"] = OSD.FromString (String.Format ("{0:0.##}",
+//                    abnormalClientThreadTerminations));
 //            args["InventoryServiceRetrievalFailures"] = OSD.FromString (String.Format ("{0:0.##}",
 //                    InventoryServiceRetrievalFailures));
             args["Dilatn"] = OSD.FromString (String.Format ("{0:0.##}", timeDilation));
