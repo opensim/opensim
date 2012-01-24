@@ -3573,7 +3573,7 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
-        private bool TestLandRestrictions(UUID agentID, out string reason, ref float posX, ref float posY)
+        public bool TestLandRestrictions(UUID agentID, out string reason, ref float posX, ref float posY)
         {
             reason = String.Empty;
             if (Permissions.IsGod(agentID))
