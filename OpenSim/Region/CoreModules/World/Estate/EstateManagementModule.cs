@@ -1309,7 +1309,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                 foreach (SpawnPoint sp in settings.SpawnPoints())
                 {
-                    spawnPoints.Add(sp.GetLocation(telehub.GroupRotation));
+                    spawnPoints.Add(sp.GetLocation(Vector3.Zero, telehub.GroupRotation));
                 }
 
                 client.SendTelehubInfo(settings.TelehubObject,
