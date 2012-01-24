@@ -32,6 +32,47 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
+    public struct SpawnPoint
+    {
+        public float Yaw;
+        public float Pitch;
+        public float Distance;
+
+        public void SetLocation(Vector3 pos, Quaternion rot, Vector3 point)
+        {
+            // The point is an absolute position, so we need the relative
+            // location to the spawn point
+            Vector3 offset = pos - point;
+            Distance = Vector3.Mag(offset);
+
+            // Next we need to rotate this vector into the spawn point's
+            // coordinate system
+            offset = offset * rot;
+
+            Vector3 dir = Vector3.Normalize(offset);
+
+            // Get the bearing (yaw)
+            Yaw = (float)Math.Atan2(dir.Y, dir.X);
+
+            // Get the elevation (pitch)
+            Pitch = (float)-Math.Atan2(dir.Z, Math.Sqrt(dir.X * dir.X + dir.Y * dir.Y));
+        }
+
+        public Vector3 GetLocation(Vector3 pos, Quaternion rot)
+        {
+            Quaternion y = Quaternion.CreateFromEulers(0, 0, Yaw);
+            Quaternion p = Quaternion.CreateFromEulers(0, Pitch, 0);
+
+            Vector3 dir = new Vector3(1, 0, 0) * p * y;
+            Vector3 offset = dir * (float)Distance;
+
+            rot.W = -rot.W;
+            offset *= rot;
+
+            return pos + offset;
+        }
+    }
+
     public class RegionSettings
     {
         public delegate void SaveDelegate(RegionSettings rs);
@@ -426,14 +467,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                if (HasTelehub)
-                {
-                    return m_TelehubObject;
-                }
-                else
-                {
-                    return UUID.Zero;
-                }
+                return m_TelehubObject;
             }
             set
             {
@@ -441,66 +475,14 @@ namespace OpenSim.Framework
             }
         }
 
-        // Connected Telehub name
-        private string m_TelehubName;
-        public string TelehubName
-        {
-            get
-            {
-                if (HasTelehub)
-                {
-                    return m_TelehubName;
-                }
-                else
-                {
-                    return String.Empty;
-                }
-            }
-            set
-            {
-                m_TelehubName = value;
-            }
-        }
-
-        // Connected Telehub position
-        private Vector3 m_TelehubPos;
-        public Vector3 TelehubPos
-        {
-            get
-            {
-                if (HasTelehub)
-                {
-                    return m_TelehubPos;
-                }
-                else
-                {
-                    return Vector3.Zero;
-                }
-            }
-            set
-            {
-                m_TelehubPos = value;
-            }
-        }
-
-        // Connected Telehub rotation
-        private Quaternion m_TelehubRot;
-        public Quaternion TelehubRot
-        {
-            get
-            { return m_TelehubRot; }
-            set
-            { m_TelehubRot = value; }
-        }
-
         // Our Connected Telehub's SpawnPoints
-        public List<Vector3> l_SpawnPoints = new List<Vector3>();
+        public List<SpawnPoint> l_SpawnPoints = new List<SpawnPoint>();
 
         // Add a SpawnPoint
         // ** These are not region coordinates **
         // They are relative to the Telehub coordinates
         //
-        public void AddSpawnPoint(Vector3 point)
+        public void AddSpawnPoint(SpawnPoint point)
         {
             l_SpawnPoints.Add(point);
         }
@@ -512,7 +494,7 @@ namespace OpenSim.Framework
         }
 
         // Return the List of SpawnPoints
-        public List<Vector3> SpawnPoints()
+        public List<SpawnPoint> SpawnPoints()
         {
             return l_SpawnPoints;
 

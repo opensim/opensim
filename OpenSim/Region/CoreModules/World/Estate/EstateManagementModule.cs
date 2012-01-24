@@ -624,59 +624,37 @@ namespace OpenSim.Region.CoreModules.World.Estate
             {
                 case "info ui":
                     // Send info:
-                    if (Scene.RegionInfo.RegionSettings.HasTelehub)
-                    {
-                        RegionSettings settings = this.Scene.RegionInfo.RegionSettings;
-                            client.SendTelehubInfo(settings.TelehubObject, settings.TelehubName, settings.TelehubPos,
-                                               settings.TelehubRot, settings.SpawnPoints());
-                    }
-                    else
-                    {
-                        return;
-                    }
+                    SendTelehubInfo(client);
                     break;
 
                 case "connect":
                     // Add the Telehub
                     part = Scene.GetSceneObjectPart((uint)param1);
-                    if (m_Telehub.Connect(part))
-                    {
-                        RegionSettings settings = this.Scene.RegionInfo.RegionSettings;
-                            client.SendTelehubInfo(settings.TelehubObject, settings.TelehubName, settings.TelehubPos,
-                                               settings.TelehubRot, settings.SpawnPoints());
-                    }
+                    if (part == null)
+                        return;
+                    SceneObjectGroup grp = part.ParentGroup;
+
+                    if (m_Telehub.Connect(grp))
+                        SendTelehubInfo(client);
                     break;
 
                 case "delete":
                     // Disconnect Telehub
-                    part = Scene.GetSceneObjectPart((uint)param1);
-                    if (m_Telehub.DisConnect(part))
-                    {
-                        RegionSettings settings = this.Scene.RegionInfo.RegionSettings;
-                            client.SendTelehubInfo(settings.TelehubObject, settings.TelehubName, settings.TelehubPos,
-                                               settings.TelehubRot, settings.SpawnPoints());
-                    }
+                    if (m_Telehub.Disconnect())
+                        SendTelehubInfo(client);
                     break;
 
                 case "spawnpoint add":
                     // Add SpawnPoint to the Telehub
                     part = Scene.GetSceneObjectPart((uint)param1);
                     if( m_Telehub.AddSpawnPoint(part.AbsolutePosition))
-                    {
-                        RegionSettings settings = this.Scene.RegionInfo.RegionSettings;
-                            client.SendTelehubInfo(settings.TelehubObject, settings.TelehubName, settings.TelehubPos,
-                                               settings.TelehubRot, settings.SpawnPoints());
-                    }
+                        SendTelehubInfo(client);
                     break;
 
                 case "spawnpoint remove":
                     // Remove SpawnPoint from Telehub
                     if (m_Telehub.RemoveSpawnPoint((int)param1))
-                    {
-                        RegionSettings settings = this.Scene.RegionInfo.RegionSettings;
-                            client.SendTelehubInfo(settings.TelehubObject, settings.TelehubName, settings.TelehubPos,
-                                               settings.TelehubRot, settings.SpawnPoints());
-                    }
+                        SendTelehubInfo(client);
                     break;
 
                 default:
@@ -1365,5 +1343,39 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (onmessage != null)
                 onmessage(Scene.RegionInfo.RegionID, fromID, fromName, message);
         }
+
+
+        private void SendTelehubInfo(IClientAPI client)
+        {
+            RegionSettings settings =
+                    this.Scene.RegionInfo.RegionSettings;
+
+            SceneObjectGroup telehub = null;
+            if (settings.TelehubObject != UUID.Zero &&
+                (telehub = Scene.GetSceneObjectGroup(settings.TelehubObject)) != null)
+            {
+                List<Vector3> spawnPoints = new List<Vector3>();
+
+                foreach (SpawnPoint sp in settings.SpawnPoints())
+                {
+                    spawnPoints.Add(sp.GetLocation(telehub.AbsolutePosition, telehub.GroupRotation));
+                }
+
+                client.SendTelehubInfo(settings.TelehubObject,
+                                       telehub.Name,
+                                       telehub.AbsolutePosition,
+                                       telehub.GroupRotation,
+                                       spawnPoints);
+            }
+            else
+            {
+                client.SendTelehubInfo(UUID.Zero,
+                                       String.Empty,
+                                       Vector3.Zero,
+                                       Quaternion.Identity,
+                                       new List<Vector3>());
+            }
+        }
     }
 }
+
