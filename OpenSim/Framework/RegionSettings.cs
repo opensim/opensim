@@ -58,7 +58,7 @@ namespace OpenSim.Framework
             Pitch = (float)-Math.Atan2(dir.Z, Math.Sqrt(dir.X * dir.X + dir.Y * dir.Y));
         }
 
-        public Vector3 GetLocation(Vector3 pos, Quaternion rot)
+        public Vector3 GetLocation(Quaternion rot)
         {
             Quaternion y = Quaternion.CreateFromEulers(0, 0, Yaw);
             Quaternion p = Quaternion.CreateFromEulers(0, Pitch, 0);
@@ -69,7 +69,7 @@ namespace OpenSim.Framework
             rot.W = -rot.W;
             offset *= rot;
 
-            return pos + offset;
+            return offset;
         }
     }
 
