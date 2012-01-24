@@ -623,8 +623,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
             switch (cmd)
             {
                 case "info ui":
-                    // Send info:
-                    SendTelehubInfo(client);
                     break;
 
                 case "connect":
@@ -634,32 +632,31 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         return;
                     SceneObjectGroup grp = part.ParentGroup;
 
-                    if (m_Telehub.Connect(grp))
-                        SendTelehubInfo(client);
+                    m_Telehub.Connect(grp);
                     break;
 
                 case "delete":
                     // Disconnect Telehub
-                    if (m_Telehub.Disconnect())
-                        SendTelehubInfo(client);
+                    m_Telehub.Disconnect();
                     break;
 
                 case "spawnpoint add":
                     // Add SpawnPoint to the Telehub
                     part = Scene.GetSceneObjectPart((uint)param1);
-                    if( m_Telehub.AddSpawnPoint(part.AbsolutePosition))
-                        SendTelehubInfo(client);
+                    if (part == null)
+                        return;
+                    m_Telehub.AddSpawnPoint(part.AbsolutePosition);
                     break;
 
                 case "spawnpoint remove":
                     // Remove SpawnPoint from Telehub
-                    if (m_Telehub.RemoveSpawnPoint((int)param1))
-                        SendTelehubInfo(client);
+                    m_Telehub.RemoveSpawnPoint((int)param1);
                     break;
 
                 default:
                     break;
             }
+            SendTelehubInfo(client);
         }
 
         private void SendSimulatorBlueBoxMessage(
@@ -1358,7 +1355,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                 foreach (SpawnPoint sp in settings.SpawnPoints())
                 {
-                    spawnPoints.Add(sp.GetLocation(Vector3.Zero, telehub.GroupRotation));
+                    spawnPoints.Add(sp.GetLocation(Vector3.Zero, Quaternion.Identity));
                 }
 
                 client.SendTelehubInfo(settings.TelehubObject,
