@@ -1029,7 +1029,7 @@ namespace OpenSim.Data.MySQL
                             "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                             "?LoadedCreationDateTime, ?LoadedCreationID, " +
                             "?TerrainImageID, ?block_search, ?casino, " +
-                            "?TelehubObject, " +
+                            "?TelehubObject";
 
                         FillRegionSettingsCommand(cmd, rs);
 
