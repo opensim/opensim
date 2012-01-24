@@ -107,15 +107,13 @@ namespace OpenSim
                     }
                     else
                     {
-                        m_log.ErrorFormat("Master ini file {0} not found", masterFilePath);
+                        m_log.ErrorFormat("Master ini file {0} not found", Path.GetFullPath(masterFilePath));
                         Environment.Exit(1);
                     }
                 }
             }
 
-
-            string iniFileName =
-                    startupConfig.GetString("inifile", "OpenSim.ini");
+            string iniFileName = startupConfig.GetString("inifile", "OpenSim.ini");
 
             if (IsUri(iniFileName))
             {
@@ -131,8 +129,7 @@ namespace OpenSim
                 if (!File.Exists(Application.iniFilePath))
                 {
                     iniFileName = "OpenSim.xml";
-                    Application.iniFilePath = Path.GetFullPath(
-                            Path.Combine(Util.configDir(), iniFileName));
+                    Application.iniFilePath = Path.GetFullPath(Path.Combine(Util.configDir(), iniFileName));
                 }
 
                 if (File.Exists(Application.iniFilePath))
@@ -142,15 +139,12 @@ namespace OpenSim
                 }
             }
 
-            string iniDirName =
-                    startupConfig.GetString("inidirectory", "config");
-            string iniDirPath =
-                    Path.Combine(Util.configDir(), iniDirName);
+            string iniDirName = startupConfig.GetString("inidirectory", "config");
+            string iniDirPath = Path.Combine(Util.configDir(), iniDirName);
 
             if (Directory.Exists(iniDirPath))
             {
-                m_log.InfoFormat("Searching folder {0} for config ini files",
-                        iniDirPath);
+                m_log.InfoFormat("Searching folder {0} for config ini files", iniDirPath);
 
                 string[] fileEntries = Directory.GetFiles(iniDirName);
                 foreach (string filePath in fileEntries)
@@ -172,7 +166,6 @@ namespace OpenSim
             if (sources.Count == 0)
             {
                 m_log.FatalFormat("[CONFIG]: Could not load any configuration");
-                m_log.FatalFormat("[CONFIG]: Did you copy the OpenSimDefaults.ini.example file to OpenSimDefaults.ini?");
                 Environment.Exit(1);
             }
 

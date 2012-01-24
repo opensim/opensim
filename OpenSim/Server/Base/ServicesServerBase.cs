@@ -126,11 +126,10 @@ namespace OpenSim.Server.Base
                     m_Config = new IniConfigSource(iniFile);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                System.Console.WriteLine("Error reading from config source {0}",
-                        iniFile);
-                Thread.CurrentThread.Abort();
+                System.Console.WriteLine("Error reading from config source.  {0}", e.Message);
+                Environment.Exit(1);
             }
 
             // Merge the configuration from the command line into the
