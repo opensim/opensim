@@ -997,9 +997,7 @@ namespace OpenSim.Data.MySQL
                             "covenant, Sandbox, sunvectorx, sunvectory, " +
                             "sunvectorz, loaded_creation_datetime, " +
                             "loaded_creation_id, map_tile_ID, " +
-                            "TelehubEnabled, TelehubObject, TelehubName, " +
-                            "TelehubPosX, TelehubPosY, TelehubPosZ, " +
-                            "TelehubRotX, TelehubRotY, TelehubRotZ, TelehubRotW) " +
+                            "TelehubObject) " +
                              "values (?RegionUUID, ?BlockTerraform, " +
                             "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
                             "?AllowLandResell, ?AllowLandJoinDivide, " +
@@ -1015,10 +1013,7 @@ namespace OpenSim.Data.MySQL
                             "?SunPosition, ?Covenant, ?Sandbox, " +
                             "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                             "?LoadedCreationDateTime, ?LoadedCreationID, " +
-                            "?TerrainImageID, " +
-                             "?TelehubEnabled, ?TelehubObject, ?TelehubName, " +
-                             "?TelehubPosX, ?TelehubPosY, ?TelehubPosZ, " +
-                             "?TelehubRotX, ?TelehubRotY, ?TelehubRotZ, ?TelehubRotW )";
+                            "?TerrainImageID) ";
 
                         FillRegionSettingsCommand(cmd, rs);
 
@@ -1306,20 +1301,7 @@ namespace OpenSim.Data.MySQL
                 newSettings.LoadedCreationID = (String) row["loaded_creation_id"];
 
             newSettings.TerrainImageID = DBGuid.FromDB(row["map_tile_ID"]);
-            newSettings.HasTelehub = Convert.ToBoolean(row["TelehubEnabled"]);
             newSettings.TelehubObject = DBGuid.FromDB(row["TelehubObject"]);
-            newSettings.TelehubName = (string) row["TelehubName"];
-            newSettings.TelehubPos = new Vector3 (
-                                                    Convert.ToSingle(row["TelehubPosX"]),
-                                                    Convert.ToSingle(row["TelehubPosY"]),
-                                                    Convert.ToSingle(row["TelehubPosZ"])
-                                                  );
-            newSettings.TelehubRot = new Quaternion (
-                                                      Convert.ToSingle(row["TelehubRotX"]),
-                                                      Convert.ToSingle(row["TelehubRotY"]),
-                                                      Convert.ToSingle(row["TelehubRotZ"]),
-                                                      Convert.ToSingle(row["TelehubRotW"])
-                                                    );
 
             return newSettings;
         }
@@ -1650,16 +1632,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("LoadedCreationDateTime", settings.LoadedCreationDateTime);
             cmd.Parameters.AddWithValue("LoadedCreationID", settings.LoadedCreationID);
             cmd.Parameters.AddWithValue("TerrainImageID", settings.TerrainImageID);
-            cmd.Parameters.AddWithValue("TelehubEnabled", settings.HasTelehub);
             cmd.Parameters.AddWithValue("TelehubObject", settings.TelehubObject);
-            cmd.Parameters.AddWithValue("TelehubName", settings.TelehubName);
-            cmd.Parameters.AddWithValue("TelehubPosX", settings.TelehubPos.X);
-            cmd.Parameters.AddWithValue("TelehubPosY", settings.TelehubPos.Y);
-            cmd.Parameters.AddWithValue("TelehubPosZ", settings.TelehubPos.Z);
-            cmd.Parameters.AddWithValue("TelehubRotX", settings.TelehubRot.X);
-            cmd.Parameters.AddWithValue("TelehubRotY", settings.TelehubRot.Y);
-            cmd.Parameters.AddWithValue("TelehubRotZ", settings.TelehubRot.Z);
-            cmd.Parameters.AddWithValue("TelehubRotW", settings.TelehubRot.W);
         }
 
         /// <summary>
@@ -1874,20 +1847,20 @@ namespace OpenSim.Data.MySQL
 
                     using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        cmd.CommandText = "select PointX, PointY, PointZ from spawn_points where RegionID = ?RegionID";
+                        cmd.CommandText = "select Yaw, Pitch, Distance from spawn_points where RegionID = ?RegionID";
                         cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
 
                         using (IDataReader r = cmd.ExecuteReader())
                         {
                             while (r.Read())
                             {
-                                Vector3 point = new Vector3();
+                                SpawnPoint sp = new SpawnPoint();
 
-                                point.X = (float)r["PointX"];
-                                point.Y = (float)r["PointY"];
-                                point.Z = (float)r["PointZ"];
+                                sp.Yaw = (float)r["Yaw"];
+                                sp.Pitch = (float)r["Pitch"];
+                                sp.Distance = (float)r["Distance"];
 
-                                rs.AddSpawnPoint(point);
+                                rs.AddSpawnPoint(sp);
                             }
                         }
                     }
@@ -1912,14 +1885,14 @@ namespace OpenSim.Data.MySQL
 
                         cmd.Parameters.Clear();
 
-                        cmd.CommandText = "insert into spawn_points (RegionID, PointX, PointY, PointZ) values ( ?RegionID, ?PointX, ?PointY,?PointZ)";
+                        cmd.CommandText = "insert into spawn_points (RegionID, Yaw, Pitch, Distance) values ( ?RegionID, ?Yaw, ?Pitch, ?Distance)";
 
-                        foreach (Vector3 p in rs.SpawnPoints())
+                        foreach (SpawnPoint p in rs.SpawnPoints())
                         {
                             cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
-                            cmd.Parameters.AddWithValue("?PointX", p.X);
-                            cmd.Parameters.AddWithValue("?PointY", p.Y);
-                            cmd.Parameters.AddWithValue("?PointZ", p.Z);
+                            cmd.Parameters.AddWithValue("?Yaw", p.Yaw);
+                            cmd.Parameters.AddWithValue("?Pitch", p.Pitch);
+                            cmd.Parameters.AddWithValue("?Distance", p.Distance);
 
                             cmd.ExecuteNonQuery();
                             cmd.Parameters.Clear();

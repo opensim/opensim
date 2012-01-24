@@ -43,102 +43,72 @@ namespace OpenSim.Region.CoreModules.World.Estate
         }
 
         // Connect the Telehub
-        public bool Connect(SceneObjectPart part)
+        public bool Connect(SceneObjectGroup grp)
         {
-            bool result = false;
-
-            if (m_Scene.RegionInfo.RegionSettings.HasTelehub)
-                return result;
-
             try
             {
                 m_Scene.RegionInfo.RegionSettings.ClearSpawnPoints();
     
-                m_Scene.RegionInfo.RegionSettings.TelehubObject = part.UUID;
-                m_Scene.RegionInfo.RegionSettings.TelehubName = part.Name;
-                m_Scene.RegionInfo.RegionSettings.TelehubPos = part.AbsolutePosition;
-                m_Scene.RegionInfo.RegionSettings.TelehubRot = part.GetWorldRotation();
-                m_Scene.RegionInfo.RegionSettings.AddSpawnPoint(new Vector3(0.0f,0.0f,0.0f));
-                m_Scene.RegionInfo.RegionSettings.HasTelehub = true;
+                m_Scene.RegionInfo.RegionSettings.TelehubObject = grp.UUID;
                 m_Scene.RegionInfo.RegionSettings.Save();
-
-                result = true;
             }
             catch (Exception ex)
             {
-                result = false;
+                return false;
             }
 
-            return result;
+            return true;
         }
 
         // Disconnect the Telehub:
-        public bool DisConnect(SceneObjectPart part)
+        public bool Disconnect()
         {
-            bool result = false;
-
-            if (!m_Scene.RegionInfo.RegionSettings.HasTelehub)
-                return result;
+            if (m_Scene.RegionInfo.RegionSettings.TelehubObject == UUID.Zero)
+                return false;
 
             try
             {
                 m_Scene.RegionInfo.RegionSettings.TelehubObject = UUID.Zero;
-                m_Scene.RegionInfo.RegionSettings.TelehubName = String.Empty;
-                m_Scene.RegionInfo.RegionSettings.TelehubPos = Vector3.Zero;
                 m_Scene.RegionInfo.RegionSettings.ClearSpawnPoints();
-                m_Scene.RegionInfo.RegionSettings.HasTelehub = false;
                 m_Scene.RegionInfo.RegionSettings.Save();
-
-                result = true;
             }
             catch (Exception ex)
             {
-                result = false;
+                return false;
             }
 
-            return result;
+            return true;
         }
 
         // Add a SpawnPoint to the Telehub
         public bool AddSpawnPoint(Vector3 point)
         {
-            bool result = false;
+            if (m_Scene.RegionInfo.RegionSettings.TelehubObject == UUID.Zero)
+                return false;
 
-            if (!m_Scene.RegionInfo.RegionSettings.HasTelehub)
-                return result;
+            SceneObjectGroup grp = m_Scene.GetSceneObjectGroup(m_Scene.RegionInfo.RegionSettings.TelehubObject);
+            if (grp == null)
+                return false;
 
             try
             {
-                // Need to update the position in case the Telehubn has been moved
-                UUID TelehubID = m_Scene.RegionInfo.RegionSettings.TelehubObject;
-                SceneObjectPart part = m_Scene.GetSceneObjectPart(TelehubID);
-
-                Vector3 TelehubPos = part.AbsolutePosition;
-                Quaternion TelehubRot = part.GetWorldRotation();
-
-                m_Scene.RegionInfo.RegionSettings.TelehubPos = TelehubPos;
-                m_Scene.RegionInfo.RegionSettings.TelehubRot = TelehubRot;
-
-                float dist = (float) Util.GetDistanceTo(TelehubPos, point);
-                Vector3 nvec = Util.GetNormalizedVector(point - TelehubPos);
-                Vector3 spoint = nvec * dist;
-
-                m_Scene.RegionInfo.RegionSettings.AddSpawnPoint(spoint);
+                SpawnPoint sp = new SpawnPoint();
+                sp.SetLocation(grp.AbsolutePosition, grp.GroupRotation, point);
+                m_Scene.RegionInfo.RegionSettings.AddSpawnPoint(sp);
                 m_Scene.RegionInfo.RegionSettings.Save();
-                result = true;
             }
             catch (Exception ex)
             {
-                result = false;
+                return false;
             }
 
-            return result;
+            return true;
         }
 
         // Remove a SpawnPoint from the Telehub
         public bool RemoveSpawnPoint(int spawnpoint)
         {
-            if (!m_Scene.RegionInfo.RegionSettings.HasTelehub)
+            if (m_Scene.RegionInfo.RegionSettings.TelehubObject == UUID.Zero)
                 return false;
 
             m_Scene.RegionInfo.RegionSettings.RemoveSpawnPoint(spawnpoint);
