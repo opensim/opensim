@@ -1525,7 +1525,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 chr.CollidingGround = false;
                 chr.CollidingObj = false;
                 
-                // test the avatar's geometry for collision with the space
+                // Test the avatar's geometry for collision with the space
                 // This will return near and the space that they are the closest to
                 // And we'll run this again against the avatar and the space segment
                 // This will return with a bunch of possible objects in the space segment
