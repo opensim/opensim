@@ -60,10 +60,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal event PhysicsCrash UnRecoverableError;
         private PhysicsCrash handlerPhysicsCrash = null;
 
-        public event ObjectDuplicateDelegate OnObjectDuplicate;
-        public event ObjectCreateDelegate OnObjectCreate;
-        public event ObjectDeleteDelegate OnObjectRemove;
-
         #endregion
 
         #region Fields
@@ -404,9 +400,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (attachToBackup)
                 sceneObject.AttachToBackup();
 
-            if (OnObjectCreate != null)
-                OnObjectCreate(sceneObject);
-
             lock (SceneObjectGroupsByFullID)
                 SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
             
@@ -455,9 +448,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((grp.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics)
                     RemovePhysicalPrim(grp.PrimCount);
             }
-
-            if (OnObjectRemove != null)
-                OnObjectRemove(Entities[uuid]);
             
             lock (SceneObjectGroupsByFullID)
                 SceneObjectGroupsByFullID.Remove(grp.UUID);
@@ -1978,9 +1968,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // required for physics to update it's position
                     copy.AbsolutePosition = copy.AbsolutePosition;
-
-                    if (OnObjectDuplicate != null)
-                        OnObjectDuplicate(original, copy);
 
                     return copy;
                 }
