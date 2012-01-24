@@ -3835,8 +3835,61 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        private void CheckAndAdjustTelehub(SceneObjectGroup telehub, ref Vector3 pos)
+        {
+            if ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)) ==
+                (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID) ||
+                (m_teleportFlags & TeleportFlags.ViaLandmark) != 0 ||
+                (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
+                (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0)
+            {
+                if (GodLevel < 200 &&
+                    ((!m_scene.Permissions.IsGod(m_uuid) &&
+                    !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)) || 
+                    (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
+                    (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0))
+                {
+                    SpawnPoint[] spawnPoints = m_scene.RegionInfo.RegionSettings.SpawnPoints().ToArray();
+                    if (spawnPoints.Length == 0)
+                        return;
+
+                    float distance = 9999;
+                    int closest = -1;
+
+                    for (int i = 0 ; i < spawnPoints.Length ; i++)
+                    {
+                        Vector3 spawnPosition = spawnPoints[i].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                        Vector3 offset = spawnPosition - pos;
+                        float d = Vector3.Mag(offset);
+                        if (d >= distance)
+                            continue;
+                        ILandObject land = m_scene.LandChannel.GetLandObject(spawnPosition.X, spawnPosition.Y);
+                        if (land == null)
+                            continue;
+                        if (land.IsEitherBannedOrRestricted(UUID))
+                            continue;
+                        distance = d;
+                        closest = i;
+                    }
+                    if (closest == -1)
+                        return;
+
+                    pos = spawnPoints[closest].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                }
+            }
+        }
+
         private void CheckAndAdjustLandingPoint(ref Vector3 pos)
         {
+            SceneObjectGroup telehub = null;
+            if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero && (telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject)) != null)
+            {
+                if (!m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
+                {
+                    CheckAndAdjustTelehub(telehub, ref pos);
+                    return;
+                }
+            }
 
             ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
             if (land != null)
