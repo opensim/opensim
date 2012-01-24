@@ -47,6 +47,7 @@ namespace OpenSim.Framework
 
             // Next we need to rotate this vector into the spawn point's
             // coordinate system
+            rot.W = -rot.W;
             offset = offset * rot;
 
             Vector3 dir = Vector3.Normalize(offset);
@@ -66,7 +67,6 @@ namespace OpenSim.Framework
             Vector3 dir = new Vector3(1, 0, 0) * p * y;
             Vector3 offset = dir * (float)Distance;
 
-            rot.W = -rot.W;
             offset *= rot;
 
             return pos + offset;
