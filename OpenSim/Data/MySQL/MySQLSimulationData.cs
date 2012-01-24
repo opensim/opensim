@@ -1013,7 +1013,7 @@ namespace OpenSim.Data.MySQL
                             "?SunPosition, ?Covenant, ?Sandbox, " +
                             "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                             "?LoadedCreationDateTime, ?LoadedCreationID, " +
-                            "?TerrainImageID) ";
+                            "?TerrainImageID, ?TelehubObject) ";
 
                         FillRegionSettingsCommand(cmd, rs);
 
