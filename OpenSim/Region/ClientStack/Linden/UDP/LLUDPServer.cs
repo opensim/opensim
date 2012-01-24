@@ -492,6 +492,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if ((Environment.TickCount & Int32.MaxValue) - udpClient.TickLastPacketReceived > 1000 * 60)
             {
                 m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + udpClient.AgentID);
+                StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
 
                 RemoveClient(udpClient);
                 return;
