@@ -72,6 +72,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     private bool m_initialized = false;
 
+    private int m_detailedStatsStep = 0;
+
     public IMesher mesher;
     private float m_meshLOD;
     public float MeshLOD
@@ -192,6 +194,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         m_meshLOD = 8f;
         m_sculptLOD = 32f;
 
+        m_detailedStatsStep = 0;            // disabled
+
         m_maxSubSteps = 10;
         m_fixedTimeStep = 1f / 60f;
         m_maxCollisionsPerFrame = 2048;
@@ -209,8 +213,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         parms.deactivationTime = 0.2f;
         parms.linearSleepingThreshold = 0.8f;
         parms.angularSleepingThreshold = 1.0f;
-        parms.ccdMotionThreshold = 0.5f;    // set to zero to disable
-        parms.ccdSweptSphereRadius = 0.2f;
+        parms.ccdMotionThreshold = 0.0f;    // set to zero to disable
+        parms.ccdSweptSphereRadius = 0.0f;
+        parms.contactProcessingThreshold = 0.1f;
 
         parms.terrainFriction = 0.5f;
         parms.terrainHitFraction = 0.8f;
@@ -231,6 +236,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 _meshSculptedPrim = pConfig.GetBoolean("MeshSculptedPrim", _meshSculptedPrim);
                 _forceSimplePrimMeshing = pConfig.GetBoolean("ForceSimplePrimMeshing", _forceSimplePrimMeshing);
 
+                m_detailedStatsStep = pConfig.GetInt("DetailedStatsStep", m_detailedStatsStep);
                 m_meshLOD = pConfig.GetFloat("MeshLevelOfDetail", m_meshLOD);
                 m_sculptLOD = pConfig.GetFloat("SculptLevelOfDetail", m_sculptLOD);
 
@@ -253,6 +259,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 parms.angularSleepingThreshold = pConfig.GetFloat("AngularSleepingThreshold", parms.angularSleepingThreshold);
                 parms.ccdMotionThreshold = pConfig.GetFloat("CcdMotionThreshold", parms.ccdMotionThreshold);
                 parms.ccdSweptSphereRadius = pConfig.GetFloat("CcdSweptSphereRadius", parms.ccdSweptSphereRadius);
+                parms.contactProcessingThreshold = pConfig.GetFloat("ContactProcessingThreshold", parms.contactProcessingThreshold);
 
                 parms.terrainFriction = pConfig.GetFloat("TerrainFriction", parms.terrainFriction);
                 parms.terrainHitFraction = pConfig.GetFloat("TerrainHitFraction", parms.terrainHitFraction);
@@ -395,6 +402,14 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 {
                     prim.UpdateProperties(entprop);
                 }
+            }
+        }
+
+        if (m_detailedStatsStep > 0)
+        {
+            if ((m_simulationStep % m_detailedStatsStep) == 0)
+            {
+                BulletSimAPI.DumpBulletStatistics();
             }
         }
 
@@ -671,6 +686,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         new PhysParameterEntry("MaxSubStep", "In simulation step, maximum number of substeps"),
         new PhysParameterEntry("FixedTimeStep", "In simulation step, seconds of one substep (1/60)"),
         new PhysParameterEntry("MaxObjectMass", "Maximum object mass (10000.01)"),
+        new PhysParameterEntry("DetailedStats", "Frames between outputting detailed phys stats. Zero is off"),
 
         new PhysParameterEntry("DefaultFriction", "Friction factor used on new objects"),
         new PhysParameterEntry("DefaultDensity", "Density for new objects" ),
@@ -685,6 +701,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         new PhysParameterEntry("AngularSleepingThreshold", "Seconds to measure angular movement before considering static" ),
         // new PhysParameterEntry("CcdMotionThreshold", "" ),
         // new PhysParameterEntry("CcdSweptSphereRadius", "" ),
+        new PhysParameterEntry("ContactProcessingThreshold", "Distance between contacts before doing collision check" ),
 
         new PhysParameterEntry("TerrainFriction", "Factor to reduce movement against terrain surface" ),
         new PhysParameterEntry("TerrainHitFraction", "Distance to measure hit collisions" ),
@@ -715,6 +732,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         string lparm = parm.ToLower();
         switch (lparm)
         {
+            case "detailedstats": m_detailedStatsStep = (int)val; break;
             case "meshlod": m_meshLOD = (int)val; break;
             case "sculptlod": m_sculptLOD = (int)val; break;
             case "maxsubstep": m_maxSubSteps = (int)val; break;
@@ -725,7 +743,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "defaultdensity": m_params[0].defaultDensity = val; break;
             case "defaultrestitution": m_params[0].defaultRestitution = val; break;
             case "collisionmargin": m_params[0].collisionMargin = val; break;
-            case "gravity": m_params[0].gravity = val;  TaintedUpdateParameter(lparm, PhysParameterEntry.APPLY_TO_NONE, val); break;
+            case "gravity": m_params[0].gravity = val; TaintedUpdateParameter(lparm, PhysParameterEntry.APPLY_TO_NONE, val); break;
 
             case "lineardamping": UpdateParameterPrims(ref m_params[0].linearDamping, lparm, localID, val); break;
             case "angulardamping": UpdateParameterPrims(ref m_params[0].angularDamping, lparm, localID, val); break;
@@ -734,6 +752,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "angularsleepingthreshold": UpdateParameterPrims(ref m_params[0].angularDamping, lparm, localID, val); break;
             case "ccdmotionthreshold": UpdateParameterPrims(ref m_params[0].ccdMotionThreshold, lparm, localID, val); break;
             case "ccdsweptsphereradius": UpdateParameterPrims(ref m_params[0].ccdSweptSphereRadius, lparm, localID, val); break;
+            case "contactprocessingthreshold": UpdateParameterPrims(ref m_params[0].contactProcessingThreshold, lparm, localID, val); break;
 
             // set a terrain physical feature and cause terrain to be recalculated
             case "terrainfriction": m_params[0].terrainFriction = val; TaintedUpdateParameter("terrain", 0, val); break;
@@ -741,10 +760,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "terrainrestitution": m_params[0].terrainRestitution = val; TaintedUpdateParameter("terrain", 0, val); break;
             // set an avatar physical feature and cause avatar(s) to be recalculated
             case "avatarfriction": UpdateParameterAvatars(ref m_params[0].avatarFriction, "avatar", localID, val); break;
-            case "avatardensity": UpdateParameterAvatars(ref m_params[0].avatarDensity, "avatar", localID, val);  break;
+            case "avatardensity": UpdateParameterAvatars(ref m_params[0].avatarDensity, "avatar", localID, val); break;
             case "avatarrestitution": UpdateParameterAvatars(ref m_params[0].avatarRestitution, "avatar", localID, val); break;
-            case "avatarcapsuleradius": UpdateParameterAvatars(ref m_params[0].avatarCapsuleRadius, "avatar", localID, val);  break;
-            case "avatarcapsuleheight": UpdateParameterAvatars(ref m_params[0].avatarCapsuleHeight, "avatar", localID, val);  break;
+            case "avatarcapsuleradius": UpdateParameterAvatars(ref m_params[0].avatarCapsuleRadius, "avatar", localID, val); break;
+            case "avatarcapsuleheight": UpdateParameterAvatars(ref m_params[0].avatarCapsuleHeight, "avatar", localID, val); break;
 
             default: ret = false; break;
         }
@@ -816,6 +835,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         bool ret = true;
         switch (parm.ToLower())
         {
+            case "detailedstats": val = (int)m_detailedStatsStep; break;
             case "meshlod": val = (float)m_meshLOD; break;
             case "sculptlod": val = (float)m_sculptLOD; break;
             case "maxsubstep": val = (float)m_maxSubSteps; break;
@@ -835,6 +855,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "angularsleepingthreshold": val = m_params[0].angularDamping; break;
             case "ccdmotionthreshold": val = m_params[0].ccdMotionThreshold; break;
             case "ccdsweptsphereradius": val = m_params[0].ccdSweptSphereRadius; break;
+            case "contactprocessingthreshold": val = m_params[0].contactProcessingThreshold; break;
 
             case "terrainfriction": val = m_params[0].terrainFriction; break;
             case "terrainhitfraction": val = m_params[0].terrainHitFraction; break;
