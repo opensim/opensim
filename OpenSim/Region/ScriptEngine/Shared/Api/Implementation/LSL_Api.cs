@@ -3007,7 +3007,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // objects rezzed with this method are die_at_edge by default.
                     new_group.RootPart.SetDieAtEdge(true);
 
-                    Util.FireAndForget(delegate object x)
+                    Util.FireAndForget(delegate (object x)
                     {
                         new_group.ResumeScripts();
                     });
