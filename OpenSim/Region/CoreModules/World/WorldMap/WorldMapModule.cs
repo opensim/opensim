@@ -1252,20 +1252,22 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
             {
-                SceneObjectPart sop = m_scene.GetSceneObjectPart(m_scene.RegionInfo.RegionSettings.TelehubObject);
+                SceneObjectGroup sog = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
+                if (sog != null)
+                {
+                    OSDArray responsearr = new OSDArray();
+                    OSDMap responsemapdata = new OSDMap();
+                    responsemapdata["X"] = OSD.FromInteger((int)(xstart + sog.AbsolutePosition.X));
+                    responsemapdata["Y"] = OSD.FromInteger((int)(ystart + sog.AbsolutePosition.Y));
+                    // responsemapdata["Z"] = OSD.FromInteger((int)m_scene.GetGroundHeight(x,y));
+                    responsemapdata["ID"] = OSD.FromUUID(sog.UUID);
+                    responsemapdata["Name"] = OSD.FromString(sog.Name);
+                    responsemapdata["Extra"] = OSD.FromInteger(0); // color (unused)
+                    responsemapdata["Extra2"] = OSD.FromInteger(0); // 0 = telehub / 1 = infohub
+                    responsearr.Add(responsemapdata);
 
-                OSDArray responsearr = new OSDArray();
-                OSDMap responsemapdata = new OSDMap();
-                responsemapdata["X"] = OSD.FromInteger((int)(xstart + sop.AbsolutePosition.X));
-                responsemapdata["Y"] = OSD.FromInteger((int)(ystart + sop.AbsolutePosition.Y));
-                // responsemapdata["Z"] = OSD.FromInteger((int)m_scene.GetGroundHeight(x,y));
-                responsemapdata["ID"] = OSD.FromUUID(sop.UUID);
-                responsemapdata["Name"] = OSD.FromString(sop.Name);
-                responsemapdata["Extra"] = OSD.FromInteger(0); // color (unused)
-                responsemapdata["Extra2"] = OSD.FromInteger(0); // 0 = telehub / 1 = infohub
-                responsearr.Add(responsemapdata);
-
-                responsemap["1"] = responsearr;
+                    responsemap["1"] = responsearr;
+                }
             }
 
             return responsemap;
