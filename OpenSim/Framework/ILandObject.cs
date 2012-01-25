@@ -130,5 +130,11 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="url"></param>
         void SetMusicUrl(string url);
+
+        /// <summary>
+        /// Get the music url for this land parcel
+        /// </summary>
+        /// <returns>The music url.</returns>
+        string GetMusicUrl();
     }
 }

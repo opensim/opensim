@@ -7566,6 +7566,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(2000);
         }
 
+        public LSL_String llGetParcelMusicURL()
+        {
+            m_host.AddScriptLPS(1);
+
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+
+            if (land.LandData.OwnerID != m_host.OwnerID)
+                return String.Empty;
+
+            return land.GetMusicUrl();
+        }
+
         public LSL_Vector llGetRootPosition()
         {
             m_host.AddScriptLPS(1);

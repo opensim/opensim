@@ -41,12 +41,6 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public delegate void PhysicsCrash();
 
-    public delegate void ObjectDuplicateDelegate(EntityBase original, EntityBase clone);
-
-    public delegate void ObjectCreateDelegate(EntityBase obj);
-
-    public delegate void ObjectDeleteDelegate(EntityBase obj);
-
     /// <summary>
     /// This class used to be called InnerScene and may not yet truly be a SceneGraph.  The non scene graph components
     /// should be migrated out over time.
