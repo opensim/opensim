@@ -1250,6 +1250,24 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 responsemap["7"] = responsearr;
             }
 
+            if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
+            {
+                SceneObjectPart sop = m_scene.GetSceneObjectPart(m_scene.RegionInfo.RegionSettings.TelehubObject);
+
+                OSDArray responsearr = new OSDArray();
+                OSDMap responsemapdata = new OSDMap();
+                responsemapdata["X"] = OSD.FromInteger((int)(xstart + sop.AbsolutePosition.X));
+                responsemapdata["Y"] = OSD.FromInteger((int)(ystart + sop.AbsolutePosition.Y));
+                // responsemapdata["Z"] = OSD.FromInteger((int)m_scene.GetGroundHeight(x,y));
+                responsemapdata["ID"] = OSD.FromUUID(sop.UUID);
+                responsemapdata["Name"] = OSD.FromString(sop.Name);
+                responsemapdata["Extra"] = OSD.FromInteger(0); // color (unused)
+                responsemapdata["Extra2"] = OSD.FromInteger(0); // 0 = telehub / 1 = infohub
+                responsearr.Add(responsemapdata);
+
+                responsemap["1"] = responsearr;
+            }
+
             return responsemap;
         }
 

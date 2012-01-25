@@ -88,7 +88,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 (mod, cmd) => MainConsole.Instance.Output(HandleImageQueuesClear(cmd)));
 
             scene.AddCommand(
-                this, "show image queues",
+                this, "image queues show",
                 "image queues show <first-name> <last-name>",
                 "Show the image queues (textures downloaded via UDP) for a particular client.",
                 (mod, cmd) => MainConsole.Instance.Output(GetImageQueuesReport(cmd)));
@@ -293,7 +293,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
         private string GetImageQueuesReport(string[] showParams)
         {
             if (showParams.Length < 5 || showParams.Length > 6)
-                return "Usage: show image queues <first-name> <last-name> [full]";
+                return "Usage: image queues show <first-name> <last-name> [full]";
 
             string firstName = showParams[3];
             string lastName = showParams[4];
