@@ -6603,7 +6603,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // the rest of the permission checks are done in RezScript, so check the pin there as well
-            World.RezScript(srcId, m_host, destId, pin, running, start_param);
+            World.RezScriptFromPrim(srcId, m_host, destId, pin, running, start_param);
+
             // this will cause the delay even if the script pin or permissions were wrong - seems ok
             ScriptSleep(3000);
         }
