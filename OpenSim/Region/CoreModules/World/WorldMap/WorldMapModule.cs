@@ -373,7 +373,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public virtual void HandleMapItemRequest(IClientAPI remoteClient, uint flags,
             uint EstateID, bool godlike, uint itemtype, ulong regionhandle)
         {
-//            m_log.DebugFormat("[WORLD MAP]: Handle MapItem request {0} {1}", regionhandle, itemtype);
+            m_log.DebugFormat("[WORLD MAP]: Handle MapItem request {0} {1}", regionhandle, itemtype);
 
             lock (m_rootAgents)
             {
@@ -429,7 +429,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     // ensures that the blockingqueue doesn't get borked if the GetAgents() timing changes.
                     RequestMapItems("",remoteClient.AgentId,flags,EstateID,godlike,itemtype,regionhandle);
                 }
-            } else if (itemtype == 7) // Service 7 (MAP_ITEM_LAND_FOR_SALE)
+            }
+            else if (itemtype == 7) // Service 7 (MAP_ITEM_LAND_FOR_SALE)
             {
                 if (regionhandle == 0 || regionhandle == m_scene.RegionInfo.RegionHandle)
                 {
@@ -478,6 +479,32 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     // Remote Map Item Request
 
                     // ensures that the blockingqueue doesn't get borked if the GetAgents() timing changes.
+                    RequestMapItems("",remoteClient.AgentId,flags,EstateID,godlike,itemtype,regionhandle);
+                }
+            }
+            else if (itemtype == 1) // Service 1 (MAP_ITEM_TELEHUB)
+            {
+                if (regionhandle == 0 || regionhandle == m_scene.RegionInfo.RegionHandle)
+                {
+                    List<mapItemReply> mapitems = new List<mapItemReply>();
+                    mapItemReply mapitem = new mapItemReply();
+
+                    SceneObjectPart sop = m_scene.GetSceneObjectPart(m_scene.RegionInfo.RegionSettings.TelehubObject);
+
+                    mapitem = new mapItemReply();
+                    mapitem.x = (uint)(xstart + sop.AbsolutePosition.X);
+                    mapitem.y = (uint)(ystart + sop.AbsolutePosition.Y);
+                    mapitem.id = UUID.Zero;
+                    mapitem.name = sop.Name;
+                    mapitem.Extra = 0; // color (not used)
+                    mapitem.Extra2 = 0; // 0 = telehub / 1 = infohub
+                    mapitems.Add(mapitem);
+
+                    remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
+                }
+                else
+                {
+                    // Remote Map Item Request
                     RequestMapItems("",remoteClient.AgentId,flags,EstateID,godlike,itemtype,regionhandle);
                 }
             }
@@ -601,6 +628,28 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                         // Service 7 (MAP_ITEM_LAND_FOR_SALE)
                         uint itemtype = 7;
+
+                        if (response.ContainsKey(itemtype.ToString()))
+                        {
+                            List<mapItemReply> returnitems = new List<mapItemReply>();
+                            OSDArray itemarray = (OSDArray)response[itemtype.ToString()];
+                            for (int i = 0; i < itemarray.Count; i++)
+                            {
+                                OSDMap mapitem = (OSDMap)itemarray[i];
+                                mapItemReply mi = new mapItemReply();
+                                mi.x = (uint)mapitem["X"].AsInteger();
+                                mi.y = (uint)mapitem["Y"].AsInteger();
+                                mi.id = mapitem["ID"].AsUUID();
+                                mi.Extra = mapitem["Extra"].AsInteger();
+                                mi.Extra2 = mapitem["Extra2"].AsInteger();
+                                mi.name = mapitem["Name"].AsString();
+                                returnitems.Add(mi);
+                            }
+                            av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, mrs.flags);
+                        }
+
+                        // Service 1 (MAP_ITEM_TELEHUB)
+                        itemtype = 1;
 
                         if (response.ContainsKey(itemtype.ToString()))
                         {
@@ -1252,20 +1301,22 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
             {
-                SceneObjectPart sop = m_scene.GetSceneObjectPart(m_scene.RegionInfo.RegionSettings.TelehubObject);
+                SceneObjectGroup sog = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
+                if (sog != null)
+                {
+                    OSDArray responsearr = new OSDArray();
+                    OSDMap responsemapdata = new OSDMap();
+                    responsemapdata["X"] = OSD.FromInteger((int)(xstart + sog.AbsolutePosition.X));
+                    responsemapdata["Y"] = OSD.FromInteger((int)(ystart + sog.AbsolutePosition.Y));
+                    // responsemapdata["Z"] = OSD.FromInteger((int)m_scene.GetGroundHeight(x,y));
+                    responsemapdata["ID"] = OSD.FromUUID(sog.UUID);
+                    responsemapdata["Name"] = OSD.FromString(sog.Name);
+                    responsemapdata["Extra"] = OSD.FromInteger(0); // color (unused)
+                    responsemapdata["Extra2"] = OSD.FromInteger(0); // 0 = telehub / 1 = infohub
+                    responsearr.Add(responsemapdata);
 
-                OSDArray responsearr = new OSDArray();
-                OSDMap responsemapdata = new OSDMap();
-                responsemapdata["X"] = OSD.FromInteger((int)(xstart + sop.AbsolutePosition.X));
-                responsemapdata["Y"] = OSD.FromInteger((int)(ystart + sop.AbsolutePosition.Y));
-                // responsemapdata["Z"] = OSD.FromInteger((int)m_scene.GetGroundHeight(x,y));
-                responsemapdata["ID"] = OSD.FromUUID(sop.UUID);
-                responsemapdata["Name"] = OSD.FromString(sop.Name);
-                responsemapdata["Extra"] = OSD.FromInteger(0); // color (unused)
-                responsemapdata["Extra2"] = OSD.FromInteger(0); // 0 = telehub / 1 = infohub
-                responsearr.Add(responsemapdata);
-
-                responsemap["1"] = responsearr;
+                    responsemap["1"] = responsearr;
+                }
             }
 
             return responsemap;
