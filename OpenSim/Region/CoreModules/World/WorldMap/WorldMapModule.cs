@@ -489,18 +489,20 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     List<mapItemReply> mapitems = new List<mapItemReply>();
                     mapItemReply mapitem = new mapItemReply();
 
-                    SceneObjectPart sop = m_scene.GetSceneObjectPart(m_scene.RegionInfo.RegionSettings.TelehubObject);
+                    SceneObjectGroup sog = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
+                    if (sog != null)
+                    {
+                        mapitem = new mapItemReply();
+                        mapitem.x = (uint)(xstart + sog.AbsolutePosition.X);
+                        mapitem.y = (uint)(ystart + sog.AbsolutePosition.Y);
+                        mapitem.id = UUID.Zero;
+                        mapitem.name = sog.Name;
+                        mapitem.Extra = 0; // color (not used)
+                        mapitem.Extra2 = 0; // 0 = telehub / 1 = infohub
+                        mapitems.Add(mapitem);
 
-                    mapitem = new mapItemReply();
-                    mapitem.x = (uint)(xstart + sop.AbsolutePosition.X);
-                    mapitem.y = (uint)(ystart + sop.AbsolutePosition.Y);
-                    mapitem.id = UUID.Zero;
-                    mapitem.name = sop.Name;
-                    mapitem.Extra = 0; // color (not used)
-                    mapitem.Extra2 = 0; // 0 = telehub / 1 = infohub
-                    mapitems.Add(mapitem);
-
-                    remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
+                        remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
+                    }
                 }
                 else
                 {
