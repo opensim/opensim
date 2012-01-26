@@ -1071,6 +1071,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llLoopSoundSlave(sound, volume);
         }
 
+        public LSL_Integer llManageEstateAccess(int action, string avatar)
+        {
+            return m_LSL_Functions.llManageEstateAccess(action, avatar);
+        }
+
         public void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
         {
             m_LSL_Functions.llMakeExplosion(particles, scale, vel, lifetime, arc, texture, offset);

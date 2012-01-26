@@ -425,5 +425,11 @@ namespace OpenSim.Framework
             AllowParcelChanges = ((regionFlags & (ulong)RegionFlags.AllowParcelChanges) == (ulong)RegionFlags.AllowParcelChanges);
             AllowSetHome = ((regionFlags & (ulong)RegionFlags.AllowSetHome) == (ulong)RegionFlags.AllowSetHome);
         }
+
+        public bool GroupAccess(UUID groupID)
+        {
+            return l_EstateGroups.Contains(groupID);
+        }
+
     }
 }
