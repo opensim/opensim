@@ -291,10 +291,10 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", false, "save oar",
                                           //"save oar [-v|--version=<N>] [-p|--profile=<url>] [<OAR path>]",
-                                          "save oar [-p|--profile=<url>] [--noassets] [--perm=<permissions>] [<OAR path>]",
+                                          "save oar [-h|--home=<url>] [--noassets] [--perm=<permissions>] [<OAR path>]",
                                           "Save a region's data to an OAR archive.",
 //                                          "-v|--version=<N> generates scene objects as per older versions of the serialization (e.g. -v=0)" + Environment.NewLine
-                                          "-p|--profile=<url> adds the url of the profile service to the saved user information." + Environment.NewLine
+                                          "-h|--home=<url> adds the url of the profile service to the saved user information." + Environment.NewLine
                                           + "--noassets stops assets being saved to the OAR." + Environment.NewLine
                                           + "--perm stops objects with insufficient permissions from being saved to the OAR." + Environment.NewLine
                                           + "   <permissions> can contain one or more of these characters: \"C\" = Copy, \"T\" = Transfer" + Environment.NewLine

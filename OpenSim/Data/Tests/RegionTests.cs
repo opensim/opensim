@@ -685,7 +685,7 @@ namespace OpenSim.Data.Tests
             SceneObjectGroup sog = GetMySOG("object1");
             InventoryItemBase i = NewItem(item1, zero, zero, itemname1, zero);
 
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, i, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(zero, sog.RootPart.LocalId, i, zero), Is.True);
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
             Assert.That(t.Name, Is.EqualTo(itemname1), "Assert.That(t.Name, Is.EqualTo(itemname1))");
             
@@ -762,7 +762,7 @@ namespace OpenSim.Data.Tests
             i.CreationDate = creationd;
             
             SceneObjectGroup sog = GetMySOG("object1");
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, i, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(zero, sog.RootPart.LocalId, i, zero), Is.True);
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, id);
             
             Assert.That(t.Name, Is.EqualTo(name), "Assert.That(t.Name, Is.EqualTo(name))");
@@ -807,10 +807,10 @@ namespace OpenSim.Data.Tests
             
             SceneObjectGroup sog = FindSOG("object1", region1);
 
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib1, zero), Is.True);
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib2, zero), Is.True);
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib3, zero), Is.True);
-            Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, ib4, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(zero, sog.RootPart.LocalId, ib1, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(zero, sog.RootPart.LocalId, ib2, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(zero, sog.RootPart.LocalId, ib3, zero), Is.True);
+            Assert.That(sog.AddInventoryItem(zero, sog.RootPart.LocalId, ib4, zero), Is.True);
             
             TaskInventoryItem t1 = sog.GetInventoryItem(sog.RootPart.LocalId, i1);
             Assert.That(t1.Name, Is.EqualTo(ib1.Name), "Assert.That(t1.Name, Is.EqualTo(ib1.Name))");

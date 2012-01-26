@@ -1153,7 +1153,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             LandData.MusicURL = url;
             SendLandUpdateToAvatarsOverMe();
         }
-        
+
+        /// <summary>
+        /// Get the music url for this land parcel
+        /// </summary>
+        /// <returns>The music url.</returns>
+        public string GetMusicUrl()
+        {
+            return LandData.MusicURL;
+        }
+
         #endregion
     }
 }

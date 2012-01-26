@@ -7003,7 +7003,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if ((scriptItem.BasePermissions & (uint)PermissionMask.Transfer) != 0 || dest.ParentGroup.RootPart.OwnerID == m_host.ParentGroup.RootPart.OwnerID)
                 {
                     // the rest of the permission checks are done in RezScript, so check the pin there as well
-                    World.RezScript(srcId, m_host, destId, pin, running, start_param);
+                    World.RezScriptFromPrim(srcId, m_host, destId, pin, running, start_param);
 
                     if ((scriptItem.BasePermissions & (uint)PermissionMask.Copy) == 0)
                         m_host.Inventory.RemoveInventoryItem(srcId);
@@ -8063,6 +8063,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             land.SetMusicUrl(url);
 
             ScriptSleep(2000);
+        }
+
+        public LSL_String llGetParcelMusicURL()
+        {
+            m_host.AddScriptLPS(1);
+
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+
+            if (land.LandData.OwnerID != m_host.OwnerID)
+                return String.Empty;
+
+            return land.GetMusicUrl();
         }
 
         public LSL_Vector llGetRootPosition()

@@ -79,13 +79,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Add an inventory item from a user's inventory to a prim in this scene object.
         /// </summary>
-        /// <param name="remoteClient">The client adding the item.</param>
+        /// <param name="agentID">The agent adding the item.</param>
         /// <param name="localID">The local ID of the part receiving the add.</param>
         /// <param name="item">The user inventory item being added.</param>
         /// <param name="copyItemID">The item UUID that should be used by the new item.</param>
         /// <returns></returns>
-        public bool AddInventoryItem(IClientAPI remoteClient, uint localID,
-                                     InventoryItemBase item, UUID copyItemID)
+        public bool AddInventoryItem(UUID agentID, uint localID, InventoryItemBase item, UUID copyItemID)
         {
 //            m_log.DebugFormat(
 //                "[PRIM INVENTORY]: Adding inventory item {0} from {1} to part with local ID {2}", 
@@ -107,9 +106,7 @@ namespace OpenSim.Region.Framework.Scenes
                 taskItem.Type = item.AssetType;
                 taskItem.InvType = item.InvType;
 
-                if (remoteClient != null &&
-                        remoteClient.AgentId != part.OwnerID &&
-                        m_scene.Permissions.PropagatePermissions())
+                if (agentID != part.OwnerID && m_scene.Permissions.PropagatePermissions())
                 {
                     taskItem.BasePermissions = item.BasePermissions &
                             item.NextPermissions;
@@ -144,11 +141,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                taskItem.SaleType = item.SaleType;
                 taskItem.CreationDate = (uint)item.CreationDate;
 
-                bool addFromAllowedDrop = false;
-                if (remoteClient != null) 
-                {
-                    addFromAllowedDrop = remoteClient.AgentId != part.OwnerID;
-                }
+                bool addFromAllowedDrop = agentID != part.OwnerID;
 
                 part.Inventory.AddInventoryItem(taskItem, addFromAllowedDrop);
 

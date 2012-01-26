@@ -162,6 +162,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
           LSL_List llGetParcelDetails(LSL_Vector pos, LSL_List param);
        LSL_Integer llGetParcelFlags(LSL_Vector pos);
        LSL_Integer llGetParcelMaxPrims(LSL_Vector pos, int sim_wide);
+        LSL_String llGetParcelMusicURL();
        LSL_Integer llGetParcelPrimCount(LSL_Vector pos, int category, int sim_wide);
           LSL_List llGetParcelPrimOwners(LSL_Vector pos);
        LSL_Integer llGetPermissions();

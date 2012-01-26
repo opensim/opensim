@@ -122,12 +122,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 
                 scene.AddCommand(
                     this, "save iar",
-                    "save iar [--p|-profile=<url>] [--noassets] <first> <last> <inventory path> <password> [<IAR path>] [--v|-verbose]",
+                    "save iar [-h|--home=<url>] [--noassets] <first> <last> <inventory path> <password> [<IAR path>] [--v|-verbose]",
                     "Save user inventory archive (IAR).", 
                     "<first> is the user's first name." + Environment.NewLine
                     + "<last> is the user's last name." + Environment.NewLine
                     + "<inventory path> is the path inside the user's inventory for the folder/item to be saved." + Environment.NewLine
-                    + "-p|--profile=<url> adds the url of the profile service to the saved user information." + Environment.NewLine
+                    + "-h|--home=<url> adds the url of the profile service to the saved user information." + Environment.NewLine
                     + "-c|--creators preserves information about foreign creators." + Environment.NewLine
                     + "-v|--verbose extra debug messages." + Environment.NewLine
                     + "--noassets stops assets being saved to the IAR."
