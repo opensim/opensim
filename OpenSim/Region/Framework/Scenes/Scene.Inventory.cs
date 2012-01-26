@@ -1646,10 +1646,21 @@ namespace OpenSim.Region.Framework.Scenes
             // The part ID is the folder ID!
             SceneObjectPart part = GetSceneObjectPart(itemBase.Folder);
             if (part == null)
+            {
+//                m_log.DebugFormat(
+//                    "[SCENE INVENTORY]: Could not find part with id {0} for {1} to rez new script",
+//                    itemBase.Folder, agentID);
+
                 return null;
+            }
 
             if (!Permissions.CanCreateObjectInventory(itemBase.InvType, part.UUID, agentID))
+            {
+//                m_log.DebugFormat(
+//                    "[SCENE INVENTORY]: No permission to create new script in {0} for {1}", part.Name, agentID);
+
                 return null;
+            }
 
             AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.AssetType,
                 Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"),
