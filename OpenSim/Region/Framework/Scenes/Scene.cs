@@ -5379,6 +5379,33 @@ Environment.Exit(1);
 
             if (position == Vector3.Zero) // Teleport
             {
+                if (!RegionInfo.EstateSettings.AllowDirectTeleport)
+                {
+                    SceneObjectGroup telehub;
+                    if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero && (telehub = GetSceneObjectGroup(RegionInfo.RegionSettings.TelehubObject)) != null)
+                    {
+                        List<SpawnPoint> spawnPoints = RegionInfo.RegionSettings.SpawnPoints();
+                        bool banned = true;
+                        foreach (SpawnPoint sp in spawnPoints)
+                        {
+                            Vector3 spawnPoint = sp.GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                            ILandObject land = LandChannel.GetLandObject(spawnPoint.X, spawnPoint.Y);
+                            if (land == null)
+                                continue;
+                            if (land.IsEitherBannedOrRestricted(agentID))
+                                continue;
+                            banned = false;
+                            break;
+                        }
+
+                        if (banned)
+                        {
+                            reason = "No suitable landing point found";
+                            return false;
+                        }
+                    }
+                }
+
                 float posX = 128.0f;
                 float posY = 128.0f;
 
