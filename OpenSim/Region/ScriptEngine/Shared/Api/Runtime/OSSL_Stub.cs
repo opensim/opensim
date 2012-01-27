@@ -513,6 +513,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcLoadAppearance(npc, notecard);
         }
 
+        public LSL_Key osNpcGetOwner(LSL_Key npc)
+        {
+            return m_OSSL_Functions.osNpcGetOwner(npc);
+        }
+
         public vector osNpcGetPos(LSL_Key npc)
         {
             return m_OSSL_Functions.osNpcGetPos(npc);

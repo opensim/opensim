@@ -2313,6 +2313,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public LSL_Key osNpcGetOwner(LSL_Key npc)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osNpcGetOwner");
+
+            INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
+            if (npcModule != null)
+            {
+                UUID npcId;
+                if (UUID.TryParse(npc.m_string, out npcId))
+                {
+                    UUID owner = npcModule.GetOwner(npcId);
+                    if (owner != UUID.Zero)
+                        return new LSL_Key(owner.ToString());
+                    else
+                        return npc;
+                }
+            }
+
+            return new LSL_Key(UUID.Zero.ToString());
+        }
+
         public LSL_Vector osNpcGetPos(LSL_Key npc)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcGetPos");
