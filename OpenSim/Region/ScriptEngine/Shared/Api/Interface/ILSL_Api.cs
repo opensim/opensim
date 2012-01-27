@@ -242,6 +242,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llLoopSound(string sound, double volume);
               void llLoopSoundMaster(string sound, double volume);
               void llLoopSoundSlave(string sound, double volume);
+       LSL_Integer llManageEstateAccess(int action, string avatar);
               void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset);
               void llMakeFire(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset);
               void llMakeFountain(int particles, double scale, double vel, double lifetime, double arc, int bounce, string texture, LSL_Vector offset, double bounce_offset);

@@ -319,13 +319,14 @@ namespace OpenSim.Services.HypergridService
         public override InventoryItemBase GetItem(InventoryItemBase item)
         {
             InventoryItemBase it = base.GetItem(item);
+            if (it != null)
+            {
+                UserAccount user = m_Cache.GetUser(it.CreatorId);
 
-            UserAccount user = m_Cache.GetUser(it.CreatorId);
-
-            // Adjust the creator data
-            if (user != null && it != null && (it.CreatorData == null || it.CreatorData == string.Empty))
-                it.CreatorData = m_HomeURL + ";" + user.FirstName + " " + user.LastName;
-
+                // Adjust the creator data
+                if (user != null && it != null && (it.CreatorData == null || it.CreatorData == string.Empty))
+                    it.CreatorData = m_HomeURL + ";" + user.FirstName + " " + user.LastName;
+            }
             return it;
         }
 

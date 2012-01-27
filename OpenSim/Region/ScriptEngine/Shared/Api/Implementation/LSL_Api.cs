@@ -10646,6 +10646,75 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return list;
         }
 
+        public LSL_Integer llManageEstateAccess(int action, string avatar)
+        {
+            m_host.AddScriptLPS(1);
+            EstateSettings estate = World.RegionInfo.EstateSettings;
+            bool isAccount = false;
+            bool isGroup = false;
+
+            if (!estate.IsEstateOwner(m_host.OwnerID) || !estate.IsEstateManager(m_host.OwnerID))
+                return 0;
+
+            UUID id = new UUID();
+            if (!UUID.TryParse(avatar, out id))
+                return 0;
+
+            UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, id);
+            isAccount = account != null ? true : false;
+            if (!isAccount)
+            {
+                IGroupsModule groups = World.RequestModuleInterface<IGroupsModule>();
+                if (groups != null)
+                {
+                    GroupRecord group = groups.GetGroupRecord(id);
+                    isGroup = group != null ? true : false;
+                    if (!isGroup)
+                        return 0;
+                }
+                else
+                    return 0;
+            }
+
+            switch (action)
+            {
+                case ScriptBaseClass.ESTATE_ACCESS_ALLOWED_AGENT_ADD:
+                    if (!isAccount) return 0;
+                    if (estate.HasAccess(id)) return 1;
+                    if (estate.IsBanned(id))
+                        estate.RemoveBan(id);
+                    estate.AddEstateUser(id);
+                    break;
+                case ScriptBaseClass.ESTATE_ACCESS_ALLOWED_AGENT_REMOVE:
+                    if (!isAccount || !estate.HasAccess(id)) return 0;
+                    estate.RemoveEstateUser(id);
+                    break;
+                case ScriptBaseClass.ESTATE_ACCESS_ALLOWED_GROUP_ADD:
+                    if (!isGroup) return 0;
+                    if (estate.GroupAccess(id)) return 1;
+                    estate.AddEstateGroup(id);
+                    break;
+                case ScriptBaseClass.ESTATE_ACCESS_ALLOWED_GROUP_REMOVE:
+                    if (!isGroup || !estate.GroupAccess(id)) return 0;
+                    estate.RemoveEstateGroup(id);
+                    break;
+                case ScriptBaseClass.ESTATE_ACCESS_BANNED_AGENT_ADD:
+                    if (!isAccount) return 0;
+                    if (estate.IsBanned(id)) return 1;
+                    EstateBan ban = new EstateBan();
+                    ban.EstateID = estate.EstateID;
+                    ban.BannedUserID = id;
+                    estate.AddBan(ban);
+                    break;
+                case ScriptBaseClass.ESTATE_ACCESS_BANNED_AGENT_REMOVE:
+                    if (!isAccount || !estate.IsBanned(id)) return 0;
+                    estate.RemoveBan(id);
+                    break;
+                default: return 0;
+            }
+            return 1;
+        }
+
         #region Not Implemented
         //
         // Listing the unimplemented lsl functions here, please move
