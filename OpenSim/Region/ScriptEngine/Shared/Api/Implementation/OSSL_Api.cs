@@ -425,6 +425,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer osSetTerrainHeight(int x, int y, double val)
         {
             CheckThreatLevel(ThreatLevel.High, "osSetTerrainHeight");
+
             return SetTerrainHeight(x, y, val);
         }
 
@@ -432,12 +433,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.High, "osTerrainSetHeight");
             OSSLDeprecated("osTerrainSetHeight", "osSetTerrainHeight");
+
             return SetTerrainHeight(x, y, val);
         }
 
         private LSL_Integer SetTerrainHeight(int x, int y, double val)
         {
             m_host.AddScriptLPS(1);
+
             if (x > ((int)Constants.RegionSize - 1) || x < 0 || y > ((int)Constants.RegionSize - 1) || y < 0)
                 OSSLError("osSetTerrainHeight: Coordinate out of bounds");
 
@@ -477,6 +480,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osTerrainFlush()
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osTerrainFlush");
+            m_host.AddScriptLPS(1);
 
             ITerrainModule terrainModule = World.RequestModuleInterface<ITerrainModule>();
             if (terrainModule != null) terrainModule.TaintTerrain();
@@ -893,6 +897,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // threat level is None as we could get this information with an
             // in-world script as well, just not as efficient
             CheckThreatLevel(ThreatLevel.None, "osGetAgents");
+            m_host.AddScriptLPS(1);
 
             LSL_List result = new LSL_List();
             World.ForEachRootScenePresence(delegate(ScenePresence sp)
@@ -1171,6 +1176,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // should be removed
             //
             CheckThreatLevel(ThreatLevel.High, "osSetStateEvents");
+            m_host.AddScriptLPS(1);
 
             m_host.SetScriptEvents(m_itemID, events);
         }
@@ -1518,7 +1524,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-
             ILandObject land
                 = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
 
@@ -1579,6 +1584,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //
             CheckThreatLevel(ThreatLevel.High,"osGetSimulatorVersion");
             m_host.AddScriptLPS(1);
+
             return m_ScriptEngine.World.GetSimulatorVersion();
         }
 
@@ -1918,6 +1924,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string osAvatarName2Key(string firstname, string lastname)
         {
             CheckThreatLevel(ThreatLevel.Low, "osAvatarName2Key");
+            m_host.AddScriptLPS(1);
 
             UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, firstname, lastname);
             if (null == account)
@@ -1933,6 +1940,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string osKey2Name(string id)
         {
             CheckThreatLevel(ThreatLevel.Low, "osKey2Name");
+            m_host.AddScriptLPS(1);
+
             UUID key = new UUID();
 
             if (UUID.TryParse(id, out key))
@@ -2211,15 +2220,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return retVal;
         }
 
+        public LSL_Integer osIsNpc(LSL_Key npc)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osIsNpc");
+            m_host.AddScriptLPS(1);
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID npcId;
+                if (UUID.TryParse(npc.m_string, out npcId))
+                    if (module.IsNPC(npcId, World))
+                        return ScriptBaseClass.TRUE;
+            }
+
+            return ScriptBaseClass.FALSE;
+        }
+
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
+            m_host.AddScriptLPS(1);
+
             return NpcCreate(firstname, lastname, position, notecard, true);
         }
 
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, int options)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
+            m_host.AddScriptLPS(1);
+
             return NpcCreate(firstname, lastname, position, notecard, (options & ScriptBaseClass.OS_NPC_NOT_OWNED) == 0);
         }
 
@@ -2294,6 +2324,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Key osNpcSaveAppearance(LSL_Key npc, string notecard)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcSaveAppearance");
+            m_host.AddScriptLPS(1);
 
             INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
 
@@ -2315,6 +2346,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osNpcLoadAppearance(LSL_Key npc, string notecard)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcLoadAppearance");
+            m_host.AddScriptLPS(1);
 
             INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
 
@@ -2339,9 +2371,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public LSL_Key osNpcGetOwner(LSL_Key npc)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osNpcGetOwner");
+            m_host.AddScriptLPS(1);
+
+            INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
+            if (npcModule != null)
+            {
+                UUID npcId;
+                if (UUID.TryParse(npc.m_string, out npcId))
+                {
+                    UUID owner = npcModule.GetOwner(npcId);
+                    if (owner != UUID.Zero)
+                        return new LSL_Key(owner.ToString());
+                    else
+                        return npc;
+                }
+            }
+
+            return new LSL_Key(UUID.Zero.ToString());
+        }
+
         public LSL_Vector osNpcGetPos(LSL_Key npc)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcGetPos");
+            m_host.AddScriptLPS(1);
 
             INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
             if (npcModule != null)
@@ -2363,6 +2418,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osNpcMoveTo(LSL_Key npc, LSL_Vector position)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcMoveTo");
+            m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
@@ -2382,6 +2438,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osNpcMoveToTarget(LSL_Key npc, LSL_Vector target, int options)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcMoveToTarget");
+            m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
@@ -2406,6 +2463,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Rotation osNpcGetRot(LSL_Key npc)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcGetRot");
+            m_host.AddScriptLPS(1);
 
             INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
             if (npcModule != null)
@@ -2429,6 +2487,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osNpcSetRot(LSL_Key npc, LSL_Rotation rotation)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcSetRot");
+            m_host.AddScriptLPS(1);
 
             INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
             if (npcModule != null)
@@ -2448,6 +2507,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osNpcStopMoveToTarget(LSL_Key npc)
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osNpcStopMoveTo");
+            m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
@@ -2464,6 +2524,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osNpcSay(LSL_Key npc, string message)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcSay");
+            m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
@@ -2480,6 +2541,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osNpcSit(LSL_Key npc, LSL_Key target, int options)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcSit");
+            m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
@@ -2496,6 +2558,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osNpcStand(LSL_Key npc)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcStand");
+            m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
@@ -2512,6 +2575,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osNpcRemove(LSL_Key npc)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcRemove");
+            m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
@@ -2530,6 +2594,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osNpcPlayAnimation(LSL_Key npc, string animation)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcPlayAnimation");
+            m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
@@ -2544,6 +2609,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osNpcStopAnimation(LSL_Key npc, string animation)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcStopAnimation");
+            m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
@@ -2563,6 +2629,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Key osOwnerSaveAppearance(string notecard)
         {
             CheckThreatLevel(ThreatLevel.High, "osOwnerSaveAppearance");
+            m_host.AddScriptLPS(1);
 
             return SaveAppearanceToNotecard(m_host.OwnerID, notecard);
         }
@@ -2570,6 +2637,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Key osAgentSaveAppearance(LSL_Key avatarId, string notecard)
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osAgentSaveAppearance");
+            m_host.AddScriptLPS(1);
 
             return SaveAppearanceToNotecard(avatarId, notecard);
         }
@@ -2620,6 +2688,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Key osGetMapTexture()
         {
             CheckThreatLevel(ThreatLevel.None, "osGetMapTexture");
+            m_host.AddScriptLPS(1);
+
             return m_ScriptEngine.World.RegionInfo.RegionSettings.TerrainImageID.ToString();
         }
 
@@ -2631,6 +2701,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Key osGetRegionMapTexture(string regionName)
         {
             CheckThreatLevel(ThreatLevel.High, "osGetRegionMapTexture");
+            m_host.AddScriptLPS(1);
+
             Scene scene = m_ScriptEngine.World;
             UUID key = UUID.Zero;
             GridRegion region;
@@ -2696,6 +2768,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osKickAvatar(string FirstName,string SurName,string alert)
         {
             CheckThreatLevel(ThreatLevel.Severe, "osKickAvatar");
+            m_host.AddScriptLPS(1);
+
             if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
             {
                 World.ForEachRootScenePresence(delegate(ScenePresence sp)
@@ -2830,6 +2904,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List osGetAvatarList()
         {
             CheckThreatLevel(ThreatLevel.None, "osGetAvatarList");
+            m_host.AddScriptLPS(1);
 
             LSL_List result = new LSL_List();
             World.ForEachRootScenePresence(delegate (ScenePresence avatar)
@@ -2854,6 +2929,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String osUnixTimeToTimestamp(long time)
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osUnixTimeToTimestamp");
+            m_host.AddScriptLPS(1);
+
             long baseTicks = 621355968000000000;
             long tickResolution = 10000000;
             long epochTicks = (time * tickResolution) + baseTicks;
