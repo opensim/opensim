@@ -173,6 +173,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         LSL_List osGetLinkPrimitiveParams(int linknumber, LSL_List rules);
 
+        /// <summary>
+        /// Check if the given key is an npc
+        /// </summary>
+        /// <param name="npc"></param>
+        /// <returns>TRUE if the key belongs to an npc in the scene.  FALSE otherwise.</returns>
+        LSL_Integer osIsNpc(LSL_Key npc);
+
         key         osNpcCreate(string user, string name, vector position, string notecard);
         key         osNpcCreate(string user, string name, vector position, string notecard, int options);
         LSL_Key     osNpcSaveAppearance(key npc, string notecard);

@@ -2202,6 +2202,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return retVal;
         }
 
+        public LSL_Integer osIsNpc(LSL_Key npc)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osIsNpc");
+            m_host.AddScriptLPS(1);
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID npcId;
+                if (UUID.TryParse(npc.m_string, out npcId))
+                    if (module.IsNPC(npcId, World))
+                        return ScriptBaseClass.TRUE;
+            }
+
+            return ScriptBaseClass.FALSE;
+        }
+
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
