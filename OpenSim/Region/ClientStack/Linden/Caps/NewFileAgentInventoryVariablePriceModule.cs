@@ -147,7 +147,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     if (m_scene.TryGetClient(agentID, out client))
                     {
-                        if (!mm.UploadCovered(client, mm.UploadCharge))
+                        if (!mm.UploadCovered(client.AgentId, mm.UploadCharge))
                         {
                             if (client != null)
                                 client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
