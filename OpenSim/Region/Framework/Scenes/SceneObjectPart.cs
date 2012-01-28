@@ -4520,10 +4520,18 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Update the texture entry for this part.
         /// </summary>
-        /// <param name="textureEntry"></param>
-        public void UpdateTextureEntry(byte[] textureEntry)
+        /// <param name="serializedTextureEntry"></param>
+        public void UpdateTextureEntry(byte[] serializedTextureEntry)
         {
-            Primitive.TextureEntry newTex = new Primitive.TextureEntry(textureEntry, 0, textureEntry.Length);
+            UpdateTextureEntry(new Primitive.TextureEntry(serializedTextureEntry, 0, serializedTextureEntry.Length));
+        }
+
+        /// <summary>
+        /// Update the texture entry for this part.
+        /// </summary>
+        /// <param name="newTex"></param>
+        public void UpdateTextureEntry(Primitive.TextureEntry newTex)
+        {
             Primitive.TextureEntry oldTex = Shape.Textures;
 
             Changed changeFlags = 0;
@@ -4555,7 +4563,7 @@ namespace OpenSim.Region.Framework.Scenes
                     break;
             }
 
-            m_shape.TextureEntry = textureEntry;
+            m_shape.TextureEntry = newTex.GetBytes();
             if (changeFlags != 0)
                 TriggerScriptChangedEvent(changeFlags);
             UpdateFlag = UpdateRequired.FULL;

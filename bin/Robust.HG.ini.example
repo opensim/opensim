@@ -251,7 +251,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     SRV_HomeURI = "http://127.0.0.1:8002"
     SRV_InventoryServerURI = "http://127.0.0.1:8002"
     SRV_AssetServerURI = "http://127.0.0.1:8002"
-    SRV_ProfileServerURI = "http://127.0.0.1:8002/user"
+    SRV_ProfileServerURI = "http://127.0.0.1:8002"
     SRV_FriendsServerURI = "http://127.0.0.1:8002"
     SRV_IMServerURI = "http://127.0.0.1:8002"
 
