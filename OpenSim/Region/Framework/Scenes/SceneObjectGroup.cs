@@ -538,6 +538,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public UUID LastOwnerID
+        {
+            get { return m_rootPart.LastOwnerID; }
+            set { m_rootPart.LastOwnerID = value; }
+        }
+
         public UUID OwnerID
         {
             get { return m_rootPart.OwnerID; }
