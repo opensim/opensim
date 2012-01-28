@@ -1472,20 +1472,27 @@ namespace OpenSim.Region.Framework.Scenes
 //                    m_log.DebugFormat(
 //                        "[PRIM INVENTORY]: Updating item {0} in {1} for UpdateTaskInventory()", 
 //                        currentItem.Name, part.Name);
-                    
-                    IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
-                    if (agentTransactions != null)
-                    {
-                        agentTransactions.HandleTaskItemUpdateFromTransaction(
-                            remoteClient, part, transactionID, currentItem);
 
-                        if ((InventoryType)itemInfo.InvType == InventoryType.Notecard) 
-                            remoteClient.SendAgentAlertMessage("Notecard saved", false);
-                        else if ((InventoryType)itemInfo.InvType == InventoryType.LSL)
-                            remoteClient.SendAgentAlertMessage("Script saved", false);
-                        else
-                            remoteClient.SendAgentAlertMessage("Item saved", false);
-                    }
+                    // Viewers from at least Linden Lab 1.23 onwards use a capability to update script contents rather
+                    // than UDP.  With viewers from at least 1.23 onwards, changing properties on scripts (e.g. renaming) causes
+                    // this to spew spurious errors and "thing saved" messages.
+                    // Rather than retaining complexity in the code and removing useful error messages, I'm going to
+                    // comment this section out.  If this was still working for very old viewers and there is
+                    // a large population using them which cannot upgrade to 1.23 or derivatives then we can revisit
+                    // this - justincc
+//                    IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
+//                    if (agentTransactions != null)
+//                    {
+//                        agentTransactions.HandleTaskItemUpdateFromTransaction(
+//                            remoteClient, part, transactionID, currentItem);
+//
+//                        if ((InventoryType)itemInfo.InvType == InventoryType.Notecard)
+//                            remoteClient.SendAgentAlertMessage("Notecard saved", false);
+//                        else if ((InventoryType)itemInfo.InvType == InventoryType.LSL)
+//                            remoteClient.SendAgentAlertMessage("Script saved", false);
+//                        else
+//                            remoteClient.SendAgentAlertMessage("Item saved", false);
+//                    }
 
                     // Base ALWAYS has move
                     currentItem.BasePermissions |= (uint)PermissionMask.Move;

@@ -291,12 +291,16 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", false, "save oar",
                                           //"save oar [-v|--version=<N>] [-p|--profile=<url>] [<OAR path>]",
-                                          "save oar [-h|--home=<url>] [--noassets] [--perm=<permissions>] [<OAR path>]",
+                                          "save oar [-h|--home=<url>] [--noassets] [--publish] [--perm=<permissions>] [<OAR path>]",
                                           "Save a region's data to an OAR archive.",
 //                                          "-v|--version=<N> generates scene objects as per older versions of the serialization (e.g. -v=0)" + Environment.NewLine
                                           "-h|--home=<url> adds the url of the profile service to the saved user information." + Environment.NewLine
                                           + "--noassets stops assets being saved to the OAR." + Environment.NewLine
-                                          + "--perm stops objects with insufficient permissions from being saved to the OAR." + Environment.NewLine
+                                          + "--publish saves an OAR stripped of owner and last owner information." + Environment.NewLine
+                                          + "   on reload, the estate owner will be the owner of all objects" + Environment.NewLine
+                                          + "   this is useful if you're making oars generally available that might be reloaded to the same grid from which you published" + Environment.NewLine
+                                          + "   this option is EXPERIMENTAL" + Environment.NewLine
+                                          + "--perm=<permissions> stops objects with insufficient permissions from being saved to the OAR." + Environment.NewLine
                                           + "   <permissions> can contain one or more of these characters: \"C\" = Copy, \"T\" = Transfer" + Environment.NewLine
                                           + "The OAR path must be a filesystem path."
                                           + " If this is not given then the oar is saved to region.oar in the current directory.",
