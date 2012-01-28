@@ -452,9 +452,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             Action<ScenePresence> senseEntity = new Action<ScenePresence>(delegate(ScenePresence presence)
             {
-                if ((ts.type & NPC) == 0 && presence.PresenceType == PresenceType.Npc)
+                if ((ts.type & NPC) == 0
+                    && presence.PresenceType == PresenceType.Npc
+                    && !npcModule.GetNPC(presence.UUID, presence.Scene).SenseAsAgent)
                     return;
-                if ((ts.type & AGENT) == 0 && presence.PresenceType == PresenceType.User)
+
+                if ((ts.type & AGENT) == 0
+                    && (presence.PresenceType == PresenceType.User
+                        || npcModule.GetNPC(presence.UUID, presence.Scene).SenseAsAgent))
                     return;
 
                 if (presence.IsDeleted || presence.IsChildAgent || presence.GodLevel > 0.0)

@@ -109,9 +109,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
 
         public UUID CreateNPC(
-            string firstname, string lastname, Vector3 position, UUID owner, Scene scene, AvatarAppearance appearance)
+            string firstname,
+            string lastname,
+            Vector3 position,
+            UUID owner,
+            bool senseAsAgent,
+            Scene scene,
+            AvatarAppearance appearance)
         {
-            NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, owner, scene);
+            NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, owner, senseAsAgent, scene);
             npcAvatar.CircuitCode = (uint)Util.RandomClass.Next(0, int.MaxValue);
 
             m_log.DebugFormat(
@@ -264,6 +270,17 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             }
 
             return UUID.Zero;
+        }
+
+        public INPC GetNPC(UUID agentID, Scene scene)
+        {
+            lock (m_avatars)
+            {
+                if (m_avatars.ContainsKey(agentID))
+                    return m_avatars[agentID];
+                else
+                    return null;
+            }
         }
 
         public bool DeleteNPC(UUID agentID, Scene scene)

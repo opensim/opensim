@@ -775,11 +775,11 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         // Please do not refactor these to be just one method
         // Existing implementations need the distinction
         //
-        public bool UploadCovered(IClientAPI client, int amount)
+        public bool UploadCovered(UUID agentID, int amount)
         {
             return true;
         }
-        public bool AmountCovered(IClientAPI client, int amount)
+        public bool AmountCovered(UUID agentID, int amount)
         {
             return true;
         }
