@@ -464,7 +464,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                                 mapitem.x = (uint)(xstart + x);
                                 mapitem.y = (uint)(ystart + y);
                                 // mapitem.z = (uint)m_scene.GetGroundHeight(x,y);
-                                mapitem.id = UUID.Zero;
+                                mapitem.id = parcel.GlobalID;
                                 mapitem.name = parcel.Name;
                                 mapitem.Extra = parcel.Area;
                                 mapitem.Extra2 = parcel.SalePrice;
@@ -1291,7 +1291,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         responsemapdata["X"] = OSD.FromInteger((int)(xstart + x));
                         responsemapdata["Y"] = OSD.FromInteger((int)(ystart + y));
                         // responsemapdata["Z"] = OSD.FromInteger((int)m_scene.GetGroundHeight(x,y));
-                        responsemapdata["ID"] = OSD.FromUUID(UUID.Zero);
+                        responsemapdata["ID"] = OSD.FromUUID(parcel.GlobalID);
                         responsemapdata["Name"] = OSD.FromString(parcel.Name);
                         responsemapdata["Extra"] = OSD.FromInteger(parcel.Area);
                         responsemapdata["Extra2"] = OSD.FromInteger(parcel.SalePrice);
