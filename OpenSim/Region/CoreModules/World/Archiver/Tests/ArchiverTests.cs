@@ -248,9 +248,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Dictionary<string, Object> options = new Dictionary<string, Object>();
             options.Add("noassets", true);
             m_archiverModule.ArchiveRegion(archiveWriteStream, requestId, options);
-            //AssetServerBase assetServer = (AssetServerBase)scene.CommsManager.AssetCache.AssetServer;
-            //while (assetServer.HasWaitingRequests())
-            //    assetServer.ProcessNextRequest();
 
             // Don't wait for completion - with --noassets save oar happens synchronously
 //                Monitor.Wait(this, 60000);
@@ -407,6 +404,86 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             // Temporary
             Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
+        }
+
+        /// <summary>
+        /// Test loading an OpenSim Region Archive saved with the --publish option.
+        /// </summary>
+        [Test]
+        public void TestLoadPublishedOar()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            SceneObjectPart part1 = CreateSceneObjectPart1();
+            SceneObjectGroup sog1 = new SceneObjectGroup(part1);
+            m_scene.AddNewSceneObject(sog1, false);
+
+            SceneObjectPart part2 = CreateSceneObjectPart2();
+            
+            AssetNotecard nc = new AssetNotecard();
+            nc.BodyText = "Hello World!";
+            nc.Encode();
+            UUID ncAssetUuid = new UUID("00000000-0000-0000-1000-000000000000");
+            UUID ncItemUuid = new UUID("00000000-0000-0000-1100-000000000000");
+            AssetBase ncAsset 
+                = AssetHelpers.CreateAsset(ncAssetUuid, AssetType.Notecard, nc.AssetData, UUID.Zero);
+            m_scene.AssetService.Store(ncAsset);
+            SceneObjectGroup sog2 = new SceneObjectGroup(part2);
+            TaskInventoryItem ncItem 
+                = new TaskInventoryItem { Name = "ncItem", AssetID = ncAssetUuid, ItemID = ncItemUuid };
+            part2.Inventory.AddInventoryItem(ncItem, true);
+            
+            m_scene.AddNewSceneObject(sog2, false);
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            m_scene.EventManager.OnOarFileSaved += SaveCompleted;
+
+            Guid requestId = new Guid("00000000-0000-0000-0000-808080808080");
+            
+            lock (this)
+            {
+                m_archiverModule.ArchiveRegion(
+                    archiveWriteStream, requestId, new Dictionary<string, Object>() { { "wipe-owners", Boolean.TrueString } });
+                
+                Monitor.Wait(this, 60000);
+            }
+            
+            Assert.That(m_lastRequestId, Is.EqualTo(requestId));
+
+            byte[] archive = archiveWriteStream.ToArray();
+            MemoryStream archiveReadStream = new MemoryStream(archive);
+
+            {
+                UUID estateOwner = TestHelpers.ParseTail(0x4747);
+                UUID objectOwner = TestHelpers.ParseTail(0x15);
+
+                // Reload to new scene
+                ArchiverModule archiverModule = new ArchiverModule();
+                SerialiserModule serialiserModule = new SerialiserModule();
+                TerrainModule terrainModule = new TerrainModule();
+
+                TestScene scene2 = SceneHelpers.SetupScene();
+                SceneHelpers.SetupSceneModules(scene2, archiverModule, serialiserModule, terrainModule);
+
+                // Make sure there's a valid owner for the owner we saved (this should have been wiped if the code is
+                // behaving correctly
+                UserAccountHelpers.CreateUserWithInventory(scene2, objectOwner);
+
+                scene2.RegionInfo.EstateSettings.EstateOwner = estateOwner;
+
+                lock (this)
+                {
+                    scene2.EventManager.OnOarFileLoaded += LoadCompleted;
+                    archiverModule.DearchiveRegion(archiveReadStream);
+                }
+
+                Assert.That(m_lastErrorMessage, Is.Null);
+
+                SceneObjectGroup loadedSog = scene2.GetSceneObjectGroup(part1.Name);
+                Assert.That(loadedSog.OwnerID, Is.EqualTo(estateOwner));
+                Assert.That(loadedSog.LastOwnerID, Is.EqualTo(estateOwner));
+            }
         }
 
         /// <summary>

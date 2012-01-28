@@ -116,6 +116,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_merge = merge;
             m_skipAssets = skipAssets;
             m_requestId = requestId;
+
+            // Zero can never be a valid user id
+            m_validUserUuids[UUID.Zero] = false;
         }
 
         public ArchiveReadRequest(Scene scene, Stream loadStream, bool merge, bool skipAssets, Guid requestId)
@@ -125,6 +128,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_merge = merge;
             m_skipAssets = skipAssets;
             m_requestId = requestId;
+
+            // Zero can never be a valid user id
+            m_validUserUuids[UUID.Zero] = false;
         }
 
         /// <summary>
@@ -368,16 +374,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (!m_validUserUuids.ContainsKey(uuid))
             {
                 UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid);
-                if (account != null)
-                    m_validUserUuids.Add(uuid, true);
-                else
-                    m_validUserUuids.Add(uuid, false);
+                m_validUserUuids.Add(uuid, account != null);
             }
 
-            if (m_validUserUuids[uuid])
-                return true;
-            else
-                return false;
+            return m_validUserUuids[uuid];
         }
 
         /// <summary>
