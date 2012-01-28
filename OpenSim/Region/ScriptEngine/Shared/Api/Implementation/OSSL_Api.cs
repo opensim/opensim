@@ -2242,7 +2242,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
             m_host.AddScriptLPS(1);
 
-            return NpcCreate(firstname, lastname, position, notecard, false, false);
+            return NpcCreate(firstname, lastname, position, notecard, true, false);
         }
 
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, int options)
