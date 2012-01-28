@@ -1491,14 +1491,12 @@ namespace OpenSim.Region.Framework.Scenes
 //                    m_log.DebugFormat(
 //                        "[PRIM INVENTORY]: Updating item {0} in {1} for UpdateTaskInventory()", 
 //                        currentItem.Name, part.Name);
-                    
                     IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
                     if (agentTransactions != null)
                     {
                         agentTransactions.HandleTaskItemUpdateFromTransaction(
                             remoteClient, part, transactionID, currentItem);
                     }
-
                     // Base ALWAYS has move
                     currentItem.BasePermissions |= (uint)PermissionMask.Move;
 

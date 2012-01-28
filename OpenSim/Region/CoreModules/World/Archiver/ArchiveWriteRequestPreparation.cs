@@ -282,10 +282,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // always (incorrectly) includes the Copy bit set in this case. But that's a mistake: the viewer
                 // does NOT show that the object has Everyone-Copy permissions, and doesn't allow it to be copied.
                 if (permissionClass != PermissionClass.Owner)
-                {
                     canTransfer |= (obj.EveryoneMask & (uint)PermissionMask.Copy) != 0;
-                }
-
 
                 bool partPermitted = true;
                 if (checkPermissions.Contains("C") && !canCopy)

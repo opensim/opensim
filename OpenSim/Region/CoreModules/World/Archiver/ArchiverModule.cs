@@ -142,6 +142,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             ops.Add("h|home=", delegate(string v) { options["home"] = v; });
 
             ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
+            ops.Add("publish", v => options["wipe-owners"] = v != null);
             ops.Add("perm=", delegate(string v) { options["checkPermissions"] = v; });
 
             List<string> mainParams = ops.Parse(cmdparams);
