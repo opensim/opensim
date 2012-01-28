@@ -31,13 +31,16 @@ using System.Net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.World.Estate;
 
 namespace OpenSim.Region.OptionalModules.World.NPC
 {
-    public class NPCAvatar : IClientAPI
+    public class NPCAvatar : IClientAPI, INPC
     {
+        public bool SenseAsAgent { get; set; }
+
         private readonly string m_firstname;
         private readonly string m_lastname;
         private readonly Vector3 m_startPos;
@@ -45,13 +48,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly Scene m_scene;
         private readonly UUID m_ownerID;
 
-        public NPCAvatar(string firstname, string lastname, Vector3 position, UUID ownerID, Scene scene)
+        public NPCAvatar(
+            string firstname, string lastname, Vector3 position, UUID ownerID, bool senseAsAgent, Scene scene)
         {
             m_firstname = firstname;
             m_lastname = lastname;
             m_startPos = position;
             m_scene = scene;
             m_ownerID = ownerID;
+            SenseAsAgent = senseAsAgent;
         }
 
         public IScene Scene

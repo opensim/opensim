@@ -31,6 +31,19 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
+    /// <summary>
+    /// Temporary interface.  More methods to come at some point to make NPCs more object oriented rather than
+    /// controlling purely through module level interface calls (e.g. sit/stand).
+    /// </summary>
+    public interface INPC
+    {
+        /// <summary>
+        /// Should this NPC be sensed by LSL sensors as an 'agent' (interpreted here to mean a normal user)
+        /// rather than an OpenSim specific NPC extension?
+        /// </summary>
+        bool SenseAsAgent { get; }
+    }
+
     public interface INPCModule
     {
         /// <summary>
@@ -39,10 +52,21 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="firstname"></param>
         /// <param name="lastname"></param>
         /// <param name="position"></param>
+        /// <param name="senseAsAgent">
+        /// Make the NPC show up as an agent on LSL sensors.  The default is that they
+        /// show up as the NPC type instead, but this is currently an OpenSim-only extension.
+        /// </param>
         /// <param name="scene"></param>
         /// <param name="appearance">The avatar appearance to use for the new NPC.</param>
         /// <returns>The UUID of the ScenePresence created.</returns>
-        UUID CreateNPC(string firstname, string lastname, Vector3 position, UUID owner, Scene scene, AvatarAppearance appearance);
+        UUID CreateNPC(
+            string firstname,
+            string lastname,
+            Vector3 position,
+            UUID owner,
+            bool senseAsAgent,
+            Scene scene,
+            AvatarAppearance appearance);
 
         /// <summary>
         /// Check if the agent is an NPC.
@@ -51,6 +75,14 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="scene"></param>
         /// <returns>True if the agent is an NPC in the given scene.  False otherwise.</returns>
         bool IsNPC(UUID agentID, Scene scene);
+
+        /// <summary>
+        /// Get the NPC.  This is not currently complete - manipulation of NPCs still occurs through the region interface
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="scene"></param>
+        /// <returns>The NPC.  null if it does not exist.</returns>
+        INPC GetNPC(UUID agentID, Scene scene);
 
         /// <summary>
         /// Check if the caller has permission to manipulate the given NPC.

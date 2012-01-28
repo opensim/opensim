@@ -2233,7 +2233,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
             m_host.AddScriptLPS(1);
 
-            return NpcCreate(firstname, lastname, position, notecard, true);
+            return NpcCreate(firstname, lastname, position, notecard, false, true);
         }
 
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, int options)
@@ -2241,10 +2241,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
             m_host.AddScriptLPS(1);
 
-            return NpcCreate(firstname, lastname, position, notecard, (options & ScriptBaseClass.OS_NPC_NOT_OWNED) == 0);
+            return NpcCreate(
+                firstname, lastname, position, notecard,
+                (options & ScriptBaseClass.OS_NPC_NOT_OWNED) == 0,
+                (options & ScriptBaseClass.OS_NPC_SENSE_AS_AGENT) == 0);
         }
 
-        private LSL_Key NpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, bool owned)
+        private LSL_Key NpcCreate(
+            string firstname, string lastname, LSL_Vector position, string notecard, bool owned, bool senseAsAgent)
         {
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
@@ -2281,7 +2285,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                           lastname,
                                           new Vector3((float) position.x, (float) position.y, (float) position.z),
                                           ownerID,
-                                          World,appearance);
+                                          senseAsAgent,
+                                          World,
+                                          appearance);
 
                 return new LSL_Key(x.ToString());
             }
