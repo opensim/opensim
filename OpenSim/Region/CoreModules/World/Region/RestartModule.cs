@@ -240,6 +240,9 @@ namespace OpenSim.Region.CoreModules.World.Region
                 if (m_DialogModule != null && message != String.Empty)
                     m_DialogModule.SendGeneralAlert(message);
             }
+           if (m_MarkerPath != String.Empty)
+               File.Delete(Path.Combine(m_MarkerPath,
+                       m_Scene.RegionInfo.RegionID.ToString()));
         }
         
         private void HandleRegionRestart(string module, string[] args)
