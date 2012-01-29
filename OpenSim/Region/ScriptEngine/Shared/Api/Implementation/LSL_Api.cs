@@ -5506,7 +5506,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             foreach (GridRegion sri in neighbors)
             {
-                if (sri.RegionLocX == neighborX && sri.RegionLocY == neighborY)
+                if (sri.RegionCoordX == neighborX && sri.RegionCoordY == neighborY)
                     return 0;
             }
 
