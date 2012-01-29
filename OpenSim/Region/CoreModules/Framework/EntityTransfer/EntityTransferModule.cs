@@ -209,8 +209,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                     foreach (SceneObjectGroup grp in sp.GetAttachments())
                     {
-                        if (grp.IsDeleted)
-                            sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
+                        sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
                     }
                 }
                 else // Another region possibly in another simulator
