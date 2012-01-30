@@ -1026,7 +1026,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         protected void MapBlockFromGridRegion(MapBlockData block, GridRegion r)
         {
             block.Access = r.Access;
-            block.MapImageId = r.TerrainImage;
+            block.MapImageId = m_scene.RegionInfo.RegionSettings.ParcelImageID;
             block.Name = r.RegionName;
             block.X = (ushort)(r.RegionLocX / Constants.RegionSize);
             block.Y = (ushort)(r.RegionLocY / Constants.RegionSize);
