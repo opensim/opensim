@@ -955,8 +955,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             {
                 List<MapBlockData> response = new List<MapBlockData>();
 
-                // this should return one mapblock at most. 
-                // (diva note: why?? in that case we should GetRegionByPosition)
+                // this should return one mapblock at most. It is triggered by a click
+                // on an unloaded square.
                 // But make sure: Look whether the one we requested is in there
                 List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
                     minX * (int)Constants.RegionSize, 
@@ -973,7 +973,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         {
                             // found it => add it to response
                             MapBlockData block = new MapBlockData();
-                            MapBlockFromGridRegion(block, r);
+                            MapBlockFromGridRegion(block, r, flag);
                             response.Add(block);
                             break;
                         }
@@ -989,10 +989,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     block.Access = 254; // means 'simulator is offline'
                     response.Add(block);
                 }
-                if ((flag & 2) == 2) // V2 !!!
-                    remoteClient.SendMapBlock(response, 2);
-                else
-                    remoteClient.SendMapBlock(response, 0);
+                // The lower 16 bits are an unsigned int16
+                remoteClient.SendMapBlock(response, flags & 0xffff);
             }
             else
             {
@@ -1012,21 +1010,28 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             foreach (GridRegion r in regions)
             {
                 MapBlockData block = new MapBlockData();
-                MapBlockFromGridRegion(block, r);
+                MapBlockFromGridRegion(block, r, flag);
                 mapBlocks.Add(block);
             }
-            if ((flag & 2) == 2) // V2 !!!
-                remoteClient.SendMapBlock(mapBlocks, 2);
-            else
-                remoteClient.SendMapBlock(mapBlocks, 0);
+            remoteClient.SendMapBlock(mapBlocks, flag & 0xffff);
 
             return mapBlocks;
         }
 
-        protected void MapBlockFromGridRegion(MapBlockData block, GridRegion r)
+        protected void MapBlockFromGridRegion(MapBlockData block, GridRegion r, uint flag)
         {
             block.Access = r.Access;
-            block.MapImageId = m_scene.RegionInfo.RegionSettings.ParcelImageID;
+            switch (flag & 0xffff)
+            {
+            case 0:
+                block.MapImageId = m_scene.RegionInfo.RegionSettings.ParcelImageID;
+                break;
+            case 2:
+                block.MapImageId = m_scene.RegionInfo.RegionSettings.ParcelImageID;
+                break;
+            default:
+                block.MapImageId = UUID.Zero;
+            }
             block.Name = r.RegionName;
             block.X = (ushort)(r.RegionLocX / Constants.RegionSize);
             block.Y = (ushort)(r.RegionLocY / Constants.RegionSize);
@@ -1160,7 +1165,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             foreach (GridRegion r in regions)
             {
                 MapBlockData mapBlock = new MapBlockData();
-                MapBlockFromGridRegion(mapBlock, r);
+                MapBlockFromGridRegion(mapBlock, r, 0);
                 AssetBase texAsset = m_scene.AssetService.Get(mapBlock.MapImageId.ToString());
 
                 if (texAsset != null)
