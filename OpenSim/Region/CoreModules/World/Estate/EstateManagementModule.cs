@@ -256,6 +256,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
             IRestartModule restartModule = Scene.RequestModuleInterface<IRestartModule>();
             if (restartModule != null)
             {
+                if (timeInSeconds == -1)
+                {
+                    restartModule.AbortRestart("Restart aborted by region manager");
+                    return;
+                }
+
                 List<int> times = new List<int>();
                 while (timeInSeconds > 0)
                 {

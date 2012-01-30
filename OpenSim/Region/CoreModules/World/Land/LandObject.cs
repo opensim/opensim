@@ -190,10 +190,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 // Normal Calculations
-                int parcelMax = (int)((double)(LandData.Area
-                              * m_scene.RegionInfo.ObjectCapacity)
-                              * m_scene.RegionInfo.RegionSettings.ObjectBonus)
-                              / 65536;
+                int parcelMax = (int)((long)LandData.Area
+                              * (long)m_scene.RegionInfo.ObjectCapacity
+                              * (long)m_scene.RegionInfo.RegionSettings.ObjectBonus
+                              / 65536L);
                 m_log.DebugFormat("Area: {0}, Capacity {1}, Bonus {2}, Parcel {3}", LandData.Area, m_scene.RegionInfo.ObjectCapacity, m_scene.RegionInfo.RegionSettings.ObjectBonus, parcelMax);
                 return parcelMax;
             }
@@ -208,9 +208,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 // Normal Calculations
-                int parcelMax = LandData.Area
-                              * m_scene.RegionInfo.ObjectCapacity
-                              / 65536;
+                int parcelMax = (int)((long)LandData.Area
+                              * (long)m_scene.RegionInfo.ObjectCapacity
+                              / 65536L);
                 return parcelMax;
             }
         }
@@ -226,7 +226,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 //Normal Calculations
                 int simMax = (int)((long)LandData.SimwideArea
                            * (long)m_scene.RegionInfo.ObjectCapacity / 65536L);
-                m_log.DebugFormat("Simwide Area: {0}, Capacity {1}, SimMax {2}", LandData.SimwideArea, m_scene.RegionInfo.ObjectCapacity, simMax);
+                // m_log.DebugFormat("Simwide Area: {0}, Capacity {1}, SimMax {2}", LandData.SimwideArea, m_scene.RegionInfo.ObjectCapacity, simMax);
                 return simMax;
             }
         }

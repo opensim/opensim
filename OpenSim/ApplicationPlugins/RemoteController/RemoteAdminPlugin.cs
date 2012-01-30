@@ -263,6 +263,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 Scene rebootedScene = null;
                 GetSceneFromRegionParams(requestData, responseData, out rebootedScene);
 
+                IRestartModule restartModule = rebootedScene.RequestModuleInterface<IRestartModule>();
+
                 responseData["success"] = false;
                 responseData["accepted"] = true;
                 responseData["rebooting"] = true;
@@ -273,6 +275,23 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (requestData.ContainsKey("alerts"))
                 {
                     string[] alertTimes = requestData["alerts"].ToString().Split( new char[] {','});
+                    if (alertTimes.Length == 1 && Convert.ToInt32(alertTimes[0]) == -1)
+                    {
+                        if (restartModule != null)
+                        {
+                            message = "Restart has been cancelled";
+
+                            if (requestData.ContainsKey("message"))
+                                message = requestData["message"].ToString();
+
+                            restartModule.AbortRestart(message);
+
+                            responseData["success"] = true;
+                            responseData["rebooting"] = false;
+
+                            return;
+                        }
+                    }
                     foreach (string a in alertTimes)
                         times.Add(Convert.ToInt32(a));
                 }
@@ -305,7 +324,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     notice = false;
                 }
 
-                IRestartModule restartModule = rebootedScene.RequestModuleInterface<IRestartModule>();
                 if (restartModule != null)
                 {
                     restartModule.ScheduleRestart(UUID.Zero, message, times.ToArray(), notice);
