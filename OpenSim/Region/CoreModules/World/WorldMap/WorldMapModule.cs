@@ -1348,6 +1348,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_log.Debug("[WORLDMAP]: STORING MAPTILE IMAGE");
 
             UUID terrainImageID = UUID.Random();
+            UUID parcelImageID = UUID.Zero; // UUID.Random();
 
             AssetBase asset = new AssetBase(
                 terrainImageID,
@@ -1364,13 +1365,16 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_scene.AssetService.Store(asset);
             
             // Switch to the new one
-            UUID lastMapRegionUUID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
+            UUID lastTerrainImageID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
+            UUID lastParcelImageID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
             m_scene.RegionInfo.RegionSettings.TerrainImageID = terrainImageID;
+            m_scene.RegionInfo.RegionSettings.ParcelImageID = parcelImageID;
             m_scene.RegionInfo.RegionSettings.Save();
             
             // Delete the old one
-            m_log.DebugFormat("[WORLDMAP]: Deleting old map tile {0}", lastMapRegionUUID);
-            m_scene.AssetService.Delete(lastMapRegionUUID.ToString());
+            // m_log.DebugFormat("[WORLDMAP]: Deleting old map tile {0}", lastTerrainImageID);
+            m_scene.AssetService.Delete(lastTerrainImageID.ToString());
+            m_scene.AssetService.Delete(lastParcelImageID.ToString());
         }
 
         private void MakeRootAgent(ScenePresence avatar)
