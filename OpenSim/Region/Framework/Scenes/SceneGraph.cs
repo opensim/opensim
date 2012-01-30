@@ -1137,8 +1137,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="action"></param>
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)
         {
-            // FIXME: Need to lock here, really.
-            List<SceneObjectGroup> objlist = new List<SceneObjectGroup>(SceneObjectGroupsByFullID.Values);
+            List<SceneObjectGroup> objlist;
+            lock (SceneObjectGroupsByFullID)
+                objlist = new List<SceneObjectGroup>(SceneObjectGroupsByFullID.Values);
+
             foreach (SceneObjectGroup obj in objlist)
             {
                 try
@@ -1147,7 +1149,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception e)
                 {
-                    // Catch it and move on. This includes situations where splist has inconsistent info
+                    // Catch it and move on. This includes situations where objlist has inconsistent info
                     m_log.WarnFormat(
                         "[SCENEGRAPH]: Problem processing action in ForEachSOG: {0} {1}", e.Message, e.StackTrace);
                 }
@@ -1382,10 +1384,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Update the texture entry of the given prim.
         /// </summary>
-        /// 
+        /// <remarks>
         /// A texture entry is an object that contains details of all the textures of the prim's face.  In this case,
         /// the texture is given in its byte serialized form.
-        /// 
+        /// </remarks>
         /// <param name="localID"></param>
         /// <param name="texture"></param>
         /// <param name="remoteClient"></param>
