@@ -1024,10 +1024,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             switch (flag & 0xffff)
             {
             case 0:
-                block.MapImageId = m_scene.RegionInfo.RegionSettings.ParcelImageID;
+                block.MapImageId = r.TerrainImage;
                 break;
             case 2:
-                block.MapImageId = m_scene.RegionInfo.RegionSettings.ParcelImageID;
+                block.MapImageId = r.ParcelImage;
                 break;
             default:
                 block.MapImageId = UUID.Zero;
