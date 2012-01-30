@@ -997,7 +997,7 @@ namespace OpenSim.Data.MySQL
                             "covenant, Sandbox, sunvectorx, sunvectory, " +
                             "sunvectorz, loaded_creation_datetime, " +
                             "loaded_creation_id, map_tile_ID, " +
-                            "TelehubObject) " +
+                            "TelehubObject, parcel_tile_ID) " +
                              "values (?RegionUUID, ?BlockTerraform, " +
                             "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
                             "?AllowLandResell, ?AllowLandJoinDivide, " +
@@ -1013,7 +1013,7 @@ namespace OpenSim.Data.MySQL
                             "?SunPosition, ?Covenant, ?Sandbox, " +
                             "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                             "?LoadedCreationDateTime, ?LoadedCreationID, " +
-                            "?TerrainImageID, ?TelehubObject) ";
+                            "?TerrainImageID, ?TelehubObject, ?ParcelImageID) ";
 
                         FillRegionSettingsCommand(cmd, rs);
 
@@ -1301,6 +1301,7 @@ namespace OpenSim.Data.MySQL
                 newSettings.LoadedCreationID = (String) row["loaded_creation_id"];
 
             newSettings.TerrainImageID = DBGuid.FromDB(row["map_tile_ID"]);
+            newSettings.ParcelImageID = DBGuid.FromDB(row["parcel_tile_ID"]);
             newSettings.TelehubObject = DBGuid.FromDB(row["TelehubObject"]);
 
             return newSettings;
@@ -1632,6 +1633,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("LoadedCreationDateTime", settings.LoadedCreationDateTime);
             cmd.Parameters.AddWithValue("LoadedCreationID", settings.LoadedCreationID);
             cmd.Parameters.AddWithValue("TerrainImageID", settings.TerrainImageID);
+            cmd.Parameters.AddWithValue("ParcelImageID", settings.ParcelImageID);
             cmd.Parameters.AddWithValue("TelehubObject", settings.TelehubObject);
         }
 

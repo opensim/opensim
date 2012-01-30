@@ -373,6 +373,14 @@ namespace OpenSim.Framework
             set { m_SunVector = value; }
         }
 
+        private UUID m_ParcelImageID;
+
+        public UUID ParcelImageID
+        {
+            get { return m_ParcelImageID; }
+            set { m_ParcelImageID = value; }
+        }
+
         private UUID m_TerrainImageID;
 
         public UUID TerrainImageID
