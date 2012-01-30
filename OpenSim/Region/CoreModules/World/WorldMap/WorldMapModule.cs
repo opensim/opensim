@@ -263,7 +263,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         foreach (GridRegion r in regions)
                         {
                             MapBlockData block = new MapBlockData();
-                            MapBlockFromGridRegion(block, r);
+                            MapBlockFromGridRegion(block, r, 0);
                             mapBlocks.Add(block);
                         }
                         avatarPresence.ControllingClient.SendMapBlock(mapBlocks, 0);
@@ -990,7 +990,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     response.Add(block);
                 }
                 // The lower 16 bits are an unsigned int16
-                remoteClient.SendMapBlock(response, flags & 0xffff);
+                remoteClient.SendMapBlock(response, flag & 0xffff);
             }
             else
             {
@@ -1031,6 +1031,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 break;
             default:
                 block.MapImageId = UUID.Zero;
+                break;
             }
             block.Name = r.RegionName;
             block.X = (ushort)(r.RegionLocX / Constants.RegionSize);

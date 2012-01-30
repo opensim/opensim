@@ -190,6 +190,7 @@ namespace OpenSim.Services.Interfaces
         public UUID ScopeID = UUID.Zero;
 
         public UUID TerrainImage = UUID.Zero;
+        public UUID ParcelImage = UUID.Zero;
         public byte Access;
         public int  Maturity;
         public string RegionSecret = string.Empty;
@@ -236,6 +237,7 @@ namespace OpenSim.Services.Interfaces
             RegionID = ConvertFrom.RegionID;
             ServerURI = ConvertFrom.ServerURI;
             TerrainImage = ConvertFrom.RegionSettings.TerrainImageID;
+            ParcelImage = ConvertFrom.RegionSettings.ParcelImageID;
             Access = ConvertFrom.AccessLevel;
             Maturity = ConvertFrom.RegionSettings.Maturity;
             RegionSecret = ConvertFrom.regionSecret;
@@ -253,6 +255,7 @@ namespace OpenSim.Services.Interfaces
             RegionID = ConvertFrom.RegionID;
             ServerURI = ConvertFrom.ServerURI;
             TerrainImage = ConvertFrom.TerrainImage;
+            ParcelImage = ConvertFrom.ParcelImage;
             Access = ConvertFrom.Access;
             Maturity = ConvertFrom.Maturity;
             RegionSecret = ConvertFrom.RegionSecret;
@@ -281,7 +284,7 @@ namespace OpenSim.Services.Interfaces
 
         public override int GetHashCode()
         {
-            return RegionID.GetHashCode() ^ TerrainImage.GetHashCode();
+            return RegionID.GetHashCode() ^ TerrainImage.GetHashCode() ^ ParcelImage.GetHashCode();
         }
 
         #endregion
@@ -359,6 +362,7 @@ namespace OpenSim.Services.Interfaces
             kvp["serverURI"] = ServerURI;
             kvp["serverPort"] = InternalEndPoint.Port.ToString();
             kvp["regionMapTexture"] = TerrainImage.ToString();
+            kvp["parcelMapTexture"] = ParcelImage.ToString();
             kvp["access"] = Access.ToString();
             kvp["regionSecret"] = RegionSecret;
             kvp["owner_uuid"] = EstateOwner.ToString();
@@ -410,6 +414,9 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp.ContainsKey("regionMapTexture"))
                 UUID.TryParse((string)kvp["regionMapTexture"], out TerrainImage);
+
+            if (kvp.ContainsKey("parcelMapTexture"))
+                UUID.TryParse((string)kvp["parcelMapTexture"], out ParcelImage);
 
             if (kvp.ContainsKey("access"))
                 Access = Byte.Parse((string)kvp["access"]);
