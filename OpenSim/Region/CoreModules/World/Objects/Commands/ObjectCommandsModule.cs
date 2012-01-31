@@ -101,12 +101,12 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "show object uuid <UUID>",
                 "Show details of a scene object with the given UUID", HandleShowObjectByUuid);
 
-//            m_console.Commands.AddCommand(
-//                "region",
-//                false,
-//                "show object name <UUID>",
-//                "show object name <UUID>",
-//                "Show details of scene objects with the given name", HandleShowObjectName);
+            m_console.Commands.AddCommand(
+                "region",
+                false,
+                "show object name",
+                "show object name <name>",
+                "Show details of scene objects with the given name", HandleShowObjectByName);
         }
 
         public void RemoveRegion(Scene scene)
@@ -146,14 +146,55 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             }
 
             StringBuilder sb = new StringBuilder();
+            AddPartReport(sb, sop);
+
+            m_console.OutputFormat(sb.ToString());
+        }
+
+        private void HandleShowObjectByName(string module, string[] cmd)
+        {
+            if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
+                return;
+
+            if (cmd.Length < 4)
+            {
+                m_console.OutputFormat("Usage: show object name <name>");
+                return;
+            }
+
+            string name = cmd[3];
+
+            List<SceneObjectPart> parts = new List<SceneObjectPart>();
+
+            m_scene.ForEachSOG(so => so.ForEachPart(sop => { if (sop.Name == name) { parts.Add(sop); } }));
+
+            if (parts.Count == 0)
+            {
+                m_console.OutputFormat("No parts with name {0} found in {1}", name, m_scene.RegionInfo.RegionName);
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (SceneObjectPart part in parts)
+            {
+                AddPartReport(sb, part);
+                sb.Append("\n");
+            }
+
+            m_console.OutputFormat(sb.ToString());
+        }
+
+        private StringBuilder AddPartReport(StringBuilder sb, SceneObjectPart sop)
+        {
             sb.AppendFormat("Name:        {0}\n", sop.Name);
             sb.AppendFormat("Description: {0}\n", sop.Description);
             sb.AppendFormat("Location:    {0} @ {1}\n", sop.AbsolutePosition, sop.ParentGroup.Scene.RegionInfo.RegionName);
             sb.AppendFormat("Parent:      {0}",
                 sop.IsRoot ? "Is Root\n" : string.Format("{0} {1}\n", sop.ParentGroup.Name, sop.ParentGroup.UUID));
-            sb.AppendFormat("Parts:       {0}", sop.IsRoot ? "1" : sop.ParentGroup.PrimCount.ToString());
+            sb.AppendFormat("Parts:       {0}\n", sop.IsRoot ? "1" : sop.ParentGroup.PrimCount.ToString());;
 
-            m_console.OutputFormat(sb.ToString());
+            return sb;
         }
 
         private void HandleDeleteObject(string module, string[] cmd)
