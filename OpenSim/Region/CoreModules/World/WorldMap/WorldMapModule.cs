@@ -1458,9 +1458,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             Color background = Color.FromArgb(0, 0, 0, 0);
             SolidBrush transparent = new SolidBrush(background);
             Graphics g = Graphics.FromImage(overlay);
-            g.FillRectangle(transparent, 0, 0, 256, 256);
+            g.FillRectangle(transparent, 0, 0, 255, 255);
 
             SolidBrush yellow = new SolidBrush(Color.FromArgb(255, 249, 223, 9));
+            Pen grey = new Pen(Color.FromArgb(255, 92, 92, 92));
 
             foreach (ILandObject land in parcels)
             {
@@ -1469,7 +1470,41 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 {
                     landForSale = true;
                     
-                    saleBitmap = land.MergeLandBitmaps(saleBitmap, land.GetLandBitmap());
+                    bool[,] landBitmap = land.GetLandBitmap();
+
+                    for (int x = 0 ; x < 64 ; x++)
+                    {
+                        for (int y = 0 ; y < 64 ; y++)
+                        {
+                            if (landBitmap[x, y])
+                            {
+                                g.FillRectangle(yellow, x * 4, 252 - (y * 4), 4, 4);
+
+                                if (x > 0)
+                                {
+                                    if ((saleBitmap[x - 1, y] || landBitmap[x - 1, y]) == false)
+                                        g.DrawLine(grey, x * 4, 252 - (y * 4), x * 4, 255 - (y * 4));
+                                }
+                                if (y > 0)
+                                {
+                                    if ((saleBitmap[x, y-1] || landBitmap[x, y-1]) == false)
+                                        g.DrawLine(grey, x * 4, 255 - (y * 4), x * 4 + 3, 255 - (y * 4));
+                                }
+                                if (x < 63)
+                                {
+                                    if ((saleBitmap[x + 1, y] || landBitmap[x + 1, y]) == false)
+                                        g.DrawLine(grey, x * 4 + 3, 252 - (y * 4), x * 4 + 3, 255 - (y * 4));
+                                }
+                                if (y < 63)
+                                {
+                                    if ((saleBitmap[x, y + 1] || landBitmap[x, y + 1]) == false)
+                                        g.DrawLine(grey, x * 4, 252 - (y * 4), x * 4 + 3, 252 - (y * 4));
+                                }
+                            }
+                        }
+                    }
+
+                    saleBitmap = land.MergeLandBitmaps(saleBitmap, landBitmap);
                 }
             }
 
@@ -1480,15 +1515,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
 
             m_log.DebugFormat("[WORLD MAP]: Region {0} has parcels for sale, genrating overlay", m_scene.RegionInfo.RegionName);
-
-            for (int x = 0 ; x < 64 ; x++)
-            {
-                for (int y = 0 ; y < 64 ; y++)
-                {
-                    if (saleBitmap[x, y])
-                        g.FillRectangle(yellow, x * 4, 252 - (y * 4), 4, 4);
-                }
-            }
 
             try
             {
