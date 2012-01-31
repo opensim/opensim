@@ -140,6 +140,9 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                         deletes.Add(g);
                 });
 
+                if (deletes.Count == 0)
+                    m_console.OutputFormat("No objects were found with owner {0}", match);
+
                 break;
 
             case "creator":
@@ -151,6 +154,9 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     if (g.RootPart.CreatorID == match && !g.IsAttachment)
                         deletes.Add(g);
                 });
+
+                if (deletes.Count == 0)
+                    m_console.OutputFormat("No objects were found with creator {0}", match);
 
                 break;
 
@@ -164,6 +170,9 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                         deletes.Add(g);
                 });
 
+                if (deletes.Count == 0)
+                    m_console.OutputFormat("No objects were found with uuid {0}", match);
+
                 break;
 
             case "name":
@@ -172,6 +181,9 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     if (g.RootPart.Name == o && !g.IsAttachment)
                         deletes.Add(g);
                 });
+
+                if (deletes.Count == 0)
+                    m_console.OutputFormat("No objects were found with name {0}", o);
 
                 break;
 
@@ -197,6 +209,9 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     if (delete && !g.IsAttachment && !deletes.Contains(g))
                         deletes.Add(g);
                 });
+
+                if (deletes.Count == 0)
+                    m_console.OutputFormat("No objects were found outside region bounds");
 
                 break;
             }
