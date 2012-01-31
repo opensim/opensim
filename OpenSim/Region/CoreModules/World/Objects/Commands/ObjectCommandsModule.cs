@@ -141,7 +141,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (sop == null)
             {
-                m_console.OutputFormat("No object found with uuid {0}", objectUuid);
+//                m_console.OutputFormat("No object found with uuid {0}", objectUuid);
                 return;
             }
 
@@ -191,8 +191,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                         deletes.Add(g);
                 });
 
-                if (deletes.Count == 0)
-                    m_console.OutputFormat("No objects were found with owner {0}", match);
+//                if (deletes.Count == 0)
+//                    m_console.OutputFormat("No objects were found with owner {0}", match);
 
                 break;
 
@@ -206,8 +206,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                         deletes.Add(g);
                 });
 
-                if (deletes.Count == 0)
-                    m_console.OutputFormat("No objects were found with creator {0}", match);
+//                if (deletes.Count == 0)
+//                    m_console.OutputFormat("No objects were found with creator {0}", match);
 
                 break;
 
@@ -221,8 +221,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                         deletes.Add(g);
                 });
 
-                if (deletes.Count == 0)
-                    m_console.OutputFormat("No objects were found with uuid {0}", match);
+//                if (deletes.Count == 0)
+//                    m_console.OutputFormat("No objects were found with uuid {0}", match);
 
                 break;
 
@@ -233,8 +233,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                         deletes.Add(g);
                 });
 
-                if (deletes.Count == 0)
-                    m_console.OutputFormat("No objects were found with name {0}", o);
+//                if (deletes.Count == 0)
+//                    m_console.OutputFormat("No objects were found with name {0}", o);
 
                 break;
 
@@ -261,11 +261,13 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                         deletes.Add(g);
                 });
 
-                if (deletes.Count == 0)
-                    m_console.OutputFormat("No objects were found outside region bounds");
+//                if (deletes.Count == 0)
+//                    m_console.OutputFormat("No objects were found outside region bounds");
 
                 break;
             }
+
+            m_console.OutputFormat("Deleting {0} objects in {1}", deletes.Count, m_scene.RegionInfo.RegionName);
 
             foreach (SceneObjectGroup g in deletes)
             {
