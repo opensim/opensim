@@ -80,19 +80,33 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             m_console.Commands.AddCommand("region", false, "delete object owner",
                                           "delete object owner <UUID>",
-                                          "Delete object by owner", HandleDeleteObject);
+                                          "Delete a scene object by owner", HandleDeleteObject);
             m_console.Commands.AddCommand("region", false, "delete object creator",
                                           "delete object creator <UUID>",
-                                          "Delete object by creator", HandleDeleteObject);
+                                          "Delete a scene object by creator", HandleDeleteObject);
             m_console.Commands.AddCommand("region", false, "delete object uuid",
                                           "delete object uuid <UUID>",
-                                          "Delete object by uuid", HandleDeleteObject);
+                                          "Delete a scene object by uuid", HandleDeleteObject);
             m_console.Commands.AddCommand("region", false, "delete object name",
                                           "delete object name <name>",
-                                          "Delete object by name", HandleDeleteObject);
+                                          "Delete a scene object by name", HandleDeleteObject);
             m_console.Commands.AddCommand("region", false, "delete object outside",
                                           "delete object outside",
-                                          "Delete all objects outside boundaries", HandleDeleteObject);
+                                          "Delete all scene objects outside region boundaries", HandleDeleteObject);
+
+            m_console.Commands.AddCommand(
+                "region",
+                false,
+                "show object uuid",
+                "show object uuid <UUID>",
+                "Show details of a scene object with the given UUID", HandleShowObjectByUuid);
+
+//            m_console.Commands.AddCommand(
+//                "region",
+//                false,
+//                "show object name <UUID>",
+//                "show object name <UUID>",
+//                "Show details of scene objects with the given name", HandleShowObjectName);
         }
 
         public void RemoveRegion(Scene scene)
@@ -103,6 +117,43 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[OBJECTS COMMANDS MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
+        }
+
+        private void HandleShowObjectByUuid(string module, string[] cmd)
+        {
+            if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
+                return;
+
+            if (cmd.Length < 4)
+            {
+                m_console.OutputFormat("Usage: show object uuid <uuid>");
+                return;
+            }
+
+            UUID objectUuid;
+            if (!UUID.TryParse(cmd[3], out objectUuid))
+            {
+                m_console.OutputFormat("{0} is not a valid uuid", cmd[3]);
+                return;
+            }
+
+            SceneObjectPart sop = m_scene.GetSceneObjectPart(objectUuid);
+
+            if (sop == null)
+            {
+                m_console.OutputFormat("No object found with uuid {0}", objectUuid);
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Name:        {0}\n", sop.Name);
+            sb.AppendFormat("Description: {0}\n", sop.Description);
+            sb.AppendFormat("Location:    {0} @ {1}\n", sop.AbsolutePosition, sop.ParentGroup.Scene.RegionInfo.RegionName);
+            sb.AppendFormat("Parent:      {0}",
+                sop.IsRoot ? "Is Root\n" : string.Format("{0} {1}\n", sop.ParentGroup.Name, sop.ParentGroup.UUID));
+            sb.AppendFormat("Parts:       {0}", sop.IsRoot ? "1" : sop.ParentGroup.PrimCount.ToString());
+
+            m_console.OutputFormat(sb.ToString());
         }
 
         private void HandleDeleteObject(string module, string[] cmd)
