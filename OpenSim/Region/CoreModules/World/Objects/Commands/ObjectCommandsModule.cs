@@ -203,7 +203,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             foreach (SceneObjectGroup g in deletes)
             {
-                m_console.OutputFormat("Deleting object {0}", g.UUID);
+                m_console.OutputFormat("Deleting object {0} {1}", g.UUID, g.Name);
                 m_scene.DeleteSceneObject(g, false);
             }
         }
