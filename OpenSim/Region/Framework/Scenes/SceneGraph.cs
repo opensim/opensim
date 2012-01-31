@@ -353,8 +353,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         protected bool AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
-            if (sceneObject == null || sceneObject.RootPart.UUID == UUID.Zero)
+            if (sceneObject.UUID == UUID.Zero)
+            {
+                m_log.ErrorFormat(
+                    "[SCENEGRAPH]: Tried to add scene object {0} to {1} with illegal UUID of {2}",
+                    sceneObject.Name, m_parentScene.RegionInfo.RegionName, UUID.Zero);
+                
                 return false;
+            }
 
             if (Entities.ContainsKey(sceneObject.UUID))
             {
