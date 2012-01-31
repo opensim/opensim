@@ -9316,9 +9316,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             {
                                 param1 = Convert.ToUInt32(Utils.BytesToString(messagePacket.ParamList[1].Parameter));
                             }
-                            catch (Exception ex)
+                            catch
                             {
-
                             }
                         }
 
