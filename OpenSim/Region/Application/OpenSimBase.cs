@@ -432,6 +432,9 @@ namespace OpenSim
             // TODO : Try setting resource for region xstats here on scene
             MainServer.Instance.AddStreamHandler(new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
             
+            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
+            scene.EventManager.TriggerParcelPrimCountUpdate();
+
             if (scene.SnmpService != null)
             {
                 scene.SnmpService.BootInfo("Grid Registration in progress", scene);
@@ -459,9 +462,6 @@ namespace OpenSim
             {
                 scene.SnmpService.BootInfo("Grid Registration done", scene);
             }
-
-            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
-            scene.EventManager.TriggerParcelPrimCountUpdate();
 
             // We need to do this after we've initialized the
             // scripting engines.
