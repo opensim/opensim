@@ -213,7 +213,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                                       UUID agentID, Caps caps)
         {
             //try
-            //{
+            //
             //m_log.DebugFormat("[MAPLAYER]: path: {0}, param: {1}, agent:{2}",
             //                  path, param, agentID.ToString());
 
@@ -1345,10 +1345,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             if (data == null)
                 return;
             
+            byte[] overlay = GenerateOverlay();
+
             m_log.Debug("[WORLDMAP]: STORING MAPTILE IMAGE");
 
             UUID terrainImageID = UUID.Random();
-            UUID parcelImageID = UUID.Zero; // UUID.Random();
+            UUID parcelImageID = UUID.Zero;
 
             AssetBase asset = new AssetBase(
                 terrainImageID,
@@ -1364,9 +1366,26 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_log.DebugFormat("[WORLDMAP]: Storing map tile {0}", asset.ID);
             m_scene.AssetService.Store(asset);
             
+            if (overlay != null)
+            {
+                parcelImageID = UUID.Random();
+
+                AssetBase parcels = new AssetBase(
+                    parcelImageID,
+                    "parcelImage_" + m_scene.RegionInfo.RegionID.ToString(),
+                    (sbyte)AssetType.Texture,
+                    m_scene.RegionInfo.RegionID.ToString());
+                parcels.Data = overlay;
+                parcels.Description = m_scene.RegionInfo.RegionName;
+                parcels.Temporary = false;
+                parcels.Flags = AssetFlags.Maptile;
+
+                m_scene.AssetService.Store(parcels);
+            }
+
             // Switch to the new one
             UUID lastTerrainImageID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
-            UUID lastParcelImageID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
+            UUID lastParcelImageID = m_scene.RegionInfo.RegionSettings.ParcelImageID;
             m_scene.RegionInfo.RegionSettings.TerrainImageID = terrainImageID;
             m_scene.RegionInfo.RegionSettings.ParcelImageID = parcelImageID;
             m_scene.RegionInfo.RegionSettings.Save();
@@ -1374,7 +1393,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // Delete the old one
             // m_log.DebugFormat("[WORLDMAP]: Deleting old map tile {0}", lastTerrainImageID);
             m_scene.AssetService.Delete(lastTerrainImageID.ToString());
-            m_scene.AssetService.Delete(lastParcelImageID.ToString());
+            if (lastParcelImageID != UUID.Zero)
+                m_scene.AssetService.Delete(lastParcelImageID.ToString());
         }
 
         private void MakeRootAgent(ScenePresence avatar)
@@ -1420,6 +1440,66 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
         }
 
+        private Byte[] GenerateOverlay()
+        {
+            Bitmap overlay = new Bitmap(256, 256);
+
+            bool[,] saleBitmap = new bool[64, 64];
+            for (int x = 0 ; x < 64 ; x++)
+            {
+                for (int y = 0 ; y < 64 ; y++)
+                    saleBitmap[x, y] = false;
+            }
+
+            bool landForSale = false;
+
+            List<ILandObject> parcels = m_scene.LandChannel.AllParcels();
+
+            Color background = Color.FromArgb(0, 0, 0, 0);
+            SolidBrush transparent = new SolidBrush(background);
+            Graphics g = Graphics.FromImage(overlay);
+            g.FillRectangle(transparent, 0, 0, 256, 256);
+
+            SolidBrush yellow = new SolidBrush(Color.FromArgb(255, 249, 223, 9));
+
+            foreach (ILandObject land in parcels)
+            {
+                // m_log.DebugFormat("[WORLD MAP]: Parcel {0} flags {1}", land.LandData.Name, land.LandData.Flags);
+                if ((land.LandData.Flags & (uint)ParcelFlags.ForSale) != 0)
+                {
+                    landForSale = true;
+                    
+                    saleBitmap = land.MergeLandBitmaps(saleBitmap, land.GetLandBitmap());
+                }
+            }
+
+            if (!landForSale)
+            {
+                m_log.DebugFormat("[WORLD MAP]: Region {0} has no parcels for sale, not geenrating overlay", m_scene.RegionInfo.RegionName);
+                return null;
+            }
+
+            m_log.DebugFormat("[WORLD MAP]: Region {0} has parcels for sale, genrating overlay", m_scene.RegionInfo.RegionName);
+
+            for (int x = 0 ; x < 64 ; x++)
+            {
+                for (int y = 0 ; y < 64 ; y++)
+                {
+                    if (saleBitmap[x, y])
+                        g.FillRectangle(yellow, x * 4, 252 - (y * 4), 4, 4);
+                }
+            }
+
+            try
+            {
+                return OpenJPEG.EncodeFromImage(overlay, true);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[WORLD MAP]: Error creating parcel overlay: " + e.ToString());
+            }
+            return null;
+        }
     }
 
     public struct MapRequestState

@@ -383,6 +383,9 @@ namespace OpenSim
             // TODO : Try setting resource for region xstats here on scene
             MainServer.Instance.AddStreamHandler(new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
             
+            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
+            scene.EventManager.TriggerParcelPrimCountUpdate();
+
             try
             {
                 scene.RegisterRegionWithGrid();
@@ -397,9 +400,6 @@ namespace OpenSim
                 // line - we need to get the user's attention
                 Environment.Exit(1);
             }
-
-            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
-            scene.EventManager.TriggerParcelPrimCountUpdate();
 
             // We need to do this after we've initialized the
             // scripting engines.
