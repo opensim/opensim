@@ -50,6 +50,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);                
 
         private Scene m_scene;
+        private ICommandConsole m_console;
 
         public string Name { get { return "Object Commands Module"; } }
         
@@ -75,6 +76,23 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 //            m_log.DebugFormat("[OBJECT COMMANDS MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
 
             m_scene = scene;
+            m_console = MainConsole.Instance;
+
+            m_console.Commands.AddCommand("region", false, "delete object owner",
+                                          "delete object owner <UUID>",
+                                          "Delete object by owner", HandleDeleteObject);
+            m_console.Commands.AddCommand("region", false, "delete object creator",
+                                          "delete object creator <UUID>",
+                                          "Delete object by creator", HandleDeleteObject);
+            m_console.Commands.AddCommand("region", false, "delete object uuid",
+                                          "delete object uuid <UUID>",
+                                          "Delete object by uuid", HandleDeleteObject);
+            m_console.Commands.AddCommand("region", false, "delete object name",
+                                          "delete object name <name>",
+                                          "Delete object by name", HandleDeleteObject);
+            m_console.Commands.AddCommand("region", false, "delete object outside",
+                                          "delete object outside",
+                                          "Delete all objects outside boundaries", HandleDeleteObject);
         }
 
         public void RemoveRegion(Scene scene)
@@ -85,26 +103,13 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[OBJECTS COMMANDS MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
-
-            MainConsole.Instance.Commands.AddCommand("region", false, "delete object owner",
-                                          "delete object owner <UUID>",
-                                          "Delete object by owner", HandleDeleteObject);
-            MainConsole.Instance.Commands.AddCommand("region", false, "delete object creator",
-                                          "delete object creator <UUID>",
-                                          "Delete object by creator", HandleDeleteObject);
-            MainConsole.Instance.Commands.AddCommand("region", false, "delete object uuid",
-                                          "delete object uuid <UUID>",
-                                          "Delete object by uuid", HandleDeleteObject);
-            MainConsole.Instance.Commands.AddCommand("region", false, "delete object name",
-                                          "delete object name <name>",
-                                          "Delete object by name", HandleDeleteObject);
-            MainConsole.Instance.Commands.AddCommand("region", false, "delete object outside",
-                                          "delete object outside",
-                                          "Delete all objects outside boundaries", HandleDeleteObject);
         }
 
         private void HandleDeleteObject(string module, string[] cmd)
         {
+            if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
+                return;
+
             if (cmd.Length < 3)
                 return;
 
@@ -198,7 +203,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             foreach (SceneObjectGroup g in deletes)
             {
-                MainConsole.Instance.OutputFormat("Deleting object {0}", g.UUID);
+                m_console.OutputFormat("Deleting object {0}", g.UUID);
                 m_scene.DeleteSceneObject(g, false);
             }
         }
