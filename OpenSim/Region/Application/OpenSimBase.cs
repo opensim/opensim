@@ -439,6 +439,7 @@ namespace OpenSim
             {
                 scene.SnmpService.BootInfo("Grid Registration in progress", scene);
             } 
+
             try
             {
                 scene.RegisterRegionWithGrid();

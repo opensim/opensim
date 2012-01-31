@@ -111,6 +111,17 @@
   <delete dir="%temp%"/>
 </target>
 
+<target name="torture" depends="build, find-nunit">
+  <setenv name="MONO_THREADS_PER_CPU" value="100" />
+
+  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.tests.torture">
+    <arg value="./bin/OpenSim.Tests.Torture.dll" />
+  </exec>
+
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.tests.torture)==0}" /> 
+  <delete dir="%temp%"/>
+</target>
+
 <target name="find-nunit">
   <exec program="which" failonerror="false"
         resultproperty="hasnunit2">

@@ -2006,6 +2006,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// If true, the object is made persistent into the scene.
         /// If false, the object will not persist over server restarts
         /// </param>
+        /// <returns>true if the object was added.  false if not</returns>
         public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
             return AddNewSceneObject(sceneObject, attachToBackup, true);
@@ -2023,6 +2024,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// If true, updates for the new scene object are sent to all viewers in range.
         /// If false, it is left to the caller to schedule the update
         /// </param>
+        /// <returns>true if the object was added.  false if not</returns>
         public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {           
             if (m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, sendClientUpdates))
