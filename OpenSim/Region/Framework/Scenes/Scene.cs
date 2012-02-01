@@ -3105,14 +3105,14 @@ namespace OpenSim.Region.Framework.Scenes
     
                     if (AttachmentsModule != null && !avatar.IsChildAgent && avatar.PresenceType != PresenceType.Npc)
                     {
-                        IUserManagement uMan = m_aScene.RequestModuleInterface<IUserManagement>(); 
+                        IUserManagement uMan = RequestModuleInterface<IUserManagement>(); 
                         // Don't save attachments for HG visitors, it
                         // messes up their inventory. When a HG visitor logs
                         // out on a foreign grid, their attachments will be
                         // reloaded in the state they were in when they left
                         // the home grid. This is best anyway as the visited
                         // grid may use an incompatible script engine.
-                        if (uMan == null || uMan.IsLocalGridUser(id))
+                        if (uMan == null || uMan.IsLocalGridUser(avatar.UUID))
                             AttachmentsModule.SaveChangedAttachments(avatar, false);
                     }
     
