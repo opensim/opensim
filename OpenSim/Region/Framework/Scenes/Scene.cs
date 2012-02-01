@@ -3191,11 +3191,11 @@ namespace OpenSim.Region.Framework.Scenes
         public override void RemoveClient(UUID agentID, bool closeChildAgents)
         {
             CheckHeartbeat();
-            bool childagentYN = false;
+            bool isChildAgent = false;
             ScenePresence avatar = GetScenePresence(agentID);
             if (avatar != null)
             {
-                childagentYN = avatar.IsChildAgent;
+                isChildAgent = avatar.IsChildAgent;
 
                 if (avatar.ParentID != 0)
                 {
@@ -3206,9 +3206,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_log.DebugFormat(
                         "[SCENE]: Removing {0} agent {1} from region {2}",
-                        (childagentYN ? "child" : "root"), agentID, RegionInfo.RegionName);
+                        (isChildAgent ? "child" : "root"), agentID, RegionInfo.RegionName);
 
-                    m_sceneGraph.removeUserCount(!childagentYN);
+                    m_sceneGraph.removeUserCount(!isChildAgent);
 
                     // TODO: We shouldn't use closeChildAgents here - it's being used by the NPC module to stop
                     // unnecessary operations.  This should go away once NPCs have no accompanying IClientAPI
@@ -3239,8 +3239,18 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_eventManager.TriggerOnRemovePresence(agentID);
     
-                    if (AttachmentsModule != null && !avatar.IsChildAgent && avatar.PresenceType != PresenceType.Npc)
-                        AttachmentsModule.SaveChangedAttachments(avatar);
+                    if (AttachmentsModule != null && !isChildAgent && avatar.PresenceType != PresenceType.Npc)
+                    {
+                        IUserManagement uMan = RequestModuleInterface<IUserManagement>(); 
+                        // Don't save attachments for HG visitors, it
+                        // messes up their inventory. When a HG visitor logs
+                        // out on a foreign grid, their attachments will be
+                        // reloaded in the state they were in when they left
+                        // the home grid. This is best anyway as the visited
+                        // grid may use an incompatible script engine.
+                        if (uMan == null || uMan.IsLocalGridUser(avatar.UUID))
+                            AttachmentsModule.SaveChangedAttachments(avatar, false);
+                    }
     
                     ForEachClient(
                         delegate(IClientAPI client)

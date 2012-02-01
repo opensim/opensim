@@ -353,7 +353,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             region.ExternalHostName = uri.Host;
             region.HttpPort = (uint)uri.Port;
-            region.ServerURI = uri.ToString();
+            region.ServerURI = aCircuit.ServiceURLs["HomeURI"].ToString();
             region.RegionName = string.Empty;
             region.InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), (int)0);
             return region;
