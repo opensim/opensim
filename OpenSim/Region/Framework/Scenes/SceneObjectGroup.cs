@@ -264,6 +264,12 @@ namespace OpenSim.Region.Framework.Scenes
             set { RootPart.Name = value; }
         }
 
+        public string Description
+        {
+            get { return RootPart.Description; }
+            set { RootPart.Description = value; }
+        }
+
         /// <summary>
         /// Added because the Parcel code seems to use it
         /// but not sure a object should have this
