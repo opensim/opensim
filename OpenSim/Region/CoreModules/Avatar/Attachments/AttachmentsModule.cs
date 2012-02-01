@@ -148,7 +148,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
 
-        public void SaveChangedAttachments(IScenePresence sp)
+        public void SaveChangedAttachments(IScenePresence sp, bool saveAllScripted)
         {
 //            m_log.DebugFormat("[ATTACHMENTS MODULE]: Saving changed attachments for {0}", sp.Name);
 
@@ -157,13 +157,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             foreach (SceneObjectGroup grp in sp.GetAttachments())
             {
-//                if (grp.HasGroupChanged) // Resizer scripts?
-//                {
-                    grp.IsAttachment = false;
-                    grp.AbsolutePosition = grp.RootPart.AttachedPos;
-                    UpdateKnownItem(sp, grp);
-                    grp.IsAttachment = true;
-//                }
+                grp.IsAttachment = false;
+                grp.AbsolutePosition = grp.RootPart.AttachedPos;
+                UpdateKnownItem(sp, grp, saveAllScripted);
+                grp.IsAttachment = true;
             }
         }
 
@@ -460,7 +457,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// </remarks>
         /// <param name="sp"></param>
         /// <param name="grp"></param>
-        private void UpdateKnownItem(IScenePresence sp, SceneObjectGroup grp)
+        private void UpdateKnownItem(IScenePresence sp, SceneObjectGroup grp, bool saveAllScripted)
         {
             // Saving attachments for NPCs messes them up for the real owner!
             INPCModule module = m_scene.RequestModuleInterface<INPCModule>();
@@ -470,7 +467,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     return;
             }
 
-            if (grp.HasGroupChanged || grp.ContainsScripts())
+            if (grp.HasGroupChanged || (saveAllScripted && grp.ContainsScripts()))
             {
                 m_log.DebugFormat(
                     "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
@@ -696,7 +693,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                             group.IsAttachment = false;
                             group.AbsolutePosition = group.RootPart.AttachedPos;
 
-                            UpdateKnownItem(sp, group);
+                            UpdateKnownItem(sp, group, true);
                             m_scene.DeleteSceneObject(group, false);
 
                             return;

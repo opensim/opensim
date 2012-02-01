@@ -3104,7 +3104,17 @@ namespace OpenSim.Region.Framework.Scenes
                     m_eventManager.TriggerOnRemovePresence(agentID);
     
                     if (AttachmentsModule != null && !avatar.IsChildAgent && avatar.PresenceType != PresenceType.Npc)
-                        AttachmentsModule.SaveChangedAttachments(avatar);
+                    {
+                        IUserManagement uMan = m_aScene.RequestModuleInterface<IUserManagement>(); 
+                        // Don't save attachments for HG visitors, it
+                        // messes up their inventory. When a HG visitor logs
+                        // out on a foreign grid, their attachments will be
+                        // reloaded in the state they were in when they left
+                        // the home grid. This is best anyway as the visited
+                        // grid may use an incompatible script engine.
+                        if (uMan == null || uMan.IsLocalGridUser(id))
+                            AttachmentsModule.SaveChangedAttachments(avatar, false);
+                    }
     
                     ForEachClient(
                         delegate(IClientAPI client)
