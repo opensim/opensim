@@ -428,15 +428,21 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 status = "running";
             }
 
+            StringBuilder sb = new StringBuilder();
             Queue eq = instance.EventQueue;
 
+            sb.AppendFormat("Script name         : {0}\n", instance.ScriptName);
+            sb.AppendFormat("Status              : {0}\n", status);
+
             lock (eq)
-            {
-                MainConsole.Instance.OutputFormat(
-                    "{0}.{1}, queued events = {2}, item UUID {3}, prim UUID {4} @ {5} ({6})",
-                    instance.PrimName, instance.ScriptName, eq.Count, instance.ItemID, instance.ObjectID,
-                    sop.AbsolutePosition, status);
-            }
+                sb.AppendFormat("Queued events       : {0}\n", eq.Count);
+
+            sb.AppendFormat("Item UUID           : {0}\n", instance.ItemID);
+            sb.AppendFormat("Containing part name: {0}\n", instance.PrimName);
+            sb.AppendFormat("Containing part UUID: {0}\n", instance.ObjectID);
+            sb.AppendFormat("Position            : {0}\n", sop.AbsolutePosition);
+
+            MainConsole.Instance.OutputFormat(sb.ToString());
         }
 
         private void HandleSuspendScript(IScriptInstance instance)
