@@ -324,6 +324,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// <returns>true if we're okay to proceed, false if not.</returns>
         private void HandleScriptsAction(string[] cmdparams, Action<IScriptInstance> action)
         {
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_Scene))
+                return;
+
             lock (m_Scripts)
             {
                 string rawItemId;
@@ -367,6 +370,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         private void HandleShowStatus(string module, string[] cmdparams)
         {
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_Scene))
+                return;
+
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat("Status of XEngine instance for {0}\n", m_Scene.RegionInfo.RegionName);
 
@@ -385,6 +391,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void HandleShowScripts(string module, string[] cmdparams)
         {
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_Scene))
+                return;
+
             if (cmdparams.Length == 2)
             {
                 lock (m_Scripts)
