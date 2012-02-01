@@ -500,6 +500,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     if (sp.ControllingClient != null)
                         sp.ControllingClient.SendInventoryItemCreateUpdate(item, 0);
                 }
+                grp.HasGroupChanged = false; // Prevent it being saved over and over
             }
             else
             {
