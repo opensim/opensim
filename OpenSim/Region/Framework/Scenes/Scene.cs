@@ -4855,9 +4855,14 @@ Environment.Exit(1);
             get { return m_allowScriptCrossings; }
         }
 
-        public Vector3? GetNearestAllowedPosition(ScenePresence avatar)
+        public Vector3 GetNearestAllowedPosition(ScenePresence avatar)
         {
-            ILandObject nearestParcel = GetNearestAllowedParcel(avatar.UUID, avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+            return GetNearestAllowedPosition(avatar, null);
+        }
+
+        public Vector3 GetNearestAllowedPosition(ScenePresence avatar, ILandObject excludeParcel)
+        {
+            ILandObject nearestParcel = GetNearestAllowedParcel(avatar.UUID, avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y, excludeParcel);
 
             if (nearestParcel != null)
             {
@@ -4916,13 +4921,18 @@ Environment.Exit(1);
 
         public ILandObject GetNearestAllowedParcel(UUID avatarId, float x, float y)
         {
+            return GetNearestAllowedParcel(avatarId, x, y, null);
+        }
+
+        public ILandObject GetNearestAllowedParcel(UUID avatarId, float x, float y, ILandObject excludeParcel)
+        {
             List<ILandObject> all = AllParcels();
             float minParcelDistance = float.MaxValue;
             ILandObject nearestParcel = null;
 
             foreach (var parcel in all)
             {
-                if (!parcel.IsEitherBannedOrRestricted(avatarId))
+                if (!parcel.IsEitherBannedOrRestricted(avatarId) && parcel != excludeParcel)
                 {
                     float parcelDistance = GetParcelDistancefromPoint(parcel, x, y);
                     if (parcelDistance < minParcelDistance)

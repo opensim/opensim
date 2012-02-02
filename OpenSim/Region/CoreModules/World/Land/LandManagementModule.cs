@@ -1752,191 +1752,37 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void ClientOnParcelEjectUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
         {
             ScenePresence targetAvatar = null;
-            ((Scene)client.Scene).TryGetScenePresence(target, out targetAvatar);
             ScenePresence parcelManager = null;
-            ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out parcelManager);
-            //Just eject
-            if (flags == 0)
-            {
-                if (targetAvatar.UserLevel == 0)
-                {
-                    ILandObject land = ((Scene)client.Scene).LandChannel.GetLandObject(targetAvatar.AbsolutePosition.X, targetAvatar.AbsolutePosition.Y);
-                    if (!((Scene)client.Scene).Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze))
-                        return;
 
-                    Vector3 position = new Vector3(0, 0, 0);
-                    List<ILandObject> allParcels = new List<ILandObject>();
-                    allParcels = AllParcels();
-                    if (allParcels.Count != 1)
-                    {
-                        foreach (ILandObject parcel in allParcels)
-                        {
-                            if (parcel.LandData.GlobalID != land.LandData.GlobalID)
-                            {
-                                if (parcel.IsEitherBannedOrRestricted(targetAvatar.UUID) != true)
-                                {
-                                    for (int x = 1; x <= Constants.RegionSize; x += 2)
-                                    {
-                                        for (int y = 1; y <= Constants.RegionSize; y += 2)
-                                        {
-                                            if (parcel.ContainsPoint(x, y))
-                                            {
-                                                position = new Vector3(x, y, targetAvatar.AbsolutePosition.Z);
-                                                targetAvatar.TeleportWithMomentum(position);
-                                                targetAvatar.ControllingClient.SendAlertMessage("You have been ejected by " + parcelManager.Firstname + " " + parcelManager.Lastname);
-                                                parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected.");
-                                                return;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Vector3 targetVector;
-                    if (targetAvatar.AbsolutePosition.X > targetAvatar.AbsolutePosition.Y)
-                    {
-                        if (targetAvatar.AbsolutePosition.X > .5 * Constants.RegionSize)
-                        {
-                            targetVector = new Vector3(Constants.RegionSize, targetAvatar.AbsolutePosition.Y, targetAvatar.AbsolutePosition.Z); ;
-                            targetAvatar.TeleportWithMomentum(targetVector);
-                            targetAvatar.ControllingClient.SendAlertMessage("You have been ejected by " + parcelManager.Firstname + " " + parcelManager.Lastname);
-                            parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected.");
-                            return;
-                        }
-                        else
-                        {
-                            targetVector = new Vector3(0, targetAvatar.AbsolutePosition.Y, targetAvatar.AbsolutePosition.Z); ;
-                            targetAvatar.TeleportWithMomentum(targetVector);
-                            targetAvatar.ControllingClient.SendAlertMessage("You have been ejected by " + parcelManager.Firstname + " " + parcelManager.Lastname);
-                            parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected.");
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        if (targetAvatar.AbsolutePosition.Y > .5 * Constants.RegionSize)
-                        {
-                            targetVector = new Vector3(targetAvatar.AbsolutePosition.X, Constants.RegionSize, targetAvatar.AbsolutePosition.Z); ;
-                            targetAvatar.TeleportWithMomentum(targetVector);
-                            targetAvatar.ControllingClient.SendAlertMessage("You have been ejected by " + parcelManager.Firstname + " " + parcelManager.Lastname);
-                            parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected.");
-                            return;
-                        }
-                        else
-                        {
-                            targetVector = new Vector3(targetAvatar.AbsolutePosition.X, 0, targetAvatar.AbsolutePosition.Z); ;
-                            targetAvatar.TeleportWithMomentum(targetVector);
-                            targetAvatar.ControllingClient.SendAlertMessage("You have been ejected by " + parcelManager.Firstname + " " + parcelManager.Lastname);
-                            parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected.");
-                            return;
-                        }
-                    }
-                }
-            }
-            //Eject and ban
-            if (flags == 1)
-            {
-                if (targetAvatar.UserLevel == 0)
-                {
-                    ILandObject land = ((Scene)client.Scene).LandChannel.GetLandObject(targetAvatar.AbsolutePosition.X, targetAvatar.AbsolutePosition.Y);
-                    if (!((Scene)client.Scene).Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze))
-                        return;
+            // Must have presences
+            if (!m_scene.TryGetScenePresence(target, out targetAvatar) ||
+                !m_scene.TryGetScenePresence(client.AgentId, out parcelManager))
+                return;
 
-                    Vector3 position = new Vector3(0, 0, 0);
-                    List<ILandObject> allParcels = new List<ILandObject>();
-                    allParcels = AllParcels();
-                    if (allParcels.Count != 1)
-                    {
-                        foreach (ILandObject parcel in allParcels)
-                        {
-                            if (parcel.LandData.GlobalID != land.LandData.GlobalID)
-                            {
-                                if (parcel.IsEitherBannedOrRestricted(targetAvatar.UUID) != true)
-                                {
-                                    for (int x = 1; x <= Constants.RegionSize; x += 2)
-                                    {
-                                        for (int y = 1; y <= Constants.RegionSize; y += 2)
-                                        {
-                                            if (parcel.ContainsPoint(x, y))
-                                            {
-                                                position = new Vector3(x, y, targetAvatar.AbsolutePosition.Z);
-                                                targetAvatar.TeleportWithMomentum(position);
-                                                targetAvatar.ControllingClient.SendAlertMessage("You have been ejected and banned by " + parcelManager.Firstname + " " + parcelManager.Lastname);
-                                                parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected and Banned.");
-                                                ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-                                                entry.AgentID = targetAvatar.UUID;
-                                                entry.Flags = AccessList.Ban;
-                                                entry.Time = new DateTime();
-                                                land.LandData.ParcelAccessList.Add(entry);
-                                                return;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Vector3 targetVector;
-                    if (targetAvatar.AbsolutePosition.X > targetAvatar.AbsolutePosition.Y)
-                    {
-                        if (targetAvatar.AbsolutePosition.X > .5 * Constants.RegionSize)
-                        {
-                            targetVector = new Vector3(Constants.RegionSize, targetAvatar.AbsolutePosition.Y, targetAvatar.AbsolutePosition.Z); ;
-                            targetAvatar.TeleportWithMomentum(targetVector);
-                            targetAvatar.ControllingClient.SendAlertMessage("You have been ejected and banned by " + parcelManager.Firstname + " " + parcelManager.Lastname);
-                            parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected and Banned.");
-                            ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-                            entry.AgentID = targetAvatar.UUID;
-                            entry.Flags = AccessList.Ban;
-                            entry.Time = new DateTime();
-                            land.LandData.ParcelAccessList.Add(entry);
-                            return;
-                        }
-                        else
-                        {
-                            targetVector = new Vector3(0, targetAvatar.AbsolutePosition.Y, targetAvatar.AbsolutePosition.Z); ;
-                            targetAvatar.TeleportWithMomentum(targetVector);
-                            targetAvatar.ControllingClient.SendAlertMessage("You have been ejected and banned by " + parcelManager.Firstname + " " + parcelManager.Lastname);
-                            parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected and Banned.");
-                            ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-                            entry.AgentID = targetAvatar.UUID;
-                            entry.Flags = AccessList.Ban;
-                            entry.Time = new DateTime();
-                            land.LandData.ParcelAccessList.Add(entry);
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        if (targetAvatar.AbsolutePosition.Y > .5 * Constants.RegionSize)
-                        {
-                            targetVector = new Vector3(targetAvatar.AbsolutePosition.X, Constants.RegionSize, targetAvatar.AbsolutePosition.Z); ;
-                            targetAvatar.TeleportWithMomentum(targetVector);
-                            targetAvatar.ControllingClient.SendAlertMessage("You have been ejected and banned by " + parcelManager.Firstname + " " + parcelManager.Lastname);
-                            parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected and Banned.");
-                            ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-                            entry.AgentID = targetAvatar.UUID;
-                            entry.Flags = AccessList.Ban;
-                            entry.Time = new DateTime();
-                            land.LandData.ParcelAccessList.Add(entry);
-                            return;
-                        }
-                        else
-                        {
-                            targetVector = new Vector3(targetAvatar.AbsolutePosition.X, 0, targetAvatar.AbsolutePosition.Z); ;
-                            targetAvatar.TeleportWithMomentum(targetVector);
-                            targetAvatar.ControllingClient.SendAlertMessage("You have been ejected and banned by " + parcelManager.Firstname + " " + parcelManager.Lastname);
-                            parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected and Banned.");
-                            ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-                            entry.AgentID = targetAvatar.UUID;
-                            entry.Flags = AccessList.Ban;
-                            entry.Time = new DateTime();
-                            land.LandData.ParcelAccessList.Add(entry);
-                            return;
-                        }
-                    }
-                }
+            // Cannot eject estate managers or gods
+            if (m_scene.Permissions.IsAdministrator(target))
+                return;
+
+            // Check if you even have permission to do this
+            ILandObject land = m_scene.LandChannel.GetLandObject(targetAvatar.AbsolutePosition.X, targetAvatar.AbsolutePosition.Y);
+            if (!m_scene.Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze) &&
+                !m_scene.Permissions.IsAdministrator(client.AgentId))
+                return;
+
+            Vector3 pos = m_scene.GetNearestAllowedPosition(targetAvatar, land);
+
+            targetAvatar.TeleportWithMomentum(pos);
+            targetAvatar.ControllingClient.SendAlertMessage("You have been ejected by " + parcelManager.Firstname + " " + parcelManager.Lastname);
+            parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected.");
+            
+            if ((flags & 1) != 0) // Ban TODO: Remove magic number
+            {
+                ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+                entry.AgentID = targetAvatar.UUID;
+                entry.Flags = AccessList.Ban;
+                entry.Time = new DateTime();
+
+                land.LandData.ParcelAccessList.Add(entry);
             }
         }
         
