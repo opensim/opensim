@@ -370,10 +370,11 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     if (m_part.ParentGroup.m_savedScriptState != null)
-                        RestoreSavedScriptState(item.OldItemID, item.ItemID);
+                        item.OldItemID = RestoreSavedScriptState(item.LoadedItemID, item.OldItemID, item.ItemID);
 
                     m_items.LockItemsForWrite(true);
 
+                    m_items[item.ItemID].OldItemID = item.OldItemID;
                     m_items[item.ItemID].PermsMask = 0;
                     m_items[item.ItemID].PermsGranter = UUID.Zero;
 
@@ -392,17 +393,20 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private void RestoreSavedScriptState(UUID oldID, UUID newID)
+        private UUID RestoreSavedScriptState(UUID loadedID, UUID oldID, UUID newID)
         {
             IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
             if (engines.Length == 0) // No engine at all
-                return;
+                return oldID;
 
-            if (m_part.ParentGroup.m_savedScriptState.ContainsKey(oldID))
+            UUID stateID = oldID;
+            if (!m_part.ParentGroup.m_savedScriptState.ContainsKey(oldID))
+                stateID = loadedID;
+            if (m_part.ParentGroup.m_savedScriptState.ContainsKey(stateID))
             {
                 XmlDocument doc = new XmlDocument();
 
-                doc.LoadXml(m_part.ParentGroup.m_savedScriptState[oldID]);
+                doc.LoadXml(m_part.ParentGroup.m_savedScriptState[stateID]);
                 
                 ////////// CRUFT WARNING ///////////////////////////////////
                 //
@@ -419,7 +423,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     XmlElement rootN = newDoc.CreateElement("", "State", "");
                     XmlAttribute uuidA = newDoc.CreateAttribute("", "UUID", "");
-                    uuidA.Value = oldID.ToString();
+                    uuidA.Value = stateID.ToString();
                     rootN.Attributes.Append(uuidA);
                     XmlAttribute engineA = newDoc.CreateAttribute("", "Engine", "");
                     engineA.Value = "XEngine";
@@ -433,20 +437,22 @@ namespace OpenSim.Region.Framework.Scenes
                     // This created document has only the minimun data
                     // necessary for XEngine to parse it successfully
 
-                    m_part.ParentGroup.m_savedScriptState[oldID] = newDoc.OuterXml;
+                    m_part.ParentGroup.m_savedScriptState[stateID] = newDoc.OuterXml;
                 }
                 
                 foreach (IScriptModule e in engines)
                 {
                     if (e != null)
                     {
-                        if (e.SetXMLState(newID, m_part.ParentGroup.m_savedScriptState[oldID]))
+                        if (e.SetXMLState(newID, m_part.ParentGroup.m_savedScriptState[stateID]))
                             break;
                     }
                 }
 
-                m_part.ParentGroup.m_savedScriptState.Remove(oldID);
+                m_part.ParentGroup.m_savedScriptState.Remove(stateID);
             }
+
+            return stateID;
         }
 
         /// <summary>

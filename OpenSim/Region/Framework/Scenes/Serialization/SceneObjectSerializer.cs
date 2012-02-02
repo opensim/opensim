@@ -807,10 +807,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTIOldItemID(TaskInventoryItem item, XmlTextReader reader)
         {
-            Util.ReadUUID(reader, "OldItemID");
-            // On deserialization, the old item id MUST BE UUID.Zero!!!!!
-            // Setting this to the saved value will BREAK script persistence!
-            // item.OldItemID = Util.ReadUUID(reader, "OldItemID");
+            item.OldItemID = Util.ReadUUID(reader, "OldItemID");
         }
 
         private static void ProcessTILastOwnerID(TaskInventoryItem item, XmlTextReader reader)
