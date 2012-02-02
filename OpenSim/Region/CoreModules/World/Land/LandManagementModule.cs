@@ -508,7 +508,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void ClientOnParcelAccessListUpdateRequest(UUID agentID,
                 uint flags, int landLocalID, UUID transactionID, int sequenceID,
-                int sections, List<ParcelManager.ParcelAccessEntry> entries,
+                int sections, List<LandAccessEntry> entries,
                 IClientAPI remote_client)
         {
             // Flags is the list to update, it can mean either the ban or
@@ -1777,10 +1777,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             
             if ((flags & 1) != 0) // Ban TODO: Remove magic number
             {
-                ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+                LandAccessEntry entry = new LandAccessEntry();
                 entry.AgentID = targetAvatar.UUID;
                 entry.Flags = AccessList.Ban;
-                entry.Time = new DateTime();
+                entry.Expires = 0; // Perm
 
                 land.LandData.ParcelAccessList.Add(entry);
             }

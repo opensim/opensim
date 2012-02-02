@@ -715,10 +715,10 @@ namespace OpenSim.Data.MySQL
 
                         cmd.Parameters.Clear();
                         cmd.CommandText = "insert into landaccesslist (LandUUID, " +
-                                "AccessUUID, Flags) values (?LandUUID, ?AccessUUID, " +
-                                "?Flags)";
+                                "AccessUUID, Flags, Expires) values (?LandUUID, ?AccessUUID, " +
+                                "?Flags, ?Expires)";
 
-                        foreach (ParcelManager.ParcelAccessEntry entry in parcel.LandData.ParcelAccessList)
+                        foreach (LandAccessEntry entry in parcel.LandData.ParcelAccessList)
                         {
                             FillLandAccessCommand(cmd, entry, parcel.LandData.GlobalID);
                             ExecuteNonQuery(cmd);
@@ -1396,7 +1396,7 @@ namespace OpenSim.Data.MySQL
             newData.ObscureMusic = Convert.ToBoolean(row["ObscureMusic"]);
             newData.ObscureMedia = Convert.ToBoolean(row["ObscureMedia"]);
 
-            newData.ParcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
+            newData.ParcelAccessList = new List<LandAccessEntry>();
 
             return newData;
         }
@@ -1406,12 +1406,12 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
-        private static ParcelManager.ParcelAccessEntry BuildLandAccessData(IDataReader row)
+        private static LandAccessEntry BuildLandAccessData(IDataReader row)
         {
-            ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+            LandAccessEntry entry = new LandAccessEntry();
             entry.AgentID = DBGuid.FromDB(row["AccessUUID"]);
             entry.Flags = (AccessList) Convert.ToInt32(row["Flags"]);
-            entry.Time = new DateTime();
+            entry.Expires = Convert.ToInt32(row["Expires"]);
             return entry;
         }
 
@@ -1723,11 +1723,12 @@ namespace OpenSim.Data.MySQL
         /// <param name="row"></param>
         /// <param name="entry"></param>
         /// <param name="parcelID"></param>
-        private static void FillLandAccessCommand(MySqlCommand cmd, ParcelManager.ParcelAccessEntry entry, UUID parcelID)
+        private static void FillLandAccessCommand(MySqlCommand cmd, LandAccessEntry entry, UUID parcelID)
         {
             cmd.Parameters.AddWithValue("LandUUID", parcelID.ToString());
             cmd.Parameters.AddWithValue("AccessUUID", entry.AgentID.ToString());
             cmd.Parameters.AddWithValue("Flags", entry.Flags);
+            cmd.Parameters.AddWithValue("Expires", entry.Expires.ToString());
         }
 
         /// <summary>

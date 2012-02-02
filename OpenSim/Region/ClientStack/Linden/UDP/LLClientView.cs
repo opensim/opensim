@@ -4684,7 +4684,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID)
+        public void SendLandAccessListData(List<LandAccessEntry> accessList, uint accessFlag, int localLandID)
         {
             ParcelAccessListReplyPacket replyPacket = (ParcelAccessListReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelAccessListReply);
             replyPacket.Data.AgentID = AgentId;
@@ -4693,12 +4693,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             replyPacket.Data.SequenceID = 0;
 
             List<ParcelAccessListReplyPacket.ListBlock> list = new List<ParcelAccessListReplyPacket.ListBlock>();
-            foreach (UUID avatar in avatars)
+            foreach (LandAccessEntry entry in accessList)
             {
                 ParcelAccessListReplyPacket.ListBlock block = new ParcelAccessListReplyPacket.ListBlock();
                 block.Flags = accessFlag;
-                block.ID = avatar;
-                block.Time = 0;
+                block.ID = entry.AgentID;
+                block.Time = entry.Expires;
                 list.Add(block);
             }
 
@@ -8641,13 +8641,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             #endregion
 
-            List<ParcelManager.ParcelAccessEntry> entries = new List<ParcelManager.ParcelAccessEntry>();
+            List<LandAccessEntry> entries = new List<LandAccessEntry>();
             foreach (ParcelAccessListUpdatePacket.ListBlock block in updatePacket.List)
             {
-                ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+                LandAccessEntry entry = new LandAccessEntry();
                 entry.AgentID = block.ID;
                 entry.Flags = (AccessList)block.Flags;
-                entry.Time = Util.ToDateTime(block.Time);
+                entry.Expires = block.Time;
                 entries.Add(entry);
             }
 

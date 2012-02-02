@@ -34,6 +34,13 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
+    public struct LandAccessEntry
+    {
+        public UUID AgentID;
+        public int Expires;
+        public AccessList Flags;
+    }
+
     /// <summary>
     /// Details of a Parcel of land
     /// </summary>
@@ -73,7 +80,7 @@ namespace OpenSim.Framework
         private string _mediaURL = String.Empty;
         private string _musicURL = String.Empty;
         private UUID _ownerID = UUID.Zero;
-        private List<ParcelManager.ParcelAccessEntry> _parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
+        private List<LandAccessEntry> _parcelAccessList = new List<LandAccessEntry>();
         private float _passHours = 0;
         private int _passPrice = 0;
         private int _salePrice = 0; //Unemeplemented. Parcels price.
@@ -450,7 +457,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// List of access data for the parcel.  User data, some bitflags, and a time
         /// </summary>
-        public List<ParcelManager.ParcelAccessEntry> ParcelAccessList {
+        public List<LandAccessEntry> ParcelAccessList {
             get {
                 return _parcelAccessList;
             }
@@ -638,12 +645,12 @@ namespace OpenSim.Framework
             landData._simwidePrims = _simwidePrims;
 
             landData._parcelAccessList.Clear();
-            foreach (ParcelManager.ParcelAccessEntry entry in _parcelAccessList)
+            foreach (LandAccessEntry entry in _parcelAccessList)
             {
-                ParcelManager.ParcelAccessEntry newEntry = new ParcelManager.ParcelAccessEntry();
+                LandAccessEntry newEntry = new LandAccessEntry();
                 newEntry.AgentID = entry.AgentID;
                 newEntry.Flags = entry.Flags;
-                newEntry.Time = entry.Time;
+                newEntry.Expires = entry.Expires;
 
                 landData._parcelAccessList.Add(newEntry);
             }

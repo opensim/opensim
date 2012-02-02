@@ -681,7 +681,7 @@ VALUES
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 conn.Open();
-                foreach (ParcelManager.ParcelAccessEntry parcelAccessEntry in parcel.LandData.ParcelAccessList)
+                foreach (LandAccessEntry parcelAccessEntry in parcel.LandData.ParcelAccessList)
                 {
                     cmd.Parameters.AddRange(CreateLandAccessParameters(parcelAccessEntry, parcel.RegionUUID));
 
@@ -1453,7 +1453,7 @@ VALUES
                 _Log.ErrorFormat("[PARCEL]: unable to get parcel telehub settings for {1}", newData.Name);
             }
 
-            newData.ParcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
+            newData.ParcelAccessList = new List<LandAccessEntry>();
 
             return newData;
         }
@@ -1463,12 +1463,12 @@ VALUES
         /// </summary>
         /// <param name="row">datarecord with landaccess data</param>
         /// <returns></returns>
-        private static ParcelManager.ParcelAccessEntry BuildLandAccessData(IDataRecord row)
+        private static LandAccessEntry BuildLandAccessData(IDataRecord row)
         {
-            ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+            LandAccessEntry entry = new LandAccessEntry();
             entry.AgentID = new UUID((Guid)row["AccessUUID"]);
             entry.Flags = (AccessList)Convert.ToInt32(row["Flags"]);
-            entry.Time = new DateTime();
+            entry.Expires = 0;
             return entry;
         }
 
@@ -1851,7 +1851,7 @@ VALUES
         /// <param name="parcelAccessEntry">parcel access entry.</param>
         /// <param name="parcelID">parcel ID.</param>
         /// <returns></returns>
-        private SqlParameter[] CreateLandAccessParameters(ParcelManager.ParcelAccessEntry parcelAccessEntry, UUID parcelID)
+        private SqlParameter[] CreateLandAccessParameters(LandAccessEntry parcelAccessEntry, UUID parcelID)
         {
             List<SqlParameter> parameters = new List<SqlParameter>();
 

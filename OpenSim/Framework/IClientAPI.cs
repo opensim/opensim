@@ -177,7 +177,7 @@ namespace OpenSim.Framework
 
     public delegate void ParcelAccessListUpdateRequest(UUID agentID, uint flags,
                     int landLocalID, UUID transactionID, int sequenceID,
-                    int sections, List<ParcelManager.ParcelAccessEntry> entries,
+                    int sections, List<LandAccessEntry> entries,
                     IClientAPI remote_client);
 
     public delegate void ParcelPropertiesRequest(
@@ -1259,7 +1259,7 @@ namespace OpenSim.Framework
                                 float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity,
                                 uint regionFlags);
 
-        void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID);
+        void SendLandAccessListData(List<LandAccessEntry> accessList, uint accessFlag, int localLandID);
         void SendForceClientSelectObjects(List<uint> objectIDs);
         void SendCameraConstraint(Vector4 ConstraintPlane);
         void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount);
