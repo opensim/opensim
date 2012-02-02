@@ -407,6 +407,9 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void RegionStarted(Scene scene);
         public event RegionStarted OnRegionStarted;
 
+        public delegate void RegionHeartbeatEnd(Scene scene);
+        public event RegionHeartbeatEnd OnRegionHeartbeatEnd;
+
         public delegate void LoginsEnabled(string regionName);
         public event LoginsEnabled OnLoginsEnabled;
 
@@ -2285,6 +2288,27 @@ namespace OpenSim.Region.Framework.Scenes
                     catch (Exception e)
                     {
                         m_log.ErrorFormat("[EVENT MANAGER]: Delegate for RegionStarted failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerRegionHeartbeatEnd(Scene scene)
+        {
+            RegionHeartbeatEnd handler = OnRegionHeartbeatEnd;
+
+            if (handler != null)
+            {
+                foreach (RegionHeartbeatEnd d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(scene);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for OnRegionHeartbeatEnd failed - continuing {0} - {1}",
                             e.Message, e.StackTrace);
                     }
                 }

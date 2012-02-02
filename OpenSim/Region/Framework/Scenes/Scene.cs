@@ -1385,6 +1385,8 @@ namespace OpenSim.Region.Framework.Scenes
                     RegionInfo.RegionName, e.Message, e.StackTrace);
             }
 
+            EventManager.TriggerRegionHeartbeatEnd(this);
+
             maintc = Util.EnvironmentTickCountSubtract(maintc);
             maintc = (int)(MinFrameTime * 1000) - maintc;
 
