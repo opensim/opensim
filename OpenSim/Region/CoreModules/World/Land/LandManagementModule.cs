@@ -205,6 +205,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelInfoRequest += ClientOnParcelInfoRequest;
             client.OnParcelDeedToGroup += ClientOnParcelDeedToGroup;
             client.OnPreAgentUpdate += ClientOnPreAgentUpdate;
+            client.OnParcelEjectUser += ClientOnParcelEjectUser;
+            client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
 
             EntityBase presenceEntity;
             if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
