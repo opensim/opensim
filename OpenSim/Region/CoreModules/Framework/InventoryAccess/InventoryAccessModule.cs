@@ -367,6 +367,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
 
+                // Restore attachment data after trip through the sim
+                if (objectGroup.RootPart.AttachPoint > 0)
+                    inventoryStoredPosition = objectGroup.RootPart.AttachOffset;
+                objectGroup.RootPart.Shape.State = objectGroup.RootPart.AttachPoint;
+
                 objectGroup.AbsolutePosition = inventoryStoredPosition;
 
                 // Make sure all bits but the ones we want are clear
@@ -740,6 +745,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (e == null || attachment) // Single
             {
                 SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+                if (!attachment)
+                {
+                    g.RootPart.AttachPoint = g.RootPart.Shape.State;
+                    g.RootPart.AttachOffset = g.AbsolutePosition;
+                }
 
                 objlist.Add(g);
                 veclist.Add(new Vector3(0, 0, 0));
@@ -769,6 +779,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 foreach (XmlNode n in groups)
                 {
                     SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
+                    g.RootPart.AttachPoint = g.RootPart.Shape.State;
+                    g.RootPart.AttachOffset = g.AbsolutePosition;
 
                     objlist.Add(g);
                     XmlElement el = (XmlElement)n;

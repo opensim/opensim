@@ -2351,6 +2351,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="objectGroup">The group of prims which should be linked to this group</param>
         public void LinkToGroup(SceneObjectGroup objectGroup)
         {
+            LinkToGroup(objectGroup, false);
+        }
+
+        public void LinkToGroup(SceneObjectGroup objectGroup, bool insert)
+        {
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: Linking group with root part {0}, {1} to group with root part {2}, {3}",
 //                objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
@@ -2380,7 +2385,20 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (m_parts.SyncRoot)
             {
-                int linkNum = PrimCount + 1;
+                int linkNum;
+                if (insert)
+                {
+                    linkNum = 2;
+                    foreach (SceneObjectPart part in Parts)
+                    {
+                        if (part.LinkNum > 1)
+                            part.LinkNum++;
+                    }
+                }
+                else
+                {
+                    linkNum = PrimCount + 1;
+                }
 
                 m_parts.Add(linkPart.UUID, linkPart);
 
