@@ -64,7 +64,7 @@ namespace OpenSim.Framework
         private UUID _permsGranter;
         private int _permsMask;
         private int _type = 0;
-        private UUID _oldID = UUID.Zero;
+        private UUID _oldID;
         private UUID _loadedID = UUID.Zero;
 
         private bool _ownerChanged = false;
@@ -369,8 +369,8 @@ namespace OpenSim.Framework
         /// <param name="partID">The new part ID to which this item belongs</param>
         public void ResetIDs(UUID partID)
         {
-            _loadedID = _oldID;
-            _oldID = ItemID;
+            LoadedItemID = OldItemID;
+            OldItemID = ItemID;
             ItemID = UUID.Random();
             ParentPartID = partID;
             ParentID = partID;
