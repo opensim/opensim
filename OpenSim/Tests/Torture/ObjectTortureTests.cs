@@ -59,33 +59,60 @@ namespace OpenSim.Tests.Torture
 //        }
 
         [Test]
-        public void Test0001TenThousandObjects()
+        public void Test0001_10K_1PrimObjects()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            TestAddObjects(10000);
+            TestAddObjects(1, 10000);
         }
 
         [Test]
-        public void Test0002OneHundredThousandObjects()
+        public void Test0002_100K_1PrimObjects()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            TestAddObjects(100000);
+            TestAddObjects(1, 100000);
         }
 
         [Test]
-        public void Test0003TwoHundredThousandObjects()
+        public void Test0003_200K_1PrimObjects()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            TestAddObjects(200000);
+            TestAddObjects(1, 200000);
         }
 
-        private void TestAddObjects(int objectsToAdd)
+        [Test]
+        public void Test0011_100_100PrimObjects()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            TestAddObjects(100, 100);
+        }
+
+        [Test]
+        public void Test0012_1K_100PrimObjects()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            TestAddObjects(100, 1000);
+        }
+
+        [Test]
+        public void Test0013_2K_100PrimObjects()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            TestAddObjects(100, 2000);
+        }
+
+        private void TestAddObjects(int primsInEachObject, int objectsToAdd)
         {
             UUID ownerId = new UUID("F0000000-0000-0000-0000-000000000000");
 
@@ -98,7 +125,7 @@ namespace OpenSim.Tests.Torture
 
             for (int i = 1; i <= objectsToAdd; i++)
             {
-                SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, ownerId, "part_", i);
+                SceneObjectGroup so = SceneHelpers.CreateSceneObject(primsInEachObject, ownerId, "part_", i);
                 Assert.That(scene.AddNewSceneObject(so, false), Is.True, string.Format("Object {0} was not created", i));
             }
 
@@ -114,13 +141,9 @@ namespace OpenSim.Tests.Torture
                     string.Format("Object {0} could not be retrieved", i));
             }
 
-//            Console.WriteLine(
-//                "Took {0}ms, {1}MB to create {2} single prim scene objects",
-//                elapsed.Milliseconds, processGcAlloc / 1024 / 1024, objectsToAdd);
-
             Console.WriteLine(
-                "Took {0}MB to create {1} single prim scene objects",
-                processGcAlloc / 1024 / 1024, objectsToAdd);
+                "Took {0}ms, {1}MB to create {2} objects each containing {3} prim(s)",
+                Math.Round(elapsed.TotalMilliseconds), processGcAlloc / 1024 / 1024, objectsToAdd, primsInEachObject);
         }
     }
 }
