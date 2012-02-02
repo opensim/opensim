@@ -38,51 +38,7 @@
       <include name=".hgignore"/>
     </fileset>
   </delete>
-  
 </target>
-
-<!-- I don't think these targets are being actively used.  But just in case, we'll just comment them out for now - justincc -->
-<!--
-<property name="projectdir" value="opensim-0.6.9" />
-<target name="dist" depends="distdir">
-    <zip zipfile="${projectdir}.zip">
-    <fileset basedir=".">
-        <include name="${projectdir}/**" />
-    </fileset>
-    </zip>
-    <tar destfile="${projectdir}.tar.gz" compression="GZip">
-    <fileset basedir=".">
-        <include name="${projectdir}/**" />
-    </fileset>
-    </tar>
-</target>
-
-<target name="distdir">
-   <delete dir="${projectdir}" />
-   <copy todir="${projectdir}">
-       <fileset basedir=".">
-          <include name="ThirdPartyLicenses/**" />
-          <include name="CONTRIBUTORS.txt" />
-          <include name="README" />
-          <include name="OpenSim/**/*.cs" />
-          <include name="**/*.build" />
-          <include name="**/*.csproj" />
-          <include name="**/*.csproj.user" />
-          <include name="**/*.sln" />
-          <include name="bin/*.dll" />
-          <include name="bin/*.so" />
-          <include name="bin/*.config" />
-          <include name="bin/assets/**" />
-          <include name="bin/data/**" />
-          <include name="bin/OpenSim*xml" />
-          <include name="bin/OpenSim.ini" />
-          <include name="bin/defaultstripe.png" />
-          <exclude name="bin/OpenSim.*dll" />
-       </fileset>
-   </copy>
-   <touch file="${projectdir}/bin/startup_commands.txt" />
-</target>
--->
 
 <target name="test" depends="build, find-nunit">
   <setenv name="MONO_THREADS_PER_CPU" value="100" />
@@ -153,116 +109,17 @@
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.capabilities.handlers.tests)==0}" /> 
 
   <delete dir="%temp%"/>
-
 </target>
 
-<target name="test-cov" depends="build">
-    <!-- Code Coverage Test. Prototype, only works with mono 1.2. Instructions in http://opensimulator.org/wiki/Automated_Testing -->
-    <mkdir dir="cov" failonerror="false" />
-    <exec program="mono">
-      <arg value="--debug" />
-      <arg value="--profile=monocov:outfile=./cov/OpenSim.Framework.Servers.cov,+[OpenSim.Framework.Servers]" />
-      <arg value="/usr/lib/nunit/nunit-console.exe" />
-      <arg value="./bin/OpenSim.Framework.Servers.Tests.dll" />
-    </exec>
-    <delete dir="./cov/OpenSim.Framework.Servers" />
-    <exec program="monocov">
-      <arg value="--export-html=./cov/OpenSim.Framework.Servers ./cov/OpenSim.Framework.Servers.cov" />
-    </exec>
+<target name="torture" depends="build, find-nunit">
+  <setenv name="MONO_THREADS_PER_CPU" value="100" />
 
-<!--
-    <exec program="mono">
-      <arg value="&#45;&#45;debug" />
-      <arg value="&#45;&#45;profile=monocov:outfile=./cov/OpenSim.Region.ClientStack.LindenUDP.cov,+[OpenSim.Region.ClientStack.LindenUDP]" />
-      <arg value="/usr/lib/nunit/nunit-console.exe" />
-     <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
-    </exec>
-    <delete dir="./cov/OpenSim.Region.ClientStack.LindenUDP" />
-    <exec program="monocov">
-      <arg value="&#45;&#45;export-html=./cov/OpenSim.Region.ClientStack.LindenUDP ./cov/OpenSim.Region.ClientStack.LindenUDP.cov" />
-    </exec>
--->
-    
-    <exec program="mono">
-      <arg value="--debug" />
-      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.ScriptEngine.Shared.cov,+[OpenSim.Region.ScriptEngine.Shared]" />
-      <arg value="/usr/lib/nunit/nunit-console.exe" />
-      <arg value="./bin/OpenSim.Region.ScriptEngine.Shared.Tests.dll" />
-    </exec>
-    <delete dir="./cov/OpenSim.Region.ScriptEngine.Shared" />
-    <exec program="monocov">      
-      <arg value="--export-html=./cov/OpenSim.Region.ScriptEngine.Shared ./cov/OpenSim.Region.ScriptEngine.Shared.cov" />
-    </exec>    
-    
-    <exec program="mono">
-      <arg value="--debug" />
-      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.ScriptEngine.Shared.CodeTools.cov,+[OpenSim.Region.ScriptEngine.Shared.CodeTools]" />
-      <arg value="/usr/lib/nunit/nunit-console.exe" />
-      <arg value="./bin/OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll" />
-    </exec>
-    <delete dir="./cov/OpenSim.Region.ScriptEngine.Shared.CodeTools" />
-    <exec program="monocov">
-      <arg value="--export-html=./cov/OpenSim.Region.ScriptEngine.Shared.CodeTools ./cov/OpenSim.Region.ScriptEngine.Shared.CodeTools.cov" />
-    </exec>    
-    
-    <exec program="mono">
-      <arg value="--debug" />
-      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.CoreModules.cov,+[OpenSim.Region.CoreModules]" />
-      <arg value="/usr/lib/nunit/nunit-console.exe" />
-      <arg value="./bin/OpenSim.Region.CoreModules.Tests.dll" />
-    </exec>
-    <delete dir="./cov/OpenSim.Region.CoreModules" />
-    <exec program="monocov">
-      <arg value="--export-html=./cov/OpenSim.Region.CoreModules ./cov/OpenSim.Region.CoreModules.cov" />
-    </exec>    
-    
-    <exec program="mono">
-      <arg value="--debug" />
-      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.OptionalModules.cov,+[OpenSim.Region.OptionalModules]" />
-      <arg value="/usr/lib/nunit/nunit-console.exe" />
-      <arg value="./bin/OpenSim.Region.OptionalModules.Tests.dll" />
-    </exec>
-    <delete dir="./cov/OpenSim.Region.OptionalModules" />
-    <exec program="monocov">
-      <arg value="--export-html=./cov/OpenSim.Region.OptionalModules ./cov/OpenSim.Region.OptionalModules.cov" />
-    </exec>    
+  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.tests.torture">
+    <arg value="./bin/OpenSim.Tests.Torture.dll" />
+  </exec>
 
-    <exec program="mono">
-      <arg value="--debug" />
-      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.Framework.cov,+[OpenSim.Region.Framework]" />
-      <arg value="/usr/lib/nunit/nunit-console.exe" />
-      <arg value="./bin/OpenSim.Region.Framework.Tests.dll" />
-    </exec>
-    <delete dir="./cov/OpenSim.Region.Framework" />
-    <exec program="monocov">
-      <arg value="--export-html=./cov/OpenSim.Region.Framework ./cov/OpenSim.Region.Framework.cov" />
-    </exec>    
-    
-    <exec program="mono">
-      <arg value="--debug" />
-      <arg value="--profile=monocov:outfile=./cov/OpenSim.Data.SQLite.cov,+[OpenSim.Data.SQLite]" />
-      <arg value="/usr/lib/nunit/nunit-console.exe" />
-      <arg value="./bin/OpenSim.Data.SQLite.Tests.dll" />
-    </exec>
-    <delete dir="./cov/OpenSim.Data.SQLite" />
-    <exec program="monocov">
-      <arg value="--export-html=./cov/OpenSim.Data.SQLite ./cov/OpenSim.Data.SQLite.cov" />
-    </exec>    
-    
-    <exec program="mono">
-      <arg value="--debug" />
-      <arg value="--profile=monocov:outfile=./cov/OpenSim.Data.MySQL.cov,+[OpenSim.Data.MySQL.Tests]" />
-      <arg value="/usr/lib/nunit/nunit-console.exe" />
-      <arg value="./bin/OpenSim.Data.MySQL.Tests.dll" />
-    </exec>  
-    <delete dir="./cov/OpenSim.Data.MySQL" />
-    <exec program="monocov">
-      <arg value="--export-html=./cov/OpenSim.Data.MySQL ./cov/OpenSim.Data.MySQL.cov" />
-    </exec>     
-
-    <delete file="C:\NUnitPrimaryTrace.txt" failonerror="false" />
-    <delete file="TestResult.xml" failonerror="false" />
-
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.tests.torture)==0}" /> 
+  <delete dir="%temp%"/>
 </target>
 
 <target name="find-nunit">
@@ -275,15 +132,12 @@
     if="${int::parse(hasnunit2)==0}" />
   <property name="nunitcmd" value="nunit-console"
     if="${int::parse(hasnunit2)==1}" />
-
 </target>
 
 <!-- this is used for panda test execution -->
 <!-- work in progress -->
 
 <target name="test-xml" depends="build, find-nunit">
-  
-
   <mkdir dir="test-results" failonerror="false" />
   <!-- Unit Test Assembly -->
   <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.tests">
@@ -356,36 +210,7 @@
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.framework.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.capabilities.handlers.tests)==0}" /> 
-
 </target>
-<!--     <exec program="nunit-console.exe" failonerror="false" resultproperty="testresult.acceptancetestassembly"> -->
-<!--         <arg value="AcceptanceTestAssembly.dll" /> -->
-<!--         <arg value="/xml=AcceptanceTestAssembly-Results.xml" /> -->
-<!--     </exec> -->
-
-<!--     <fail message="Failures reported in unit tests." unless="${int::parse(testresult.unittestassembly)==0}" /> -->
-<!--     <fail message="Failures reported in acceptance tests." unless="${int::parse(testresult.acceptancetestassembly)==0}" /> -->
-<!-- </target> -->
-
-
-
-<!--       <nunit2 failonerror="true" verbose="true"> -->
-<!--       <formatter type="Xml" usefile="true" extension=".xml" outputdir="./test-results" /> -->
-<!--       <test> -->
-<!--         <assemblies> -->
-<!--           <include name="./bin/OpenSim.Framework.Tests.dll" /> -->
-<!--           <include name="./bin/OpenSim.Framework.Servers.Tests.dll" /> -->
-<!--           <include name="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" /> -->
-<!--           <include name="./bin/OpenSim.Region.ScriptEngine.Tests.dll" /> -->
-<!--           <include name="./bin/OpenSim.Region.CoreModules.Tests.dll" /> -->
-<!--           <include name="./bin/OpenSim.Region.OptionalModules.Tests.dll" /> -->
-<!--           <include name="./bin/OpenSim.Region.Framework.Tests.dll" /> -->
-<!--           <include name="./bin/OpenSim.Data.SQLite.Tests.dll" /> -->
-<!--           <include name="./bin/OpenSim.Data.MySQL.Tests.dll" /> -->
-<!--         </assemblies> -->
-<!--       </test> -->
-<!--     </nunit2> -->
-<!-- </target> -->
 
 <target name="doxygen">
   <exec program="doxygen" workingdir="doc" commandline="doxygen.conf" />

@@ -126,11 +126,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_TransferModule =
                     m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
-            if (m_UrlModule != null)
-            {
-                m_ScriptEngine.OnScriptRemoved += m_UrlModule.ScriptRemoved;
-                m_ScriptEngine.OnObjectRemoved += m_UrlModule.ObjectRemoved;
-            }
 
             AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
@@ -468,26 +463,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
 
-        // Old implementation of llRot2Euler. Normalization not required as Atan2 function will
-        // only return values >= -PI (-180 degrees) and <= PI (180 degrees).
-
+        /// <summary>
+        /// Convert an LSL rotation to a Euler vector.
+        /// </summary>
+        /// <remarks>
+        /// Using algorithm based off http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/quat_2_euler_paper_ver2-1.pdf
+        /// to avoid issues with singularity and rounding with Y rotation of +/- PI/2
+        /// </remarks>
+        /// <param name="r"></param>
+        /// <returns></returns>
         public LSL_Vector llRot2Euler(LSL_Rotation r)
         {
             m_host.AddScriptLPS(1);
-            //This implementation is from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions. ckrinke
-            LSL_Rotation t = new LSL_Rotation(r.x * r.x, r.y * r.y, r.z * r.z, r.s * r.s);
-            double m = (t.x + t.y + t.z + t.s);
-            if (m == 0) return new LSL_Vector();
-            double n = 2 * (r.y * r.s + r.x * r.z);
-            double p = m * m - n * n;
-            if (p > 0)
-                return new LSL_Vector(Math.Atan2(2.0 * (r.x * r.s - r.y * r.z), (-t.x - t.y + t.z + t.s)),
-                                             Math.Atan2(n, Math.Sqrt(p)),
-                                             Math.Atan2(2.0 * (r.z * r.s - r.x * r.y), (t.x - t.y - t.z + t.s)));
-            else if (n > 0)
-                return new LSL_Vector(0.0, Math.PI * 0.5, Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z));
-            else
-                return new LSL_Vector(0.0, -Math.PI * 0.5, Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z));
+
+            LSL_Vector v = new LSL_Vector(0.0, 0.0, 1.0) * r;   // Z axis unit vector unaffected by Z rotation component of r.
+            double m = LSL_Vector.Mag(v);                       // Just in case v isn't normalized, need magnitude for Asin() operation later.
+            if (m == 0.0) return new LSL_Vector();
+            double x = Math.Atan2(-v.y, v.z);
+            double sin = v.x / m;
+            if (sin < -0.999999 || sin > 0.999999) x = 0.0;     // Force X rotation to 0 at the singularities.
+            double y = Math.Asin(sin);
+            // Rotate X axis unit vector by r and unwind the X and Y rotations leaving only the Z rotation
+            v = new LSL_Vector(1.0, 0.0, 0.0) * ((r * new LSL_Rotation(Math.Sin(-x / 2.0), 0.0, 0.0, Math.Cos(-x / 2.0))) * new LSL_Rotation(0.0, Math.Sin(-y / 2.0), 0.0, Math.Cos(-y / 2.0)));
+            double z = Math.Atan2(v.y, v.x);
+
+            return new LSL_Vector(x, y, z);
         }
 
         /* From wiki:
@@ -2856,11 +2856,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // we need to convert from a vector describing
             // the angles of rotation in radians into rotation value
 
-            LSL_Types.Quaternion rot = llEuler2Rot(angle);
-            Quaternion rotation = new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
-            m_host.startLookAt(rotation, (float)damping, (float)strength);
-            // Orient the object to the angle calculated
-            //llSetRot(rot);
+            LSL_Rotation rot = llEuler2Rot(angle);
+            
+            // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
+            // set the rotation of the object, copy that behavior
+            if (strength == 0 || m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
+            {
+                llSetRot(rot);
+            }
+            else
+            {
+                m_host.StartLookAt(Rot2Quaternion(rot), (float)strength, (float)damping);
+            }
         }
 
         public void llStopLookAt()
@@ -3236,8 +3243,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRotLookAt(LSL_Rotation target, double strength, double damping)
         {
             m_host.AddScriptLPS(1);
-            Quaternion rot = new Quaternion((float)target.x, (float)target.y, (float)target.z, (float)target.s);
-            m_host.RotLookAt(rot, (float)strength, (float)damping);
+            
+            // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
+            // set the rotation of the object, copy that behavior
+            if (strength == 0 || m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
+            {
+                llSetLocalRot(target);
+            }
+            else
+            {
+                m_host.RotLookAt(Rot2Quaternion(target), (float)strength, (float)damping);
+            }
         }
 
         public LSL_Integer llStringLength(string str)
@@ -4023,9 +4039,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Vector3 av3 = new Vector3(Util.Clip((float)color.x, 0.0f, 1.0f),
                                       Util.Clip((float)color.y, 0.0f, 1.0f),
                                       Util.Clip((float)color.z, 0.0f, 1.0f));
-            m_host.SetText(text, av3, Util.Clip((float)alpha, 0.0f, 1.0f));
-            m_host.ParentGroup.HasGroupChanged = true;
-            m_host.ParentGroup.ScheduleGroupForFullUpdate();
+            m_host.SetText(text.Length > 254 ? text.Remove(255) : text, av3, Util.Clip((float)alpha, 0.0f, 1.0f));
+            //m_host.ParentGroup.HasGroupChanged = true;
+            //m_host.ParentGroup.ScheduleGroupForFullUpdate();
         }
 
         public LSL_Float llWater(LSL_Vector offset)
@@ -4693,15 +4709,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return (double)Math.Asin(val);
         }
 
-        // Xantor 30/apr/2008
+        // jcochran 5/jan/2012
         public LSL_Float llAngleBetween(LSL_Rotation a, LSL_Rotation b)
         {
             m_host.AddScriptLPS(1);
 
-            double angle = Math.Acos(a.x * b.x + a.y * b.y + a.z * b.z + a.s * b.s) * 2;
-            if (angle < 0) angle = -angle;
-            if (angle > Math.PI) return (Math.PI * 2 - angle);
-            return angle;
+            double aa = (a.x * a.x + a.y * a.y + a.z * a.z + a.s * a.s);
+            double bb = (b.x * b.x + b.y * b.y + b.z * b.z + b.s * b.s);
+            double aa_bb = aa * bb;
+            if (aa_bb == 0) return 0.0;
+            double ab = (a.x * b.x + a.y * b.y + a.z * b.z + a.s * b.s);
+            double quotient = (ab * ab) / aa_bb;
+            if (quotient >= 1.0) return 0.0;
+            return Math.Acos(2 * quotient - 1);
         }
 
         public LSL_String llGetInventoryKey(string name)
@@ -5486,7 +5506,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             foreach (GridRegion sri in neighbors)
             {
-                if (sri.RegionLocX == neighborX && sri.RegionLocY == neighborY)
+                if (sri.RegionCoordX == neighborX && sri.RegionCoordY == neighborY)
                     return 0;
             }
 
@@ -6583,7 +6603,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // the rest of the permission checks are done in RezScript, so check the pin there as well
-            World.RezScript(srcId, m_host, destId, pin, running, start_param);
+            World.RezScriptFromPrim(srcId, m_host, destId, pin, running, start_param);
+
             // this will cause the delay even if the script pin or permissions were wrong - seems ok
             ScriptSleep(3000);
         }
@@ -7544,6 +7565,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             land.SetMusicUrl(url);
 
             ScriptSleep(2000);
+        }
+
+        public LSL_String llGetParcelMusicURL()
+        {
+            m_host.AddScriptLPS(1);
+
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+
+            if (land.LandData.OwnerID != m_host.OwnerID)
+                return String.Empty;
+
+            return land.GetMusicUrl();
         }
 
         public LSL_Vector llGetRootPosition()
@@ -10611,6 +10644,75 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             list.Add(refcount); //The status code, either the # of contacts, RCERR_SIM_PERF_LOW, or RCERR_CAST_TIME_EXCEEDED
 
             return list;
+        }
+
+        public LSL_Integer llManageEstateAccess(int action, string avatar)
+        {
+            m_host.AddScriptLPS(1);
+            EstateSettings estate = World.RegionInfo.EstateSettings;
+            bool isAccount = false;
+            bool isGroup = false;
+
+            if (!estate.IsEstateOwner(m_host.OwnerID) || !estate.IsEstateManager(m_host.OwnerID))
+                return 0;
+
+            UUID id = new UUID();
+            if (!UUID.TryParse(avatar, out id))
+                return 0;
+
+            UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, id);
+            isAccount = account != null ? true : false;
+            if (!isAccount)
+            {
+                IGroupsModule groups = World.RequestModuleInterface<IGroupsModule>();
+                if (groups != null)
+                {
+                    GroupRecord group = groups.GetGroupRecord(id);
+                    isGroup = group != null ? true : false;
+                    if (!isGroup)
+                        return 0;
+                }
+                else
+                    return 0;
+            }
+
+            switch (action)
+            {
+                case ScriptBaseClass.ESTATE_ACCESS_ALLOWED_AGENT_ADD:
+                    if (!isAccount) return 0;
+                    if (estate.HasAccess(id)) return 1;
+                    if (estate.IsBanned(id))
+                        estate.RemoveBan(id);
+                    estate.AddEstateUser(id);
+                    break;
+                case ScriptBaseClass.ESTATE_ACCESS_ALLOWED_AGENT_REMOVE:
+                    if (!isAccount || !estate.HasAccess(id)) return 0;
+                    estate.RemoveEstateUser(id);
+                    break;
+                case ScriptBaseClass.ESTATE_ACCESS_ALLOWED_GROUP_ADD:
+                    if (!isGroup) return 0;
+                    if (estate.GroupAccess(id)) return 1;
+                    estate.AddEstateGroup(id);
+                    break;
+                case ScriptBaseClass.ESTATE_ACCESS_ALLOWED_GROUP_REMOVE:
+                    if (!isGroup || !estate.GroupAccess(id)) return 0;
+                    estate.RemoveEstateGroup(id);
+                    break;
+                case ScriptBaseClass.ESTATE_ACCESS_BANNED_AGENT_ADD:
+                    if (!isAccount) return 0;
+                    if (estate.IsBanned(id)) return 1;
+                    EstateBan ban = new EstateBan();
+                    ban.EstateID = estate.EstateID;
+                    ban.BannedUserID = id;
+                    estate.AddBan(ban);
+                    break;
+                case ScriptBaseClass.ESTATE_ACCESS_BANNED_AGENT_REMOVE:
+                    if (!isAccount || !estate.IsBanned(id)) return 0;
+                    estate.RemoveBan(id);
+                    break;
+                default: return 0;
+            }
+            return 1;
         }
 
         #region Not Implemented

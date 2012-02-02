@@ -149,14 +149,15 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 // Process the baked texture array
                 if (textureEntry != null)
                 {
-                    m_log.InfoFormat("[AVFACTORY]: received texture update for {0}", sp.UUID);
+                    m_log.InfoFormat("[AVFACTORY]: Received texture update for {0} {1}", sp.Name, sp.UUID);
 
 //                    WriteBakedTexturesReport(sp, m_log.DebugFormat);
 
                     changed = sp.Appearance.SetTextureEntries(textureEntry) || changed;
 
 //                    WriteBakedTexturesReport(sp, m_log.DebugFormat);
-                    ValidateBakedTextureCache(sp, false);
+                    if (!ValidateBakedTextureCache(sp))
+                        RequestRebake(sp, true);
 
                     // This appears to be set only in the final stage of the appearance
                     // update transaction. In theory, we should be able to do an immediate
@@ -251,15 +252,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         }
 
         /// <summary>
-        /// Check for the existence of the baked texture assets.
-        /// </summary>
-        /// <param name="sp"></param>
-        public bool ValidateBakedTextureCache(IScenePresence sp)
-        {
-            return ValidateBakedTextureCache(sp, true);
-        }
-
-        /// <summary>
         /// Queue up a request to send appearance.
         /// </summary>
         /// <remarks>
@@ -292,17 +284,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
         }
 
-        #endregion
-
-        #region AvatarFactoryModule private methods
-
-        /// <summary>
-        /// Check for the existence of the baked texture assets. Request a rebake
-        /// unless checkonly is true.
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="checkonly"></param>
-        private bool ValidateBakedTextureCache(IScenePresence sp, bool checkonly)
+        public bool ValidateBakedTextureCache(IScenePresence sp)
         {
             bool defonly = true; // are we only using default textures
 
@@ -330,23 +312,65 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 defonly = false; // found a non-default texture reference
 
                 if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
-                {
-                    if (checkonly)
-                        return false;
-
-                    m_log.DebugFormat(
-                        "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
-                        face.TextureID, idx, sp.Name);
-                    
-                    sp.ControllingClient.SendRebakeAvatarTextures(face.TextureID);
-                }
+                    return false;
             }
 
-            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0}", sp.UUID);
+            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0} {1}", sp.Name, sp.UUID);
 
             // If we only found default textures, then the appearance is not cached
             return (defonly ? false : true);
         }
+
+        public int RequestRebake(IScenePresence sp, bool missingTexturesOnly)
+        {
+            int texturesRebaked = 0;
+
+            for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
+            {
+                int idx = AvatarAppearance.BAKE_INDICES[i];
+                Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[idx];
+
+                // if there is no texture entry, skip it
+                if (face == null)
+                    continue;
+
+//                m_log.DebugFormat(
+//                    "[AVFACTORY]: Looking for texture {0}, id {1} for {2} {3}",
+//                    face.TextureID, idx, client.Name, client.AgentId);
+
+                // if the texture is one of the "defaults" then skip it
+                // this should probably be more intelligent (skirt texture doesnt matter
+                // if the avatar isnt wearing a skirt) but if any of the main baked
+                // textures is default then the rest should be as well
+                if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                    continue;
+
+                if (missingTexturesOnly)
+                {
+                    if (m_scene.AssetService.Get(face.TextureID.ToString()) != null)
+                        continue;
+                    else
+                        m_log.DebugFormat(
+                            "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
+                            face.TextureID, idx, sp.Name);
+                }
+                else
+                {
+                    m_log.DebugFormat(
+                        "[AVFACTORY]: Requesting rebake of {0} ({1}) for {2}.",
+                        face.TextureID, idx, sp.Name);
+                }
+
+                texturesRebaked++;
+                sp.ControllingClient.SendRebakeAvatarTextures(face.TextureID);
+            }
+
+            return texturesRebaked;
+        }
+
+        #endregion
+
+        #region AvatarFactoryModule private methods
 
         private Dictionary<BakeType, Primitive.TextureEntryFace> GetBakedTextureFaces(ScenePresence sp)
         {

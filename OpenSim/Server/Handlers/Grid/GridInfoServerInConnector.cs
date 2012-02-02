@@ -48,6 +48,8 @@ namespace OpenSim.Server.Handlers.Grid
 
             server.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info",
                                                                handlers.RestGetGridInfoMethod));
+            server.AddStreamHandler(new RestStreamHandler("GET", "/json_grid_info",
+                                                          handlers.JsonGetGridInfoMethod));
             server.AddXmlRPCHandler("get_grid_info", handlers.XmlRpcGridInfoMethod);
         }
 

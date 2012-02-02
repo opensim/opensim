@@ -109,13 +109,33 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             afm.SetAppearance(sp, originalTe, null);
 
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
-            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, sp.Appearance);
+            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), UUID.Zero, true, scene, sp.Appearance);
 
             ScenePresence npc = scene.GetScenePresence(npcId);
 
             Assert.That(npc, Is.Not.Null);
             Assert.That(npc.Appearance.Texture.FaceTextures[8].TextureID, Is.EqualTo(originalFace8TextureId));
             Assert.That(umm.GetUserName(npc.UUID), Is.EqualTo(string.Format("{0} {1}", npc.Firstname, npc.Lastname)));
+        }
+
+        [Test]
+        public void TestRemove()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
+//            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
+
+            Vector3 startPos = new Vector3(128, 128, 30);
+            INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
+            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, UUID.Zero, true, scene, sp.Appearance);
+
+            npcModule.DeleteNPC(npcId, scene);
+
+            ScenePresence deletedNpc = scene.GetScenePresence(npcId);
+
+            Assert.That(deletedNpc, Is.Null);
         }
 
         [Test]
@@ -137,7 +157,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             am.RezSingleAttachmentFromInventory(sp, attItemId, (uint)AttachmentPoint.Chest);
 
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
-            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, sp.Appearance);
+            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), UUID.Zero, true, scene, sp.Appearance);
 
             ScenePresence npc = scene.GetScenePresence(npcId);
 
@@ -169,7 +189,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 
             Vector3 startPos = new Vector3(128, 128, 30);
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
-            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, scene, sp.Appearance);
+            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, UUID.Zero, true, scene, sp.Appearance);
 
             ScenePresence npc = scene.GetScenePresence(npcId);
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
@@ -240,7 +260,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 
             Vector3 startPos = new Vector3(128, 128, 30);
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
-            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, scene, sp.Appearance);
+            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, UUID.Zero, true, scene, sp.Appearance);
 
             ScenePresence npc = scene.GetScenePresence(npcId);
             SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
@@ -273,7 +293,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             Vector3 startPos = new Vector3(1, 1, 1);
 
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
-            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, scene, sp.Appearance);
+            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, UUID.Zero, true, scene, sp.Appearance);
 
             ScenePresence npc = scene.GetScenePresence(npcId);
             SceneObjectPart part = SceneHelpers.AddSceneObject(scene);

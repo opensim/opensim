@@ -79,7 +79,19 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
 //            m_log.DebugFormat("[LINDEN UDP INFO MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
             
             lock (m_scenes)
-                m_scenes[scene.RegionInfo.RegionID] = scene;            
+                m_scenes[scene.RegionInfo.RegionID] = scene;
+
+            scene.AddCommand(
+                this, "image queues clear",
+                "image queues clear <first-name> <last-name>",
+                "Clear the image queues (textures downloaded via UDP) for a particular client.",
+                (mod, cmd) => MainConsole.Instance.Output(HandleImageQueuesClear(cmd)));
+
+            scene.AddCommand(
+                this, "image queues show",
+                "image queues show <first-name> <last-name>",
+                "Show the image queues (textures downloaded via UDP) for a particular client.",
+                (mod, cmd) => MainConsole.Instance.Output(GetImageQueuesReport(cmd)));
 
             scene.AddCommand(
                 this, "show pqueues",
@@ -87,7 +99,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "Show priority queue data for each client", 
                 "Without the 'full' option, only root agents are shown."
                   + "  With the 'full' option child agents are also shown.",                                          
-                ShowPQueuesReport);   
+                (mod, cmd) => MainConsole.Instance.Output(GetPQueuesReport(cmd)));
             
             scene.AddCommand(
                 this, "show queues",
@@ -95,7 +107,13 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "Show queue data for each client", 
                 "Without the 'full' option, only root agents are shown."
                   + "  With the 'full' option child agents are also shown.",                                          
-                ShowQueuesReport);   
+                (mod, cmd) => MainConsole.Instance.Output(GetQueuesReport(cmd)));
+
+            scene.AddCommand(
+                this, "show image queues",
+                "show image queues <first-name> <last-name>",
+                "Show the image queues (textures downloaded via UDP) for a particular client.",
+                (mod, cmd) => MainConsole.Instance.Output(GetImageQueuesReport(cmd)));
             
             scene.AddCommand(
                 this, "show throttles",
@@ -103,14 +121,14 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "Show throttle settings for each client and for the server overall", 
                 "Without the 'full' option, only root agents are shown."
                   + "  With the 'full' option child agents are also shown.",                                          
-                ShowThrottlesReport);
+                (mod, cmd) => MainConsole.Instance.Output(GetThrottlesReport(cmd)));
 
             scene.AddCommand(
                 this, "emergency-monitoring",
                 "emergency-monitoring",
                 "Go on/off emergency monitoring mode",
                 "Go on/off emergency monitoring mode",
-                EmergencyMonitoring);                             
+                HandleEmergencyMonitoring);
         }
         
         public void RemoveRegion(Scene scene)
@@ -124,24 +142,51 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[LINDEN UDP INFO MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
-        }                 
+        }
 
-        protected void ShowPQueuesReport(string module, string[] cmd)
-        {                       
-            MainConsole.Instance.Output(GetPQueuesReport(cmd));
-        }
-        
-        protected void ShowQueuesReport(string module, string[] cmd)
-        {                       
-            MainConsole.Instance.Output(GetQueuesReport(cmd));
-        }
-        
-        protected void ShowThrottlesReport(string module, string[] cmd)
+        protected string HandleImageQueuesClear(string[] cmd)
         {
-            MainConsole.Instance.Output(GetThrottlesReport(cmd));
+            if (cmd.Length != 5)
+                return "Usage: image queues clear <first-name> <last-name>";
+
+            string firstName = cmd[3];
+            string lastName = cmd[4];
+
+            List<ScenePresence> foundAgents = new List<ScenePresence>();
+
+            lock (m_scenes)
+            {
+                foreach (Scene scene in m_scenes.Values)
+                {
+                    ScenePresence sp = scene.GetScenePresence(firstName, lastName);
+                    if (sp != null)
+                        foundAgents.Add(sp);
+                }
+            }
+
+            if (foundAgents.Count == 0)
+                return string.Format("No agents found for {0} {1}", firstName, lastName);
+
+            StringBuilder report = new StringBuilder();
+
+            foreach (ScenePresence agent in foundAgents)
+            {
+                LLClientView client = agent.ControllingClient as LLClientView;
+    
+                if (client == null)
+                    return "This command is only supported for LLClientView";
+
+                int requestsDeleted = client.ImageManager.ClearImageQueue();
+
+                report.AppendFormat(
+                    "In region {0} ({1} agent) cleared {2} requests\n",
+                    agent.Scene.RegionInfo.RegionName, agent.IsChildAgent ? "child" : "root", requestsDeleted);
+            }
+
+            return report.ToString();
         }
 
-        protected void EmergencyMonitoring(string module, string[] cmd)
+        protected void HandleEmergencyMonitoring(string module, string[] cmd)
         {
             bool mode = true;
             if (cmd.Length == 1 || (cmd.Length > 1 && cmd[1] == "on"))
@@ -166,7 +211,6 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 entry.Length > maxLength ? entry.Substring(0, maxLength) : entry, 
                 "");
         }
-        
 
         /// <summary>
         /// Generate UDP Queue data report for each client
@@ -235,6 +279,73 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                                 report.AppendLine(((LLClientView)client).EntityUpdateQueue.ToString());
                             }
                         });
+                }
+            }
+
+            return report.ToString();
+        }
+
+        /// <summary>
+        /// Generate an image queue report
+        /// </summary>
+        /// <param name="showParams"></param>
+        /// <returns></returns>
+        private string GetImageQueuesReport(string[] showParams)
+        {
+            if (showParams.Length < 5 || showParams.Length > 6)
+                return "Usage: image queues show <first-name> <last-name> [full]";
+
+            string firstName = showParams[3];
+            string lastName = showParams[4];
+
+            bool showChildAgents = showParams.Length == 6;
+
+            List<ScenePresence> foundAgents = new List<ScenePresence>();
+
+            lock (m_scenes)
+            {
+                foreach (Scene scene in m_scenes.Values)
+                {
+                    ScenePresence sp = scene.GetScenePresence(firstName, lastName);
+                    if (sp != null && (showChildAgents || !sp.IsChildAgent))
+                        foundAgents.Add(sp);
+                }
+            }
+
+            if (foundAgents.Count == 0)
+                return string.Format("No agents found for {0} {1}", firstName, lastName);
+
+            StringBuilder report = new StringBuilder();
+
+            foreach (ScenePresence agent in foundAgents)
+            {
+                LLClientView client = agent.ControllingClient as LLClientView;
+    
+                if (client == null)
+                    return "This command is only supported for LLClientView";
+    
+                J2KImage[] images = client.ImageManager.GetImages();
+
+                report.AppendFormat(
+                    "In region {0} ({1} agent)\n",
+                    agent.Scene.RegionInfo.RegionName, agent.IsChildAgent ? "child" : "root");
+                report.AppendFormat("Images in queue: {0}\n", images.Length);
+    
+                if (images.Length > 0)
+                {
+                    report.AppendFormat(
+                    "{0,-36}  {1,-8}  {2,-10}  {3,-9}  {4,-9}  {5,-7}\n",
+                    "Texture ID",
+                    "Last Seq",
+                    "Priority",
+                    "Start Pkt",
+                    "Has Asset",
+                    "Decoded");
+    
+                    foreach (J2KImage image in images)
+                        report.AppendFormat(
+                            "{0,36}  {1,8}  {2,10}  {3,10}  {4,9}  {5,7}\n",
+                            image.TextureID, image.LastSequence, image.Priority, image.StartPacket, image.HasAsset, image.IsDecoded);
                 }
             }
 

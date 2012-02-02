@@ -44,9 +44,6 @@ namespace OpenSim.Tests.Common.Mock
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // Mock testing variables
-        public List<ImageDataPacket> sentdatapkt = new List<ImageDataPacket>();
-        public List<ImagePacketPacket> sentpktpkt = new List<ImagePacketPacket>();
         EventWaitHandle wh = new EventWaitHandle (false, EventResetMode.AutoReset, "Crossing");
 
         // TODO: This is a really nasty (and temporary) means of telling the test client which scene to invoke setup
@@ -60,6 +57,10 @@ namespace OpenSim.Tests.Common.Mock
         public List<UUID> ReceivedOfflineNotifications { get; private set; }
         public List<UUID> ReceivedOnlineNotifications { get; private set; }
         public List<UUID> ReceivedFriendshipTerminations { get; private set; }
+
+        public List<ImageDataPacket> SentImageDataPackets { get; private set; }
+        public List<ImagePacketPacket> SentImagePacketPackets { get; private set; }
+        public List<ImageNotInDatabasePacket> SentImageNotInDatabasePackets { get; private set; }
 
 // disable warning: public events, part of the public API
 #pragma warning disable 67
@@ -193,6 +194,7 @@ namespace OpenSim.Tests.Common.Mock
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
         public event EstateChangeInfo OnEstateChangeInfo;
+        public event EstateManageTelehub OnEstateManageTelehub;
 
         public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
 
@@ -452,6 +454,10 @@ namespace OpenSim.Tests.Common.Mock
             ReceivedOfflineNotifications = new List<UUID>();
             ReceivedOnlineNotifications = new List<UUID>();
             ReceivedFriendshipTerminations = new List<UUID>();
+
+            SentImageDataPackets = new List<ImageDataPacket>();
+            SentImagePacketPackets = new List<ImagePacketPacket>();
+            SentImageNotInDatabasePackets = new List<ImageNotInDatabasePacket>();
         }
 
         /// <summary>
@@ -804,7 +810,7 @@ namespace OpenSim.Tests.Common.Mock
             im.ImageData.Data = ImageData;
             im.ImageID.Codec = imageCodec;
             im.Header.Zerocoded = true;
-            sentdatapkt.Add(im);
+            SentImageDataPackets.Add(im);
         }
 
         public void SendImageNextPart(ushort partNumber, UUID imageUuid, byte[] imageData)
@@ -814,11 +820,15 @@ namespace OpenSim.Tests.Common.Mock
             im.ImageID.Packet = partNumber;
             im.ImageID.ID = imageUuid;
             im.ImageData.Data = imageData;
-            sentpktpkt.Add(im);
+            SentImagePacketPackets.Add(im);
         }
 
         public void SendImageNotFound(UUID imageid)
         {
+            ImageNotInDatabasePacket p = new ImageNotInDatabasePacket();
+            p.ImageID.ID = imageid;
+
+            SentImageNotInDatabasePackets.Add(p);
         }
 
         public void SendShutdownConnectionNotice()
@@ -939,6 +949,10 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
         public void SendHealth(float health)
+        {
+        }
+
+        public void SendTelehubInfo(UUID ObjectID, string ObjectName, Vector3 ObjectPos, Quaternion ObjectRot, List<Vector3> SpawnPoint)
         {
         }
 

@@ -131,5 +131,6 @@ namespace OpenSim.Services.Interfaces
         bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
         
         GridUserInfo GetGridUserInfo(string userID);
+        GridUserInfo[] GetGridUserInfo(string[] userID);
     }
 }

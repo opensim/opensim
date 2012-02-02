@@ -56,6 +56,24 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             }
         }
 
+        public void PostInitialise()
+        {
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "NPCModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+
         public bool IsNPC(UUID agentId, Scene scene)
         {
             // FIXME: This implementation could not just use the ScenePresence.PresenceType (and callers could inspect
@@ -91,9 +109,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
 
         public UUID CreateNPC(
-            string firstname, string lastname, Vector3 position, Scene scene, AvatarAppearance appearance)
+            string firstname,
+            string lastname,
+            Vector3 position,
+            UUID owner,
+            bool senseAsAgent,
+            Scene scene,
+            AvatarAppearance appearance)
         {
-            NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, scene);
+            NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, owner, senseAsAgent, scene);
             npcAvatar.CircuitCode = (uint)Util.RandomClass.Next(0, int.MaxValue);
 
             m_log.DebugFormat(
@@ -234,11 +258,37 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return false;
         }
 
-        public bool DeleteNPC(UUID agentID, Scene scene)
+        public UUID GetOwner(UUID agentID)
+        {
+            lock (m_avatars)
+            {
+                NPCAvatar av;
+                if (m_avatars.TryGetValue(agentID, out av))
+                {
+                    return av.OwnerID;
+                }
+            }
+
+            return UUID.Zero;
+        }
+
+        public INPC GetNPC(UUID agentID, Scene scene)
         {
             lock (m_avatars)
             {
                 if (m_avatars.ContainsKey(agentID))
+                    return m_avatars[agentID];
+                else
+                    return null;
+            }
+        }
+
+        public bool DeleteNPC(UUID agentID, Scene scene)
+        {
+            lock (m_avatars)
+            {
+                NPCAvatar av;
+                if (m_avatars.TryGetValue(agentID, out av))
                 {
                     scene.RemoveClient(agentID, false);
                     m_avatars.Remove(agentID);
@@ -250,22 +300,27 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return false;
         }
 
-        public void PostInitialise()
+        public bool CheckPermissions(UUID npcID, UUID callerID)
         {
+            lock (m_avatars)
+            {
+                NPCAvatar av;
+                if (m_avatars.TryGetValue(npcID, out av))
+                    return CheckPermissions(av, callerID);
+                else
+                    return false;
+            }
         }
 
-        public void Close()
+        /// <summary>
+        /// Check if the caller has permission to manipulate the given NPC.
+        /// </summary>
+        /// <param name="av"></param>
+        /// <param name="callerID"></param>
+        /// <returns>true if they do, false if they don't.</returns>
+        private bool CheckPermissions(NPCAvatar av, UUID callerID)
         {
-        }
-
-        public string Name
-        {
-            get { return "NPCModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
+            return callerID == UUID.Zero || av.OwnerID == UUID.Zero || av.OwnerID == callerID;
         }
     }
 }

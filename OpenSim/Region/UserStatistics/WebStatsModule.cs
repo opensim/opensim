@@ -442,7 +442,7 @@ namespace OpenSim.Region.UserStatistics
         public string ViewerStatsReport(string request, string path, string param,
                                       UUID agentID, Caps caps)
         {
-            //m_log.Debug(request);
+//            m_log.DebugFormat("[WEB STATS MODULE]: Received viewer starts report from {0}", agentID);
  
             UpdateUserStats(ParseViewerStats(request,agentID), dbConn);
 
@@ -655,13 +655,13 @@ namespace OpenSim.Region.UserStatistics
                 updatecmd.Parameters.Add(new SqliteParameter(":session_key", uid.session_data.session_id.ToString()));
                 updatecmd.Parameters.Add(new SqliteParameter(":agent_key", uid.session_data.agent_id.ToString()));
                 updatecmd.Parameters.Add(new SqliteParameter(":region_key", uid.session_data.region_id.ToString()));
-                m_log.Debug("UPDATE");
+//                m_log.Debug("UPDATE");
 
                 int result = updatecmd.ExecuteNonQuery();
 
                 if (result == 0)
                 {
-                    m_log.Debug("INSERT");
+//                    m_log.Debug("INSERT");
                     updatecmd.CommandText = SQL_STATS_TABLE_INSERT;
                     try
                     {

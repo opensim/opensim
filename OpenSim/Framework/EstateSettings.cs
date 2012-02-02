@@ -373,5 +373,11 @@ namespace OpenSim.Framework
 
             return l_EstateAccess.Contains(user);
         }
+
+        public bool GroupAccess(UUID groupID)
+        {
+            return l_EstateGroups.Contains(groupID);
+        }
+
     }
 }

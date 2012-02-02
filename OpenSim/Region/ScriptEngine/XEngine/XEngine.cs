@@ -26,14 +26,15 @@
  */
 
 using System;
-using System.IO;
-using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
 using System.Security;
 using System.Security.Policy;
-using System.Reflection;
-using System.Globalization;
+using System.Text;
+using System.Threading;
 using System.Xml;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -273,11 +274,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             MainConsole.Instance.Commands.AddCommand(
-                "scripts", false, "scripts show", "scripts show", "Show script information",
-                "Show information on all scripts known to the script engine", HandleShowScripts);
+                "scripts", false, "xengine status", "xengine status", "Show status information",
+                "Show status information on the script engine.",
+                HandleShowStatus);
 
             MainConsole.Instance.Commands.AddCommand(
-                "scripts", false, "show scripts", "show scripts", "Show script information",
+                "scripts", false, "scripts show", "scripts show [<script-item-uuid>]", "Show script information",
+                "Show information on all scripts known to the script engine."
+                    + "If a <script-item-uuid> is given then only information on that script will be shown.",
+                HandleShowScripts);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "scripts", false, "show scripts", "show scripts [<script-item-uuid>]", "Show script information",
                 "Synonym for scripts show command", HandleShowScripts);
 
             MainConsole.Instance.Commands.AddCommand(
@@ -308,43 +316,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 (module, cmdparams) => HandleScriptsAction(cmdparams, HandleStartScript));
         }
 
-        public void HandleShowScripts(string module, string[] cmdparams)
-        {
-            lock (m_Scripts)
-            {
-                MainConsole.Instance.OutputFormat(
-                    "Showing {0} scripts in {1}", m_Scripts.Count, m_Scene.RegionInfo.RegionName);
-
-                foreach (IScriptInstance instance in m_Scripts.Values)
-                {
-                    SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
-                    string status;
-
-                    if (instance.ShuttingDown)
-                    {
-                        status = "shutting down";
-                    }
-                    else if (instance.Suspended)
-                    {
-                        status = "suspended";
-                    }
-                    else if (!instance.Running)
-                    {
-                        status = "stopped";
-                    }
-                    else
-                    {
-                        status = "running";
-                    }
-
-                    MainConsole.Instance.OutputFormat(
-                        "{0}.{1}, item UUID {2}, prim UUID {3} @ {4} ({5})",
-                        instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID,
-                        sop.AbsolutePosition, status);
-                }
-            }
-        }
-
         /// <summary>
         /// Parse the raw item id into a script instance from the command params if it's present.
         /// </summary>
@@ -353,6 +324,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// <returns>true if we're okay to proceed, false if not.</returns>
         private void HandleScriptsAction(string[] cmdparams, Action<IScriptInstance> action)
         {
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_Scene))
+                return;
+
             lock (m_Scripts)
             {
                 string rawItemId;
@@ -392,6 +366,83 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     }
                 }
             }
+        }
+
+        private void HandleShowStatus(string module, string[] cmdparams)
+        {
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_Scene))
+                return;
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Status of XEngine instance for {0}\n", m_Scene.RegionInfo.RegionName);
+
+            lock (m_Scripts)
+                sb.AppendFormat("Scripts loaded             : {0}\n", m_Scripts.Count);
+
+            sb.AppendFormat("Unique scripts             : {0}\n", m_uniqueScripts.Count);
+            sb.AppendFormat("Scripts waiting for load   : {0}\n", m_CompileQueue.Count);
+            sb.AppendFormat("Allocated threads          : {0}\n", m_ThreadPool.ActiveThreads);
+            sb.AppendFormat("In use threads             : {0}\n", m_ThreadPool.InUseThreads);
+            sb.AppendFormat("Work items waiting         : {0}\n", m_ThreadPool.WaitingCallbacks);
+//            sb.AppendFormat("Assemblies loaded          : {0}\n", m_Assemblies.Count);
+
+            MainConsole.Instance.OutputFormat(sb.ToString());
+        }
+
+        public void HandleShowScripts(string module, string[] cmdparams)
+        {
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_Scene))
+                return;
+
+            if (cmdparams.Length == 2)
+            {
+                lock (m_Scripts)
+                {
+                    MainConsole.Instance.OutputFormat(
+                        "Showing {0} scripts in {1}", m_Scripts.Count, m_Scene.RegionInfo.RegionName);
+                }
+            }
+
+            HandleScriptsAction(cmdparams, HandleShowScript);
+        }
+
+        private void HandleShowScript(IScriptInstance instance)
+        {
+            SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
+            string status;
+
+            if (instance.ShuttingDown)
+            {
+                status = "shutting down";
+            }
+            else if (instance.Suspended)
+            {
+                status = "suspended";
+            }
+            else if (!instance.Running)
+            {
+                status = "stopped";
+            }
+            else
+            {
+                status = "running";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            Queue eq = instance.EventQueue;
+
+            sb.AppendFormat("Script name         : {0}\n", instance.ScriptName);
+            sb.AppendFormat("Status              : {0}\n", status);
+
+            lock (eq)
+                sb.AppendFormat("Queued events       : {0}\n", eq.Count);
+
+            sb.AppendFormat("Item UUID           : {0}\n", instance.ItemID);
+            sb.AppendFormat("Containing part name: {0}\n", instance.PrimName);
+            sb.AppendFormat("Containing part UUID: {0}\n", instance.ObjectID);
+            sb.AppendFormat("Position            : {0}\n", sop.AbsolutePosition);
+
+            MainConsole.Instance.OutputFormat(sb.ToString());
         }
 
         private void HandleSuspendScript(IScriptInstance instance)

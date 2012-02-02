@@ -202,16 +202,16 @@ namespace OpenSim
             // Load the simulation data service
             IConfig simDataConfig = m_config.Source.Configs["SimulationDataStore"];
             if (simDataConfig == null)
-                throw new Exception("Configuration file is missing the [SimulationDataStore] section");
+                throw new Exception("Configuration file is missing the [SimulationDataStore] section.  Have you copied OpenSim.ini.example to OpenSim.ini to reference config-include/ files?");
             string module = simDataConfig.GetString("LocalServiceModule", String.Empty);
             if (String.IsNullOrEmpty(module))
-                throw new Exception("Configuration file is missing the LocalServiceModule parameter in the [SimulationDataStore] section");
+                throw new Exception("Configuration file is missing the LocalServiceModule parameter in the [SimulationDataStore] section.");
             m_simulationDataService = ServerUtils.LoadPlugin<ISimulationDataService>(module, new object[] { m_config.Source });
 
             // Load the estate data service
             IConfig estateDataConfig = m_config.Source.Configs["EstateDataStore"];
             if (estateDataConfig == null)
-                throw new Exception("Configuration file is missing the [EstateDataStore] section");
+                throw new Exception("Configuration file is missing the [EstateDataStore] section.  Have you copied OpenSim.ini.example to OpenSim.ini to reference config-include/ files?");
             module = estateDataConfig.GetString("LocalServiceModule", String.Empty);
             if (String.IsNullOrEmpty(module))
                 throw new Exception("Configuration file is missing the LocalServiceModule parameter in the [EstateDataStore] section");
@@ -383,6 +383,9 @@ namespace OpenSim
             // TODO : Try setting resource for region xstats here on scene
             MainServer.Instance.AddStreamHandler(new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
             
+            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
+            scene.EventManager.TriggerParcelPrimCountUpdate();
+
             try
             {
                 scene.RegisterRegionWithGrid();
@@ -397,9 +400,6 @@ namespace OpenSim
                 // line - we need to get the user's attention
                 Environment.Exit(1);
             }
-
-            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
-            scene.EventManager.TriggerParcelPrimCountUpdate();
 
             // We need to do this after we've initialized the
             // scripting engines.

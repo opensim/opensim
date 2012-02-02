@@ -26,10 +26,13 @@
  */
 
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
+using log4net;
 
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
@@ -51,6 +54,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         private const int AGENT = 1;
         private const int AGENT_BY_USERNAME = 0x10;
+        private const int NPC = 0x20;
         private const int ACTIVE = 2;
         private const int PASSIVE = 4;
         private const int SCRIPTED = 8;
@@ -203,7 +207,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
             // Is the sensor type is AGENT and not SCRIPTED then include agents
-            if ((ts.type & (AGENT | AGENT_BY_USERNAME)) != 0 && (ts.type & SCRIPTED) == 0)
+            if ((ts.type & (AGENT | AGENT_BY_USERNAME | NPC)) != 0 && (ts.type & SCRIPTED) == 0)
             {
                sensedEntities.AddRange(doAgentSensor(ts));
             }
@@ -413,6 +417,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         private List<SensedEntity> doAgentSensor(SenseRepeatClass ts)
         {
+            INPCModule npcModule = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<INPCModule>();
+
             List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
             // If nobody about quit fast
@@ -441,6 +447,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             Action<ScenePresence> senseEntity = new Action<ScenePresence>(delegate(ScenePresence presence)
             {
+                if ((ts.type & NPC) == 0
+                    && presence.PresenceType == PresenceType.Npc
+                    && !npcModule.GetNPC(presence.UUID, presence.Scene).SenseAsAgent)
+                    return;
+
+                if ((ts.type & AGENT) == 0
+                    && (presence.PresenceType == PresenceType.User
+                        || npcModule.GetNPC(presence.UUID, presence.Scene).SenseAsAgent))
+                    return;
+
                 if (presence.IsDeleted || presence.IsChildAgent || presence.GodLevel > 0.0)
                     return;
                 
@@ -451,6 +467,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                 toRegionPos = presence.AbsolutePosition;
                 dis = Math.Abs(Util.GetDistanceTo(toRegionPos, fromRegionPos));
+
+                // Disabled for now since all osNpc* methods check for appropriate ownership permission.
+                // Perhaps could be re-enabled as an NPC setting at some point since being able to make NPCs not
+                // sensed might be useful.
+//                if (presence.PresenceType == PresenceType.Npc && npcModule != null)
+//                {
+//                    UUID npcOwner = npcModule.GetOwner(presence.UUID);
+//                    if (npcOwner != UUID.Zero && npcOwner != SensePoint.OwnerID)
+//                        return;
+//                }
 
                 // are they in range
                 if (dis <= ts.range)

@@ -713,7 +713,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (money != null)
             {
                 // do the transaction, that is if the agent has got sufficient funds
-                if (!money.AmountCovered(remoteClient, money.GroupCreationCharge)) {
+                if (!money.AmountCovered(remoteClient.AgentId, money.GroupCreationCharge)) {
                     remoteClient.SendCreateGroupReply(UUID.Zero, false, "You have got issuficient funds to create a group.");
                     return UUID.Zero;
                 }

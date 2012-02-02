@@ -846,6 +846,8 @@ namespace OpenSim.Data.MySQL
                 }
             }
 
+            LoadSpawnPoints(rs);
+
             return rs;
         }
 
@@ -994,7 +996,9 @@ namespace OpenSim.Data.MySQL
                             "use_estate_sun, fixed_sun, sun_position, " +
                             "covenant, Sandbox, sunvectorx, sunvectory, " +
                             "sunvectorz, loaded_creation_datetime, " +
-                            "loaded_creation_id, map_tile_ID) values (?RegionUUID, ?BlockTerraform, " +
+                            "loaded_creation_id, map_tile_ID, " +
+                            "TelehubObject, parcel_tile_ID) " +
+                             "values (?RegionUUID, ?BlockTerraform, " +
                             "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
                             "?AllowLandResell, ?AllowLandJoinDivide, " +
                             "?BlockShowInSearch, ?AgentLimit, ?ObjectBonus, " +
@@ -1009,7 +1013,7 @@ namespace OpenSim.Data.MySQL
                             "?SunPosition, ?Covenant, ?Sandbox, " +
                             "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                             "?LoadedCreationDateTime, ?LoadedCreationID, " +
-                            "?TerrainImageID)";
+                            "?TerrainImageID, ?TelehubObject, ?ParcelImageID) ";
 
                         FillRegionSettingsCommand(cmd, rs);
 
@@ -1017,6 +1021,7 @@ namespace OpenSim.Data.MySQL
                     }
                 }
             }
+            SaveSpawnPoints(rs);
         }
 
         public List<LandData> LoadLandObjects(UUID regionUUID)
@@ -1296,6 +1301,8 @@ namespace OpenSim.Data.MySQL
                 newSettings.LoadedCreationID = (String) row["loaded_creation_id"];
 
             newSettings.TerrainImageID = DBGuid.FromDB(row["map_tile_ID"]);
+            newSettings.ParcelImageID = DBGuid.FromDB(row["parcel_tile_ID"]);
+            newSettings.TelehubObject = DBGuid.FromDB(row["TelehubObject"]);
 
             return newSettings;
         }
@@ -1626,7 +1633,8 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("LoadedCreationDateTime", settings.LoadedCreationDateTime);
             cmd.Parameters.AddWithValue("LoadedCreationID", settings.LoadedCreationID);
             cmd.Parameters.AddWithValue("TerrainImageID", settings.TerrainImageID);
-
+            cmd.Parameters.AddWithValue("ParcelImageID", settings.ParcelImageID);
+            cmd.Parameters.AddWithValue("TelehubObject", settings.TelehubObject);
         }
 
         /// <summary>
@@ -1825,6 +1833,73 @@ namespace OpenSim.Data.MySQL
                     }
 
                     cmd.Dispose();
+                }
+            }
+        }
+
+        private void LoadSpawnPoints(RegionSettings rs)
+        {
+            rs.ClearSpawnPoints();
+
+            lock (m_dbLock)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "select Yaw, Pitch, Distance from spawn_points where RegionID = ?RegionID";
+                        cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
+
+                        using (IDataReader r = cmd.ExecuteReader())
+                        {
+                            while (r.Read())
+                            {
+                                SpawnPoint sp = new SpawnPoint();
+
+                                sp.Yaw = (float)r["Yaw"];
+                                sp.Pitch = (float)r["Pitch"];
+                                sp.Distance = (float)r["Distance"];
+
+                                rs.AddSpawnPoint(sp);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void SaveSpawnPoints(RegionSettings rs)
+        {
+            lock (m_dbLock)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "delete from spawn_points where RegionID = ?RegionID";
+                        cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
+
+                        cmd.ExecuteNonQuery();
+
+                        cmd.Parameters.Clear();
+
+                        cmd.CommandText = "insert into spawn_points (RegionID, Yaw, Pitch, Distance) values ( ?RegionID, ?Yaw, ?Pitch, ?Distance)";
+
+                        foreach (SpawnPoint p in rs.SpawnPoints())
+                        {
+                            cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
+                            cmd.Parameters.AddWithValue("?Yaw", p.Yaw);
+                            cmd.Parameters.AddWithValue("?Pitch", p.Pitch);
+                            cmd.Parameters.AddWithValue("?Distance", p.Distance);
+
+                            cmd.ExecuteNonQuery();
+                            cmd.Parameters.Clear();
+                        }
+                    }
                 }
             }
         }

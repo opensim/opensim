@@ -54,7 +54,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// Deserialize a scene object from the original xml format
         /// </summary>
         /// <param name="xmlData"></param>
-        /// <returns></returns>
+        /// <returns>The scene object deserialized.  Null on failure.</returns>
         public static SceneObjectGroup FromOriginalXmlFormat(string xmlData)
         {
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
@@ -1134,12 +1134,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             if (sop.CreatorData != null && sop.CreatorData != string.Empty)
                 writer.WriteElementString("CreatorData", sop.CreatorData);
-            else if (options.ContainsKey("profile"))
+            else if (options.ContainsKey("home"))
             {
                 if (m_UserManagement == null)
                     m_UserManagement = sop.ParentGroup.Scene.RequestModuleInterface<IUserManagement>();
                 string name = m_UserManagement.GetUserName(sop.CreatorID);
-                writer.WriteElementString("CreatorData", (string)options["profile"] + "/" + sop.CreatorID + ";" + name);
+                writer.WriteElementString("CreatorData", (string)options["home"] + ";" + name);
             }
 
             WriteUUID(writer, "FolderID", sop.FolderID, options);
@@ -1192,8 +1192,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("ObjectSaleType", sop.ObjectSaleType.ToString());
             writer.WriteElementString("OwnershipCost", sop.OwnershipCost.ToString());
             WriteUUID(writer, "GroupID", sop.GroupID, options);
-            WriteUUID(writer, "OwnerID", sop.OwnerID, options);
-            WriteUUID(writer, "LastOwnerID", sop.LastOwnerID, options);
+
+            UUID ownerID = options.ContainsKey("wipe-owners") ? UUID.Zero : sop.OwnerID;
+            WriteUUID(writer, "OwnerID", ownerID, options);
+
+            UUID lastOwnerID = options.ContainsKey("wipe-owners") ? UUID.Zero : sop.LastOwnerID;
+            WriteUUID(writer, "LastOwnerID", lastOwnerID, options);
+
             writer.WriteElementString("BaseMask", sop.BaseMask.ToString());
             writer.WriteElementString("OwnerMask", sop.OwnerMask.ToString());
             writer.WriteElementString("GroupMask", sop.GroupMask.ToString());
@@ -1277,17 +1282,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     writer.WriteElementString("BasePermissions", item.BasePermissions.ToString());
                     writer.WriteElementString("CreationDate", item.CreationDate.ToString());
 
-                    
                     WriteUUID(writer, "CreatorID", item.CreatorID, options);
 
                     if (item.CreatorData != null && item.CreatorData != string.Empty)
                         writer.WriteElementString("CreatorData", item.CreatorData);
-                    else if (options.ContainsKey("profile"))
+                    else if (options.ContainsKey("home"))
                     {
                         if (m_UserManagement == null)
                             m_UserManagement = scene.RequestModuleInterface<IUserManagement>();
                         string name = m_UserManagement.GetUserName(item.CreatorID);
-                        writer.WriteElementString("CreatorData", (string)options["profile"] + "/" + item.CreatorID + ";" + name);
+                        writer.WriteElementString("CreatorData", (string)options["home"] + ";" + name);
                     }
 
                     writer.WriteElementString("Description", item.Description);
@@ -1298,10 +1302,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     writer.WriteElementString("InvType", item.InvType.ToString());
                     WriteUUID(writer, "ItemID", item.ItemID, options);
                     WriteUUID(writer, "OldItemID", item.OldItemID, options);
-                    WriteUUID(writer, "LastOwnerID", item.LastOwnerID, options);
+
+                    UUID lastOwnerID = options.ContainsKey("wipe-owners") ? UUID.Zero : item.LastOwnerID;
+                    WriteUUID(writer, "LastOwnerID", lastOwnerID, options);
+
                     writer.WriteElementString("Name", item.Name);
                     writer.WriteElementString("NextPermissions", item.NextPermissions.ToString());
-                    WriteUUID(writer, "OwnerID", item.OwnerID, options);
+
+                    UUID ownerID = options.ContainsKey("wipe-owners") ? UUID.Zero : item.OwnerID;
+                    WriteUUID(writer, "OwnerID", ownerID, options);
+
                     writer.WriteElementString("CurrentPermissions", item.CurrentPermissions.ToString());
                     WriteUUID(writer, "ParentID", item.ParentID, options);
                     WriteUUID(writer, "ParentPartID", item.ParentPartID, options);

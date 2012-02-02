@@ -219,6 +219,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event BakeTerrain OnBakeTerrain;
         public event RequestTerrain OnUploadTerrain;
         public event EstateChangeInfo OnEstateChangeInfo;
+        public event EstateManageTelehub OnEstateManageTelehub;
         public event EstateRestartSimRequest OnEstateRestartSimRequest;
         public event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
         public event UpdateEstateAccessDeltaRequest OnUpdateEstateAccessDeltaRequest;
@@ -304,6 +305,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
 
+        /// <summary>
+        /// Handles UDP texture download.
+        /// </summary>
+        public LLImageManager ImageManager { get; private set; }
+
         private readonly LLUDPServer m_udpServer;
         private readonly LLUDPClient m_udpClient;
         private readonly UUID m_sessionId;
@@ -348,7 +354,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected Dictionary<PacketType, PacketProcessor> m_packetHandlers = new Dictionary<PacketType, PacketProcessor>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
         protected Scene m_scene;
-        private LLImageManager m_imageManager;
         protected string m_firstName;
         protected string m_lastName;
         protected Thread m_clientThread;
@@ -459,7 +464,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
             m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
-            m_imageManager = new LLImageManager(this, m_assetService, Scene.RequestModuleInterface<IJ2KDecoder>());
+            ImageManager = new LLImageManager(this, m_assetService, Scene.RequestModuleInterface<IJ2KDecoder>());
             m_channelVersion = Util.StringToBytes256(scene.GetSimulatorVersion());
             m_agentId = agentId;
             m_sessionId = sessionId;
@@ -499,7 +504,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IsActive = false;
 
             // Shutdown the image manager
-            m_imageManager.Close();
+            ImageManager.Close();
 
             // Fire the callback for this connection closing
             if (OnConnectionClosed != null)
@@ -577,7 +582,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Add a handler for the given packet type.
         /// </summary>
         /// <remarks>
-        /// The packet is handled on its own thread.  If packets must be handled in the order in which thye
+        /// The packet is handled on its own thread.  If packets must be handled in the order in which they
         /// are received then please use the synchronous version of this method.
         /// </remarks>
         /// <param name="packetType"></param>
@@ -758,9 +763,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(handshake, ThrottleOutPacketType.Task);
         }
 
-        /// <summary>
-        ///
-        /// </summary>
         public void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {
             AgentMovementCompletePacket mov = (AgentMovementCompletePacket)PacketPool.Instance.GetPacket(PacketType.AgentMovementComplete);
@@ -3476,6 +3478,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry)
         {
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Sending avatar appearance for {0} with {1} bytes to {2} {3}",
+//                agentID, textureEntry.Length, Name, AgentId);
+
             AvatarAppearancePacket avp = (AvatarAppearancePacket)PacketPool.Instance.GetPacket(PacketType.AvatarAppearance);
             // TODO: don't create new blocks if recycling an old packet
             avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[218];
@@ -3497,7 +3503,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId, UUID[] objectIDs)
         {
-            //m_log.DebugFormat("[CLIENT]: Sending animations to {0}", Name);
+//            m_log.DebugFormat("[LLCLIENTVIEW]: Sending animations for {0} to {1}", sourceAgentId, Name);
 
             AvatarAnimationPacket ani = (AvatarAnimationPacket)PacketPool.Instance.GetPacket(PacketType.AvatarAnimation);
             // TODO: don't create new blocks if recycling an old packet
@@ -3532,6 +3538,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void SendAvatarDataImmediate(ISceneEntity avatar)
         {
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Sending immediate object update for avatar {0} {1} to {2} {3}",
+//                avatar.Name, avatar.UUID, Name, AgentId);
+            
             ScenePresence presence = avatar as ScenePresence;
             if (presence == null)
                 return;
@@ -3541,7 +3551,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             objupdate.RegionData.RegionHandle = presence.RegionHandle;
             objupdate.RegionData.TimeDilation = ushort.MaxValue;
-
+            
             objupdate.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
             objupdate.ObjectData[0] = CreateAvatarUpdateBlock(presence);
 
@@ -3939,7 +3949,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             if ((categories & ThrottleOutPacketTypeFlags.Texture) != 0)
-                m_imageManager.ProcessImageQueue(m_udpServer.TextureSendLimit);
+                ImageManager.ProcessImageQueue(m_udpServer.TextureSendLimit);
         }
 
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
@@ -4470,6 +4480,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.ParamList = returnblock;
             packet.Header.Reliable = false;
             //m_log.Debug("[ESTATE]: SIM--->" + packet.ToString());
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
+        public void SendTelehubInfo(UUID ObjectID, string ObjectName, Vector3 ObjectPos, Quaternion ObjectRot, List<Vector3> SpawnPoint)
+        {
+            TelehubInfoPacket packet = (TelehubInfoPacket)PacketPool.Instance.GetPacket(PacketType.TelehubInfo);
+            packet.TelehubBlock.ObjectID = ObjectID;
+            packet.TelehubBlock.ObjectName = Utils.StringToBytes(ObjectName);
+            packet.TelehubBlock.TelehubPos = ObjectPos;
+            packet.TelehubBlock.TelehubRot = ObjectRot;
+
+            packet.SpawnPointBlock = new TelehubInfoPacket.SpawnPointBlockBlock[SpawnPoint.Count];
+            for (int n = 0; n < SpawnPoint.Count; n++)
+            {
+                packet.SpawnPointBlock[n] = new TelehubInfoPacket.SpawnPointBlockBlock{SpawnPointPos = SpawnPoint[n]};
+            }
+
             OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
@@ -7470,7 +7497,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if ((ImageType)block.Type == ImageType.Baked)
                     args.Priority *= 2.0f;
 
-                m_imageManager.EnqueueReq(args);
+                ImageManager.EnqueueReq(args);
             }
 
             return true;
@@ -8911,7 +8938,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool HandleEstateOwnerMessage(IClientAPI sender, Packet Pack)
         {
             EstateOwnerMessagePacket messagePacket = (EstateOwnerMessagePacket)Pack;
-            //m_log.Debug(messagePacket.ToString());
+            // m_log.InfoFormat("[LLCLIENTVIEW]: Packet: {0}", Utils.BytesToString(messagePacket.MethodData.Method));
             GodLandStatRequest handlerLandStatRequest;
 
             #region Packet Session and User Check
@@ -9210,6 +9237,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     return true;
 
+                case "telehub":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        UUID invoice = messagePacket.MethodData.Invoice;
+                        UUID SenderID = messagePacket.AgentData.AgentID;
+                        UInt32 param1 = 0u;
+
+                        string command = (string)Utils.BytesToString(messagePacket.ParamList[0].Parameter);
+
+                        if (command != "info ui")
+                        {
+                            try
+                            {
+                                param1 = Convert.ToUInt32(Utils.BytesToString(messagePacket.ParamList[1].Parameter));
+                            }
+                            catch
+                            {
+                            }
+                        }
+
+                        EstateManageTelehub handlerEstateManageTelehub = OnEstateManageTelehub;
+                        if (handlerEstateManageTelehub != null)
+                        {
+                            handlerEstateManageTelehub(this, invoice, SenderID, command, param1);
+                        }
+                    }
+                    return true;
+
                 default:
                     m_log.Error("EstateOwnerMessage: Unknown method requested\n" + messagePacket);
                     return true;
@@ -9221,8 +9276,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //lsrp.RequestData.ReportType; // 1 = colliders, 0 = scripts
             //lsrp.RequestData.RequestFlags;
             //lsrp.RequestData.Filter;
-
-//            return true;
         }
 
         private bool HandleRequestRegionInfo(IClientAPI sender, Packet Pack)

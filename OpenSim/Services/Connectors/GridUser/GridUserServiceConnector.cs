@@ -223,5 +223,65 @@ namespace OpenSim.Services.Connectors
 
         }
 
+        public GridUserInfo[] GetGridUserInfo(string[] userIDs)
+        {
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            //sendData["SCOPEID"] = scopeID.ToString();
+            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+            sendData["METHOD"] = "getgriduserinfos";
+
+            sendData["AgentIDs"] = new List<string>(userIDs);
+
+            string reply = string.Empty;
+            string reqString = ServerUtils.BuildQueryString(sendData);
+            //m_log.DebugFormat("[PRESENCE CONNECTOR]: queryString = {0}", reqString);
+            try
+            {
+                reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                        m_ServerURI + "/griduser",
+                        reqString);
+                if (reply == null || (reply != null && reply == string.Empty))
+                {
+                    m_log.DebugFormat("[GRID USER CONNECTOR]: GetGridUserInfo received null or empty reply");
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[GRID USER CONNECTOR]: Exception when contacting grid user server: {0}", e.Message);
+            }
+
+            List<GridUserInfo> rinfos = new List<GridUserInfo>();
+
+            Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+
+            if (replyData != null)
+            {
+                if (replyData.ContainsKey("result") &&
+                    (replyData["result"].ToString() == "null" || replyData["result"].ToString() == "Failure"))
+                {
+                    return new GridUserInfo[0];
+                }
+
+                Dictionary<string, object>.ValueCollection pinfosList = replyData.Values;
+                //m_log.DebugFormat("[PRESENCE CONNECTOR]: GetAgents returned {0} elements", pinfosList.Count);
+                foreach (object griduser in pinfosList)
+                {
+                    if (griduser is Dictionary<string, object>)
+                    {
+                        GridUserInfo pinfo = new GridUserInfo((Dictionary<string, object>)griduser);
+                        rinfos.Add(pinfo);
+                    }
+                    else
+                        m_log.DebugFormat("[GRID USER CONNECTOR]: GetGridUserInfo received invalid response type {0}",
+                            griduser.GetType());
+                }
+            }
+            else
+                m_log.DebugFormat("[GRID USER CONNECTOR]: GetGridUserInfo received null response");
+
+            return rinfos.ToArray();
+        }
     }
 }

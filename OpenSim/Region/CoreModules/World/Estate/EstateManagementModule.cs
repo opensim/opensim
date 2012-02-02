@@ -53,6 +53,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         protected EstateManagementCommands m_commands;                
 
         private EstateTerrainXferHandler TerrainUploader;
+        public TelehubManager m_Telehub;
 
         public event ChangeDelegate OnRegionInfoChange;
         public event ChangeDelegate OnEstateInfoChange;
@@ -599,6 +600,50 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
         }
 
+        public void handleOnEstateManageTelehub (IClientAPI client, UUID invoice, UUID senderID, string cmd, uint param1)
+        {
+            uint ObjectLocalID;
+            SceneObjectPart part;
+
+            switch (cmd)
+            {
+                case "info ui":
+                    break;
+
+                case "connect":
+                    // Add the Telehub
+                    part = Scene.GetSceneObjectPart((uint)param1);
+                    if (part == null)
+                        return;
+                    SceneObjectGroup grp = part.ParentGroup;
+
+                    m_Telehub.Connect(grp);
+                    break;
+
+                case "delete":
+                    // Disconnect Telehub
+                    m_Telehub.Disconnect();
+                    break;
+
+                case "spawnpoint add":
+                    // Add SpawnPoint to the Telehub
+                    part = Scene.GetSceneObjectPart((uint)param1);
+                    if (part == null)
+                        return;
+                    m_Telehub.AddSpawnPoint(part.AbsolutePosition);
+                    break;
+
+                case "spawnpoint remove":
+                    // Remove SpawnPoint from Telehub
+                    m_Telehub.RemoveSpawnPoint((int)param1);
+                    break;
+
+                default:
+                    break;
+            }
+            SendTelehubInfo(client);
+        }
+
         private void SendSimulatorBlueBoxMessage(
             IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)
         {
@@ -1055,7 +1100,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             Scene.RegisterModuleInterface<IEstateModule>(this);
             Scene.EventManager.OnNewClient += EventManager_OnNewClient;
             Scene.EventManager.OnRequestChangeWaterHeight += changeWaterHeight;
-            
+
+            m_Telehub = new TelehubManager(scene);
+
             m_commands = new EstateManagementCommands(this);
             m_commands.Initialise();
         }
@@ -1109,6 +1156,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             client.OnEstateRestartSimRequest += handleEstateRestartSimRequest;
             client.OnEstateChangeCovenantRequest += handleChangeEstateCovenantRequest;
             client.OnEstateChangeInfo += handleEstateChangeInfo;
+            client.OnEstateManageTelehub += handleOnEstateManageTelehub;
             client.OnUpdateEstateAccessDeltaRequest += handleEstateAccessDeltaRequest;
             client.OnSimulatorBlueBoxMessageRequest += SendSimulatorBlueBoxMessage;
             client.OnEstateBlueBoxMessageRequest += SendEstateBlueBoxMessage;
@@ -1243,5 +1291,39 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (onmessage != null)
                 onmessage(Scene.RegionInfo.RegionID, fromID, fromName, message);
         }
+
+
+        private void SendTelehubInfo(IClientAPI client)
+        {
+            RegionSettings settings =
+                    this.Scene.RegionInfo.RegionSettings;
+
+            SceneObjectGroup telehub = null;
+            if (settings.TelehubObject != UUID.Zero &&
+                (telehub = Scene.GetSceneObjectGroup(settings.TelehubObject)) != null)
+            {
+                List<Vector3> spawnPoints = new List<Vector3>();
+
+                foreach (SpawnPoint sp in settings.SpawnPoints())
+                {
+                    spawnPoints.Add(sp.GetLocation(Vector3.Zero, Quaternion.Identity));
+                }
+
+                client.SendTelehubInfo(settings.TelehubObject,
+                                       telehub.Name,
+                                       telehub.AbsolutePosition,
+                                       telehub.GroupRotation,
+                                       spawnPoints);
+            }
+            else
+            {
+                client.SendTelehubInfo(UUID.Zero,
+                                       String.Empty,
+                                       Vector3.Zero,
+                                       Quaternion.Identity,
+                                       new List<Vector3>());
+            }
+        }
     }
 }
+

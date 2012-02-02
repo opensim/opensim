@@ -42,10 +42,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     /// An interface for a script API module to communicate with
     /// the engine it's running under
     /// </summary>
-
-    public delegate void ScriptRemoved(UUID script);
-    public delegate void ObjectRemoved(UUID prim);
-
     public interface IScriptEngine
     {
         /// <summary>
@@ -56,9 +52,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         Scene World { get; }
 
         IScriptModule ScriptModule { get; }
-
-        event ScriptRemoved OnScriptRemoved;
-        event ObjectRemoved OnObjectRemoved;
 
         /// <summary>
         /// Post an event to a single script

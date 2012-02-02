@@ -452,6 +452,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetGridLoginURI();
         }
 
+        public string osGetGridHomeURI()
+        {
+            return m_OSSL_Functions.osGetGridHomeURI();
+        }
+
+        public string osGetGridCustom(string key)
+        {
+            return m_OSSL_Functions.osGetGridCustom(key);
+        }
+
         public LSL_String osFormatString(string str, LSL_List strings)
         {
             return m_OSSL_Functions.osFormatString(str, strings);
@@ -483,9 +493,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetLinkPrimitiveParams(linknumber, rules);
         }
 
+        public LSL_Integer osIsNpc(LSL_Key npc)
+        {
+            return m_OSSL_Functions.osIsNpc(npc);
+        }
+
         public key osNpcCreate(string user, string name, vector position, key cloneFrom)
         {
             return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom);
+        }
+
+        public key osNpcCreate(string user, string name, vector position, key cloneFrom, int options)
+        {
+            return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom, options);
         }
 
         public key osNpcSaveAppearance(key npc, string notecard)
@@ -496,6 +516,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void osNpcLoadAppearance(key npc, string notecard)
         {
             m_OSSL_Functions.osNpcLoadAppearance(npc, notecard);
+        }
+
+        public LSL_Key osNpcGetOwner(LSL_Key npc)
+        {
+            return m_OSSL_Functions.osNpcGetOwner(npc);
         }
 
         public vector osNpcGetPos(LSL_Key npc)
@@ -546,6 +571,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void osNpcRemove(key npc)
         {
             m_OSSL_Functions.osNpcRemove(npc);
+        }
+
+        public void osNpcPlayAnimation(LSL_Key npc, string animation)
+        {
+            m_OSSL_Functions.osNpcPlayAnimation(npc, animation);
+        }
+
+        public void osNpcStopAnimation(LSL_Key npc, string animation)
+        {
+            m_OSSL_Functions.osNpcStopAnimation(npc, animation);
         }
 
         public LSL_Key osOwnerSaveAppearance(string notecard)

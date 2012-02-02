@@ -98,6 +98,16 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             
             OptionSet options = new OptionSet().Add("m|merge", delegate (string v) { mergeOar = v != null; });
             options.Add("s|skip-assets", delegate (string v) { skipAssets = v != null; });
+
+            // Send a message to the region ready module
+            /* bluewall* Disable this for the time being
+            IRegionReadyModule rready = m_scene.RequestModuleInterface<IRegionReadyModule>();
+
+            if (rready != null)
+            {
+                rready.OarLoadingAlert("load");
+            }
+            */
             
             List<string> mainParams = options.Parse(cmdparams);
           
@@ -125,9 +135,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             Dictionary<string, object> options = new Dictionary<string, object>();
 
             OptionSet ops = new OptionSet();
-//            ops.Add("v|version=", delegate(string v) { options["version"] = v; });
-            ops.Add("p|profile=", delegate(string v) { options["profile"] = v; });
+
+            // legacy argument [obsolete]
+            ops.Add("p|profile=", delegate(string v) { Console.WriteLine("\n WARNING: -profile option is obsolete and it will not work. Use -home instead.\n"); });
+            // preferred
+            ops.Add("h|home=", delegate(string v) { options["home"] = v; });
+
             ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
+            ops.Add("publish", v => options["wipe-owners"] = v != null);
             ops.Add("perm=", delegate(string v) { options["checkPermissions"] = v; });
 
             List<string> mainParams = ops.Parse(cmdparams);

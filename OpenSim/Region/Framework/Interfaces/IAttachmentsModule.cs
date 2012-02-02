@@ -46,7 +46,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Save the attachments that have change on this presence.
         /// </summary>
         /// <param name="sp"></param>
-        void SaveChangedAttachments(IScenePresence sp);
+        void SaveChangedAttachments(IScenePresence sp, bool saveAllScripted);
 
         /// <summary>
         /// Delete all the presence's attachments from the scene

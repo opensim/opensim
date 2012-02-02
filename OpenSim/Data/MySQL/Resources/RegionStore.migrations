@@ -842,3 +842,24 @@ alter table regionsettings ENGINE = MyISAM;
 alter table terrain ENGINE = MyISAM;
 
 COMMIT;
+
+:VERSION 39        #--------------- Telehub support
+
+BEGIN;
+CREATE TABLE IF NOT EXISTS `spawn_points` (
+  `RegionID` varchar(36) COLLATE utf8_unicode_ci NOT NULL,
+  `Yaw` float NOT NULL,
+  `Pitch` float NOT NULL,
+  `Distance` float NOT NULL,
+  KEY `RegionID` (`RegionID`)
+) ENGINE=Innodb;
+
+ALTER TABLE `regionsettings` ADD COLUMN `TelehubObject` varchar(36) NOT NULL;
+COMMIT;
+
+:VERSION 40       #---------------- Parcels for sale
+
+BEGIN;
+ALTER TABLE `regionsettings` ADD COLUMN `parcel_tile_ID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+COMMIT;
+

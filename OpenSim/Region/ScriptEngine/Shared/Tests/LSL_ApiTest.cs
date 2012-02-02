@@ -75,32 +75,49 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestllAngleBetween()
         {
-            CheckllAngleBetween(new Vector3(1, 0, 0), 0);
-            CheckllAngleBetween(new Vector3(1, 0, 0), 90);
-            CheckllAngleBetween(new Vector3(1, 0, 0), 180);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 0,   1, 1);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 90,  1, 1);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 180, 1, 1);
 
-            CheckllAngleBetween(new Vector3(0, 1, 0), 0);
-            CheckllAngleBetween(new Vector3(0, 1, 0), 90);
-            CheckllAngleBetween(new Vector3(0, 1, 0), 180);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 0,   1, 1);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 90,  1, 1);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 180, 1, 1);
 
-            CheckllAngleBetween(new Vector3(0, 0, 1), 0);
-            CheckllAngleBetween(new Vector3(0, 0, 1), 90);
-            CheckllAngleBetween(new Vector3(0, 0, 1), 180);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 0,   1, 1);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 90,  1, 1);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 180, 1, 1);
 
-            CheckllAngleBetween(new Vector3(1, 1, 1), 0);
-            CheckllAngleBetween(new Vector3(1, 1, 1), 90);
-            CheckllAngleBetween(new Vector3(1, 1, 1), 180);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 0,   1, 1);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 90,  1, 1);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 180, 1, 1);
+            
+            CheckllAngleBetween(new Vector3(1, 0, 0), 0,   1.6f, 1.8f);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 90,  0.3f, 3.9f);
+            CheckllAngleBetween(new Vector3(1, 0, 0), 180, 8.8f, 7.4f);
+            
+            CheckllAngleBetween(new Vector3(0, 1, 0), 0,   9.8f, -9.4f);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 90,  8.4f, -8.2f);
+            CheckllAngleBetween(new Vector3(0, 1, 0), 180, 0.4f, -5.8f);
+            
+            CheckllAngleBetween(new Vector3(0, 0, 1), 0,   -6.8f, 3.4f);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 90,  -3.6f, 5.6f);
+            CheckllAngleBetween(new Vector3(0, 0, 1), 180, -3.8f, 1.1f);
+            
+            CheckllAngleBetween(new Vector3(1, 1, 1), 0,   -7.7f, -2.0f);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 90,  -3.0f, -9.1f);
+            CheckllAngleBetween(new Vector3(1, 1, 1), 180, -7.9f, -8.0f);
         }
 
-        private void CheckllAngleBetween(Vector3 axis,float originalAngle)
+        private void CheckllAngleBetween(Vector3 axis,float originalAngle, float denorm1, float denorm2)
         {
             Quaternion rotation1 = Quaternion.CreateFromAxisAngle(axis, 0);
             Quaternion rotation2 = Quaternion.CreateFromAxisAngle(axis, ToRadians(originalAngle));
+            rotation1 *= denorm1;
+            rotation2 *= denorm2;
 
             double deducedAngle = FromLslFloat(m_lslApi.llAngleBetween(ToLslQuaternion(rotation2), ToLslQuaternion(rotation1)));
 
-            Assert.Greater(deducedAngle, ToRadians(originalAngle) - ANGLE_ACCURACY_IN_RADIANS);
-            Assert.Less(deducedAngle, ToRadians(originalAngle) + ANGLE_ACCURACY_IN_RADIANS);
+            Assert.That(deducedAngle, Is.EqualTo(ToRadians(originalAngle)).Within(ANGLE_ACCURACY_IN_RADIANS), "TestllAngleBetween check fail");
         }
 
         #region Conversions to and from LSL_Types
@@ -142,30 +159,97 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         public void TestllRot2Euler()
         {
             // 180, 90 and zero degree rotations.
-            CheckllRot2Euler(new LSL_Types.Quaternion(1.0f, 0.0f, 0.0f, 0.0f), new LSL_Types.Vector3(Math.PI, 0.0f, 0.0f));
-            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, 1.0f, 0.0f, 0.0f), new LSL_Types.Vector3(Math.PI, 0.0f, Math.PI));
-            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, 0.0f, 1.0f, 0.0f), new LSL_Types.Vector3(0.0f, 0.0f, Math.PI));
-            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, 0.0f, 0.0f, 1.0f), new LSL_Types.Vector3(0.0f, 0.0f, 0.0f));
-            CheckllRot2Euler(new LSL_Types.Quaternion(-0.5f, -0.5f, 0.5f, 0.5f), new LSL_Types.Vector3(0, -Math.PI / 2.0f, Math.PI / 2.0f));
-            CheckllRot2Euler(new LSL_Types.Quaternion(-0.707107f, 0.0f, 0.0f, -0.707107f), new LSL_Types.Vector3(Math.PI / 2.0f, 0.0f, 0.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, 0.0f, 0.0f, 1.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, 0.0f, 0.707107f, 0.707107f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, 0.0f, 1.0f, 0.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, 0.0f, 0.707107f, -0.707107f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.707107f, 0.0f, 0.0f, 0.707107f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.5f, -0.5f, 0.5f, 0.5f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, -0.707107f, 0.707107f, 0.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.5f, -0.5f, 0.5f, -0.5f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(1.0f, 0.0f, 0.0f, 0.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.707107f, -0.707107f, 0.0f, 0.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, -1.0f, 0.0f, 0.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.707107f, -0.707107f, 0.0f, 0.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.707107f, 0.0f, 0.0f, -0.707107f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.5f, -0.5f, -0.5f, -0.5f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, -0.707107f, -0.707107f, 0.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.5f, -0.5f, -0.5f, 0.5f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, -0.707107f, 0.0f, 0.707107f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.5f, -0.5f, 0.5f, 0.5f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.707107f, 0.0f, 0.707107f, 0.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.5f, 0.5f, 0.5f, -0.5f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, -0.707107f, 0.0f, -0.707107f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.5f, -0.5f, -0.5f, -0.5f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.707107f, 0.0f, -0.707107f, 0.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.5f, 0.5f, -0.5f, 0.5f));
+
             // A couple of messy rotations.
-            CheckllRot2Euler(new LSL_Types.Quaternion(1.0f, 5.651f, -3.1f, 67.023f), new LSL_Types.Vector3(0.037818f, 0.166447f, -0.095595f));
-            CheckllRot2Euler(new LSL_Types.Quaternion(0.719188f, -0.408934f, -0.363998f, -0.427841f), new LSL_Types.Vector3(-1.954769f, -0.174533f, 1.151917f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(1.0f, 5.651f, -3.1f, 67.023f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.719188f, -0.408934f, -0.363998f, -0.427841f));
+
+            // Some deliberately malicious rotations (intended on provoking singularity errors)
+            // The "f" suffexes are deliberately omitted.
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.50001f, 0.50001f, 0.50001f, 0.50001f));
+            // More malice. The "f" suffixes are deliberately omitted.
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.701055, 0.092296, 0.701055, -0.092296));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.183005, -0.683010, 0.183005, 0.683010));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.430460, -0.560982, 0.430460, 0.560982));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.701066, 0.092301, -0.701066, 0.092301));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.183013, -0.683010, 0.183013, 0.683010));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.183005, -0.683014, -0.183005, -0.683014));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.353556, 0.612375, 0.353556, -0.612375));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.353554, -0.612385, -0.353554, 0.612385));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.560989, 0.430450, 0.560989, -0.430450));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.183013, 0.683009, -0.183013, 0.683009));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.430457, -0.560985, -0.430457, 0.560985));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.353552, 0.612360, -0.353552, -0.612360));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.499991, 0.500003, 0.499991, -0.500003));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.353555, -0.612385, -0.353555, -0.612385));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.701066, -0.092301, -0.701066, 0.092301));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.499991, 0.500007, 0.499991, -0.500007));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.683002, 0.183016, -0.683002, 0.183016));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.430458, 0.560982, 0.430458, 0.560982));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.499991, -0.500003, -0.499991, 0.500003));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.183009, 0.683011, -0.183009, 0.683011));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.560975, -0.430457, 0.560975, -0.430457));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.701055, 0.092300, 0.701055, 0.092300));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.560990, 0.430459, -0.560990, 0.430459));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.092302, -0.701059, -0.092302, -0.701059));
         }
 
-        private void CheckllRot2Euler(LSL_Types.Quaternion rot, LSL_Types.Vector3 eulerCheck)
+        /// <summary>
+        /// Check an llRot2Euler conversion.
+        /// </summary>
+        /// <remarks>
+        /// Testing Rot2Euler this way instead of comparing against expected angles because
+        /// 1. There are several ways to get to the original Quaternion. For example a rotation
+        ///    of PI and -PI will give the same result. But PI and -PI aren't equal.
+        /// 2. This method checks to see if the calculated angles from a quaternion can be used
+        ///    to create a new quaternion to produce the same rotation.
+        /// However, can't compare the newly calculated quaternion against the original because
+        /// once again, there are multiple quaternions that give the same result. For instance
+        ///  <X, Y, Z, S> == <-X, -Y, -Z, -S>.  Additionally, the magnitude of S can be changed
+        /// and will still result in the same rotation if the values for X, Y, Z are also changed
+        /// to compensate.
+        /// However, if two quaternions represent the same rotation, then multiplying the first
+        /// quaternion by the conjugate of the second, will give a third quaternion representing
+        /// a zero rotation. This can be tested for by looking at the X, Y, Z values which should
+        /// be zero.
+        /// </remarks>
+        /// <param name="rot"></param>
+        private void CheckllRot2Euler(LSL_Types.Quaternion rot)
         {
             // Call LSL function to convert quaternion rotaion to euler radians.
             LSL_Types.Vector3 eulerCalc = m_lslApi.llRot2Euler(rot);
-            // Check upper and lower bounds of x, y and z.
-            // This type of check is performed as opposed to comparing for equal numbers, in order to allow slight
-            // differences in accuracy.
-            Assert.Greater(eulerCalc.x, eulerCheck.x - ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler X lower bounds check fail");
-            Assert.Less(eulerCalc.x, eulerCheck.x + ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler X upper bounds check fail");
-            Assert.Greater(eulerCalc.y, eulerCheck.y - ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Y lower bounds check fail");
-            Assert.Less(eulerCalc.y, eulerCheck.y + ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Y upper bounds check fail");
-            Assert.Greater(eulerCalc.z, eulerCheck.z - ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Z lower bounds check fail");
-            Assert.Less(eulerCalc.z, eulerCheck.z + ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Z upper bounds check fail");
+            // Now use the euler radians to recalculate a new quaternion rotation
+            LSL_Types.Quaternion newRot = m_lslApi.llEuler2Rot(eulerCalc);
+            // Multiple original quaternion by conjugate of quaternion calculated with angles.
+            LSL_Types.Quaternion check = rot * new LSL_Types.Quaternion(-newRot.x, -newRot.y, -newRot.z, newRot.s);
+            
+            Assert.AreEqual(0.0, check.x, VECTOR_COMPONENT_ACCURACY, "TestllRot2Euler X bounds check fail");
+            Assert.AreEqual(0.0, check.y, VECTOR_COMPONENT_ACCURACY, "TestllRot2Euler Y bounds check fail");
+            Assert.AreEqual(0.0, check.z, VECTOR_COMPONENT_ACCURACY, "TestllRot2Euler Z bounds check fail");
         }
 
         [Test]

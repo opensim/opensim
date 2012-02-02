@@ -134,9 +134,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                         | CollisionCategories.Body
                                                         | CollisionCategories.Character
                                                         | CollisionCategories.Land);
-        internal IntPtr Body = IntPtr.Zero;
+        /// <summary>
+        /// Body for dynamics simulation
+        /// </summary>
+        internal IntPtr Body { get; private set; }
+
         private OdeScene _parent_scene;
-        internal IntPtr Shell = IntPtr.Zero;
+
+        /// <summary>
+        /// Collision geometry
+        /// </summary>
+        internal IntPtr Shell { get; private set; }
+        
         private IntPtr Amotor = IntPtr.Zero;
         private d.Mass ShellMass;
 
@@ -1018,6 +1027,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="tensor"></param>
         private void CreateOdeStructures(float npositionX, float npositionY, float npositionZ, float tensor)
         {
+            if (!(Shell == IntPtr.Zero && Body == IntPtr.Zero && Amotor == IntPtr.Zero))
+            {
+                m_log.ErrorFormat(
+                    "[ODE CHARACTER]: Creating ODE structures for {0} even though some already exist.  Shell = {1}, Body = {2}, Amotor = {3}",
+                    Name, Shell, Body, Amotor);
+            }
+
             int dAMotorEuler = 1;
 //            _parent_scene.waitForSpaceUnlock(_parent_scene.space);
             if (CAPSULE_LENGTH <= 0)
@@ -1032,6 +1048,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 CAPSULE_RADIUS = 0.01f;
             }
 
+//          lock (OdeScene.UniversalColliderSyncObject)
             Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
 
             d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
@@ -1135,6 +1152,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         internal void DestroyOdeStructures()
         {
+            // Create avatar capsule and related ODE data
+            if (Shell == IntPtr.Zero || Body == IntPtr.Zero || Amotor == IntPtr.Zero)
+            {
+                m_log.ErrorFormat(
+                    "[ODE CHARACTER]: Destroying ODE structures for {0} even though some are already null.  Shell = {1}, Body = {2}, Amotor = {3}",
+                    Name, Shell, Body, Amotor);
+            }
+
             // destroy avatar capsule and related ODE data
             if (Amotor != IntPtr.Zero)
             {
@@ -1155,7 +1180,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (Shell != IntPtr.Zero)
             {
+//              lock (OdeScene.UniversalColliderSyncObject)
                 d.GeomDestroy(Shell);
+
                 _parent_scene.geom_name_map.Remove(Shell);
                 _parent_scene.actor_name_map.Remove(Shell);
 
@@ -1260,15 +1287,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (m_tainted_isPhysical)
                 {
-                    // Create avatar capsule and related ODE data
-                    if (!(Shell == IntPtr.Zero && Body == IntPtr.Zero && Amotor == IntPtr.Zero))
-                    {
-                        m_log.Warn("[ODE CHARACTER]: re-creating the following avatar ODE data for " + Name + ", even though it already exists - "
-                            + (Shell!=IntPtr.Zero ? "Shell ":"")
-                            + (Body!=IntPtr.Zero ? "Body ":"")
-                            + (Amotor!=IntPtr.Zero ? "Amotor ":""));
-                    }
-
                     CreateOdeStructures(_position.X, _position.Y, _position.Z, m_tensor);
                     _parent_scene.AddCharacter(this);
                 }

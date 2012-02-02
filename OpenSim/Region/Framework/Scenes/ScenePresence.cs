@@ -40,6 +40,7 @@ using OpenSim.Region.Framework.Scenes.Types;
 using OpenSim.Region.Physics.Manager;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Services.Interfaces;
+using TeleportFlags = OpenSim.Framework.Constants.TeleportFlags;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -892,6 +893,8 @@ namespace OpenSim.Region.Framework.Scenes
                 pos.Y = crossedBorder.BorderLine.Z - 1;
             }
 
+            CheckAndAdjustLandingPoint(ref pos);
+
             if (pos.X < 0f || pos.Y < 0f || pos.Z < 0f)
             {
                 m_log.WarnFormat(
@@ -1056,6 +1059,7 @@ namespace OpenSim.Region.Framework.Scenes
             bool isFlying = Flying;
             RemoveFromPhysicalScene();
             Velocity = Vector3.Zero;
+            CheckLandingPoint(ref pos);
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
 
@@ -1066,6 +1070,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool isFlying = Flying;
             RemoveFromPhysicalScene();
+            CheckLandingPoint(ref pos);
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
 
@@ -1180,6 +1185,7 @@ namespace OpenSim.Region.Framework.Scenes
                 client.Name, Scene.RegionInfo.RegionName, AbsolutePosition);
 
             Vector3 look = Velocity;
+
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
             {
                 look = new Vector3(0.99f, 0.042f, 0);
@@ -1206,7 +1212,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_callbackURI = null;
             }
 
-            //m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
+//            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
 
             ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
             ValidateAndSendAppearanceAndAgentData();
@@ -1274,8 +1280,8 @@ namespace OpenSim.Region.Framework.Scenes
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
 //            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: In {0} received agent update from {1}",
-//                Scene.RegionInfo.RegionName, remoteClient.Name);
+//                "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
+//                Scene.RegionInfo.RegionName, remoteClient.Name, agentData.ControlFlags);
 
             if (IsChildAgent)
             {
@@ -2312,6 +2318,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
         public void AddNewMovement(Vector3 vec)
         {
+//            m_log.DebugFormat("[SCENE PRESENCE]: Adding new movement {0} for {1}", vec, Name);
+
             Vector3 direc = vec * Rotation;
             direc.Normalize();
 
@@ -3801,5 +3809,146 @@ namespace OpenSim.Region.Framework.Scenes
                 m_reprioritization_called = false;
             }
         }
+
+        private void CheckLandingPoint(ref Vector3 pos)
+        {
+            // Never constrain lures
+            if ((TeleportFlags & TeleportFlags.ViaLure) != 0)
+                return;
+
+            if (m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
+                return;
+
+            ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
+
+            if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
+                land.LandData.UserLocation != Vector3.Zero &&
+                land.LandData.OwnerID != m_uuid &&
+                (!m_scene.Permissions.IsGod(m_uuid)) &&
+                (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)))
+            {
+                float curr = Vector3.Distance(AbsolutePosition, pos);
+                if (Vector3.Distance(land.LandData.UserLocation, pos) < curr)
+                    pos = land.LandData.UserLocation;
+                else
+                    ControllingClient.SendAlertMessage("Can't teleport closer to destination");
+            }
+        }
+
+        private void CheckAndAdjustTelehub(SceneObjectGroup telehub, ref Vector3 pos)
+        {
+            if ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)) ==
+                (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID) ||
+                (m_teleportFlags & TeleportFlags.ViaLandmark) != 0 ||
+                (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
+                (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0)
+            {
+                if (GodLevel < 200 &&
+                    ((!m_scene.Permissions.IsGod(m_uuid) &&
+                    !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)) || 
+                    (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
+                    (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0))
+                {
+                    SpawnPoint[] spawnPoints = m_scene.RegionInfo.RegionSettings.SpawnPoints().ToArray();
+                    if (spawnPoints.Length == 0)
+                        return;
+
+                    float distance = 9999;
+                    int closest = -1;
+
+                    for (int i = 0 ; i < spawnPoints.Length ; i++)
+                    {
+                        Vector3 spawnPosition = spawnPoints[i].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                        Vector3 offset = spawnPosition - pos;
+                        float d = Vector3.Mag(offset);
+                        if (d >= distance)
+                            continue;
+                        ILandObject land = m_scene.LandChannel.GetLandObject(spawnPosition.X, spawnPosition.Y);
+                        if (land == null)
+                            continue;
+                        if (land.IsEitherBannedOrRestricted(UUID))
+                            continue;
+                        distance = d;
+                        closest = i;
+                    }
+                    if (closest == -1)
+                        return;
+
+                    pos = spawnPoints[closest].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                }
+            }
+        }
+
+        private void CheckAndAdjustLandingPoint(ref Vector3 pos)
+        {
+            SceneObjectGroup telehub = null;
+            if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero && (telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject)) != null)
+            {
+                if (!m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
+                {
+                    CheckAndAdjustTelehub(telehub, ref pos);
+                    return;
+                }
+            }
+
+            ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
+            if (land != null)
+            {
+                if (Scene.DEBUG)
+                    TeleportFlagsDebug();
+
+                // If we come in via login, landmark or map, we want to
+                // honor landing points. If we come in via Lure, we want
+                // to ignore them.
+                if ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)) ==
+                    (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID) ||
+                    (m_teleportFlags & TeleportFlags.ViaLandmark) != 0 ||
+                    (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
+                    (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0)
+                {
+                    // Don't restrict gods, estate managers, or land owners to
+                    // the TP point. This behaviour mimics agni.
+                    if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
+                        land.LandData.UserLocation != Vector3.Zero &&
+                        GodLevel < 200 &&
+                        ((land.LandData.OwnerID != m_uuid && 
+                          !m_scene.Permissions.IsGod(m_uuid) &&
+                          !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)) || 
+                         (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
+                         (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0))
+                    {
+                        pos = land.LandData.UserLocation;
+                    }
+                }
+
+                land.SendLandUpdateToClient(ControllingClient);
+            }
+        }
+
+        private void TeleportFlagsDebug() {
+    
+            // Some temporary debugging help to show all the TeleportFlags we have...
+            bool HG = false;
+            if((m_teleportFlags & TeleportFlags.ViaHGLogin) == TeleportFlags.ViaHGLogin)
+                HG = true;
+    
+            m_log.InfoFormat("[SCENE PRESENCE]: TELEPORT ******************");
+    
+            uint i = 0u;
+            for (int x = 0; x <= 30 ; x++, i = 1u << x)
+            {
+                i = 1u << x;
+    
+                if((m_teleportFlags & (TeleportFlags)i) == (TeleportFlags)i)
+                    if (HG == false)
+                        m_log.InfoFormat("[SCENE PRESENCE]: Teleport Flags include {0}", ((TeleportFlags) i).ToString());
+                    else
+                        m_log.InfoFormat("[SCENE PRESENCE]: HG Teleport Flags include {0}", ((TeleportFlags)i).ToString());
+            }
+    
+            m_log.InfoFormat("[SCENE PRESENCE]: TELEPORT ******************");
+    
+        }
+
     }
 }

@@ -122,6 +122,7 @@ public struct ConfigurationParameters
     public float angularSleepingThreshold;
 	public float ccdMotionThreshold;
 	public float ccdSweptSphereRadius;
+    public float contactProcessingThreshold;
 
     public float terrainFriction;
     public float terrainHitFraction;
@@ -247,6 +248,9 @@ public static extern RaycastHit RayTest(uint worldID, uint id, Vector3 from, Vec
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern Vector3 RecoverFromPenetration(uint worldID, uint id);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void DumpBulletStatistics();
 
 // Log a debug message
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
