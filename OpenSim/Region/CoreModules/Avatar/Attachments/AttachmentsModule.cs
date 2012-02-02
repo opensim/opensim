@@ -39,6 +39,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Attachments
 {
@@ -116,6 +117,40 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
 //            m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing any attachments for {0}", sp.Name);
 
+            XmlDocument doc = new XmlDocument();
+            string stateData = String.Empty;
+
+            IAttachmentsService attServ = m_scene.RequestModuleInterface<IAttachmentsService>();
+            if (attServ != null)
+            {
+                m_log.DebugFormat("[ATTACHMENT]: Loading attachment data from attachment service");
+                stateData = attServ.Get(sp.UUID.ToString());
+                if (stateData != String.Empty)
+                {
+                    try
+                    {
+                        doc.LoadXml(stateData);
+                    }
+                    catch { }
+                }
+            }
+
+            Dictionary<UUID, string> itemData = new Dictionary<UUID, string>();
+
+            XmlNodeList nodes = doc.GetElementsByTagName("Attachment");
+            if (nodes.Count > 0)
+            {
+                foreach (XmlNode n in nodes)
+                {
+                    XmlElement elem = (XmlElement)n;
+                    string itemID = elem.GetAttribute("ItemID");
+                    string xml = elem.InnerXml;
+
+                    itemData[new UUID(itemID)] = xml;
+                }
+            }
+
+
             List<AvatarAttachment> attachments = sp.Appearance.GetAttachments();
             foreach (AvatarAttachment attach in attachments)
             {
@@ -135,12 +170,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 try
                 {
+                    string xmlData;
+                    XmlDocument d = null;
+                    UUID asset;
+                    if (itemData.TryGetValue(attach.ItemID, out xmlData))
+                    {
+                        d = new XmlDocument();
+                        d.LoadXml(xmlData);
+                        m_log.InfoFormat("[ATTACHMENT]: Found saved state for item {0}, loading it", attach.ItemID);
+                    }
+
                     // If we're an NPC then skip all the item checks and manipulations since we don't have an
                     // inventory right now.
                     if (sp.PresenceType == PresenceType.Npc)
                         RezSingleAttachmentFromInventoryInternal(sp, UUID.Zero, attach.AssetID, p, null);
                     else
-                        RezSingleAttachmentFromInventory(sp, attach.ItemID, p);
+                        RezSingleAttachmentFromInventory(sp, attach.ItemID, p, true, d);
                 }
                 catch (Exception e)
                 {
