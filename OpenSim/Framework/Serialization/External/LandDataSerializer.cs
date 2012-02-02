@@ -90,7 +90,7 @@ namespace OpenSim.Framework.Serialization.External
             landData.MusicURL       =                                  xtr.ReadElementString("MusicURL");
             landData.OwnerID        = UUID.Parse(                      xtr.ReadElementString("OwnerID"));
 
-            landData.ParcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
+            landData.ParcelAccessList = new List<LandAccessEntry>();
             xtr.Read();
             if (xtr.Name != "ParcelAccessList")
                 throw new XmlException(String.Format("Expected \"ParcelAccessList\" element but got \"{0}\"", xtr.Name));
@@ -99,11 +99,13 @@ namespace OpenSim.Framework.Serialization.External
             {
                 while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
                 {
-                    ParcelManager.ParcelAccessEntry pae = new ParcelManager.ParcelAccessEntry();
+                    LandAccessEntry pae = new LandAccessEntry();
 
                     xtr.ReadStartElement("ParcelAccessEntry");
                     pae.AgentID    = UUID.Parse(                           xtr.ReadElementString("AgentID"));
-                    pae.Time       = Convert.ToDateTime(                   xtr.ReadElementString("Time"));
+                    // We really don't care about temp vs perm here and this
+                    // would break on old oars. Assume all bans are perm
+                    pae.Expires    = 0; // Convert.ToUint(                       xtr.ReadElementString("Time"));
                     pae.Flags      = (AccessList)Convert.ToUInt32(         xtr.ReadElementString("AccessList"));
                     xtr.ReadEndElement();
 
@@ -162,11 +164,11 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteElementString("OwnerID",        landData.OwnerID.ToString());
 
             xtw.WriteStartElement("ParcelAccessList");
-            foreach (ParcelManager.ParcelAccessEntry pal in landData.ParcelAccessList)
+            foreach (LandAccessEntry pal in landData.ParcelAccessList)
             {
                 xtw.WriteStartElement("ParcelAccessEntry");
                 xtw.WriteElementString("AgentID",     pal.AgentID.ToString());
-                xtw.WriteElementString("Time",        pal.Time.ToString("s"));
+                xtw.WriteElementString("Time",        pal.Expires.ToString());
                 xtw.WriteElementString("AccessList",  Convert.ToString((uint)pal.Flags));
                 xtw.WriteEndElement();
             }

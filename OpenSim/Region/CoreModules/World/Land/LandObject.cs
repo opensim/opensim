@@ -418,13 +418,21 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsBannedFromLand(UUID avatar)
         {
-            if (m_scene.Permissions.CanEditParcelProperties(avatar, this, 0))
+            ExpireAccessList();
+
+            if (m_scene.Permissions.IsAdministrator(avatar))
+                return false;
+
+            if (m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar))
+                return false;
+
+            if (avatar == LandData.OwnerID)
                 return false;
 
             if ((LandData.Flags & (uint) ParcelFlags.UseBanList) > 0)
             {
                 if (LandData.ParcelAccessList.FindIndex(
-                        delegate(ParcelManager.ParcelAccessEntry e)
+                        delegate(LandAccessEntry e)
                         {
                             if (e.AgentID == avatar && e.Flags == AccessList.Ban)
                                 return true;
@@ -439,13 +447,21 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsRestrictedFromLand(UUID avatar)
         {
-            if (m_scene.Permissions.CanEditParcelProperties(avatar, this, 0))
+            ExpireAccessList();
+
+            if (m_scene.Permissions.IsAdministrator(avatar))
+                return false;
+
+            if (m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar))
+                return false;
+
+            if (avatar == LandData.OwnerID)
                 return false;
 
             if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) > 0)
             {
                 if (LandData.ParcelAccessList.FindIndex(
-                        delegate(ParcelManager.ParcelAccessEntry e)
+                        delegate(LandAccessEntry e)
                         {
                             if (e.AgentID == avatar && e.Flags == AccessList.Access)
                                 return true;
@@ -511,19 +527,24 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #region AccessList Functions
 
-        public List<UUID>  CreateAccessListArrayByFlag(AccessList flag)
+        public List<LandAccessEntry>  CreateAccessListArrayByFlag(AccessList flag)
         {
-            List<UUID> list = new List<UUID>();
-            foreach (ParcelManager.ParcelAccessEntry entry in LandData.ParcelAccessList)
+            ExpireAccessList();
+
+            List<LandAccessEntry> list = new List<LandAccessEntry>();
+            foreach (LandAccessEntry entry in LandData.ParcelAccessList)
             {
                 if (entry.Flags == flag)
-                {
-                   list.Add(entry.AgentID);
-                }
+                   list.Add(entry);
             }
             if (list.Count == 0)
             {
-                list.Add(UUID.Zero);
+                LandAccessEntry e = new LandAccessEntry();
+                e.AgentID = UUID.Zero;
+                e.Flags = 0;
+                e.Expires = 0;
+
+                list.Add(e);
             }
 
             return list;
@@ -535,20 +556,20 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (flags == (uint) AccessList.Access || flags == (uint) AccessList.Both)
             {
-                List<UUID> avatars = CreateAccessListArrayByFlag(AccessList.Access);
-                remote_client.SendLandAccessListData(avatars,(uint) AccessList.Access,LandData.LocalID);
+                List<LandAccessEntry> accessEntries = CreateAccessListArrayByFlag(AccessList.Access);
+                remote_client.SendLandAccessListData(accessEntries,(uint) AccessList.Access,LandData.LocalID);
             }
 
             if (flags == (uint) AccessList.Ban || flags == (uint) AccessList.Both)
             {
-                List<UUID> avatars = CreateAccessListArrayByFlag(AccessList.Ban);
-                remote_client.SendLandAccessListData(avatars, (uint)AccessList.Ban, LandData.LocalID);
+                List<LandAccessEntry> accessEntries = CreateAccessListArrayByFlag(AccessList.Ban);
+                remote_client.SendLandAccessListData(accessEntries, (uint)AccessList.Ban, LandData.LocalID);
             }
         }
 
         public void UpdateAccessList(uint flags, UUID transactionID,
                 int sequenceID, int sections,
-                List<ParcelManager.ParcelAccessEntry> entries,
+                List<LandAccessEntry> entries,
                 IClientAPI remote_client)
         {
             LandData newData = LandData.Copy();
@@ -558,16 +579,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 m_listTransactions[flags] = transactionID;
 
-                List<ParcelManager.ParcelAccessEntry> toRemove =
-                        new List<ParcelManager.ParcelAccessEntry>();
+                List<LandAccessEntry> toRemove =
+                        new List<LandAccessEntry>();
 
-                foreach (ParcelManager.ParcelAccessEntry entry in newData.ParcelAccessList)
+                foreach (LandAccessEntry entry in newData.ParcelAccessList)
                 {
                     if (entry.Flags == (AccessList)flags)
                         toRemove.Add(entry);
                 }
 
-                foreach (ParcelManager.ParcelAccessEntry entry in toRemove)
+                foreach (LandAccessEntry entry in toRemove)
                 {
                     newData.ParcelAccessList.Remove(entry);
                 }
@@ -582,13 +603,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
 
-            foreach (ParcelManager.ParcelAccessEntry entry in entries)
+            foreach (LandAccessEntry entry in entries)
             {
-                ParcelManager.ParcelAccessEntry temp =
-                        new ParcelManager.ParcelAccessEntry();
+                LandAccessEntry temp =
+                        new LandAccessEntry();
 
                 temp.AgentID = entry.AgentID;
-                temp.Time = entry.Time;
+                temp.Expires = entry.Expires;
                 temp.Flags = (AccessList)flags;
 
                 newData.ParcelAccessList.Add(temp);
@@ -1105,5 +1126,20 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
         #endregion
+
+        private void ExpireAccessList()
+        {
+            List<LandAccessEntry> delete = new List<LandAccessEntry>();
+
+            foreach (LandAccessEntry entry in LandData.ParcelAccessList)
+            {
+                if (entry.Expires != 0 && entry.Expires < Util.UnixTimeSinceEpoch())
+                    delete.Add(entry);
+            }
+            foreach (LandAccessEntry entry in delete)
+                LandData.ParcelAccessList.Remove(entry);
+
+            m_scene.EventManager.TriggerLandObjectUpdated((uint)LandData.LocalID, this);
+        }
     }
 }
