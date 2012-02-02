@@ -541,7 +541,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public LSL_Integer llGetLinkNumberOfSides(int link)
         {
-            return m_LSL_Functions.llGetLinkNumber();
+            return m_LSL_Functions.llGetLinkNumberOfSides(link);
         }
 
         public LSL_Integer llGetListEntryType(LSL_List src, int index)
