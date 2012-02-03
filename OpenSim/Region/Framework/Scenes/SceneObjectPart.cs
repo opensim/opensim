@@ -2729,9 +2729,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup == null)
                 return;
 
-            // When running OpenSim tests, EventManager can be null. Maybe tests should create an EventManager.
-            if(ParentGroup.Scene.EventManager != null)
-                ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
+            // When running OpenSim tests, Scene (and EventManager can be null).
+            // Need to fix tests before we can trigger this here
+            // ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
 
             ParentGroup.QueueForUpdateCheck();
 
@@ -2765,9 +2765,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup == null)
                 return;
 
-            // When running OpenSim tests, EventManager can be null. Maybe tests should create an EventManager.
-            if (ParentGroup.Scene.EventManager != null)
-                ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
+            // When running OpenSim tests, Scene (and EventManager can be null).
+            // Need to fix tests before we can trigger this here
+            // ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
 
             // This was pulled from SceneViewer. Attachments always receive full updates.
             // I could not verify if this is a requirement but this maintains existing behavior
