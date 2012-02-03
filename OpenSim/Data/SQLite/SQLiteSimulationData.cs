@@ -1185,6 +1185,7 @@ namespace OpenSim.Data.SQLite
             createCol(regionsettings, "fixed_sun", typeof (Int32));
             createCol(regionsettings, "sun_position", typeof (Double));
             createCol(regionsettings, "covenant", typeof(String));
+            createCol(regionsettings, "covenant_datetime", typeof(Int32));
             createCol(regionsettings, "map_tile_ID", typeof(String));
             regionsettings.PrimaryKey = new DataColumn[] { regionsettings.Columns["regionUUID"] };
             return regionsettings;
@@ -1509,6 +1510,7 @@ namespace OpenSim.Data.SQLite
             newSettings.FixedSun = Convert.ToBoolean(row["fixed_sun"]);
             newSettings.SunPosition = Convert.ToDouble(row["sun_position"]);
             newSettings.Covenant = new UUID((String) row["covenant"]);
+            newSettings.CovenantChangedDateTime = Convert.ToInt32(row["covenant_datetime"]);
             newSettings.TerrainImageID = new UUID((String)row["map_tile_ID"]);
 
             return newSettings;
@@ -1833,6 +1835,7 @@ namespace OpenSim.Data.SQLite
             row["fixed_sun"] = settings.FixedSun;
             row["sun_position"] = settings.SunPosition;
             row["covenant"] = settings.Covenant.ToString();
+            row["covenant_datetime"] = settings.CovenantChangedDateTime;
             row["map_tile_ID"] = settings.TerrainImageID.ToString();
         }
 

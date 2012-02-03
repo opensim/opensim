@@ -4439,7 +4439,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             EstateCovenantReplyPacket einfopack = new EstateCovenantReplyPacket();
             EstateCovenantReplyPacket.DataBlock edata = new EstateCovenantReplyPacket.DataBlock();
             edata.CovenantID = covenant;
-            edata.CovenantTimestamp = 0;
+            edata.CovenantTimestamp = (uint) m_scene.RegionInfo.RegionSettings.CovenantChangedDateTime;
             edata.EstateOwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
             edata.EstateName = Utils.StringToBytes(m_scene.RegionInfo.EstateSettings.EstateName);
             einfopack.Data = edata;
@@ -4447,8 +4447,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         public void SendDetailedEstateData(
-            UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, 
-            UUID covenant, string abuseEmail, UUID estateOwner)
+            UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition,
+            UUID covenant, uint covenantChanged, string abuseEmail, UUID estateOwner)
         {
 //            m_log.DebugFormat(
 //                "[LLCLIENTVIEW]: Sending detailed estate data to {0} with covenant asset id {1}", Name, covenant);
@@ -4473,7 +4473,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             returnblock[4].Parameter = Utils.StringToBytes(sunPosition.ToString());
             returnblock[5].Parameter = Utils.StringToBytes(parentEstate.ToString());
             returnblock[6].Parameter = Utils.StringToBytes(covenant.ToString());
-            returnblock[7].Parameter = Utils.StringToBytes("1160895077"); // what is this?
+            returnblock[7].Parameter = Utils.StringToBytes(covenantChanged.ToString());
             returnblock[8].Parameter = Utils.StringToBytes("1"); // what is this?
             returnblock[9].Parameter = Utils.StringToBytes(abuseEmail);
 
