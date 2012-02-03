@@ -2729,8 +2729,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup == null)
                 return;
 
-            ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
-
             ParentGroup.QueueForUpdateCheck();
 
             int timeNow = Util.UnixTimeSinceEpoch();
@@ -2752,6 +2750,9 @@ namespace OpenSim.Region.Framework.Scenes
             //            m_log.DebugFormat(
             //                "[SCENE OBJECT PART]: Scheduling full  update for {0}, {1} at {2}",
             //                UUID, Name, TimeStampFull);
+
+            if (ParentGroup.Scene != null)
+                ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
         }
 
         /// <summary>
@@ -2763,13 +2764,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup == null)
                 return;
 
-            ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
-
             // This was pulled from SceneViewer. Attachments always receive full updates.
             // I could not verify if this is a requirement but this maintains existing behavior
             if (ParentGroup.IsAttachment)
             {
                 ScheduleFullUpdate();
+                return;
             }
 
             if (UpdateFlag == UpdateRequired.NONE)
@@ -2784,6 +2784,9 @@ namespace OpenSim.Region.Framework.Scenes
             //                    "[SCENE OBJECT PART]: Scheduling terse update for {0}, {1} at {2}",
             //                    UUID, Name, TimeStampTerse);
             }
+
+            if (ParentGroup.Scene != null)
+                ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
         }
 
         public void ScriptSetPhysicsStatus(bool UsePhysics)
