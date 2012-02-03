@@ -869,3 +869,8 @@ BEGIN;
 ALTER TABLE `landaccesslist` ADD COLUMN `Expires` INTEGER NOT NULL DEFAULT 0;
 COMMIT;
 
+:VERSION 42       #--------------------- Region Covenant changed time
+
+BEGIN;
+ALTER TABLE regionsettings ADD COLUMN covenant_datetime int unsigned NOT NULL DEFAULT '0';
+COMMIT;
