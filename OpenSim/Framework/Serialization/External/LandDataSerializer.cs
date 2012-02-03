@@ -46,13 +46,11 @@ namespace OpenSim.Framework.Serialization.External
 
         protected static UTF8Encoding m_utf8Encoding = new UTF8Encoding();
 
-        private delegate void LandDataProcessor(LandData landData, XmlTextReader reader);
-        private static Dictionary<string, LandDataProcessor> m_ldProcessors
-            = new Dictionary<string, LandDataProcessor>();
+        private static Dictionary<string, Action<LandData, XmlTextReader>> m_ldProcessors
+            = new Dictionary<string, Action<LandData, XmlTextReader>>();
 
-        private delegate void LandAccessEntryProcessor(LandAccessEntry lae, XmlTextReader reader);
-        private static Dictionary<string, LandAccessEntryProcessor> m_laeProcessors
-            = new Dictionary<string, LandAccessEntryProcessor>();
+        private static Dictionary<string, Action<LandAccessEntry, XmlTextReader>> m_laeProcessors
+            = new Dictionary<string, Action<LandAccessEntry, XmlTextReader>>();
 
         static LandDataSerializer()
         {
@@ -146,38 +144,7 @@ namespace OpenSim.Framework.Serialization.External
 
                     xtr.ReadStartElement("ParcelAccessEntry");
 
-                    string nodeName = string.Empty;
-                    while (xtr.NodeType != XmlNodeType.EndElement)
-                    {
-                        nodeName = xtr.Name;
-    
-//                        m_log.DebugFormat("[LandDataSerializer]: Processing: {0} in ParcelAccessEntry", nodeName);
-
-                        LandAccessEntryProcessor p = null;
-                        if (m_laeProcessors.TryGetValue(xtr.Name, out p))
-                        {
-//                            m_log.DebugFormat("[LandDataSerializer]: Found {0} processor in ParcelAccessEntry", nodeName);
-
-                            try
-                            {
-                                p(lae, xtr);
-                            }
-                            catch (Exception e)
-                            {
-                                m_log.ErrorFormat(
-                                    "[LandDataSerializer]: Exception while parsing element {0} in ParcelAccessEntry, continuing.  Exception {1}{2}",
-                                    nodeName, e.Message, e.StackTrace);
-    
-                                if (xtr.NodeType == XmlNodeType.EndElement)
-                                    xtr.Read();
-                            }
-                        }
-                        else
-                        {
-                            // m_log.DebugFormat("[LandDataSerializer]: caught unknown element {0}", nodeName);
-                            xtr.ReadOuterXml(); // ignore
-                        }
-                    }
+                    ExternalRepresentationUtils.ExecuteReadProcessors<LandAccessEntry>(lae, m_laeProcessors, xtr);
 
                     xtr.ReadEndElement();
 
@@ -213,36 +180,7 @@ namespace OpenSim.Framework.Serialization.External
             {
                 reader.ReadStartElement("LandData");
 
-                string nodeName = string.Empty;
-                while (reader.NodeType != XmlNodeType.EndElement)
-                {
-                    nodeName = reader.Name;
-
-//                    m_log.DebugFormat("[LandDataSerializer]: Processing: {0}", nodeName);
-
-                    LandDataProcessor p = null;
-                    if (m_ldProcessors.TryGetValue(reader.Name, out p))
-                    {
-                        try
-                        {
-                            p(landData, reader);
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.ErrorFormat(
-                                "[LandDataSerializer]: exception while parsing element {0}, continuing.  Exception {1}{2}",
-                                nodeName, e.Message, e.StackTrace);
-
-                            if (reader.NodeType == XmlNodeType.EndElement)
-                                reader.Read();
-                        }
-                    }
-                    else
-                    {
-                        // m_log.DebugFormat("[LandDataSerializer]: caught unknown element {0}", nodeName);
-                        reader.ReadOuterXml(); // ignore
-                    }
-                }
+                ExternalRepresentationUtils.ExecuteReadProcessors<LandData>(landData, m_ldProcessors, reader);
 
                 reader.ReadEndElement();
             }

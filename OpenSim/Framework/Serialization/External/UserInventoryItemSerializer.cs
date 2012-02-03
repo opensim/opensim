@@ -46,8 +46,8 @@ namespace OpenSim.Framework.Serialization.External
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private delegate void InventoryItemXmlProcessor(InventoryItemBase item, XmlTextReader reader);
-        private static Dictionary<string, InventoryItemXmlProcessor> m_InventoryItemXmlProcessors = new Dictionary<string, InventoryItemXmlProcessor>();
+        private static Dictionary<string, Action<InventoryItemBase, XmlTextReader>> m_InventoryItemXmlProcessors
+            = new Dictionary<string, Action<InventoryItemBase, XmlTextReader>>();
 
         #region InventoryItemBase Processor initialization 
         static UserInventoryItemSerializer()
@@ -204,39 +204,14 @@ namespace OpenSim.Framework.Serialization.External
             {
                 reader.ReadStartElement("InventoryItem");
 
-                string nodeName = string.Empty;
-                while (reader.NodeType != XmlNodeType.EndElement)
-                {
-                    nodeName = reader.Name;
-                    InventoryItemXmlProcessor p = null;
-                    if (m_InventoryItemXmlProcessors.TryGetValue(reader.Name, out p))
-                    {
-                        //m_log.DebugFormat("[XXX] Processing: {0}", reader.Name);
-                        try
-                        {
-                            p(item, reader);
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.DebugFormat("[InventoryItemSerializer]: exception while parsing {0}: {1}", nodeName, e);
-                            if (reader.NodeType == XmlNodeType.EndElement)
-                                reader.Read();
-                        }
-                    }
-                    else
-                    {
-                        // m_log.DebugFormat("[InventoryItemSerializer]: caught unknown element {0}", nodeName);
-                        reader.ReadOuterXml(); // ignore
-                    }
-
-                }
+                ExternalRepresentationUtils.ExecuteReadProcessors<InventoryItemBase>(
+                    item, m_InventoryItemXmlProcessors, reader);
 
                 reader.ReadEndElement(); // InventoryItem
             }
 
             //m_log.DebugFormat("[XXX]: parsed InventoryItemBase {0} - {1}", obj.Name, obj.UUID);
             return item;
-
         }      
         
         public static string Serialize(InventoryItemBase inventoryItem, Dictionary<string, object> options, IUserAccountService userAccountService)
