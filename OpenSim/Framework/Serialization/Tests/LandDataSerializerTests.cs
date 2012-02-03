@@ -27,11 +27,12 @@
 
 using System;
 using System.Collections.Generic;
-using OpenSim.Framework;
-using OpenSim.Framework.Serialization.External;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using NUnit.Framework;
+using OpenSim.Framework;
+using OpenSim.Framework.Serialization.External;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Serialization.Tests
 {
@@ -92,6 +93,8 @@ namespace OpenSim.Framework.Serialization.Tests
         [Test]
         public void LandDataSerializerSerializeTest()
         {
+            TestHelpers.InMethod();
+
             string serialized = LandDataSerializer.Serialize(this.land).Replace("\r\n", "\n");
             Assert.That(serialized.Length > 0, "Serialize(LandData) returned empty string");
 
@@ -112,20 +115,32 @@ namespace OpenSim.Framework.Serialization.Tests
         /// Test the LandDataSerializer.Deserialize() method
         /// </summary>
         [Test]
-        public void TestLandDataSerializerDeserializeFromStringTest()
+        public void TestLandDataDeserializeNoAccessLists()
         {
-            LandData reifiedLandData = LandDataSerializer.Deserialize(LandDataSerializerTest.preSerialized);
-            Assert.That(reifiedLandData != null, "Deserialize(string) returned null");
-            Assert.That(reifiedLandData.GlobalID == this.land.GlobalID, "Reified LandData.GlobalID != original LandData.GlobalID");
-            Assert.That(reifiedLandData.Name == this.land.Name, "Reified LandData.Name != original LandData.Name");
+            TestHelpers.InMethod();
+            log4net.Config.XmlConfigurator.Configure();
 
-            LandData reifiedLandDataWithParcelAccessList = LandDataSerializer.Deserialize(LandDataSerializerTest.preSerializedWithParcelAccessList);
-            Assert.That(reifiedLandDataWithParcelAccessList != null, 
+            LandData ld = LandDataSerializer.Deserialize(LandDataSerializerTest.preSerialized);
+            Assert.That(ld != null, "Deserialize(string) returned null");
+            Assert.That(ld.GlobalID == this.land.GlobalID, "Reified LandData.GlobalID != original LandData.GlobalID");
+            Assert.That(ld.Name == this.land.Name, "Reified LandData.Name != original LandData.Name");
+        }
+
+        [Test]
+        public void TestLandDataDeserializeWithAccessLists()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            LandData ld = LandDataSerializer.Deserialize(LandDataSerializerTest.preSerializedWithParcelAccessList);
+            Assert.That(ld != null,
                         "Deserialize(string) returned null (pre-serialized with parcel access list)");
-            Assert.That(reifiedLandDataWithParcelAccessList.GlobalID == this.landWithParcelAccessList.GlobalID, 
+            Assert.That(ld.GlobalID == this.landWithParcelAccessList.GlobalID,
                         "Reified LandData.GlobalID != original LandData.GlobalID (pre-serialized with parcel access list)");
-            Assert.That(reifiedLandDataWithParcelAccessList.Name == this.landWithParcelAccessList.Name, 
+            Assert.That(ld.Name == this.landWithParcelAccessList.Name,
                         "Reified LandData.Name != original LandData.Name (pre-serialized with parcel access list)");
+            Assert.That(ld.ParcelAccessList.Count, Is.EqualTo(2));
+            Assert.That(ld.ParcelAccessList[0].AgentID, Is.EqualTo(UUID.Parse("62d65d45-c91a-4f77-862c-46557d978b6c")));
         }
     }
 }
