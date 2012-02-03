@@ -402,11 +402,17 @@ namespace OpenSim.Region.Framework.Scenes
         public event SceneObjectPartCopyDelegate OnSceneObjectPartCopy;
         public delegate void SceneObjectPartCopyDelegate(SceneObjectPart copy, SceneObjectPart original, bool userExposed);
 
+        public delegate void SceneObjectPartUpdated(SceneObjectPart sop);
+        public event SceneObjectPartUpdated OnSceneObjectPartUpdated;
+
         public delegate void RegionUp(GridRegion region);
         public event RegionUp OnRegionUp;
 
         public delegate void RegionStarted(Scene scene);
         public event RegionStarted OnRegionStarted;
+
+        public delegate void RegionHeartbeatEnd(Scene scene);
+        public event RegionHeartbeatEnd OnRegionHeartbeatEnd;
 
         public delegate void LoginsEnabled(string regionName);
         public event LoginsEnabled OnLoginsEnabled;
@@ -2227,6 +2233,27 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void TriggerSceneObjectPartUpdated(SceneObjectPart sop)
+        {
+            SceneObjectPartUpdated handler = OnSceneObjectPartUpdated;
+            if (handler != null)
+            {
+                foreach (SceneObjectPartUpdated d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(sop);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerSceneObjectPartUpdated failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
         public void TriggerOnParcelPropertiesUpdateRequest(LandUpdateArgs args,
                         int local_id, IClientAPI remote_client)
         {
@@ -2285,6 +2312,27 @@ namespace OpenSim.Region.Framework.Scenes
                     catch (Exception e)
                     {
                         m_log.ErrorFormat("[EVENT MANAGER]: Delegate for RegionStarted failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerRegionHeartbeatEnd(Scene scene)
+        {
+            RegionHeartbeatEnd handler = OnRegionHeartbeatEnd;
+
+            if (handler != null)
+            {
+                foreach (RegionHeartbeatEnd d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(scene);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for OnRegionHeartbeatEnd failed - continuing {0} - {1}",
                             e.Message, e.StackTrace);
                     }
                 }

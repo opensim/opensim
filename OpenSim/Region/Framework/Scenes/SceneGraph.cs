@@ -343,6 +343,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// 
         /// This method does not send updates to the client - callers need to handle this themselves.
+        /// Caller should also trigger EventManager.TriggerObjectAddedToScene
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup"></param>
         /// <param name="pos">Position of the object.  If null then the position stored in the object is used.</param>
@@ -1002,7 +1003,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="fullID"></param>
         /// <returns>null if no scene object group containing that prim is found</returns>
-        private SceneObjectGroup GetGroupByPrim(UUID fullID)
+        public SceneObjectGroup GetGroupByPrim(UUID fullID)
         {
             SceneObjectGroup sog;
             lock (SceneObjectGroupsByFullPartID)
@@ -1992,22 +1993,6 @@ namespace OpenSim.Region.Framework.Scenes
             #pragma warning restore 0612
         }
 
-        /// <summary>
-        /// Duplicate the given object, Fire and Forget, No rotation, no return wrapper
-        /// </summary>
-        /// <param name="originalPrim"></param>
-        /// <param name="offset"></param>
-        /// <param name="flags"></param>
-        /// <param name="AgentID"></param>
-        /// <param name="GroupID"></param>
-        protected internal void DuplicateObject(uint originalPrim, Vector3 offset, uint flags, UUID AgentID, UUID GroupID)
-        {
-            //m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
-
-            // SceneObjectGroup dupe = DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Zero);
-            DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Identity);
-        }
-        
         /// <summary>
         /// Duplicate the given object.
         /// </summary>

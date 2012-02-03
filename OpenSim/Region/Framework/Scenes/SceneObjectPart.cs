@@ -244,7 +244,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         public bool IgnoreUndoUpdate = false;
         
-        private PrimFlags LocalFlags;
+        public PrimFlags LocalFlags;
         
         private float m_damage = -1.0f;
         private byte[] m_TextureAnimation;
@@ -933,32 +933,18 @@ namespace OpenSim.Region.Framework.Scenes
         public Color Color
         {
             get { return m_color; }
-            set
-            {
-                m_color = value;
-
-                /* ScheduleFullUpdate() need not be called b/c after
-                 * setting the color, the text will be set, so then
-                 * ScheduleFullUpdate() will be called. */
-                //ScheduleFullUpdate();
-            }
+            set { m_color = value; }
         }
 
         public string Text
         {
             get
             {
-                string returnstr = m_text;
-                if (returnstr.Length > 255)
-                {
-                    returnstr = returnstr.Substring(0, 254);
-                }
-                return returnstr;
+                if (m_text.Length > 255)
+                    return m_text.Substring(0, 254);
+                return m_text;
             }
-            set
-            {
-                m_text = value;
-            }
+            set { m_text = value; }
         }
 
 
@@ -2795,6 +2781,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup == null)
                 return;
 
+            // When running OpenSim tests, Scene (and EventManager can be null).
+            // Need to fix tests before we can trigger this here
+            // ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
+
             ParentGroup.QueueForUpdateCheck();
 
             int timeNow = Util.UnixTimeSinceEpoch();
@@ -2826,6 +2816,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (ParentGroup == null)
                 return;
+
+            // When running OpenSim tests, Scene (and EventManager can be null).
+            // Need to fix tests before we can trigger this here
+            // ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
 
             // This was pulled from SceneViewer. Attachments always receive full updates.
             // I could not verify if this is a requirement but this maintains existing behavior
