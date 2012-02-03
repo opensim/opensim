@@ -551,6 +551,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetLinkNumber();
         }
 
+        public LSL_Integer llGetLinkNumberOfSides(int link)
+        {
+            return m_LSL_Functions.llGetLinkNumberOfSides(link);
+        }
+
         public LSL_Integer llGetListEntryType(LSL_List src, int index)
         {
             return m_LSL_Functions.llGetListEntryType(src, index);
