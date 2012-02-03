@@ -73,9 +73,9 @@ namespace OpenSim.Framework
         bool IsRestrictedFromLand(UUID avatar);
         void SendLandUpdateToClient(IClientAPI remote_client);
         void SendLandUpdateToClient(bool snap_selection, IClientAPI remote_client);
-        List<UUID> CreateAccessListArrayByFlag(AccessList flag);
+        List<LandAccessEntry> CreateAccessListArrayByFlag(AccessList flag);
         void SendAccessList(UUID agentID, UUID sessionID, uint flags, int sequenceID, IClientAPI remote_client);
-        void UpdateAccessList(uint flags, UUID transactionID, int sequenceID, int sections, List<ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client);
+        void UpdateAccessList(uint flags, UUID transactionID, int sequenceID, int sections, List<LandAccessEntry> entries, IClientAPI remote_client);
         void UpdateLandBitmapByteArray();
         void SetLandBitmapFromByteArray();
         bool[,] GetLandBitmap();

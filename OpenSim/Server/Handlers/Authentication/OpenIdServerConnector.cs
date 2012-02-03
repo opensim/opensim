@@ -63,7 +63,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
             Object[] args = new Object[] { config };
             m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authService, args);
-            m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(authService, args);
+            m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(userService, args);
 
             // Handler for OpenID user identity pages
             server.AddStreamHandler(new OpenIdStreamHandler("GET", "/users/", m_UserAccountService, m_AuthenticationService));

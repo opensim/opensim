@@ -980,7 +980,7 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID)
+        public void SendLandAccessListData(List<LandAccessEntry> accessList, uint accessFlag, int localLandID)
         {
         }
 

@@ -863,3 +863,9 @@ BEGIN;
 ALTER TABLE `regionsettings` ADD COLUMN `parcel_tile_ID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
 COMMIT;
 
+:VERSION 41       #---------------- Timed bans/access
+
+BEGIN;
+ALTER TABLE `landaccesslist` ADD COLUMN `Expires` INTEGER NOT NULL DEFAULT 0;
+COMMIT;
+

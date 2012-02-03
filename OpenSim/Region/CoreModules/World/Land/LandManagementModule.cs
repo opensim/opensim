@@ -550,7 +550,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void ClientOnParcelAccessListUpdateRequest(UUID agentID,
                 uint flags, int landLocalID, UUID transactionID, int sequenceID,
-                int sections, List<ParcelManager.ParcelAccessEntry> entries,
+                int sections, List<LandAccessEntry> entries,
                 IClientAPI remote_client)
         {
             // Flags is the list to update, it can mean either the ban or
