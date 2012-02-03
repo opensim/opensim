@@ -279,14 +279,14 @@ namespace OpenSim.Framework.Serialization.External
             writer.WriteEndElement();
             if (options.ContainsKey("creators") && inventoryItem.CreatorData != null && inventoryItem.CreatorData != string.Empty)
                 writer.WriteElementString("CreatorData", inventoryItem.CreatorData);
-            else if (options.ContainsKey("profile"))
+            else if (options.ContainsKey("home"))
             {
                 if (userAccountService != null)
                 {
                     UserAccount account = userAccountService.GetUserAccount(UUID.Zero, inventoryItem.CreatorIdAsUuid);
                     if (account != null)
                     {
-                        writer.WriteElementString("CreatorData", (string)options["profile"] + "/" + inventoryItem.CreatorIdAsUuid + ";" + account.FirstName + " " + account.LastName);
+                        writer.WriteElementString("CreatorData", (string)options["home"] + "/" + inventoryItem.CreatorIdAsUuid + ";" + account.FirstName + " " + account.LastName);
                     }
                     writer.WriteElementString("CreatorID", inventoryItem.CreatorId);
                 }
