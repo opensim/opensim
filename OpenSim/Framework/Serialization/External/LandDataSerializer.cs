@@ -105,6 +105,7 @@ namespace OpenSim.Framework.Serialization.External
                     pae.AgentID    = UUID.Parse(                           xtr.ReadElementString("AgentID"));
                     // We really don't care about temp vs perm here and this
                     // would break on old oars. Assume all bans are perm
+                    xtr.ReadElementString("Time");
                     pae.Expires    = 0; // Convert.ToUint(                       xtr.ReadElementString("Time"));
                     pae.Flags      = (AccessList)Convert.ToUInt32(         xtr.ReadElementString("AccessList"));
                     xtr.ReadEndElement();
