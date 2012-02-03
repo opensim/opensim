@@ -122,7 +122,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 
                 scene.AddCommand(
                     this, "save iar",
-                    "save iar [-h|--home=<url>] [--noassets] <first> <last> <inventory path> <password> [<IAR path>] [--v|-verbose]",
+                    "save iar [-p|--profile=<url>] [--noassets] <first> <last> <inventory path> <password> [<IAR path>] [-c|--creators] [-v|--verbose]",
                     "Save user inventory archive (IAR).", 
                     "<first> is the user's first name." + Environment.NewLine
                     + "<last> is the user's last name." + Environment.NewLine
@@ -408,7 +408,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (mainParams.Count < 6)
                 {
                     m_log.Error(
-                        "[INVENTORY ARCHIVER]: usage is save iar [--p|-profile=<url>] [--noassets] <first name> <last name> <inventory path> <user password> [<save file path>]");
+                        "[INVENTORY ARCHIVER]: usage is save iar [-p|--profile=<url>] [--noassets] <first name> <last name> <inventory path> <user password> [<save file path>] [-c|--creators] [-v|--verbose]");
                     return;
                 }
     
