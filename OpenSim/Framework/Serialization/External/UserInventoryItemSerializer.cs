@@ -41,8 +41,7 @@ namespace OpenSim.Framework.Serialization.External
 {        
     /// <summary>
     /// Serialize and deserialize user inventory items as an external format.
-    /// </summary> 
-    /// XXX: Please do not use yet.
+    /// </summary>
     public class UserInventoryItemSerializer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

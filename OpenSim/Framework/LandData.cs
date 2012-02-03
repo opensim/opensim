@@ -34,7 +34,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
-    public struct LandAccessEntry
+    public class LandAccessEntry
     {
         public UUID AgentID;
         public int Expires;
