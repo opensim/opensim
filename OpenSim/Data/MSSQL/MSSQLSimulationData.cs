@@ -1252,7 +1252,7 @@ VALUES
 ,[elevation_1_ne] = @elevation_1_ne ,[elevation_2_ne] = @elevation_2_ne ,[elevation_1_se] = @elevation_1_se ,[elevation_2_se] = @elevation_2_se 
 ,[elevation_1_sw] = @elevation_1_sw ,[elevation_2_sw] = @elevation_2_sw ,[water_height] = @water_height ,[terrain_raise_limit] = @terrain_raise_limit 
 ,[terrain_lower_limit] = @terrain_lower_limit ,[use_estate_sun] = @use_estate_sun ,[fixed_sun] = @fixed_sun ,[sun_position] = @sun_position 
-,[covenant] = @covenant , [sunvectorx] = @sunvectorx, [sunvectory] = @sunvectory, [sunvectorz] = @sunvectorz,  [Sandbox] = @Sandbox, [loaded_creation_datetime] = @loaded_creation_datetime, [loaded_creation_id] = @loaded_creation_id
+,[covenant] = @covenant ,[covenant_datetime] = @covenant_datetime, [sunvectorx] = @sunvectorx, [sunvectory] = @sunvectory, [sunvectorz] = @sunvectorz,  [Sandbox] = @Sandbox, [loaded_creation_datetime] = @loaded_creation_datetime, [loaded_creation_id] = @loaded_creation_id
  WHERE [regionUUID] = @regionUUID";
 
                 using (SqlConnection conn = new SqlConnection(m_connectionString))
@@ -1307,14 +1307,14 @@ VALUES
                                 [block_show_in_search],[agent_limit],[object_bonus],[maturity],[disable_scripts],[disable_collisions],[disable_physics],
                                 [terrain_texture_1],[terrain_texture_2],[terrain_texture_3],[terrain_texture_4],[elevation_1_nw],[elevation_2_nw],[elevation_1_ne],
                                 [elevation_2_ne],[elevation_1_se],[elevation_2_se],[elevation_1_sw],[elevation_2_sw],[water_height],[terrain_raise_limit],
-                                [terrain_lower_limit],[use_estate_sun],[fixed_sun],[sun_position],[covenant],[sunvectorx], [sunvectory], [sunvectorz],[Sandbox], [loaded_creation_datetime], [loaded_creation_id]
+                                [terrain_lower_limit],[use_estate_sun],[fixed_sun],[sun_position],[covenant],[covenant_datetime],[sunvectorx], [sunvectory], [sunvectorz],[Sandbox], [loaded_creation_datetime], [loaded_creation_id]
  ) 
                             VALUES
                                 (@regionUUID,@block_terraform,@block_fly,@allow_damage,@restrict_pushing,@allow_land_resell,@allow_land_join_divide,
                                 @block_show_in_search,@agent_limit,@object_bonus,@maturity,@disable_scripts,@disable_collisions,@disable_physics,
                                 @terrain_texture_1,@terrain_texture_2,@terrain_texture_3,@terrain_texture_4,@elevation_1_nw,@elevation_2_nw,@elevation_1_ne,
                                 @elevation_2_ne,@elevation_1_se,@elevation_2_se,@elevation_1_sw,@elevation_2_sw,@water_height,@terrain_raise_limit,
-                                @terrain_lower_limit,@use_estate_sun,@fixed_sun,@sun_position,@covenant,@sunvectorx,@sunvectory, @sunvectorz, @Sandbox, @loaded_creation_datetime, @loaded_creation_id)";
+                                @terrain_lower_limit,@use_estate_sun,@fixed_sun,@sun_position,@covenant, @covenant_datetime, @sunvectorx,@sunvectory, @sunvectorz, @Sandbox, @loaded_creation_datetime, @loaded_creation_id)";
 
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -1376,7 +1376,7 @@ VALUES
                                                  Convert.ToSingle(row["sunvectorz"])
                                                  );
             newSettings.Covenant = new UUID((Guid)row["covenant"]);
-
+            newSettings.CovenantChangedDateTime = Convert.ToInt32(row["covenant_datetime"]);
             newSettings.LoadedCreationDateTime = Convert.ToInt32(row["loaded_creation_datetime"]);
 
             if (row["loaded_creation_id"] is DBNull)
@@ -1789,6 +1789,7 @@ VALUES
             parameters.Add(_Database.CreateParameter("sunvectory", settings.SunVector.Y));
             parameters.Add(_Database.CreateParameter("sunvectorz", settings.SunVector.Z));
             parameters.Add(_Database.CreateParameter("covenant", settings.Covenant));
+            parameters.Add(_Database.CreateParameter("covenant_datetime", settings.CovenantChangedDateTime));
             parameters.Add(_Database.CreateParameter("Loaded_Creation_DateTime", settings.LoadedCreationDateTime));
             parameters.Add(_Database.CreateParameter("Loaded_Creation_ID", settings.LoadedCreationID));
 
