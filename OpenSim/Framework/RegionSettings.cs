@@ -413,6 +413,14 @@ namespace OpenSim.Framework
             set { m_Covenant = value; }
         }
 
+        private int m_CovenantChanged = 0;
+
+        public int CovenantChangedDateTime
+        {
+            get { return m_CovenantChanged; }
+            set { m_CovenantChanged = value; }
+        }
+
         private int m_LoadedCreationDateTime;
         public int LoadedCreationDateTime
         {
