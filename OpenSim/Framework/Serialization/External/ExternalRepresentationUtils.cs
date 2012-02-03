@@ -47,14 +47,35 @@ namespace OpenSim.Framework.Serialization.External
         /// Populate a node with data read from xml using a dictinoary of processors
         /// </summary>
         /// <param name="nodeToFill"></param>
-        /// <param name="processors">
-        /// A <see cref="Dictionary<System.String, Action<NodeType, XmlTextReader>>"/>
-        /// </param>
-        /// <param name="xtr">
-        /// A <see cref="XmlTextReader"/>
-        /// </param>
+        /// <param name="processors">/param>
+        /// <param name="xtr"></param>
         public static void ExecuteReadProcessors<NodeType>(
             NodeType nodeToFill, Dictionary<string, Action<NodeType, XmlTextReader>> processors, XmlTextReader xtr)
+        {
+            ExecuteReadProcessors(
+                nodeToFill,
+                processors,
+                xtr,
+                (o, name, e)
+                    => m_log.ErrorFormat(
+                        "[ExternalRepresentationUtils]: Exception while parsing element {0}, continuing.  Exception {1}{2}",
+                        name, e.Message, e.StackTrace));
+        }
+
+        /// <summary>
+        /// Populate a node with data read from xml using a dictinoary of processors
+        /// </summary>
+        /// <param name="nodeToFill"></param>
+        /// <param name="processors"></param>
+        /// <param name="xtr"></param>
+        /// <param name="parseExceptionAction">
+        /// Action to take if there is a parsing problem.  This will usually just be to log the exception
+        /// </param>
+        public static void ExecuteReadProcessors<NodeType>(
+            NodeType nodeToFill,
+            Dictionary<string, Action<NodeType, XmlTextReader>> processors,
+            XmlTextReader xtr,
+            Action<NodeType, string, Exception> parseExceptionAction)
         {
             string nodeName = string.Empty;
             while (xtr.NodeType != XmlNodeType.EndElement)
@@ -74,9 +95,7 @@ namespace OpenSim.Framework.Serialization.External
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat(
-                            "[ExternalRepresentationUtils]: Exception while parsing element {0}, continuing.  Exception {1}{2}",
-                            nodeName, e.Message, e.StackTrace);
+                        parseExceptionAction(nodeToFill, nodeName, e);
 
                         if (xtr.NodeType == XmlNodeType.EndElement)
                             xtr.Read();
