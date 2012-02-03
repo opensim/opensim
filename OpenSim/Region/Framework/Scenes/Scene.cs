@@ -2716,7 +2716,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectMaterial += m_sceneGraph.PrimMaterial;
             client.OnLinkObjects += LinkObjects;
             client.OnDelinkObjects += DelinkObjects;
-            client.OnObjectDuplicate += m_sceneGraph.DuplicateObject;
+            client.OnObjectDuplicate += DuplicateObject;
             client.OnObjectDuplicateOnRay += doObjectDuplicateOnRay;
             client.OnUpdatePrimFlags += m_sceneGraph.UpdatePrimFlags;
             client.OnRequestObjectPropertiesFamily += m_sceneGraph.RequestObjectPropertiesFamily;
@@ -2843,7 +2843,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectMaterial -= m_sceneGraph.PrimMaterial;
             client.OnLinkObjects -= LinkObjects;
             client.OnDelinkObjects -= DelinkObjects;
-            client.OnObjectDuplicate -= m_sceneGraph.DuplicateObject;
+            client.OnObjectDuplicate -= DuplicateObject;
             client.OnObjectDuplicateOnRay -= doObjectDuplicateOnRay;
             client.OnUpdatePrimFlags -= m_sceneGraph.UpdatePrimFlags;
             client.OnRequestObjectPropertiesFamily -= m_sceneGraph.RequestObjectPropertiesFamily;
@@ -2936,6 +2936,21 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Duplicates object specified by localID. This is the event handler for IClientAPI.
+        /// </summary>
+        /// <param name="originalPrim">ID of object to duplicate</param>
+        /// <param name="offset"></param>
+        /// <param name="flags"></param>
+        /// <param name="AgentID">Agent doing the duplication</param>
+        /// <param name="GroupID">Group of new object</param>
+        public void DuplicateObject(uint originalPrim, Vector3 offset, uint flags, UUID AgentID, UUID GroupID)
+        {
+            SceneObjectGroup copy = SceneGraph.DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Identity);
+            if (copy != null)
+                EventManager.TriggerObjectAddedToScene(copy);
+        }
+
+        /// <summary>
         /// Duplicates object specified by localID at position raycasted against RayTargetObject using 
         /// RayEnd and RayStart to determine what the angle of the ray is
         /// </summary>
@@ -2997,19 +3012,22 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // stick in offset format from the original prim
                     pos = pos - target.ParentGroup.AbsolutePosition;
+                    SceneObjectGroup copy;
                     if (CopyRotates)
                     {
                         Quaternion worldRot = target2.GetWorldRotation();
 
                         // SceneObjectGroup obj = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
-                        m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
+                        copy = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
                         //obj.Rotation = worldRot;
                         //obj.UpdateGroupRotationR(worldRot);
                     }
                     else
                     {
-                        m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID);
+                        copy = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, Quaternion.Identity);
                     }
+                    if (copy != null)
+                        EventManager.TriggerObjectAddedToScene(copy);
                 }
             }
         }
