@@ -138,7 +138,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
            LSL_Key llGetLinkKey(int linknum);
         LSL_String llGetLinkName(int linknum);
        LSL_Integer llGetLinkNumber();
-       LSL_List llGetLinkPrimitiveParams(int linknum, LSL_List rules);
+       LSL_Integer llGetLinkNumberOfSides(int link);
+       LSL_List    llGetLinkPrimitiveParams(int linknum, LSL_List rules);
        LSL_Integer llGetListEntryType(LSL_List src, int index);
        LSL_Integer llGetListLength(LSL_List src);
         LSL_Vector llGetLocalPos();
