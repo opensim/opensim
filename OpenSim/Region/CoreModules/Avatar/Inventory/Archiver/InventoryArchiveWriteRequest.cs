@@ -415,7 +415,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             int majorVersion, minorVersion;
             
-            if (options.ContainsKey("profile"))
+            if (options.ContainsKey("home"))
             {
                 majorVersion = 1;
                 minorVersion = 2;
