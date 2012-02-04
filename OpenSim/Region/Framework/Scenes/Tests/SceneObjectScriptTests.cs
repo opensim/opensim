@@ -49,7 +49,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            log4net.Config.XmlConfigurator.Configure();
 
             UUID userId = TestHelpers.ParseTail(0x1);
-            UUID itemId = TestHelpers.ParseTail(0x2);
+//            UUID itemId = TestHelpers.ParseTail(0x2);
             string itemName = "Test Script Item";
 
             Scene scene = SceneHelpers.SetupScene();

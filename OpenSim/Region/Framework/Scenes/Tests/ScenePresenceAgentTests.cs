@@ -174,7 +174,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            UUID agent1Id = UUID.Parse("00000000-0000-0000-0000-000000000001");
+//            UUID agent1Id = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
             TestScene myScene1 = SceneHelpers.SetupScene("Neighbour y", UUID.Random(), 1000, 1000);
             TestScene myScene2 = SceneHelpers.SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);
