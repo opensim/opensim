@@ -1043,3 +1043,11 @@ FOR CreatorID
 ALTER TABLE primitems ALTER COLUMN CreatorID uniqueidentifier NOT NULL
 
 COMMIT
+
+:VERSION 29         #---------------------
+
+BEGIN TRANSACTION
+
+ALTER TABLE regionsettings ADD covenant_datetime int NOT NULL default 0
+
+COMMIT

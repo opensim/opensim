@@ -1009,7 +1009,7 @@ namespace OpenSim.Data.MySQL
                             "elevation_2_sw, water_height, " +
                             "terrain_raise_limit, terrain_lower_limit, " +
                             "use_estate_sun, fixed_sun, sun_position, " +
-                            "covenant, Sandbox, sunvectorx, sunvectory, " +
+                            "covenant, covenant_datetime, Sandbox, sunvectorx, sunvectory, " +
                             "sunvectorz, loaded_creation_datetime, " +
                             "loaded_creation_id, map_tile_ID, block_search, casino, " +
                             "TelehubObject, parcel_tile_ID) " +
@@ -1025,7 +1025,7 @@ namespace OpenSim.Data.MySQL
                             "?Elevation2SE, ?Elevation1SW, ?Elevation2SW, " +
                             "?WaterHeight, ?TerrainRaiseLimit, " +
                             "?TerrainLowerLimit, ?UseEstateSun, ?FixedSun, " +
-                            "?SunPosition, ?Covenant, ?Sandbox, " +
+                            "?SunPosition, ?Covenant, ?CovenantChangedDateTime, ?Sandbox, " +
                             "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                             "?LoadedCreationDateTime, ?LoadedCreationID, " +
                             "?TerrainImageID, ?block_search, ?casino, " +
@@ -1308,7 +1308,7 @@ namespace OpenSim.Data.MySQL
             newSettings.FixedSun = Convert.ToBoolean(row["fixed_sun"]);
             newSettings.SunPosition = Convert.ToDouble(row["sun_position"]);
             newSettings.Covenant = DBGuid.FromDB(row["covenant"]);
-
+            newSettings.CovenantChangedDateTime = Convert.ToInt32(row["covenant_datetime"]);
             newSettings.LoadedCreationDateTime = Convert.ToInt32(row["loaded_creation_datetime"]);
             
             if (row["loaded_creation_id"] is DBNull)
@@ -1653,6 +1653,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("FixedSun", settings.FixedSun);
             cmd.Parameters.AddWithValue("SunPosition", settings.SunPosition);
             cmd.Parameters.AddWithValue("Covenant", settings.Covenant.ToString());
+            cmd.Parameters.AddWithValue("CovenantChangedDateTime", settings.CovenantChangedDateTime);
             cmd.Parameters.AddWithValue("LoadedCreationDateTime", settings.LoadedCreationDateTime);
             cmd.Parameters.AddWithValue("LoadedCreationID", settings.LoadedCreationID);
             cmd.Parameters.AddWithValue("TerrainImageID", settings.TerrainImageID);

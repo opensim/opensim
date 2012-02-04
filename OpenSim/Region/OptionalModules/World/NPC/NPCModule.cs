@@ -140,24 +140,26 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 //                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
 //            }
 
-            scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
-            scene.AddNewClient(npcAvatar, PresenceType.Npc);
-
-            ScenePresence sp;
-            if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
-            {
-                m_log.DebugFormat(
-                    "[NPC MODULE]: Successfully retrieved scene presence for NPC {0} {1}", sp.Name, sp.UUID);
-
-                sp.CompleteMovement(npcAvatar, false);
-            }
-            else
-            {
-                m_log.WarnFormat("[NPC MODULE]: Could not find scene presence for NPC {0} {1}", sp.Name, sp.UUID);
-            }
-
             lock (m_avatars)
+            {
+                scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
+                scene.AddNewClient(npcAvatar, PresenceType.Npc);
+
+                ScenePresence sp;
+                if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
+                {
+                    m_log.DebugFormat(
+                        "[NPC MODULE]: Successfully retrieved scene presence for NPC {0} {1}", sp.Name, sp.UUID);
+
+                    sp.CompleteMovement(npcAvatar, false);
+                }
+                else
+                {
+                    m_log.WarnFormat("[NPC MODULE]: Could not find scene presence for NPC {0} {1}", sp.Name, sp.UUID);
+                }
+
                 m_avatars.Add(npcAvatar.AgentId, npcAvatar);
+            }
 
             m_log.DebugFormat("[NPC MODULE]: Created NPC with id {0}", npcAvatar.AgentId);
 

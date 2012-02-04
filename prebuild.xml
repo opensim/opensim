@@ -218,6 +218,7 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="System.Xml"/>
       <Reference name="log4net" path="../../../bin/"/>
       <Reference name="OpenMetaverse" path="../../../bin/"/>
@@ -797,6 +798,7 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Serialization"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Framework.Statistics"/>

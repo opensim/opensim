@@ -24,11 +24,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Xml;
-
+using log4net;
 using OpenMetaverse;
 using OpenSim.Services.Interfaces;
 
@@ -39,6 +41,74 @@ namespace OpenSim.Framework.Serialization.External
     /// </summary>
     public class ExternalRepresentationUtils
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        /// Populate a node with data read from xml using a dictinoary of processors
+        /// </summary>
+        /// <param name="nodeToFill"></param>
+        /// <param name="processors">/param>
+        /// <param name="xtr"></param>
+        public static void ExecuteReadProcessors<NodeType>(
+            NodeType nodeToFill, Dictionary<string, Action<NodeType, XmlTextReader>> processors, XmlTextReader xtr)
+        {
+            ExecuteReadProcessors(
+                nodeToFill,
+                processors,
+                xtr,
+                (o, name, e)
+                    => m_log.ErrorFormat(
+                        "[ExternalRepresentationUtils]: Exception while parsing element {0}, continuing.  Exception {1}{2}",
+                        name, e.Message, e.StackTrace));
+        }
+
+        /// <summary>
+        /// Populate a node with data read from xml using a dictinoary of processors
+        /// </summary>
+        /// <param name="nodeToFill"></param>
+        /// <param name="processors"></param>
+        /// <param name="xtr"></param>
+        /// <param name="parseExceptionAction">
+        /// Action to take if there is a parsing problem.  This will usually just be to log the exception
+        /// </param>
+        public static void ExecuteReadProcessors<NodeType>(
+            NodeType nodeToFill,
+            Dictionary<string, Action<NodeType, XmlTextReader>> processors,
+            XmlTextReader xtr,
+            Action<NodeType, string, Exception> parseExceptionAction)
+        {
+            string nodeName = string.Empty;
+            while (xtr.NodeType != XmlNodeType.EndElement)
+            {
+                nodeName = xtr.Name;
+
+//                        m_log.DebugFormat("[ExternalRepresentationUtils]: Processing: {0}", nodeName);
+
+                Action<NodeType, XmlTextReader> p = null;
+                if (processors.TryGetValue(xtr.Name, out p))
+                {
+//                            m_log.DebugFormat("[ExternalRepresentationUtils]: Found {0} processor, nodeName);
+
+                    try
+                    {
+                        p(nodeToFill, xtr);
+                    }
+                    catch (Exception e)
+                    {
+                        parseExceptionAction(nodeToFill, nodeName, e);
+
+                        if (xtr.NodeType == XmlNodeType.EndElement)
+                            xtr.Read();
+                    }
+                }
+                else
+                {
+                    // m_log.DebugFormat("[LandDataSerializer]: caught unknown element {0}", nodeName);
+                    xtr.ReadOuterXml(); // ignore
+                }
+            }
+        }
+
         /// <summary>
         /// Takes a XML representation of a SceneObjectPart and returns another XML representation
         /// with creator data added to it.

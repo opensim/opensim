@@ -129,7 +129,7 @@ namespace OpenSim.Services.AuthenticationService
                 {
                     m_log.DebugFormat(
                         "[AUTH SERVICE]: Salted hash {0} of given password did not match salted hash of {1} for PrincipalID {2}.  Authentication failure.",
-                        principalID);
+                        hashed, data.Data["passwordHash"], principalID);
                     return String.Empty;
                 }
             }

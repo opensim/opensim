@@ -1510,9 +1510,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 //    options["version"] = (string)requestData["version"];
                 //}
 
-                if (requestData.Contains("profile"))
+                if (requestData.Contains("home"))
                 {
-                    options["profile"] = (string)requestData["profile"];
+                    options["home"] = (string)requestData["home"];
                 }
 
                 if ((string)requestData["noassets"] == "true")

@@ -1243,7 +1243,7 @@ namespace OpenSim.Framework
         void SendEstateCovenantInformation(UUID covenant);
 
         void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags,
-                                    uint sunPosition, UUID covenant, string abuseEmail, UUID estateOwner);
+                                    uint sunPosition, UUID covenant, uint covenantChanged, string abuseEmail, UUID estateOwner);
 
         /// <summary>
         /// Send land properties to the client.

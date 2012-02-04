@@ -88,6 +88,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     GetEstateFlags(),
                     sun,
                     Scene.RegionInfo.RegionSettings.Covenant,
+                    (uint) Scene.RegionInfo.RegionSettings.CovenantChangedDateTime,
                     Scene.RegionInfo.EstateSettings.AbuseEmail,
                     estateOwner);
         }
@@ -285,6 +286,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 //                remoteClient.Name, estateCovenantID);
             
             Scene.RegionInfo.RegionSettings.Covenant = estateCovenantID;
+            Scene.RegionInfo.RegionSettings.CovenantChangedDateTime = Util.UnixTimeSinceEpoch();
             Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
         }
