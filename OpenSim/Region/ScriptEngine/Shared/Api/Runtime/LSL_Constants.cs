@@ -635,6 +635,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public static readonly LSLInteger RC_GET_ROOT_KEY = 2;
         public static readonly LSLInteger RC_GET_LINK_NUM = 4;
 
+        public static readonly LSLInteger RCERR_UNKNOWN = -1;        
+        public static readonly LSLInteger RCERR_SIM_PERF_LOW = -2;
         public static readonly LSLInteger RCERR_CAST_TIME_EXCEEDED = 3;
     }
 }
