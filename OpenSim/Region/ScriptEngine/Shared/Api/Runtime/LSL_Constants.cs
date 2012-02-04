@@ -621,20 +621,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const string URL_REQUEST_GRANTED = "URL_REQUEST_GRANTED";
         public const string URL_REQUEST_DENIED = "URL_REQUEST_DENIED";
 
-        public static readonly LSLInteger RC_REJECT_TYPES = 2;
-        public static readonly LSLInteger RC_DATA_FLAGS = 4;
-        public static readonly LSLInteger RC_MAX_HITS = 8;
-        public static readonly LSLInteger RC_DETECT_PHANTOM = 16;
+        public static readonly LSLInteger RC_REJECT_TYPES = 0;
+        public static readonly LSLInteger RC_DETECT_PHANTOM = 1;
+        public static readonly LSLInteger RC_DATA_FLAGS = 2;
+        public static readonly LSLInteger RC_MAX_HITS = 3;
 
-        public static readonly LSLInteger RC_REJECT_AGENTS = 2;
-        public static readonly LSLInteger RC_REJECT_PHYSICAL = 4;
-        public static readonly LSLInteger RC_REJECT_NONPHYSICAL = 8;
-        public static readonly LSLInteger RC_REJECT_LAND = 16;
+        public static readonly LSLInteger RC_REJECT_AGENTS = 1;
+        public static readonly LSLInteger RC_REJECT_PHYSICAL = 2;
+        public static readonly LSLInteger RC_REJECT_NONPHYSICAL = 4;
+        public static readonly LSLInteger RC_REJECT_LAND = 8;
 
-        public static readonly LSLInteger RC_GET_NORMAL = 2;
-        public static readonly LSLInteger RC_GET_ROOT_KEY = 4;
-        public static readonly LSLInteger RC_GET_LINK_NUM = 8;
+        public static readonly LSLInteger RC_GET_NORMAL = 1;
+        public static readonly LSLInteger RC_GET_ROOT_KEY = 2;
+        public static readonly LSLInteger RC_GET_LINK_NUM = 4;
 
-        public static readonly LSLInteger RCERR_CAST_TIME_EXCEEDED = 1;
+        public static readonly LSLInteger RCERR_CAST_TIME_EXCEEDED = 3;
     }
 }
