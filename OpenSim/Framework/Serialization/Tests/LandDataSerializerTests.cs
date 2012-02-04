@@ -118,7 +118,7 @@ namespace OpenSim.Framework.Serialization.Tests
         public void TestLandDataDeserializeNoAccessLists()
         {
             TestHelpers.InMethod();
-            log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
 
             LandData ld = LandDataSerializer.Deserialize(LandDataSerializerTest.preSerialized);
             Assert.That(ld != null, "Deserialize(string) returned null");
