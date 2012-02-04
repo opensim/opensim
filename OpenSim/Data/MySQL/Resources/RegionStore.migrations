@@ -874,3 +874,13 @@ COMMIT;
 BEGIN;
 ALTER TABLE regionsettings ADD COLUMN covenant_datetime int unsigned NOT NULL DEFAULT '0';
 COMMIT;
+
+:VERSION 43         #--------------------- 
+
+BEGIN;
+
+ALTER TABLE `regionsettings` MODIFY COLUMN `TelehubObject` VARCHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+
+COMMIT;
+
+
