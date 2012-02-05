@@ -389,8 +389,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     if (avatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT)
                     {
-                        ExpireAccessList(parcelAvatarIsEntering);
-
                         if (parcelAvatarIsEntering.IsBannedFromLand(avatar.UUID))
                         {
                             SendYouAreBannedNotice(avatar);
@@ -1713,20 +1711,5 @@ namespace OpenSim.Region.CoreModules.World.Land
             
             MainConsole.Instance.Output(report.ToString());
         }         
-
-        private void ExpireAccessList(ILandObject land)
-        {
-            List<LandAccessEntry> delete = new List<LandAccessEntry>();
-
-            foreach (LandAccessEntry entry in land.LandData.ParcelAccessList)
-            {
-                if (entry.Expires != 0 && entry.Expires < Util.UnixTimeSinceEpoch())
-                    delete.Add(entry);
-            }
-            foreach (LandAccessEntry entry in delete)
-                land.LandData.ParcelAccessList.Remove(entry);
-
-            m_scene.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
-        }
     }
 }
