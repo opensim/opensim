@@ -288,7 +288,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <returns></returns>
         public LLSDMapLayerResponse GetMapLayer(LLSDMapRequest mapReq)
         {
-            m_log.DebugFormat("[WORLD MAP]: MapLayer Request in region: {0}", m_scene.RegionInfo.RegionName);
+            // m_log.DebugFormat("[WORLD MAP]: MapLayer Request in region: {0}", m_scene.RegionInfo.RegionName);
             LLSDMapLayerResponse mapResponse = new LLSDMapLayerResponse();
             mapResponse.LayerData.Array.Add(GetOSDMapLayerResponse());
             return mapResponse;
@@ -373,7 +373,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public virtual void HandleMapItemRequest(IClientAPI remoteClient, uint flags,
             uint EstateID, bool godlike, uint itemtype, ulong regionhandle)
         {
-            m_log.DebugFormat("[WORLD MAP]: Handle MapItem request {0} {1}", regionhandle, itemtype);
+            // m_log.DebugFormat("[WORLD MAP]: Handle MapItem request {0} {1}", regionhandle, itemtype);
 
             lock (m_rootAgents)
             {
