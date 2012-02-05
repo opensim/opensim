@@ -418,8 +418,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsBannedFromLand(UUID avatar)
         {
-//            ExpireAccessList();
-//
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
 
@@ -447,8 +445,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsRestrictedFromLand(UUID avatar)
         {
-//            ExpireAccessList();
-//
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
 
