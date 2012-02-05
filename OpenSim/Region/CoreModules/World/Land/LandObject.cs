@@ -1139,7 +1139,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             foreach (LandAccessEntry entry in delete)
                 LandData.ParcelAccessList.Remove(entry);
 
-            m_scene.EventManager.TriggerLandObjectUpdated((uint)LandData.LocalID, this);
+            if (delete.Count > 0)
+                m_scene.EventManager.TriggerLandObjectUpdated((uint)LandData.LocalID, this);
         }
     }
 }
