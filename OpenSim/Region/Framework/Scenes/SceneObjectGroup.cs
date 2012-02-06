@@ -2423,9 +2423,9 @@ namespace OpenSim.Region.Framework.Scenes
                     for (int i = 0; i < parts.Length; i++)
                     {
                         SceneObjectPart part = parts[i];
-                        if (part.Scale.X > m_scene.RegionInfo.PhysPrimMax || 
-                            part.Scale.Y > m_scene.RegionInfo.PhysPrimMax || 
-                            part.Scale.Z > m_scene.RegionInfo.PhysPrimMax)
+                        if (part.Scale.X > m_scene.m_maxPhys ||
+                            part.Scale.Y > m_scene.m_maxPhys ||
+                            part.Scale.Z > m_scene.m_maxPhys )
                         {
                             UsePhysics = false; // Reset physics
                             break;

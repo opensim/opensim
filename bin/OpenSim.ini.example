@@ -87,7 +87,7 @@
 
     ;# {NonPhysicalPrimMax} {} {Maximum size of nonphysical prims?} {} 256
     ;; Maximum size for non-physical prims.  Affects resizing of existing prims.  This can be overriden in the region config file (as NonphysicalPrimMax!).
-    ; NonPhysicalPrimMax = 256
+    ; NonphysicalPrimMax = 256
 
     ;# {PhysicalPrimMax} {} {Maximum size of physical prims?} {} 10
     ;; Maximum size where a prim can be physical.  Affects resizing of existing prims.  This can be overriden in the region config file.
