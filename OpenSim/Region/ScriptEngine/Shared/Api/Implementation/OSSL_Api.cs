@@ -2584,15 +2584,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osNpcRemove");
             m_host.AddScriptLPS(1);
 
-            INPCModule module = World.RequestModuleInterface<INPCModule>();
-            if (module != null)
-            {
-                UUID npcId = new UUID(npc.m_string);
+            Util.FireAndForget(delegate(object x) {
+                INPCModule module = World.RequestModuleInterface<INPCModule>();
+                if (module != null)
+                {
+                    UUID npcId = new UUID(npc.m_string);
 
-                if (!module.CheckPermissions(npcId, m_host.OwnerID))
-                    return;
+                    if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                        return;
 
-                Util.FireAndForget(delegate(object x) {
                     module.DeleteNPC(npcId, World);
                 });
             }
