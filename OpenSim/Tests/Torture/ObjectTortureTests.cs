@@ -118,7 +118,7 @@ namespace OpenSim.Tests.Torture
 
             TestScene scene = SceneHelpers.SetupScene();
 
-            Process process = Process.GetCurrentProcess();
+//            Process process = Process.GetCurrentProcess();
 //            long startProcessMemory = process.PrivateMemorySize64;
             long startGcMemory = GC.GetTotalMemory(true);
             DateTime start = DateTime.Now;
