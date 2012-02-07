@@ -131,7 +131,7 @@ namespace OpenSim.Tests.Torture
 
             TimeSpan elapsed = DateTime.Now - start;
 //            long processMemoryAlloc = process.PrivateMemorySize64 - startProcessMemory;
-            long processGcAlloc = GC.GetTotalMemory(false) - startGcMemory;
+            long endGcMemory = GC.GetTotalMemory(false);
 
             for (int i = 1; i <= objectsToAdd; i++)
             {
@@ -141,9 +141,19 @@ namespace OpenSim.Tests.Torture
                     string.Format("Object {0} could not be retrieved", i));
             }
 
+            // This does not work to fire the SceneObjectGroup destructors - something else is hanging on to them.
+//            scene.DeleteAllSceneObjects();
+
             Console.WriteLine(
-                "Took {0}ms, {1}MB to create {2} objects each containing {3} prim(s)",
-                Math.Round(elapsed.TotalMilliseconds), processGcAlloc / 1024 / 1024, objectsToAdd, primsInEachObject);
+                "Took {0}ms, {1}MB ({2} - {3}) to create {4} objects each containing {5} prim(s)",
+                Math.Round(elapsed.TotalMilliseconds),
+                (endGcMemory - startGcMemory) / 1024 / 1024,
+                endGcMemory / 1024 / 1024,
+                startGcMemory / 1024 / 1024,
+                objectsToAdd,
+                primsInEachObject);
+
+            scene = null;
         }
     }
 }

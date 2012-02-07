@@ -79,11 +79,12 @@ namespace OpenSim.Services.Connectors.Hypergrid
             sendData["SESSIONID"] = m_SessionID.ToString();
 
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/hgfriends";
 
             try
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/hgfriends",
+                        uri,
                         reqString);
                 if (reply != string.Empty)
                 {
@@ -103,7 +104,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Exception when contacting friends server: {0}", e.Message);
+                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Exception when contacting friends server at {0}: {1}", uri, e.Message);
             }
 
             return 0;
@@ -123,15 +124,16 @@ namespace OpenSim.Services.Connectors.Hypergrid
             sendData["SESSIONID"] = m_SessionID.ToString();
 
             string reply = string.Empty;
+            string uri = m_ServerURI + "/hgfriends";
             try
             {
                 reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/hgfriends",
+                        uri,
                         ServerUtils.BuildQueryString(sendData));
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Exception when contacting friends server: {0}", e.Message);
+                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Exception when contacting friends server at {0}: {1}", uri, e.Message);
                 return false;
             }
 
@@ -168,15 +170,16 @@ namespace OpenSim.Services.Connectors.Hypergrid
             sendData["SECRET"] = secret;
 
             string reply = string.Empty;
+            string uri = m_ServerURI + "/hgfriends";
             try
             {
                 reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/hgfriends",
+                        uri,
                         ServerUtils.BuildQueryString(sendData));
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Exception when contacting friends server: {0}", e.Message);
+                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Exception when contacting friends server at {0}: {1}", uri, e.Message);
                 return false;
             }
 

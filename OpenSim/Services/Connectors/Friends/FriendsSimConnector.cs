@@ -139,12 +139,11 @@ namespace OpenSim.Services.Connectors.Friends
                 return false;
 
             m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: region: {0}", region.ExternalHostName + ":" + region.HttpPort);
+            string uri = "http://" + region.ExternalHostName + ":" + region.HttpPort + "/friends";
+
             try
             {
-                string url = "http://" + region.ExternalHostName + ":" + region.HttpPort;
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        url + "/friends",
-                        reqString);
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -165,7 +164,7 @@ namespace OpenSim.Services.Connectors.Friends
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: Exception when contacting remote sim: {0}", e.ToString());
+                m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: Exception when contacting remote sim at {0}: {1}", uri, e.Message);
             }
 
             return false;
