@@ -53,6 +53,30 @@ namespace OpenSim.Region.Framework.Tests
     public class TaskInventoryTests
     {
         [Test]
+        public void TestAddTaskInventoryItem()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+            
+            Scene scene = SceneHelpers.SetupScene();
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
+            SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
+            SceneObjectPart sop1 = sog1.RootPart;
+
+            // Create an object embedded inside the first
+            UUID taskSceneObjectItemId = UUID.Parse("00000000-0000-0000-0000-100000000000");
+            TaskInventoryItem taskSceneObjectItem
+                = TaskInventoryHelpers.AddSceneObject(scene, sop1, "tso", taskSceneObjectItemId, user1.PrincipalID);
+
+            TaskInventoryItem addedItem = sop1.Inventory.GetInventoryItem(taskSceneObjectItemId);
+            Assert.That(addedItem.ItemID, Is.EqualTo(taskSceneObjectItemId));
+            Assert.That(addedItem.OwnerID, Is.EqualTo(user1.PrincipalID));
+            Assert.That(addedItem.ParentID, Is.EqualTo(sop1.UUID));
+            Assert.That(addedItem.InvType, Is.EqualTo((int)InventoryType.Object));
+            Assert.That(addedItem.Type, Is.EqualTo((int)AssetType.Object));
+        }
+
+        [Test]
         public void TestRezObjectFromInventoryItem()
         {
             TestHelpers.InMethod();
@@ -66,7 +90,7 @@ namespace OpenSim.Region.Framework.Tests
             // Create an object embedded inside the first
             UUID taskSceneObjectItemId = UUID.Parse("00000000-0000-0000-0000-100000000000");
             TaskInventoryItem taskSceneObjectItem
-                = TaskInventoryHelpers.AddSceneObject(scene, sop1, "tso", taskSceneObjectItemId);
+                = TaskInventoryHelpers.AddSceneObject(scene, sop1, "tso", taskSceneObjectItemId, user1.PrincipalID);
 
             scene.AddSceneObject(sog1);
 

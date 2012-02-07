@@ -28,12 +28,16 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using Tools;
 
 namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 {
     public class CSCodeGenerator : ICodeConverter
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private SYMBOL m_astRoot = null;
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap;
         private int m_indentWidth = 4;  // for indentation
@@ -87,6 +91,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// <returns>String containing the generated C# code.</returns>
         public string Convert(string script)
         {
+//            m_log.DebugFormat("[CS CODE GENERATOR]: Converting to C#\n{0}", script);
+
             m_warnings.Clear();
             ResetCounters();
             Parser p = new LSLSyntax(new yyLSLSyntax(), new ErrorHandler(true));
