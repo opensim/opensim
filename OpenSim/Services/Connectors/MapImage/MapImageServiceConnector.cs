@@ -97,11 +97,12 @@ namespace OpenSim.Services.Connectors
             sendData["DATA"] = Convert.ToBase64String(jpgData);
 
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/map";
 
             try
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/map",
+                        uri,
                         reqString);
                 if (reply != string.Empty)
                 {
@@ -135,7 +136,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[MAP IMAGE CONNECTOR]: Exception when contacting grid server: {0}", e.Message);
+                m_log.DebugFormat("[MAP IMAGE CONNECTOR]: Exception when contacting map server at {0}: {1}", uri, e.Message);
             }
             finally
             {
