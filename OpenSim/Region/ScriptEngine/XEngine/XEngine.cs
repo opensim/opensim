@@ -680,6 +680,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
         {
+//            m_log.DebugFormat(
+//                "[XEngine]: OnRezScript event triggered for script {0}, startParam {1}, postOnRez {2}, engine {3}, stateSource {4}, script\n{5}",
+//                 itemID, startParam, postOnRez, engine, stateSource, script);
+
             if (script.StartsWith("//MRM:"))
                 return;
 
@@ -761,6 +765,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_CompileDict[itemID] = 0;
                 }
 
+//                m_log.DebugFormat("[XEngine]: Added script {0} to compile queue", itemID);
+
                 if (m_CurrentCompile == null)
                 {
                     // NOTE: Although we use a lockless queue, the lock here
@@ -822,6 +828,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             bool postOnRez = (bool)p[4];
             StateSource stateSource = (StateSource)p[5];
 
+//            m_log.DebugFormat("[XEngine]: DoOnRezScript called for script {0}", itemID);
+
             lock (m_CompileDict)
             {
                 if (!m_CompileDict.ContainsKey(itemID))
@@ -870,7 +878,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 try
                 {
-                    lock (m_AddingAssemblies) 
+                    lock (m_AddingAssemblies)
                     {
                         m_Compiler.PerformScriptCompile(script, assetID.ToString(), item.OwnerID, out assembly, out linemap);
                         if (!m_AddingAssemblies.ContainsKey(assembly)) {
@@ -922,6 +930,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
                 catch (Exception e)
                 {
+//                    m_log.ErrorFormat("[XEngine]: Exception when rezzing script {0}{1}", e.Message, e.StackTrace);
+
     //                try
     //                {
                         if (!m_ScriptErrors.ContainsKey(itemID))
@@ -1131,7 +1141,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
                 handlerObjectRemoved(part.UUID);
             }
-
 
             ScriptRemoved handlerScriptRemoved = OnScriptRemoved;
             if (handlerScriptRemoved != null)
@@ -1380,6 +1389,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 string path = Path.Combine(Directory.GetCurrentDirectory(),
                                            Path.Combine(s, assemblyName))+".dll";
+
+//                Console.WriteLine("[XEngine]: Trying to resolve {0}", path);
 
                 if (File.Exists(path))
                     return Assembly.LoadFrom(path);
@@ -1863,16 +1874,24 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void SuspendScript(UUID itemID)
         {
+//            m_log.DebugFormat("[XEngine]: Received request to suspend script with ID {0}", itemID);
+
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
                 instance.Suspend();
+//            else
+//                m_log.DebugFormat("[XEngine]: Could not find script with ID {0} to resume", itemID);
         }
 
         public void ResumeScript(UUID itemID)
         {
+//            m_log.DebugFormat("[XEngine]: Received request to resume script with ID {0}", itemID);
+
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
                 instance.Resume();
+//            else
+//                m_log.DebugFormat("[XEngine]: Could not find script with ID {0} to resume", itemID);
         }
     }
 }

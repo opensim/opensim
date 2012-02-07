@@ -88,9 +88,27 @@ namespace OpenSim.Tests.Common
         /// <param name="id">ID of the region</param>
         /// <param name="x">X co-ordinate of the region</param>
         /// <param name="y">Y co-ordinate of the region</param>
-        /// <param name="cm">This should be the same if simulating two scenes within a standalone</param>
+        /// <param name="cache"></param>
         /// <returns></returns>
-        public static TestScene SetupScene(string name, UUID id, uint x, uint y, CoreAssetCache cache)
+        public static TestScene SetupScene(
+            string name, UUID id, uint x, uint y, CoreAssetCache cache)
+        {
+            return SetupScene(name, id, x, y, cache, new IniConfigSource());
+        }
+
+        /// <summary>
+        /// Set up a scene. If it's more then one scene, use the same CommunicationsManager to link regions
+        /// or a different, to get a brand new scene with new shared region modules.
+        /// </summary>
+        /// <param name="name">Name of the region</param>
+        /// <param name="id">ID of the region</param>
+        /// <param name="x">X co-ordinate of the region</param>
+        /// <param name="y">Y co-ordinate of the region</param>
+        /// <param name="cache"></param>
+        /// <param name="configSource"></param>
+        /// <returns></returns>
+        public static TestScene SetupScene(
+            string name, UUID id, uint x, uint y, CoreAssetCache cache, IConfigSource configSource)
         {
             Console.WriteLine("Setting up test scene {0}", name);
 
@@ -106,7 +124,6 @@ namespace OpenSim.Tests.Common
 
             ISimulationDataService simDataService = OpenSim.Server.Base.ServerUtils.LoadPlugin<ISimulationDataService>("OpenSim.Tests.Common.dll", null);
             IEstateDataService estateDataService = null;
-            IConfigSource configSource = new IniConfigSource();
 
             TestScene testScene = new TestScene(
                 regInfo, acm, scs, simDataService, estateDataService, null, false, configSource, null);

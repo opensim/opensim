@@ -27,44 +27,100 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Nini.Config;
 using NUnit.Framework;
-using OpenSim.Tests.Common.Mock;
-using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Region.CoreModules.Scripting.WorldComm;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.ScriptEngine.XEngine.Tests
 {
     /// <summary>
-    /// Scene presence tests
+    /// XEngine tests.
     /// </summary>
-    /// Commented out XEngineTests that don't do anything
-    /*
     [TestFixture]
     public class XEngineTest
     {
-        public Scene scene;
-        
-        public static Random random;
-        public TestClient testclient;
-        //TestCommunicationsManager cm;
+        private TestScene m_scene;
+        private XEngine m_xEngine;
+        private AutoResetEvent m_chatEvent = new AutoResetEvent(false);
+        private OSChatMessage m_osChatMessageReceived;
 
         [TestFixtureSetUp]
         public void Init()
         {
-            TestCommunicationsManager cm = new TestCommunicationsManager();
-            scene = SceneSetupHelpers.SetupScene("My Test", UUID.Random(), 1000, 1000, cm);
-            random = new Random();
+            //AppDomain.CurrentDomain.SetData("APPBASE", Environment.CurrentDirectory + "/bin");
+//            Console.WriteLine(AppDomain.CurrentDomain.BaseDirectory);
+            m_xEngine = new XEngine();
+
+            // Necessary to stop serialization complaining
+            WorldCommModule wcModule = new WorldCommModule();
+
+            IniConfigSource configSource = new IniConfigSource();
+            
+            IConfig startupConfig = configSource.AddConfig("Startup");
+            startupConfig.Set("DefaultScriptEngine", "XEngine");
+
+            IConfig xEngineConfig = configSource.AddConfig("XEngine");
+            xEngineConfig.Set("Enabled", "true");
+
+            // These tests will not run with AppDomainLoading = true, at least on mono.  For unknown reasons, the call
+            // to AssemblyResolver.OnAssemblyResolve fails.
+            xEngineConfig.Set("AppDomainLoading", "false");
+
+            m_scene = SceneHelpers.SetupScene("My Test", UUID.Random(), 1000, 1000, null, configSource);
+            SceneHelpers.SetupSceneModules(m_scene, configSource, m_xEngine, wcModule);
+            m_scene.StartScripts();
         }
-        
+
+        /// <summary>
+        /// Test compilation and starting of a script.
+        /// </summary>
+        /// <remarks>
+        /// This is a less than ideal regression test since it involves an asynchronous operation (in this case,
+        /// compilation of the script).
+        /// </remarks>
         [Test]
-        public void T001_XStart()
+        public void TestCompileAndStartScript()
         {
-            INonSharedRegionModule xengine = new XEngine();
-            SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), xengine);
-            xengine.RegionLoaded(scene);
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+//            UUID objectId = TestHelpers.ParseTail(0x2);
+//            UUID itemId = TestHelpers.ParseTail(0x3);
+            string itemName = "TestStartScript() Item";
+
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, "TestStartScriptPart_", 0x100);
+            m_scene.AddNewSceneObject(so, true);
+
+            InventoryItemBase itemTemplate = new InventoryItemBase();
+//            itemTemplate.ID = itemId;
+            itemTemplate.Name = itemName;
+            itemTemplate.Folder = so.UUID;
+            itemTemplate.InvType = (int)InventoryType.LSL;
+
+            m_scene.EventManager.OnChatFromWorld += OnChatFromWorld;
+
+            m_scene.RezNewScript(userId, itemTemplate);
+
+            m_chatEvent.WaitOne(60000);
+
+            Assert.That(m_osChatMessageReceived, Is.Not.Null, "No chat message received in TestStartScript()");
+            Assert.That(m_osChatMessageReceived.Message, Is.EqualTo("Script running"));
+        }
+
+        private void OnChatFromWorld(object sender, OSChatMessage oscm)
+        {
+//            Console.WriteLine("Got chat [{0}]", oscm.Message);
+
+            m_osChatMessageReceived = oscm;
+            m_chatEvent.Set();
         }
     }
-    */
 }
