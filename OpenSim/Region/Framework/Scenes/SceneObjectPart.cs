@@ -1501,17 +1501,13 @@ namespace OpenSim.Region.Framework.Scenes
                         PhysActor = null;
                     }
 
-                    // Basic Physics returns null..  joy joy joy.
+                    // Basic Physics can also return null as well as an exception catch.
                     if (PhysActor != null)
                     {
                         PhysActor.SOPName = this.Name; // save object into the PhysActor so ODE internals know the joint/body info
                         PhysActor.SetMaterial(Material);
                         DoPhysicsPropertyUpdate(RigidBody, true);
                         PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
-                    }
-                    else
-                    {
-                        m_log.DebugFormat("[SOP]: physics actor is null for {0} with parent {1}", UUID, this.ParentGroup.UUID);
                     }
                 }
             }
