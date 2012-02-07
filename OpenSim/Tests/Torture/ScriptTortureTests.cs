@@ -107,6 +107,8 @@ namespace OpenSim.Tests.Torture
             m_expectedChatMessages = scriptsToCreate;
             int startingObjectIdTail = 0x100;
 
+            GC.Collect();
+
             for (int idTail = startingObjectIdTail;idTail < startingObjectIdTail + scriptsToCreate; idTail++)
             {
                 AddObjectAndScript(idTail, userId);

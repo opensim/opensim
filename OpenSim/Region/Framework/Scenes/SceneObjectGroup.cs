@@ -567,7 +567,8 @@ namespace OpenSim.Region.Framework.Scenes
 
 //        ~SceneObjectGroup()
 //        {
-//            m_log.DebugFormat("[SCENE OBJECT GROUP]: Destructor called for {0}, local id {1}", Name, LocalId);
+//            //m_log.DebugFormat("[SCENE OBJECT GROUP]: Destructor called for {0}, local id {1}", Name, LocalId);
+//            Console.WriteLine("Destructor called for {0}, local id {1}", Name, LocalId);
 //        }
 
         #region Constructors
