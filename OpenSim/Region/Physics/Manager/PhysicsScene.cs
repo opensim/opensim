@@ -225,7 +225,7 @@ namespace OpenSim.Region.Physics.Manager
         }
 
         public virtual void Combine(PhysicsScene pScene, Vector3 offset, Vector3 extents) {}
-
+        public virtual void CombineTerrain(float[] heightMap, Vector3 pOffset) {}
         public virtual void UnCombine(PhysicsScene pScene) {}
 
         /// <summary>
@@ -263,5 +263,13 @@ namespace OpenSim.Region.Physics.Manager
         {
             return new List<ContactResult>();
         }
+
+        public virtual void RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, RaycastCallback retMethod){}
+        public virtual void RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, int Count, RayCallback retMethod) { }
+        public virtual List<ContactResult> RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, int Count)
+        {
+            return new List<ContactResult>();
+        }
+
     }
 }

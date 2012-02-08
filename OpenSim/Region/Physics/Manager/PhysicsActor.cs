@@ -68,6 +68,17 @@ namespace OpenSim.Region.Physics.Manager
         }
     }
 
+    public struct ContactData
+    {
+        public float mu;
+        public float bounce;
+
+        public ContactData(float _mu, float _bounce)
+        {
+            mu = _mu;
+            bounce = _bounce;
+        }
+    }
     /// <summary>
     /// Used to pass collision information to OnCollisionUpdate listeners.
     /// </summary>
@@ -141,6 +152,14 @@ namespace OpenSim.Region.Physics.Manager
         public static PhysicsActor Null
         {
             get { return new NullPhysicsActor(); }
+        }
+
+
+        public virtual bool Building { get; set; }
+
+        public virtual ContactData ContactData
+        {
+            get { return new ContactData(0, 0); }
         }
 
         public abstract bool Stopped { get; }
