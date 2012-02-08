@@ -1539,7 +1539,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 Shape,
                                 AbsolutePosition,
                                 Scale,
-                                RotationOffset,
+//                                RotationOffset,
+                                GetWorldRotation(),  // physics wants world rotation
                                 RigidBody,
                                 m_localId);
                     }
@@ -4366,7 +4367,8 @@ namespace OpenSim.Region.Framework.Scenes
                         Shape,
                         AbsolutePosition,
                         Scale,
-                        RotationOffset,
+//                        RotationOffset,
+                        GetWorldRotation(), //physics wants world rotation like all other functions send
                         UsePhysics,
                         m_localId);
 
