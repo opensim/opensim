@@ -1662,6 +1662,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     SceneObjectGroup child = children[i].ParentGroup;
 
+                    // Don't try and add a group to itself - this will only cause severe problems later on.
+                    if (child == parentGroup)
+                        continue;
+
                     // Make sure no child prim is set for sale
                     // So that, on delink, no prims are unwittingly
                     // left for sale and sold off
@@ -1684,11 +1688,13 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // We need to explicitly resend the newly link prim's object properties since no other actions
                 // occur on link to invoke this elsewhere (such as object selection)
-                parentGroup.RootPart.CreateSelected = true;
-                parentGroup.TriggerScriptChangedEvent(Changed.LINK);
-                parentGroup.HasGroupChanged = true;
-                parentGroup.ScheduleGroupForFullUpdate();
-                
+                if (childGroups.Count > 0)
+                {
+                    parentGroup.RootPart.CreateSelected = true;
+                    parentGroup.TriggerScriptChangedEvent(Changed.LINK);
+                    parentGroup.HasGroupChanged = true;
+                    parentGroup.ScheduleGroupForFullUpdate();
+                }
             }
             finally
             {
