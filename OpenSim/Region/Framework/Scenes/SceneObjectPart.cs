@@ -1503,7 +1503,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="rootObjectFlags"></param>
         /// <param name="VolumeDetectActive"></param>
-        public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive)
+//        public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive)
+		public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive, bool building)
         {
             if (!ParentGroup.Scene.CollidablePrims)
                 return;
@@ -1557,6 +1558,8 @@ namespace OpenSim.Region.Framework.Scenes
                         PhysActor.SetMaterial(Material);
                         DoPhysicsPropertyUpdate(RigidBody, true);
                         PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
+						if (!building)
+                            PhysActor.Building = false;
                     }
                 }
             }
@@ -1791,6 +1794,10 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (!isNew)
                                 ParentGroup.Scene.RemovePhysicalPrim(1);
+
+                            Velocity = new Vector3(0, 0, 0);
+                            Acceleration = new Vector3(0, 0, 0);
+                            AngularVelocity = new Vector3(0, 0, 0);
 
                             PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
                             PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
@@ -4268,7 +4275,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="SetTemporary"></param>
         /// <param name="SetPhantom"></param>
         /// <param name="SetVD"></param>
-        public void UpdatePrimFlags(bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVD)
+//        public void UpdatePrimFlags(bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVD)
+        public void UpdatePrimFlags(bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVD, bool building)
         {
             bool wasUsingPhysics = ((Flags & PrimFlags.Physics) != 0);
             bool wasTemporary = ((Flags & PrimFlags.TemporaryOnRez) != 0);
@@ -4286,6 +4294,9 @@ namespace OpenSim.Region.Framework.Scenes
             // that...
             // ... if VD is changed, all others are not.
             // ... if one of the others is changed, VD is not.
+           // do this first
+            if (building && PhysActor != null && PhysActor.Building != building)
+                PhysActor.Building = building;
             if (SetVD) // VD is active, special logic applies
             {
                 // State machine logic for VolumeDetect
@@ -4448,6 +4459,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             //            m_log.Debug("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
 
+           // and last in case we have a new actor and not building
+            if (PhysActor != null && PhysActor.Building != building)
+                PhysActor.Building = building;
             if (ParentGroup != null)
             {
                 ParentGroup.HasGroupChanged = true;

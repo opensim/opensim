@@ -2062,7 +2062,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     SetInStaticSpace(this);
             }
 
-            m_building = false; // REMOVE THIS LATER
+//            m_building = false; // REMOVE THIS LATER
 
 
             if (m_isphysical && Body == IntPtr.Zero)

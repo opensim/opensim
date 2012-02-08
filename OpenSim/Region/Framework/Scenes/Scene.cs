@@ -4766,7 +4766,7 @@ Environment.Exit(1);
             bool wasUsingPhysics = ((jointProxyObject.Flags & PrimFlags.Physics) != 0);
             if (wasUsingPhysics)
             {
-                jointProxyObject.UpdatePrimFlags(false, false, true, false); // FIXME: possible deadlock here; check to make sure all the scene alterations set into motion here won't deadlock
+                jointProxyObject.UpdatePrimFlags(false, false, true, false,false); // FIXME: possible deadlock here; check to make sure all the scene alterations set into motion here won't deadlock
             }
         }
 
