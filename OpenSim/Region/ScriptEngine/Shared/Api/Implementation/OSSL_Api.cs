@@ -2584,18 +2584,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osNpcRemove");
             m_host.AddScriptLPS(1);
 
+            ManualResetEvent ev = new ManualResetEvent(false);
+
             Util.FireAndForget(delegate(object x) {
-                INPCModule module = World.RequestModuleInterface<INPCModule>();
-                if (module != null)
+                try
                 {
-                    UUID npcId = new UUID(npc.m_string);
+                    INPCModule module = World.RequestModuleInterface<INPCModule>();
+                    if (module != null)
+                    {
+                        UUID npcId = new UUID(npc.m_string);
 
-                    if (!module.CheckPermissions(npcId, m_host.OwnerID))
-                        return;
+                        if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                            return;
 
-                    module.DeleteNPC(npcId, World);
-                });
-            }
+                        module.DeleteNPC(npcId, World);
+                    }
+                }
+                finally
+                {
+                    ev.Set();
+                }
+            });
+            ev.WaitOne();
         }
 
         public void osNpcPlayAnimation(LSL_Key npc, string animation)

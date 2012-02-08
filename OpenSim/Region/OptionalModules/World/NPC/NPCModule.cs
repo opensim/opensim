@@ -140,26 +140,33 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 //                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
 //            }
 
-            lock (m_avatars)
-            {
-                scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
-                scene.AddNewClient(npcAvatar, PresenceType.Npc);
+            ManualResetEvent ev = new ManualResetEvent(false);
 
-                ScenePresence sp;
-                if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
+            Util.FireAndForget(delegate(object x) {
+                lock (m_avatars)
                 {
-                    m_log.DebugFormat(
-                        "[NPC MODULE]: Successfully retrieved scene presence for NPC {0} {1}", sp.Name, sp.UUID);
+                    scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
+                    scene.AddNewClient(npcAvatar, PresenceType.Npc);
 
-                    sp.CompleteMovement(npcAvatar, false);
-                }
-                else
-                {
-                    m_log.WarnFormat("[NPC MODULE]: Could not find scene presence for NPC {0} {1}", sp.Name, sp.UUID);
-                }
+                    ScenePresence sp;
+                    if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
+                    {
+                        m_log.DebugFormat(
+                            "[NPC MODULE]: Successfully retrieved scene presence for NPC {0} {1}", sp.Name, sp.UUID);
 
-                m_avatars.Add(npcAvatar.AgentId, npcAvatar);
-            }
+                        sp.CompleteMovement(npcAvatar, false);
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[NPC MODULE]: Could not find scene presence for NPC {0} {1}", sp.Name, sp.UUID);
+                    }
+
+                    m_avatars.Add(npcAvatar.AgentId, npcAvatar);
+                }
+                ev.Set();
+            });
+
+            ev.WaitOne();
 
             m_log.DebugFormat("[NPC MODULE]: Created NPC with id {0}", npcAvatar.AgentId);
 
