@@ -2310,7 +2310,24 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGraph.DelinkObjects(parts);
         }
 
+        /// <summary>
+        /// Link the scene objects containing the indicated parts to a root object.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="parentPrimId">A root prim id of the object which will be the root prim of the resulting linkset.</param>
+        /// <param name="childPrimIds">A list of child prims for the objects that should be linked in.</param>
         public void LinkObjects(IClientAPI client, uint parentPrimId, List<uint> childPrimIds)
+        {
+            LinkObjects(client.AgentId, parentPrimId, childPrimIds);
+        }
+
+        /// <summary>
+        /// Link the scene objects containing the indicated parts to a root object.
+        /// </summary>
+        /// <param name="agentId">The ID of the user linking.</param>
+        /// <param name="parentPrimId">A root prim id of the object which will be the root prim of the resulting linkset.</param>
+        /// <param name="childPrimIds">A list of child prims for the objects that should be linked in.</param>
+        public void LinkObjects(UUID agentId, uint parentPrimId, List<uint> childPrimIds)
         {
             List<UUID> owners = new List<UUID>();
 
@@ -2323,7 +2340,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            if (!Permissions.CanLinkObject(client.AgentId, root.ParentGroup.RootPart.UUID))
+            if (!Permissions.CanLinkObject(agentId, root.ParentGroup.RootPart.UUID))
             {
                 m_log.DebugFormat("[LINK]: Refusing link. No permissions on root prim");
                 return;
@@ -2339,7 +2356,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!owners.Contains(part.OwnerID))
                     owners.Add(part.OwnerID);
 
-                if (Permissions.CanLinkObject(client.AgentId, part.ParentGroup.RootPart.UUID))
+                if (Permissions.CanLinkObject(agentId, part.ParentGroup.RootPart.UUID))
                     children.Add(part);
             }
 

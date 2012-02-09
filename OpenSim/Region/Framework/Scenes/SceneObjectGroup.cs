@@ -2361,6 +2361,10 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE OBJECT GROUP]: Linking group with root part {0}, {1} to group with root part {2}, {3}",
 //                objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
 
+            // Linking to ourselves is not a valid operation.
+            if (objectGroup == this)
+                return;
+
             SceneObjectPart linkPart = objectGroup.m_rootPart;
 
             Vector3 oldGroupPosition = linkPart.GroupPosition;
