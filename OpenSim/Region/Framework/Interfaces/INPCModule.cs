@@ -58,7 +58,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         /// <param name="scene"></param>
         /// <param name="appearance">The avatar appearance to use for the new NPC.</param>
-        /// <returns>The UUID of the ScenePresence created.</returns>
+        /// <returns>The UUID of the ScenePresence created.  UUID.Zero if there was a failure.</returns>
         UUID CreateNPC(
             string firstname,
             string lastname,
