@@ -75,7 +75,7 @@ namespace OpenSim.Data.SQLite
             cmd.Parameters.AddWithValue(":PrincipalID", principalID.ToString());
             cmd.Parameters.AddWithValue(":Friend", friend);
 
-            ExecuteNonQuery(cmd, cmd.Connection);
+            ExecuteNonQuery(cmd, m_Connection);
 
             return true;
         }

@@ -339,7 +339,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_scene.AddSceneObject(grp);
                     grp.AbsolutePosition = obj.Position;
                 }
-
+                
                 allparts[i] = grp;
             }
 

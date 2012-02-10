@@ -538,6 +538,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public bool Stop(int timeout)
         {
+//            m_log.DebugFormat(
+//                "[SCRIPT INSTANCE]: Stopping script {0} {1} with timeout {2}", ScriptName, ItemID, timeout);
+
             IScriptWorkItem result;
 
             lock (m_EventQueue)
@@ -772,7 +775,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         }
                         catch (Exception e)
                         {
-                            // m_log.DebugFormat("[SCRIPT] Exception: {0}", e.Message);
+//                            m_log.DebugFormat(
+//                                "[SCRIPT] Exception in script {0} {1}: {2}{3}",
+//                                ScriptName, ItemID, e.Message, e.StackTrace);
+
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
 

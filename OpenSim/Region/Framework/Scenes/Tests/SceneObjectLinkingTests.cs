@@ -39,13 +39,30 @@ using log4net;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
-    /// <summary>
-    /// Linking tests
-    /// </summary>
     [TestFixture]
     public class SceneObjectLinkingTests
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        /// Links to self should be ignored.
+        /// </summary>
+        [Test]
+        public void TestLinkToSelf()
+        {
+            TestHelpers.InMethod();
+
+            UUID ownerId = TestHelpers.ParseTail(0x1);
+            int nParts = 3;
+
+            TestScene scene = SceneHelpers.SetupScene();
+            SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(nParts, ownerId, "TestLinkToSelf_", 0x10);
+            scene.AddSceneObject(sog1);
+            scene.LinkObjects(ownerId, sog1.LocalId, new List<uint>() { sog1.Parts[1].LocalId });
+//            sog1.LinkToGroup(sog1);
+
+            Assert.That(sog1.Parts.Length, Is.EqualTo(nParts));
+        }
 
         [Test]
         public void TestLinkDelink2SceneObjects()

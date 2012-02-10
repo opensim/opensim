@@ -5168,7 +5168,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ImprovedInstantMessage, HandlerImprovedInstantMessage, false);
             AddLocalPacketHandler(PacketType.AcceptFriendship, HandlerAcceptFriendship);
             AddLocalPacketHandler(PacketType.DeclineFriendship, HandlerDeclineFriendship);
-            AddLocalPacketHandler(PacketType.TerminateFriendship, HandlerTerminateFrendship);
+            AddLocalPacketHandler(PacketType.TerminateFriendship, HandlerTerminateFriendship);
             AddLocalPacketHandler(PacketType.RezObject, HandlerRezObject);
             AddLocalPacketHandler(PacketType.DeRezObject, HandlerDeRezObject);
             AddLocalPacketHandler(PacketType.ModifyLand, HandlerModifyLand);
@@ -5891,7 +5891,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
-        private bool HandlerTerminateFrendship(IClientAPI sender, Packet Pack)
+        private bool HandlerTerminateFriendship(IClientAPI sender, Packet Pack)
         {
             TerminateFriendshipPacket tfriendpack = (TerminateFriendshipPacket)Pack;
 
@@ -5906,13 +5906,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             UUID listOwnerAgentID = tfriendpack.AgentData.AgentID;
             UUID exFriendID = tfriendpack.ExBlock.OtherID;
-
-            FriendshipTermination handlerTerminateFriendship = OnTerminateFriendship;
-            if (handlerTerminateFriendship != null)
+            FriendshipTermination TerminateFriendshipHandler = OnTerminateFriendship;
+            if (TerminateFriendshipHandler != null)
             {
-                handlerTerminateFriendship(this, listOwnerAgentID, exFriendID);
+                TerminateFriendshipHandler(this, listOwnerAgentID, exFriendID);
+                return true;
             }
-            return true;
+            return false;
         }
 
         private bool HandleFindAgent(IClientAPI client, Packet Packet)
