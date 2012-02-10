@@ -1198,7 +1198,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             Body = IntPtr.Zero;
             hasOOBoffsetFromMesh = false;
-//            CalcPrimBodyData();
+            CalcPrimBodyData();
         }
 
         private void ChildSetGeom(OdePrim odePrim)
@@ -1223,7 +1223,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (m_isphysical && Body != IntPtr.Zero && prim_geom != IntPtr.Zero)
                 {
-                    /*
                     if (m_targetSpace != _parent_scene.ActiveSpace)
                     {
                         m_targetSpace = _parent_scene.ActiveSpace;
@@ -1238,7 +1237,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         d.SpaceAdd(m_targetSpace, prim_geom);
                     }
-                     */
                     d.GeomEnable(prim_geom);
                     foreach (OdePrim prm in childrenPrim)
                         d.GeomEnable(prm.prim_geom);
@@ -1256,7 +1254,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (m_isphysical && Body != IntPtr.Zero && prim_geom != IntPtr.Zero)
                 {
-                    /*
                     if (m_targetSpace == _parent_scene.ActiveSpace)
                     {
                         foreach (OdePrim prm in childrenPrim)
@@ -1270,7 +1267,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.SpaceRemove(m_targetSpace, prim_geom);
                         m_targetSpace = IntPtr.Zero;
                     }
-                    */
                     d.GeomDisable(prim_geom);
                     foreach (OdePrim prm in childrenPrim)
                         d.GeomDisable(prm.prim_geom);

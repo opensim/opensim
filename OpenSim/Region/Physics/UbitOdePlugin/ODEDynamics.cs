@@ -629,36 +629,31 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             Vector3 force = Vector3.Zero; // actually linear aceleration until mult by mass in world frame
             Vector3 torque = Vector3.Zero;// actually angular aceleration until mult by Inertia in object frame
-            d.Vector3 dtorque = new d.Vector3();// actually angular aceleration until mult by Inertia in object frame
-
-            bool doathing = false;
+            d.Vector3 dtorque = new d.Vector3();
 
             // linear motor
             if (m_lmEfect > 0.01 && m_linearMotorTimescale < 1000)
             {
                 tmpV = m_linearMotorDirection - curLocalVel; // velocity error
-                if (tmpV.LengthSquared() > 1e-6f)
+                tmpV *= m_lmEfect / m_linearMotorTimescale; // error to correct in this timestep
+                tmpV *= rotq; // to world
+
+                if ((m_flags & VehicleFlag.LIMIT_MOTOR_UP) != 0)
+                    tmpV.Z = 0;
+
+                if (m_linearMotorOffset.X != 0 || m_linearMotorOffset.Y != 0 || m_linearMotorOffset.Z != 0)
                 {
-                    tmpV = tmpV * (m_lmEfect / m_linearMotorTimescale); // error to correct in this timestep
-                    tmpV *= rotq; // to world
-
-                    if ((m_flags & VehicleFlag.LIMIT_MOTOR_UP) != 0)
-                        tmpV.Z = 0;
-
-                    if (m_linearMotorOffset.X != 0 && m_linearMotorOffset.Y != 0 && m_linearMotorOffset.Z != 0)
-                    {
-                        // have offset, do it now
-                        tmpV *= rootPrim.Mass;
-                        d.BodyAddForceAtRelPos(Body, tmpV.X, tmpV.Y, tmpV.Z, m_linearMotorOffset.X, m_linearMotorOffset.Y, m_linearMotorOffset.Z);
-                    }
-                    else
-                    {
-                        force.X += tmpV.X;
-                        force.Y += tmpV.Y;
-                        force.Z += tmpV.Z;
-                    }
+                    // have offset, do it now
+                    tmpV *= rootPrim.Mass;
+                    d.BodyAddForceAtRelPos(Body, tmpV.X, tmpV.Y, tmpV.Z, m_linearMotorOffset.X, m_linearMotorOffset.Y, m_linearMotorOffset.Z);
                 }
-                m_lmEfect *= (1 - 1.0f / m_linearMotorDecayTimescale);
+                else
+                {
+                    force.X += tmpV.X;
+                    force.Y += tmpV.Y;
+                    force.Z += tmpV.Z;
+                }
+                m_lmEfect *= (1.0f - 1.0f / m_linearMotorDecayTimescale);
             }
             else
                 m_lmEfect = 0;
@@ -719,30 +714,35 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_linearDeflectionEfficiency > 0)
             {
                 float len = curVel.Length();
-                Vector3 atAxis = refAtAxis;
-                atAxis *= rotq; // at axis rotated to world 
-                atAxis = Xrot(rotq);
-                tmpV = atAxis * len;
-                tmpV -= curVel; // velocity error
-                tmpV *= (m_linearDeflectionEfficiency / m_linearDeflectionTimescale); // error to correct in this timestep
-                force.X += tmpV.X;
-                force.Y += tmpV.Y;
-                if((m_flags & VehicleFlag.NO_DEFLECTION_UP) ==0)
-                    force.Z += tmpV.Z;
+                Vector3 atAxis;
+                atAxis = Xrot(rotq); // where are we pointing to
+                atAxis *= len; // make it same size as world velocity vector
+                tmpV = -atAxis; // oposite direction
+                atAxis -= curVel; // error to one direction
+                len = atAxis.LengthSquared();
+                tmpV -= curVel; // error to oposite
+                float lens = tmpV.LengthSquared();
+                if (len > 0.01 || lens > 0.01) // do nothing if close enougth
+                {
+                    if (len < lens)
+                        tmpV = atAxis;
+
+                    tmpV *= (m_linearDeflectionEfficiency / m_linearDeflectionTimescale); // error to correct in this timestep
+                    force.X += tmpV.X;
+                    force.Y += tmpV.Y;
+                    if ((m_flags & VehicleFlag.NO_DEFLECTION_UP) == 0)
+                        force.Z += tmpV.Z;
+                }
             }
 
             // angular motor
             if (m_amEfect > 0.01 && m_angularMotorTimescale < 1000)
             {
                 tmpV = m_angularMotorDirection - curLocalAngVel; // velocity error
-                if (tmpV.LengthSquared() > 1e-6f)
-                {
-                    tmpV = tmpV * (m_amEfect / m_angularMotorTimescale); // error to correct in this timestep
-                    tmpV *= m_referenceFrame; // to object
-                    dtorque.X += tmpV.X;
-                    dtorque.Y += tmpV.Y;
-                    dtorque.Z += tmpV.Z;
-                }
+                tmpV *= m_amEfect / m_angularMotorTimescale; // error to correct in this timestep
+                torque.X += tmpV.X;
+                torque.Y += tmpV.Y;
+                torque.Z += tmpV.Z;
                 m_amEfect *= (1 - 1.0f / m_angularMotorDecayTimescale);
             }
             else
@@ -751,85 +751,64 @@ namespace OpenSim.Region.Physics.OdePlugin
             // angular friction
             if (curLocalAngVel.X != 0 || curLocalAngVel.Y != 0 || curLocalAngVel.Z != 0)
             {
-                tmpV.X = -curLocalAngVel.X / m_angularFrictionTimescale.X;
-                tmpV.Y = -curLocalAngVel.Y / m_angularFrictionTimescale.Y;
-                tmpV.Z = -curLocalAngVel.Z / m_angularFrictionTimescale.Z;
-                tmpV *= m_referenceFrame; // to object
-                dtorque.X += tmpV.X;
-                dtorque.Y += tmpV.Y;
-                dtorque.Z += tmpV.Z;
+                torque.X -= curLocalAngVel.X / m_angularFrictionTimescale.X;
+                torque.Y -= curLocalAngVel.Y / m_angularFrictionTimescale.Y;
+                torque.Z -= curLocalAngVel.Z / m_angularFrictionTimescale.Z;
             }
 
             // angular deflection
             if (m_angularDeflectionEfficiency > 0)
             {
-                doathing = false;
-                float ftmp = m_angularDeflectionEfficiency / m_angularDeflectionTimescale / m_angularDeflectionTimescale /_pParentScene.ODE_STEPSIZE;
-                tmpV.X = 0;
-                if (Math.Abs(curLocalVel.Z) > 0.01)
-                {
-                    tmpV.Y = -(float)Math.Atan2(curLocalVel.Z, curLocalVel.X) * ftmp;
-                    doathing = true;
-                }
+                Vector3 dirv;
+                
+                if (curLocalVel.X > 0.01f)
+                    dirv = curLocalVel;
+                else if (curLocalVel.X < -0.01f)
+                    // use oposite 
+                    dirv = -curLocalVel;
                 else
-                    tmpV.Y = 0;
-                if (Math.Abs(curLocalVel.Y) > 0.01)
                 {
-                    tmpV.Z = (float)Math.Atan2(curLocalVel.Y, curLocalVel.X) * ftmp;
-                    doathing = true;
+                    // make it fall into small positive x case
+                    dirv.X = 0.01f;
+                    dirv.Y = curLocalVel.Y;
+                    dirv.Z = curLocalVel.Z;
                 }
-                else
-                    tmpV.Z = 0;
 
-                if (doathing)
+                float ftmp = m_angularDeflectionEfficiency / m_angularDeflectionTimescale;
+
+                if (Math.Abs(dirv.Z) > 0.01)
                 {
-                    tmpV *= m_referenceFrame; // to object
-                    dtorque.X += tmpV.X;
-                    dtorque.Y += tmpV.Y;
-                    dtorque.Z += tmpV.Z;
+                    torque.Y += - (float)Math.Atan2(dirv.Z, dirv.X) * ftmp;
+                }
+
+                if (Math.Abs(dirv.Y) > 0.01)
+                {
+                    torque.Z += (float)Math.Atan2(dirv.Y, dirv.X) * ftmp;
                 }
             }
 
             // vertical atractor
             if (m_verticalAttractionTimescale < 300)
             {
-                doathing = false;
                 float roll;
                 float pitch;
 
                 GetRollPitch(rotq, out roll, out pitch);
-
 
                 float ftmp = 1.0f / m_verticalAttractionTimescale / m_verticalAttractionTimescale / _pParentScene.ODE_STEPSIZE;
                 float ftmp2 = m_verticalAttractionEfficiency / _pParentScene.ODE_STEPSIZE;
 
                 if (Math.Abs(roll) > 0.01) // roll
                 {
-                    tmpV.X = -roll * ftmp;
-                    tmpV.X -= curLocalAngVel.X * ftmp2;
-                    doathing = true;
-                }
-                else
-                {
-                    tmpV.X = 0;
+                    torque.X -= roll * ftmp + curLocalAngVel.X * ftmp2;
                 }
 
                 if (Math.Abs(pitch) > 0.01 && ((m_flags & VehicleFlag.LIMIT_ROLL_ONLY) == 0)) // pitch
                 {
-                    tmpV.Y = -pitch * ftmp;
-                    tmpV.Y -= curLocalAngVel.Y * ftmp2;
-                    doathing = true;
-                }
-                else
-                {
-                    tmpV.Y = 0;
+                    torque.Y -= pitch * ftmp + curLocalAngVel.Y * ftmp2;
                 }
 
-                tmpV.Z = 0;
-
-                if (m_bankingEfficiency == 0 || Math.Abs(roll) < 0.01)
-                    tmpV.Z = 0;
-                else
+                if (m_bankingEfficiency != 0 && Math.Abs(roll) < 0.01)
                 {
                     float broll = -roll * m_bankingEfficiency; ;
                     if (m_bankingMix != 0)
@@ -839,146 +818,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                             broll *= ((1 - m_bankingMix) + vfact);
                     }
 
-                    tmpV.Z = (broll - curLocalAngVel.Z) / m_bankingTimescale;
-                    doathing = true;
-                }
-
-                if (doathing)
-                {
-
-                    tmpV *= m_referenceFrame; // to object
-                    dtorque.X += tmpV.X;
-                    dtorque.Y += tmpV.Y;
-                    dtorque.Z += tmpV.Z;
+                    torque.Z += (broll - curLocalAngVel.Z) / m_bankingTimescale;
                 }
             }
-            /*
-                        d.Vector3 pos = d.BodyGetPosition(Body);
-            //            Vector3 accel = new Vector3(-(m_dir.X - m_lastLinearVelocityVector.X / 0.1f), -(m_dir.Y - m_lastLinearVelocityVector.Y / 0.1f), m_dir.Z - m_lastLinearVelocityVector.Z / 0.1f);
-                        Vector3 posChange = new Vector3();
-                        posChange.X = pos.X - m_lastPositionVector.X;
-                        posChange.Y = pos.Y - m_lastPositionVector.Y;
-                        posChange.Z = pos.Z - m_lastPositionVector.Z;
-                        double Zchange = Math.Abs(posChange.Z);
-                        if (m_BlockingEndPoint != Vector3.Zero)
-                        {
-                            if (pos.X >= (m_BlockingEndPoint.X - (float)1))
-                            {
-                                pos.X -= posChange.X + 1;
-                                d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
-                            }
-                            if (pos.Y >= (m_BlockingEndPoint.Y - (float)1))
-                            {
-                                pos.Y -= posChange.Y + 1;
-                                d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
-                            }
-                            if (pos.Z >= (m_BlockingEndPoint.Z - (float)1))
-                            {
-                                pos.Z -= posChange.Z + 1;
-                                d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
-                            }
-                            if (pos.X <= 0)
-                            {
-                                pos.X += posChange.X + 1;
-                                d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
-                            }
-                            if (pos.Y <= 0)
-                            {
-                                pos.Y += posChange.Y + 1;
-                                d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
-                            }
-                        }
-                        if (pos.Z < _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y))
-                        {
-                            pos.Z = _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y) + 2;
-                            d.BodySetPosition(Body, pos.X, pos.Y, pos.Z);
-                        }
-
-                        }
-                        if ((m_flags & (VehicleFlag.NO_X)) != 0)
-                        {
-                            m_dir.X = 0;
-                        }
-                        if ((m_flags & (VehicleFlag.NO_Y)) != 0)
-                        {
-                            m_dir.Y = 0;
-                        }
-                        if ((m_flags & (VehicleFlag.NO_Z)) != 0)
-                        {
-                            m_dir.Z = 0;
-                        }
-
-
-            */
-            // angular part
-            /*
-
-            // Get what the body is doing, this includes 'external' influences
-/*
-            Vector3 angularVelocity = Vector3.Zero;
-
-            // Vertical attractor section
-            Vector3 vertattr = Vector3.Zero;
-
-            if (m_verticalAttractionTimescale < 300)
-            {
-                float VAservo = 0.2f / m_verticalAttractionTimescale;
-                // get present body rotation
-                // make a vector pointing up
-                Vector3 verterr = Vector3.Zero;
-                verterr.Z = 1.0f;
-                // rotate it to Body Angle
-                verterr = verterr * rotq;
-                // verterr.X and .Y are the World error ammounts. They are 0 when there is no error (Vehicle Body is 'vertical'), and .Z will be 1.
-                // As the body leans to its side |.X| will increase to 1 and .Z fall to 0. As body inverts |.X| will fall and .Z will go
-                // negative. Similar for tilt and |.Y|. .X and .Y must be modulated to prevent a stable inverted body.
-                if (verterr.Z < 0.0f)
-                {
-                    verterr.X = 2.0f - verterr.X;
-                    verterr.Y = 2.0f - verterr.Y;
-                }
-                // Error is 0 (no error) to +/- 2 (max error)
-                // scale it by VAservo
-                verterr = verterr * VAservo;
-//if (frcount == 0) Console.WriteLine("VAerr=" + verterr);
-
-                // As the body rotates around the X axis, then verterr.Y increases; Rotated around Y then .X increases, so
-                // Change  Body angular velocity  X based on Y, and Y based on X. Z is not changed.
-                vertattr.X =    verterr.Y;
-                vertattr.Y =  - verterr.X;
-                vertattr.Z = 0f;
-
-                // scaling appears better usingsquare-law
-                float bounce = 1.0f - (m_verticalAttractionEfficiency * m_verticalAttractionEfficiency);
-                vertattr.X += bounce * angularVelocity.X;
-                vertattr.Y += bounce * angularVelocity.Y;
-
-            } // else vertical attractor is off
-
-    //        m_lastVertAttractor = vertattr;
-
-            // Bank section tba
-            // Deflection section tba
-
-            // Sum velocities
-            m_lastAngularVelocity = angularVelocity + vertattr; // + bank + deflection
             
-            if ((m_flags & (VehicleFlag.NO_DEFLECTION_UP)) != 0)
-            {
-                m_lastAngularVelocity.X = 0;
-                m_lastAngularVelocity.Y = 0;
-            }
-
-            if (!m_lastAngularVelocity.ApproxEquals(Vector3.Zero, 0.01f))
-            {
-                if (!d.BodyIsEnabled (Body))  d.BodyEnable (Body);
-            }
-            else
-            {
-                m_lastAngularVelocity = Vector3.Zero; // Reduce small value to zero.
-            }
-*/
-
             d.Mass dmass;
             d.BodyGetMass(Body,out dmass);
 
@@ -988,8 +831,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.BodySetForce(Body, force.X, force.Y, force.Z);
             }
 
-            if (dtorque.X != 0 || dtorque.Y != 0 || dtorque.Z != 0)
+            if (torque.X != 0 || torque.Y != 0 || torque.Z != 0)
             {
+                torque *= m_referenceFrame; // to object frame
+                dtorque.X = torque.X;
+                dtorque.Y = torque.Y;
+                dtorque.Z = torque.Z;
+
                 d.MultiplyM3V3(out dvtmp, ref dmass.I, ref dtorque);
                 d.BodyAddRelTorque(Body, dvtmp.X, dvtmp.Y, dvtmp.Z); // add torque in object frame
             }

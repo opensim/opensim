@@ -59,6 +59,7 @@ namespace OdeAPI
 	{
 		public static dReal Infinity = dReal.MaxValue;
         public static int NTotalBodies = 0;
+        public static int NTotalGeoms = 0;
 
 		#region Flags and Enumerations
 
@@ -420,7 +421,7 @@ namespace OdeAPI
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyCreate"), SuppressUnmanagedCodeSecurity]
 		public static extern IntPtr BodyiCreate(IntPtr world);
-		public static IntPtr BodyCreate(IntPtr world)
+        public static IntPtr BodyCreate(IntPtr world)
         {
             NTotalBodies++;
             return BodyiCreate(world);
@@ -689,22 +690,52 @@ namespace OdeAPI
 		public static extern IntPtr ConnectingJoint(IntPtr j1, IntPtr j2);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateBox"), SuppressUnmanagedCodeSecurity]
-		public static extern IntPtr CreateBox(IntPtr space, dReal lx, dReal ly, dReal lz);
+        public static extern IntPtr CreateiBox(IntPtr space, dReal lx, dReal ly, dReal lz);
+		public static IntPtr CreateBox(IntPtr space, dReal lx, dReal ly, dReal lz)
+        {
+            NTotalGeoms++;
+            return CreateiBox(space, lx, ly, lz);
+        }
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateCapsule"), SuppressUnmanagedCodeSecurity]
-		public static extern IntPtr CreateCapsule(IntPtr space, dReal radius, dReal length);
+        public static extern IntPtr CreateiCapsule(IntPtr space, dReal radius, dReal length);
+        public static IntPtr CreateCapsule(IntPtr space, dReal radius, dReal length)
+        {
+            NTotalGeoms++;
+            return CreateiCapsule(space, radius, length);
+        }
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateConvex"), SuppressUnmanagedCodeSecurity]
-		public static extern IntPtr CreateConvex(IntPtr space, dReal[] planes, int planeCount, dReal[] points, int pointCount, int[] polygons);
+		public static extern IntPtr CreateiConvex(IntPtr space, dReal[] planes, int planeCount, dReal[] points, int pointCount, int[] polygons);
+        public static IntPtr CreateConvex(IntPtr space, dReal[] planes, int planeCount, dReal[] points, int pointCount, int[] polygons)
+        {
+            NTotalGeoms++;
+            return CreateiConvex(space, planes, planeCount, points, pointCount, polygons);
+        }
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateCylinder"), SuppressUnmanagedCodeSecurity]
-		public static extern IntPtr CreateCylinder(IntPtr space, dReal radius, dReal length);
+		public static extern IntPtr CreateiCylinder(IntPtr space, dReal radius, dReal length);
+        public static IntPtr CreateCylinder(IntPtr space, dReal radius, dReal length)
+        {
+            NTotalGeoms++;
+            return CreateiCylinder(space, radius, length);
+        }
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateHeightfield"), SuppressUnmanagedCodeSecurity]
-		public static extern IntPtr CreateHeightfield(IntPtr space, IntPtr data, int bPlaceable);
+        public static extern IntPtr CreateiHeightfield(IntPtr space, IntPtr data, int bPlaceable);
+        public static IntPtr CreateHeightfield(IntPtr space, IntPtr data, int bPlaceable)
+        {
+            NTotalGeoms++;
+            return CreateiHeightfield(space, data, bPlaceable);
+        }
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateGeom"), SuppressUnmanagedCodeSecurity]
-		public static extern IntPtr CreateGeom(int classnum);
+		public static extern IntPtr CreateiGeom(int classnum);
+        public static IntPtr CreateGeom(int classnum)
+        {
+            NTotalGeoms++;
+            return CreateiGeom(classnum);
+        }
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateGeomClass"), SuppressUnmanagedCodeSecurity]
 		public static extern int CreateGeomClass(ref GeomClass classptr);
@@ -713,19 +744,39 @@ namespace OdeAPI
 		public static extern IntPtr CreateGeomTransform(IntPtr space);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreatePlane"), SuppressUnmanagedCodeSecurity]
-		public static extern IntPtr CreatePlane(IntPtr space, dReal a, dReal b, dReal c, dReal d);
+        public static extern IntPtr CreateiPlane(IntPtr space, dReal a, dReal b, dReal c, dReal d);
+        public static IntPtr CreatePlane(IntPtr space, dReal a, dReal b, dReal c, dReal d)
+        {
+            NTotalGeoms++;
+            return CreateiPlane(space, a, b, c, d);
+        }
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateRay"), SuppressUnmanagedCodeSecurity]
-		public static extern IntPtr CreateRay(IntPtr space, dReal length);
+		public static extern IntPtr CreateiRay(IntPtr space, dReal length);
+        public static IntPtr CreateRay(IntPtr space, dReal length)
+        {
+            NTotalGeoms++;
+            return CreateiRay(space, length);
+        }
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateSphere"), SuppressUnmanagedCodeSecurity]
-		public static extern IntPtr CreateSphere(IntPtr space, dReal radius);
+		public static extern IntPtr CreateiSphere(IntPtr space, dReal radius);
+        public static IntPtr CreateSphere(IntPtr space, dReal radius)
+        {
+            NTotalGeoms++;
+            return CreateiSphere(space, radius);
+        }
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateTriMesh"), SuppressUnmanagedCodeSecurity]
-		public static extern IntPtr CreateTriMesh(IntPtr space, IntPtr data, 
+		public static extern IntPtr CreateiTriMesh(IntPtr space, IntPtr data, 
 			TriCallback callback, TriArrayCallback arrayCallback, TriRayCallback rayCallback);
-
-		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dDot"), SuppressUnmanagedCodeSecurity]
+        public static IntPtr CreateTriMesh(IntPtr space, IntPtr data,
+            TriCallback callback, TriArrayCallback arrayCallback, TriRayCallback rayCallback)
+        {
+            NTotalGeoms++;
+            return CreateiTriMesh(space, data, callback, arrayCallback, rayCallback);
+        }
+        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dDot"), SuppressUnmanagedCodeSecurity]
 		public static extern dReal Dot(ref dReal X0, ref dReal X1, int n);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dDQfromW"), SuppressUnmanagedCodeSecurity]
@@ -798,7 +849,13 @@ namespace OdeAPI
 		public static extern void GeomCylinderSetParams(IntPtr geom, dReal radius, dReal length);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomDestroy"), SuppressUnmanagedCodeSecurity]
-		public static extern void GeomDestroy(IntPtr geom);
+		public static extern void GeomiDestroy(IntPtr geom);
+        public static void GeomDestroy(IntPtr geom)
+        {
+            NTotalGeoms--;
+            GeomiDestroy(geom);
+        }
+
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomDisable"), SuppressUnmanagedCodeSecurity]
 		public static extern void GeomDisable(IntPtr geom);

@@ -1860,6 +1860,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 int nstaticgeoms = d.SpaceGetNumGeoms(StaticSpace);
                 int ntopgeoms = d.SpaceGetNumGeoms(TopSpace);
                 int nbodies = d.NTotalBodies;
+                int ngeoms = d.NTotalGeoms;
 
                 // Finished with all sim stepping. If requested, dump world state to file for debugging.
                 // TODO: This call to the export function is already inside lock (OdeLock) - but is an extra lock needed?
