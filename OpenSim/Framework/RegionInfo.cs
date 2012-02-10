@@ -625,7 +625,6 @@ namespace OpenSim.Framework
 
             foreach (String s in allKeys)
             {
-                string val = config.GetString(s);
                 SetOtherSetting(s, config.GetString(s));
             }
         }
