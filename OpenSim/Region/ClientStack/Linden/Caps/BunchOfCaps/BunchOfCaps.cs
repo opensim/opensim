@@ -422,7 +422,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                           string assetType)
         {
             m_log.DebugFormat(
-                "Uploaded asset {0} for inventory item {1}, inv type {2}, asset type {3}",
+                "[BUNCH OF CAPS]: Uploaded asset {0} for inventory item {1}, inv type {2}, asset type {3}",
                 assetID, inventoryItem, inventoryType, assetType);
 
             sbyte assType = 0;
@@ -625,7 +625,12 @@ namespace OpenSim.Region.ClientStack.Linden
             item.AssetType = assType;
             item.InvType = inType;
             item.Folder = parentFolder;
-            item.CurrentPermissions = (uint)PermissionMask.All;
+
+            // If we set PermissionMask.All then when we rez the item the next permissions will replace the current
+            // (owner) permissions.  This becomes a problem if next permissions are changed.
+            item.CurrentPermissions
+                = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
+
             item.BasePermissions = (uint)PermissionMask.All;
             item.EveryOnePermissions = 0;
             item.NextPermissions = (uint)PermissionMask.All;

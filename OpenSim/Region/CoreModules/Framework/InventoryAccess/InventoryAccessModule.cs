@@ -789,6 +789,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             {
                 group = objlist[i];
 
+//                m_log.DebugFormat(
+//                    "[InventoryAccessModule]: Preparing to rez {0} {1} {2} ownermask={3:X} nextownermask={4:X} groupmask={5:X} everyonemask={6:X} for {7}",
+//                    group.Name, group.LocalId, group.UUID,
+//                    group.RootPart.OwnerMask, group.RootPart.NextOwnerMask, group.RootPart.GroupMask, group.RootPart.EveryoneMask,
+//                    remoteClient.Name);
+
 //                        Vector3 storedPosition = group.AbsolutePosition;
                 if (group.UUID == UUID.Zero)
                 {
@@ -854,9 +860,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     rootPart.ScheduleFullUpdate();
                 }
 
-//                        m_log.DebugFormat(
-//                            "[InventoryAccessModule]: Rezzed {0} {1} {2} for {3}",
-//                            group.Name, group.LocalId, group.UUID, remoteClient.Name);
+//                m_log.DebugFormat(
+//                    "[InventoryAccessModule]: Rezzed {0} {1} {2} ownermask={3:X} nextownermask={4:X} groupmask={5:X} everyonemask={6:X} for {7}",
+//                    group.Name, group.LocalId, group.UUID,
+//                    group.RootPart.OwnerMask, group.RootPart.NextOwnerMask, group.RootPart.GroupMask, group.RootPart.EveryoneMask,
+//                    remoteClient.Name);
             }
 
             if (item != null)
@@ -937,7 +945,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
 
                 rootPart.FromFolderID = item.Folder;
-    
+
+//                Console.WriteLine("rootPart.OwnedID {0}, item.Owner {1}, item.CurrentPermissions {2:X}",
+//                                  rootPart.OwnerID, item.Owner, item.CurrentPermissions);
+
                 if ((rootPart.OwnerID != item.Owner) ||
                     (item.CurrentPermissions & 16) != 0)
                 {
