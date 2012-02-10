@@ -450,17 +450,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             Vector3 toRegionPos;
             double dis;
 
-            Action<ScenePresence> senseEntity = new Action<ScenePresence>(delegate(ScenePresence presence)
+            Action<ScenePresence> senseEntity = new Action<ScenePresence>(presence =>
             {
-                if ((ts.type & NPC) == 0
-                    && presence.PresenceType == PresenceType.Npc
-                    && !npcModule.GetNPC(presence.UUID, presence.Scene).SenseAsAgent)
-                    return;
+                if ((ts.type & NPC) == 0 && presence.PresenceType == PresenceType.Npc)
+                {
+                    INPC npcData = npcModule.GetNPC(presence.UUID, presence.Scene);
+                    if (npcData == null || !npcData.SenseAsAgent)
+                        return;
+                }
 
-                if ((ts.type & AGENT) == 0
-                    && (presence.PresenceType == PresenceType.User
-                        || npcModule.GetNPC(presence.UUID, presence.Scene).SenseAsAgent))
-                    return;
+                if ((ts.type & AGENT) == 0)
+                {
+                    if (presence.PresenceType == PresenceType.User)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        INPC npcData = npcModule.GetNPC(presence.UUID, presence.Scene);
+                        if (npcData != null && npcData.SenseAsAgent)
+                            return;
+                    }
+                }
 
                 if (presence.IsDeleted || presence.IsChildAgent || presence.GodLevel > 0.0)
                     return;
