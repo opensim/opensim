@@ -44,7 +44,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly string m_firstname;
         private readonly string m_lastname;
         private readonly Vector3 m_startPos;
-        private readonly UUID m_uuid = UUID.Random();
+        private UUID m_uuid = UUID.Random();
         private readonly Scene m_scene;
         private readonly UUID m_ownerID;
 
@@ -444,6 +444,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public virtual UUID AgentId
         {
             get { return m_uuid; }
+            set { m_uuid = value; }
         }
 
         public UUID SessionId

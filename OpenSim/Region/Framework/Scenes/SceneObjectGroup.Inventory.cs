@@ -269,6 +269,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ApplyNextOwnerPermissions()
         {
+//            m_log.DebugFormat("[PRIM INVENTORY]: Applying next owner permissions to {0} {1}", Name, UUID);
+
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
                 parts[i].ApplyNextOwnerPermissions();

@@ -330,6 +330,12 @@ namespace OpenSim.Region.Framework.Scenes
                     item.Flags = (item.Flags & ~(uint)255) | (itemUpd.Flags & (uint)255);
                     item.Name = itemUpd.Name;
                     item.Description = itemUpd.Description;
+
+//                    m_log.DebugFormat(
+//                        "[USER INVENTORY]: itemUpd {0} {1} {2} {3}, item {4} {5} {6} {7}",
+//                        itemUpd.NextPermissions, itemUpd.GroupPermissions, itemUpd.EveryOnePermissions, item.Flags,
+//                        item.NextPermissions, item.GroupPermissions, item.EveryOnePermissions, item.CurrentPermissions);
+
                     if (item.NextPermissions != (itemUpd.NextPermissions & item.BasePermissions))
                         item.Flags |= (uint)InventoryItemFlags.ObjectOverwriteNextOwner;
                     item.NextPermissions = itemUpd.NextPermissions & item.BasePermissions;
@@ -338,6 +344,9 @@ namespace OpenSim.Region.Framework.Scenes
                     item.EveryOnePermissions = itemUpd.EveryOnePermissions & item.BasePermissions;
                     if (item.GroupPermissions != (itemUpd.GroupPermissions & item.BasePermissions))
                         item.Flags |= (uint)InventoryItemFlags.ObjectOverwriteGroup;
+
+//                    m_log.DebugFormat("[USER INVENTORY]: item.Flags {0}", item.Flags);
+
                     item.GroupPermissions = itemUpd.GroupPermissions & item.BasePermissions;
                     item.GroupID = itemUpd.GroupID;
                     item.GroupOwned = itemUpd.GroupOwned;
