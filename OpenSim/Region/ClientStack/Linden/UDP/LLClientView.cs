@@ -7625,6 +7625,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
             }
+            else
+                if (transfer.TransferInfo.SourceType == (int)SourceType.SimEstate)
+                {
+                    //TransferRequestPacket does not include covenant uuid?
+                    //get scene covenant uuid
+                    taskID = m_scene.RegionInfo.RegionSettings.Covenant;
+                }
 
             MakeAssetRequest(transfer, taskID);
 
@@ -11985,6 +11992,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
             }
+            else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimEstate)
+            {
+                requestID = taskID;
+            }
+
 
 //            m_log.DebugFormat("[CLIENT]: {0} requesting asset {1}", Name, requestID);
 
