@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -1056,9 +1055,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return false;
             }
 
-//            primOOBoffset = mesh.GetCentroid();
-//            hasOOBoffsetFromMesh = true;
-            hasOOBoffsetFromMesh = false;
+            primOOBoffset = mesh.GetCentroid();
+            hasOOBoffsetFromMesh = true;
 
             _triMeshData = d.GeomTriMeshDataCreate();
 

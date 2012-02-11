@@ -65,5 +65,6 @@ namespace OpenSim.Region.Physics.Manager
         void releasePinned();
         void Append(IMesh newMesh);
         void TransformLinear(float[,] matrix, float[] offset);
+        Vector3 GetCentroid();
     }
 }
