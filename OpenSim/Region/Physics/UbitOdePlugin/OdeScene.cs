@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//#define USE_DRAWSTUFF
 //#define SPAM
 
 using System;
@@ -38,9 +37,6 @@ using System.Diagnostics;
 using log4net;
 using Nini.Config;
 using OdeAPI;
-#if USE_DRAWSTUFF
-using ODEDrawstuff;
-#endif
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using OpenMetaverse;
@@ -366,30 +362,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //contactgroup
 
                 d.WorldSetAutoDisableFlag(world, false);
-                #if USE_DRAWSTUFF
-                
-                Thread viewthread = new Thread(new ParameterizedThreadStart(startvisualization));
-                viewthread.Start();
-                #endif
             }
 
             _watermap = new float[258 * 258];
         }
-
-#if USE_DRAWSTUFF
-        public void startvisualization(object o)
-        {
-            ds.Functions fn;
-            fn.version = ds.VERSION;
-            fn.start = new ds.CallbackFunction(start);
-            fn.step = new ds.CallbackFunction(step);
-            fn.command = new ds.CallbackFunction(command);
-            fn.stop = null;
-            fn.path_to_textures = "./textures";
-            string[] args = new string[0];
-            ds.SimulationLoop(args.Length, args, 352, 288, ref fn);
-        }
-#endif
 
         // Initialize the mesh plugin
 //        public override void Initialise(IMesher meshmerizer, IConfigSource config, RegionInfo region )
@@ -2560,134 +2536,5 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             return new List<ContactResult>();
         }
-
-#if USE_DRAWSTUFF
-        // Keyboard callback
-        public void command(int cmd)
-        {
-            IntPtr geom;
-            d.Mass mass;
-            d.Vector3 sides = new d.Vector3(d.RandReal() * 0.5f + 0.1f, d.RandReal() * 0.5f + 0.1f, d.RandReal() * 0.5f + 0.1f);
-
-            
-
-            Char ch = Char.ToLower((Char)cmd);
-            switch ((Char)ch)
-            {
-                case 'w':
-                    try
-                    {
-                        Vector3 rotate = (new Vector3(1, 0, 0) * Quaternion.CreateFromEulers(hpr.Z * Utils.DEG_TO_RAD, hpr.Y * Utils.DEG_TO_RAD, hpr.X * Utils.DEG_TO_RAD));
-
-                        xyz.X += rotate.X; xyz.Y += rotate.Y; xyz.Z += rotate.Z;
-                        ds.SetViewpoint(ref xyz, ref hpr);
-                    }
-                    catch (ArgumentException)
-                    { hpr.X = 0; }
-                    break;
-
-                case 'a':
-                    hpr.X++;
-                    ds.SetViewpoint(ref xyz, ref hpr);
-                    break;
-
-                case 's':
-                    try
-                    {
-                        Vector3 rotate2 = (new Vector3(-1, 0, 0) * Quaternion.CreateFromEulers(hpr.Z * Utils.DEG_TO_RAD, hpr.Y * Utils.DEG_TO_RAD, hpr.X * Utils.DEG_TO_RAD));
-
-                        xyz.X += rotate2.X; xyz.Y += rotate2.Y; xyz.Z += rotate2.Z;
-                        ds.SetViewpoint(ref xyz, ref hpr);
-                    }
-                    catch (ArgumentException)
-                    { hpr.X = 0; }
-                    break;
-                case 'd':
-                    hpr.X--;
-                    ds.SetViewpoint(ref xyz, ref hpr);
-                    break;
-                case 'r':
-                    xyz.Z++;
-                    ds.SetViewpoint(ref xyz, ref hpr);
-                    break;
-                case 'f':
-                    xyz.Z--;
-                    ds.SetViewpoint(ref xyz, ref hpr);
-                    break;
-                case 'e':
-                    xyz.Y++;
-                    ds.SetViewpoint(ref xyz, ref hpr);
-                    break;
-                case 'q':
-                    xyz.Y--;
-                    ds.SetViewpoint(ref xyz, ref hpr);
-                    break;
-            }
-        }
-
-        public void step(int pause)
-        {
-            
-            ds.SetColor(1.0f, 1.0f, 0.0f);
-            ds.SetTexture(ds.Texture.Wood);
-            lock (_prims)
-            {
-                foreach (OdePrim prm in _prims)
-                {
-                    //IntPtr body = d.GeomGetBody(prm.prim_geom);
-                    if (prm.prim_geom != IntPtr.Zero)
-                    {
-                        d.Vector3 pos;
-                        d.GeomCopyPosition(prm.prim_geom, out pos);
-                        //d.BodyCopyPosition(body, out pos);
-
-                        d.Matrix3 R;
-                        d.GeomCopyRotation(prm.prim_geom, out R);
-                        //d.BodyCopyRotation(body, out R);
-
-
-                        d.Vector3 sides = new d.Vector3();
-                        sides.X = prm.Size.X;
-                        sides.Y = prm.Size.Y;
-                        sides.Z = prm.Size.Z;
-
-                        ds.DrawBox(ref pos, ref R, ref sides);
-                    }
-                }
-            }
-            ds.SetColor(1.0f, 0.0f, 0.0f);
-            lock (_characters)
-            {
-                foreach (OdeCharacter chr in _characters)
-                {
-                    if (chr.Shell != IntPtr.Zero)
-                    {
-                        IntPtr body = d.GeomGetBody(chr.Shell);
-
-                        d.Vector3 pos;
-                        d.GeomCopyPosition(chr.Shell, out pos);
-                        //d.BodyCopyPosition(body, out pos);
-
-                        d.Matrix3 R;
-                        d.GeomCopyRotation(chr.Shell, out R);
-                        //d.BodyCopyRotation(body, out R);
-
-                        ds.DrawCapsule(ref pos, ref R, chr.Size.Z, 0.35f);
-                        d.Vector3 sides = new d.Vector3();
-                        sides.X = 0.5f;
-                        sides.Y = 0.5f;
-                        sides.Z = 0.5f;
-
-                        ds.DrawBox(ref pos, ref R, ref sides);
-                    }
-                }
-            }
-        }
-
-        public void start(int unused)
-        {
-            ds.SetViewpoint(ref xyz, ref hpr);
-        }
-#endif
     }
 }

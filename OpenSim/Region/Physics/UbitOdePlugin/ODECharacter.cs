@@ -126,7 +126,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr Shell = IntPtr.Zero;
         public IntPtr Amotor = IntPtr.Zero;
         public d.Mass ShellMass;
-        public bool collidelock = false;
+//        public bool collidelock = false;
 
         private bool m_haseventsubscription = false;
         public int m_eventsubscription = 0;
