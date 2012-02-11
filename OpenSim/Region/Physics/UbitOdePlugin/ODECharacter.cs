@@ -768,7 +768,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (pushforce)
                 {
                     m_pidControllerActive = false;
-                    m_taintForce = force / _parent_scene.ODE_STEPSIZE;
+                    // scale with odetime step and density
+                    m_taintForce = force * m_density / _parent_scene.ODE_STEPSIZE / 28f;
                     m_hasTaintForce = true;
                     _parent_scene.AddPhysicsActorTaint(this);
                 }
