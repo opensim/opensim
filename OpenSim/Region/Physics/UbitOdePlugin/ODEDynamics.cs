@@ -38,6 +38,8 @@
  * settings use.
  */
 
+// Ubit 2012
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -57,24 +59,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return m_type; }
         }
 
-// private OdeScene m_parentScene = null;
-//        private IntPtr m_aMotor = IntPtr.Zero;
-
-
         private OdePrim rootPrim;
         private OdeScene _pParentScene;
 
-
-
-
-        private Vector3 refUpAxis = new Vector3(0, 0, 1);
-        private Vector3 refAtAxis = new Vector3(1, 0, 0);
-
-
         // Vehicle properties
+        private Quaternion m_referenceFrame = Quaternion.Identity;      // Axis modifier
+        private Quaternion m_RollreferenceFrame = Quaternion.Identity;  // what hell is this ?
+
         private Vehicle m_type = Vehicle.TYPE_NONE;                     // If a 'VEHICLE', and what kind
 
-        private Quaternion m_referenceFrame = Quaternion.Identity;   // Axis modifier
         private VehicleFlag m_flags = (VehicleFlag) 0;                  // Boolean settings:
                                                                         // HOVER_TERRAIN_ONLY
                                                                         // HOVER_GLOBAL_HEIGHT
@@ -84,7 +77,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                                         // LIMIT_MOTOR_UP
                                                                         // LIMIT_ROLL_ONLY
         private Vector3 m_BlockingEndPoint = Vector3.Zero;              // not sl
-        private Quaternion m_RollreferenceFrame = Quaternion.Identity;
 
         // Linear properties
         private Vector3 m_linearMotorDirection = Vector3.Zero;          // velocity requested by LSL, decayed by time
@@ -116,7 +108,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_VhoverHeight = 0f;
         private float m_VhoverEfficiency = 0f;
         private float m_VhoverTimescale = 1000f;
-        private float m_VhoverTargetHeight = -1.0f;     // if <0 then no hover, else its the current target height
         private float m_VehicleBuoyancy = 0f;           //KF: m_VehicleBuoyancy is set by VEHICLE_BUOYANCY for a vehicle.
                     // Modifies gravity. Slider between -1 (double-gravity) and 1 (full anti-gravity)
                     // KF: So far I have found no good method to combine a script-requested .Z velocity and gravity.
@@ -125,9 +116,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         //Attractor properties
         private float m_verticalAttractionEfficiency = 1.0f;        // damped
         private float m_verticalAttractionTimescale = 1000f;        // Timescale > 300  means no vert attractor.
-
-        // special contact data for vehicles
-        public ContactData VehiculeContactData = new ContactData(0f, 0.1f);
 
         // auxiliar 
         private Vector3 m_dir = Vector3.Zero;                           // velocity applied to body
@@ -271,7 +259,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             float timestep = _pParentScene.ODE_STEPSIZE;
             switch (pParam)
             {
-
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
                     if (pValue.X < timestep) pValue.X = timestep;
                     if (pValue.Y < timestep) pValue.Y = timestep;
@@ -575,7 +562,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             return vec;
         }
 
-
         public static void GetRollPitch(Quaternion rot, out float roll, out float pitch)
         {
             // assuming rot is normalised
@@ -617,23 +603,23 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             d.Vector3 dvtmp;
             Vector3 tmpV;
+            Vector3 curVel; // velocity in world
+            Vector3 curAngVel; // angular velocity in world
+            Vector3 force = Vector3.Zero; // actually linear aceleration until mult by mass in world frame
+            Vector3 torque = Vector3.Zero;// actually angular aceleration until mult by Inertia in vehicle frame
+            d.Vector3 dtorque = new d.Vector3();
+
             dvtmp = d.BodyGetLinearVel(Body);
-            Vector3 curVel;
             curVel.X = dvtmp.X;
             curVel.Y = dvtmp.Y;
             curVel.Z = dvtmp.Z;
             Vector3 curLocalVel = curVel * irotq; // current velocity in  local
 
             dvtmp = d.BodyGetAngularVel(Body);
-            Vector3 curAngVel;
             curAngVel.X = dvtmp.X;
             curAngVel.Y = dvtmp.Y;
             curAngVel.Z = dvtmp.Z;
-            Vector3 curLocalAngVel = curAngVel * irotq; // current velocity in  local
-
-            Vector3 force = Vector3.Zero; // actually linear aceleration until mult by mass in world frame
-            Vector3 torque = Vector3.Zero;// actually angular aceleration until mult by Inertia in object frame
-            d.Vector3 dtorque = new d.Vector3();
+            Vector3 curLocalAngVel = curAngVel * irotq; // current angular velocity in  local
 
             // linear motor
             if (m_lmEfect > 0.01 && m_linearMotorTimescale < 1000)
@@ -791,11 +777,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            float r;
-            float p;
-            float y;
-            rotq.GetEulerAngles(out r, out p, out y);
-
             // vertical atractor
             if (m_verticalAttractionTimescale < 300)
             {
@@ -830,7 +811,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                             broll *= -((1 - m_bankingMix) + vfact);                      
                     }
                     broll = (broll - curLocalAngVel.Z) / m_bankingTimescale;
-                    torque.Z += broll; 
+                    //                    torque.Z += broll; 
+
+                    // make z rot be in world Z not local as seems to be in sl
+                    tmpV.X = 0;
+                    tmpV.Y = 0;
+                    tmpV.Z = broll;
+                    tmpV *= irotq;
+
+                    torque.X += tmpV.X;
+                    torque.Y += tmpV.Y;
+                    torque.Z += tmpV.Z;
                 }
             }
             
@@ -853,43 +844,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.MultiplyM3V3(out dvtmp, ref dmass.I, ref dtorque);
                 d.BodyAddRelTorque(Body, dvtmp.X, dvtmp.Y, dvtmp.Z); // add torque in object frame
             }
-
-        //end MoveAngular
-
-            // limit rotations
-/*
-            bool changed = false;
-
-            if (m_RollreferenceFrame != Quaternion.Identity)
-            {
-                if (rotq.X >= m_RollreferenceFrame.X)
-                {
-                    rot.X = rotq.X - (m_RollreferenceFrame.X / 2);
-                }
-                if (rotq.Y >= m_RollreferenceFrame.Y)
-                {
-                    rot.Y = rotq.Y - (m_RollreferenceFrame.Y / 2);
-                }
-                if (rotq.X <= -m_RollreferenceFrame.X)
-                {
-                    rot.X = rotq.X + (m_RollreferenceFrame.X / 2);
-                }
-                if (rotq.Y <= -m_RollreferenceFrame.Y)
-                {
-                    rot.Y = rotq.Y + (m_RollreferenceFrame.Y / 2);
-                }
-                changed = true;
-            }
-
-            if ((m_flags & VehicleFlag.LOCK_ROTATION) != 0)
-            {
-                rot.X = 0;
-                rot.Y = 0;
-                changed = true;
-            }
-            if (changed)
-                d.BodySetQuaternion(Body, ref rot);
-*/
         }
     }
 }
