@@ -461,7 +461,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     gravityy = physicsconfig.GetFloat("world_gravityy", 0f);
                     gravityz = physicsconfig.GetFloat("world_gravityz", -9.8f);
 
-                    float avatarTerminalVelocity = physicsconfig.GetFloat("avatar_terminal_velocity", 9f);
+                    float avatarTerminalVelocity = physicsconfig.GetFloat("avatar_terminal_velocity", 54f);
                     AvatarTerminalVelocity = Util.Clamp<float>(avatarTerminalVelocity, 0, 255f);
                     if (AvatarTerminalVelocity != avatarTerminalVelocity)
                     {
