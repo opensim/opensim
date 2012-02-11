@@ -228,10 +228,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly HashSet<OdePrim> _prims = new HashSet<OdePrim>();
         private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
 
-        private readonly Object _taintedCharacterLock = new Object();
-        private readonly HashSet<OdeCharacter> _taintedCharacterH = new HashSet<OdeCharacter>(); // faster verification of repeated character taints
-        private readonly Queue<OdeCharacter> _taintedCharacterQ = new Queue<OdeCharacter>(); // character taints
-
         public OpenSim.Framework.LocklessQueue<ODEchangeitem> ChangesQueue = new OpenSim.Framework.LocklessQueue<ODEchangeitem>();
 
         /// <summary>
@@ -1579,34 +1575,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="prim"></param>
         public override void AddPhysicsActorTaint(PhysicsActor prim)
             {
-            if (prim is OdePrim)
-                {
-/*                OdePrim taintedprim = ((OdePrim) prim);
-                lock (_taintedPrimLock)
-                    {
-                    if (!(_taintedPrimH.Contains(taintedprim))) 
-                        {
-                        _taintedPrimH.Add(taintedprim);                    // HashSet for searching
-                        _taintedPrimQ.Enqueue(taintedprim);                    // List for ordered readout
-                        }
-                    }
- */
-                return;
-                }
-            else if (prim is OdeCharacter)
-                {
-                OdeCharacter taintedchar = ((OdeCharacter)prim);
-                lock (_taintedCharacterLock)
-                    {
-                    if (!(_taintedCharacterH.Contains(taintedchar)))
-                        {
-                        _taintedCharacterH.Add(taintedchar);
-                        _taintedCharacterQ.Enqueue(taintedchar);
-                        if (taintedchar.bad)
-                            m_log.DebugFormat("[PHYSICS]: Added BAD actor {0} to tainted actors", taintedchar.m_uuid);
-                        }
-                    }
-                }
             }
 
         /// <summary>
