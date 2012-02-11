@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -161,7 +160,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularDeflectionTimescale = pValue;
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
+                    //                    if (pValue < timestep) pValue = timestep;
+                    // try to make impulses to work a bit better
+                    if (pValue < 0.5f) pValue = 0.5f;
                     else if (pValue > 120) pValue = 120;
                     m_angularMotorDecayTimescale = pValue * invtimestep;
                     break;
@@ -210,7 +211,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearDeflectionTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
+                    //                    if (pValue < timestep) pValue = timestep;
+                    // try to make impulses to work a bit better
+                    if (pValue < 0.5f) pValue = 0.5f;
                     else if (pValue > 120) pValue = 120;
                     m_linearMotorDecayTimescale = pValue * invtimestep;
                     break;
@@ -788,38 +791,46 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
+            float r;
+            float p;
+            float y;
+            rotq.GetEulerAngles(out r, out p, out y);
+
             // vertical atractor
             if (m_verticalAttractionTimescale < 300)
             {
                 float roll;
                 float pitch;
 
-                GetRollPitch(rotq, out roll, out pitch);
+                GetRollPitch(irotq, out roll, out pitch);
 
                 float ftmp = 1.0f / m_verticalAttractionTimescale / m_verticalAttractionTimescale / _pParentScene.ODE_STEPSIZE;
                 float ftmp2 = m_verticalAttractionEfficiency / _pParentScene.ODE_STEPSIZE;
 
                 if (Math.Abs(roll) > 0.01) // roll
                 {
-                    torque.X -= roll * ftmp + curLocalAngVel.X * ftmp2;
+                    torque.X -= -roll * ftmp + curLocalAngVel.X * ftmp2;
                 }
 
                 if (Math.Abs(pitch) > 0.01 && ((m_flags & VehicleFlag.LIMIT_ROLL_ONLY) == 0)) // pitch
                 {
-                    torque.Y -= pitch * ftmp + curLocalAngVel.Y * ftmp2;
+                    torque.Y -= -pitch * ftmp + curLocalAngVel.Y * ftmp2;
                 }
 
-                if (m_bankingEfficiency != 0 && Math.Abs(roll) < 0.01)
+                if (m_bankingEfficiency != 0 && Math.Abs(roll) > 0.01)
                 {
-                    float broll = -roll * m_bankingEfficiency; ;
+                    float broll = roll * m_bankingEfficiency; ;
                     if (m_bankingMix != 0)
                     {
-                        float vfact = m_bankingMix * Math.Abs(curLocalVel.X) / 10.0f;
-                        if (vfact < m_bankingMix)
+                        float vfact = Math.Abs(curLocalVel.X) / 10.0f;
+                        if (vfact > 1.0f) vfact = 1.0f;
+                        if (curLocalVel.X >= 0)
                             broll *= ((1 - m_bankingMix) + vfact);
+                        else
+                            broll *= -((1 - m_bankingMix) + vfact);                      
                     }
-
-                    torque.Z += (broll - curLocalAngVel.Z) / m_bankingTimescale;
+                    broll = (broll - curLocalAngVel.Z) / m_bankingTimescale;
+                    torque.Z += broll; 
                 }
             }
             
