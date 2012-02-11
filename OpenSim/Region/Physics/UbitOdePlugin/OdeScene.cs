@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -136,6 +135,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         Selected,
         disabled,
         building,
+
+        VehicleType,
+        VehicleFloatParam,
+        VehicleVectorParam,
+        VehicleRotationParam,
+        VehicleFlags,
 
         Null             //keep this last used do dim the methods array. does nothing but pulsing the prim
     }

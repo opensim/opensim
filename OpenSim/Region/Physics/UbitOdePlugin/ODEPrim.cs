@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Revision 2011 by Ubit Umarov
+/* Revision 2011/12 by Ubit Umarov
  *
  * 
  */
@@ -190,7 +190,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public ODEDynamics m_vehicle;
 
         internal int m_material = (int)Material.Wood;
-        protected ContactData primContactData = new ContactData { mu = 0f, bounce = 0.1f};
+        protected ContactData primContactData = new ContactData { mu = 0f, bounce = 0.1f };
 
         /// <summary>
         /// Is this prim subject to physics?  Even if not, it's still solid for collision purposes.
@@ -209,7 +209,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 AddChange(changes.Physical, value);
             }
         }
-        
+
         public override bool Building  // this is not reliable for internal use
         {
             get { return m_building; }
@@ -225,23 +225,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get
             {
-/*
-                ODEDynamics v;
-                if(childPrim && _parent !=null)
-                {
-                    v =((OdePrim)_parent).m_vehicle;
-                    if(v != null && v.Type != Vehicle.TYPE_NONE)
-                            return v.VehiculeContactData;
-                    return primContactData;              
-                }
-
-                if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
-                    return m_vehicle.VehiculeContactData;
-*/
-                return primContactData;              
+                return primContactData;
             }
         }
-        
+
         public override int PhysicsActorType
         {
             get { return (int)ActorTypes.Prim; }
@@ -276,11 +263,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             set
             {
-                if(value)
+                if (value)
                     m_isSelected = value;
                 AddChange(changes.Selected, value);
             }
-         }
+        }
 
         public override bool Flying
         {
@@ -400,10 +387,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-
         public override void SetVolumeDetect(int param)
         {
-                AddChange(changes.VolumeDtc,(param != 0));
+            AddChange(changes.VolumeDtc, (param != 0));
         }
 
         public override Vector3 GeometricCenter
@@ -483,14 +469,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // client object interpolation works a 'little' better
                 if (_zeroFlag)
                     return Vector3.Zero;
-/*
-                Vector3 returnVelocity = Vector3.Zero;
-                returnVelocity.X = (m_lastVelocity.X + _velocity.X) / 2;
-                returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y) / 2;
-                returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z) / 2;
-
-                return returnVelocity;
- */
                 return _velocity;
             }
             set
@@ -498,7 +476,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (value.IsFinite())
                 {
                     AddChange(changes.Velocity, value);
-//                    _velocity = value;
+                    //                    _velocity = value;
 
                 }
                 else
@@ -548,7 +526,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get
             {
-                if (givefakeori>0)
+                if (givefakeori > 0)
                     return fakeori;
                 else
 
@@ -603,7 +581,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
- 
+
         public override float Buoyancy
         {
             get { return m_buoyancy; }
@@ -652,6 +630,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override int VehicleType
         {
+            // we may need to put a fake on this
             get
             {
                 if (m_vehicle == null)
@@ -661,44 +640,32 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set
             {
-                if (m_vehicle == null)
-                {
-                    if (value != (int)Vehicle.TYPE_NONE)
-                    {
-                        m_vehicle = new ODEDynamics(this);
-                        m_vehicle.ProcessTypeChange((Vehicle)value);
-                    }
-                }
-                else    
-                    m_vehicle.ProcessTypeChange((Vehicle)value);
+                AddChange(changes.VehicleType, value);
             }
         }
 
         public override void VehicleFloatParam(int param, float value)
         {
-            if (m_vehicle == null)
-                return;
-            m_vehicle.ProcessFloatVehicleParam((Vehicle)param, value);
-            if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
-                d.BodyEnable(Body);
+            strVehicleFloatParam fp = new strVehicleFloatParam();
+            fp.param = param;
+            fp.value = value;
+            AddChange(changes.VehicleFloatParam, fp);
         }
 
         public override void VehicleVectorParam(int param, Vector3 value)
         {
-            if (m_vehicle == null)
-                return;
-            m_vehicle.ProcessVectorVehicleParam((Vehicle)param, value);
-            if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
-                d.BodyEnable(Body);
+            strVehicleVectorParam fp = new strVehicleVectorParam();
+            fp.param = param;
+            fp.value = value;
+            AddChange(changes.VehicleVectorParam, fp);
         }
 
-        public override void VehicleRotationParam(int param, Quaternion rotation)
+        public override void VehicleRotationParam(int param, Quaternion value)
         {
-            if (m_vehicle == null)
-                return;
-            m_vehicle.ProcessRotationVehicleParam((Vehicle)param, rotation);
-            if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
-                d.BodyEnable(Body);
+            strVehicleQuatParam fp = new strVehicleQuatParam();
+            fp.param = param;
+            fp.value = value;
+            AddChange(changes.VehicleVectorParam, fp);
         }
 
         public override void VehicleFlags(int param, bool remove)
@@ -829,7 +796,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             return false;
         }
 
-        
+
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
                        Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
         {
@@ -866,7 +833,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (size.Z <= 0) size.Z = 0.01f;
 
             _size = size;
-      
+
 
             if (!QuaternionIsFinite(rotation))
             {
@@ -1023,7 +990,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (_parent != null)
                     {
                         OdePrim parent = (OdePrim)_parent;
-                        parent.ChildDelink(this,false);
+                        parent.ChildDelink(this, false);
                     }
                 }
                 else
@@ -1093,23 +1060,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _parent_scene.geom_name_map[prim_geom] = Name;
                 _parent_scene.actor_name_map[prim_geom] = this;
 
-/*
-                if (childPrim)
-                {
-                    if (_parent != null && _parent is OdePrim)
-                    {
-                        OdePrim parent = (OdePrim)_parent;
-                        //Console.WriteLine("SetGeom calls ChildSetGeom");
-                        parent.ChildSetGeom(this);
-                    }
-                }
- */
+                /*
+                                if (childPrim)
+                                {
+                                    if (_parent != null && _parent is OdePrim)
+                                    {
+                                        OdePrim parent = (OdePrim)_parent;
+                                        //Console.WriteLine("SetGeom calls ChildSetGeom");
+                                        parent.ChildSetGeom(this);
+                                    }
+                                }
+                 */
             }
             else
                 m_log.Warn("Setting bad Geom");
         }
 
- 
+
         /// <summary>
         /// Create a geometry for the given mesh in the given target space.
         /// </summary>
@@ -1128,10 +1095,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (_parent_scene.needsMeshing(_pbs))
             {
-                    haveMesh = setMesh(_parent_scene); // this will give a mesh to non trivial known prims
+                haveMesh = setMesh(_parent_scene); // this will give a mesh to non trivial known prims
             }
 
-            if(!haveMesh)
+            if (!haveMesh)
             {
                 if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1
                     && _size.X == _size.Y && _size.Y == _size.Z)
@@ -1186,7 +1153,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //                catch (System.AccessViolationException)
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[PHYSICS]: PrimGeom destruction failed for {0} exception {1}", Name,e);
+                    m_log.ErrorFormat("[PHYSICS]: PrimGeom destruction failed for {0} exception {1}", Name, e);
                 }
 
                 prim_geom = IntPtr.Zero;
@@ -1526,7 +1493,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         #region Mass Calculation
-        
+
         private float CalculatePrimVolume()
         {
             float volume = _size.X * _size.Y * _size.Z; // default
@@ -1885,7 +1852,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 if (prm.prim_geom != IntPtr.Zero)
                                     d.GeomSetBody(prm.prim_geom, IntPtr.Zero);
-                                if(prm.Body != prim.Body)
+                                if (prm.Body != prim.Body)
                                     prm.DestroyBody(); // don't loose bodies around
                                 prm.Body = IntPtr.Zero;
                             }
@@ -2057,21 +2024,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                     SetInStaticSpace(this);
             }
 
-//            m_building = false; // REMOVE THIS LATER
+            //            m_building = false; // REMOVE THIS LATER
 
 
             if (m_isphysical && Body == IntPtr.Zero)
             {
-/*
-                if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
-                {
-                    changeShape(_pbs);
-                }
-                else
-                {
- */
-                    MakeBody();
-//                }
+                /*
+                                if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
+                                {
+                                    changeShape(_pbs);
+                                }
+                                else
+                                {
+                 */
+                MakeBody();
+                //                }
             }
         }
 
@@ -2114,7 +2081,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (NewParent != _parent)
                     {
-                        (_parent as OdePrim).ChildDelink(this,false); // for now...
+                        (_parent as OdePrim).ChildDelink(this, false); // for now...
                         childPrim = false;
 
                         if (NewParent != null)
@@ -2130,7 +2097,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void Stop()
         {
-            if(!childPrim)
+            if (!childPrim)
             {
                 m_force = Vector3.Zero;
                 m_forceacc = Vector3.Zero;
@@ -2138,7 +2105,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _torque = Vector3.Zero;
                 _velocity = Vector3.Zero;
                 _acceleration = Vector3.Zero;
-                m_rotationalVelocity = Vector3.Zero;              
+                m_rotationalVelocity = Vector3.Zero;
                 _target_velocity = Vector3.Zero;
                 if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
                     m_vehicle.Stop();
@@ -2150,7 +2117,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.BodySetTorque(Body, 0f, 0f, 0f);
                 d.BodySetLinearVel(Body, 0f, 0f, 0f);
                 d.BodySetAngularVel(Body, 0f, 0f, 0f);
-                
+
             }
         }
 
@@ -2236,7 +2203,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             givefakepos--;
             if (givefakepos < 0)
                 givefakepos = 0;
-//            changeSelectedStatus();
+            //            changeSelectedStatus();
             resetCollisionAccounting();
         }
 
@@ -2381,17 +2348,17 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (!childPrim)
             {
-                if (NewStatus) 
+                if (NewStatus)
                 {
                     if (Body == IntPtr.Zero)
                     {
-/*
-                        if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
-                        {
-                            changeShape(_pbs);
-                        }
-                        else
- */
+                        /*
+                                                if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
+                                                {
+                                                    changeShape(_pbs);
+                                                }
+                                                else
+                         */
                         {
                             MakeBody();
                         }
@@ -2402,13 +2369,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (Body != IntPtr.Zero)
                     {
                         //                        UpdateChildsfromgeom();
-/*                        if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
-                        {
-                            changeShape(_pbs);
-                        }
-                        else
- */
-                            DestroyBody();
+                        /*                        if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
+                                                {
+                                                    changeShape(_pbs);
+                                                }
+                                                else
+                         */
+                        DestroyBody();
                     }
                 }
             }
@@ -2417,7 +2384,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         private void changeprimsizeshape()
-        {         
+        {
             OdePrim parent = (OdePrim)_parent;
 
             bool chp = childPrim;
@@ -2609,6 +2576,57 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        private void changeVehicleType(int value)
+        {
+            if (m_vehicle == null)
+            {
+                if (value != (int)Vehicle.TYPE_NONE)
+                {
+                    m_vehicle = new ODEDynamics(this);
+                    m_vehicle.ProcessTypeChange((Vehicle)value);
+                }
+            }
+            else
+                m_vehicle.ProcessTypeChange((Vehicle)value);
+        }
+
+        private void changeVehicleFloatParam(strVehicleFloatParam fp)
+        {
+            if (m_vehicle == null)
+                return;
+
+            m_vehicle.ProcessFloatVehicleParam((Vehicle)fp.param, fp.value);
+            if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
+                d.BodyEnable(Body);
+        }
+
+        private void changeVehicleVectorParam(strVehicleVectorParam vp)
+        {
+            if (m_vehicle == null)
+                return;
+            m_vehicle.ProcessVectorVehicleParam((Vehicle)vp.param, vp.value);
+            if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
+                d.BodyEnable(Body);
+        }
+
+        private void changeVehicleRotationParam(strVehicleQuatParam qp)
+        {
+            if (m_vehicle == null)
+                return;
+            m_vehicle.ProcessRotationVehicleParam((Vehicle)qp.param, qp.value);
+            if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
+                d.BodyEnable(Body);
+        }
+
+        private void changeVehicleFlags(strVehicleBoolParam bp)
+        {
+            if (m_vehicle == null)
+                return;
+            m_vehicle.ProcessVehicleFlags(bp.param, bp.value);
+            if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
+                d.BodyEnable(Body);
+        }
+
         #endregion
 
         public void Move()
@@ -2616,10 +2634,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (!childPrim && m_isphysical && Body != IntPtr.Zero &&
                 !m_disabled && !m_isSelected && d.BodyIsEnabled(Body) && !m_building)        // KF: Only move root prims.
             {
-//                if (!d.BodyIsEnabled(Body)) d.BodyEnable(Body); // KF add 161009
+                //                if (!d.BodyIsEnabled(Body)) d.BodyEnable(Body); // KF add 161009
 
                 float timestep = _parent_scene.ODE_STEPSIZE;
-                
+
                 float fx = 0;
                 float fy = 0;
                 float fz = 0;
@@ -2631,13 +2649,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                     float m_mass = _mass;
-                   
+                    float m_mass = _mass;
+
                     //                    fz = 0f;
                     //m_log.Info(m_collisionFlags.ToString());
                     if (m_usePID)
                     {
-  
+
                         // If the PID Controller isn't active then we set our force
                         // calculating base velocity to the current position
 
@@ -2795,7 +2813,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     fz += m_forceacc.Z;
 
                     m_forceacc = Vector3.Zero;
-                    
+
                     //m_log.Info("[OBJPID]: X:" + fx.ToString() + " Y:" + fy.ToString() + " Z:" + fz.ToString());
                     if (fx != 0 || fy != 0 || fz != 0)
                     {
@@ -2871,10 +2889,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     bool lastZeroFlag = _zeroFlag;
 
                     d.Vector3 lpos;
-                    d.GeomCopyPosition(prim_geom,out lpos); // root position that is seem by rest of simulator
- 
+                    d.GeomCopyPosition(prim_geom, out lpos); // root position that is seem by rest of simulator
+
                     // we need to use root position since that's all the rest of scene uses
-                    if (   lpos.X < 0f || lpos.X > _parent_scene.WorldExtents.X
+                    if (lpos.X < 0f || lpos.X > _parent_scene.WorldExtents.X
                         || lpos.Y < 0f || lpos.Y > _parent_scene.WorldExtents.Y
                         )
                     {
@@ -3137,10 +3155,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (_parent != null)
                     {
                         OdePrim parent = (OdePrim)_parent;
-                        parent.ChildRemove(this,false);
+                        parent.ChildRemove(this, false);
                     }
                     else
-                        ChildRemove(this,false);
+                        ChildRemove(this, false);
 
                     RemoveGeom();
                     m_targetSpace = IntPtr.Zero;
@@ -3177,12 +3195,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     changevelocity((Vector3)arg);
                     break;
 
-//                case changes.Acceleration:
-//                    changeacceleration((Vector3)arg);
-//                    break;
-//                case changes.AngVelocity:
-//                    changeangvelocity((Vector3)arg);
-//                    break;
+                //                case changes.Acceleration:
+                //                    changeacceleration((Vector3)arg);
+                //                    break;
+                //                case changes.AngVelocity:
+                //                    changeangvelocity((Vector3)arg);
+                //                    break;
 
                 case changes.Force:
                     changeForce((Vector3)arg);
@@ -3209,7 +3227,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
 
                 case changes.Shape:
-                    changeShape((PrimitiveBaseShape) arg);
+                    changeShape((PrimitiveBaseShape)arg);
                     break;
 
                 case changes.CollidesWater:
@@ -3229,11 +3247,31 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
 
                 case changes.disabled:
-                    changeDisable((bool) arg);
+                    changeDisable((bool)arg);
                     break;
 
                 case changes.building:
                     changeBuilding((bool)arg);
+                    break;
+
+                case changes.VehicleType:
+                    changeVehicleType((int)arg);
+                    break;
+
+                case changes.VehicleFlags:
+                    changeVehicleFlags((strVehicleBoolParam) arg);
+                    break;
+
+                case changes.VehicleFloatParam:
+                    changeVehicleFloatParam((strVehicleFloatParam) arg);
+                    break;
+
+                case changes.VehicleVectorParam:
+                    changeVehicleVectorParam((strVehicleVectorParam) arg);
+                    break;
+
+                case changes.VehicleRotationParam:
+                    changeVehicleRotationParam((strVehicleQuatParam) arg);
                     break;
 
                 case changes.Null:
@@ -3250,6 +3288,31 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void AddChange(changes what, object arg)
         {
             _parent_scene.AddChange(this, what, arg);
+        }
+
+
+        private struct strVehicleBoolParam
+        {
+            public int param;
+            public bool value;
+        }
+
+        private struct strVehicleFloatParam
+        {
+            public int param;
+            public float value;
+        }
+
+        private struct strVehicleQuatParam
+        {
+            public int param;
+            public Quaternion value;
+        }
+
+        private struct strVehicleVectorParam
+        {
+            public int param;
+            public Vector3 value;
         }
     }
 }
