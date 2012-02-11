@@ -1814,8 +1814,11 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat("[SCENE PRESENCE]: StandUp() for {0}", Name);
 
             SitGround = false;
+
+/* move this down so avatar gets physical in the new position and not where it is siting
             if (PhysicsActor == null)
                 AddToPhysicalScene(false);
+ */
 
             if (ParentID != 0)
             {
@@ -1850,12 +1853,19 @@ namespace OpenSim.Region.Framework.Scenes
                 ParentPosition = Vector3.Zero;
 
                 ParentID = 0;
+
+                if (PhysicsActor == null)
+                    AddToPhysicalScene(false);
+
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
 
                 if (part != null)
                     part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
             }
+
+            else if (PhysicsActor == null)
+                AddToPhysicalScene(false);
 
             Animator.TrySetMovementAnimation("STAND");
         }
