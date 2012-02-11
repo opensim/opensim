@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <Prebuild version="1.7" xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd">
-  <Solution activeConfig="Debug" name="Careminster" path="./" version="0.5.0-$Rev$">
+  <Solution activeConfig="Debug" name="OpenSim" path="./" version="0.5.0-$Rev$">
     <Configuration name="Debug">
       <Options>
         <CompilerDefines>TRACE;DEBUG</CompilerDefines>
