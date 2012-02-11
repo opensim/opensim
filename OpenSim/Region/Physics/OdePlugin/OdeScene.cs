@@ -144,6 +144,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float gravityy = 0f;
         public float gravityz = -9.8f;
 
+        public float AvatarTerminalVelocity { get; set; }
+
         private float contactsurfacelayer = 0.001f;
 
         private int worldHashspaceLow = -4;
@@ -458,6 +460,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     gravityx = physicsconfig.GetFloat("world_gravityx", 0f);
                     gravityy = physicsconfig.GetFloat("world_gravityy", 0f);
                     gravityz = physicsconfig.GetFloat("world_gravityz", -9.8f);
+
+                    float avatarTerminalVelocity = physicsconfig.GetFloat("avatar_terminal_velocity", 9f);
+                    AvatarTerminalVelocity = Util.Clamp<float>(avatarTerminalVelocity, 0, 255f);
+                    if (AvatarTerminalVelocity != avatarTerminalVelocity)
+                    {
+                        m_log.WarnFormat(
+                            "[ODE SCENE]: avatar_terminal_velocity of {0} is invalid.  Clamping to {1}",
+                            avatarTerminalVelocity, AvatarTerminalVelocity);
+                    }
 
                     worldHashspaceLow = physicsconfig.GetInt("world_hashspace_size_low", -4);
                     worldHashspaceHigh = physicsconfig.GetInt("world_hashspace_size_high", 128);
