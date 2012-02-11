@@ -26,7 +26,7 @@
  */
 
 
-// Revision by Ubit 2011
+// Revision by Ubit 2011/12
 
 using System;
 using System.Collections.Generic;
@@ -95,20 +95,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_iscollidingObj = false;
         private bool m_alwaysRun = false;
         private int m_requestedUpdateFrequency = 0;
-        private Vector3 m_taintPosition = Vector3.Zero;
-        private bool m_hasTaintPosition = false;
         public uint m_localID = 0;
         public bool m_returnCollisions = false;
         // taints and their non-tainted counterparts
         public bool m_isPhysical = false; // the current physical status
-        public bool m_tainted_isPhysical = false; // set when the physical status is tainted (false=not existing in physics engine, true=existing)
         public float MinimumGroundFlightOffset = 3f;
-
-
-        private Vector3 m_taintForce;
-        private bool m_hasTaintForce;
-        private float m_tainted_CAPSULE_LENGTH; // set when the capsule length changes. 
-
 
         private float m_buoyancy = 0f;
 
@@ -151,15 +142,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_uuid = UUID.Random();
 
-            m_hasTaintPosition = false;
-
             if (pos.IsFinite())
             {
-                if (pos.Z > 9999999f)
+                if (pos.Z > 99999f)
                 {
                     pos.Z = parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
                 }
-                if (pos.Z < -90000f)
+                if (pos.Z < -100f) // shouldn't this be 0 ?
                 {
                     pos.Z = parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
                 }
@@ -187,15 +176,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             CAPSULE_LENGTH = size.Z * 1.15f - CAPSULE_RADIUS * 2.0f;
             //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
-            m_tainted_CAPSULE_LENGTH = CAPSULE_LENGTH;
 
             m_isPhysical = false; // current status: no ODE information exists
-            m_tainted_isPhysical = true; // new tainted status: need to create ODE information
-
-            m_hasTaintForce = false;
-            _parent_scene.AddPhysicsActorTaint(this);
 
             m_name = avName;
+
+            AddChange(changes.Add, null);
         }
 
         public override int PhysicsActorType
@@ -402,16 +388,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
                         }
-                        if (value.Z < -90000f)
+                        if (value.Z < -100f)
                         {
                             value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
                         }
-
-                        m_taintPosition.X = value.X;
-                        m_taintPosition.Y = value.Y;
-                        m_taintPosition.Z = value.Z;
-                        m_hasTaintPosition = true;
-                        _parent_scene.AddPhysicsActorTaint(this);
+                        AddChange(changes.Position, value);
                     }
                     else
                     {
@@ -440,11 +421,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (value.IsFinite())
                 {
-                    m_pidControllerActive = true;
-
-                    Vector3 SetSize = value;
-                    m_tainted_CAPSULE_LENGTH = SetSize.Z *1.15f - CAPSULE_RADIUS * 2.0f;
-                    _parent_scene.AddPhysicsActorTaint(this);
+                    AddChange(changes.Size, value);
                 }
                 else
                 {
@@ -460,129 +437,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="npositionY"></param>
         /// <param name="npositionZ"></param>
 
-        // WARNING: This MUST NOT be called outside of ProcessTaints, else we can have unsynchronized access
-        // to ODE internals. ProcessTaints is called from within thread-locked Simulate(), so it is the only 
-        // place that is safe to call this routine AvatarGeomAndBodyCreation.
-        private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ)
-        {
-            _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
-            if (CAPSULE_LENGTH <= 0)
-            {
-                m_log.Warn("[PHYSICS]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
-                CAPSULE_LENGTH = 0.01f;
-
-            }
-
-            if (CAPSULE_RADIUS <= 0)
-            {
-                m_log.Warn("[PHYSICS]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
-                CAPSULE_RADIUS = 0.01f;
-
-            }
-            Shell = d.CreateCapsule(_parent_scene.ActiveSpace, CAPSULE_RADIUS, CAPSULE_LENGTH);
-
-            d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
-            d.GeomSetCollideBits(Shell, (int)m_collisionFlags);
-
-            d.MassSetCapsule(out ShellMass, m_density, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
-
-            m_mass = ShellMass.mass;  // update mass
-
-            // rescale PID parameters 
-            PID_D = _parent_scene.avPIDD;
-            PID_P = _parent_scene.avPIDP;
-
-            // rescale PID parameters so that this aren't affected by mass
-            // and so don't get unstable for some masses
-            // also scale by ode time step so you don't need to refix them
-
-            PID_D /= 50 * 80; //scale to original mass of around 80 and 50 ODE fps
-            PID_D *= m_mass / _parent_scene.ODE_STEPSIZE;
-            PID_P /= 50 * 80;
-            PID_P *= m_mass / _parent_scene.ODE_STEPSIZE;
-
-            Body = d.BodyCreate(_parent_scene.world);
-
-            d.BodySetAutoDisableFlag(Body, false);
-            d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
-
-            _position.X = npositionX;
-            _position.Y = npositionY;
-            _position.Z = npositionZ;
-
-            m_hasTaintPosition = false;
-
-            d.BodySetMass(Body, ref ShellMass);
-            d.GeomSetBody(Shell, Body);
-
-            // The purpose of the AMotor here is to keep the avatar's physical
-            // surrogate from rotating while moving
-            Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
-            d.JointAttach(Amotor, Body, IntPtr.Zero);
-
-            d.JointSetAMotorMode(Amotor, 0);
-            d.JointSetAMotorNumAxes(Amotor, 3);
-            d.JointSetAMotorAxis(Amotor, 0, 0 , 1, 0, 0);
-            d.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
-            d.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
-
-            d.JointSetAMotorAngle(Amotor, 0, 0);
-            d.JointSetAMotorAngle(Amotor, 1, 0);
-            d.JointSetAMotorAngle(Amotor, 2, 0);
-
-            d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM, 0f); // make it HARD
-            d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM2, 0f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM3, 0f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.StopERP, 0.8f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.StopERP2, 0.8f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.StopERP3, 0.8f);
-
-            // These lowstops and high stops are effectively (no wiggle room)
-            d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -1e-5f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 1e-5f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -1e-5f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 1e-5f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -1e-5f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 1e-5f);
-
-            d.JointSetAMotorParam(Amotor, (int)d.JointParam.Vel, 0);
-            d.JointSetAMotorParam(Amotor, (int)d.JointParam.Vel2, 0);
-            d.JointSetAMotorParam(Amotor, (int)d.JointParam.Vel3, 0);
-
-            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, 5e6f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.FMax2, 5e6f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.FMax3, 5e6f);
-        }
-
-        /// <summary>
-        /// Destroys the avatar body and geom
-
-        private void AvatarGeomAndBodyDestroy()
-        {
-            // Kill the Amotor
-            if (Amotor != IntPtr.Zero)
-            {
-                d.JointDestroy(Amotor);
-                Amotor = IntPtr.Zero;
-            }
-
-            if (Body != IntPtr.Zero)
-            {
-                //kill the body
-                d.BodyDestroy(Body);
-                Body = IntPtr.Zero;
-            }
-
-            //kill the Geometry
-            if (Shell != IntPtr.Zero)
-            {
-                _parent_scene.geom_name_map.Remove(Shell);
-                _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
-                d.GeomDestroy(Shell);
-                _parent_scene.geom_name_map.Remove(Shell);
-                Shell = IntPtr.Zero;
-            }
-        }
         //
         /// <summary>
         /// Uses the capped cyllinder volume formula to calculate the avatar's mass.
@@ -705,8 +559,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (value.IsFinite())
                 {
-                    m_pidControllerActive = true;
-                    _target_velocity = value;
+                    AddChange(changes.Velocity, value);
                 }
                 else
                 {
@@ -738,9 +591,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return Quaternion.Identity; }
             set
             {
-                //Matrix3 or = Orientation.ToRotationMatrix();
-                //d.Matrix3 ord = new d.Matrix3(or.m00, or.m10, or.m20, or.m01, or.m11, or.m21, or.m02, or.m12, or.m22);
-                //d.BodySetRotation(Body, ref ord);
             }
         }
 
@@ -767,18 +617,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (pushforce)
                 {
-                    m_pidControllerActive = false;
-                    // scale with odetime step and density
-                    m_taintForce = force * m_density / _parent_scene.ODE_STEPSIZE / 28f;
-                    m_hasTaintForce = true;
-                    _parent_scene.AddPhysicsActorTaint(this);
+                    AddChange(changes.Force, force * m_density / _parent_scene.ODE_STEPSIZE / 28f);
                 }
                 else
                 {
-                    m_pidControllerActive = true;
-                    _target_velocity.X += force.X;
-                    _target_velocity.Y += force.Y;
-                    _target_velocity.Z += force.Z;
+                    AddChange(changes.Velocity, force);
                 }
             }
             else
@@ -797,6 +640,128 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
         }
 
+
+        // WARNING: This MUST NOT be called outside of ProcessTaints, else we can have unsynchronized access
+        // to ODE internals. ProcessTaints is called from within thread-locked Simulate(), so it is the only 
+        // place that is safe to call this routine AvatarGeomAndBodyCreation.
+        private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ)
+        {
+            _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
+            if (CAPSULE_LENGTH <= 0)
+            {
+                m_log.Warn("[PHYSICS]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
+                CAPSULE_LENGTH = 0.01f;
+
+            }
+
+            if (CAPSULE_RADIUS <= 0)
+            {
+                m_log.Warn("[PHYSICS]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
+                CAPSULE_RADIUS = 0.01f;
+
+            }
+            Shell = d.CreateCapsule(_parent_scene.ActiveSpace, CAPSULE_RADIUS, CAPSULE_LENGTH);
+
+            d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
+            d.GeomSetCollideBits(Shell, (int)m_collisionFlags);
+
+            d.MassSetCapsule(out ShellMass, m_density, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
+
+            m_mass = ShellMass.mass;  // update mass
+
+            // rescale PID parameters 
+            PID_D = _parent_scene.avPIDD;
+            PID_P = _parent_scene.avPIDP;
+
+            // rescale PID parameters so that this aren't affected by mass
+            // and so don't get unstable for some masses
+            // also scale by ode time step so you don't need to refix them
+
+            PID_D /= 50 * 80; //scale to original mass of around 80 and 50 ODE fps
+            PID_D *= m_mass / _parent_scene.ODE_STEPSIZE;
+            PID_P /= 50 * 80;
+            PID_P *= m_mass / _parent_scene.ODE_STEPSIZE;
+
+            Body = d.BodyCreate(_parent_scene.world);
+
+            d.BodySetAutoDisableFlag(Body, false);
+            d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
+
+            _position.X = npositionX;
+            _position.Y = npositionY;
+            _position.Z = npositionZ;
+
+            d.BodySetMass(Body, ref ShellMass);
+            d.GeomSetBody(Shell, Body);
+
+            // The purpose of the AMotor here is to keep the avatar's physical
+            // surrogate from rotating while moving
+            Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
+            d.JointAttach(Amotor, Body, IntPtr.Zero);
+
+            d.JointSetAMotorMode(Amotor, 0);
+            d.JointSetAMotorNumAxes(Amotor, 3);
+            d.JointSetAMotorAxis(Amotor, 0, 0, 1, 0, 0);
+            d.JointSetAMotorAxis(Amotor, 1, 0, 0, 1, 0);
+            d.JointSetAMotorAxis(Amotor, 2, 0, 0, 0, 1);
+
+            d.JointSetAMotorAngle(Amotor, 0, 0);
+            d.JointSetAMotorAngle(Amotor, 1, 0);
+            d.JointSetAMotorAngle(Amotor, 2, 0);
+
+            d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM, 0f); // make it HARD
+            d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM2, 0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM3, 0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.StopERP, 0.8f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.StopERP2, 0.8f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.StopERP3, 0.8f);
+
+            // These lowstops and high stops are effectively (no wiggle room)
+            d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -1e-5f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 1e-5f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -1e-5f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 1e-5f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -1e-5f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 1e-5f);
+
+            d.JointSetAMotorParam(Amotor, (int)d.JointParam.Vel, 0);
+            d.JointSetAMotorParam(Amotor, (int)d.JointParam.Vel2, 0);
+            d.JointSetAMotorParam(Amotor, (int)d.JointParam.Vel3, 0);
+
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, 5e6f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax2, 5e6f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax3, 5e6f);
+        }
+
+        /// <summary>
+        /// Destroys the avatar body and geom
+
+        private void AvatarGeomAndBodyDestroy()
+        {
+            // Kill the Amotor
+            if (Amotor != IntPtr.Zero)
+            {
+                d.JointDestroy(Amotor);
+                Amotor = IntPtr.Zero;
+            }
+
+            if (Body != IntPtr.Zero)
+            {
+                //kill the body
+                d.BodyDestroy(Body);
+                Body = IntPtr.Zero;
+            }
+
+            //kill the Geometry
+            if (Shell != IntPtr.Zero)
+            {
+                _parent_scene.geom_name_map.Remove(Shell);
+                _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
+                d.GeomDestroy(Shell);
+                _parent_scene.geom_name_map.Remove(Shell);
+                Shell = IntPtr.Zero;
+            }
+        }
 
         /// <summary>
         /// Called from Simulate
@@ -1136,8 +1101,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         public void Destroy()
         {
-            m_tainted_isPhysical = false;
-            _parent_scene.AddPhysicsActorTaint(this);
+            AddChange(changes.Remove, null);
         }
 
         public override void CrossingFailure()
@@ -1207,12 +1171,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             return m_haseventsubscription;
         }
 
-        public void ProcessTaints(float timestep)
+        private void changePhysicsStatus(bool NewStatus)
         {
-
-            if (m_tainted_isPhysical != m_isPhysical)
+            if (NewStatus != m_isPhysical)
             {
-                if (m_tainted_isPhysical)
+                if (NewStatus)
                 {
                     // Create avatar capsule and related ODE data
                     if ((Shell != IntPtr.Zero))
@@ -1237,59 +1200,245 @@ namespace OpenSim.Region.Physics.OdePlugin
                     AvatarGeomAndBodyDestroy();
                 }
 
-                m_isPhysical = m_tainted_isPhysical;
+                m_isPhysical = NewStatus;
             }
-
-            if (m_tainted_CAPSULE_LENGTH != CAPSULE_LENGTH)
-            {
-                if (Shell != IntPtr.Zero && Body != IntPtr.Zero && Amotor != IntPtr.Zero)
-                {
-                    AvatarGeomAndBodyDestroy();
-
-                    m_pidControllerActive = true;
-
-                    float prevCapsule = CAPSULE_LENGTH;
-                    CAPSULE_LENGTH = m_tainted_CAPSULE_LENGTH;
-                    
-                    AvatarGeomAndBodyCreation(_position.X, _position.Y,
-                                      _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2));
-
-                    Velocity = Vector3.Zero;
-
-                    _parent_scene.geom_name_map[Shell] = m_name;
-                    _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
-                }
-                else
-                {
-                    m_log.Warn("[PHYSICS]: trying to change capsule size, but the following ODE data is missing - "
-                        + (Shell == IntPtr.Zero ? "Shell " : "")
-                        + (Body == IntPtr.Zero ? "Body " : "")
-                        + (Amotor == IntPtr.Zero ? "Amotor " : ""));
-                }
-            }
-
-            if (m_hasTaintPosition)
-            {
-                if (Body != IntPtr.Zero)
-                    d.BodySetPosition(Body, m_taintPosition.X, m_taintPosition.Y, m_taintPosition.Z);
-
-                _position.X = m_taintPosition.X;
-                _position.Y = m_taintPosition.Y;
-                _position.Z = m_taintPosition.Z;
-                m_hasTaintPosition = false;
-            }
-
-            if (m_hasTaintForce)
-            {
-                if (Body != IntPtr.Zero)
-                {
-                    if(m_taintForce.X !=0f || m_taintForce.Y !=0f || m_taintForce.Z !=0)
-                        d.BodyAddForce(Body, m_taintForce.X, m_taintForce.Y, m_taintForce.Z);
-                    m_hasTaintForce = false;
-                }
-            }
-
         }
+
+        private void changeAdd()
+        {
+            changePhysicsStatus(true);
+        }
+
+        private void changeRemove()
+        {
+            changePhysicsStatus(false);
+        }
+
+        private void changeShape(PrimitiveBaseShape arg)
+        {
+        }
+
+        private void changeSize(Vector3 Size)
+        {
+            if (Size.IsFinite())
+            {
+                float caplen = Size.Z;
+
+                caplen = caplen * 1.15f - CAPSULE_RADIUS * 2.0f;
+
+                if (caplen != CAPSULE_LENGTH)
+                {
+                    if (Shell != IntPtr.Zero && Body != IntPtr.Zero && Amotor != IntPtr.Zero)
+                    {
+                        AvatarGeomAndBodyDestroy();
+
+                        float prevCapsule = CAPSULE_LENGTH;
+                        CAPSULE_LENGTH = caplen;
+
+                        AvatarGeomAndBodyCreation(_position.X, _position.Y,
+                                          _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2));
+
+                        Velocity = Vector3.Zero;
+
+                        _parent_scene.geom_name_map[Shell] = m_name;
+                        _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
+                    }
+                    else
+                    {
+                        m_log.Warn("[PHYSICS]: trying to change capsule size, but the following ODE data is missing - "
+                            + (Shell == IntPtr.Zero ? "Shell " : "")
+                            + (Body == IntPtr.Zero ? "Body " : "")
+                            + (Amotor == IntPtr.Zero ? "Amotor " : ""));
+                    }
+                }
+
+                m_pidControllerActive = true;
+            }
+            else
+            {
+                m_log.Warn("[PHYSICS]: Got a NaN Size from Scene on a Character");
+            }
+        }
+
+        private void changePosition( Vector3 newPos)
+            {
+                if (Body != IntPtr.Zero)
+                    d.BodySetPosition(Body, newPos.X, newPos.Y, newPos.Z);
+                _position = newPos;
+            }
+
+        private void changeOrientation(Quaternion newOri)
+        {
+        }
+
+        private void changeVelocity(Vector3 newVel)
+        {
+            m_pidControllerActive = true;
+            _target_velocity = newVel;
+        }
+
+        private void changeSetTorque(Vector3 newTorque)
+        {
+        }                                 
+
+        private void changeAddForce(Vector3 newForce)
+        {
+        }                                 
+
+        private void changeAddAngularForce(Vector3 arg)
+        {
+        }                                 
+
+        private void changeAngularLock(Vector3 arg)
+        {
+        }                                 
+
+        private void changeFloatOnWater(bool arg)
+        {
+        }                                 
+
+        private void changeVolumedetetion(bool arg)
+        {
+        }                                 
+
+        private void changeSelectedStatus(bool arg)
+        {
+        }                                 
+
+        private void changeDisable(bool arg)
+        {
+        }                                 
+
+        private void changeBuilding(bool arg)
+        {
+        }                                 
+
+        private void changeForce(Vector3 newForce)
+        {
+            m_pidControllerActive = false;
+            if (Body != IntPtr.Zero)
+            {
+                if (newForce.X != 0f || newForce.Y != 0f || newForce.Z != 0)
+                    d.BodyAddForce(Body, newForce.X, newForce.Y, newForce.Z);
+            }
+        }
+
+        private void donullchange()
+        {
+        }
+
+        public bool DoAChange(changes what, object arg)
+        {
+            if (Shell == IntPtr.Zero && what != changes.Add && what != changes.Remove)
+            {
+                return false;
+            }
+
+            // nasty switch
+            switch (what)
+            {
+                case changes.Add:
+                    changeAdd();
+                    break;
+                case changes.Remove:
+                    changeRemove();
+                    break;
+
+                case changes.Position:
+                    changePosition((Vector3)arg);
+                    break;
+
+                case changes.Orientation:
+                    changeOrientation((Quaternion)arg);
+                    break;
+
+                case changes.PosOffset:
+                    donullchange();
+                    break;
+
+                case changes.OriOffset:
+                    donullchange();
+                    break;
+
+                case changes.Velocity:
+                    changeVelocity((Vector3)arg);
+                    break;
+
+                //                case changes.Acceleration:
+                //                    changeacceleration((Vector3)arg);
+                //                    break;
+                //                case changes.AngVelocity:
+                //                    changeangvelocity((Vector3)arg);
+                //                    break;
+
+                case changes.Force:
+                    changeForce((Vector3)arg);
+                    break;
+
+                case changes.Torque:
+                    changeSetTorque((Vector3)arg);
+                    break;
+
+                case changes.AddForce:
+                    changeAddForce((Vector3)arg);
+                    break;
+
+                case changes.AddAngForce:
+                    changeAddAngularForce((Vector3)arg);
+                    break;
+
+                case changes.AngLock:
+                    changeAngularLock((Vector3)arg);
+                    break;
+
+                case changes.Size:
+                    changeSize((Vector3)arg);
+                    break;
+/* not in use for now
+                case changes.Shape:
+                    changeShape((PrimitiveBaseShape)arg);
+                    break;
+
+                case changes.CollidesWater:
+                    changeFloatOnWater((bool)arg);
+                    break;
+
+                case changes.VolumeDtc:
+                    changeVolumedetetion((bool)arg);
+                    break;
+
+                case changes.Physical:
+                    changePhysicsStatus((bool)arg);
+                    break;
+
+                case changes.Selected:
+                    changeSelectedStatus((bool)arg);
+                    break;
+
+                case changes.disabled:
+                    changeDisable((bool)arg);
+                    break;
+
+                case changes.building:
+                    changeBuilding((bool)arg);
+                    break;
+*/
+                case changes.Null:
+                    donullchange();
+                    break;
+
+                default:
+                    donullchange();
+                    break;
+            }
+            return false;
+        }
+
+        public void AddChange(changes what, object arg)
+        {
+            _parent_scene.AddChange((PhysicsActor)this, what, arg);
+        }
+
 
         internal void AddCollisionFrameTime(int p)
         {

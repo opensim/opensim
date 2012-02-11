@@ -668,13 +668,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             AddChange(changes.VehicleVectorParam, fp);
         }
 
-        public override void VehicleFlags(int param, bool remove)
+        public override void VehicleFlags(int param, bool value)
         {
             if (m_vehicle == null)
                 return;
-            m_vehicle.ProcessVehicleFlags(param, remove);
-            if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
-                d.BodyEnable(Body);
+            strVehicleBoolParam bp = new strVehicleBoolParam();
+            bp.param = param;
+            bp.value = value;
+            AddChange(changes.VehicleFlags, bp);
         }
 
         public void SetAcceleration(Vector3 accel)
@@ -2374,8 +2375,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                     changeShape(_pbs);
                                                 }
                                                 else
-                         */
+                         */                       
                         DestroyBody();
+                        Stop();
                     }
                 }
             }
@@ -3287,7 +3289,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void AddChange(changes what, object arg)
         {
-            _parent_scene.AddChange(this, what, arg);
+            _parent_scene.AddChange((PhysicsActor) this, what, arg);
         }
 
 

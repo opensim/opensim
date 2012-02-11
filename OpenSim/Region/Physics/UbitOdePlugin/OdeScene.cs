@@ -147,7 +147,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     public struct ODEchangeitem
     {
-        public OdePrim prim;
+        public PhysicsActor actor;
         public OdeCharacter character;
         public changes what;
         public Object arg;
@@ -186,7 +186,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float gravityx = 0f;
         public float gravityy = 0f;
         public float gravityz = -9.8f;
-
 
         private float waterlevel = 0f;
         private int framecount = 0;
@@ -1558,23 +1557,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             return true; 
         }
 
-        public void AddChange(OdePrim prim, changes what, Object arg)
-        {
-            ODEchangeitem item = new ODEchangeitem();
-            item.prim = prim;
-            item.what = what;
-            item.arg = arg;
-            ChangesQueue.Enqueue(item);
-        }
-
         /// <summary>
-        /// Called to queue a change to a prim
+        /// Called to queue a change to a actor
         /// to use in place of old taint mechanism so changes do have a time sequence
         /// </summary>
-        public void AddChange(OdeCharacter character, changes what, Object arg)
+
+        public void AddChange(PhysicsActor actor, changes what, Object arg)
         {
             ODEchangeitem item = new ODEchangeitem();
-            item.character = character;
+            item.actor = actor;
             item.what = what;
             item.arg = arg;
             ChangesQueue.Enqueue(item);
@@ -1687,25 +1678,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // clear pointer/counter to contacts to pass into joints
                         m_global_contactcount = 0;
 
-                        // do characters requested changes
-
-                        OdeCharacter character;
-                        int numtaints;
-                        lock (_taintedCharacterLock)
-                        {
-                            numtaints = _taintedCharacterQ.Count;
-                            //                            if (numtaints > 50)
-                            //                                numtaints = 50;
-                            while (numtaints > 0)
-                            {
-                                character = _taintedCharacterQ.Dequeue();
-                                character.ProcessTaints(ODE_STEPSIZE);
-                                _taintedCharacterH.Remove(character);
-                                numtaints--;
-                            }
-                        }
-                        // do other objects requested changes
-
                         ODEchangeitem item;
                         
                         if(ChangesQueue.Count >0)
@@ -1716,14 +1688,19 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                             while(ChangesQueue.Dequeue(out item))
                             {
-                                if (item.prim != null)
+                                if (item.actor != null)
                                 {
                                     try
                                     {
-                                        if (item.prim.DoAChange(item.what, item.arg))
-                                            RemovePrimThreadLocked(item.prim);
+                                        if (item.actor is OdeCharacter)
+                                            ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
+                                        else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
+                                                RemovePrimThreadLocked((OdePrim)item.actor);
                                     }
-                                    catch { };
+                                    catch
+                                    {
+                                        m_log.Warn("[PHYSICS]: doChange failed for a actor");
+                                    };
                                 }
                                 ttmp = Util.EnvironmentTickCountSubtract(ttmpstart);
                                 if (ttmp > 20)
