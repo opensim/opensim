@@ -484,7 +484,6 @@
     ;; such as the Meta7 viewer.
     ;; It has no ill effect on viewers which do not support server-side
     ;; windlight settings.
-    ;; Currently we only have support for MySQL databases.
     ; enable_windlight = false
 
 
