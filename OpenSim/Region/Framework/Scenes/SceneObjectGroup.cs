@@ -466,6 +466,10 @@ namespace OpenSim.Region.Framework.Scenes
                         && !IsAttachmentCheckFull() && (!Scene.LoadingPrims))
                     {
                         m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
+
+                        if (IsDeleted)
+                            return;
+                        val = AbsolutePosition;
                     }
                 }
 

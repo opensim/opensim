@@ -2188,7 +2188,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part.ParentGroup.RootPart == part)
             {
                 SceneObjectGroup parent = part.ParentGroup;
-                parent.UpdateGroupPosition(new Vector3((float)toPos.x, (float)toPos.y, (float)toPos.z));
+                Util.FireAndForget(delegate(object x) {
+                    parent.UpdateGroupPosition(new Vector3((float)toPos.x, (float)toPos.y, (float)toPos.z));
+                });
             }
             else
             {
@@ -7973,7 +7975,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (part.ParentGroup.RootPart == part)
                     {
                         SceneObjectGroup parent = part.ParentGroup;
-                        parent.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
+                        Util.FireAndForget(delegate(object x) {
+                            parent.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
+                        });
                     }
                     else
                     {
@@ -7990,7 +7994,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (part.ParentGroup.RootPart == part)
                 {
                     SceneObjectGroup parent = part.ParentGroup;
-                    parent.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
+                    Util.FireAndForget(delegate(object x) {
+                        parent.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
+                    });
                 }
                 else
                 {

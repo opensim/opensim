@@ -1731,17 +1731,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 m_log.InfoFormat("[ENTITY TRANSFER MODULE] cross region transfer failed for object {0}",grp.UUID);
 
+                // Need to turn off the physics flags, otherwise the object will continue to attempt to
+                // move out of the region creating an infinite loop of failed attempts to cross
+                grp.UpdatePrimFlags(grp.RootPart.LocalId,false,grp.IsTemporary,grp.IsPhantom,false);
+
                 // We are going to move the object back to the old position so long as the old position
                 // is in the region
                 oldGroupPosition.X = Util.Clamp<float>(oldGroupPosition.X,1.0f,(float)Constants.RegionSize-1);
                 oldGroupPosition.Y = Util.Clamp<float>(oldGroupPosition.Y,1.0f,(float)Constants.RegionSize-1);
                 oldGroupPosition.Z = Util.Clamp<float>(oldGroupPosition.Z,1.0f,4096.0f);
 
-                grp.RootPart.GroupPosition = oldGroupPosition;
-
-                // Need to turn off the physics flags, otherwise the object will continue to attempt to
-                // move out of the region creating an infinite loop of failed attempts to cross
-                grp.UpdatePrimFlags(grp.RootPart.LocalId,false,grp.IsTemporary,grp.IsPhantom,false);
+                grp.AbsolutePosition = oldGroupPosition;
 
                 grp.ScheduleGroupForFullUpdate();
             }
