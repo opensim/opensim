@@ -707,7 +707,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             // Object owners should be able to edit their own content
             if (currentUser == objectOwner)
             {
-                permission = true;
+                // there is no way that later code can change this back to false
+                // so just return true immediately and short circuit the more
+                // expensive group checks
+                return true;
+                
+                //permission = true;
             }
             else if (group.IsAttachment)
             {
