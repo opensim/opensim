@@ -3272,9 +3272,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Don't disable this log message - it's too helpful
             m_log.DebugFormat(
-                "[SCENE]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, teleportflags {6}, position {7})",
-                RegionInfo.RegionName, (agent.child ? "child" : "root"), agent.firstname, agent.lastname,
-                agent.AgentID, agent.circuitcode, teleportFlags, agent.startpos);
+                "[SCENE]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, IP {6}, viewer {7}, teleportflags {8}, position {9})",
+                RegionInfo.RegionName, (agent.child ? "child" : "root"),agent.firstname, agent.lastname,
+                agent.AgentID, agent.circuitcode, agent.IPAddress, agent.Viewer, teleportFlags, agent.startpos);
 
             if (LoginsDisabled)
             {
