@@ -681,11 +681,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #region Agent Crossings
 
-        public bool Cross(ScenePresence agent, bool isFlying)
+        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out uint xDest, out uint yDest, out string version, out Vector3 newpos)
         {
-            Scene scene = agent.Scene;
-            Vector3 pos = agent.AbsolutePosition;
-            Vector3 newpos = new Vector3(pos.X, pos.Y, pos.Z);
+            version = String.Empty;
+            newpos = new Vector3(pos.X, pos.Y, pos.Z);
             uint neighbourx = scene.RegionInfo.RegionLocX;
             uint neighboury = scene.RegionInfo.RegionLocY;
             const float boundaryDistance = 1.7f;
@@ -706,53 +705,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
                 else if (scene.TestBorderCross(pos + southCross, Cardinals.S))
                 {
-                    Border b = scene.GetCrossedBorder(pos + southCross, Cardinals.S);
-                    if (b.TriggerRegionX == 0 && b.TriggerRegionY == 0)
-                    {
-                        neighboury--;
-                        newpos.Y = Constants.RegionSize - enterDistance;
-                    }
-                    else
-                    {
-                        agent.IsInTransit = true;
-
-                        neighboury = b.TriggerRegionY;
-                        neighbourx = b.TriggerRegionX;
-
-                        Vector3 newposition = pos;
-                        newposition.X += (scene.RegionInfo.RegionLocX - neighbourx) * Constants.RegionSize;
-                        newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
-                        agent.ControllingClient.SendAgentAlertMessage(
-                            String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
-                        InformClientToInitateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
-                        return true;
-                    }
+                    neighboury--;
+                    newpos.Y = Constants.RegionSize - enterDistance;
                 }
 
-                Border ba = scene.GetCrossedBorder(pos + westCross, Cardinals.W);
-                if (ba.TriggerRegionX == 0 && ba.TriggerRegionY == 0)
-                {
-                    neighbourx--;
-                    newpos.X = Constants.RegionSize - enterDistance;
-                }
-                else
-                {
-                    agent.IsInTransit = true;
-
-                    neighboury = ba.TriggerRegionY;
-                    neighbourx = ba.TriggerRegionX;
-
-
-                    Vector3 newposition = pos;
-                    newposition.X += (scene.RegionInfo.RegionLocX - neighbourx) * Constants.RegionSize;
-                    newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
-                    agent.ControllingClient.SendAgentAlertMessage(
-                            String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
-                    InformClientToInitateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
-
-
-                    return true;
-                }
+                neighbourx--;
+                newpos.X = Constants.RegionSize - enterDistance;
 
             }
             else if (scene.TestBorderCross(pos + eastCross, Cardinals.E))
@@ -763,26 +721,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 if (scene.TestBorderCross(pos + southCross, Cardinals.S))
                 {
-                    Border ba = scene.GetCrossedBorder(pos + southCross, Cardinals.S);
-                    if (ba.TriggerRegionX == 0 && ba.TriggerRegionY == 0)
-                    {
-                        neighboury--;
-                        newpos.Y = Constants.RegionSize - enterDistance;
-                    }
-                    else
-                    {
-                        agent.IsInTransit = true;
-
-                        neighboury = ba.TriggerRegionY;
-                        neighbourx = ba.TriggerRegionX;
-                        Vector3 newposition = pos;
-                        newposition.X += (scene.RegionInfo.RegionLocX - neighbourx) * Constants.RegionSize;
-                        newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
-                        agent.ControllingClient.SendAgentAlertMessage(
-                            String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
-                        InformClientToInitateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
-                        return true;
-                    }
+                    neighboury--;
+                    newpos.Y = Constants.RegionSize - enterDistance;
                 }
                 else if (scene.TestBorderCross(pos + northCross, Cardinals.N))
                 {
@@ -790,35 +730,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     neighboury += (uint)(int)(c.BorderLine.Z / (int)Constants.RegionSize);
                     newpos.Y = enterDistance;
                 }
-
-
             }
             else if (scene.TestBorderCross(pos + southCross, Cardinals.S))
             {
                 Border b = scene.GetCrossedBorder(pos + southCross, Cardinals.S);
-                if (b.TriggerRegionX == 0 && b.TriggerRegionY == 0)
-                {
-                    neighboury--;
-                    newpos.Y = Constants.RegionSize - enterDistance;
-                }
-                else
-                {
-                    agent.IsInTransit = true;
-
-                    neighboury = b.TriggerRegionY;
-                    neighbourx = b.TriggerRegionX;
-                    Vector3 newposition = pos;
-                    newposition.X += (scene.RegionInfo.RegionLocX - neighbourx) * Constants.RegionSize;
-                    newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
-                    agent.ControllingClient.SendAgentAlertMessage(
-                            String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
-                    InformClientToInitateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
-                    return true;
-                }
+                neighboury--;
+                newpos.Y = Constants.RegionSize - enterDistance;
             }
             else if (scene.TestBorderCross(pos + northCross, Cardinals.N))
             {
-
                 Border b = scene.GetCrossedBorder(pos + northCross, Cardinals.N);
                 neighboury += (uint)(int)(b.BorderLine.Z / (int)Constants.RegionSize);
                 newpos.Y = enterDistance;
@@ -849,19 +769,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
             */
 
-            ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
+            xDest = neighbourx;
+            yDest = neighboury;
 
             int x = (int)(neighbourx * Constants.RegionSize), y = (int)(neighboury * Constants.RegionSize);
+
+            ulong neighbourHandle = Utils.UIntsToLong((uint)x, (uint)y);
 
             ExpiringCache<ulong, DateTime> r;
             DateTime banUntil;
 
-            if (m_bannedRegions.TryGetValue(agent.ControllingClient.AgentId, out r))
+            if (m_bannedRegions.TryGetValue(agentID, out r))
             {
                 if (r.TryGetValue(neighbourHandle, out banUntil))
                 {
                     if (DateTime.Now < banUntil)
-                        return false;
+                        return null;
                     r.Remove(neighbourHandle);
                 }
             }
@@ -873,28 +796,43 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             GridRegion neighbourRegion = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID, (int)x, (int)y);
 
             string reason;
-            string version;
-            if (!scene.SimulationService.QueryAccess(neighbourRegion, agent.ControllingClient.AgentId, newpos, out version, out reason))
+            if (!scene.SimulationService.QueryAccess(neighbourRegion, agentID, newpos, out version, out reason))
             {
-                agent.ControllingClient.SendAlertMessage("Cannot region cross into banned parcel");
                 if (r == null)
                 {
                     r = new ExpiringCache<ulong, DateTime>();
                     r.Add(neighbourHandle, DateTime.Now + TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
 
-                    m_bannedRegions.Add(agent.ControllingClient.AgentId, r, TimeSpan.FromSeconds(45));
+                    m_bannedRegions.Add(agentID, r, TimeSpan.FromSeconds(45));
                 }
                 else
                 {
                     r.Add(neighbourHandle, DateTime.Now + TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
                 }
+                return null;
+            }
+
+            return neighbourRegion;
+        }
+
+        public bool Cross(ScenePresence agent, bool isFlying)
+        {
+            uint x;
+            uint y;
+            Vector3 newpos;
+            string version;
+
+            GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, agent.AbsolutePosition, out x, out y, out version, out newpos);
+            if (neighbourRegion == null)
+            {
+                agent.ControllingClient.SendAlertMessage("Cannot region cross into banned parcel");
                 return false;
             }
 
             agent.IsInTransit = true;
 
             CrossAgentToNewRegionDelegate d = CrossAgentToNewRegionAsync;
-            d.BeginInvoke(agent, newpos, neighbourx, neighboury, neighbourRegion, isFlying, version, CrossAgentToNewRegionCompleted, d);
+            d.BeginInvoke(agent, newpos, x, y, neighbourRegion, isFlying, version, CrossAgentToNewRegionCompleted, d);
 
             return true;
         }
@@ -951,13 +889,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             icon.EndInvoke(iar);
         }
 
-        public delegate ScenePresence CrossAgentToNewRegionDelegate(ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, GridRegion neighbourRegion, bool isFlying, string version);
-
         /// <summary>
         /// This Closes child agents on neighbouring regions
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
-        protected ScenePresence CrossAgentToNewRegionAsync(
+        public ScenePresence CrossAgentToNewRegionAsync(
             ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, GridRegion neighbourRegion,
             bool isFlying, string version)
         {

@@ -308,6 +308,8 @@ namespace OpenSim.Framework
         public Animation[] Anims;
 
         public UUID GranterID;
+        public UUID ParentPart;
+        public Vector3 SitOffset;
 
         // Appearance
         public AvatarAppearance Appearance;
@@ -468,6 +470,10 @@ namespace OpenSim.Framework
                 }
                 args["attach_objects"] = attObjs;
             }
+
+            args["parent_part"] = OSD.FromUUID(ParentPart);
+            args["sit_offset"] = OSD.FromString(SitOffset.ToString());
+
             return args;
         }
 
@@ -675,6 +681,11 @@ namespace OpenSim.Framework
                     }
                 }
             }
+
+            if (args["parent_part"] != null)
+                ParentPart = args["parent_part"].AsUUID();
+            if (args["sit_offset"] != null)
+                Vector3.TryParse(args["sit_offset"].AsString(), out SitOffset);
         }
 
         public AgentData()
