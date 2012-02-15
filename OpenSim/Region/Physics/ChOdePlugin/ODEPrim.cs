@@ -3125,7 +3125,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
                     d.BodySetLinearVel(Body, 0, 0, 0);
 
-                    if (Interlocked.Exchange(ref m_crossingfailures, 0) == 0)
+                    if (Interlocked.Exchange(ref m_crossingfailures, m_crossingfailures) == 0)
                     { // tell base code only once
                         Interlocked.Increment(ref m_crossingfailures);
                         base.RequestPhysicsterseUpdate();
@@ -3133,7 +3133,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     return;
                 }
 
-                if (Interlocked.Exchange(ref m_crossingfailures, 0) > 1)
+                if (Interlocked.Exchange(ref m_crossingfailures, 0) != 0)
                 {
                     // main simulator had a crossing failure
                     // park it inside region
