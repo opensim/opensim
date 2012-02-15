@@ -35,6 +35,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
     public interface IAvatarFactoryModule
     {
+        void SetAppearance(IScenePresence sp, AvatarAppearance appearance);
         void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams);
 
         /// <summary>

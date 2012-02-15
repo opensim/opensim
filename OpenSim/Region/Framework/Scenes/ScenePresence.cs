@@ -295,13 +295,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public PhysicsActor PhysicsActor { get; private set; }
 
-        private byte m_movementflag;
-
-        public byte MovementFlag
-        {
-            set { m_movementflag = value; }
-            get { return m_movementflag; }
-        }
+        /// <summary>
+        /// Record user movement inputs.
+        /// </summary>
+        public byte MovementFlag { get; private set; }
 
         private bool m_updateflag;
 
