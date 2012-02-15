@@ -537,8 +537,15 @@ namespace OpenSim.Region.Framework.Scenes
                                 return;
                             }
                         }
+                        else if (RootPart.PhysActor != null)
+                        {
+                            RootPart.PhysActor.CrossingFailure();
+                        }
 
-                        val = AbsolutePosition;
+                        Vector3 oldp = AbsolutePosition;
+                        val.X = Util.Clamp<float>(oldp.X, 0.5f, (float)Constants.RegionSize - 0.5f);
+                        val.Y = Util.Clamp<float>(oldp.Y, 0.5f, (float)Constants.RegionSize - 0.5f);
+                        val.Z = Util.Clamp<float>(oldp.Z, 0.5f, 4096.0f);
                     }
                 }
 
