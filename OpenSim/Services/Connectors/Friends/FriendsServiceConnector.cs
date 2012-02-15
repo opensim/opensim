@@ -108,12 +108,11 @@ namespace OpenSim.Services.Connectors.Friends
         protected FriendInfo[] GetFriends(Dictionary<string, object> sendData, string PrincipalID)
         {
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/friends";
 
             try
             {
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/friends",
-                        reqString);
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -143,7 +142,6 @@ namespace OpenSim.Services.Connectors.Friends
                         // Success
                         return finfos.ToArray();
                     }
-                
                     else
                         m_log.DebugFormat("[FRIENDS SERVICE CONNECTOR]: GetFriends {0} received null response",
                             PrincipalID);
@@ -152,7 +150,7 @@ namespace OpenSim.Services.Connectors.Friends
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[FRIENDS SERVICE CONNECTOR]: Exception when contacting friends server: {0}", e.Message);
+                m_log.DebugFormat("[FRIENDS SERVICE CONNECTOR]: Exception when contacting friends server at {0}: {1}", uri, e.Message);
             }
 
             return new FriendInfo[0];
@@ -167,15 +165,14 @@ namespace OpenSim.Services.Connectors.Friends
             sendData["METHOD"] = "storefriend";
 
             string reply = string.Empty;
+            string uri = m_ServerURI + "/friends";
             try
             {
-                reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/friends",
-                        ServerUtils.BuildQueryString(sendData));
+                reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, ServerUtils.BuildQueryString(sendData));
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[FRIENDS SERVICE CONNECTOR]: Exception when contacting friends server: {0}", e.Message);
+                m_log.DebugFormat("[FRIENDS SERVICE CONNECTOR]: Exception when contacting friends server at {0}: {1}", uri, e.Message);
                 return false;
             }
 
@@ -223,15 +220,14 @@ namespace OpenSim.Services.Connectors.Friends
         public bool Delete(Dictionary<string, object> sendData, string PrincipalID, string Friend)
         {
             string reply = string.Empty;
+            string uri = m_ServerURI = "/friends";
             try
             {
-                reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/friends",
-                        ServerUtils.BuildQueryString(sendData));
+                reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, ServerUtils.BuildQueryString(sendData));
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[FRIENDS SERVICE CONNECTOR]: Exception when contacting friends server: {0}", e.Message);
+                m_log.DebugFormat("[FRIENDS SERVICE CONNECTOR]: Exception when contacting friends server at {0}: {1}", uri, e.Message);
                 return false;
             }
 

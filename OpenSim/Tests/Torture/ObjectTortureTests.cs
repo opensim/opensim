@@ -49,6 +49,13 @@ namespace OpenSim.Tests.Torture
     [TestFixture]
     public class ObjectTortureTests
     {
+        [TearDown]
+        public void TearDown()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
 //        [Test]
 //        public void Test0000Clean()
 //        {
@@ -118,7 +125,7 @@ namespace OpenSim.Tests.Torture
 
             TestScene scene = SceneHelpers.SetupScene();
 
-            Process process = Process.GetCurrentProcess();
+//            Process process = Process.GetCurrentProcess();
 //            long startProcessMemory = process.PrivateMemorySize64;
             long startGcMemory = GC.GetTotalMemory(true);
             DateTime start = DateTime.Now;
@@ -131,7 +138,7 @@ namespace OpenSim.Tests.Torture
 
             TimeSpan elapsed = DateTime.Now - start;
 //            long processMemoryAlloc = process.PrivateMemorySize64 - startProcessMemory;
-            long processGcAlloc = GC.GetTotalMemory(false) - startGcMemory;
+            long endGcMemory = GC.GetTotalMemory(false);
 
             for (int i = 1; i <= objectsToAdd; i++)
             {
@@ -141,9 +148,29 @@ namespace OpenSim.Tests.Torture
                     string.Format("Object {0} could not be retrieved", i));
             }
 
+            // When a scene object is added to a scene, it is placed in the update list for sending to viewers
+            // (though in this case we have none).  When it is deleted, it is not removed from the update which is
+            // fine since it will later be ignored.
+            //
+            // However, that means that we need to manually run an update here to clear out that list so that deleted
+            // objects will be clean up by the garbage collector before the next stress test is run.
+            scene.Update();
+
+            // Currently, we need to do this in order to garbage collect the scene objects ready for the next test run.
+            // However, what we really need to do is find out why the entire scene is not garbage collected in
+            // teardown.
+            scene.DeleteAllSceneObjects();
+
             Console.WriteLine(
-                "Took {0}ms, {1}MB to create {2} objects each containing {3} prim(s)",
-                Math.Round(elapsed.TotalMilliseconds), processGcAlloc / 1024 / 1024, objectsToAdd, primsInEachObject);
+                "Took {0}ms, {1}MB ({2} - {3}) to create {4} objects each containing {5} prim(s)",
+                Math.Round(elapsed.TotalMilliseconds),
+                (endGcMemory - startGcMemory) / 1024 / 1024,
+                endGcMemory / 1024 / 1024,
+                startGcMemory / 1024 / 1024,
+                objectsToAdd,
+                primsInEachObject);
+
+            scene = null;
         }
     }
 }

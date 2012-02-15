@@ -72,15 +72,21 @@ namespace OpenSim.Tests.Common
         /// <param name="sop"></param>
         /// <param name="itemName"></param>
         /// <param name="id"></param>
-        public static TaskInventoryItem AddSceneObject(Scene scene, SceneObjectPart sop, string itemName, UUID id)
+        /// <param name="userId"></param>
+        public static TaskInventoryItem AddSceneObject(
+            Scene scene, SceneObjectPart sop, string itemName, UUID id, UUID userId)
         {
             SceneObjectGroup taskSceneObject = SceneHelpers.CreateSceneObject(1, UUID.Zero);
             AssetBase taskSceneObjectAsset = AssetHelpers.CreateAsset(0x10, taskSceneObject);
             scene.AssetService.Store(taskSceneObjectAsset);
             TaskInventoryItem taskSceneObjectItem
                 = new TaskInventoryItem
-                    { Name = itemName, AssetID = taskSceneObjectAsset.FullID, ItemID = id,
-                      Type = (int)AssetType.Object, InvType = (int)InventoryType.Object };
+                    { Name = itemName,
+                      AssetID = taskSceneObjectAsset.FullID,
+                      ItemID = id,
+                      OwnerID = userId,
+                      Type = (int)AssetType.Object,
+                      InvType = (int)InventoryType.Object };
             sop.Inventory.AddInventoryItem(taskSceneObjectItem, true);
 
             return taskSceneObjectItem;

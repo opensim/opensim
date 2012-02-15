@@ -138,11 +138,12 @@ namespace OpenSim.Services.Connectors
 
             string reply = string.Empty;
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/accounts";
             // m_log.DebugFormat("[ACCOUNTS CONNECTOR]: queryString = {0}", reqString);
             try
             {
                 reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/accounts",
+                        uri,
                         reqString);
                 if (reply == null || (reply != null && reply == string.Empty))
                 {
@@ -152,7 +153,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[ACCOUNT CONNECTOR]: Exception when contacting accounts server: {0}", e.Message);
+                m_log.DebugFormat("[ACCOUNT CONNECTOR]: Exception when contacting user accounts server at {0}: {1}", uri, e.Message);
             }
 
             List<UserAccount> accounts = new List<UserAccount>();
@@ -206,11 +207,12 @@ namespace OpenSim.Services.Connectors
         {
             string reply = string.Empty;
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/accounts";
             // m_log.DebugFormat("[ACCOUNTS CONNECTOR]: queryString = {0}", reqString);
             try
             {
                 reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/accounts",
+                        uri,
                         reqString);
                 if (reply == null || (reply != null && reply == string.Empty))
                 {
@@ -220,7 +222,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[ACCOUNT CONNECTOR]: Exception when contacting user account server: {0}", e.Message);
+                m_log.DebugFormat("[ACCOUNT CONNECTOR]: Exception when contacting user accounts server at {0}: {1}", uri, e.Message);
             }
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -241,11 +243,12 @@ namespace OpenSim.Services.Connectors
         private bool SendAndGetBoolReply(Dictionary<string, object> sendData)
         {
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/accounts";
             // m_log.DebugFormat("[ACCOUNTS CONNECTOR]: queryString = {0}", reqString);
             try
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/accounts",
+                        uri,
                         reqString);
                 if (reply != string.Empty)
                 {
@@ -267,7 +270,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[ACCOUNTS CONNECTOR]: Exception when contacting user account server: {0}", e.Message);
+                m_log.DebugFormat("[ACCOUNT CONNECTOR]: Exception when contacting user accounts server at {0}: {1}", uri, e.Message);
             }
 
             return false;

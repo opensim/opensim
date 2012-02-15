@@ -1664,13 +1664,14 @@ namespace OpenSim.Framework
         /// </summary>
         public static void PrintCallStack()
         {
-            StackTrace stackTrace = new StackTrace();           // get call stack
+            StackTrace stackTrace = new StackTrace(true);           // get call stack
             StackFrame[] stackFrames = stackTrace.GetFrames();  // get method calls (frames)
 
             // write call stack method names
             foreach (StackFrame stackFrame in stackFrames)
             {
-                m_log.Debug(stackFrame.GetMethod().DeclaringType + "." + stackFrame.GetMethod().Name); // write method name
+                MethodBase mb = stackFrame.GetMethod();
+                m_log.DebugFormat("{0}.{1}:{2}", mb.DeclaringType, mb.Name, stackFrame.GetFileLineNumber()); // write method name
             }
         }
 

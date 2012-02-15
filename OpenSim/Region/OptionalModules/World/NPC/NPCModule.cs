@@ -96,15 +96,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 if (!m_avatars.ContainsKey(agentId))
                     return false;
 
+            // Delete existing sp attachments
             scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, false);
 
-            AvatarAppearance npcAppearance = new AvatarAppearance(appearance, true);
-            sp.Appearance = npcAppearance;
+            // Set new sp appearance. Also sends to clients.
+            scene.RequestModuleInterface<IAvatarFactoryModule>().SetAppearance(sp, new AvatarAppearance(appearance, true));
+            
+            // Rez needed sp attachments
             scene.AttachmentsModule.RezAttachments(sp);
-
-            IAvatarFactoryModule module = scene.RequestModuleInterface<IAvatarFactoryModule>();
-            module.SendAppearance(sp.UUID);
-
+            
             return true;
         }
 
@@ -148,22 +148,21 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 ScenePresence sp;
                 if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
                 {
-                    m_log.DebugFormat(
-                        "[NPC MODULE]: Successfully retrieved scene presence for NPC {0} {1}", sp.Name, sp.UUID);
+//                    m_log.DebugFormat(
+//                        "[NPC MODULE]: Successfully retrieved scene presence for NPC {0} {1}", sp.Name, sp.UUID);
 
                     sp.CompleteMovement(npcAvatar, false);
+                    m_avatars.Add(npcAvatar.AgentId, npcAvatar);
+                    m_log.DebugFormat("[NPC MODULE]: Created NPC with id {0}", npcAvatar.AgentId);
+
+                    return npcAvatar.AgentId;
                 }
                 else
                 {
                     m_log.WarnFormat("[NPC MODULE]: Could not find scene presence for NPC {0} {1}", sp.Name, sp.UUID);
+                    return UUID.Zero;
                 }
-
-                m_avatars.Add(npcAvatar.AgentId, npcAvatar);
             }
-
-            m_log.DebugFormat("[NPC MODULE]: Created NPC with id {0}", npcAvatar.AgentId);
-
-            return npcAvatar.AgentId;
         }
 
         public bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget)
@@ -292,13 +291,16 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 NPCAvatar av;
                 if (m_avatars.TryGetValue(agentID, out av))
                 {
+//                    m_log.DebugFormat("[NPC MODULE]: Found {0} {1} to remove", agentID, av.Name);
                     scene.RemoveClient(agentID, false);
                     m_avatars.Remove(agentID);
 
+//                    m_log.DebugFormat("[NPC MODULE]: Removed {0} {1}", agentID, av.Name);
                     return true;
                 }
             }
 
+//            m_log.DebugFormat("[NPC MODULE]: Could not find {0} to remove", agentID);
             return false;
         }
 

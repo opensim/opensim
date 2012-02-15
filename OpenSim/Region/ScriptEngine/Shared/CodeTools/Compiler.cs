@@ -291,6 +291,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         public void PerformScriptCompile(string Script, string asset, UUID ownerUUID,
             out string assembly, out Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap)
         {
+//            m_log.DebugFormat("[Compiler]: Compiling script\n{0}", Script);
+
             linemap = null;
             m_warnings.Clear();
 
@@ -357,6 +359,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (Script.StartsWith("//yp", true, CultureInfo.InvariantCulture))
                 language = enumCompileType.yp;
 
+//            m_log.DebugFormat("[Compiler]: Compile language is {0}", language);
+
             if (!AllowedCompilers.ContainsKey(language.ToString()))
             {
                 // Not allowed to compile to this language!
@@ -417,7 +421,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             }
 
             assembly = CompileFromDotNetText(compileScript, language, asset, assembly);
-            return;
         }
 
         public string[] GetWarnings()
@@ -491,6 +494,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// <returns>Filename to .dll assembly</returns>
         internal string CompileFromDotNetText(string Script, enumCompileType lang, string asset, string assembly)
         {
+//            m_log.DebugFormat("[Compiler]: Compiling to assembly\n{0}", Script);
+            
             string ext = "." + lang.ToString();
 
             // Output assembly name
@@ -531,8 +536,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             parameters.IncludeDebugInformation = true;
 
-            string rootPath =
-                Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
+            string rootPath = AppDomain.CurrentDomain.BaseDirectory;
 
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
                     "OpenSim.Region.ScriptEngine.Shared.dll"));

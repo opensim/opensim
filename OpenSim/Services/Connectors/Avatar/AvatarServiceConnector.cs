@@ -110,12 +110,11 @@ namespace OpenSim.Services.Connectors
 
             string reply = string.Empty;
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/avatar";
             // m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);
             try
             {
-                reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/avatar",
-                        reqString);
+                reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
                 if (reply == null || (reply != null && reply == string.Empty))
                 {
                     m_log.DebugFormat("[AVATAR CONNECTOR]: GetAgent received null or empty reply");
@@ -124,7 +123,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[AVATAR CONNECTOR]: Exception when contacting presence server: {0}", e.Message);
+                m_log.DebugFormat("[AVATAR CONNECTOR]: Exception when contacting presence server at {0}: {1}", uri, e.Message);
             }
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -159,12 +158,11 @@ namespace OpenSim.Services.Connectors
 
 
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/avatar";
             //m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);
             try
             {
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/avatar",
-                        reqString);
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -177,15 +175,18 @@ namespace OpenSim.Services.Connectors
                             return false;
                     }
                     else
+                    {
                         m_log.DebugFormat("[AVATAR CONNECTOR]: SetAvatar reply data does not contain result field");
-
+                    }
                 }
                 else
+                {
                     m_log.DebugFormat("[AVATAR CONNECTOR]: SetAvatar received empty reply");
+                }
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[AVATAR CONNECTOR]: Exception when contacting avatar server: {0}", e.Message);
+                m_log.DebugFormat("[AVATAR CONNECTOR]: Exception when contacting presence server at {0}: {1}", uri, e.Message);
             }
 
             return false;
@@ -202,12 +203,11 @@ namespace OpenSim.Services.Connectors
             sendData["UserID"] = userID.ToString();
 
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/avatar";
             // m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);
             try
             {
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/avatar",
-                        reqString);
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -228,7 +228,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[AVATAR CONNECTOR]: Exception when contacting avatar server: {0}", e.Message);
+                m_log.DebugFormat("[AVATAR CONNECTOR]: Exception when contacting presence server at {0}: {1}", uri, e.Message);
             }
 
             return false;
@@ -246,12 +246,11 @@ namespace OpenSim.Services.Connectors
             sendData["Values"] = new List<string>(values);
 
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/avatar";
             // m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);
             try
             {
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/avatar",
-                        reqString);
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -272,7 +271,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[AVATAR CONNECTOR]: Exception when contacting avatar server: {0}", e.Message);
+                m_log.DebugFormat("[AVATAR CONNECTOR]: Exception when contacting presence server at {0}: {1}", uri, e.Message);
             }
 
             return false;
@@ -290,12 +289,11 @@ namespace OpenSim.Services.Connectors
             sendData["Names"] = new List<string>(names);
 
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/avatar";
             // m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);
             try
             {
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/avatar",
-                        reqString);
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
                 if (reply != string.Empty)
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
@@ -316,7 +314,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[AVATAR CONNECTOR]: Exception when contacting avatar server: {0}", e.Message);
+                m_log.DebugFormat("[AVATAR CONNECTOR]: Exception when contacting presence server at {0}: {1}", uri, e.Message);
             }
 
             return false;

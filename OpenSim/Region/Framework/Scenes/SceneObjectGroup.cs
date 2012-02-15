@@ -567,7 +567,8 @@ namespace OpenSim.Region.Framework.Scenes
 
 //        ~SceneObjectGroup()
 //        {
-//            m_log.DebugFormat("[SCENE OBJECT GROUP]: Destructor called for {0}, local id {1}", Name, LocalId);
+//            //m_log.DebugFormat("[SCENE OBJECT GROUP]: Destructor called for {0}, local id {1}", Name, LocalId);
+//            Console.WriteLine("Destructor called for {0}, local id {1}", Name, LocalId);
 //        }
 
         #region Constructors
@@ -1959,6 +1960,10 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: Linking group with root part {0}, {1} to group with root part {2}, {3}",
 //                objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
+
+            // Linking to ourselves is not a valid operation.
+            if (objectGroup == this)
+                return;
 
             SceneObjectPart linkPart = objectGroup.m_rootPart;
 

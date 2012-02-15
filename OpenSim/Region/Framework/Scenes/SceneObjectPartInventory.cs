@@ -267,10 +267,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public void CreateScriptInstance(TaskInventoryItem item, int startParam, bool postOnRez, string engine, int stateSource)
         {
-            // m_log.InfoFormat(
-            //     "[PRIM INVENTORY]: " +
-            //     "Starting script {0}, {1} in prim {2}, {3}",
-            //     item.Name, item.ItemID, Name, UUID);
+//             m_log.DebugFormat("[PRIM INVENTORY]: Starting script {0} {1} in prim {2} {3} in {4}",
+//                 item.Name, item.ItemID, m_part.Name, m_part.UUID, m_part.ParentGroup.Scene.RegionInfo.RegionName);
 
             if (!m_part.ParentGroup.Scene.Permissions.CanRunScript(item.ItemID, m_part.UUID, item.OwnerID))
                 return;
@@ -299,8 +297,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (null == asset)
                 {
                     m_log.ErrorFormat(
-                        "[PRIM INVENTORY]: " +
-                        "Couldn't start script {0}, {1} at {2} in {3} since asset ID {4} could not be found",
+                        "[PRIM INVENTORY]: Couldn't start script {0}, {1} at {2} in {3} since asset ID {4} could not be found",
                         item.Name, item.ItemID, m_part.AbsolutePosition, 
                         m_part.ParentGroup.Scene.RegionInfo.RegionName, item.AssetID);
                 }
@@ -400,8 +397,7 @@ namespace OpenSim.Region.Framework.Scenes
                 CreateScriptInstance(item, startParam, postOnRez, engine, stateSource);
             else
                 m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2} at {3} in {4}",
+                    "[PRIM INVENTORY]: Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2} at {3} in {4}",
                     itemId, m_part.Name, m_part.UUID, 
                     m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
         }

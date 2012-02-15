@@ -484,7 +484,6 @@
     ;; such as the Meta7 viewer.
     ;; It has no ill effect on viewers which do not support server-side
     ;; windlight settings.
-    ;; Currently we only have support for MySQL databases.
     ; enable_windlight = false
 
 
@@ -573,10 +572,15 @@
     ; DeleteScriptsOnStartup = true
 
     ;; Set this to true (the default) to load each script into a separate
-    ;; AppDomain. Setting this to false will load all script assemblies into the
-    ;; current AppDomain, which will reduce the per-script overhead at the
-    ;; expense of reduced security and the inability to garbage collect the
-    ;; script assemblies
+    ;; AppDomain. 
+    ;;
+    ;; Setting this to false will load all script assemblies into the
+    ;; current AppDomain, which will significantly improve script loading times.
+    ;; It will also reduce initial per-script memory overhead.
+    ;;
+    ;; However, setting this to false will also prevent script DLLs from being unloaded from memory if the script is deleted.
+    ;; This may cause an OutOfMemory problem over time when avatars with scripted attachments move in and out of the region.
+    ;; Some Windows users have also reported script loading problems when AppDomainLoading = false
     ; AppDomainLoading = true
 
     ;# {DefaultCompileLanguage} {Enabled:true} {Default script language?} {lsl vb cs} lsl

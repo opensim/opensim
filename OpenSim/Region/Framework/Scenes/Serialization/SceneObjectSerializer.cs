@@ -1470,7 +1470,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 m_SOPXmlProcessors,
                 reader,
                 (o, nodeName, e)
-                    => m_log.ErrorFormat(
+                    => m_log.DebugFormat(
                         "[SceneObjectSerializer]: Exception while parsing {0} in object {1} {2}: {3}{4}",
                         ((SceneObjectPart)o).Name, ((SceneObjectPart)o).UUID, nodeName, e.Message, e.StackTrace));
 
@@ -1535,14 +1535,18 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             reader.ReadStartElement(name, String.Empty); // Shape
 
-            ExternalRepresentationUtils.ExecuteReadProcessors(
+            errors = ExternalRepresentationUtils.ExecuteReadProcessors(
                 shape,
                 m_ShapeXmlProcessors,
                 reader,
                 (o, nodeName, e)
-                    => m_log.ErrorFormat(
-                        "[SceneObjectSerializer]: Exception while parsing Shape property {0}: {1}{2}",
-                        nodeName, e.Message, e.StackTrace));
+                    =>
+                    {
+                        m_log.DebugFormat(
+                            "[SceneObjectSerializer]: Exception while parsing Shape property {0}: {1}{2}",
+                            nodeName, e.Message, e.StackTrace);
+                    }
+            );
 
             reader.ReadEndElement(); // Shape
 

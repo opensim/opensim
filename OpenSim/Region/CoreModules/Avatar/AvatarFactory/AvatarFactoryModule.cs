@@ -111,6 +111,15 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         #region IAvatarFactoryModule
 
+        /// </summary>
+        /// <param name="sp"></param>
+        /// <param name="texture"></param>
+        /// <param name="visualParam"></param>
+        public void SetAppearance(IScenePresence sp, AvatarAppearance appearance)
+        {
+            SetAppearance(sp, appearance.Texture, appearance.VisualParams);
+        }
+
         /// <summary>
         /// Set appearance data (texture asset IDs and slider settings) 
         /// </summary>
@@ -156,14 +165,23 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     changed = sp.Appearance.SetTextureEntries(textureEntry) || changed;
 
 //                    WriteBakedTexturesReport(sp, m_log.DebugFormat);
-                    if (!ValidateBakedTextureCache(sp))
+
+                    // If bake textures are missing and this is not an NPC, request a rebake from client
+                    if (!ValidateBakedTextureCache(sp) && (((ScenePresence)sp).PresenceType != PresenceType.Npc))
                         RequestRebake(sp, true);
 
                     // This appears to be set only in the final stage of the appearance
                     // update transaction. In theory, we should be able to do an immediate
                     // appearance send and save here.
                 }
-                
+
+                // NPC should send to clients immediately and skip saving appearance
+                if (((ScenePresence)sp).PresenceType == PresenceType.Npc)
+                {
+                    SendAppearance((ScenePresence)sp);
+                    return;
+                }
+
                 // save only if there were changes, send no matter what (doesn't hurt to send twice)
                 if (changed)
                     QueueAppearanceSave(sp.ControllingClient.AgentId);
@@ -172,6 +190,15 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
             // m_log.WarnFormat("[AVFACTORY]: complete SetAppearance for {0}:\n{1}",client.AgentId,sp.Appearance.ToString());
+        }
+
+        private void SendAppearance(ScenePresence sp)
+        {
+            // Send the appearance to everyone in the scene
+            sp.SendAppearanceToAllOtherAgents();
+
+            // Send animations back to the avatar as well
+            sp.Animator.SendAnimPack();
         }
 
         public bool SendAppearance(UUID agentId)
@@ -185,12 +212,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 return false;
             }
 
-            // Send the appearance to everyone in the scene
-            sp.SendAppearanceToAllOtherAgents();
-
-            // Send animations back to the avatar as well
-            sp.Animator.SendAnimPack();
-
+            SendAppearance(sp);
             return true;
         }
 

@@ -301,7 +301,7 @@ namespace OpenSim.Region.UserStatistics
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            m_log.DebugFormat("[VC]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
+            m_log.DebugFormat("[WEB STATS MODULE]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
             string capsPath = "/CAPS/VS/" + UUID.Random();
             caps.RegisterHandler("ViewerStats",
                                  new RestStreamHandler("POST", capsPath,
@@ -462,7 +462,7 @@ namespace OpenSim.Region.UserStatistics
                 
                     if (!m_sessions.ContainsKey(agentID))
                     {
-                        m_log.Warn("[VS]: no session for stat disclosure");
+                        m_log.Warn("[WEB STATS MODULE]: no session for stat disclosure");
                         return new UserSessionID();
                     }
                     uid = m_sessions[agentID];
@@ -667,14 +667,13 @@ namespace OpenSim.Region.UserStatistics
                     {
                         updatecmd.ExecuteNonQuery();
                     }
-                    catch 
-                        (SqliteExecutionException)
+                    catch (SqliteExecutionException)
                     {
-                        m_log.Warn("[WEBSTATS]: failed to write stats to storage Execution Exception");
+                        m_log.Warn("[WEB STATS MODULE]: failed to write stats to storage Execution Exception");
                     }
                     catch (SqliteSyntaxException)
                     {
-                        m_log.Warn("[WEBSTATS]: failed to write stats to storage SQL Syntax Exception");
+                        m_log.Warn("[WEB STATS MODULE]: failed to write stats to storage SQL Syntax Exception");
                     }
 
                 }

@@ -5107,7 +5107,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ImprovedInstantMessage, HandlerImprovedInstantMessage, false);
             AddLocalPacketHandler(PacketType.AcceptFriendship, HandlerAcceptFriendship);
             AddLocalPacketHandler(PacketType.DeclineFriendship, HandlerDeclineFriendship);
-            AddLocalPacketHandler(PacketType.TerminateFriendship, HandlerTerminateFrendship);
+            AddLocalPacketHandler(PacketType.TerminateFriendship, HandlerTerminateFriendship);
             AddLocalPacketHandler(PacketType.RezObject, HandlerRezObject);
             AddLocalPacketHandler(PacketType.DeRezObject, HandlerDeRezObject);
             AddLocalPacketHandler(PacketType.ModifyLand, HandlerModifyLand);
@@ -5827,7 +5827,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
-        private bool HandlerTerminateFrendship(IClientAPI sender, Packet Pack)
+        private bool HandlerTerminateFriendship(IClientAPI sender, Packet Pack)
         {
             TerminateFriendshipPacket tfriendpack = (TerminateFriendshipPacket)Pack;
 
@@ -5842,13 +5842,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             UUID listOwnerAgentID = tfriendpack.AgentData.AgentID;
             UUID exFriendID = tfriendpack.ExBlock.OtherID;
-
-            FriendshipTermination handlerTerminateFriendship = OnTerminateFriendship;
-            if (handlerTerminateFriendship != null)
+            FriendshipTermination TerminateFriendshipHandler = OnTerminateFriendship;
+            if (TerminateFriendshipHandler != null)
             {
-                handlerTerminateFriendship(this, listOwnerAgentID, exFriendID);
+                TerminateFriendshipHandler(this, listOwnerAgentID, exFriendID);
+                return true;
             }
-            return true;
+            return false;
         }
 
         private bool HandleFindAgent(IClientAPI client, Packet Packet)
@@ -7625,6 +7625,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
             }
+            else
+                if (transfer.TransferInfo.SourceType == (int)SourceType.SimEstate)
+                {
+                    //TransferRequestPacket does not include covenant uuid?
+                    //get scene covenant uuid
+                    taskID = m_scene.RegionInfo.RegionSettings.Covenant;
+                }
 
             MakeAssetRequest(transfer, taskID);
 
@@ -11985,6 +11992,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
             }
+            else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimEstate)
+            {
+                requestID = taskID;
+            }
+
 
 //            m_log.DebugFormat("[CLIENT]: {0} requesting asset {1}", Name, requestID);
 

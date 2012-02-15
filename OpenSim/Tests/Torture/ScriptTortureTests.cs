@@ -27,31 +27,42 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
+using log4net;
 using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Scripting.WorldComm;
-using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.ScriptEngine.XEngine;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Region.ScriptEngine.XEngine.Tests
+namespace OpenSim.Tests.Torture
 {
     /// <summary>
-    /// XEngine tests.
+    /// Script torture tests
     /// </summary>
+    /// <remarks>
+    /// Don't rely on the numbers given by these tests - they will vary a lot depending on what is already cached,
+    /// how much memory is free, etc.  In some cases, later larger tests will apparently take less time than smaller
+    /// earlier tests.
+    /// </remarks>
     [TestFixture]
-    public class XEngineTest
+    public class ScriptTortureTests
     {
         private TestScene m_scene;
         private XEngine m_xEngine;
         private AutoResetEvent m_chatEvent = new AutoResetEvent(false);
-        private OSChatMessage m_osChatMessageReceived;
 
-        [TestFixtureSetUp]
+        private int m_expectedChatMessages;
+        private List<OSChatMessage> m_osChatMessagesReceived = new List<OSChatMessage>();
+
+        [SetUp]
         public void Init()
         {
             //AppDomain.CurrentDomain.SetData("APPBASE", Environment.CurrentDirectory + "/bin");
@@ -62,7 +73,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
             WorldCommModule wcModule = new WorldCommModule();
 
             IniConfigSource configSource = new IniConfigSource();
-            
+
             IConfig startupConfig = configSource.AddConfig("Startup");
             startupConfig.Set("DefaultScriptEngine", "XEngine");
 
@@ -75,28 +86,52 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
 
             m_scene = SceneHelpers.SetupScene("My Test", UUID.Random(), 1000, 1000, null, configSource);
             SceneHelpers.SetupSceneModules(m_scene, configSource, m_xEngine, wcModule);
+
+            m_scene.EventManager.OnChatFromWorld += OnChatFromWorld;
             m_scene.StartScripts();
         }
 
-        /// <summary>
-        /// Test compilation and starting of a script.
-        /// </summary>
-        /// <remarks>
-        /// This is a less than ideal regression test since it involves an asynchronous operation (in this case,
-        /// compilation of the script).
-        /// </remarks>
         [Test]
-        public void TestCompileAndStartScript()
+        public void TestCompileAndStart100Scripts()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+            log4net.Config.XmlConfigurator.Configure();
 
+            TestCompileAndStartScripts(100);
+        }
+
+        private void TestCompileAndStartScripts(int scriptsToCreate)
+        {
             UUID userId = TestHelpers.ParseTail(0x1);
-//            UUID objectId = TestHelpers.ParseTail(0x2);
-//            UUID itemId = TestHelpers.ParseTail(0x3);
-            string itemName = "TestStartScript() Item";
 
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, "TestStartScriptPart_", 0x100);
+            m_expectedChatMessages = scriptsToCreate;
+            int startingObjectIdTail = 0x100;
+
+            GC.Collect();
+
+            for (int idTail = startingObjectIdTail;idTail < startingObjectIdTail + scriptsToCreate; idTail++)
+            {
+                AddObjectAndScript(idTail, userId);
+            }
+
+            m_chatEvent.WaitOne(40000 + scriptsToCreate * 1000);
+
+            Assert.That(m_osChatMessagesReceived.Count, Is.EqualTo(m_expectedChatMessages));
+
+            foreach (OSChatMessage msg in m_osChatMessagesReceived)
+                Assert.That(
+                    msg.Message,
+                    Is.EqualTo("Script running"),
+                    string.Format(
+                        "Message from {0} was {1} rather than {2}", msg.SenderUUID, msg.Message, "Script running"));
+        }
+
+        private void AddObjectAndScript(int objectIdTail, UUID userId)
+        {
+//            UUID itemId = TestHelpers.ParseTail(0x3);
+            string itemName = string.Format("AddObjectAndScript() Item for object {0}", objectIdTail);
+
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, "AddObjectAndScriptPart_", objectIdTail);
             m_scene.AddNewSceneObject(so, true);
 
             InventoryItemBase itemTemplate = new InventoryItemBase();
@@ -105,22 +140,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
             itemTemplate.Folder = so.UUID;
             itemTemplate.InvType = (int)InventoryType.LSL;
 
-            m_scene.EventManager.OnChatFromWorld += OnChatFromWorld;
-
             m_scene.RezNewScript(userId, itemTemplate);
-
-            m_chatEvent.WaitOne(60000);
-
-            Assert.That(m_osChatMessageReceived, Is.Not.Null, "No chat message received in TestStartScript()");
-            Assert.That(m_osChatMessageReceived.Message, Is.EqualTo("Script running"));
         }
 
         private void OnChatFromWorld(object sender, OSChatMessage oscm)
         {
 //            Console.WriteLine("Got chat [{0}]", oscm.Message);
 
-            m_osChatMessageReceived = oscm;
-            m_chatEvent.Set();
+            lock (m_osChatMessagesReceived)
+            {
+                m_osChatMessagesReceived.Add(oscm);
+
+                if (m_osChatMessagesReceived.Count == m_expectedChatMessages)
+                    m_chatEvent.Set();
+            }
         }
     }
 }

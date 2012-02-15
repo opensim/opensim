@@ -359,7 +359,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat(
                     "[SCENEGRAPH]: Tried to add scene object {0} to {1} with illegal UUID of {2}",
                     sceneObject.Name, m_parentScene.RegionInfo.RegionName, UUID.Zero);
-                
+
                 return false;
             }
 
@@ -368,12 +368,12 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_log.DebugFormat(
 //                    "[SCENEGRAPH]: Scene graph for {0} already contains object {1} in AddSceneObject()",
 //                    m_parentScene.RegionInfo.RegionName, sceneObject.UUID);
-                
+
                 return false;
             }
-            
+
 //            m_log.DebugFormat(
-//                "[SCENEGRAPH]: Adding scene object {0} {1}, with {2} parts on {3}", 
+//                "[SCENEGRAPH]: Adding scene object {0} {1}, with {2} parts on {3}",
 //                sceneObject.Name, sceneObject.UUID, sceneObject.Parts.Length, m_parentScene.RegionInfo.RegionName);
 
             SceneObjectPart[] parts = sceneObject.Parts;
@@ -409,7 +409,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (SceneObjectGroupsByFullID)
                 SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
-            
+
             lock (SceneObjectGroupsByFullPartID)
             {
                 foreach (SceneObjectPart part in parts)
@@ -1662,6 +1662,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     SceneObjectGroup child = children[i].ParentGroup;
 
+                    // Don't try and add a group to itself - this will only cause severe problems later on.
+                    if (child == parentGroup)
+                        continue;
+
                     // Make sure no child prim is set for sale
                     // So that, on delink, no prims are unwittingly
                     // left for sale and sold off
@@ -1684,11 +1688,13 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // We need to explicitly resend the newly link prim's object properties since no other actions
                 // occur on link to invoke this elsewhere (such as object selection)
-                parentGroup.RootPart.CreateSelected = true;
-                parentGroup.TriggerScriptChangedEvent(Changed.LINK);
-                parentGroup.HasGroupChanged = true;
-                parentGroup.ScheduleGroupForFullUpdate();
-                
+                if (childGroups.Count > 0)
+                {
+                    parentGroup.RootPart.CreateSelected = true;
+                    parentGroup.TriggerScriptChangedEvent(Changed.LINK);
+                    parentGroup.HasGroupChanged = true;
+                    parentGroup.ScheduleGroupForFullUpdate();
+                }
             }
             finally
             {

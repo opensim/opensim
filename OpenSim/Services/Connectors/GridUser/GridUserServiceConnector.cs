@@ -156,11 +156,12 @@ namespace OpenSim.Services.Connectors
             sendData["LookAt"] = lookAt.ToString();
 
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/griduser";
             // m_log.DebugFormat("[GRID USER CONNECTOR]: queryString = {0}", reqString);
             try
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/griduser",
+                        uri,
                         reqString);
                 if (reply != string.Empty)
                 {
@@ -182,7 +183,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[GRID USER CONNECTOR]: Exception when contacting grid user server: {0}", e.Message);
+                m_log.DebugFormat("[GRID USER CONNECTOR]: Exception when contacting grid user server at {0}: {1}", uri, e.Message);
             }
 
             return false;
@@ -191,11 +192,12 @@ namespace OpenSim.Services.Connectors
         protected GridUserInfo Get(Dictionary<string, object> sendData)
         {
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/griduser";
             // m_log.DebugFormat("[GRID USER CONNECTOR]: queryString = {0}", reqString);
             try
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/griduser",
+                        uri,
                         reqString);
                 if (reply != string.Empty)
                 {
@@ -216,7 +218,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[GRID USER CONNECTOR]: Exception when contacting grid user server: {0}", e.Message);
+                m_log.DebugFormat("[GRID USER CONNECTOR]: Exception when contacting grid user server at {0}: {1}", uri, e.Message);
             }
 
             return null;
@@ -235,11 +237,12 @@ namespace OpenSim.Services.Connectors
 
             string reply = string.Empty;
             string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/griduser";
             //m_log.DebugFormat("[PRESENCE CONNECTOR]: queryString = {0}", reqString);
             try
             {
                 reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/griduser",
+                        uri,
                         reqString);
                 if (reply == null || (reply != null && reply == string.Empty))
                 {
@@ -249,7 +252,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[GRID USER CONNECTOR]: Exception when contacting grid user server: {0}", e.Message);
+                m_log.DebugFormat("[GRID USER CONNECTOR]: Exception when contacting grid user server at {0}: {1}", uri, e.Message);
             }
 
             List<GridUserInfo> rinfos = new List<GridUserInfo>();

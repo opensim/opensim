@@ -47,6 +47,12 @@ namespace OpenSim.Tests.Common.Mock
                    dumpAssetsToFile, config, simulatorVersion)
         {
         }
+
+        ~TestScene()
+        {
+            //Console.WriteLine("TestScene destructor called for {0}", RegionInfo.RegionName);
+            Console.WriteLine("TestScene destructor called");
+        }
         
         /// <summary>
         /// Temporarily override session authentication for tests (namely teleport).
