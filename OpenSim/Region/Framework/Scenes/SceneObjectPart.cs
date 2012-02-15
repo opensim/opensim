@@ -303,6 +303,9 @@ namespace OpenSim.Region.Framework.Scenes
 
 //        ~SceneObjectPart()
 //        {
+//            Console.WriteLine(
+//                "[SCENE OBJECT PART]: Destructor called for {0}, local id {1}, parent {2} {3}",
+//                Name, LocalId, ParentGroup.Name, ParentGroup.LocalId);
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT PART]: Destructor called for {0}, local id {1}, parent {2} {3}",
 //                Name, LocalId, ParentGroup.Name, ParentGroup.LocalId);
