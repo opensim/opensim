@@ -1536,7 +1536,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 List<OdePrim> removeprims = null;
                 foreach (OdePrim chr in _activeprims)
                 {
-                    if (chr.Body != IntPtr.Zero && d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
+                    if (chr.Body != IntPtr.Zero && d.BodyIsEnabled(chr.Body) && (!chr.m_disabled) && !chr.m_outofBounds)
                     {
                         try
                         {
@@ -3410,13 +3410,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void SetTerrain(float[] heightMap, Vector3 pOffset)
         {
            
-            uint regionsize = (uint) Constants.RegionSize;		// visible region size eg. 256(M)
+            int regionsize = (int) Constants.RegionSize;		// visible region size eg. 256(M)
             
-            uint heightmapWidth = regionsize + 1;				// ODE map size 257 x 257 (Meters) (1 extra 
-            uint heightmapHeight = regionsize + 1;
+            int heightmapWidth = regionsize + 2;				// ODE map size 257 x 257 (Meters) (1 extra 
+            int heightmapHeight = regionsize + 2;
             
-            uint heightmapWidthSamples = (uint)regionsize + 2;		// Sample file size, 258 x 258 samples
-            uint heightmapHeightSamples = (uint)regionsize + 2;
+            int heightmapWidthSamples = (int)regionsize + 2;		// Sample file size, 258 x 258 samples
+            int heightmapHeightSamples = (int)regionsize + 2;
             
             // Array of height samples for ODE 
             float[] _heightmap;
@@ -3432,10 +3432,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             float hfmax = -2000f;
             float minele = 0.0f; 	// Dont allow -ve heights
             
-            uint x = 0;
-            uint y = 0;
-            uint xx = 0;
-            uint yy = 0;
+            int x = 0;
+            int y = 0;
+            int xx = 0;
+            int yy = 0;
             
             // load the height samples array from the heightMap    
             for ( x = 0; x < heightmapWidthSamples; x++)				// 0 to 257

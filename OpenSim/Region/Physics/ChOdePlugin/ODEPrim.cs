@@ -166,7 +166,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int m_roundsUnderMotionThreshold;
         private int m_crossingfailures;
 
-        public bool outofBounds;
+        public bool m_outofBounds;
         private float m_density = 10.000006836f; // Aluminum g/cm3;
 
         public bool _zeroFlag;					 // if body has been stopped
@@ -732,6 +732,27 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void CrossingFailure()
         {
+            if (m_outofBounds)
+            {
+                _position.X = Util.Clip(_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
+                _position.Y = Util.Clip(_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
+                _position.Z = Util.Clip(_position.Z, -100f, 50000f);
+                d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
+
+                m_lastposition = _position;
+
+                _velocity = Vector3.Zero;
+                m_lastVelocity = _velocity;
+
+
+                if (m_type != Vehicle.TYPE_NONE)
+                    Halt();
+
+                d.BodySetLinearVel(Body, 0, 0, 0);
+                base.RequestPhysicsterseUpdate();
+                m_outofBounds = false;
+            }
+/*
             int tmp = Interlocked.Increment(ref m_crossingfailures);
             if (tmp > _parent_scene.geomCrossingFailuresBeforeOutofbounds)
             {
@@ -742,6 +763,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_log.Warn("[PHYSICS]: Too many crossing failures for: " + m_primName);
             }
+ */
         }
 
         public override float Buoyancy
@@ -3011,7 +3033,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                 
             if(revcount > 0) revcount--;
                      
-            if (IsPhysical && (Body != IntPtr.Zero) && !m_isSelected && !childPrim)		// Only move root prims.
+            if (IsPhysical && (Body != IntPtr.Zero) && !m_isSelected && !childPrim && !m_outofBounds)		// Only move root prims.
             {
 				//  Old public void UpdatePositionAndVelocity(), more accuratley calculated here
             	bool lastZeroFlag = _zeroFlag;  // was it stopped
@@ -3124,15 +3146,18 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     _position.Z = Util.Clip(l_position.Z, -100f, 50000f);
                     d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
                     d.BodySetLinearVel(Body, 0, 0, 0);
-
-                    if (Interlocked.Exchange(ref m_crossingfailures, m_crossingfailures) == 0)
-                    { // tell base code only once
-                        Interlocked.Increment(ref m_crossingfailures);
-                        base.RequestPhysicsterseUpdate();
-                    }
+                    /*
+                                        if (Interlocked.Exchange(ref m_crossingfailures, m_crossingfailures) == 0)
+                                        { // tell base code only once
+                                            Interlocked.Increment(ref m_crossingfailures);
+                                            base.RequestPhysicsterseUpdate();
+                                        }
+                     */
+                    m_outofBounds = true;
+                    base.RequestPhysicsterseUpdate();
                     return;
                 }
-
+/*
                 if (Interlocked.Exchange(ref m_crossingfailures, 0) != 0)
                 {
                     // main simulator had a crossing failure
@@ -3155,7 +3180,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     base.RequestPhysicsterseUpdate();
                     return;
                 }
-
+*/
                 base.RequestPhysicsterseUpdate();
 
                 if (l_position.Z < 0)
