@@ -465,7 +465,77 @@ namespace OpenSim.Region.Framework.Scenes
                         || Scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N) || Scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S)) 
                         && !IsAttachmentCheckFull() && (!Scene.LoadingPrims))
                     {
-                        m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
+                        IEntityTransferModule entityTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
+                        uint x = 0;
+                        uint y = 0;
+                        string version = String.Empty;
+                        Vector3 newpos = Vector3.Zero;
+                        OpenSim.Services.Interfaces.GridRegion destination = null;
+
+                        bool canCross = true;
+                        foreach (ScenePresence av in m_linkedAvatars)
+                        {
+                            // We need to cross these agents. First, let's find
+                            // out if any of them can't cross for some reason.
+                            // We have to deny the crossing entirely if any
+                            // of them are banned. Alternatively, we could
+                            // unsit banned agents....
+
+
+                            // We set the avatar position as being the object
+                            // position to get the region to send to
+                            if ((destination = entityTransfer.GetDestination(m_scene, av.UUID, val, out x, out y, out version, out newpos)) == null)
+                            {
+                                canCross = false;
+                                break;
+                            }
+                            
+                            m_log.DebugFormat("[SCENE OBJECT]: Avatar {0} needs to be crossed to {1}", av.Name, destination.RegionName);
+                        }
+
+                        if (canCross)
+                        {
+                            // We unparent the SP quietly so that it won't
+                            // be made to stand up
+                            foreach (ScenePresence av in m_linkedAvatars)
+                            {
+                                SceneObjectPart parentPart = m_scene.GetSceneObjectPart(av.ParentID);
+                                if (parentPart != null)
+                                    av.ParentUUID = parentPart.UUID;
+
+                                av.ParentID = 0;
+                            }
+
+                            m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
+
+                            // Normalize
+                            if (val.X >= Constants.RegionSize)
+                                val.X -= Constants.RegionSize;
+                            if (val.Y >= Constants.RegionSize)
+                                val.Y -= Constants.RegionSize;
+                            if (val.X < 0)
+                                val.X += Constants.RegionSize;
+                            if (val.Y < 0)
+                                val.Y += Constants.RegionSize;
+
+                            // If it's deleted, crossing was successful
+                            if (IsDeleted)
+                            {
+                                foreach (ScenePresence av in m_linkedAvatars)
+                                {
+                                    m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar {0} to {1}", av.Name, val);
+
+                                    av.IsInTransit = true;
+
+                                    CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
+                                    d.BeginInvoke(av, val, x, y, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
+                                }
+
+                                return;
+                            }
+                        }
+
+                        val = AbsolutePosition;
                     }
                 }
 
@@ -522,6 +592,23 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Scene != null)
                     Scene.EventManager.TriggerParcelPrimCountTainted();
             }
+        }
+
+        private void CrossAgentToNewRegionCompleted(IAsyncResult iar)
+        {
+            CrossAgentToNewRegionDelegate icon = (CrossAgentToNewRegionDelegate)iar.AsyncState;
+            ScenePresence agent = icon.EndInvoke(iar);
+
+            //// If the cross was successful, this agent is a child agent
+            //if (agent.IsChildAgent)
+            //    agent.Reset();
+            //else // Not successful
+            //    agent.RestoreInCurrentScene();
+
+            // In any case
+            agent.IsInTransit = false;
+
+            m_log.DebugFormat("[SCENE OBJECT]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
         }
 
         public override uint LocalId

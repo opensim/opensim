@@ -1549,7 +1549,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendKillObject(ulong regionHandle, List<uint> localIDs)
         {
-//            m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, localID, regionHandle);
+//            foreach (uint id in localIDs)
+//                m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, id, regionHandle);
 
             KillObjectPacket kill = (KillObjectPacket)PacketPool.Instance.GetPacket(PacketType.KillObject);
             // TODO: don't create new blocks if recycling an old packet
