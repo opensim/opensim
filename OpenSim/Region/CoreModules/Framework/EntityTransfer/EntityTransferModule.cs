@@ -1655,33 +1655,36 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             // Offset the positions for the new region across the border
-            Vector3 oldGroupPosition = grp.RootPart.GroupPosition;
-            grp.RootPart.GroupPosition = pos;
+            // NOT here
 
             // If we fail to cross the border, then reset the position of the scene object on that border.
             uint x = 0, y = 0;
             Utils.LongToUInts(newRegionHandle, out x, out y);
             GridRegion destination = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID, (int)x, (int)y);
 
-            if (destination == null || !CrossPrimGroupIntoNewRegion(destination, grp, silent))
+            Vector3 oldGroupPosition = grp.RootPart.GroupPosition;
+
+            if (destination != null)
             {
-                m_log.InfoFormat("[ENTITY TRANSFER MODULE] cross region transfer failed for object {0}",grp.UUID);
-
-                // Need to turn off the physics flags, otherwise the object will continue to attempt to
-                // move out of the region creating an infinite loop of failed attempts to cross
-                grp.UpdatePrimFlags(grp.RootPart.LocalId,false,grp.IsTemporary,grp.IsPhantom,false);
-
-                // We are going to move the object back to the old position so long as the old position
-                // is in the region
-                oldGroupPosition.X = Util.Clamp<float>(oldGroupPosition.X,1.0f,(float)Constants.RegionSize-1);
-                oldGroupPosition.Y = Util.Clamp<float>(oldGroupPosition.Y,1.0f,(float)Constants.RegionSize-1);
-                oldGroupPosition.Z = Util.Clamp<float>(oldGroupPosition.Z,1.0f,4096.0f);
-
-                grp.AbsolutePosition = oldGroupPosition;
-
-                grp.ScheduleGroupForFullUpdate();
+                grp.RootPart.GroupPosition = pos; // only change this if we think there is anywhere to go
+                if (CrossPrimGroupIntoNewRegion(destination, grp, silent))
+                    return; // we did it
             }
+
+            // no one or failed lets go back and tell physics to go on
+            oldGroupPosition.X = Util.Clamp<float>(oldGroupPosition.X, 0.5f, (float)Constants.RegionSize - 0.5f);
+            oldGroupPosition.Y = Util.Clamp<float>(oldGroupPosition.Y, 0.5f, (float)Constants.RegionSize - 0.5f);
+            oldGroupPosition.Z = Util.Clamp<float>(oldGroupPosition.Z, 0.5f, 4096.0f);
+
+            grp.AbsolutePosition = oldGroupPosition;
+            grp.Velocity = Vector3.Zero;
+
+            if (grp.RootPart.PhysActor != null)
+                grp.RootPart.PhysActor.CrossingFailure();
+
+            grp.ScheduleGroupForFullUpdate();
         }
+
 
 
         /// <summary>

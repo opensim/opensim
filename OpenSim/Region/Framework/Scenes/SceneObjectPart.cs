@@ -2612,9 +2612,9 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 newpos = new Vector3(PhysActor.Position.GetBytes(), 0);
                 
                 if (ParentGroup.Scene.TestBorderCross(newpos, Cardinals.N)
-                    | ParentGroup.Scene.TestBorderCross(newpos, Cardinals.S)
-                    | ParentGroup.Scene.TestBorderCross(newpos, Cardinals.E)
-                    | ParentGroup.Scene.TestBorderCross(newpos, Cardinals.W))
+                    || ParentGroup.Scene.TestBorderCross(newpos, Cardinals.S)
+                    || ParentGroup.Scene.TestBorderCross(newpos, Cardinals.E)
+                    || ParentGroup.Scene.TestBorderCross(newpos, Cardinals.W))
                 {
                     ParentGroup.AbsolutePosition = newpos;
                     return;
