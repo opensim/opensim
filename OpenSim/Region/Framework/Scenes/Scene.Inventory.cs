@@ -1926,7 +1926,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         foreach (SceneObjectGroup g in deleteGroups)
                         {
-                            AddReturn(g.OwnerID, g.Name, g.AbsolutePosition, "parcel owner return");
+                            AddReturn(g.OwnerID == g.GroupID ? g.LastOwnerID : g.OwnerID, g.Name, g.AbsolutePosition, "parcel owner return");
                         }
                     }
                 }

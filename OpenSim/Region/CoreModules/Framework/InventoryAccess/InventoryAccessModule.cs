@@ -552,6 +552,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                    action, remoteClient.Name, userID);
             }
             else
+            if (so.RootPart.OwnerID == so.RootPart.GroupID)
+            {
+                // Group owned objects go to the last owner
+                userID = so.RootPart.LastOwnerID;
+            }
+            else
             {
                 // All returns / deletes go to the object owner
                 //
