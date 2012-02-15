@@ -732,13 +732,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void CrossingFailure()
         {
-            m_crossingfailures++;
-            if (m_crossingfailures > _parent_scene.geomCrossingFailuresBeforeOutofbounds)
+            int tmp = Interlocked.Increment(ref m_crossingfailures);
+            if (tmp > _parent_scene.geomCrossingFailuresBeforeOutofbounds)
             {
                 base.RaiseOutOfBounds(_position);
                 return;
             }
-            else if (m_crossingfailures == _parent_scene.geomCrossingFailuresBeforeOutofbounds)
+            else if (tmp == _parent_scene.geomCrossingFailuresBeforeOutofbounds)
             {
                 m_log.Warn("[PHYSICS]: Too many crossing failures for: " + m_primName);
             }
@@ -3042,10 +3042,9 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                 d.Vector3 torque = d.BodyGetTorque(Body);
                 _torque = new Vector3(torque.X, torque.Y, torque.Z);
                 
-                base.RequestPhysicsterseUpdate();
                 
 //Console.WriteLine("Move {0}  at  {1}", m_primName, l_position);        
-                    
+ /*                   
 				// Check if outside region
 				// In Scene.cs/CrossPrimGroupIntoNewRegion the object is checked for 0.1M from border!
                 if (l_position.X > ((float)_parent_scene.WorldExtents.X - fence))
@@ -3112,7 +3111,52 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                         return;		// Dont process any other motion?
                     }  // end various methods
                 }    // end outside region horizontally
-                
+ */
+                if (_position.X < 0f || _position.X > _parent_scene.WorldExtents.X
+                    || _position.Y < 0f || _position.Y > _parent_scene.WorldExtents.Y
+                    )
+                {
+                    // we are outside current region
+                    // clip position to a stop just outside region and stop it only internally
+                    // do it only once using m_crossingfailures as control
+                    _position.X = Util.Clip(l_position.X, -0.2f, _parent_scene.WorldExtents.X + .2f);
+                    _position.Y = Util.Clip(l_position.Y, -0.2f, _parent_scene.WorldExtents.Y + .2f);
+                    _position.Z = Util.Clip(l_position.Z, -100f, 50000f);
+                    d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
+                    d.BodySetLinearVel(Body, 0, 0, 0);
+
+                    if (Interlocked.Exchange(ref m_crossingfailures, 0) == 0)
+                    { // tell base code only once
+                        Interlocked.Increment(ref m_crossingfailures);
+                        base.RequestPhysicsterseUpdate();
+                    }
+                    return;
+                }
+
+                if (Interlocked.Exchange(ref m_crossingfailures, 0) > 1)
+                {
+                    // main simulator had a crossing failure
+                    // park it inside region
+                    _position.X = Util.Clip(l_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
+                    _position.Y = Util.Clip(l_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
+                    _position.Z = Util.Clip(l_position.Z, -100f, 50000f);
+                    d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
+
+                    m_lastposition = _position;
+
+                    _velocity = Vector3.Zero;
+                    m_lastVelocity = _velocity;
+
+
+                    if (m_type != Vehicle.TYPE_NONE)
+                        Halt();
+
+                    d.BodySetLinearVel(Body, 0, 0, 0);                   
+                    base.RequestPhysicsterseUpdate();
+                    return;
+                }
+
+                base.RequestPhysicsterseUpdate();
 
                 if (l_position.Z < 0)
                 {

@@ -461,8 +461,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (Scene != null)
                 {
-                    if ((Scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E) || Scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
-                        || Scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N) || Scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S)) 
+                    //                    if ((Scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E) || Scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
+                    //                        || Scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N) || Scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S))
+                    //                        && !IsAttachmentCheckFull() && (!Scene.LoadingPrims))
+                    if ((Scene.TestBorderCross(val, Cardinals.E) || Scene.TestBorderCross(val, Cardinals.W)
+                        || Scene.TestBorderCross(val, Cardinals.N) || Scene.TestBorderCross(val, Cardinals.S))
                         && !IsAttachmentCheckFull() && (!Scene.LoadingPrims))
                     {
                         IEntityTransferModule entityTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
@@ -489,7 +492,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 canCross = false;
                                 break;
                             }
-                            
+
                             m_log.DebugFormat("[SCENE OBJECT]: Avatar {0} needs to be crossed to {1}", av.Name, destination.RegionName);
                         }
 
