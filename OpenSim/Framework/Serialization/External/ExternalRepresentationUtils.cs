@@ -49,15 +49,16 @@ namespace OpenSim.Framework.Serialization.External
         /// <param name="nodeToFill"></param>
         /// <param name="processors">/param>
         /// <param name="xtr"></param>
-        public static void ExecuteReadProcessors<NodeType>(
+        /// <returns>true on successful, false if there were any processing failures</returns>
+        public static bool ExecuteReadProcessors<NodeType>(
             NodeType nodeToFill, Dictionary<string, Action<NodeType, XmlTextReader>> processors, XmlTextReader xtr)
         {
-            ExecuteReadProcessors(
+            return ExecuteReadProcessors(
                 nodeToFill,
                 processors,
                 xtr,
                 (o, name, e)
-                    => m_log.ErrorFormat(
+                    => m_log.DebugFormat(
                         "[ExternalRepresentationUtils]: Exception while parsing element {0}, continuing.  Exception {1}{2}",
                         name, e.Message, e.StackTrace));
         }
@@ -71,12 +72,15 @@ namespace OpenSim.Framework.Serialization.External
         /// <param name="parseExceptionAction">
         /// Action to take if there is a parsing problem.  This will usually just be to log the exception
         /// </param>
-        public static void ExecuteReadProcessors<NodeType>(
+        /// <returns>true on successful, false if there were any processing failures</returns>
+        public static bool ExecuteReadProcessors<NodeType>(
             NodeType nodeToFill,
             Dictionary<string, Action<NodeType, XmlTextReader>> processors,
             XmlTextReader xtr,
             Action<NodeType, string, Exception> parseExceptionAction)
         {
+            bool errors = false;
+
             string nodeName = string.Empty;
             while (xtr.NodeType != XmlNodeType.EndElement)
             {
@@ -95,6 +99,7 @@ namespace OpenSim.Framework.Serialization.External
                     }
                     catch (Exception e)
                     {
+                        errors = true;
                         parseExceptionAction(nodeToFill, nodeName, e);
 
                         if (xtr.NodeType == XmlNodeType.EndElement)
@@ -107,6 +112,8 @@ namespace OpenSim.Framework.Serialization.External
                     xtr.ReadOuterXml(); // ignore
                 }
             }
+
+            return errors;
         }
 
         /// <summary>
@@ -140,6 +147,7 @@ namespace OpenSim.Framework.Serialization.External
                         UUID.TryParse(node.InnerText, out uuid);
                         creator = userService.GetUserAccount(scopeID, uuid);
                     }
+
                     if (node.Name == "CreatorData" && node.InnerText != null && node.InnerText != string.Empty)
                         hasCreatorData = true;
 
@@ -163,7 +171,6 @@ namespace OpenSim.Framework.Serialization.External
                 doc.Save(wr);
                 return wr.ToString();
             }
-
         }
     }
 }

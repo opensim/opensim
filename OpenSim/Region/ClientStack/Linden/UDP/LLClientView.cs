@@ -1549,7 +1549,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendKillObject(ulong regionHandle, List<uint> localIDs)
         {
-//            m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, localID, regionHandle);
+//            foreach (uint id in localIDs)
+//                m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, id, regionHandle);
 
             KillObjectPacket kill = (KillObjectPacket)PacketPool.Instance.GetPacket(PacketType.KillObject);
             // TODO: don't create new blocks if recycling an old packet
@@ -7689,6 +7690,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
             }
+            else
+                if (transfer.TransferInfo.SourceType == (int)SourceType.SimEstate)
+                {
+                    //TransferRequestPacket does not include covenant uuid?
+                    //get scene covenant uuid
+                    taskID = m_scene.RegionInfo.RegionSettings.Covenant;
+                }
 
             MakeAssetRequest(transfer, taskID);
 
@@ -12113,6 +12121,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
             }
+            else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimEstate)
+            {
+                requestID = taskID;
+            }
+
 
 //            m_log.DebugFormat("[CLIENT]: {0} requesting asset {1}", Name, requestID);
 

@@ -560,12 +560,20 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     return null;
 
                 userID = remoteClient.AgentId;
+
+//                m_log.DebugFormat(
+//                    "[INVENTORY ACCESS MODULE]: Target of {0} in CreateItemForObject() is {1} {2}",
+//                    action, remoteClient.Name, userID);
             }
             else
             {
                 // All returns / deletes go to the object owner
                 //
                 userID = so.RootPart.OwnerID;
+
+//                m_log.DebugFormat(
+//                    "[INVENTORY ACCESS MODULE]: Target of {0} in CreateItemForObject() is object owner {1}",
+//                    action, userID);
             }
 
             if (userID == UUID.Zero) // Can't proceed
@@ -651,11 +659,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
 
                 // Override and put into where it came from, if it came
-                // from anywhere in inventory
+                // from anywhere in inventory and the owner is taking it back.
                 //
                 if (action == DeRezAction.Take || action == DeRezAction.TakeCopy)
                 {
-                    if (so.RootPart.FromFolderID != UUID.Zero)
+                    if (so.RootPart.FromFolderID != UUID.Zero && userID == remoteClient.AgentId)
                     {
                         InventoryFolderBase f = new InventoryFolderBase(so.RootPart.FromFolderID, userID);
                         if (f != null)

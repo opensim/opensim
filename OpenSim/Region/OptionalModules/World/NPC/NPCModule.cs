@@ -96,15 +96,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 if (!m_avatars.ContainsKey(agentId))
                     return false;
 
+            // Delete existing sp attachments
             scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, false);
 
-            AvatarAppearance npcAppearance = new AvatarAppearance(appearance, true);
-            sp.Appearance = npcAppearance;
+            // Set new sp appearance. Also sends to clients.
+            scene.RequestModuleInterface<IAvatarFactoryModule>().SetAppearance(sp, new AvatarAppearance(appearance, true));
+            
+            // Rez needed sp attachments
             scene.AttachmentsModule.RezAttachments(sp);
-
-            IAvatarFactoryModule module = scene.RequestModuleInterface<IAvatarFactoryModule>();
-            module.SendAppearance(sp.UUID);
-
+            
             return true;
         }
 
