@@ -31,7 +31,6 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using log4net;
-
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
@@ -41,6 +40,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 {
     public class SensorRepeat
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public AsyncCommandManager m_CmdManager;
 
         public SensorRepeat(AsyncCommandManager CmdManager)
@@ -447,11 +448,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             Action<ScenePresence> senseEntity = new Action<ScenePresence>(presence =>
             {
+//                m_log.DebugFormat(
+//                    "[SENSOR REPEAT]: Inspecting scene presence {0}, type {1} on sensor sweep for {2}, type {3}",
+//                    presence.Name, presence.PresenceType, ts.name, ts.type);
+
                 if ((ts.type & NPC) == 0 && presence.PresenceType == PresenceType.Npc)
                 {
                     INPC npcData = npcModule.GetNPC(presence.UUID, presence.Scene);
                     if (npcData == null || !npcData.SenseAsAgent)
+                    {
+//                        m_log.DebugFormat(
+//                            "[SENSOR REPEAT]: Discarding NPC {0} from agent sense sweep for script item id {1}",
+//                            presence.Name, ts.itemID);
                         return;
+                    }
                 }
 
                 if ((ts.type & AGENT) == 0)
@@ -464,7 +474,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     {
                         INPC npcData = npcModule.GetNPC(presence.UUID, presence.Scene);
                         if (npcData != null && npcData.SenseAsAgent)
+                        {
+//                            m_log.DebugFormat(
+//                                "[SENSOR REPEAT]: Discarding NPC {0} from non-agent sense sweep for script item id {1}",
+//                                presence.Name, ts.itemID);
                             return;
+                        }
                     }
                 }
 
