@@ -367,7 +367,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         public void TestDeserializeBadFloatsXml()
         {
             TestHelpers.InMethod();
-            log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
 
             SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(badFloatsXml);
             SceneObjectPart rootPart = so.RootPart;
