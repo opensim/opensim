@@ -230,8 +230,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 
                     m_scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
 
-                    m_log.InfoFormat("[RegionReady]: Logins enabled for {0}, Oar {1}",
-                                     m_scene.RegionInfo.RegionName, m_oarFileLoading.ToString());
+                    // m_log.InfoFormat("[RegionReady]: Logins enabled for {0}, Oar {1}",
+                    //                 m_scene.RegionInfo.RegionName, m_oarFileLoading.ToString());
+
+                    m_log.InfoFormat("[RegionReady]: Logins enabled for {0}", m_scene.RegionInfo.RegionName);
 
                     if ( m_uri != string.Empty )
                     {
