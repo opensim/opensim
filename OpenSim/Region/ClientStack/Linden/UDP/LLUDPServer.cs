@@ -903,8 +903,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void HandleUseCircuitCode(object o)
         {
-            IPEndPoint remoteEndPoint;
-            IClientAPI client;
+            IPEndPoint remoteEndPoint = null;
+            IClientAPI client = null;
 
             try
             {
@@ -957,7 +957,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     "[LLUDPSERVER]: UseCircuitCode handling from endpoint {0}, client {1} {2} failed.  Exception {3}{4}",
                     remoteEndPoint != null ? remoteEndPoint.ToString() : "n/a",
                     client != null ? client.Name : "unknown",
-                    client != null ? client.AgentId : "unknown",
+                    client != null ? client.AgentId.ToString() : "unknown",
                     e.Message,
                     e.StackTrace);
             }
