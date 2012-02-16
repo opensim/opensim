@@ -2233,7 +2233,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
             m_host.AddScriptLPS(1);
 
-            return NpcCreate(firstname, lastname, position, notecard, false, true);
+            return NpcCreate(firstname, lastname, position, notecard, false, false);
         }
 
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, int options)
@@ -2244,7 +2244,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return NpcCreate(
                 firstname, lastname, position, notecard,
                 (options & ScriptBaseClass.OS_NPC_NOT_OWNED) == 0,
-                (options & ScriptBaseClass.OS_NPC_SENSE_AS_AGENT) == 0);
+                (options & ScriptBaseClass.OS_NPC_SENSE_AS_AGENT) != 0);
         }
 
         private LSL_Key NpcCreate(

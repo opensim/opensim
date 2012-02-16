@@ -220,7 +220,7 @@ namespace OpenSim.Services.Connectors.Friends
         public bool Delete(Dictionary<string, object> sendData, string PrincipalID, string Friend)
         {
             string reply = string.Empty;
-            string uri = m_ServerURI = "/friends";
+            string uri = m_ServerURI + "/friends";
             try
             {
                 reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, ServerUtils.BuildQueryString(sendData));
