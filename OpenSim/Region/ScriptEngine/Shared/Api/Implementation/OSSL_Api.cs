@@ -2254,7 +2254,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 firstname, lastname, position, notecard,
                 (options & ScriptBaseClass.OS_NPC_NOT_OWNED) == 0,
                 false);
-//                (options & ScriptBaseClass.OS_NPC_SENSE_AS_AGENT) == 0);
+//                (options & ScriptBaseClass.OS_NPC_SENSE_AS_AGENT) != 0);
         }
 
         private LSL_Key NpcCreate(

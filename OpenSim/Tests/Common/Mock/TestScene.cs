@@ -50,7 +50,8 @@ namespace OpenSim.Tests.Common.Mock
 
         ~TestScene()
         {
-            Console.WriteLine("TestScene destructor called for {0}", RegionInfo.RegionName);
+            //Console.WriteLine("TestScene destructor called for {0}", RegionInfo.RegionName);
+            Console.WriteLine("TestScene destructor called");
         }
         
         /// <summary>

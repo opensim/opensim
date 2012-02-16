@@ -406,7 +406,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat(
                     "[SCENEGRAPH]: Tried to add scene object {0} to {1} with illegal UUID of {2}",
                     sceneObject.Name, m_parentScene.RegionInfo.RegionName, UUID.Zero);
-                
+
                 return false;
             }
 
@@ -415,12 +415,12 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_log.DebugFormat(
 //                    "[SCENEGRAPH]: Scene graph for {0} already contains object {1} in AddSceneObject()",
 //                    m_parentScene.RegionInfo.RegionName, sceneObject.UUID);
-                
+
                 return false;
             }
-            
+
 //            m_log.DebugFormat(
-//                "[SCENEGRAPH]: Adding scene object {0} {1}, with {2} parts on {3}", 
+//                "[SCENEGRAPH]: Adding scene object {0} {1}, with {2} parts on {3}",
 //                sceneObject.Name, sceneObject.UUID, sceneObject.Parts.Length, m_parentScene.RegionInfo.RegionName);
 
             SceneObjectPart[] parts = sceneObject.Parts;
@@ -456,7 +456,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (SceneObjectGroupsByFullID)
                 SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
-            
+
             lock (SceneObjectGroupsByFullPartID)
             {
                 foreach (SceneObjectPart part in parts)

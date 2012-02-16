@@ -121,8 +121,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             npcAvatar.CircuitCode = (uint)Util.RandomClass.Next(0, int.MaxValue);
 
             m_log.DebugFormat(
-                "[NPC MODULE]: Creating NPC {0} {1} {2} at {3} in {4}",
-                firstname, lastname, npcAvatar.AgentId, position, scene.RegionInfo.RegionName);
+                "[NPC MODULE]: Creating NPC {0} {1} {2}, owner={3}, senseAsAgent={4} at {5} in {6}",
+                firstname, lastname, npcAvatar.AgentId, owner, senseAsAgent, position, scene.RegionInfo.RegionName);
 
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = npcAvatar.AgentId;

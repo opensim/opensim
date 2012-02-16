@@ -27,6 +27,7 @@
 
 using System;
 using System.Reflection;
+using System.Threading;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -43,6 +44,42 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     [TestFixture]
     public class SceneObjectBasicTests
     {
+//        [TearDown]
+//        public void TearDown()
+//        {
+//            Console.WriteLine("TearDown");
+//            GC.Collect();
+//            Thread.Sleep(3000);
+//        }
+
+//        public class GcNotify
+//        {
+//            public static AutoResetEvent gcEvent = new AutoResetEvent(false);
+//            private static bool _initialized = false;
+//
+//            public static void Initialize()
+//            {
+//                if (!_initialized)
+//                {
+//                    _initialized = true;
+//                    new GcNotify();
+//                }
+//            }
+//
+//            private GcNotify(){}
+//
+//            ~GcNotify()
+//            {
+//                if (!Environment.HasShutdownStarted &&
+//                    !AppDomain.CurrentDomain.IsFinalizingForUnload())
+//                {
+//                    Console.WriteLine("GcNotify called");
+//                    gcEvent.Set();
+//                    new GcNotify();
+//                }
+//            }
+//        }
+
         /// <summary>
         /// Test adding an object to a scene.
         /// </summary>
@@ -147,11 +184,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestDeleteSceneObject()
         {
             TestHelpers.InMethod();
-            
+
             TestScene scene = SceneHelpers.SetupScene();
             SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
             scene.DeleteSceneObject(part.ParentGroup, false);
-            
+
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
             Assert.That(retrievedPart, Is.Null);
         }
