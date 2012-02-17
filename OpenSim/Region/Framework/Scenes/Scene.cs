@@ -3427,6 +3427,27 @@ namespace OpenSim.Region.Framework.Scenes
                             agent.startpos.Z = 720;
                     }
                 }
+
+                // Honor Estate teleport routing via Telehubs
+                if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero && RegionInfo.EstateSettings.AllowDirectTeleport == false)
+                {
+                    SceneObjectGroup telehub = GetSceneObjectGroup(RegionInfo.RegionSettings.TelehubObject);
+                    // Can have multiple SpawnPoints
+                    List<SpawnPoint> spawnpoints = RegionInfo.RegionSettings.SpawnPoints();
+                    if ( spawnpoints.Count  > 1)
+                    {
+                        // We have multiple SpawnPoints, Route the agent to a random one
+                        agent.startpos =  spawnpoints[Util.RandomClass.Next(spawnpoints.Count)].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                    }
+                    else
+                    {
+                        // We have a single SpawnPoint and will route the agent to it
+                        agent.startpos = spawnpoints[0].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                    }
+
+                    return true;
+                }
+
                 // Honor parcel landing type and position.
                 if (land != null)
                 {
