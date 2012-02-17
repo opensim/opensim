@@ -173,6 +173,9 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void AvatarEnteringNewParcel(ScenePresence avatar, int localLandID, UUID regionID);
         public event AvatarEnteringNewParcel OnAvatarEnteringNewParcel;
 
+        public delegate void AvatarAppearanceChange(ScenePresence avatar);
+        public event AvatarAppearanceChange OnAvatarAppearanceChange;
+
         public event Action<ScenePresence> OnSignificantClientMovement;
 
         public delegate void IncomingInstantMessage(GridInstantMessage message);
@@ -1232,6 +1235,27 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerAvatarEnteringNewParcel failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerAvatarAppearanceChanged(ScenePresence avatar)
+        {
+            AvatarAppearanceChange handler = OnAvatarAppearanceChange;
+            if (handler != null)
+            {
+                foreach (AvatarAppearanceChange d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(avatar);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerAvatarAppearanceChanged failed - continuing.  {0} {1}", 
                             e.Message, e.StackTrace);
                     }
                 }
