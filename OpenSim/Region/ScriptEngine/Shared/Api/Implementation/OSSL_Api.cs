@@ -2595,7 +2595,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 UUID npcID = new UUID(npc.m_string);
 
                 if (module.CheckPermissions(npcID, m_host.OwnerID))
-                    AvatarPlayAnimation(npcID.ToString(), animation);
+                    AvatarStopAnimation(npcID.ToString(), animation);
             }
         }
 
