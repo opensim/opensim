@@ -214,6 +214,11 @@ namespace OpenSim.Region.Physics.Manager
             }
         }
 
+        public virtual byte[] Serialize(bool PhysIsRunning)
+        {
+            return new byte[0];
+        }
+
         public virtual void RaiseOutOfBounds(Vector3 pos)
         {
             // Make a temporary copy of the event to avoid possibility of
@@ -573,5 +578,6 @@ namespace OpenSim.Region.Physics.Manager
         {
             return false;
         }
+
     }
 }

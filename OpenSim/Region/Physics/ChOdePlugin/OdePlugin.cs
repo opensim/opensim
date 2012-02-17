@@ -1736,6 +1736,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             return newPrim;
         }
 
+        private PhysicsActor AddPrim(String name, Vector3 position, PhysicsActor parent,
+                                     PrimitiveBaseShape pbs, uint localid, byte[] sdata)
+        {
+            Vector3 pos = position;
+
+            OdePrim newPrim;
+            lock (OdeLock)
+            {
+                newPrim = new OdePrim(name, this, pos, parent, pbs, ode, localid, sdata);               
+                lock (_prims)
+                    _prims.Add(newPrim);
+            }
+
+            return newPrim;
+        }
+
+
         public void addActivePrim(OdePrim activatePrim)
         {
             // adds active prim..   (ones that should be iterated over in collisions_optimized
@@ -1758,6 +1775,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                 mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
 
             result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical, localid);
+
+            return result;
+        }
+
+        public override PhysicsActor AddPrimShape(string primName, PhysicsActor parent, PrimitiveBaseShape pbs, Vector3 position,
+                                                  uint localid, byte[] sdata)
+        {
+            PhysicsActor result;
+
+            result = AddPrim(primName, position, parent,
+                                     pbs, localid, sdata);
 
             return result;
         }

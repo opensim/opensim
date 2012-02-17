@@ -128,6 +128,12 @@ namespace OpenSim.Region.Physics.Manager
         public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, uint localid);
 
+        public virtual PhysicsActor AddPrimShape(string primName, PhysicsActor parent, PrimitiveBaseShape pbs, Vector3 position,
+                                                  uint localid, byte[] sdata)
+        {
+            return null;
+        }
+
         public virtual float TimeDilation
         {
             get { return 1.0f; }
