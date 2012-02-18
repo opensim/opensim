@@ -1346,6 +1346,7 @@ namespace OpenSim.Data.SQLite
             createCol(regionsettings, "covenant_datetime", typeof(Int32));
             createCol(regionsettings, "map_tile_ID", typeof(String));
             createCol(regionsettings, "TelehubObject", typeof(String));
+            createCol(regionsettings, "parcel_tile_ID", typeof(String));
             regionsettings.PrimaryKey = new DataColumn[] { regionsettings.Columns["regionUUID"] };
             return regionsettings;
         }
@@ -1759,6 +1760,7 @@ namespace OpenSim.Data.SQLite
             newSettings.CovenantChangedDateTime = Convert.ToInt32(row["covenant_datetime"]);
             newSettings.TerrainImageID = new UUID((String)row["map_tile_ID"]);
             newSettings.TelehubObject = new UUID((String)row["TelehubObject"]);
+            newSettings.ParcelImageID = new UUID((String)row["parcel_tile_ID"]);
 
             return newSettings;
         }
@@ -2162,6 +2164,7 @@ namespace OpenSim.Data.SQLite
             row["covenant_datetime"] = settings.CovenantChangedDateTime;
             row["map_tile_ID"] = settings.TerrainImageID.ToString();
             row["TelehubObject"] = settings.TelehubObject.ToString();
+            row["parcel_tile_ID"] = settings.ParcelImageID.ToString();
         }
 
         /// <summary>
