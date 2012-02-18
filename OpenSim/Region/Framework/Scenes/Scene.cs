@@ -3261,6 +3261,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool vialogin = ((teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0 ||
                              (teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0);
+            bool viahome = ((teleportFlags & (uint)Constants.TeleportFlags.ViaHome) != 0);
+            bool godlike = ((teleportFlags & (uint)Constants.TeleportFlags.Godlike) != 0);
+
             reason = String.Empty;
 
             //Teleport flags:
@@ -3429,7 +3432,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 // Honor Estate teleport routing via Telehubs
-                if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero && RegionInfo.EstateSettings.AllowDirectTeleport == false)
+                if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero && RegionInfo.EstateSettings.AllowDirectTeleport == false && !viahome && !godlike)
                 {
                     SceneObjectGroup telehub = GetSceneObjectGroup(RegionInfo.RegionSettings.TelehubObject);
                     // Can have multiple SpawnPoints
