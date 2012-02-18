@@ -515,44 +515,44 @@ namespace OpenSim.Region.Framework.Scenes
         public void ToXml2(XmlTextWriter twriter)
         {
             writer = twriter;
-            writer.WriteStartElement("SceneObjectVehicle");
+            writer.WriteStartElement("SOGVehicle");
 
-            XWint("V_Type", (int)vd.m_type);
-            XWint("V_Flags", (int)vd.m_flags);
+            XWint("TYPE", (int)vd.m_type);
+            XWint("FLAGS", (int)vd.m_flags);
 
             // Linear properties
-            XWVector("LM_DIRECTION", vd.m_linearMotorDirection);
-            XWVector("LM_FRICTION_TIMESCALE", vd.m_linearFrictionTimescale);
-            XWfloat("LM_DECAY_TIMESCALE", vd.m_linearMotorDecayTimescale);
-            XWfloat("LM_TIMESCALE", vd.m_linearMotorTimescale);
-            XWVector("LM_OFFSET", vd.m_linearMotorOffset);
+            XWVector("LMDIR", vd.m_linearMotorDirection);
+            XWVector("LMFTIME", vd.m_linearFrictionTimescale);
+            XWfloat("LMDTIME", vd.m_linearMotorDecayTimescale);
+            XWfloat("LMTIME", vd.m_linearMotorTimescale);
+            XWVector("LMOFF", vd.m_linearMotorOffset);
 
             //Angular properties
-            XWVector("AM_DIRECTION", vd.m_angularMotorDirection);
-            XWfloat("AM_TIMESCALE", vd.m_angularMotorTimescale);
-            XWfloat("AM_DECAY_TIMESCALE", vd.m_angularMotorDecayTimescale);
-            XWVector("AM_FRICTION_TIMESCALE", vd.m_angularFrictionTimescale);
+            XWVector("AMDIR", vd.m_angularMotorDirection);
+            XWfloat("AMTIME", vd.m_angularMotorTimescale);
+            XWfloat("AMDTIME", vd.m_angularMotorDecayTimescale);
+            XWVector("AMFTIME", vd.m_angularFrictionTimescale);
 
             //Deflection properties
-            XWfloat("AD_EFFICIENCY", vd.m_angularDeflectionEfficiency);
-            XWfloat("AD_TIMESCALE", vd.m_angularDeflectionTimescale);
-            XWfloat("LD_EFFICIENCY", vd.m_linearDeflectionEfficiency);
-            XWfloat("LD_TIMESCALE", vd.m_linearDeflectionTimescale);
+            XWfloat("ADEFF", vd.m_angularDeflectionEfficiency);
+            XWfloat("ADTIME", vd.m_angularDeflectionTimescale);
+            XWfloat("LDEFF", vd.m_linearDeflectionEfficiency);
+            XWfloat("LDTIME", vd.m_linearDeflectionTimescale);
 
             //Banking properties
-            XWfloat("B_EFFICIENCY", vd.m_bankingEfficiency);
-            XWfloat("B_MIX", vd.m_bankingMix);
-            XWfloat("B_TIMESCALE", vd.m_bankingTimescale);
+            XWfloat("BEFF", vd.m_bankingEfficiency);
+            XWfloat("BMIX", vd.m_bankingMix);
+            XWfloat("BTIME", vd.m_bankingTimescale);
 
             //Hover and Buoyancy properties
-            XWfloat("H_HEIGHT", vd.m_VhoverHeight);
-            XWfloat("H_EFFICIENCY", vd.m_VhoverEfficiency);
-            XWfloat("H_TIMESCALE", vd.m_VhoverTimescale);
-            XWfloat("VBUOYANCY", vd.m_VehicleBuoyancy);
+            XWfloat("HHEI", vd.m_VhoverHeight);
+            XWfloat("HEFF", vd.m_VhoverEfficiency);
+            XWfloat("HTIME", vd.m_VhoverTimescale);
+            XWfloat("VBUO", vd.m_VehicleBuoyancy);
 
             //Attractor properties
-            XWfloat("VA_EFFICIENCY", vd.m_verticalAttractionEfficiency);
-            XWfloat("VA_TIMESCALE", vd.m_verticalAttractionTimescale);
+            XWfloat("VAEFF", vd.m_verticalAttractionEfficiency);
+            XWfloat("VATIME", vd.m_verticalAttractionTimescale);
 
             XWQuat("REF_FRAME", vd.m_referenceFrame);
 
