@@ -75,7 +75,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                         nativeLibraryPath = "lib32/ode.dll";
 
                     m_log.DebugFormat("[ODE PLUGIN]: Loading native Windows ODE library at {0}", nativeLibraryPath);
-                    Util.LoadLibrary(nativeLibraryPath);
+
+                    if (Util.LoadLibrary(nativeLibraryPath) == IntPtr.Zero)
+                        m_log.ErrorFormat(
+                            "[ODE PLUGIN]: Couldn't find native Windows ODE library at {0}", nativeLibraryPath);
                 }
 
                 // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
