@@ -1782,14 +1782,19 @@ namespace OpenSim.Region.Framework.Scenes
 //                ResetChildPrimPhysicsPositions();
                 if (m_rootPart.PhysActor != null)
                 {
+                    if (m_vehicle != null)
+                        m_vehicle.SetVehicle(m_rootPart.PhysActor);
                     m_rootPart.PhysActor.Building = false;
-
                 }
 			}
 			else
 			{
                 // Apply physics to the root prim
                 m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive, false);
+                if (m_rootPart.PhysActor != null && m_vehicle != null)
+                {
+                    m_vehicle.SetVehicle(m_rootPart.PhysActor);
+                }
             }
         }
 

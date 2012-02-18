@@ -39,13 +39,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_type; }
         }
-        private Quaternion m_referenceFrame = Quaternion.Identity;      // Axis modifier
-        private Quaternion m_RollreferenceFrame = Quaternion.Identity;  // what hell is this ?
 
         private Vehicle m_type = Vehicle.TYPE_NONE;                     // If a 'VEHICLE', and what kind
-
         private VehicleFlag m_flags = (VehicleFlag)0;
-        private Vector3 m_BlockingEndPoint = Vector3.Zero;              // not sl
 
         // Linear properties
         private Vector3 m_linearMotorDirection = Vector3.Zero;          // velocity requested by LSL, decayed by time
@@ -80,6 +76,9 @@ namespace OpenSim.Region.Framework.Scenes
         //Attractor properties
         private float m_verticalAttractionEfficiency = 1.0f;        // damped
         private float m_verticalAttractionTimescale = 1000f;        // Timescale > 300  means no vert attractor.
+
+        // Axis
+        public Quaternion m_referenceFrame = Quaternion.Identity;      
 
         public void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
         {
@@ -235,9 +234,6 @@ namespace OpenSim.Region.Framework.Scenes
                     if (len > 100.0f)
                         m_linearMotorOffset *= (100.0f / len);
                     break;
-                case Vehicle.BLOCK_EXIT:
-                    m_BlockingEndPoint = new Vector3(pValue.X, pValue.Y, pValue.Z);
-                    break;
             }
         }//end ProcessVectorVehicleParam
 
@@ -247,9 +243,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 case Vehicle.REFERENCE_FRAME:
                     m_referenceFrame = Quaternion.Inverse(pValue);
-                    break;
-                case Vehicle.ROLL_FRAME:
-                    m_RollreferenceFrame = pValue;
                     break;
             }
         }//end ProcessRotationVehicleParam
@@ -271,8 +264,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_linearMotorDirection = Vector3.Zero;
             m_angularMotorDirection = Vector3.Zero;
 
-            m_BlockingEndPoint = Vector3.Zero;
-            m_RollreferenceFrame = Quaternion.Identity;
             m_linearMotorOffset = Vector3.Zero;
 
             m_referenceFrame = Quaternion.Identity;
@@ -426,6 +417,54 @@ namespace OpenSim.Region.Framework.Scenes
                         VehicleFlag.HOVER_GLOBAL_HEIGHT);
                     break;
             }
+        }
+        public void SetVehicle(PhysicsActor ph)
+        {
+
+            // crap crap crap
+            if (ph == null) // what ??
+                return;
+
+            ph.VehicleType = (int)m_type;
+
+           // Linear properties
+            ph.VehicleVectorParam((int)Vehicle.LINEAR_MOTOR_DIRECTION, m_linearMotorDirection);
+            ph.VehicleVectorParam((int)Vehicle.LINEAR_FRICTION_TIMESCALE, m_linearFrictionTimescale);
+            ph.VehicleFloatParam((int)Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE, m_linearMotorDecayTimescale);
+            ph.VehicleFloatParam((int)Vehicle.LINEAR_MOTOR_TIMESCALE, m_linearMotorTimescale);
+            ph.VehicleVectorParam((int)Vehicle.LINEAR_MOTOR_OFFSET, m_linearMotorOffset);
+
+            //Angular properties
+            ph.VehicleVectorParam((int)Vehicle.ANGULAR_MOTOR_DIRECTION, m_angularMotorDirection);
+            ph.VehicleFloatParam((int)Vehicle.ANGULAR_MOTOR_TIMESCALE, m_angularMotorTimescale);
+            ph.VehicleFloatParam((int)Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE, m_angularMotorDecayTimescale);
+            ph.VehicleVectorParam((int)Vehicle.ANGULAR_FRICTION_TIMESCALE, m_angularFrictionTimescale);
+
+            //Deflection properties
+            ph.VehicleFloatParam((int)Vehicle.ANGULAR_DEFLECTION_EFFICIENCY, m_angularDeflectionEfficiency);
+            ph.VehicleFloatParam((int)Vehicle.ANGULAR_DEFLECTION_TIMESCALE, m_angularDeflectionTimescale);
+            ph.VehicleFloatParam((int)Vehicle.LINEAR_DEFLECTION_EFFICIENCY, m_linearDeflectionEfficiency);
+            ph.VehicleFloatParam((int)Vehicle.LINEAR_DEFLECTION_TIMESCALE, m_linearDeflectionTimescale);
+
+            //Banking properties
+            ph.VehicleFloatParam((int)Vehicle.BANKING_EFFICIENCY, m_bankingEfficiency);
+            ph.VehicleFloatParam((int)Vehicle.BANKING_MIX, m_bankingMix);
+            ph.VehicleFloatParam((int)Vehicle.BANKING_TIMESCALE, m_bankingTimescale);
+
+            //Hover and Buoyancy properties
+            ph.VehicleFloatParam((int)Vehicle.HOVER_HEIGHT, m_VhoverHeight);
+            ph.VehicleFloatParam((int)Vehicle.HOVER_EFFICIENCY, m_VhoverEfficiency);
+            ph.VehicleFloatParam((int)Vehicle.HOVER_TIMESCALE, m_VhoverTimescale);
+            ph.VehicleFloatParam((int)Vehicle.BUOYANCY, m_VehicleBuoyancy);
+
+            //Attractor properties
+            ph.VehicleFloatParam((int)Vehicle.VERTICAL_ATTRACTION_EFFICIENCY, m_verticalAttractionEfficiency);
+            ph.VehicleFloatParam((int)Vehicle.VERTICAL_ATTRACTION_TIMESCALE, m_verticalAttractionTimescale);
+
+            ph.VehicleRotationParam((int)Vehicle.REFERENCE_FRAME, m_referenceFrame);
+
+            ph.VehicleFlags(~(int)m_flags, true);
+            ph.VehicleFlags((int)m_flags, false);
         }
     }
 }
