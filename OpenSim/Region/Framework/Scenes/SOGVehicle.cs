@@ -38,53 +38,13 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public class SOGVehicle
     {
+        public VehicleData vd;
+
         public Vehicle Type
         {
             get { return vd.m_type; }
         }
-
-        public VehicleData vd;
-/*
-        private Vehicle m_type = Vehicle.TYPE_NONE;                     // If a 'VEHICLE', and what kind
-        private VehicleFlag m_flags = (VehicleFlag)0;
-
-        // Linear properties
-        private Vector3 m_linearMotorDirection = Vector3.Zero;          // velocity requested by LSL, decayed by time
-        private Vector3 m_linearFrictionTimescale = new Vector3(1000, 1000, 1000);
-        private float m_linearMotorDecayTimescale = 120;
-        private float m_linearMotorTimescale = 1000;
-        private Vector3 m_linearMotorOffset = Vector3.Zero;
-
-        //Angular properties
-        private Vector3 m_angularMotorDirection = Vector3.Zero;         // angular velocity requested by LSL motor
-        private float m_angularMotorTimescale = 1000;                      // motor angular velocity ramp up rate
-        private float m_angularMotorDecayTimescale = 120;                 // motor angular velocity decay rate
-        private Vector3 m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);      // body angular velocity  decay rate
-
-        //Deflection properties
-        private float m_angularDeflectionEfficiency = 0;
-        private float m_angularDeflectionTimescale = 1000;
-        private float m_linearDeflectionEfficiency = 0;
-        private float m_linearDeflectionTimescale = 1000;
-
-        //Banking properties
-        private float m_bankingEfficiency = 0;
-        private float m_bankingMix = 0;
-        private float m_bankingTimescale = 0;
-
-        //Hover and Buoyancy properties
-        private float m_VhoverHeight = 0f;
-        private float m_VhoverEfficiency = 0f;
-        private float m_VhoverTimescale = 1000f;
-        private float m_VehicleBuoyancy = 0f;
-
-        //Attractor properties
-        private float m_verticalAttractionEfficiency = 1.0f;        // damped
-        private float m_verticalAttractionTimescale = 1000f;        // Timescale > 300  means no vert attractor.
-
-        // Axis
-        public Quaternion m_referenceFrame = Quaternion.Identity;
-*/
+        
         public SOGVehicle()
         {
             vd = new VehicleData();
@@ -274,16 +234,14 @@ namespace OpenSim.Region.Framework.Scenes
         {
             vd.m_linearMotorDirection = Vector3.Zero;
             vd.m_angularMotorDirection = Vector3.Zero;
-
             vd.m_linearMotorOffset = Vector3.Zero;
-
             vd.m_referenceFrame = Quaternion.Identity;
 
             // Set Defaults For Type
             vd.m_type = pType;
             switch (pType)
             {
-                case Vehicle.TYPE_NONE: // none sense this will never exist
+                case Vehicle.TYPE_NONE:
                     vd.m_linearFrictionTimescale = new Vector3(1000, 1000, 1000);
                     vd.m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
                     vd.m_linearMotorTimescale = 1000;
@@ -291,8 +249,19 @@ namespace OpenSim.Region.Framework.Scenes
                     vd.m_angularMotorTimescale = 1000;
                     vd.m_angularMotorDecayTimescale = 1000;
                     vd.m_VhoverHeight = 0;
+                    vd.m_VhoverEfficiency = 1;
                     vd.m_VhoverTimescale = 1000;
                     vd.m_VehicleBuoyancy = 0;
+                    vd.m_linearDeflectionEfficiency = 0;
+                    vd.m_linearDeflectionTimescale = 1000;
+                    vd.m_angularDeflectionEfficiency = 0;
+                    vd.m_angularDeflectionTimescale = 1000;
+                    vd.m_bankingEfficiency = 0;
+                    vd.m_bankingMix = 1;
+                    vd.m_bankingTimescale = 1000;
+                   vd.m_verticalAttractionEfficiency = 0;
+                    vd.m_verticalAttractionTimescale = 1000;
+
                     vd.m_flags = (VehicleFlag)0;
                     break;
 
@@ -431,53 +400,9 @@ namespace OpenSim.Region.Framework.Scenes
         }
         public void SetVehicle(PhysicsActor ph)
         {
-
-            // crap crap crap
-            if (ph == null) // what ??
+            if (ph == null)
                 return;
             ph.SetVehicle(vd);
-/*
-            ph.VehicleType = (int)m_type;
-
-           // Linear properties
-            ph.VehicleVectorParam((int)Vehicle.LINEAR_MOTOR_DIRECTION, m_linearMotorDirection);
-            ph.VehicleVectorParam((int)Vehicle.LINEAR_FRICTION_TIMESCALE, m_linearFrictionTimescale);
-            ph.VehicleFloatParam((int)Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE, m_linearMotorDecayTimescale);
-            ph.VehicleFloatParam((int)Vehicle.LINEAR_MOTOR_TIMESCALE, m_linearMotorTimescale);
-            ph.VehicleVectorParam((int)Vehicle.LINEAR_MOTOR_OFFSET, m_linearMotorOffset);
-
-            //Angular properties
-            ph.VehicleVectorParam((int)Vehicle.ANGULAR_MOTOR_DIRECTION, m_angularMotorDirection);
-            ph.VehicleFloatParam((int)Vehicle.ANGULAR_MOTOR_TIMESCALE, m_angularMotorTimescale);
-            ph.VehicleFloatParam((int)Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE, m_angularMotorDecayTimescale);
-            ph.VehicleVectorParam((int)Vehicle.ANGULAR_FRICTION_TIMESCALE, m_angularFrictionTimescale);
-
-            //Deflection properties
-            ph.VehicleFloatParam((int)Vehicle.ANGULAR_DEFLECTION_EFFICIENCY, m_angularDeflectionEfficiency);
-            ph.VehicleFloatParam((int)Vehicle.ANGULAR_DEFLECTION_TIMESCALE, m_angularDeflectionTimescale);
-            ph.VehicleFloatParam((int)Vehicle.LINEAR_DEFLECTION_EFFICIENCY, m_linearDeflectionEfficiency);
-            ph.VehicleFloatParam((int)Vehicle.LINEAR_DEFLECTION_TIMESCALE, m_linearDeflectionTimescale);
-
-            //Banking properties
-            ph.VehicleFloatParam((int)Vehicle.BANKING_EFFICIENCY, m_bankingEfficiency);
-            ph.VehicleFloatParam((int)Vehicle.BANKING_MIX, m_bankingMix);
-            ph.VehicleFloatParam((int)Vehicle.BANKING_TIMESCALE, m_bankingTimescale);
-
-            //Hover and Buoyancy properties
-            ph.VehicleFloatParam((int)Vehicle.HOVER_HEIGHT, m_VhoverHeight);
-            ph.VehicleFloatParam((int)Vehicle.HOVER_EFFICIENCY, m_VhoverEfficiency);
-            ph.VehicleFloatParam((int)Vehicle.HOVER_TIMESCALE, m_VhoverTimescale);
-            ph.VehicleFloatParam((int)Vehicle.BUOYANCY, m_VehicleBuoyancy);
-
-            //Attractor properties
-            ph.VehicleFloatParam((int)Vehicle.VERTICAL_ATTRACTION_EFFICIENCY, m_verticalAttractionEfficiency);
-            ph.VehicleFloatParam((int)Vehicle.VERTICAL_ATTRACTION_TIMESCALE, m_verticalAttractionTimescale);
-
-            ph.VehicleRotationParam((int)Vehicle.REFERENCE_FRAME, m_referenceFrame);
-
-            ph.VehicleFlags(~(int)m_flags, true);
-            ph.VehicleFlags((int)m_flags, false);
- */
         }
 
         private XmlTextWriter writer;
