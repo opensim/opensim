@@ -3431,8 +3431,10 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                // Honor Estate teleport routing via Telehubs
-                if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero && RegionInfo.EstateSettings.AllowDirectTeleport == false && !viahome && !godlike)
+                // Honor Estate teleport routing via Telehubs excluding ViaHome and GodLike TeleportFlags
+                if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero &&
+                    RegionInfo.EstateSettings.AllowDirectTeleport == false &&
+                    !viahome && !godlike)
                 {
                     SceneObjectGroup telehub = GetSceneObjectGroup(RegionInfo.RegionSettings.TelehubObject);
                     // Can have multiple SpawnPoints
