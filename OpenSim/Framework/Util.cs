@@ -36,6 +36,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
@@ -375,6 +376,20 @@ namespace OpenSim.Framework
             }
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Is the platform Windows?
+        /// </summary>
+        /// <returns>true if so, false otherwise</returns>
+        public static bool IsWindows()
+        {
+            PlatformID platformId = Environment.OSVersion.Platform;
+
+            return (platformId == PlatformID.Win32NT
+                || platformId == PlatformID.Win32S
+                || platformId == PlatformID.Win32Windows
+                || platformId == PlatformID.WinCE);
         }
 
         public static bool IsEnvironmentSupported(ref string reason)
@@ -1457,6 +1472,27 @@ namespace OpenSim.Framework
             }
 
             return data;
+        }
+
+        /// <summary>
+        /// Used to trigger an early library load on Windows systems.
+        /// </summary>
+        /// <remarks>
+        /// Required to get 32-bit and 64-bit processes to automatically use the
+        /// appropriate native library.
+        /// </remarks>
+        /// <param name="dllToLoad"></param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr LoadLibrary(string dllToLoad);
+
+        /// <summary>
+        /// Determine whether the current process is 64 bit
+        /// </summary>
+        /// <returns>true if so, false if not</returns>
+        public static bool Is64BitProcess()
+        {
+            return IntPtr.Size == 8;
         }
 
         #region FireAndForget Threading Pattern

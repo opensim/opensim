@@ -46,7 +46,7 @@ namespace OpenSim.Region.Physics.OdePlugin
     /// </summary>
     public class OdePlugin : IPhysicsPlugin
     {
-        //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private OdeScene m_scene;
 
@@ -59,13 +59,33 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (m_scene == null)
             {
+                // We do this so that OpenSimulator on Windows loads the correct native ODE library depending on whether
+                // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
+                // will find it already loaded later on.
+                //
+                // This isn't necessary for other platforms (e.g. Mac OSX and Linux) since the DLL used can be
+                // controlled in Ode.NET.dll.config
+                if (Util.IsWindows())
+                {
+                    string nativeLibraryPath;
+
+                    if (Util.Is64BitProcess())
+                        nativeLibraryPath = "lib64/ode.dll";
+                    else
+                        nativeLibraryPath = "lib32/ode.dll";
+
+                    m_log.DebugFormat("[ODE PLUGIN]: Loading native Windows ODE library at {0}", nativeLibraryPath);
+                    Util.LoadLibrary(nativeLibraryPath);
+                }
+
                 // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
                 // http://opensimulator.org/mantis/view.php?id=2750).
                 d.InitODE();
                 
                 m_scene = new OdeScene(sceneIdentifier);
             }
-            return (m_scene);
+
+            return m_scene;
         }
 
         public string GetName()
