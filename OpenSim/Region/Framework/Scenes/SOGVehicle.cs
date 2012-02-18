@@ -484,11 +484,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void XWint(string name, int i)
         {
-               writer.WriteElementString(name, i.ToString());
+            writer.WriteElementString(name, i.ToString());
         }
+
         private void XWfloat(string name, float f)
         {
-               writer.WriteElementString(name, f.ToString());
+            writer.WriteElementString(name, f.ToString(Utils.EnUsCulture));
         }
 
         private void XWVector(string name, Vector3 vec)
@@ -499,8 +500,6 @@ namespace OpenSim.Region.Framework.Scenes
             writer.WriteElementString("Z", vec.Z.ToString(Utils.EnUsCulture));
             writer.WriteEndElement();
         }
-
-
 
         private void XWQuat(string name, Quaternion quat)
         {
