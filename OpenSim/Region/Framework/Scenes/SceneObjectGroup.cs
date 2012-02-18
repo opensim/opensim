@@ -43,6 +43,7 @@ using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+    
     [Flags]
     public enum scriptEvents
     {
@@ -113,6 +114,90 @@ namespace OpenSim.Region.Framework.Scenes
         private Random m_rand;
         private bool m_suspendUpdates;
         private List<ScenePresence> m_linkedAvatars = new List<ScenePresence>();
+
+        private SOGVehicle m_vehicle = null;
+
+        public int VehicleType
+        {
+            get
+            {
+                if (m_vehicle == null)
+                    return (int)Vehicle.TYPE_NONE;
+                else
+                    return (int)m_vehicle.Type;
+            }
+            set
+            {
+                m_vehicle = null;
+                if (value == (int)Vehicle.TYPE_NONE)
+                {
+                    if (RootPart.PhysActor != null)
+                        RootPart.PhysActor.VehicleType = (int)Vehicle.TYPE_NONE;
+                    return;
+                }
+                m_vehicle = new SOGVehicle();
+                m_vehicle.ProcessTypeChange((Vehicle)value);
+                {
+                    if (RootPart.PhysActor != null)
+                        RootPart.PhysActor.VehicleType = value;
+                    return;
+                }
+
+            }
+        }
+
+        public void SetVehicleFlags(int param, bool remove)
+        {
+            if (m_vehicle == null)
+                return;
+
+            m_vehicle.ProcessVehicleFlags(param, remove);
+
+            if (RootPart.PhysActor != null)
+            {
+                RootPart.PhysActor.VehicleFlags(param, remove);
+            }
+        }
+
+        public void SetVehicleFloatParam(int param, float value)
+        {
+            if (m_vehicle == null)
+                return;
+
+            m_vehicle.ProcessFloatVehicleParam((Vehicle)param, value);
+
+            if (RootPart.PhysActor != null)
+            {
+                RootPart.PhysActor.VehicleFloatParam(param, value);
+            }
+        }
+
+        public void SetVehicleVectorParam(int param, Vector3 value)
+        {
+            if (m_vehicle == null)
+                return;
+
+            m_vehicle.ProcessVectorVehicleParam((Vehicle)param, value);
+
+            if (RootPart.PhysActor != null)
+            {
+                RootPart.PhysActor.VehicleVectorParam(param, value);
+            }
+        }
+
+        public void SetVehicleRotationParam(int param, Quaternion rotation)
+        {
+            if (m_vehicle == null)
+                return;
+
+            m_vehicle.ProcessRotationVehicleParam((Vehicle)param, rotation);
+
+            if (RootPart.PhysActor != null)
+            {
+                RootPart.PhysActor.VehicleRotationParam(param, rotation);
+            }
+        }
+
 
         public bool areUpdatesSuspended
         {
@@ -1678,10 +1763,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ApplyPhysics()
         {
-            // Apply physics to the root prim
-      //      m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive);
-            
-            // Apply physics to child prims
             SceneObjectPart[] parts = m_parts.GetArray();
             if (parts.Length > 1)
             {
@@ -1689,18 +1770,21 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Apply physics to the root prim
                 m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive, true);
+
+
                 for (int i = 0; i < parts.Length; i++)
                 {
                     SceneObjectPart part = parts[i];
                     if (part.LocalId != m_rootPart.LocalId)
-//                        part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), part.VolumeDetectActive);
                         part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), part.VolumeDetectActive, true);
-
                 }
                 // Hack to get the physics scene geometries in the right spot
 //                ResetChildPrimPhysicsPositions();
-               if (m_rootPart.PhysActor != null)
+                if (m_rootPart.PhysActor != null)
+                {
                     m_rootPart.PhysActor.Building = false;
+
+                }
 			}
 			else
 			{

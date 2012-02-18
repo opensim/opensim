@@ -3170,34 +3170,37 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetVehicleType(int type)
         {
-            if (PhysActor != null)
-            {
-                PhysActor.VehicleType = type;
-            }
+            if (ParentGroup.IsDeleted)
+                return;
+            ParentGroup.VehicleType = type;
+        }
+
+        public void SetVehicleFlags(int param, bool remove)
+        {
+            if (ParentGroup.IsDeleted)
+                return;
+            ParentGroup.SetVehicleFlags(param, remove);
         }
 
         public void SetVehicleFloatParam(int param, float value)
         {
-            if (PhysActor != null)
-            {
-                PhysActor.VehicleFloatParam(param, value);
-            }
+            if (ParentGroup.IsDeleted)
+                return;
+            ParentGroup.SetVehicleFloatParam(param, value);
         }
 
         public void SetVehicleVectorParam(int param, Vector3 value)
         {
-            if (PhysActor != null)
-            {
-                PhysActor.VehicleVectorParam(param, value);
-            }
+            if (ParentGroup.IsDeleted)
+                return;
+            ParentGroup.SetVehicleVectorParam(param, value);
         }
 
         public void SetVehicleRotationParam(int param, Quaternion rotation)
         {
-            if (PhysActor != null)
-            {
-                PhysActor.VehicleRotationParam(param, rotation);
-            }
+            if (ParentGroup.IsDeleted)
+                return;
+            ParentGroup.SetVehicleRotationParam(param, rotation);
         }
 
         /// <summary>
@@ -3381,13 +3384,6 @@ namespace OpenSim.Region.Framework.Scenes
             hasProfileCut = hasDimple; // is it the same thing?
         }
         
-        public void SetVehicleFlags(int param, bool remove)
-        {
-            if (PhysActor != null)
-            {
-                PhysActor.VehicleFlags(param, remove);
-            }
-        }
 
         public void SetGroup(UUID groupID, IClientAPI client)
         {
