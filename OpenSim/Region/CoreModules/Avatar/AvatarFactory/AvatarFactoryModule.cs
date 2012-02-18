@@ -496,6 +496,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             SetAppearanceAssets(sp.UUID, sp.Appearance);
 
             m_scene.AvatarService.SetAppearance(agentid, sp.Appearance);
+
+            // Trigger this here because it's the final step in the set/queue/save process for appearance setting. 
+            // Everything has been updated and stored. Ensures bakes have been persisted (if option is set to persist bakes).
+            m_scene.EventManager.TriggerAvatarAppearanceChanged(sp);
         }
 
         private void SetAppearanceAssets(UUID userID, AvatarAppearance appearance)

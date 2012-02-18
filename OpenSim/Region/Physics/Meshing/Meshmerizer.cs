@@ -313,7 +313,7 @@ namespace OpenSim.Region.Physics.Meshing
         private bool GenerateCoordsAndFacesFromPrimMeshData(
             string primName, PrimitiveBaseShape primShape, Vector3 size, out List<Coord> coords, out List<Face> faces)
         {
-            m_log.DebugFormat("[MESH]: experimental mesh proxy generation for {0}", primName);
+//            m_log.DebugFormat("[MESH]: experimental mesh proxy generation for {0}", primName);
 
             coords = new List<Coord>();
             faces = new List<Face>();
@@ -321,7 +321,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             if (primShape.SculptData.Length <= 0)
             {
-                m_log.Error("[MESH]: asset data is zero length");
+                m_log.ErrorFormat("[MESH]: asset data for {0} is zero length", primName);
                 return false;
             }
 

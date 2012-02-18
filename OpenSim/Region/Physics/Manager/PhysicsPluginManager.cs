@@ -31,6 +31,7 @@ using System.IO;
 using System.Reflection;
 using Nini.Config;
 using log4net;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Physics.Manager
 {
