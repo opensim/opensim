@@ -308,7 +308,9 @@ namespace OpenSim.Framework.Servers
             // clr version potentially is more confusing than helpful, since it doesn't tell us if we're running under Mono/MS .NET and
             // the clr version number doesn't match the project version number under Mono.
             //m_log.Info("[STARTUP]: Virtual machine runtime version: " + Environment.Version + Environment.NewLine);
-            m_log.Info("[STARTUP]: Operating system version: " + Environment.OSVersion + Environment.NewLine);
+            m_log.InfoFormat(
+                "[STARTUP]: Operating system version: {0}, .NET platform {1}, {2}-bit\n",
+                Environment.OSVersion, Environment.OSVersion.Platform, Util.Is64BitProcess() ? "64" : "32");
             
             StartupSpecific();
             
