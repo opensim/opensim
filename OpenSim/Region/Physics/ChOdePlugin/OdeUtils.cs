@@ -1,5 +1,17 @@
-﻿// adapted from libomv removing cpu endian adjust
-// for prims lowlevel serialization
+﻿/* Ubit 2012
+  * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+// no endian conversion. So can't be use to pass information around diferent cpus with diferent endian
 
 using System;
 using System.IO;
@@ -7,77 +19,168 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
-    public class wstreamer
+   
+    unsafe public class wstreamer
     {
-        private MemoryStream st;
+        byte[] buf;
+        int index;
+        byte* src;
 
         public wstreamer()
         {
-            st = new MemoryStream();
+            buf = new byte[1024];
+            index = 0;
+        }
+        public wstreamer(int size)
+        {
+            buf = new byte[size];
+            index = 0;
         }
 
         public byte[] close()
         {
-            byte[] data = st.ToArray();
-            st.Close();
+            byte[] data = new byte[index];
+            Buffer.BlockCopy(buf, 0, data, 0, index); 
             return data;
         }
 
+        public void Seek(int pos)
+        {
+            index = pos;
+        }
+
+        public void Seekrel(int pos)
+        {
+            index += pos;
+        }
+
+        public void Wbyte(byte value)
+        {
+            buf[index++] = value;
+        }
         public void Wshort(short value)
         {
-            st.Write(BitConverter.GetBytes(value), 0, 2);
+            src = (byte*)&value;
+            buf[index++] = *src++;
+            buf[index++] = *src;
         }
         public void Wushort(ushort value)
         {
-            byte[] t = BitConverter.GetBytes(value);
-            st.Write(BitConverter.GetBytes(value), 0, 2);
+            src = (byte*)&value;
+            buf[index++] = *src++;
+            buf[index++] = *src;
         }
         public void Wint(int value)
         {
-            st.Write(BitConverter.GetBytes(value), 0, 4);
+            src = (byte*)&value;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
         }
         public void Wuint(uint value)
         {
-            st.Write(BitConverter.GetBytes(value), 0, 4);
+            src = (byte*)&value;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
         }
         public void Wlong(long value)
         {
-            st.Write(BitConverter.GetBytes(value), 0, 8);
+            src = (byte*)&value;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
         }
         public void Wulong(ulong value)
         {
-            st.Write(BitConverter.GetBytes(value), 0, 8);
+            src = (byte*)&value;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
         }
 
         public void Wfloat(float value)
         {
-            st.Write(BitConverter.GetBytes(value), 0, 4);
+            src = (byte*)&value;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
         }
 
         public void Wdouble(double value)
         {
-            st.Write(BitConverter.GetBytes(value), 0, 8);
+            src = (byte*)&value;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
         }
 
         public void Wvector3(Vector3 value)
         {
-            st.Write(BitConverter.GetBytes(value.X), 0, 4);
-            st.Write(BitConverter.GetBytes(value.Y), 0, 4);
-            st.Write(BitConverter.GetBytes(value.Z), 0, 4);
+            src = (byte*)&value.X;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
+            src = (byte*)&value.Y; // it may have padding ??
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
+            src = (byte*)&value.Z;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
         }
         public void Wquat(Quaternion value)
         {
-            st.Write(BitConverter.GetBytes(value.X), 0, 4);
-            st.Write(BitConverter.GetBytes(value.Y), 0, 4);
-            st.Write(BitConverter.GetBytes(value.Z), 0, 4);
-            st.Write(BitConverter.GetBytes(value.W), 0, 4);
+            src = (byte*)&value.X;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
+            src = (byte*)&value.Y; // it may have padding ??
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
+            src = (byte*)&value.Z;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
+            src = (byte*)&value.W;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src++;
+            buf[index++] = *src;
         }
     }
 
-    public class rstreamer
+    unsafe public class rstreamer
     {
         private byte[] rbuf;
         private int ptr;
+        private byte* dst;
 
         public rstreamer(byte[] data)
         {
@@ -89,78 +192,161 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
         }
 
+        public void Seek(int pos)
+        {
+            ptr = pos;
+        }
+
+        public void Seekrel(int pos)
+        {
+            ptr += pos;
+        }
+
+        public byte Rbyte()
+        {
+            return (byte)rbuf[ptr++];
+        }
+
         public short Rshort()
         {
-            short v = BitConverter.ToInt16(rbuf, ptr);
-            ptr += 2;
+            short v;
+            dst = (byte*)&v;
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
             return v;
         }
         public ushort Rushort()
         {
-            ushort v = BitConverter.ToUInt16(rbuf, ptr);
-            ptr += 2;
+            ushort v;
+            dst = (byte*)&v;
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
             return v;
         }
         public int Rint()
         {
-            int v = BitConverter.ToInt32(rbuf, ptr);
-            ptr += 4;
+            int v;
+            dst = (byte*)&v;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
             return v;
         }
         public uint Ruint()
         {
-            uint v = BitConverter.ToUInt32(rbuf, ptr);
-            ptr += 4;
+            uint v;
+            dst = (byte*)&v;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
             return v;
         }
         public long Rlong()
         {
-            long v = BitConverter.ToInt64(rbuf, ptr);
-            ptr += 8;
+            long v;
+            dst = (byte*)&v;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
             return v;
         }
         public ulong Rulong()
         {
-            ulong v = BitConverter.ToUInt64(rbuf, ptr);
-            ptr += 8;
+            ulong v;
+            dst = (byte*)&v;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
             return v;
         }
         public float Rfloat()
         {
-            float v = BitConverter.ToSingle(rbuf, ptr);
-            ptr += 4;
+            float v;
+            dst = (byte*)&v;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
             return v;
         }
 
         public double Rdouble()
         {
-            double v = BitConverter.ToDouble(rbuf, ptr);
-            ptr += 8;
+            double v;
+            dst = (byte*)&v;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
             return v;
         }
 
         public Vector3 Rvector3()
         {
             Vector3 v;
-            v.X = BitConverter.ToSingle(rbuf, ptr);
-            ptr += 4;
-            v.Y = BitConverter.ToSingle(rbuf, ptr);
-            ptr += 4;
-            v.Z = BitConverter.ToSingle(rbuf, ptr);
-            ptr += 4;
+            dst = (byte*)&v.X;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
+
+            dst = (byte*)&v.Y;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
+
+            dst = (byte*)&v.Z;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
             return v;
         }
+
         public Quaternion Rquat()
         {
             Quaternion v;
-            v.X = BitConverter.ToSingle(rbuf, ptr);
-            ptr += 4;
-            v.Y = BitConverter.ToSingle(rbuf, ptr);
-            ptr += 4;
-            v.Z = BitConverter.ToSingle(rbuf, ptr);
-            ptr += 4;
-            v.W = BitConverter.ToSingle(rbuf, ptr);
-            ptr += 4;
+            dst = (byte*)&v.X;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
+
+            dst = (byte*)&v.Y;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
+
+            dst = (byte*)&v.Z;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
+
+            dst = (byte*)&v.W;
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst++ = rbuf[ptr++];
+            *dst = rbuf[ptr++];
+
             return v;
         }
     }

@@ -22,7 +22,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Revised March 5th 2010 by Kitto Flora. ODEDynamics.cs 
+ * Revised March 5th 2010 by Kitto Flora. ODEDynamics.cs
+ * Ubit 2012
  * rolled into ODEPrim.cs
  */
 
@@ -37,7 +38,6 @@ using OpenMetaverse;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
-
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
@@ -254,6 +254,61 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_verticalAttractionTimescale = 500f;			// Timescale > 300  means no vert attractor.
 
         SerialControl m_taintserial = null;
+        object m_taintvehicledata = null;
+
+        public void DoSetVehicle()
+        {
+            VehicleData vd = (VehicleData)m_taintvehicledata;
+
+        m_type = vd.m_type;
+        m_flags = vd.m_flags;
+
+        // Linear properties
+        m_linearMotorDirection = vd.m_linearMotorDirection;
+        m_linearFrictionTimescale = vd.m_linearFrictionTimescale;
+        m_linearMotorDecayTimescale = vd.m_linearMotorDecayTimescale;
+        m_linearMotorTimescale = vd.m_linearMotorTimescale;
+//        m_linearMotorOffset = vd.m_linearMotorOffset;
+
+        //Angular properties
+        m_angularMotorDirection = vd.m_angularMotorDirection;
+        m_angularMotorTimescale = vd.m_angularMotorTimescale;
+        m_angularMotorDecayTimescale = vd.m_angularMotorDecayTimescale;
+        m_angularFrictionTimescale = vd.m_angularFrictionTimescale;
+
+        //Deflection properties
+//        m_angularDeflectionEfficiency = vd.m_angularDeflectionEfficiency;
+//        m_angularDeflectionTimescale = vd.m_angularDeflectionTimescale;
+//        m_linearDeflectionEfficiency = vd.m_linearDeflectionEfficiency;
+//        m_linearDeflectionTimescale = vd.m_linearDeflectionTimescale;
+
+        //Banking properties
+//        m_bankingEfficiency = vd.m_bankingEfficiency;
+//        m_bankingMix = vd.m_bankingMix;
+//        m_bankingTimescale = vd.m_bankingTimescale;
+
+        //Hover and Buoyancy properties
+        m_VhoverHeight = vd.m_VhoverHeight;
+//        m_VhoverEfficiency = vd.m_VhoverEfficiency;
+        m_VhoverTimescale = vd.m_VhoverTimescale;
+        m_VehicleBuoyancy = vd.m_VehicleBuoyancy;
+
+        //Attractor properties
+        m_verticalAttractionEfficiency = vd.m_verticalAttractionEfficiency;
+        m_verticalAttractionTimescale = vd.m_verticalAttractionTimescale;
+
+        // Axis
+//        m_referenceFrame = vd.m_referenceFrame;
+
+
+            m_taintvehicledata = null;
+        }
+
+        public override void SetVehicle(object vdata)
+        {
+            m_taintvehicledata = vdata;
+            _parent_scene.AddPhysicsActorTaint(this);
+        }
 
         public override byte[] Serialize(bool PhysIsRunning)
         {
@@ -1842,6 +1897,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (m_taintCollidesWater != m_collidesWater)
                     changefloatonwater(timestep);
+
+                if (m_taintvehicledata != null)
+                    DoSetVehicle();
 
                 if (m_taintserial != null)
                     DoSerialize(m_taintserial);

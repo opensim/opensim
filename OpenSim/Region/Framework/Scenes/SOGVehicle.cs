@@ -37,9 +37,11 @@ namespace OpenSim.Region.Framework.Scenes
     {
         public Vehicle Type
         {
-            get { return m_type; }
+            get { return vd.m_type; }
         }
 
+        public VehicleData vd;
+/*
         private Vehicle m_type = Vehicle.TYPE_NONE;                     // If a 'VEHICLE', and what kind
         private VehicleFlag m_flags = (VehicleFlag)0;
 
@@ -78,7 +80,13 @@ namespace OpenSim.Region.Framework.Scenes
         private float m_verticalAttractionTimescale = 1000f;        // Timescale > 300  means no vert attractor.
 
         // Axis
-        public Quaternion m_referenceFrame = Quaternion.Identity;      
+        public Quaternion m_referenceFrame = Quaternion.Identity;
+*/
+        public SOGVehicle()
+        {
+            vd = new VehicleData();
+            ProcessTypeChange(Vehicle.TYPE_NONE); // is needed?
+        }
 
         public void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
         {
@@ -89,109 +97,109 @@ namespace OpenSim.Region.Framework.Scenes
                 case Vehicle.ANGULAR_DEFLECTION_EFFICIENCY:
                     if (pValue < 0f) pValue = 0f;
                     if (pValue > 1f) pValue = 1f;
-                    m_angularDeflectionEfficiency = pValue;
+                    vd.m_angularDeflectionEfficiency = pValue;
                     break;
                 case Vehicle.ANGULAR_DEFLECTION_TIMESCALE:
                     if (pValue < timestep) pValue = timestep;
-                    m_angularDeflectionTimescale = pValue;
+                    vd.m_angularDeflectionTimescale = pValue;
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
                     if (pValue < timestep) pValue = timestep;
                     else if (pValue > 120) pValue = 120;
-                    m_angularMotorDecayTimescale = pValue;
+                    vd.m_angularMotorDecayTimescale = pValue;
                     break;
                 case Vehicle.ANGULAR_MOTOR_TIMESCALE:
                     if (pValue < timestep) pValue = timestep;
-                    m_angularMotorTimescale = pValue;
+                    vd.m_angularMotorTimescale = pValue;
                     break;
                 case Vehicle.BANKING_EFFICIENCY:
                     if (pValue < -1f) pValue = -1f;
                     if (pValue > 1f) pValue = 1f;
-                    m_bankingEfficiency = pValue;
+                    vd.m_bankingEfficiency = pValue;
                     break;
                 case Vehicle.BANKING_MIX:
                     if (pValue < 0f) pValue = 0f;
                     if (pValue > 1f) pValue = 1f;
-                    m_bankingMix = pValue;
+                    vd.m_bankingMix = pValue;
                     break;
                 case Vehicle.BANKING_TIMESCALE:
                     if (pValue < timestep) pValue = timestep;
-                    m_bankingTimescale = pValue;
+                    vd.m_bankingTimescale = pValue;
                     break;
                 case Vehicle.BUOYANCY:
                     if (pValue < -1f) pValue = -1f;
                     if (pValue > 1f) pValue = 1f;
-                    m_VehicleBuoyancy = pValue;
+                    vd.m_VehicleBuoyancy = pValue;
                     break;
                 case Vehicle.HOVER_EFFICIENCY:
                     if (pValue < 0f) pValue = 0f;
                     if (pValue > 1f) pValue = 1f;
-                    m_VhoverEfficiency = pValue;
+                    vd.m_VhoverEfficiency = pValue;
                     break;
                 case Vehicle.HOVER_HEIGHT:
-                    m_VhoverHeight = pValue;
+                    vd.m_VhoverHeight = pValue;
                     break;
                 case Vehicle.HOVER_TIMESCALE:
                     if (pValue < timestep) pValue = timestep;
-                    m_VhoverTimescale = pValue;
+                    vd.m_VhoverTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_DEFLECTION_EFFICIENCY:
                     if (pValue < 0f) pValue = 0f;
                     if (pValue > 1f) pValue = 1f;
-                    m_linearDeflectionEfficiency = pValue;
+                    vd.m_linearDeflectionEfficiency = pValue;
                     break;
                 case Vehicle.LINEAR_DEFLECTION_TIMESCALE:
                     if (pValue < timestep) pValue = timestep;
-                    m_linearDeflectionTimescale = pValue;
+                    vd.m_linearDeflectionTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
                     //                    if (pValue < timestep) pValue = timestep;
                     // try to make impulses to work a bit better
                     if (pValue < timestep) pValue = timestep;
                     else if (pValue > 120) pValue = 120;
-                    m_linearMotorDecayTimescale = pValue;
+                    vd.m_linearMotorDecayTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_MOTOR_TIMESCALE:
                     if (pValue < timestep) pValue = timestep;
-                    m_linearMotorTimescale = pValue;
+                    vd.m_linearMotorTimescale = pValue;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_EFFICIENCY:
                     if (pValue < 0f) pValue = 0f;
                     if (pValue > 1f) pValue = 1f;
-                    m_verticalAttractionEfficiency = pValue;
+                    vd.m_verticalAttractionEfficiency = pValue;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_TIMESCALE:
                     if (pValue < timestep) pValue = timestep;
-                    m_verticalAttractionTimescale = pValue;
+                    vd.m_verticalAttractionTimescale = pValue;
                     break;
 
                 // These are vector properties but the engine lets you use a single float value to
                 // set all of the components to the same value
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
                     if (pValue < timestep) pValue = timestep;
-                    m_angularFrictionTimescale = new Vector3(pValue, pValue, pValue);
+                    vd.m_angularFrictionTimescale = new Vector3(pValue, pValue, pValue);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
-                    m_angularMotorDirection = new Vector3(pValue, pValue, pValue);
-                    len = m_angularMotorDirection.Length();
+                    vd.m_angularMotorDirection = new Vector3(pValue, pValue, pValue);
+                    len = vd.m_angularMotorDirection.Length();
                     if (len > 12.566f)
-                        m_angularMotorDirection *= (12.566f / len);
+                        vd.m_angularMotorDirection *= (12.566f / len);
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     if (pValue < timestep) pValue = timestep;
-                    m_linearFrictionTimescale = new Vector3(pValue, pValue, pValue);
+                    vd.m_linearFrictionTimescale = new Vector3(pValue, pValue, pValue);
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
-                    m_linearMotorDirection = new Vector3(pValue, pValue, pValue);
-                    len = m_linearMotorDirection.Length();
+                    vd.m_linearMotorDirection = new Vector3(pValue, pValue, pValue);
+                    len = vd.m_linearMotorDirection.Length();
                     if (len > 30.0f)
-                        m_linearMotorDirection *= (30.0f / len);
+                        vd.m_linearMotorDirection *= (30.0f / len);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
-                    m_linearMotorOffset = new Vector3(pValue, pValue, pValue);
-                    len = m_linearMotorOffset.Length();
+                    vd.m_linearMotorOffset = new Vector3(pValue, pValue, pValue);
+                    len = vd.m_linearMotorOffset.Length();
                     if (len > 100.0f)
-                        m_linearMotorOffset *= (100.0f / len);
+                        vd.m_linearMotorOffset *= (100.0f / len);
                     break;
             }
         }//end ProcessFloatVehicleParam
@@ -207,32 +215,32 @@ namespace OpenSim.Region.Framework.Scenes
                     if (pValue.Y < timestep) pValue.Y = timestep;
                     if (pValue.Z < timestep) pValue.Z = timestep;
 
-                    m_angularFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    vd.m_angularFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
-                    m_angularMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    vd.m_angularMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     // Limit requested angular speed to 2 rps= 4 pi rads/sec
-                    len = m_angularMotorDirection.Length();
+                    len = vd.m_angularMotorDirection.Length();
                     if (len > 12.566f)
-                        m_angularMotorDirection *= (12.566f / len);
+                        vd.m_angularMotorDirection *= (12.566f / len);
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     if (pValue.X < timestep) pValue.X = timestep;
                     if (pValue.Y < timestep) pValue.Y = timestep;
                     if (pValue.Z < timestep) pValue.Z = timestep;
-                    m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    vd.m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
-                    m_linearMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
-                    len = m_linearMotorDirection.Length();
+                    vd.m_linearMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    len = vd.m_linearMotorDirection.Length();
                     if (len > 30.0f)
-                        m_linearMotorDirection *= (30.0f / len);
+                        vd.m_linearMotorDirection *= (30.0f / len);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
-                    m_linearMotorOffset = new Vector3(pValue.X, pValue.Y, pValue.Z);
-                    len = m_linearMotorOffset.Length();
+                    vd.m_linearMotorOffset = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    len = vd.m_linearMotorOffset.Length();
                     if (len > 100.0f)
-                        m_linearMotorOffset *= (100.0f / len);
+                        vd.m_linearMotorOffset *= (100.0f / len);
                     break;
             }
         }//end ProcessVectorVehicleParam
@@ -242,7 +250,7 @@ namespace OpenSim.Region.Framework.Scenes
             switch (pParam)
             {
                 case Vehicle.REFERENCE_FRAME:
-                    m_referenceFrame = Quaternion.Inverse(pValue);
+                    vd.m_referenceFrame = Quaternion.Inverse(pValue);
                     break;
             }
         }//end ProcessRotationVehicleParam
@@ -251,169 +259,169 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (remove)
             {
-                m_flags &= ~((VehicleFlag)pParam);
+                vd.m_flags &= ~((VehicleFlag)pParam);
             }
             else
             {
-                m_flags |= (VehicleFlag)pParam;
+                vd.m_flags |= (VehicleFlag)pParam;
             }
         }//end ProcessVehicleFlags
 
         public void ProcessTypeChange(Vehicle pType)
         {
-            m_linearMotorDirection = Vector3.Zero;
-            m_angularMotorDirection = Vector3.Zero;
+            vd.m_linearMotorDirection = Vector3.Zero;
+            vd.m_angularMotorDirection = Vector3.Zero;
 
-            m_linearMotorOffset = Vector3.Zero;
+            vd.m_linearMotorOffset = Vector3.Zero;
 
-            m_referenceFrame = Quaternion.Identity;
+            vd.m_referenceFrame = Quaternion.Identity;
 
             // Set Defaults For Type
-            m_type = pType;
+            vd.m_type = pType;
             switch (pType)
             {
                 case Vehicle.TYPE_NONE: // none sense this will never exist
-                    m_linearFrictionTimescale = new Vector3(1000, 1000, 1000);
-                    m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
-                    m_linearMotorTimescale = 1000;
-                    m_linearMotorDecayTimescale = 120;
-                    m_angularMotorTimescale = 1000;
-                    m_angularMotorDecayTimescale = 1000;
-                    m_VhoverHeight = 0;
-                    m_VhoverTimescale = 1000;
-                    m_VehicleBuoyancy = 0;
-                    m_flags = (VehicleFlag)0;
+                    vd.m_linearFrictionTimescale = new Vector3(1000, 1000, 1000);
+                    vd.m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
+                    vd.m_linearMotorTimescale = 1000;
+                    vd.m_linearMotorDecayTimescale = 120;
+                    vd.m_angularMotorTimescale = 1000;
+                    vd.m_angularMotorDecayTimescale = 1000;
+                    vd.m_VhoverHeight = 0;
+                    vd.m_VhoverTimescale = 1000;
+                    vd.m_VehicleBuoyancy = 0;
+                    vd.m_flags = (VehicleFlag)0;
                     break;
 
                 case Vehicle.TYPE_SLED:
-                    m_linearFrictionTimescale = new Vector3(30, 1, 1000);
-                    m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
-                    m_linearMotorTimescale = 1000;
-                    m_linearMotorDecayTimescale = 120;
-                    m_angularMotorTimescale = 1000;
-                    m_angularMotorDecayTimescale = 120;
-                    m_VhoverHeight = 0;
-                    m_VhoverEfficiency = 1;
-                    m_VhoverTimescale = 10;
-                    m_VehicleBuoyancy = 0;
-                    m_linearDeflectionEfficiency = 1;
-                    m_linearDeflectionTimescale = 1;
-                    m_angularDeflectionEfficiency = 0;
-                    m_angularDeflectionTimescale = 1000;
-                    m_bankingEfficiency = 0;
-                    m_bankingMix = 1;
-                    m_bankingTimescale = 10;
-                    m_flags &=
+                    vd.m_linearFrictionTimescale = new Vector3(30, 1, 1000);
+                    vd.m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
+                    vd.m_linearMotorTimescale = 1000;
+                    vd.m_linearMotorDecayTimescale = 120;
+                    vd.m_angularMotorTimescale = 1000;
+                    vd.m_angularMotorDecayTimescale = 120;
+                    vd.m_VhoverHeight = 0;
+                    vd.m_VhoverEfficiency = 1;
+                    vd.m_VhoverTimescale = 10;
+                    vd.m_VehicleBuoyancy = 0;
+                    vd.m_linearDeflectionEfficiency = 1;
+                    vd.m_linearDeflectionTimescale = 1;
+                    vd.m_angularDeflectionEfficiency = 0;
+                    vd.m_angularDeflectionTimescale = 1000;
+                    vd.m_bankingEfficiency = 0;
+                    vd.m_bankingMix = 1;
+                    vd.m_bankingTimescale = 10;
+                    vd.m_flags &=
                          ~(VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY |
                            VehicleFlag.HOVER_GLOBAL_HEIGHT | VehicleFlag.HOVER_UP_ONLY);
-                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.LIMIT_ROLL_ONLY | VehicleFlag.LIMIT_MOTOR_UP);
+                    vd.m_flags |= (VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.LIMIT_ROLL_ONLY | VehicleFlag.LIMIT_MOTOR_UP);
                     break;
                 case Vehicle.TYPE_CAR:
-                    m_linearFrictionTimescale = new Vector3(100, 2, 1000);
-                    m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
-                    m_linearMotorTimescale = 1;
-                    m_linearMotorDecayTimescale = 60;
-                    m_angularMotorTimescale = 1;
-                    m_angularMotorDecayTimescale = 0.8f;
-                    m_VhoverHeight = 0;
-                    m_VhoverEfficiency = 0;
-                    m_VhoverTimescale = 1000;
-                    m_VehicleBuoyancy = 0;
-                    m_linearDeflectionEfficiency = 1;
-                    m_linearDeflectionTimescale = 2;
-                    m_angularDeflectionEfficiency = 0;
-                    m_angularDeflectionTimescale = 10;
-                    m_verticalAttractionEfficiency = 1f;
-                    m_verticalAttractionTimescale = 10f;
-                    m_bankingEfficiency = -0.2f;
-                    m_bankingMix = 1;
-                    m_bankingTimescale = 1;
-                    m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT);
-                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.LIMIT_ROLL_ONLY |
+                    vd.m_linearFrictionTimescale = new Vector3(100, 2, 1000);
+                    vd.m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
+                    vd.m_linearMotorTimescale = 1;
+                    vd.m_linearMotorDecayTimescale = 60;
+                    vd.m_angularMotorTimescale = 1;
+                    vd.m_angularMotorDecayTimescale = 0.8f;
+                    vd.m_VhoverHeight = 0;
+                    vd.m_VhoverEfficiency = 0;
+                    vd.m_VhoverTimescale = 1000;
+                    vd.m_VehicleBuoyancy = 0;
+                    vd.m_linearDeflectionEfficiency = 1;
+                    vd.m_linearDeflectionTimescale = 2;
+                    vd.m_angularDeflectionEfficiency = 0;
+                    vd.m_angularDeflectionTimescale = 10;
+                    vd.m_verticalAttractionEfficiency = 1f;
+                    vd.m_verticalAttractionTimescale = 10f;
+                    vd.m_bankingEfficiency = -0.2f;
+                    vd.m_bankingMix = 1;
+                    vd.m_bankingTimescale = 1;
+                    vd.m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT);
+                    vd.m_flags |= (VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.LIMIT_ROLL_ONLY |
                                 VehicleFlag.LIMIT_MOTOR_UP | VehicleFlag.HOVER_UP_ONLY);
                     break;
                 case Vehicle.TYPE_BOAT:
-                    m_linearFrictionTimescale = new Vector3(10, 3, 2);
-                    m_angularFrictionTimescale = new Vector3(10, 10, 10);
-                    m_linearMotorTimescale = 5;
-                    m_linearMotorDecayTimescale = 60;
-                    m_angularMotorTimescale = 4;
-                    m_angularMotorDecayTimescale = 4;
-                    m_VhoverHeight = 0;
-                    m_VhoverEfficiency = 0.5f;
-                    m_VhoverTimescale = 2;
-                    m_VehicleBuoyancy = 1;
-                    m_linearDeflectionEfficiency = 0.5f;
-                    m_linearDeflectionTimescale = 3;
-                    m_angularDeflectionEfficiency = 0.5f;
-                    m_angularDeflectionTimescale = 5;
-                    m_verticalAttractionEfficiency = 0.5f;
-                    m_verticalAttractionTimescale = 5f;
-                    m_bankingEfficiency = -0.3f;
-                    m_bankingMix = 0.8f;
-                    m_bankingTimescale = 1;
-                    m_flags &= ~(VehicleFlag.HOVER_TERRAIN_ONLY |
+                    vd.m_linearFrictionTimescale = new Vector3(10, 3, 2);
+                    vd.m_angularFrictionTimescale = new Vector3(10, 10, 10);
+                    vd.m_linearMotorTimescale = 5;
+                    vd.m_linearMotorDecayTimescale = 60;
+                    vd.m_angularMotorTimescale = 4;
+                    vd.m_angularMotorDecayTimescale = 4;
+                    vd.m_VhoverHeight = 0;
+                    vd.m_VhoverEfficiency = 0.5f;
+                    vd.m_VhoverTimescale = 2;
+                    vd.m_VehicleBuoyancy = 1;
+                    vd.m_linearDeflectionEfficiency = 0.5f;
+                    vd.m_linearDeflectionTimescale = 3;
+                    vd.m_angularDeflectionEfficiency = 0.5f;
+                    vd.m_angularDeflectionTimescale = 5;
+                    vd.m_verticalAttractionEfficiency = 0.5f;
+                    vd.m_verticalAttractionTimescale = 5f;
+                    vd.m_bankingEfficiency = -0.3f;
+                    vd.m_bankingMix = 0.8f;
+                    vd.m_bankingTimescale = 1;
+                    vd.m_flags &= ~(VehicleFlag.HOVER_TERRAIN_ONLY |
                             VehicleFlag.HOVER_GLOBAL_HEIGHT |
                             VehicleFlag.HOVER_UP_ONLY |
                             VehicleFlag.LIMIT_ROLL_ONLY);
-                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP |
+                    vd.m_flags |= (VehicleFlag.NO_DEFLECTION_UP |
                                 VehicleFlag.LIMIT_MOTOR_UP |
                                 VehicleFlag.HOVER_WATER_ONLY);
                     break;
                 case Vehicle.TYPE_AIRPLANE:
-                    m_linearFrictionTimescale = new Vector3(200, 10, 5);
-                    m_angularFrictionTimescale = new Vector3(20, 20, 20);
-                    m_linearMotorTimescale = 2;
-                    m_linearMotorDecayTimescale = 60;
-                    m_angularMotorTimescale = 4;
-                    m_angularMotorDecayTimescale = 8;
-                    m_VhoverHeight = 0;
-                    m_VhoverEfficiency = 0.5f;
-                    m_VhoverTimescale = 1000;
-                    m_VehicleBuoyancy = 0;
-                    m_linearDeflectionEfficiency = 0.5f;
-                    m_linearDeflectionTimescale = 0.5f;
-                    m_angularDeflectionEfficiency = 1;
-                    m_angularDeflectionTimescale = 2;
-                    m_verticalAttractionEfficiency = 0.9f;
-                    m_verticalAttractionTimescale = 2f;
-                    m_bankingEfficiency = 1;
-                    m_bankingMix = 0.7f;
-                    m_bankingTimescale = 2;
-                    m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY |
+                    vd.m_linearFrictionTimescale = new Vector3(200, 10, 5);
+                    vd.m_angularFrictionTimescale = new Vector3(20, 20, 20);
+                    vd.m_linearMotorTimescale = 2;
+                    vd.m_linearMotorDecayTimescale = 60;
+                    vd.m_angularMotorTimescale = 4;
+                    vd.m_angularMotorDecayTimescale = 8;
+                    vd.m_VhoverHeight = 0;
+                    vd.m_VhoverEfficiency = 0.5f;
+                    vd.m_VhoverTimescale = 1000;
+                    vd.m_VehicleBuoyancy = 0;
+                    vd.m_linearDeflectionEfficiency = 0.5f;
+                    vd.m_linearDeflectionTimescale = 0.5f;
+                    vd.m_angularDeflectionEfficiency = 1;
+                    vd.m_angularDeflectionTimescale = 2;
+                    vd.m_verticalAttractionEfficiency = 0.9f;
+                    vd.m_verticalAttractionTimescale = 2f;
+                    vd.m_bankingEfficiency = 1;
+                    vd.m_bankingMix = 0.7f;
+                    vd.m_bankingTimescale = 2;
+                    vd.m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY |
                         VehicleFlag.HOVER_TERRAIN_ONLY |
                         VehicleFlag.HOVER_GLOBAL_HEIGHT |
                         VehicleFlag.HOVER_UP_ONLY |
                         VehicleFlag.NO_DEFLECTION_UP |
                         VehicleFlag.LIMIT_MOTOR_UP);
-                    m_flags |= (VehicleFlag.LIMIT_ROLL_ONLY);
+                    vd.m_flags |= (VehicleFlag.LIMIT_ROLL_ONLY);
                     break;
                 case Vehicle.TYPE_BALLOON:
-                    m_linearFrictionTimescale = new Vector3(5, 5, 5);
-                    m_angularFrictionTimescale = new Vector3(10, 10, 10);
-                    m_linearMotorTimescale = 5;
-                    m_linearMotorDecayTimescale = 60;
-                    m_angularMotorTimescale = 6;
-                    m_angularMotorDecayTimescale = 10;
-                    m_VhoverHeight = 5;
-                    m_VhoverEfficiency = 0.8f;
-                    m_VhoverTimescale = 10;
-                    m_VehicleBuoyancy = 1;
-                    m_linearDeflectionEfficiency = 0;
-                    m_linearDeflectionTimescale = 5;
-                    m_angularDeflectionEfficiency = 0;
-                    m_angularDeflectionTimescale = 5;
-                    m_verticalAttractionEfficiency = 0f;
-                    m_verticalAttractionTimescale = 1000f;
-                    m_bankingEfficiency = 0;
-                    m_bankingMix = 0.7f;
-                    m_bankingTimescale = 5;
-                    m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY |
+                    vd.m_linearFrictionTimescale = new Vector3(5, 5, 5);
+                    vd.m_angularFrictionTimescale = new Vector3(10, 10, 10);
+                    vd.m_linearMotorTimescale = 5;
+                    vd.m_linearMotorDecayTimescale = 60;
+                    vd.m_angularMotorTimescale = 6;
+                    vd.m_angularMotorDecayTimescale = 10;
+                    vd.m_VhoverHeight = 5;
+                    vd.m_VhoverEfficiency = 0.8f;
+                    vd.m_VhoverTimescale = 10;
+                    vd.m_VehicleBuoyancy = 1;
+                    vd.m_linearDeflectionEfficiency = 0;
+                    vd.m_linearDeflectionTimescale = 5;
+                    vd.m_angularDeflectionEfficiency = 0;
+                    vd.m_angularDeflectionTimescale = 5;
+                    vd.m_verticalAttractionEfficiency = 0f;
+                    vd.m_verticalAttractionTimescale = 1000f;
+                    vd.m_bankingEfficiency = 0;
+                    vd.m_bankingMix = 0.7f;
+                    vd.m_bankingTimescale = 5;
+                    vd.m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY |
                         VehicleFlag.HOVER_TERRAIN_ONLY |
                         VehicleFlag.HOVER_UP_ONLY |
                         VehicleFlag.NO_DEFLECTION_UP |
                         VehicleFlag.LIMIT_MOTOR_UP);
-                    m_flags |= (VehicleFlag.LIMIT_ROLL_ONLY |
+                    vd.m_flags |= (VehicleFlag.LIMIT_ROLL_ONLY |
                         VehicleFlag.HOVER_GLOBAL_HEIGHT);
                     break;
             }
@@ -424,7 +432,8 @@ namespace OpenSim.Region.Framework.Scenes
             // crap crap crap
             if (ph == null) // what ??
                 return;
-
+            ph.SetVehicle(vd);
+/*
             ph.VehicleType = (int)m_type;
 
            // Linear properties
@@ -465,6 +474,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             ph.VehicleFlags(~(int)m_flags, true);
             ph.VehicleFlags((int)m_flags, false);
+ */
         }
     }
 }

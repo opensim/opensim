@@ -1965,6 +1965,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public SceneObjectGroup Copy(bool userExposed)
         {
+            m_dupeInProgress = true;
             SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
             dupe.m_isBackedUp = false;
             dupe.m_parts = new MapAndArray<OpenMetaverse.UUID, SceneObjectPart>();
@@ -2048,6 +2049,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ScheduleGroupForFullUpdate();
             }
 
+            m_dupeInProgress = false;
             return dupe;
         }
 

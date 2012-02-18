@@ -146,6 +146,8 @@ namespace OpenSim.Region.Physics.Manager
         /// </summary>
         public event CollisionUpdate OnCollisionUpdate;
 
+        public virtual void SetVehicle(object vdata) { }
+
         public event OutOfBounds OnOutOfBounds;
 #pragma warning restore 67
 
@@ -153,8 +155,7 @@ namespace OpenSim.Region.Physics.Manager
         {
             get { return new NullPhysicsActor(); }
         }
-
-
+   
         public virtual bool Building { get; set; }
 
         public virtual ContactData ContactData
