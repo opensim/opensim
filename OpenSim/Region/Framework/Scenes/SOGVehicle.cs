@@ -29,7 +29,10 @@ using System;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
-
+using System.Xml;
+using OpenSim.Framework.Serialization;
+using OpenSim.Framework.Serialization.External;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -475,6 +478,86 @@ namespace OpenSim.Region.Framework.Scenes
             ph.VehicleFlags(~(int)m_flags, true);
             ph.VehicleFlags((int)m_flags, false);
  */
+        }
+
+        private XmlTextWriter writer;
+
+        private void XWint(string name, int i)
+        {
+               writer.WriteElementString(name, i.ToString());
+        }
+        private void XWfloat(string name, float f)
+        {
+               writer.WriteElementString(name, f.ToString());
+        }
+
+        private void XWVector(string name, Vector3 vec)
+        {
+            writer.WriteStartElement(name);
+            writer.WriteElementString("X", vec.X.ToString(Utils.EnUsCulture));
+            writer.WriteElementString("Y", vec.Y.ToString(Utils.EnUsCulture));
+            writer.WriteElementString("Z", vec.Z.ToString(Utils.EnUsCulture));
+            writer.WriteEndElement();
+        }
+
+
+
+        private void XWQuat(string name, Quaternion quat)
+        {
+            writer.WriteStartElement(name);
+            writer.WriteElementString("X", quat.X.ToString(Utils.EnUsCulture));
+            writer.WriteElementString("Y", quat.Y.ToString(Utils.EnUsCulture));
+            writer.WriteElementString("Z", quat.Z.ToString(Utils.EnUsCulture));
+            writer.WriteElementString("W", quat.W.ToString(Utils.EnUsCulture));
+            writer.WriteEndElement();
+        }
+
+        public void ToXml2(XmlTextWriter twriter)
+        {
+            writer = twriter;
+            writer.WriteStartElement("SceneObjectVehicle");
+
+            XWint("V_Type", (int)vd.m_type);
+            XWint("V_Flags", (int)vd.m_flags);
+
+            // Linear properties
+            XWVector("LM_DIRECTION", vd.m_linearMotorDirection);
+            XWVector("LM_FRICTION_TIMESCALE", vd.m_linearFrictionTimescale);
+            XWfloat("LM_DECAY_TIMESCALE", vd.m_linearMotorDecayTimescale);
+            XWfloat("LM_TIMESCALE", vd.m_linearMotorTimescale);
+            XWVector("LM_OFFSET", vd.m_linearMotorOffset);
+
+            //Angular properties
+            XWVector("AM_DIRECTION", vd.m_angularMotorDirection);
+            XWfloat("AM_TIMESCALE", vd.m_angularMotorTimescale);
+            XWfloat("AM_DECAY_TIMESCALE", vd.m_angularMotorDecayTimescale);
+            XWVector("AM_FRICTION_TIMESCALE", vd.m_angularFrictionTimescale);
+
+            //Deflection properties
+            XWfloat("AD_EFFICIENCY", vd.m_angularDeflectionEfficiency);
+            XWfloat("AD_TIMESCALE", vd.m_angularDeflectionTimescale);
+            XWfloat("LD_EFFICIENCY", vd.m_linearDeflectionEfficiency);
+            XWfloat("LD_TIMESCALE", vd.m_linearDeflectionTimescale);
+
+            //Banking properties
+            XWfloat("B_EFFICIENCY", vd.m_bankingEfficiency);
+            XWfloat("B_MIX", vd.m_bankingMix);
+            XWfloat("B_TIMESCALE", vd.m_bankingTimescale);
+
+            //Hover and Buoyancy properties
+            XWfloat("H_HEIGHT", vd.m_VhoverHeight);
+            XWfloat("H_EFFICIENCY", vd.m_VhoverEfficiency);
+            XWfloat("H_TIMESCALE", vd.m_VhoverTimescale);
+            XWfloat("VBUOYANCY", vd.m_VehicleBuoyancy);
+
+            //Attractor properties
+            XWfloat("VA_EFFICIENCY", vd.m_verticalAttractionEfficiency);
+            XWfloat("VA_TIMESCALE", vd.m_verticalAttractionTimescale);
+
+            XWQuat("REF_FRAME", vd.m_referenceFrame);
+
+            writer.WriteEndElement();
+            writer = null;
         }
     }
 }
