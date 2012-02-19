@@ -1736,6 +1736,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             return newPrim;
         }
 
+        private PhysicsActor AddPrim(String name, Vector3 position, PhysicsActor parent,
+                                     PrimitiveBaseShape pbs, uint localid, byte[] sdata)
+        {
+            Vector3 pos = position;
+
+            OdePrim newPrim;
+            lock (OdeLock)
+            {
+                newPrim = new OdePrim(name, this, pos, parent, pbs, ode, localid, sdata);               
+                lock (_prims)
+                    _prims.Add(newPrim);
+            }
+
+            return newPrim;
+        }
+
+
         public void addActivePrim(OdePrim activatePrim)
         {
             // adds active prim..   (ones that should be iterated over in collisions_optimized
@@ -1758,6 +1775,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                 mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
 
             result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical, localid);
+
+            return result;
+        }
+
+        public override PhysicsActor AddPrimShape(string primName, PhysicsActor parent, PrimitiveBaseShape pbs, Vector3 position,
+                                                  uint localid, byte[] sdata)
+        {
+            PhysicsActor result;
+
+            result = AddPrim(primName, position, parent,
+                                     pbs, localid, sdata);
 
             return result;
         }
@@ -3412,15 +3440,15 @@ namespace OpenSim.Region.Physics.OdePlugin
            
             int regionsize = (int) Constants.RegionSize;		// visible region size eg. 256(M)
             
-            int heightmapWidth = regionsize + 2;				// ODE map size 257 x 257 (Meters) (1 extra 
+            int heightmapWidth = regionsize + 2;				// ODE map size 258 x 258 (Meters) (1 extra each side)
             int heightmapHeight = regionsize + 2;
             
-            int heightmapWidthSamples = (int)regionsize + 2;		// Sample file size, 258 x 258 samples
-            int heightmapHeightSamples = (int)regionsize + 2;
+            int heightmapWidthSamples = (int)regionsize + 3;	// to have 258m we need 259 samples
+            int heightmapHeightSamples = (int)regionsize + 3;
             
             // Array of height samples for ODE 
             float[] _heightmap;
-            _heightmap = new float[(heightmapWidthSamples * heightmapHeightSamples)];	// loaded samples 258 x 258
+            _heightmap = new float[(heightmapWidthSamples * heightmapHeightSamples)];	// loaded samples 259 x 259
 
 			// Other ODE parameters
             const float scale = 1.0f;

@@ -310,6 +310,9 @@ namespace OpenSim.Region.Framework.Scenes
         private UUID m_collisionSound;
         private float m_collisionSoundVolume;
 
+
+        private SOPVehicle m_vehicle = null;
+
         #endregion Fields
 
 //        ~SceneObjectPart()
@@ -1506,7 +1509,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="rootObjectFlags"></param>
         /// <param name="VolumeDetectActive"></param>
-        public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive)
+//        public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive)
+		public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive, bool building)
         {
             if (!ParentGroup.Scene.CollidablePrims)
                 return;
@@ -1542,7 +1546,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 Shape,
                                 AbsolutePosition,
                                 Scale,
-                                RotationOffset,
+//                                RotationOffset,
+                                GetWorldRotation(),  // physics wants world rotation
                                 RigidBody,
                                 m_localId);
                     }
@@ -1557,8 +1562,16 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         PhysActor.SOPName = this.Name; // save object into the PhysActor so ODE internals know the joint/body info
                         PhysActor.SetMaterial(Material);
+
+                        // if root part apply vehicle
+                        if (m_vehicle != null && LocalId == ParentGroup.RootPart.LocalId)
+                            m_vehicle.SetVehicle(PhysActor);
+
                         DoPhysicsPropertyUpdate(RigidBody, true);
                         PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
+
+						if (!building)
+                            PhysActor.Building = false;
                     }
                 }
             }
@@ -1793,6 +1806,10 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (!isNew)
                                 ParentGroup.Scene.RemovePhysicalPrim(1);
+
+                            Velocity = new Vector3(0, 0, 0);
+                            Acceleration = new Vector3(0, 0, 0);
+                            AngularVelocity = new Vector3(0, 0, 0);
 
                             PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
                             PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
@@ -3163,17 +3180,61 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+
+        public int VehicleType
+        {
+            get
+            {
+                if (m_vehicle == null)
+                    return (int)Vehicle.TYPE_NONE;
+                else
+                    return (int)m_vehicle.Type;
+            }
+            set
+            {
+                SetVehicleType(value);
+            }
+        }
+
         public void SetVehicleType(int type)
         {
-            if (PhysActor != null)
+                m_vehicle = null;
+                if (type == (int)Vehicle.TYPE_NONE)
+                {
+                    if (_parentID ==0 && PhysActor != null)
+                        PhysActor.VehicleType = (int)Vehicle.TYPE_NONE;
+                    return;
+                }
+                m_vehicle = new SOPVehicle();
+                m_vehicle.ProcessTypeChange((Vehicle)type);
+                {
+                    if (_parentID ==0 && PhysActor != null)
+                        PhysActor.VehicleType = type;
+                    return;
+                }
+        }
+
+        public void SetVehicleFlags(int param, bool remove)
+        {
+            if (m_vehicle == null)
+                return;
+
+            m_vehicle.ProcessVehicleFlags(param, remove);
+
+            if (_parentID ==0 && PhysActor != null)
             {
-                PhysActor.VehicleType = type;
+                PhysActor.VehicleFlags(param, remove);
             }
         }
 
         public void SetVehicleFloatParam(int param, float value)
         {
-            if (PhysActor != null)
+            if (m_vehicle == null)
+                return;
+
+            m_vehicle.ProcessFloatVehicleParam((Vehicle)param, value);
+
+            if (_parentID == 0 && PhysActor != null)
             {
                 PhysActor.VehicleFloatParam(param, value);
             }
@@ -3181,7 +3242,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetVehicleVectorParam(int param, Vector3 value)
         {
-            if (PhysActor != null)
+            if (m_vehicle == null)
+                return;
+
+            m_vehicle.ProcessVectorVehicleParam((Vehicle)param, value);
+
+            if (_parentID == 0 && PhysActor != null)
             {
                 PhysActor.VehicleVectorParam(param, value);
             }
@@ -3189,7 +3255,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetVehicleRotationParam(int param, Quaternion rotation)
         {
-            if (PhysActor != null)
+            if (m_vehicle == null)
+                return;
+
+            m_vehicle.ProcessRotationVehicleParam((Vehicle)param, rotation);
+
+            if (_parentID == 0 && PhysActor != null)
             {
                 PhysActor.VehicleRotationParam(param, rotation);
             }
@@ -3376,13 +3447,6 @@ namespace OpenSim.Region.Framework.Scenes
             hasProfileCut = hasDimple; // is it the same thing?
         }
         
-        public void SetVehicleFlags(int param, bool remove)
-        {
-            if (PhysActor != null)
-            {
-                PhysActor.VehicleFlags(param, remove);
-            }
-        }
 
         public void SetGroup(UUID groupID, IClientAPI client)
         {
@@ -4270,7 +4334,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="SetTemporary"></param>
         /// <param name="SetPhantom"></param>
         /// <param name="SetVD"></param>
-        public void UpdatePrimFlags(bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVD)
+//        public void UpdatePrimFlags(bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVD)
+        public void UpdatePrimFlags(bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVD, bool building)
         {
             bool wasUsingPhysics = ((Flags & PrimFlags.Physics) != 0);
             bool wasTemporary = ((Flags & PrimFlags.TemporaryOnRez) != 0);
@@ -4288,6 +4353,9 @@ namespace OpenSim.Region.Framework.Scenes
             // that...
             // ... if VD is changed, all others are not.
             // ... if one of the others is changed, VD is not.
+           // do this first
+            if (building && PhysActor != null && PhysActor.Building != building)
+                PhysActor.Building = building;
             if (SetVD) // VD is active, special logic applies
             {
                 // State machine logic for VolumeDetect
@@ -4369,11 +4437,17 @@ namespace OpenSim.Region.Framework.Scenes
                         Shape,
                         AbsolutePosition,
                         Scale,
-                        RotationOffset,
+//                        RotationOffset,
+                        GetWorldRotation(), //physics wants world rotation like all other functions send
                         UsePhysics,
                         m_localId);
 
                     PhysActor.SetMaterial(Material);
+
+                    // if root part apply vehicle
+                    if (m_vehicle != null && LocalId == ParentGroup.RootPart.LocalId)
+                        m_vehicle.SetVehicle(PhysActor);
+
                     DoPhysicsPropertyUpdate(UsePhysics, true);
 
                     if (!ParentGroup.IsDeleted)
@@ -4449,6 +4523,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             //            m_log.Debug("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
 
+           // and last in case we have a new actor and not building
+            if (PhysActor != null && PhysActor.Building != building)
+                PhysActor.Building = building;
             if (ParentGroup != null)
             {
                 ParentGroup.HasGroupChanged = true;

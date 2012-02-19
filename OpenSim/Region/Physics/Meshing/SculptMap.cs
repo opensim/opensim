@@ -58,28 +58,24 @@ namespace PrimMesher
             if (bmW == 0 || bmH == 0)
                 throw new Exception("SculptMap: bitmap has no data");
 
-            int numLodPixels = lod * 2 * lod * 2;  // (32 * 2)^2  = 64^2 pixels for default sculpt map image
+            int numLodPixels = lod * lod;  // (32 * 2)^2  = 64^2 pixels for default sculpt map image
 
+            bool smallMap = bmW * bmH <= numLodPixels;
             bool needsScaling = false;
-
-            bool smallMap = bmW * bmH <= lod * lod;
 
             width = bmW;
             height = bmH;
-            while (width * height > numLodPixels)
+            while (width * height > numLodPixels * 4)
             {
                 width >>= 1;
                 height >>= 1;
                 needsScaling = true;
             }
 
-
-
             try
             {
                 if (needsScaling)
-                    bm = ScaleImage(bm, width, height,
-                        System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor);
+                    bm = ScaleImage(bm, width, height);
             }
 
             catch (Exception e)
@@ -87,7 +83,7 @@ namespace PrimMesher
                 throw new Exception("Exception in ScaleImage(): e: " + e.ToString());
             }
 
-            if (width * height > lod * lod)
+            if (width * height > numLodPixels)
             {
                 width >>= 1;
                 height >>= 1;
@@ -144,15 +140,17 @@ namespace PrimMesher
             int rowNdx, colNdx;
             int smNdx = 0;
 
+
             for (rowNdx = 0; rowNdx < numRows; rowNdx++)
             {
                 List<Coord> row = new List<Coord>(numCols);
                 for (colNdx = 0; colNdx < numCols; colNdx++)
                 {
+
                     if (mirror)
-                        row.Add(new Coord(-(redBytes[smNdx] * pixScale - 0.5f), (greenBytes[smNdx] * pixScale - 0.5f), blueBytes[smNdx] * pixScale - 0.5f));
+                        row.Add(new Coord(-((float)redBytes[smNdx] * pixScale - 0.5f), ((float)greenBytes[smNdx] * pixScale - 0.5f), (float)blueBytes[smNdx] * pixScale - 0.5f));
                     else
-                        row.Add(new Coord(redBytes[smNdx] * pixScale - 0.5f, greenBytes[smNdx] * pixScale - 0.5f, blueBytes[smNdx] * pixScale - 0.5f));
+                        row.Add(new Coord((float)redBytes[smNdx] * pixScale - 0.5f, (float)greenBytes[smNdx] * pixScale - 0.5f, (float)blueBytes[smNdx] * pixScale - 0.5f));
 
                     ++smNdx;
                 }
@@ -161,23 +159,39 @@ namespace PrimMesher
             return rows;
         }
 
-        private Bitmap ScaleImage(Bitmap srcImage, int destWidth, int destHeight,
-                System.Drawing.Drawing2D.InterpolationMode interpMode)
+        private Bitmap ScaleImage(Bitmap srcImage, int destWidth, int destHeight)
         {
-            Bitmap scaledImage = new Bitmap(srcImage, destWidth, destHeight);
-            scaledImage.SetResolution(96.0f, 96.0f);
 
-            Graphics grPhoto = Graphics.FromImage(scaledImage);
-            grPhoto.InterpolationMode = interpMode;
+            Bitmap scaledImage = new Bitmap(destWidth, destHeight, PixelFormat.Format24bppRgb);
+            
+            Color c;
+            float xscale = srcImage.Width / destWidth;
+            float yscale = srcImage.Height / destHeight;
+            
+            float sy = 0.5f;
+            for (int y = 0; y < destHeight; y++)
+            {
+                float sx = 0.5f;
+                for (int x = 0; x < destWidth; x++)
+                {
+                    try
+                    {
+                        c = srcImage.GetPixel((int)(sx), (int)(sy));
+                        scaledImage.SetPixel(x, y, Color.FromArgb(c.R, c.G, c.B));
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                    }
 
-            grPhoto.DrawImage(srcImage,
-                new Rectangle(0, 0, destWidth, destHeight),
-                new Rectangle(0, 0, srcImage.Width, srcImage.Height),
-                GraphicsUnit.Pixel);
-
-            grPhoto.Dispose();
+                    sx += xscale;
+                }
+                sy += yscale;
+            }
+            srcImage.Dispose();
             return scaledImage;
         }
+
+    }        
+    
     }
-}
 #endif

@@ -22,11 +22,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Revised March 5th 2010 by Kitto Flora. ODEDynamics.cs 
+ * Revised March 5th 2010 by Kitto Flora. ODEDynamics.cs
+ * Ubit 2012
  * rolled into ODEPrim.cs
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -36,7 +38,6 @@ using OpenMetaverse;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
-
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
@@ -48,6 +49,11 @@ namespace OpenSim.Region.Physics.OdePlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public class SerialControl
+        {
+            public object alock = new object();
+            public byte[] data = new byte[0];
+        }
         private Vector3 _position;
         private Vector3 _velocity;
         private Vector3 _torque;
@@ -80,12 +86,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float PID_D = 35f;
         private float PID_G = 25f;
         private bool m_usePID = false;
-        
+
         private Quaternion m_APIDTarget = new Quaternion();
         private float m_APIDStrength = 0.5f;
         private float m_APIDDamping = 0.5f;
         private bool m_useAPID = false;
-		private float m_APIDdamper = 1.0f;
+        private float m_APIDdamper = 1.0f;
 
         // These next 7 params apply to llSetHoverHeight(float height, integer water, float tau),
         // do not confuse with VEHICLE HOVER
@@ -112,7 +118,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_taintPhysics;
         private bool m_collidesLand = true;
         private bool m_collidesWater;
-        public bool m_returnCollisions;
+        //        public bool m_returnCollisions;
 
         // Default we're a Geometry
         private CollisionCategories m_collisionCategories = (CollisionCategories.Geom);
@@ -144,7 +150,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private OdeScene _parent_scene;
         public IntPtr m_targetSpace = IntPtr.Zero;
         public IntPtr prim_geom;
-//        public IntPtr prev_geom;
+        //        public IntPtr prev_geom;
         public IntPtr _triMeshData;
 
         private IntPtr _linkJointGroup = IntPtr.Zero;
@@ -163,8 +169,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private int throttleCounter;
         public int m_interpenetrationcount;
         public float m_collisionscore;
-        public int m_roundsUnderMotionThreshold;
-        private int m_crossingfailures;
+        //        public int m_roundsUnderMotionThreshold;
+        //        private int m_crossingfailures;
 
         public bool m_outofBounds;
         private float m_density = 10.000006836f; // Aluminum g/cm3;
@@ -185,75 +191,525 @@ namespace OpenSim.Region.Physics.OdePlugin
         public volatile bool childPrim;
 
         internal int m_material = (int)Material.Wood;
-        
-        private int frcount = 0;										// Used to limit dynamics debug output to 
-        private int revcount = 0;										// Reverse motion while > 0
 
         private IntPtr m_body = IntPtr.Zero;
-        
+
         // Vehicle properties ============================================================================================
         private Vehicle m_type = Vehicle.TYPE_NONE;						// If a 'VEHICLE', and what kind
         // private Quaternion m_referenceFrame = Quaternion.Identity;	// Axis modifier
-        private VehicleFlag m_flags = (VehicleFlag) 0;					// Bit settings:
-																		// HOVER_TERRAIN_ONLY
-																		// HOVER_GLOBAL_HEIGHT
-																		// NO_DEFLECTION_UP
-																		// HOVER_WATER_ONLY
-																		// HOVER_UP_ONLY
-																		// LIMIT_MOTOR_UP
-																		// LIMIT_ROLL_ONLY
-        
+        private VehicleFlag m_flags = (VehicleFlag)0;					// Bit settings:
+        // HOVER_TERRAIN_ONLY
+        // HOVER_GLOBAL_HEIGHT
+        // NO_DEFLECTION_UP
+        // HOVER_WATER_ONLY
+        // HOVER_UP_ONLY
+        // LIMIT_MOTOR_UP
+        // LIMIT_ROLL_ONLY
+
         // Linear properties
         private Vector3 m_linearMotorDirection = Vector3.Zero;			// (was m_linearMotorDirectionLASTSET) the (local) Velocity 
-        																			//requested by LSL
-        private float   m_linearMotorTimescale = 0;						// Motor Attack rate set by LSL
-        private float   m_linearMotorDecayTimescale = 0;				// Motor Decay rate set by LSL
+        //requested by LSL
+        private float m_linearMotorTimescale = 0;						// Motor Attack rate set by LSL
+        private float m_linearMotorDecayTimescale = 0;				// Motor Decay rate set by LSL
         private Vector3 m_linearFrictionTimescale = Vector3.Zero;		// General Friction set by LSL
-        
-		private Vector3 m_lLinMotorDVel = Vector3.Zero;					// decayed motor
-		private Vector3 m_lLinObjectVel = Vector3.Zero;					// local frame object velocity
-		private Vector3 m_wLinObjectVel = Vector3.Zero;					// world frame object velocity
-        
+
+        private Vector3 m_lLinMotorDVel = Vector3.Zero;					// decayed motor
+        private Vector3 m_lLinObjectVel = Vector3.Zero;					// local frame object velocity
+        private Vector3 m_wLinObjectVel = Vector3.Zero;					// world frame object velocity
+
         //Angular properties
         private Vector3 m_angularMotorDirection = Vector3.Zero;			// angular velocity requested by LSL motor 
-        
+
         private float m_angularMotorTimescale = 0;						// motor angular Attack rate set by LSL
         private float m_angularMotorDecayTimescale = 0;					// motor angular Decay rate set by LSL
         private Vector3 m_angularFrictionTimescale = Vector3.Zero;		// body angular Friction set by LSL
 
         private Vector3 m_angularMotorDVel = Vector3.Zero;				// decayed angular motor
-//        private Vector3 m_angObjectVel = Vector3.Zero;					// current body angular velocity
+        //        private Vector3 m_angObjectVel = Vector3.Zero;					// current body angular velocity
         private Vector3 m_lastAngularVelocity = Vector3.Zero;			// what was last applied to body
 
-		//Deflection properties        
+        //Deflection properties        
         // private float m_angularDeflectionEfficiency = 0;
         // private float m_angularDeflectionTimescale = 0;
         // private float m_linearDeflectionEfficiency = 0;
         // private float m_linearDeflectionTimescale = 0;
-        
+
         //Banking properties
         // private float m_bankingEfficiency = 0;
         // private float m_bankingMix = 0;
         // private float m_bankingTimescale = 0;
-        
+
         //Hover and Buoyancy properties
         private float m_VhoverHeight = 0f;
-//        private float m_VhoverEfficiency = 0f;
+        //        private float m_VhoverEfficiency = 0f;
         private float m_VhoverTimescale = 0f;
         private float m_VhoverTargetHeight = -1.0f;     // if <0 then no hover, else its the current target height 
         private float m_VehicleBuoyancy = 0f;			// Set by VEHICLE_BUOYANCY, for a vehicle.
-        			// Modifies gravity. Slider between -1 (double-gravity) and 1 (full anti-gravity) 
-        			// KF: So far I have found no good method to combine a script-requested .Z velocity and gravity.
-        			// Therefore only m_VehicleBuoyancy=1 (0g) will use the script-requested .Z velocity. 
-        												
-		//Attractor properties        												
-        private float m_verticalAttractionEfficiency = 1.0f;		// damped
+        // Modifies gravity. Slider between -1 (double-gravity) and 1 (full anti-gravity) 
+        // KF: So far I have found no good method to combine a script-requested .Z velocity and gravity.
+        // Therefore only m_VehicleBuoyancy=1 (0g) will use the script-requested .Z velocity. 
+
+        //Attractor properties        												
+        private float m_verticalAttractionEfficiency = 1.0f;		// damped     
         private float m_verticalAttractionTimescale = 500f;			// Timescale > 300  means no vert attractor.
-        
-        
+
+        SerialControl m_taintserial = null;
+        object m_taintvehicledata = null;
+
+        public void DoSetVehicle()
+        {
+            VehicleData vd = (VehicleData)m_taintvehicledata;
+
+        m_type = vd.m_type;
+        m_flags = vd.m_flags;
+
+        // Linear properties
+        m_linearMotorDirection = vd.m_linearMotorDirection;
+        m_linearFrictionTimescale = vd.m_linearFrictionTimescale;
+        m_linearMotorDecayTimescale = vd.m_linearMotorDecayTimescale;
+        m_linearMotorTimescale = vd.m_linearMotorTimescale;
+//        m_linearMotorOffset = vd.m_linearMotorOffset;
+
+        //Angular properties
+        m_angularMotorDirection = vd.m_angularMotorDirection;
+        m_angularMotorTimescale = vd.m_angularMotorTimescale;
+        m_angularMotorDecayTimescale = vd.m_angularMotorDecayTimescale;
+        m_angularFrictionTimescale = vd.m_angularFrictionTimescale;
+
+        //Deflection properties
+//        m_angularDeflectionEfficiency = vd.m_angularDeflectionEfficiency;
+//        m_angularDeflectionTimescale = vd.m_angularDeflectionTimescale;
+//        m_linearDeflectionEfficiency = vd.m_linearDeflectionEfficiency;
+//        m_linearDeflectionTimescale = vd.m_linearDeflectionTimescale;
+
+        //Banking properties
+//        m_bankingEfficiency = vd.m_bankingEfficiency;
+//        m_bankingMix = vd.m_bankingMix;
+//        m_bankingTimescale = vd.m_bankingTimescale;
+
+        //Hover and Buoyancy properties
+        m_VhoverHeight = vd.m_VhoverHeight;
+//        m_VhoverEfficiency = vd.m_VhoverEfficiency;
+        m_VhoverTimescale = vd.m_VhoverTimescale;
+        m_VehicleBuoyancy = vd.m_VehicleBuoyancy;
+
+        //Attractor properties
+        m_verticalAttractionEfficiency = vd.m_verticalAttractionEfficiency;
+        m_verticalAttractionTimescale = vd.m_verticalAttractionTimescale;
+
+        // Axis
+//        m_referenceFrame = vd.m_referenceFrame;
 
 
+            m_taintvehicledata = null;
+        }
 
+        public override void SetVehicle(object vdata)
+        {
+            m_taintvehicledata = vdata;
+            _parent_scene.AddPhysicsActorTaint(this);
+        }
+
+        public override byte[] Serialize(bool PhysIsRunning)
+        {
+            SerialControl sc = new SerialControl();
+
+            lock (sc.alock)
+            {
+                if (PhysIsRunning)
+                {
+                    m_taintserial = sc;
+                
+                    if (!Monitor.Wait(sc.alock, 1000))
+                    {
+                        m_log.Error("[chOde] prim data serialization timed out");
+                        m_taintserial = null;
+                        return new byte[0];
+                    }
+                }
+                else
+                    DoSerialize(sc);
+            }
+
+            return sc.data;
+        }
+
+        public void DoSerialize(SerialControl sc)
+        {
+            wstreamer st = new wstreamer();
+            Vector3 vtmp;
+
+            ushort version = 2;
+            if (!BitConverter.IsLittleEndian)
+                version |= 1;
+            st.Wushort(version); //version lower bit codes endian type for future use
+
+            // compact booleans in a ushort
+            ushort flags = 0;
+
+            if (m_isphysical) // this should be true for now
+                flags |= 1;
+            if (m_isSelected)
+                flags |= 2;
+            if (m_isVolumeDetect)
+                flags |= 4;
+            if (m_disabled)
+                flags |= 8;
+            if (m_collidesWater)
+                flags |= 16;
+            if (m_collidesLand)
+                flags |= 32;
+            if (m_usePID)
+                flags |= 64;
+            if (m_useAPID)
+                flags |= 128;
+            if (m_useHoverPID)
+                flags |= 256;
+            if (m_throttleUpdates)
+                flags |= 512;
+
+            st.Wushort(flags);
+
+            st.Wvector3(_size);
+            st.Wint(m_material);
+            st.Wfloat(m_density);
+            st.Wfloat(0); // future gravity mod V3
+            st.Wfloat(0); // future friction V3
+            st.Wfloat(0); // future bounce V3
+
+//            st.Wuint((uint)m_collisionCategories);
+//            st.Wuint((uint)m_collisionFlags);
+
+            if (_parent == null)
+            {
+                st.Wvector3(_position); // ??
+                st.Wquat(_orientation);
+            }
+            else // for childs save offsets
+            {
+                Quaternion to;
+                Quaternion ipo = Quaternion.Inverse(_parent.Orientation);
+
+                if (m_isphysical && prim_geom != IntPtr.Zero)
+                {
+                    d.Vector3 dvt;
+                    d.GeomCopyPosition(prim_geom, out dvt);
+
+                    vtmp.X = dvt.X;
+                    vtmp.Y = dvt.Y;
+                    vtmp.Z = dvt.Z;
+
+                    d.Quaternion dqt;
+                    d.GeomCopyQuaternion(prim_geom, out dqt);
+
+                    to.X = dqt.X;
+                    to.Y = dqt.Y;
+                    to.Z = dqt.Z;
+                    to.W = dqt.W; // rotation in world
+                }
+                else
+                {
+                    vtmp = _position;
+                    to = _orientation;
+                }
+
+                vtmp -= _parent.Position; // offset in world
+                vtmp *= ipo; // offset in local
+                st.Wvector3(vtmp);
+
+                ipo *= to; // own rotation
+                st.Wquat(ipo);
+            }
+
+            st.Wvector3(_velocity);
+            st.Wvector3(m_rotationalVelocity);
+            st.Wvector3(_acceleration);
+            st.Wvector3(m_rotateEnable);
+
+            vtmp = Vector3.Zero;
+            for (int i = 0; i < m_forcelist.Count; i++)
+                {
+
+                    vtmp += (m_forcelist[i] * 100);
+                }
+
+            st.Wvector3(vtmp); // force acc
+
+            vtmp = Vector3.Zero;
+            for (int i = 0; i < m_angularforcelist.Count; i++)
+            {
+                vtmp += (m_angularforcelist[i] * 100);
+            }
+
+            st.Wvector3(vtmp); // angular force acc
+
+            st.Wvector3(m_PIDTarget);
+            st.Wfloat(m_PIDTau);
+            st.Wfloat(PID_D);
+            st.Wfloat(PID_G);
+            st.Wquat(m_APIDTarget);
+            st.Wfloat(m_APIDStrength);
+            st.Wfloat(m_APIDDamping);
+            st.Wfloat(m_APIDdamper);
+
+            st.Wint((int)m_PIDHoverType);
+            st.Wfloat(m_PIDHoverHeight);
+            st.Wfloat(m_PIDHoverTau);
+            st.Wfloat(m_targetHoverHeight);
+
+            st.Wfloat(m_groundHeight);
+            st.Wfloat(m_waterHeight);
+
+            st.Wfloat(m_buoyancy);
+
+            // this must be last since type none ends stream
+            if (m_type == Vehicle.TYPE_NONE)
+                st.Wint((int)Vehicle.TYPE_NONE);
+            else
+            {
+                st.Wint((int)m_type);
+
+                st.Wquat(Quaternion.Identity); //m_referenceFrame
+
+                st.Wint((int)m_flags);
+
+                st.Wvector3(m_linearMotorDirection);
+                st.Wfloat(
+                    (float)Math.Sqrt(m_lLinMotorDVel.LengthSquared() / m_linearMotorDirection.LengthSquared()));
+
+                st.Wvector3(m_linearFrictionTimescale);
+                st.Wfloat(m_linearMotorDecayTimescale);
+                st.Wfloat(m_linearMotorTimescale);
+                st.Wvector3(new Vector3(0, 0, 0)); //m_linearMotorOffset);
+
+                st.Wvector3(m_angularMotorDirection);
+                st.Wfloat((float)Math.Sqrt(m_angularMotorDVel.LengthSquared() / m_angularMotorDirection.LengthSquared()));
+
+                st.Wvector3(m_angularFrictionTimescale);
+                st.Wfloat(m_angularMotorDecayTimescale);
+                st.Wfloat(m_angularMotorTimescale);
+
+                st.Wfloat(0); //m_linearDeflectionEfficiency);
+                st.Wfloat(1000); //m_linearDeflectionTimescale);
+
+                st.Wfloat(0); //m_angularDeflectionEfficiency);
+                st.Wfloat(120);   //m_angularDeflectionTimescale);
+
+                st.Wfloat(0); // m_bankingEfficiency);
+                st.Wfloat(0); //m_bankingMix);
+                st.Wfloat(1000);  //m_bankingTimescale);
+
+                st.Wfloat(m_VhoverHeight);
+                st.Wfloat(0.5f);   //m_VhoverEfficiency);
+                st.Wfloat(m_VhoverTimescale);
+
+                st.Wfloat(m_VehicleBuoyancy);
+
+                st.Wfloat(m_verticalAttractionEfficiency);
+                st.Wfloat(m_verticalAttractionTimescale);
+            }
+            sc.data = st.close();
+            m_taintserial = null;
+            Monitor.PulseAll(sc.alock);
+        }
+
+        public bool DeSerialize(byte[] data)
+        {
+            rstreamer st = new rstreamer(data);
+
+            int version =st.Rushort(); //version
+
+            // merge booleans in a ushort
+            ushort flags = st.Rushort();
+            if ((flags & 1) != 0)
+                m_isphysical = true;
+            if ((flags & 2) != 0)
+                m_taintselected = true;
+            if ((flags & 4) != 0)
+                m_isVolumeDetect = true;
+            if ((flags & 8) != 0)
+                m_taintdisable = true;
+            if ((flags & 16) != 0)
+                m_taintCollidesWater = true;
+            if ((flags & 32) != 0)
+                m_collidesLand = true;
+            if ((flags & 64) != 0)
+                m_usePID = true;
+            if ((flags & 128) != 0)
+                m_useAPID = true;
+            if ((flags & 256) != 0)
+                m_useHoverPID = true;
+            if ((flags & 512) != 0)
+                m_throttleUpdates = true;
+
+            _size = st.Rvector3();
+            m_taintsize = _size;
+
+            m_material= st.Rint();
+            m_density = st.Rfloat();
+            st.Rfloat(); // future gravity mod V3
+            st.Rfloat(); // future friction V3
+            st.Rfloat(); // future bounce V3
+
+//            m_collisionCategories = (CollisionCategories)st.Ruint();
+//            m_collisionFlags = (CollisionCategories) st.Ruint();
+
+            if (m_taintparent == null)
+            {
+                st.Rvector3(); // ignore old position sop/sog as to tell the new one
+                m_taintrot = st.Rquat(); // 
+                _orientation = m_taintrot;
+            }
+            else
+            {
+                m_taintrot = _parent.Orientation;
+                m_taintposition = st.Rvector3(); // ??
+                _position = m_taintposition;
+
+                m_taintposition *= m_taintrot;
+                m_taintposition += _parent.Position;
+
+                m_taintrot *= st.Rquat(); // 
+                _orientation = m_taintrot;
+            }
+            
+            m_taintVelocity = st.Rvector3();
+            m_rotationalVelocity = st.Rvector3();
+            
+            _acceleration = st.Rvector3();
+            m_rotateEnableRequest = st.Rvector3();
+            m_rotateEnableUpdate = true;
+
+            Vector3 vtmp;
+
+            vtmp = st.Rvector3(); // forces acc
+            m_forcelist.Add(vtmp);
+            m_taintforce = true;
+
+            vtmp = st.Rvector3(); // angular forces acc
+            m_angularforcelist.Add(vtmp);
+            m_taintaddangularforce = true;
+
+            m_PIDTarget = st.Rvector3();
+            m_PIDTau = st.Rfloat();
+            PID_D = st.Rfloat();
+            PID_G = st.Rfloat();
+
+            m_APIDTarget = st.Rquat();
+            m_APIDStrength = st.Rfloat();
+            m_APIDDamping = st.Rfloat();
+            m_APIDdamper = st.Rfloat();
+
+            m_PIDHoverType = (PIDHoverType) st.Rint();
+            m_PIDHoverHeight = st.Rfloat();
+            m_PIDHoverTau = st.Rfloat();
+            m_targetHoverHeight = st.Rfloat();
+
+            m_groundHeight = st.Rfloat();
+            m_waterHeight = st.Rfloat();
+
+            m_buoyancy = st.Rfloat();
+
+
+            // this must be last since type none ends stream
+
+            m_type = (Vehicle) st.Rint();
+
+            if (m_type != Vehicle.TYPE_NONE)
+            {
+                float ftmp;
+
+                st.Rquat(); //m_referenceFrame
+
+                m_flags = (VehicleFlag) st.Rint();
+
+                m_linearMotorDirection = st.Rvector3();
+
+                ftmp = st.Rfloat();
+                m_lLinMotorDVel = m_linearMotorDirection * ftmp;
+
+                m_linearFrictionTimescale = st.Rvector3();
+                m_linearMotorDecayTimescale = st.Rfloat();
+                m_linearMotorTimescale = st.Rfloat();
+                st.Rvector3(); //m_linearMotorOffset);
+
+                m_angularMotorDirection = st.Rvector3();
+                ftmp = st.Rfloat();
+                m_angularMotorDVel = m_angularMotorDirection * ftmp;
+
+                m_angularFrictionTimescale = st.Rvector3();
+                m_angularMotorDecayTimescale = st.Rfloat();
+                m_angularMotorTimescale = st.Rfloat();
+
+                st.Rfloat(); //m_linearDeflectionEfficiency);
+                st.Rfloat(); //m_linearDeflectionTimescale);
+
+                st.Rfloat(); //m_angularDeflectionEfficiency);
+                st.Rfloat();   //m_angularDeflectionTimescale);
+
+                st.Rfloat(); // m_bankingEfficiency);
+                st.Rfloat(); //m_bankingMix);
+                st.Rfloat();  //m_bankingTimescale);
+
+                m_VhoverHeight = st.Rfloat();
+                st.Rfloat();   //m_VhoverEfficiency);
+                m_VhoverTimescale = st.Rfloat();
+
+                m_VehicleBuoyancy = st.Rfloat();
+
+                m_verticalAttractionEfficiency = st.Rfloat();
+                m_verticalAttractionTimescale = st.Rfloat();
+            }
+            st.close();
+            return true;
+        }
+
+        public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, PhysicsActor parent,
+                       PrimitiveBaseShape pbs, CollisionLocker dode, uint localid, byte[] sdata)
+        {
+            m_localID = localid;
+            ode = dode;
+
+            if (parent == null)
+            {
+                m_taintparent = null;
+
+                if (!pos.IsFinite())
+                {
+                    pos = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f),
+                        parent_scene.GetTerrainHeightAtXY(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f)) + 0.5f);
+                    m_log.Warn("[PHYSICS]: Got nonFinite Object create Position");
+                }
+
+                _position = pos;
+                m_taintposition = pos;
+            }
+            else
+                m_taintparent = parent;
+
+            body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
+
+            prim_geom = IntPtr.Zero;
+
+            _mesh = null;
+            m_meshfailed = false;
+            _pbs = pbs;
+
+            _parent_scene = parent_scene;
+            m_targetSpace = (IntPtr)0;
+
+            if(sdata != null && sdata.Length > 1)
+                DeSerialize(sdata);
+
+            if (m_isphysical)
+                m_targetSpace = _parent_scene.space;
+
+            m_primName = primName;
+            m_taintserial = null;
+            m_taintadd = true;
+            _parent_scene.AddPhysicsActorTaint(this);
+            //  don't do .add() here; old geoms get recycled with the same hash
+        }
 
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode, uint localid)
@@ -266,7 +722,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     parent_scene.GetTerrainHeightAtXY(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f)) + 0.5f);
                 m_log.Warn("[PHYSICS]: Got nonFinite Object create Position");
             }
-            
+
             _position = pos;
             m_taintposition = pos;
             PID_D = parent_scene.bodyPIDD;
@@ -275,9 +731,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             // m_tensor = parent_scene.bodyMotorJointMaxforceTensor;
             body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
 
-
             prim_geom = IntPtr.Zero;
-//            prev_geom = IntPtr.Zero;
+            //            prev_geom = IntPtr.Zero;
 
             if (!pos.IsFinite())
             {
@@ -306,7 +761,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _parent_scene = parent_scene;
             m_targetSpace = (IntPtr)0;
 
-//            if (pos.Z < 0)
+            //            if (pos.Z < 0)
             if (pos.Z < parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y))
                 m_isphysical = false;
             else
@@ -317,6 +772,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_isphysical)
                     m_targetSpace = _parent_scene.space;
             }
+
+            m_taintserial = null;
             m_primName = primName;
             m_taintadd = true;
             _parent_scene.AddPhysicsActorTaint(this);
@@ -325,7 +782,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override int PhysicsActorType
         {
-            get { return (int) ActorTypes.Prim; }
+            get { return (int)ActorTypes.Prim; }
             set { return; }
         }
 
@@ -337,9 +794,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override uint LocalID
         {
-            set {
+            set
+            {
                 //m_log.Info("[PHYSICS]: Setting TrackerID: " + value);
-                m_localID = value; }
+                m_localID = value;
+            }
         }
 
         public override bool Grabbed
@@ -349,9 +808,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override bool Selected
         {
-            set {
-        
-//Console.WriteLine("Sel {0}  {1}  {2}", m_primName, value,   m_isphysical);        
+            set
+            {
+
+                //Console.WriteLine("Sel {0}  {1}  {2}", m_primName, value,   m_isphysical);        
                 // This only makes the object not collidable if the object
                 // is physical or the object is modified somehow *IN THE FUTURE*
                 // without this, if an avatar selects prim, they can walk right
@@ -367,21 +827,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_taintselected = value;
                     m_isSelected = value;
                 }
-                if(m_isSelected) disableBodySoft();         
+                if (m_isSelected) disableBodySoft();
             }
         }
 
         public override bool IsPhysical
         {
             get { return m_isphysical; }
-            set 
-            { 
-                  m_isphysical = value;
-                  if (!m_isphysical)
-                  {		// Zero the remembered last velocity
-                   		m_lastVelocity = Vector3.Zero;
-                   	    if (m_type != Vehicle.TYPE_NONE) Halt();
-                  }
+            set
+            {
+                m_isphysical = value;
+                if (!m_isphysical)
+                {		// Zero the remembered last velocity
+                    m_lastVelocity = Vector3.Zero;
+                    if (m_type != Vehicle.TYPE_NONE) Halt();
+                }
             }
         }
 
@@ -430,7 +890,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get { return _position; }
 
-            set { _position = value;
+            set
+            {
+                _position = value;
                 //m_log.Info("[PHYSICS]: " + _position.ToString());
             }
         }
@@ -481,29 +943,29 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void VehicleFloatParam(int param, float value)
         {
-            ProcessFloatVehicleParam((Vehicle) param, value);
+            ProcessFloatVehicleParam((Vehicle)param, value);
         }
 
         public override void VehicleVectorParam(int param, Vector3 value)
         {
-            ProcessVectorVehicleParam((Vehicle) param, value);
+            ProcessVectorVehicleParam((Vehicle)param, value);
         }
 
         public override void VehicleRotationParam(int param, Quaternion rotation)
         {
-            ProcessRotationVehicleParam((Vehicle) param, rotation);
+            ProcessRotationVehicleParam((Vehicle)param, rotation);
         }
 
         public override void VehicleFlags(int param, bool remove)
         {
             ProcessVehicleFlags(param, remove);
         }
-        
+
         public override void SetVolumeDetect(int param)
         {
             lock (_parent_scene.OdeLock)
             {
-                m_isVolumeDetect = (param!=0);
+                m_isVolumeDetect = (param != 0);
             }
         }
 
@@ -536,9 +998,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     return Vector3.Zero;
 
                 Vector3 returnVelocity = Vector3.Zero;
-                returnVelocity.X = (m_lastVelocity.X + _velocity.X)/2;
-                returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y)/2;
-                returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z)/2;
+                returnVelocity.X = (m_lastVelocity.X + _velocity.X) / 2;
+                returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y) / 2;
+                returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z) / 2;
                 return returnVelocity;
             }
             set
@@ -546,8 +1008,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (value.IsFinite())
                 {
                     _velocity = value;
-                    if (_velocity.ApproxEquals(Vector3.Zero,0.001f))
-            			_acceleration = Vector3.Zero;	
+                    if (_velocity.ApproxEquals(Vector3.Zero, 0.001f))
+                        _acceleration = Vector3.Zero;
 
                     m_taintVelocity = value;
                     _parent_scene.AddPhysicsActorTaint(this);
@@ -604,17 +1066,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (QuaternionIsFinite(value))
                 {
                     _orientation = value;
-				}
+                }
                 else
                     m_log.Warn("[PHYSICS]: Got NaN quaternion Orientation from Scene in Object");
 
             }
         }
-        
-        
-                public override bool FloatOnWater
+
+
+        public override bool FloatOnWater
         {
-            set {
+            set
+            {
                 m_taintCollidesWater = value;
                 _parent_scene.AddPhysicsActorTaint(this);
             }
@@ -624,8 +1087,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
         }
 
-        public override Vector3 PIDTarget 
-        { 
+        public override Vector3 PIDTarget
+        {
             set
             {
                 if (value.IsFinite())
@@ -634,16 +1097,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                     m_log.Warn("[PHYSICS]: Got NaN PIDTarget from Scene on Object");
-            } 
+            }
         }
         public override bool PIDActive { set { m_usePID = value; } }
         public override float PIDTau { set { m_PIDTau = value; } }
-        
-		// For RotLookAt        
-        public  override Quaternion APIDTarget { set { m_APIDTarget = value; } }
-        public  override bool APIDActive { set { m_useAPID = value; } }
-        public  override float APIDStrength { set { m_APIDStrength = value; } }
-        public  override float APIDDamping { set { m_APIDDamping = value; } }
+
+        // For RotLookAt        
+        public override Quaternion APIDTarget { set { m_APIDTarget = value; } }
+        public override bool APIDActive { set { m_useAPID = value; } }
+        public override float APIDStrength { set { m_APIDStrength = value; } }
+        public override float APIDDamping { set { m_APIDDamping = value; } }
 
         public override float PIDHoverHeight { set { m_PIDHoverHeight = value; ; } }
         public override bool PIDHoverActive { set { m_useHoverPID = value; } }
@@ -665,13 +1128,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override Vector3 Acceleration		// client updates read data via here
         {
-            get 
-            { 
+            get
+            {
                 if (_zeroFlag)
                 {
                     return Vector3.Zero;
                 }
-                return _acceleration; 
+                return _acceleration;
             }
             set { _acceleration = value; }
         }
@@ -752,18 +1215,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 base.RequestPhysicsterseUpdate();
                 m_outofBounds = false;
             }
-/*
-            int tmp = Interlocked.Increment(ref m_crossingfailures);
-            if (tmp > _parent_scene.geomCrossingFailuresBeforeOutofbounds)
-            {
-                base.RaiseOutOfBounds(_position);
-                return;
-            }
-            else if (tmp == _parent_scene.geomCrossingFailuresBeforeOutofbounds)
-            {
-                m_log.Warn("[PHYSICS]: Too many crossing failures for: " + m_primName);
-            }
- */
+            /*
+                        int tmp = Interlocked.Increment(ref m_crossingfailures);
+                        if (tmp > _parent_scene.geomCrossingFailuresBeforeOutofbounds)
+                        {
+                            base.RaiseOutOfBounds(_position);
+                            return;
+                        }
+                        else if (tmp == _parent_scene.geomCrossingFailuresBeforeOutofbounds)
+                        {
+                            m_log.Warn("[PHYSICS]: Too many crossing failures for: " + m_primName);
+                        }
+             */
         }
 
         public override float Buoyancy
@@ -806,26 +1269,26 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void SetGeom(IntPtr geom)
         {
-    	    if(prim_geom != IntPtr.Zero)
-    	    {
-    	        // Remove any old entries
-//string tPA;
-//_parent_scene.geom_name_map.TryGetValue(prim_geom, out tPA);
-//Console.WriteLine("**** Remove {0}", tPA);
-    	        if(_parent_scene.geom_name_map.ContainsKey(prim_geom)) _parent_scene.geom_name_map.Remove(prim_geom);
-    	        if(_parent_scene.actor_name_map.ContainsKey(prim_geom)) _parent_scene.actor_name_map.Remove(prim_geom);
+            if (prim_geom != IntPtr.Zero)
+            {
+                // Remove any old entries
+                //string tPA;
+                //_parent_scene.geom_name_map.TryGetValue(prim_geom, out tPA);
+                //Console.WriteLine("**** Remove {0}", tPA);
+                if (_parent_scene.geom_name_map.ContainsKey(prim_geom)) _parent_scene.geom_name_map.Remove(prim_geom);
+                if (_parent_scene.actor_name_map.ContainsKey(prim_geom)) _parent_scene.actor_name_map.Remove(prim_geom);
                 d.GeomDestroy(prim_geom);
-	        }
+            }
 
             prim_geom = geom;
-//Console.WriteLine("SetGeom to " + prim_geom + " for " + m_primName);     
+            //Console.WriteLine("SetGeom to " + prim_geom + " for " + m_primName);     
             if (prim_geom != IntPtr.Zero)
             {
                 _parent_scene.geom_name_map[prim_geom] = this.m_primName;
                 _parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
                 d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                 d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-//Console.WriteLine("**** Create {2}    Dicts: actor={0}   name={1}", _parent_scene.actor_name_map.Count, _parent_scene.geom_name_map.Count, this.m_primName);
+                //Console.WriteLine("**** Create {2}    Dicts: actor={0}   name={1}", _parent_scene.actor_name_map.Count, _parent_scene.geom_name_map.Count, this.m_primName);
             }
 
             if (childPrim)
@@ -833,7 +1296,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (_parent != null && _parent is OdePrim)
                 {
                     OdePrim parent = (OdePrim)_parent;
-//Console.WriteLine("SetGeom calls ChildSetGeom");                    
+                    //Console.WriteLine("SetGeom calls ChildSetGeom");                    
                     parent.ChildSetGeom(this);
                 }
             }
@@ -848,7 +1311,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     d.BodyEnable(Body);
                     if (m_type != Vehicle.TYPE_NONE)
-	                    Enable(Body, _parent_scene);
+                        Enable(Body, _parent_scene);
                 }
 
                 m_disabled = false;
@@ -892,9 +1355,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 d.BodySetAutoDisableFlag(Body, true);
                 d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
-                
+
                 // disconnect from world gravity so we can apply buoyancy
-				d.BodySetGravityMode (Body, false);
+                d.BodySetGravityMode(Body, false);
 
                 m_interpenetrationcount = 0;
                 m_collisionscore = 0;
@@ -918,19 +1381,19 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             float returnMass = 0;
             float hollowAmount = (float)_pbs.ProfileHollow * 2.0e-5f;
-            float hollowVolume = hollowAmount * hollowAmount; 
-            
+            float hollowVolume = hollowAmount * hollowAmount;
+
             switch (_pbs.ProfileShape)
             {
                 case ProfileShape.Square:
                     // default box
 
                     if (_pbs.PathCurve == (byte)Extrusion.Straight)
-                        {
+                    {
                         if (hollowAmount > 0.0)
-                            {
+                        {
                             switch (_pbs.HollowShape)
-                                {
+                            {
                                 case HollowShape.Square:
                                 case HollowShape.Same:
                                     break;
@@ -948,31 +1411,31 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 default:
                                     hollowVolume = 0;
                                     break;
-                                }
-                            volume *= (1.0f - hollowVolume);
                             }
+                            volume *= (1.0f - hollowVolume);
                         }
+                    }
 
                     else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
-                        {
+                    {
                         //a tube 
 
                         volume *= 0.78539816339e-2f * (float)(200 - _pbs.PathScaleX);
-                        tmp= 1.0f -2.0e-2f * (float)(200 - _pbs.PathScaleY);
-                        volume -= volume*tmp*tmp;
-                        
+                        tmp = 1.0f - 2.0e-2f * (float)(200 - _pbs.PathScaleY);
+                        volume -= volume * tmp * tmp;
+
                         if (hollowAmount > 0.0)
-                            {
+                        {
                             hollowVolume *= hollowAmount;
-                            
+
                             switch (_pbs.HollowShape)
-                                {
+                            {
                                 case HollowShape.Square:
                                 case HollowShape.Same:
                                     break;
 
                                 case HollowShape.Circle:
-                                    hollowVolume *= 0.78539816339f;;
+                                    hollowVolume *= 0.78539816339f; ;
                                     break;
 
                                 case HollowShape.Triangle:
@@ -981,23 +1444,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 default:
                                     hollowVolume = 0;
                                     break;
-                                }
-                            volume *= (1.0f - hollowVolume);
                             }
+                            volume *= (1.0f - hollowVolume);
                         }
+                    }
 
                     break;
 
                 case ProfileShape.Circle:
 
                     if (_pbs.PathCurve == (byte)Extrusion.Straight)
-                        {
+                    {
                         volume *= 0.78539816339f; // elipse base
 
                         if (hollowAmount > 0.0)
-                            {
+                        {
                             switch (_pbs.HollowShape)
-                                {
+                            {
                                 case HollowShape.Same:
                                 case HollowShape.Circle:
                                     break;
@@ -1013,25 +1476,25 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 default:
                                     hollowVolume = 0;
                                     break;
-                                }
-                            volume *= (1.0f - hollowVolume);
                             }
+                            volume *= (1.0f - hollowVolume);
                         }
+                    }
 
                     else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
-                        {
+                    {
                         volume *= 0.61685027506808491367715568749226e-2f * (float)(200 - _pbs.PathScaleX);
                         tmp = 1.0f - .02f * (float)(200 - _pbs.PathScaleY);
                         volume *= (1.0f - tmp * tmp);
-                        
+
                         if (hollowAmount > 0.0)
-                            {
+                        {
 
                             // calculate the hollow volume by it's shape compared to the prim shape
                             hollowVolume *= hollowAmount;
 
                             switch (_pbs.HollowShape)
-                                {
+                            {
                                 case HollowShape.Same:
                                 case HollowShape.Circle:
                                     break;
@@ -1047,31 +1510,31 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 default:
                                     hollowVolume = 0;
                                     break;
-                                }
-                            volume *= (1.0f - hollowVolume);
                             }
+                            volume *= (1.0f - hollowVolume);
                         }
+                    }
                     break;
 
                 case ProfileShape.HalfCircle:
                     if (_pbs.PathCurve == (byte)Extrusion.Curve1)
                     {
-                    volume *= 0.52359877559829887307710723054658f;
+                        volume *= 0.52359877559829887307710723054658f;
                     }
                     break;
 
                 case ProfileShape.EquilateralTriangle:
 
                     if (_pbs.PathCurve == (byte)Extrusion.Straight)
-                        {
+                    {
                         volume *= 0.32475953f;
 
                         if (hollowAmount > 0.0)
-                            {
+                        {
 
                             // calculate the hollow volume by it's shape compared to the prim shape
                             switch (_pbs.HollowShape)
-                                {
+                            {
                                 case HollowShape.Same:
                                 case HollowShape.Triangle:
                                     hollowVolume *= .25f;
@@ -1091,24 +1554,24 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 default:
                                     hollowVolume = 0;
                                     break;
-                                }
-                            volume *= (1.0f - hollowVolume);
                             }
+                            volume *= (1.0f - hollowVolume);
                         }
+                    }
                     else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
-                        {
+                    {
                         volume *= 0.32475953f;
                         volume *= 0.01f * (float)(200 - _pbs.PathScaleX);
                         tmp = 1.0f - .02f * (float)(200 - _pbs.PathScaleY);
                         volume *= (1.0f - tmp * tmp);
 
                         if (hollowAmount > 0.0)
-                            {
+                        {
 
                             hollowVolume *= hollowAmount;
 
                             switch (_pbs.HollowShape)
-                                {
+                            {
                                 case HollowShape.Same:
                                 case HollowShape.Triangle:
                                     hollowVolume *= .25f;
@@ -1126,15 +1589,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 default:
                                     hollowVolume = 0;
                                     break;
-                                }
-                            volume *= (1.0f - hollowVolume);
                             }
+                            volume *= (1.0f - hollowVolume);
                         }
-                        break;                  
+                    }
+                    break;
 
                 default:
                     break;
-                }
+            }
 
 
 
@@ -1148,7 +1611,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float profileEnd;
 
             if (_pbs.PathCurve == (byte)Extrusion.Straight || _pbs.PathCurve == (byte)Extrusion.Flexible)
-                {
+            {
                 taperX1 = _pbs.PathScaleX * 0.01f;
                 if (taperX1 > 1.0f)
                     taperX1 = 2.0f - taperX1;
@@ -1158,9 +1621,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (taperY1 > 1.0f)
                     taperY1 = 2.0f - taperY1;
                 taperY = 1.0f - taperY1;
-                }
+            }
             else
-                {
+            {
                 taperX = _pbs.PathTaperX * 0.01f;
                 if (taperX < 0.0f)
                     taperX = -taperX;
@@ -1168,10 +1631,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 taperY = _pbs.PathTaperY * 0.01f;
                 if (taperY < 0.0f)
-                    taperY = -taperY;               
+                    taperY = -taperY;
                 taperY1 = 1.0f - taperY;
 
-                }
+            }
 
 
             volume *= (taperX1 * taperY1 + 0.5f * (taperX1 * taperY + taperX * taperY1) + 0.3333333333f * taperX * taperY);
@@ -1180,7 +1643,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             pathEnd = 1.0f - (float)_pbs.PathEnd * 2.0e-5f;
             volume *= (pathEnd - pathBegin);
 
-// this is crude aproximation
+            // this is crude aproximation
             profileBegin = (float)_pbs.ProfileBegin * 2.0e-5f;
             profileEnd = 1.0f - (float)_pbs.ProfileEnd * 2.0e-5f;
             volume *= (profileEnd - profileBegin);
@@ -1189,8 +1652,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (returnMass <= 0)
                 returnMass = 0.0001f;//ckrinke: Mass must be greater then zero.
-//            else if (returnMass > _parent_scene.maximumMassObject)
-//                returnMass = _parent_scene.maximumMassObject;
+            //            else if (returnMass > _parent_scene.maximumMassObject)
+            //                returnMass = _parent_scene.maximumMassObject;
 
 
 
@@ -1230,7 +1693,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void setMass()
         {
-            if (Body != (IntPtr) 0)
+            if (Body != (IntPtr)0)
             {
                 float newmass = CalculateMass();
 
@@ -1260,7 +1723,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                         }
 
-                        
+
                         d.BodyDestroy(Body);
                         lock (childrenPrim)
                         {
@@ -1279,7 +1742,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
                 {
                     _parent_scene.remActivePrim(this);
-                    
+
                     m_collisionCategories &= ~CollisionCategories.Body;
                     m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
 
@@ -1289,7 +1752,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                     }
 
-                    
+
                     Body = IntPtr.Zero;
                 }
             }
@@ -1345,10 +1808,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             _parent_scene.waitForSpaceUnlock(m_targetSpace);
             try
             {
-            //    if (prim_geom == IntPtr.Zero)  // setGeom takes care of phys engine recreate and prim_geom pointer 
-            //    {
-                    SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
-            //    }
+                //    if (prim_geom == IntPtr.Zero)  // setGeom takes care of phys engine recreate and prim_geom pointer 
+                //    {
+                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
+                //    }
             }
             catch (AccessViolationException)
             {
@@ -1357,14 +1820,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
 
-           // if (IsPhysical && Body == (IntPtr) 0)
-           // {
-                // Recreate the body
-          //     m_interpenetrationcount = 0;
-           //     m_collisionscore = 0;
+            // if (IsPhysical && Body == (IntPtr) 0)
+            // {
+            // Recreate the body
+            //     m_interpenetrationcount = 0;
+            //     m_collisionscore = 0;
 
-           //     enableBody();
-           // }
+            //     enableBody();
+            // }
         }
 
         public void ProcessTaints(float timestep) //=============================================================================
@@ -1373,37 +1836,37 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 changeadd(timestep);
             }
-            
+
             if (prim_geom != IntPtr.Zero)
             {
-	        	 if (!_position.ApproxEquals(m_taintposition, 0f))
+                if (!_position.ApproxEquals(m_taintposition, 0f))
                 {
-	                    changemove(timestep);
+                    changemove(timestep);
                 }
-	             if (m_taintrot != _orientation)
-	             {
-	                if(childPrim && IsPhysical)	// For physical child prim...
-	                {
-	                    rotate(timestep);       
-	                    // KF: ODE will also rotate the parent prim!
-	                    // so rotate the root back to where it was
-	                    OdePrim parent = (OdePrim)_parent;
-	                    parent.rotate(timestep);
+                if (m_taintrot != _orientation)
+                {
+                    if (childPrim && IsPhysical)	// For physical child prim...
+                    {
+                        rotate(timestep);
+                        // KF: ODE will also rotate the parent prim!
+                        // so rotate the root back to where it was
+                        OdePrim parent = (OdePrim)_parent;
+                        parent.rotate(timestep);
                     }
                     else
                     {
-	                    //Just rotate the prim
-	                    rotate(timestep);
-                    }  
+                        //Just rotate the prim
+                        rotate(timestep);
+                    }
                 }
                 //
-            
+
                 if (m_taintPhysics != m_isphysical && !(m_taintparent != _parent))
                 {
                     changePhysicsStatus(timestep);
                 }//
 
-                if (!_size.ApproxEquals(m_taintsize,0f))
+                if (!_size.ApproxEquals(m_taintsize, 0f))
                     changesize(timestep);
                 //
 
@@ -1434,10 +1897,17 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (m_taintCollidesWater != m_collidesWater)
                     changefloatonwater(timestep);
-/* obsolete                    
-                if (!m_angularLock.ApproxEquals(m_taintAngularLock,0f))
-                    changeAngularLock(timestep);
- */
+
+                if (m_taintvehicledata != null)
+                    DoSetVehicle();
+
+                if (m_taintserial != null)
+                    DoSerialize(m_taintserial);
+
+                /* obsolete                    
+                                if (!m_angularLock.ApproxEquals(m_taintAngularLock,0f))
+                                    changeAngularLock(timestep);
+                 */
             }
             else
             {
@@ -1445,16 +1915,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-/* obsolete
-        private void changeAngularLock(float timestep) 
-        {
-            if (_parent == null)
-            {
-                m_angularLock = m_taintAngularLock;
-                m_angularLockSet = true;
-            }
-        }
- */
+        /* obsolete
+                private void changeAngularLock(float timestep) 
+                {
+                    if (_parent == null)
+                    {
+                        m_angularLock = m_taintAngularLock;
+                        m_angularLockSet = true;
+                    }
+                }
+         */
         private void changelink(float timestep)
         {
             // If the newly set parent is not null
@@ -1489,7 +1959,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     childPrim = false;
                     //_parent = null;
                 }
-                
+
                 /*
                     if (Body != (IntPtr)0 && _linkJointGroup != (IntPtr)0)
                     d.JointGroupDestroy(_linkJointGroup);
@@ -1498,7 +1968,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linkJoint = (IntPtr)0;
                 */
             }
- 
+
             _parent = m_taintparent;
             m_taintPhysics = m_isphysical;
         }
@@ -1512,8 +1982,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (Body == IntPtr.Zero)
                 {
                     Body = d.BodyCreate(_parent_scene.world);
-                // disconnect from world gravity so we can apply buoyancy
-				d.BodySetGravityMode (Body, false);
+                    // disconnect from world gravity so we can apply buoyancy
+                    d.BodySetGravityMode(Body, false);
 
                     setMass();
                 }
@@ -1524,7 +1994,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         if (!childrenPrim.Contains(prim))
                         {
                             childrenPrim.Add(prim);
-                            
+
                             foreach (OdePrim prm in childrenPrim)
                             {
                                 d.Mass m2;
@@ -1546,7 +2016,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             foreach (OdePrim prm in childrenPrim)
                             {
-                       
+
                                 prm.m_collisionCategories |= CollisionCategories.Body;
                                 prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
@@ -1571,7 +2041,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 {
                                     d.GeomSetBody(prm.prim_geom, Body);
                                     prm.childPrim = true;
-                                    d.GeomSetOffsetWorldPosition(prm.prim_geom, prm.Position.X , prm.Position.Y, prm.Position.Z);
+                                    d.GeomSetOffsetWorldPosition(prm.prim_geom, prm.Position.X, prm.Position.Y, prm.Position.Z);
                                     //d.GeomSetOffsetPosition(prim.prim_geom,
                                     //    (Position.X - prm.Position.X) - pMass.c.X,
                                     //    (Position.Y - prm.Position.Y) - pMass.c.Y,
@@ -1668,7 +2138,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     ParentPrim(prm);
                 }
             }
-            
+
         }
 
         private void ChildDelink(OdePrim odePrim)
@@ -1719,7 +2189,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // in between the disabling and the collision properties setting
                 // which would wake the physical body up from a soft disabling and potentially cause it to fall
                 // through the ground.
-                
+
                 // NOTE FOR JOINTS: this doesn't always work for jointed assemblies because if you select
                 // just one part of the assembly, the rest of the assembly is non-selected and still simulating,
                 // so that causes the selected part to wake up and continue moving.
@@ -1752,12 +2222,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     disableBodySoft();
                 }
-            if (Body != IntPtr.Zero)
+                if (Body != IntPtr.Zero)
                 {
                     d.BodySetLinearVel(Body, 0f, 0f, 0f);
                     d.BodySetForce(Body, 0f, 0f, 0f);
-                    d.BodySetAngularVel (Body, 0.0f, 0.0f, 0.0f);
-                    d.BodySetTorque (Body, 0.0f, 0.0f, 0.0f);
+                    d.BodySetAngularVel(Body, 0.0f, 0.0f, 0.0f);
+                    d.BodySetTorque(Body, 0.0f, 0.0f, 0.0f);
                 }
 
             }
@@ -1780,12 +2250,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                     d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                 }
-            if (Body != IntPtr.Zero)
+                if (Body != IntPtr.Zero)
                 {
                     d.BodySetLinearVel(Body, 0f, 0f, 0f);
                     d.BodySetForce(Body, 0f, 0f, 0f);
-                    d.BodySetAngularVel (Body, 0.0f, 0.0f, 0.0f);
-                    d.BodySetTorque (Body, 0.0f, 0.0f, 0.0f);
+                    d.BodySetAngularVel(Body, 0.0f, 0.0f, 0.0f);
+                    d.BodySetTorque(Body, 0.0f, 0.0f, 0.0f);
                 }
 
                 if (m_isphysical)
@@ -1913,7 +2383,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_meshfailed = true;
                     }
                     // createmesh returns null when it's a shape that isn't a cube.
-                   // m_log.Debug(m_localID);
+                    // m_log.Debug(m_localID);
                 }
             }
 
@@ -1948,7 +2418,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (m_isphysical)
             {
-//                if (!m_disabled && !m_taintremove && !childPrim)  After one edit m_disabled is sometimes set, disabling further edits!
+                //                if (!m_disabled && !m_taintremove && !childPrim)  After one edit m_disabled is sometimes set, disabling further edits!
                 if (!m_taintremove && !childPrim)
                 {
                     if (Body == IntPtr.Zero)
@@ -1972,8 +2442,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             OdePrim odParent = (OdePrim)_parent;
                             if (Body != (IntPtr)0 && odParent.Body != (IntPtr)0 && Body != odParent.Body)
                             {
-// KF: Fixed Joints were removed? Anyway - this Console.WriteLine does not show up, so routine is not used??
-Console.WriteLine("ODEPrim JointCreateFixed !!!");                           
+                                // KF: Fixed Joints were removed? Anyway - this Console.WriteLine does not show up, so routine is not used??
+                                Console.WriteLine("ODEPrim JointCreateFixed !!!");
                                 m_linkJoint = d.JointCreateFixed(_parent_scene.world, _linkJointGroup);
                                 d.JointAttach(m_linkJoint, Body, odParent.Body);
                                 d.JointSetFixed(m_linkJoint);
@@ -1991,8 +2461,8 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     }
                 }
                 //else
-               // {
-                    //m_log.Debug("[BUG]: race!");
+                // {
+                //m_log.Debug("[BUG]: race!");
                 //}
             }
             else
@@ -2031,15 +2501,15 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
             myrot.W = _orientation.W;
             if (Body != IntPtr.Zero)
             {
-	            // KF: If this is a root prim do BodySet
+                // KF: If this is a root prim do BodySet
                 d.BodySetQuaternion(Body, ref myrot);
-	        }
-	        else
-	        {
-	        	// daughter prim, do Geom set
-	            d.GeomSetQuaternion(prim_geom, ref myrot);
             }
-            
+            else
+            {
+                // daughter prim, do Geom set
+                d.GeomSetQuaternion(prim_geom, ref myrot);
+            }
+
             resetCollisionAccounting();
             m_taintrot = _orientation;
         }
@@ -2111,7 +2581,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
 
         public void changesize(float timestamp)
         {
-            
+
             string oldname = _parent_scene.geom_name_map[prim_geom];
 
             if (_size.X <= 0) _size.X = 0.01f;
@@ -2170,7 +2640,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                 //IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
                 CreateGeom(m_targetSpace, mesh);
 
-               
+
             }
             else
             {
@@ -2210,7 +2680,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
             m_taintsize = _size;
         }
 
-       
+
 
         public void changefloatonwater(float timestep)
         {
@@ -2398,7 +2868,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                         }
                         d.BodyEnable(Body);
                         d.BodyAddTorque(Body, iforce.X, iforce.Y, iforce.Z);
-                        
+
                     }
                     m_angularforcelist.Clear();
                 }
@@ -2420,7 +2890,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     if (Body != IntPtr.Zero)
                         d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
                 }
-                
+
                 //resetCollisionAccounting();
             }
             m_taintVelocity = Vector3.Zero;
@@ -2428,9 +2898,9 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
 
         public void UpdatePositionAndVelocity()
         {
-        	return;   // moved to the Move () method
+            return;   // moved to the Move () method
         }
-        
+
         public d.Mass FromMatrix4(Matrix4 pMat, ref d.Mass obj)
         {
             obj.I.M00 = pMat[0, 0];
@@ -2455,7 +2925,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
         {
             _parent_scene.remCollisionEventReporting(this);
             m_eventsubscription = 0;
-        }        
+        }
 
         public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
@@ -2499,9 +2969,9 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
         public static Matrix4 Adjoint(Matrix4 pMat)
         {
             Matrix4 adjointMatrix = new Matrix4();
-            for (int i=0; i<4; i++)
+            for (int i = 0; i < 4; i++)
             {
-                for (int j=0; j<4; j++)
+                for (int j = 0; j < 4; j++)
                 {
                     Matrix4SetValue(ref adjointMatrix, i, j, (float)(Math.Pow(-1, i + j) * (determinant3x3(Minor(pMat, i, j)))));
                 }
@@ -2524,7 +2994,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                 {
                     if (j == iCol)
                         continue;
-                    Matrix4SetValue(ref minor, m,n, matrix[i, j]);
+                    Matrix4SetValue(ref minor, m, n, matrix[i, j]);
                     n++;
                 }
                 m++;
@@ -2622,18 +3092,18 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
         private static float determinant3x3(Matrix4 pMat)
         {
             float det = 0;
-            float diag1 = pMat[0, 0]*pMat[1, 1]*pMat[2, 2];
-            float diag2 = pMat[0, 1]*pMat[2, 1]*pMat[2, 0];
-            float diag3 = pMat[0, 2]*pMat[1, 0]*pMat[2, 1];
-            float diag4 = pMat[2, 0]*pMat[1, 1]*pMat[0, 2];
-            float diag5 = pMat[2, 1]*pMat[1, 2]*pMat[0, 0];
-            float diag6 = pMat[2, 2]*pMat[1, 0]*pMat[0, 1];
+            float diag1 = pMat[0, 0] * pMat[1, 1] * pMat[2, 2];
+            float diag2 = pMat[0, 1] * pMat[2, 1] * pMat[2, 0];
+            float diag3 = pMat[0, 2] * pMat[1, 0] * pMat[2, 1];
+            float diag4 = pMat[2, 0] * pMat[1, 1] * pMat[0, 2];
+            float diag5 = pMat[2, 1] * pMat[1, 2] * pMat[0, 0];
+            float diag6 = pMat[2, 2] * pMat[1, 0] * pMat[0, 1];
 
             det = diag1 + diag2 + diag3 - (diag4 + diag5 + diag6);
             return det;
 
         }
-        
+
         private static void DMassCopy(ref d.Mass src, ref d.Mass dst)
         {
             dst.c.W = src.c.W;
@@ -2690,15 +3160,15 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     // m_bankingTimescale = pValue;
                     break;
                 case Vehicle.BUOYANCY:
-                	if (pValue < -1f) pValue = -1f;
-                	if (pValue > 1f) pValue = 1f;
+                    if (pValue < -1f) pValue = -1f;
+                    if (pValue > 1f) pValue = 1f;
                     m_VehicleBuoyancy = pValue;
                     break;
-//                case Vehicle.HOVER_EFFICIENCY:
-//                	if (pValue < 0f) pValue = 0f;
-//                	if (pValue > 1f) pValue = 1f;
-//                    m_VhoverEfficiency = pValue;
-//                    break;
+                //                case Vehicle.HOVER_EFFICIENCY:
+                //                	if (pValue < 0f) pValue = 0f;
+                //                	if (pValue > 1f) pValue = 1f;
+                //                    m_VhoverEfficiency = pValue;
+                //                    break;
                 case Vehicle.HOVER_HEIGHT:
                     m_VhoverHeight = pValue;
                     break;
@@ -2731,12 +3201,12 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     if (pValue < 0.1f) pValue = 0.1f;
                     m_verticalAttractionTimescale = pValue;
                     break;
-                    
+
                 // These are vector properties but the engine lets you use a single float value to 
                 // set all of the components to the same value
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
-                	if (pValue > 30f) pValue = 30f;
-                	if (pValue < 0.1f) pValue = 0.1f;
+                    if (pValue > 30f) pValue = 30f;
+                    if (pValue < 0.1f) pValue = 0.1f;
                     m_angularFrictionTimescale = new Vector3(pValue, pValue, pValue);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
@@ -2744,7 +3214,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     UpdateAngDecay();
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
-                	if (pValue < 0.1f) pValue = 0.1f;
+                    if (pValue < 0.1f) pValue = 0.1f;
                     m_linearFrictionTimescale = new Vector3(pValue, pValue, pValue);
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
@@ -2756,7 +3226,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     break;
 
             }
-            
+
         }//end ProcessFloatVehicleParam
 
         internal void ProcessVectorVehicleParam(Vehicle pParam, Vector3 pValue)
@@ -2764,29 +3234,29 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
             switch (pParam)
             {
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
-                	if (pValue.X > 30f) pValue.X = 30f;
-                	if (pValue.X < 0.1f) pValue.X = 0.1f;
-                	if (pValue.Y > 30f) pValue.Y = 30f;
-                	if (pValue.Y < 0.1f) pValue.Y = 0.1f;
-                	if (pValue.Z > 30f) pValue.Z = 30f;
-                	if (pValue.Z < 0.1f) pValue.Z = 0.1f;
+                    if (pValue.X > 30f) pValue.X = 30f;
+                    if (pValue.X < 0.1f) pValue.X = 0.1f;
+                    if (pValue.Y > 30f) pValue.Y = 30f;
+                    if (pValue.Y < 0.1f) pValue.Y = 0.1f;
+                    if (pValue.Z > 30f) pValue.Z = 30f;
+                    if (pValue.Z < 0.1f) pValue.Z = 0.1f;
                     m_angularFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
                     m_angularMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     // Limit requested angular speed to 2 rps= 4 pi rads/sec
-                    if(m_angularMotorDirection.X > 12.56f) m_angularMotorDirection.X = 12.56f; 
-                    if(m_angularMotorDirection.X < - 12.56f) m_angularMotorDirection.X = - 12.56f; 
-                    if(m_angularMotorDirection.Y > 12.56f) m_angularMotorDirection.Y = 12.56f; 
-                    if(m_angularMotorDirection.Y < - 12.56f) m_angularMotorDirection.Y = - 12.56f; 
-                    if(m_angularMotorDirection.Z > 12.56f) m_angularMotorDirection.Z = 12.56f; 
-                    if(m_angularMotorDirection.Z < - 12.56f) m_angularMotorDirection.Z = - 12.56f; 
+                    if (m_angularMotorDirection.X > 12.56f) m_angularMotorDirection.X = 12.56f;
+                    if (m_angularMotorDirection.X < -12.56f) m_angularMotorDirection.X = -12.56f;
+                    if (m_angularMotorDirection.Y > 12.56f) m_angularMotorDirection.Y = 12.56f;
+                    if (m_angularMotorDirection.Y < -12.56f) m_angularMotorDirection.Y = -12.56f;
+                    if (m_angularMotorDirection.Z > 12.56f) m_angularMotorDirection.Z = 12.56f;
+                    if (m_angularMotorDirection.Z < -12.56f) m_angularMotorDirection.Z = -12.56f;
                     UpdateAngDecay();
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
-                	if (pValue.X < 0.1f) pValue.X = 0.1f;
-                	if (pValue.Y < 0.1f) pValue.Y = 0.1f;
-                	if (pValue.Z < 0.1f) pValue.Z = 0.1f;
+                    if (pValue.X < 0.1f) pValue.X = 0.1f;
+                    if (pValue.Y < 0.1f) pValue.Y = 0.1f;
+                    if (pValue.Z < 0.1f) pValue.Z = 0.1f;
                     m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
@@ -2797,7 +3267,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     // m_linearMotorOffset = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
             }
-            
+
         }//end ProcessVectorVehicleParam
 
         internal void ProcessRotationVehicleParam(Vehicle pParam, Quaternion pValue)
@@ -2808,31 +3278,31 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     // m_referenceFrame = pValue;
                     break;
             }
-            
+
         }//end ProcessRotationVehicleParam
-        
+
         internal void ProcessVehicleFlags(int pParam, bool remove)
         {
             if (remove)
             {
-        		m_flags &= ~((VehicleFlag)pParam);         
-			}
-			else
-			{
-        		m_flags |= (VehicleFlag)pParam;
-        	}
+                m_flags &= ~((VehicleFlag)pParam);
+            }
+            else
+            {
+                m_flags |= (VehicleFlag)pParam;
+            }
         }
-        
+
         internal void ProcessTypeChange(Vehicle pType)
         {
-			// Set Defaults For Type
+            // Set Defaults For Type
             m_type = pType;
             switch (pType)
             {
                 case Vehicle.TYPE_SLED:
                     m_linearFrictionTimescale = new Vector3(30, 1, 1000);
                     m_angularFrictionTimescale = new Vector3(30, 30, 30);
-//                     m_lLinMotorVel = Vector3.Zero;
+                    //                     m_lLinMotorVel = Vector3.Zero;
                     m_linearMotorTimescale = 1000;
                     m_linearMotorDecayTimescale = 120;
                     m_angularMotorDirection = Vector3.Zero;
@@ -2840,7 +3310,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     m_angularMotorTimescale = 1000;
                     m_angularMotorDecayTimescale = 120;
                     m_VhoverHeight = 0;
-//                    m_VhoverEfficiency = 1;
+                    //                    m_VhoverEfficiency = 1;
                     m_VhoverTimescale = 10;
                     m_VehicleBuoyancy = 0;
                     // m_linearDeflectionEfficiency = 1;
@@ -2859,7 +3329,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                 case Vehicle.TYPE_CAR:
                     m_linearFrictionTimescale = new Vector3(100, 2, 1000);
                     m_angularFrictionTimescale = new Vector3(30, 30, 30);		// was 1000, but sl max frict time is 30.
-//                     m_lLinMotorVel = Vector3.Zero;
+                    //                     m_lLinMotorVel = Vector3.Zero;
                     m_linearMotorTimescale = 1;
                     m_linearMotorDecayTimescale = 60;
                     m_angularMotorDirection = Vector3.Zero;
@@ -2867,7 +3337,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     m_angularMotorTimescale = 1;
                     m_angularMotorDecayTimescale = 0.8f;
                     m_VhoverHeight = 0;
-//                    m_VhoverEfficiency = 0;
+                    //                    m_VhoverEfficiency = 0;
                     m_VhoverTimescale = 1000;
                     m_VehicleBuoyancy = 0;
                     // // m_linearDeflectionEfficiency = 1;
@@ -2886,8 +3356,8 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     break;
                 case Vehicle.TYPE_BOAT:
                     m_linearFrictionTimescale = new Vector3(10, 3, 2);
-                    m_angularFrictionTimescale = new Vector3(10,10,10);
-//                     m_lLinMotorVel = Vector3.Zero;
+                    m_angularFrictionTimescale = new Vector3(10, 10, 10);
+                    //                     m_lLinMotorVel = Vector3.Zero;
                     m_linearMotorTimescale = 5;
                     m_linearMotorDecayTimescale = 60;
                     m_angularMotorDirection = Vector3.Zero;
@@ -2895,7 +3365,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     m_angularMotorTimescale = 4;
                     m_angularMotorDecayTimescale = 4;
                     m_VhoverHeight = 0;
-//                    m_VhoverEfficiency = 0.5f;
+                    //                    m_VhoverEfficiency = 0.5f;
                     m_VhoverTimescale = 2;
                     m_VehicleBuoyancy = 1;
                     // m_linearDeflectionEfficiency = 0.5f;
@@ -2908,15 +3378,15 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     // m_bankingMix = 0.8f;
                     // m_bankingTimescale = 1;
                     // m_referenceFrame = Quaternion.Identity;
-                    m_flags &= ~(VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.LIMIT_ROLL_ONLY | 
-                    		VehicleFlag.HOVER_GLOBAL_HEIGHT | VehicleFlag.HOVER_UP_ONLY);
+                    m_flags &= ~(VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.LIMIT_ROLL_ONLY |
+                            VehicleFlag.HOVER_GLOBAL_HEIGHT | VehicleFlag.HOVER_UP_ONLY);
                     m_flags |= (VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.HOVER_WATER_ONLY |
                                 VehicleFlag.LIMIT_MOTOR_UP);
                     break;
                 case Vehicle.TYPE_AIRPLANE:
                     m_linearFrictionTimescale = new Vector3(200, 10, 5);
                     m_angularFrictionTimescale = new Vector3(20, 20, 20);
-//                     m_lLinMotorVel = Vector3.Zero;
+                    //                     m_lLinMotorVel = Vector3.Zero;
                     m_linearMotorTimescale = 2;
                     m_linearMotorDecayTimescale = 60;
                     m_angularMotorDirection = Vector3.Zero;
@@ -2924,7 +3394,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     m_angularMotorTimescale = 4;
                     m_angularMotorDecayTimescale = 4;
                     m_VhoverHeight = 0;
-//                    m_VhoverEfficiency = 0.5f;
+                    //                    m_VhoverEfficiency = 0.5f;
                     m_VhoverTimescale = 1000;
                     m_VehicleBuoyancy = 0;
                     // m_linearDeflectionEfficiency = 0.5f;
@@ -2951,7 +3421,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     m_angularMotorTimescale = 6;
                     m_angularMotorDecayTimescale = 10;
                     m_VhoverHeight = 5;
-//                    m_VhoverEfficiency = 0.8f;
+                    //                    m_VhoverEfficiency = 0.8f;
                     m_VhoverTimescale = 10;
                     m_VehicleBuoyancy = 1;
                     // m_linearDeflectionEfficiency = 0;
@@ -2981,63 +3451,48 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
         }
 
 
-		internal void Halt()
-		{	// Kill all motions, when non-physical
-		//	m_linearMotorDirection = Vector3.Zero;
-			m_lLinMotorDVel = Vector3.Zero;
-			m_lLinObjectVel = Vector3.Zero;						
-			m_wLinObjectVel = Vector3.Zero;
-			m_angularMotorDirection = Vector3.Zero;		
-			m_lastAngularVelocity = Vector3.Zero;
-			m_angularMotorDVel = Vector3.Zero;
-			_acceleration = Vector3.Zero;	
-		}
-		
-		private void UpdateLinDecay()
-		{
-//			if (Math.Abs(m_linearMotorDirection.X) > Math.Abs(m_lLinMotorDVel.X)) m_lLinMotorDVel.X = m_linearMotorDirection.X;
-//			if (Math.Abs(m_linearMotorDirection.Y) > Math.Abs(m_lLinMotorDVel.Y)) m_lLinMotorDVel.Y = m_linearMotorDirection.Y;
-//			if (Math.Abs(m_linearMotorDirection.Z) > Math.Abs(m_lLinMotorDVel.Z)) m_lLinMotorDVel.Z = m_linearMotorDirection.Z;
-			m_lLinMotorDVel.X = m_linearMotorDirection.X;
-			m_lLinMotorDVel.Y = m_linearMotorDirection.Y;
-			m_lLinMotorDVel.Z = m_linearMotorDirection.Z;
-		} // else let the motor decay on its own
+        internal void Halt()
+        {	// Kill all motions, when non-physical
+            //	m_linearMotorDirection = Vector3.Zero;
+            m_lLinMotorDVel = Vector3.Zero;
+            m_lLinObjectVel = Vector3.Zero;
+            m_wLinObjectVel = Vector3.Zero;
+            m_angularMotorDirection = Vector3.Zero;
+            m_lastAngularVelocity = Vector3.Zero;
+            m_angularMotorDVel = Vector3.Zero;
+            _acceleration = Vector3.Zero;
+        }
 
-		private void UpdateAngDecay()
-		{
-//			if (Math.Abs(m_angularMotorDirection.X) > Math.Abs(m_angularMotorDVel.X)) m_angularMotorDVel.X = m_angularMotorDirection.X;
-//			if (Math.Abs(m_angularMotorDirection.Y) > Math.Abs(m_angularMotorDVel.Y)) m_angularMotorDVel.Y = m_angularMotorDirection.Y;
-//			if (Math.Abs(m_angularMotorDirection.Z) > Math.Abs(m_angularMotorDVel.Z)) m_angularMotorDVel.Z = m_angularMotorDirection.Z;
-			m_angularMotorDVel.X = m_angularMotorDirection.X;
-			m_angularMotorDVel.Y = m_angularMotorDirection.Y;
-			m_angularMotorDVel.Z = m_angularMotorDirection.Z;
-		} // else let the motor decay on its own
-        
+        private void UpdateLinDecay()
+        {
+            m_lLinMotorDVel.X = m_linearMotorDirection.X;
+            m_lLinMotorDVel.Y = m_linearMotorDirection.Y;
+            m_lLinMotorDVel.Z = m_linearMotorDirection.Z;
+        } // else let the motor decay on its own
+
+        private void UpdateAngDecay()
+        {
+            m_angularMotorDVel.X = m_angularMotorDirection.X;
+            m_angularMotorDVel.Y = m_angularMotorDirection.Y;
+            m_angularMotorDVel.Z = m_angularMotorDirection.Z;
+        } // else let the motor decay on its own
+
         public void Move(float timestep)
         {
             float fx = 0;
             float fy = 0;
             float fz = 0;
             Vector3 linvel;				// velocity applied, including any reversal
-            int outside = 0;
-            
+
             // If geomCrossingFailuresBeforeOutofbounds is set to 0 in OpenSim.ini then phys objects bounce off region borders.
             // This is a temp patch until proper region crossing is developed. 
-            
-            int failureLimit = _parent_scene.geomCrossingFailuresBeforeOutofbounds;
-            float fence = _parent_scene.geomRegionFence;
-            
-	        frcount++;					// used to limit debug comment output
-            if (frcount > 50)
-                frcount = 0;
-                
-            if(revcount > 0) revcount--;
-                     
+
+
             if (IsPhysical && (Body != IntPtr.Zero) && !m_isSelected && !childPrim && !m_outofBounds)		// Only move root prims.
             {
-				//  Old public void UpdatePositionAndVelocity(), more accuratley calculated here
-            	bool lastZeroFlag = _zeroFlag;  // was it stopped
-            	
+                //  Old public void UpdatePositionAndVelocity(), more accuratley calculated here
+                bool lastZeroFlag = _zeroFlag;  // was it stopped
+
                 d.Vector3 vec = d.BodyGetPosition(Body);
                 Vector3 l_position = Vector3.Zero;
                 l_position.X = vec.X;
@@ -3045,95 +3500,26 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                 l_position.Z = vec.Z;
                 m_lastposition = _position;
                 _position = l_position;
-                
+
                 d.Quaternion ori = d.BodyGetQuaternion(Body);
-         //       Quaternion l_orientation = Quaternion.Identity;
+                //       Quaternion l_orientation = Quaternion.Identity;
                 _orientation.X = ori.X;
                 _orientation.Y = ori.Y;
                 _orientation.Z = ori.Z;
                 _orientation.W = ori.W;
                 m_lastorientation = _orientation;
-                
+
                 d.Vector3 vel = d.BodyGetLinearVel(Body);
                 m_lastVelocity = _velocity;
                 _velocity.X = vel.X;
                 _velocity.Y = vel.Y;
                 _velocity.Z = vel.Z;
                 _acceleration = ((_velocity - m_lastVelocity) / timestep);
-                
+
                 d.Vector3 torque = d.BodyGetTorque(Body);
                 _torque = new Vector3(torque.X, torque.Y, torque.Z);
-                
-                
-//Console.WriteLine("Move {0}  at  {1}", m_primName, l_position);        
- /*                   
-				// Check if outside region
-				// In Scene.cs/CrossPrimGroupIntoNewRegion the object is checked for 0.1M from border!
-                if (l_position.X > ((float)_parent_scene.WorldExtents.X - fence))
-                {
-                    l_position.X = ((float)_parent_scene.WorldExtents.X - fence);
-                 	outside = 1;
-                }
-                
-                if (l_position.X < fence)
-                {
-					l_position.X = fence;
-					outside = 2;
-				}
-				if (l_position.Y > ((float)_parent_scene.WorldExtents.Y - fence))
-				{
-                    l_position.Y = ((float)_parent_scene.WorldExtents.Y - fence);
-                 	outside = 3;
-                }
-				
-                if (l_position.Y < fence)
-                {
-					l_position.Y = fence;
-					outside = 4;
-				}
-                
-                if (outside > 0)
-                {
-        
-//Console.WriteLine("Border {0}   fence={1}", l_position, fence);               
-                    if (fence > 0.0f)		// bounce object off boundary 
-                    {
-                    	if (revcount == 0)
-	                    {
-	                    	if (outside < 3)
-	                   		{
-	                   			_velocity.X = -_velocity.X;
-	                   		}
-	                   		else
-	                   		{
-	                   			_velocity.Y = -_velocity.Y;
-	                   		}
-	                   		if (m_type != Vehicle.TYPE_NONE) Halt();
-	                   		_position = l_position;
-         		            m_taintposition = _position;
-					        m_lastVelocity = _velocity;     
-							_acceleration = Vector3.Zero;	
-    	                    d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
-					        d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
-       	                    base.RequestPhysicsterseUpdate();
 
-		    		    	revcount = 25;		// wait for object to move away from border
-		    		    }
-                    } // else old crossing mode
-                    else if (m_crossingfailures < failureLimit)
-                    {	// keep trying to cross?
-                        _position = l_position;
-                        //_parent_scene.remActivePrim(this);
-                        if (_parent == null) base.RequestPhysicsterseUpdate();
-                        return;		// Dont process any other motion?
-                    }
-                    else
-                    {	// Too many tries
-                        if (_parent == null) base.RaiseOutOfBounds(l_position);
-                        return;		// Dont process any other motion?
-                    }  // end various methods
-                }    // end outside region horizontally
- */
+
                 if (_position.X < 0f || _position.X > _parent_scene.WorldExtents.X
                     || _position.Y < 0f || _position.Y > _parent_scene.WorldExtents.Y
                     )
@@ -3146,41 +3532,11 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     _position.Z = Util.Clip(l_position.Z, -100f, 50000f);
                     d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
                     d.BodySetLinearVel(Body, 0, 0, 0);
-                    /*
-                                        if (Interlocked.Exchange(ref m_crossingfailures, m_crossingfailures) == 0)
-                                        { // tell base code only once
-                                            Interlocked.Increment(ref m_crossingfailures);
-                                            base.RequestPhysicsterseUpdate();
-                                        }
-                     */
                     m_outofBounds = true;
                     base.RequestPhysicsterseUpdate();
                     return;
                 }
-/*
-                if (Interlocked.Exchange(ref m_crossingfailures, 0) != 0)
-                {
-                    // main simulator had a crossing failure
-                    // park it inside region
-                    _position.X = Util.Clip(l_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
-                    _position.Y = Util.Clip(l_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
-                    _position.Z = Util.Clip(l_position.Z, -100f, 50000f);
-                    d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
 
-                    m_lastposition = _position;
-
-                    _velocity = Vector3.Zero;
-                    m_lastVelocity = _velocity;
-
-
-                    if (m_type != Vehicle.TYPE_NONE)
-                        Halt();
-
-                    d.BodySetLinearVel(Body, 0, 0, 0);                   
-                    base.RequestPhysicsterseUpdate();
-                    return;
-                }
-*/
                 base.RequestPhysicsterseUpdate();
 
                 if (l_position.Z < 0)
@@ -3193,8 +3549,8 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
 
                     //IsPhysical = false;
                     if (_parent == null) base.RaiseOutOfBounds(_position);
-                    
-                    
+
+
                     _acceleration.X = 0;			// This stuff may stop client display but it has no
                     _acceleration.Y = 0;			// effect on the object in phys engine!
                     _acceleration.Z = 0;
@@ -3215,13 +3571,13 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     //outofBounds = true;
                 }  // end neg Z check
 
-				// Is it moving?
-             /*   if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
-                    && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
-                    && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02) */
-                if ( (Vector3.Mag(_velocity) < 0.01) &&                         // moving very slowly
+                // Is it moving?
+                /*   if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
+                       && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
+                       && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02) */
+                if ((Vector3.Mag(_velocity) < 0.01) &&                         // moving very slowly
                      (Vector3.Mag(_velocity) < Vector3.Mag(m_lastVelocity)) &&  // decelerating
-                     (1.0 - Math.Abs(Quaternion.Dot(m_lastorientation, _orientation)) < 0.0001) )  // spinning very slowly
+                     (1.0 - Math.Abs(Quaternion.Dot(m_lastorientation, _orientation)) < 0.0001))  // spinning very slowly
                 {
                     _zeroFlag = true;
                     m_throttleUpdates = false;
@@ -3238,18 +3594,18 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                 {		// Its stopped
                     _velocity.X = 0.0f;
                     _velocity.Y = 0.0f;
-            //        _velocity.Z = 0.0f;
+                    //        _velocity.Z = 0.0f;
 
                     _acceleration.X = 0;
                     _acceleration.Y = 0;
-            //        _acceleration.Z = 0;
-                    
+                    //        _acceleration.Z = 0;
+
                     m_rotationalVelocity.X = 0;
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
                     // Stop it in the phys engine
-					d.BodySetLinearVel(Body, 0.0f, 0.0f, _velocity.Z);        
-					d.BodySetAngularVel (Body, 0.0f, 0.0f, 0.0f);
+                    d.BodySetLinearVel(Body, 0.0f, 0.0f, _velocity.Z);
+                    d.BodySetAngularVel(Body, 0.0f, 0.0f, 0.0f);
                     d.BodySetForce(Body, 0f, 0f, 0f);
 
                     if (!m_lastUpdateSent)
@@ -3287,71 +3643,71 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     }
                 }
                 m_lastposition = l_position;
-             
-				/// End UpdatePositionAndVelocity insert     
-				
-				
+
+                /// End UpdatePositionAndVelocity insert     
+
+
                 // Rotation lock  =====================================
-                if(m_rotateEnableUpdate)
-                {   
+                if (m_rotateEnableUpdate)
+                {
                     // Snapshot current angles, set up Amotor(s)
                     m_rotateEnableUpdate = false;
                     m_rotateEnable = m_rotateEnableRequest;
-//Console.WriteLine("RotEnable {0} = {1}",m_primName,  m_rotateEnable);
+                    //Console.WriteLine("RotEnable {0} = {1}",m_primName,  m_rotateEnable);
 
                     if (Amotor != IntPtr.Zero)
                     {
                         d.JointDestroy(Amotor);
                         Amotor = IntPtr.Zero;
-//Console.WriteLine("Old Amotor Destroyed");                        
+                        //Console.WriteLine("Old Amotor Destroyed");                        
                     }
-                    
+
                     if (!m_rotateEnable.ApproxEquals(Vector3.One, 0.003f))
                     {   // not all are enabled
                         d.Quaternion r = d.BodyGetQuaternion(Body);
                         Quaternion locrot = new Quaternion(r.X, r.Y, r.Z, r.W);
                         // extract the axes vectors
-                        Vector3 vX = new Vector3(1f,0f,0f);
-                        Vector3 vY = new Vector3(0f,1f,0f);
-                        Vector3 vZ = new Vector3(0f,0f,1f);
-                        vX = vX * locrot;    
+                        Vector3 vX = new Vector3(1f, 0f, 0f);
+                        Vector3 vY = new Vector3(0f, 1f, 0f);
+                        Vector3 vZ = new Vector3(0f, 0f, 1f);
+                        vX = vX * locrot;
                         vY = vY * locrot;
                         vZ = vZ * locrot;
                         // snapshot the current angle vectors
                         m_lockX = vX;
                         m_lockY = vY;
                         m_lockZ = vZ;
-             //           m_lockRot = locrot;
+                        //           m_lockRot = locrot;
                         Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
                         d.JointAttach(Amotor, Body, IntPtr.Zero);
                         d.JointSetAMotorMode(Amotor, 0);  // User mode??
-//Console.WriteLine("New Amotor Created for {0}", m_primName);                   
-                    
+                        //Console.WriteLine("New Amotor Created for {0}", m_primName);                   
+
                         float axisnum = 3;  // how many to lock
                         axisnum = (axisnum - (m_rotateEnable.X + m_rotateEnable.Y + m_rotateEnable.Z));
-                        d.JointSetAMotorNumAxes(Amotor,(int)axisnum);
-//Console.WriteLine("AxisNum={0}",(int)axisnum);                       
+                        d.JointSetAMotorNumAxes(Amotor, (int)axisnum);
+                        //Console.WriteLine("AxisNum={0}",(int)axisnum);                       
 
                         int i = 0;
 
                         if (m_rotateEnable.X == 0)
                         {
                             d.JointSetAMotorAxis(Amotor, i, 0, m_lockX.X, m_lockX.Y, m_lockX.Z);
-//Console.WriteLine("AxisX {0} set to {1}", i,  m_lockX);                           
+                            //Console.WriteLine("AxisX {0} set to {1}", i,  m_lockX);                           
                             i++;
                         }
 
                         if (m_rotateEnable.Y == 0)
                         {
                             d.JointSetAMotorAxis(Amotor, i, 0, m_lockY.X, m_lockY.Y, m_lockY.Z);
-//Console.WriteLine("AxisY {0} set to {1}", i,  m_lockY);                           
+                            //Console.WriteLine("AxisY {0} set to {1}", i,  m_lockY);                           
                             i++;
                         }
 
                         if (m_rotateEnable.Z == 0)
                         {
                             d.JointSetAMotorAxis(Amotor, i, 0, m_lockZ.X, m_lockZ.Y, m_lockZ.Z);
-//Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);                           
+                            //Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);                           
                             i++;
                         }
 
@@ -3362,519 +3718,519 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                         d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0f);
                         d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f);
                         d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0f);
-                        d.JointSetAMotorParam(Amotor, (int) dParam.Vel, 0f);
-                        d.JointSetAMotorParam(Amotor, (int) dParam.Vel3, 0f);
-                        d.JointSetAMotorParam(Amotor, (int) dParam.Vel2, 0f);
+                        d.JointSetAMotorParam(Amotor, (int)dParam.Vel, 0f);
+                        d.JointSetAMotorParam(Amotor, (int)dParam.Vel3, 0f);
+                        d.JointSetAMotorParam(Amotor, (int)dParam.Vel2, 0f);
                         d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM, 0f);
                         d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM3, 0f);
                         d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM2, 0f);
                     } // else none are locked
                 } // end Rotation Update  
-                
-                
+
+
                 // VEHICLE processing ==========================================            
-            	if (m_type != Vehicle.TYPE_NONE)
-            	{
-            		// get body attitude
-		            d.Quaternion rot = d.BodyGetQuaternion(Body);
-			        Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);	// rotq = rotation of object
-			        Quaternion irotq = Quaternion.Inverse(rotq);
-			        
-		  			// VEHICLE Linear Motion
-					d.Vector3 velnow = d.BodyGetLinearVel(Body);					// this is in world frame
-					Vector3 vel_now = new Vector3(velnow.X, velnow.Y, velnow.Z);
-			        m_lLinObjectVel = vel_now * irotq;
-		            if (m_linearMotorDecayTimescale < 300.0f) //setting of 300 or more disables decay rate
-		            {
-		            	if ( Vector3.Mag(m_lLinMotorDVel) < 1.0f)
-		            	{
-			           		float decayfactor = m_linearMotorDecayTimescale/timestep;
-			            	Vector3 decayAmount = (m_lLinMotorDVel/decayfactor);
-			            	m_lLinMotorDVel -= decayAmount;
-						}
-						else
-						{
-			           		float decayfactor = 3.0f - (0.57f * (float)Math.Log((double)(m_linearMotorDecayTimescale)));
-							Vector3 decel = Vector3.Normalize(m_lLinMotorDVel) * decayfactor * timestep;
-							m_lLinMotorDVel -= decel;
-						}
-						if (m_lLinMotorDVel.ApproxEquals(Vector3.Zero, 0.01f))
-						{
-							m_lLinMotorDVel = Vector3.Zero;
-						}
-						
-					/*	else
-		            	{
-					        if (Math.Abs(m_lLinMotorDVel.X) <  Math.Abs(m_lLinObjectVel.X)) m_lLinObjectVel.X = m_lLinMotorDVel.X;
-			    		    if (Math.Abs(m_lLinMotorDVel.Y) <  Math.Abs(m_lLinObjectVel.Y)) m_lLinObjectVel.Y = m_lLinMotorDVel.Y;
-					        if (Math.Abs(m_lLinMotorDVel.Z) <  Math.Abs(m_lLinObjectVel.Z)) m_lLinObjectVel.Z = m_lLinMotorDVel.Z;	
-					    } */
-					}  // end linear motor decay
-	
-		            if ( (! m_lLinMotorDVel.ApproxEquals(Vector3.Zero, 0.01f)) || (! m_lLinObjectVel.ApproxEquals(Vector3.Zero, 0.01f)) )
-		            {
-		            	if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body);
-		                if (m_linearMotorTimescale < 300.0f)
-		                {	
-			                Vector3 attack_error = m_lLinMotorDVel - m_lLinObjectVel;	
-			                float linfactor = m_linearMotorTimescale/timestep;
-			                Vector3 attackAmount = (attack_error/linfactor) * 1.3f;
-		                	m_lLinObjectVel += attackAmount;
-		                }
-				        if (m_linearFrictionTimescale.X < 300.0f)
-				        {
-					        float fricfactor = m_linearFrictionTimescale.X / timestep;
-					        float fricX = m_lLinObjectVel.X / fricfactor;
-					        m_lLinObjectVel.X -= fricX;
-					    }
-				        if (m_linearFrictionTimescale.Y < 300.0f)
-				        {
-					        float fricfactor = m_linearFrictionTimescale.Y / timestep;
-					        float fricY = m_lLinObjectVel.Y / fricfactor;
-					        m_lLinObjectVel.Y -= fricY;
-					    }
-				        if (m_linearFrictionTimescale.Z < 300.0f)
-				        {
-					        float fricfactor = m_linearFrictionTimescale.Z / timestep;
-					        float fricZ = m_lLinObjectVel.Z / fricfactor;
-					        m_lLinObjectVel.Z -= fricZ;
-					    }
-					}
-				    m_wLinObjectVel = m_lLinObjectVel * rotq;
-				    
-					// Gravity and Buoyancy
-		            Vector3 grav = Vector3.Zero;
-					if(m_VehicleBuoyancy < 1.0f)
-					{
-						// There is some gravity, make a gravity force vector
-						// that is applied after object velocity.     
-			            d.Mass objMass;
-			            d.BodyGetMass(Body, out objMass);
-			            // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g; 
-			            grav.Z = _parent_scene.gravityz * objMass.mass * (1f - m_VehicleBuoyancy); // Applied later as a force
-			        } // else its 1.0, no gravity.
-	        
-			        // Hovering
-			        if( (m_flags & (VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT)) != 0)
-			        {	
-			        	// We should hover, get the target height
-		        		d.Vector3 pos = d.BodyGetPosition(Body);
-			        	if((m_flags & VehicleFlag.HOVER_WATER_ONLY) == VehicleFlag.HOVER_WATER_ONLY)
-			        	{
-			        		m_VhoverTargetHeight = _parent_scene.GetWaterLevel() + m_VhoverHeight;
-			        	}
-			        	else if((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) == VehicleFlag.HOVER_TERRAIN_ONLY)
-			        	{
-			        		m_VhoverTargetHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y) + m_VhoverHeight;
-			        	}
-			        	else if((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) == VehicleFlag.HOVER_GLOBAL_HEIGHT)
-			        	{
-			        		m_VhoverTargetHeight = m_VhoverHeight;
-			        	}
-	        	
-						if((m_flags & VehicleFlag.HOVER_UP_ONLY) == VehicleFlag.HOVER_UP_ONLY)
-						{
-							// If body is aready heigher, use its height as target height
-							if(pos.Z > m_VhoverTargetHeight) m_VhoverTargetHeight = pos.Z;
-						}
-				
-//	            m_VhoverEfficiency = 0f;	// 0=boucy, 1=Crit.damped
-//				m_VhoverTimescale = 0f;		// time to acheive height
-//				timestep  is time since last frame,in secs 
-						float herr0 = pos.Z - m_VhoverTargetHeight;
-						// Replace Vertical speed with correction figure if significant
-						if(Math.Abs(herr0) > 0.01f )
-						{
-				  //?          d.Mass objMass;
-				  //?          d.BodyGetMass(Body, out objMass);
-							m_wLinObjectVel.Z = - ( (herr0 * timestep * 50.0f) / m_VhoverTimescale);
-							//KF: m_VhoverEfficiency is not yet implemented
-						}
-						else
-						{
-							m_wLinObjectVel.Z = 0f;
-						}
-					}
-					else
-					{	// not hovering
-						if (m_wLinObjectVel.Z == 0f)
-						{		// Gravity rules
-							m_wLinObjectVel.Z = vel_now.Z;
-						}  // else the motor has it
-	    		    }	
-	    		    linvel = m_wLinObjectVel;
+                if (m_type != Vehicle.TYPE_NONE)
+                {
+                    // get body attitude
+                    d.Quaternion rot = d.BodyGetQuaternion(Body);
+                    Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);	// rotq = rotation of object
+                    Quaternion irotq = Quaternion.Inverse(rotq);
 
-	    		    // Vehicle Linear  Motion done =======================================
-			        // Apply velocity
-					d.BodySetLinearVel(Body, linvel.X, linvel.Y, linvel.Z);        
-		            // apply gravity force
-					d.BodyAddForce(Body, grav.X, grav.Y, grav.Z);		
-//if(frcount == 0) Console.WriteLine("Vel={0}    Force={1}",linvel ,  grav);
-		        	// end MoveLinear()
+                    // VEHICLE Linear Motion
+                    d.Vector3 velnow = d.BodyGetLinearVel(Body);					// this is in world frame
+                    Vector3 vel_now = new Vector3(velnow.X, velnow.Y, velnow.Z);
+                    m_lLinObjectVel = vel_now * irotq;
+                    if (m_linearMotorDecayTimescale < 300.0f) //setting of 300 or more disables decay rate
+                    {
+                        if (Vector3.Mag(m_lLinMotorDVel) < 1.0f)
+                        {
+                            float decayfactor = m_linearMotorDecayTimescale / timestep;
+                            Vector3 decayAmount = (m_lLinMotorDVel / decayfactor);
+                            m_lLinMotorDVel -= decayAmount;
+                        }
+                        else
+                        {
+                            float decayfactor = 3.0f - (0.57f * (float)Math.Log((double)(m_linearMotorDecayTimescale)));
+                            Vector3 decel = Vector3.Normalize(m_lLinMotorDVel) * decayfactor * timestep;
+                            m_lLinMotorDVel -= decel;
+                        }
+                        if (m_lLinMotorDVel.ApproxEquals(Vector3.Zero, 0.01f))
+                        {
+                            m_lLinMotorDVel = Vector3.Zero;
+                        }
 
-		  			
-				    // MoveAngular
-			        /*
-			        private Vector3 m_angularMotorDirection = Vector3.Zero;			// angular velocity requested by LSL motor 
+                        /*	else
+                            {
+                                if (Math.Abs(m_lLinMotorDVel.X) <  Math.Abs(m_lLinObjectVel.X)) m_lLinObjectVel.X = m_lLinMotorDVel.X;
+                                if (Math.Abs(m_lLinMotorDVel.Y) <  Math.Abs(m_lLinObjectVel.Y)) m_lLinObjectVel.Y = m_lLinMotorDVel.Y;
+                                if (Math.Abs(m_lLinMotorDVel.Z) <  Math.Abs(m_lLinObjectVel.Z)) m_lLinObjectVel.Z = m_lLinMotorDVel.Z;	
+                            } */
+                    }  // end linear motor decay
+
+                    if ((!m_lLinMotorDVel.ApproxEquals(Vector3.Zero, 0.01f)) || (!m_lLinObjectVel.ApproxEquals(Vector3.Zero, 0.01f)))
+                    {
+                        if (!d.BodyIsEnabled(Body)) d.BodyEnable(Body);
+                        if (m_linearMotorTimescale < 300.0f)
+                        {
+                            Vector3 attack_error = m_lLinMotorDVel - m_lLinObjectVel;
+                            float linfactor = m_linearMotorTimescale / timestep;
+                            Vector3 attackAmount = (attack_error / linfactor) * 1.3f;
+                            m_lLinObjectVel += attackAmount;
+                        }
+                        if (m_linearFrictionTimescale.X < 300.0f)
+                        {
+                            float fricfactor = m_linearFrictionTimescale.X / timestep;
+                            float fricX = m_lLinObjectVel.X / fricfactor;
+                            m_lLinObjectVel.X -= fricX;
+                        }
+                        if (m_linearFrictionTimescale.Y < 300.0f)
+                        {
+                            float fricfactor = m_linearFrictionTimescale.Y / timestep;
+                            float fricY = m_lLinObjectVel.Y / fricfactor;
+                            m_lLinObjectVel.Y -= fricY;
+                        }
+                        if (m_linearFrictionTimescale.Z < 300.0f)
+                        {
+                            float fricfactor = m_linearFrictionTimescale.Z / timestep;
+                            float fricZ = m_lLinObjectVel.Z / fricfactor;
+                            m_lLinObjectVel.Z -= fricZ;
+                        }
+                    }
+                    m_wLinObjectVel = m_lLinObjectVel * rotq;
+
+                    // Gravity and Buoyancy
+                    Vector3 grav = Vector3.Zero;
+                    if (m_VehicleBuoyancy < 1.0f)
+                    {
+                        // There is some gravity, make a gravity force vector
+                        // that is applied after object velocity.     
+                        d.Mass objMass;
+                        d.BodyGetMass(Body, out objMass);
+                        // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g; 
+                        grav.Z = _parent_scene.gravityz * objMass.mass * (1f - m_VehicleBuoyancy); // Applied later as a force
+                    } // else its 1.0, no gravity.
+
+                    // Hovering
+                    if ((m_flags & (VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT)) != 0)
+                    {
+                        // We should hover, get the target height
+                        d.Vector3 pos = d.BodyGetPosition(Body);
+                        if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) == VehicleFlag.HOVER_WATER_ONLY)
+                        {
+                            m_VhoverTargetHeight = _parent_scene.GetWaterLevel() + m_VhoverHeight;
+                        }
+                        else if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) == VehicleFlag.HOVER_TERRAIN_ONLY)
+                        {
+                            m_VhoverTargetHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y) + m_VhoverHeight;
+                        }
+                        else if ((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) == VehicleFlag.HOVER_GLOBAL_HEIGHT)
+                        {
+                            m_VhoverTargetHeight = m_VhoverHeight;
+                        }
+
+                        if ((m_flags & VehicleFlag.HOVER_UP_ONLY) == VehicleFlag.HOVER_UP_ONLY)
+                        {
+                            // If body is aready heigher, use its height as target height
+                            if (pos.Z > m_VhoverTargetHeight) m_VhoverTargetHeight = pos.Z;
+                        }
+
+                        //	            m_VhoverEfficiency = 0f;	// 0=boucy, 1=Crit.damped
+                        //				m_VhoverTimescale = 0f;		// time to acheive height
+                        //				timestep  is time since last frame,in secs 
+                        float herr0 = pos.Z - m_VhoverTargetHeight;
+                        // Replace Vertical speed with correction figure if significant
+                        if (Math.Abs(herr0) > 0.01f)
+                        {
+                            //?          d.Mass objMass;
+                            //?          d.BodyGetMass(Body, out objMass);
+                            m_wLinObjectVel.Z = -((herr0 * timestep * 50.0f) / m_VhoverTimescale);
+                            //KF: m_VhoverEfficiency is not yet implemented
+                        }
+                        else
+                        {
+                            m_wLinObjectVel.Z = 0f;
+                        }
+                    }
+                    else
+                    {	// not hovering
+                        if (m_wLinObjectVel.Z == 0f)
+                        {		// Gravity rules
+                            m_wLinObjectVel.Z = vel_now.Z;
+                        }  // else the motor has it
+                    }
+                    linvel = m_wLinObjectVel;
+
+                    // Vehicle Linear  Motion done =======================================
+                    // Apply velocity
+                    d.BodySetLinearVel(Body, linvel.X, linvel.Y, linvel.Z);
+                    // apply gravity force
+                    d.BodyAddForce(Body, grav.X, grav.Y, grav.Z);
+                    //if(frcount == 0) Console.WriteLine("Vel={0}    Force={1}",linvel ,  grav);
+                    // end MoveLinear()
+
+
+                    // MoveAngular
+                    /*
+                    private Vector3 m_angularMotorDirection = Vector3.Zero;			// angular velocity requested by LSL motor 
         
-			        private float m_angularMotorTimescale = 0;						// motor angular Attack rate set by LSL
-			        private float m_angularMotorDecayTimescale = 0;					// motor angular Decay rate set by LSL
-			        private Vector3 m_angularFrictionTimescale = Vector3.Zero;		// body angular Friction set by LSL
+                    private float m_angularMotorTimescale = 0;						// motor angular Attack rate set by LSL
+                    private float m_angularMotorDecayTimescale = 0;					// motor angular Decay rate set by LSL
+                    private Vector3 m_angularFrictionTimescale = Vector3.Zero;		// body angular Friction set by LSL
 
-			        private Vector3 m_angularMotorDVel = Vector3.Zero;				// decayed angular motor
-			        private Vector3 m_angObjectVel = Vector3.Zero;					// what was last applied to body
-					*/
-//if(frcount == 0) Console.WriteLine("MoveAngular ");	
-        
-		        	d.Vector3 angularObjectVel = d.BodyGetAngularVel(Body);
-		        	Vector3 angObjectVel = new Vector3(angularObjectVel.X, angularObjectVel.Y, angularObjectVel.Z);
-		         	angObjectVel = angObjectVel * irotq;	// ============ Converts to LOCAL rotation
-        	
-//if(frcount == 0) Console.WriteLine("V0 = {0}", angObjectVel);        	
+                    private Vector3 m_angularMotorDVel = Vector3.Zero;				// decayed angular motor
+                    private Vector3 m_angObjectVel = Vector3.Zero;					// what was last applied to body
+                    */
+                    //if(frcount == 0) Console.WriteLine("MoveAngular ");	
 
-		        	// Decay Angular Motor 1. In SL this also depends on attack rate! decay ~= 23/Attack.
-		        	float atk_decayfactor = 23.0f  / (m_angularMotorTimescale * timestep); 
-		        	m_angularMotorDVel -= m_angularMotorDVel / atk_decayfactor;
-		        	// Decay Angular Motor 2.
-		        	if (m_angularMotorDecayTimescale < 300.0f)
-		        	{
-		            	if ( Vector3.Mag(m_angularMotorDVel) < 1.0f)
-		            	{
-							float decayfactor = (m_angularMotorDecayTimescale)/timestep;
-				            Vector3 decayAmount = (m_angularMotorDVel/decayfactor);	
-				            m_angularMotorDVel -= decayAmount;             	
-						}
-						else
-						{
-							Vector3 decel = Vector3.Normalize(m_angularMotorDVel) * timestep / m_angularMotorDecayTimescale;
-							m_angularMotorDVel -= decel;
-						}
-        	
-						if (m_angularMotorDVel.ApproxEquals(Vector3.Zero, 0.01f))
-						{
-							m_angularMotorDVel = Vector3.Zero;
-						}
-						else
-			           	{
-					        if (Math.Abs(m_angularMotorDVel.X) <  Math.Abs(angObjectVel.X)) angObjectVel.X = m_angularMotorDVel.X;
-			    		    if (Math.Abs(m_angularMotorDVel.Y) <  Math.Abs(angObjectVel.Y)) angObjectVel.Y = m_angularMotorDVel.Y;
-					        if (Math.Abs(m_angularMotorDVel.Z) <  Math.Abs(angObjectVel.Z)) angObjectVel.Z = m_angularMotorDVel.Z;
-					    }        	
-		        	} // end decay angular motor
-//if(frcount == 0) Console.WriteLine("MotorDvel {0}    Obj {1}", m_angularMotorDVel, angObjectVel);
+                    d.Vector3 angularObjectVel = d.BodyGetAngularVel(Body);
+                    Vector3 angObjectVel = new Vector3(angularObjectVel.X, angularObjectVel.Y, angularObjectVel.Z);
+                    angObjectVel = angObjectVel * irotq;	// ============ Converts to LOCAL rotation
 
-//if(frcount == 0) Console.WriteLine("VA = {0}", angObjectVel);   
+                    //if(frcount == 0) Console.WriteLine("V0 = {0}", angObjectVel);        	
 
-		            if ( (! m_angularMotorDVel.ApproxEquals(Vector3.Zero, 0.01f)) || (! angObjectVel.ApproxEquals(Vector3.Zero, 0.01f)) )
-		            {  // if motor or object have motion
-		            	if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body);
-            	
-		                if (m_angularMotorTimescale < 300.0f)
-		                {	
-			                Vector3 attack_error = m_angularMotorDVel - angObjectVel;	
-			                float angfactor = m_angularMotorTimescale/timestep;
-			                Vector3 attackAmount = (attack_error/angfactor);
-		                	angObjectVel += attackAmount;
-//if(frcount == 0) Console.WriteLine("Accel {0}      Attk {1}",FrAaccel, attackAmount);                	
-//if(frcount == 0) Console.WriteLine("V2+= {0}", angObjectVel);        	
-		                }
-                
-				        angObjectVel.X -= angObjectVel.X / (m_angularFrictionTimescale.X * 0.7f / timestep);
-				        angObjectVel.Y -= angObjectVel.Y / (m_angularFrictionTimescale.Y * 0.7f / timestep);
-				        angObjectVel.Z -= angObjectVel.Z / (m_angularFrictionTimescale.Z * 0.7f / timestep);
-					} // else no signif. motion
-			
-//if(frcount == 0) Console.WriteLine("Dmotor {0}      Obj {1}", m_angularMotorDVel, angObjectVel);
-					// Bank section tba
-					// Deflection section tba
-//if(frcount == 0) Console.WriteLine("V3 = {0}", angObjectVel);        	
-			
-	
-		/*			// Rotation Axis Disables:
-				    if (!m_angularEnable.ApproxEquals(Vector3.One, 0.003f))
-			        {
-		                if (m_angularEnable.X == 0)
-			            	angObjectVel.X = 0f;
-			            if (m_angularEnable.Y == 0)
-			            	angObjectVel.Y = 0f;
-			            if (m_angularEnable.Z == 0)
-			            	angObjectVel.Z = 0f;
-			        }        
-			*/        
-					angObjectVel = angObjectVel * rotq; // ================ Converts to WORLD rotation
-					
-		            // Vertical attractor section
-					Vector3 vertattr = Vector3.Zero;
-            
-					if(m_verticalAttractionTimescale < 300)
-					{
-			            float VAservo = 1.0f / (m_verticalAttractionTimescale * timestep);
-			    	    // make a vector pointing up
-						Vector3 verterr = Vector3.Zero;
-						verterr.Z = 1.0f;
-						// rotate it to Body Angle
-						verterr = verterr * rotq;
-						// verterr.X and .Y are the World error ammounts. They are 0 when there is no error (Vehicle Body is 'vertical'), and .Z will be 1.
-						// As the body leans to its side |.X| will increase to 1 and .Z fall to 0. As body inverts |.X| will fall and .Z will go
-						// negative. Similar for tilt and |.Y|. .X and .Y must be modulated to prevent a stable inverted body.
-				
-						if (verterr.Z < 0.0f)
-						{	// Deflection from vertical exceeds 90-degrees. This method will ensure stable return to
-							// vertical, BUT for some reason a z-rotation is imparted to the object. TBI.
-//Console.WriteLine("InvertFlip");	
-							verterr.X = 2.0f - verterr.X;
-							verterr.Y = 2.0f - verterr.Y;
-						}
-						verterr *= 0.5f;
-						// verterror is 0 (no error) to +/- 1 (max error at 180-deg tilt)
-						Vector3 xyav = angObjectVel;
-						xyav.Z = 0.0f;
-						if ((!xyav.ApproxEquals(Vector3.Zero, 0.001f)) || (verterr.Z < 0.49f))
-						{
-							// As the body rotates around the X axis, then verterr.Y increases; Rotated around Y then .X increases, so 
-							// Change  Body angular velocity  X based on Y, and Y based on X. Z is not changed.
-							vertattr.X =    verterr.Y;
-							vertattr.Y =  - verterr.X;
-							vertattr.Z = 0f;
-//if(frcount == 0) Console.WriteLine("VAerr=" + verterr);	
-			
-							// scaling appears better usingsquare-law
-							float damped = m_verticalAttractionEfficiency * m_verticalAttractionEfficiency;
-							float bounce = 1.0f - damped;  
-							// 0 = crit damp, 1 = bouncy
-							float oavz = angObjectVel.Z;   // retain z velocity
-							// time-scaled correction, which sums, therefore is bouncy:
-							angObjectVel = (angObjectVel + (vertattr * VAservo * 0.0333f)) * bounce; 
-							// damped, good @ < 90:
-							angObjectVel = angObjectVel + (vertattr * VAservo *  0.0667f * damped); 
-							angObjectVel.Z = oavz;
-//if(frcount == 0) Console.WriteLine("VA+");					
-//Console.WriteLine("VAttr {0}         OAvel {1}", vertattr, angObjectVel);
-						}
-						else
-						{
-							// else error is very small
-							angObjectVel.X = 0f;
-							angObjectVel.Y = 0f;
-//if(frcount == 0) Console.WriteLine("VA0");					
-						}
-					} // else vertical attractor is off
-//if(frcount == 0) Console.WriteLine("V1 = {0}", angObjectVel);        	
+                    // Decay Angular Motor 1. In SL this also depends on attack rate! decay ~= 23/Attack.
+                    float atk_decayfactor = 23.0f / (m_angularMotorTimescale * timestep);
+                    m_angularMotorDVel -= m_angularMotorDVel / atk_decayfactor;
+                    // Decay Angular Motor 2.
+                    if (m_angularMotorDecayTimescale < 300.0f)
+                    {
+                        if (Vector3.Mag(m_angularMotorDVel) < 1.0f)
+                        {
+                            float decayfactor = (m_angularMotorDecayTimescale) / timestep;
+                            Vector3 decayAmount = (m_angularMotorDVel / decayfactor);
+                            m_angularMotorDVel -= decayAmount;
+                        }
+                        else
+                        {
+                            Vector3 decel = Vector3.Normalize(m_angularMotorDVel) * timestep / m_angularMotorDecayTimescale;
+                            m_angularMotorDVel -= decel;
+                        }
 
-					
-					m_lastAngularVelocity = angObjectVel;
-					// apply Angular Velocity to body
-					d.BodySetAngularVel (Body, m_lastAngularVelocity.X, m_lastAngularVelocity.Y, m_lastAngularVelocity.Z);
-//if(frcount == 0) Console.WriteLine("V4 = {0}", m_lastAngularVelocity);        	
-		            
-            	}  // end VEHICLES
-            	else
-            	{
-            		// Dyamics (NON-'VEHICLES') are dealt with here ================================================================	                
-            		
-            		if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body); // KF add 161009
-            		
-					/// Dynamics Buoyancy
-	                //KF: m_buoyancy is set by llSetBuoyancy() and is for non-vehicle.
-	                // m_buoyancy: (unlimited value) <0=Falls fast; 0=1g; 1=0g; >1 = floats up 
-	                // NB Prims in ODE are no subject to global gravity
-	                // This should only affect gravity operations 
-	                
-	                float m_mass = CalculateMass();
-	                // calculate z-force due togravity on object.
-	                fz = _parent_scene.gravityz * (1.0f - m_buoyancy) * m_mass; // force = acceleration * mass
-	                if ((m_usePID) && (m_PIDTau > 0.0f))  // Dynamics  llMoveToTarget.
-	                {
-	                    fz = 0;     // llMoveToTarget ignores gravity.
-	                                // it also ignores mass of object, and any physical resting on it.
-	                                // Vector3 m_PIDTarget is where we are going
-                                    // float m_PIDTau is time to get there
+                        if (m_angularMotorDVel.ApproxEquals(Vector3.Zero, 0.01f))
+                        {
+                            m_angularMotorDVel = Vector3.Zero;
+                        }
+                        else
+                        {
+                            if (Math.Abs(m_angularMotorDVel.X) < Math.Abs(angObjectVel.X)) angObjectVel.X = m_angularMotorDVel.X;
+                            if (Math.Abs(m_angularMotorDVel.Y) < Math.Abs(angObjectVel.Y)) angObjectVel.Y = m_angularMotorDVel.Y;
+                            if (Math.Abs(m_angularMotorDVel.Z) < Math.Abs(angObjectVel.Z)) angObjectVel.Z = m_angularMotorDVel.Z;
+                        }
+                    } // end decay angular motor
+                    //if(frcount == 0) Console.WriteLine("MotorDvel {0}    Obj {1}", m_angularMotorDVel, angObjectVel);
+
+                    //if(frcount == 0) Console.WriteLine("VA = {0}", angObjectVel);   
+
+                    if ((!m_angularMotorDVel.ApproxEquals(Vector3.Zero, 0.01f)) || (!angObjectVel.ApproxEquals(Vector3.Zero, 0.01f)))
+                    {  // if motor or object have motion
+                        if (!d.BodyIsEnabled(Body)) d.BodyEnable(Body);
+
+                        if (m_angularMotorTimescale < 300.0f)
+                        {
+                            Vector3 attack_error = m_angularMotorDVel - angObjectVel;
+                            float angfactor = m_angularMotorTimescale / timestep;
+                            Vector3 attackAmount = (attack_error / angfactor);
+                            angObjectVel += attackAmount;
+                            //if(frcount == 0) Console.WriteLine("Accel {0}      Attk {1}",FrAaccel, attackAmount);                	
+                            //if(frcount == 0) Console.WriteLine("V2+= {0}", angObjectVel);        	
+                        }
+
+                        angObjectVel.X -= angObjectVel.X / (m_angularFrictionTimescale.X * 0.7f / timestep);
+                        angObjectVel.Y -= angObjectVel.Y / (m_angularFrictionTimescale.Y * 0.7f / timestep);
+                        angObjectVel.Z -= angObjectVel.Z / (m_angularFrictionTimescale.Z * 0.7f / timestep);
+                    } // else no signif. motion
+
+                    //if(frcount == 0) Console.WriteLine("Dmotor {0}      Obj {1}", m_angularMotorDVel, angObjectVel);
+                    // Bank section tba
+                    // Deflection section tba
+                    //if(frcount == 0) Console.WriteLine("V3 = {0}", angObjectVel);        	
+
+
+                    /*			// Rotation Axis Disables:
+                                if (!m_angularEnable.ApproxEquals(Vector3.One, 0.003f))
+                                {
+                                    if (m_angularEnable.X == 0)
+                                        angObjectVel.X = 0f;
+                                    if (m_angularEnable.Y == 0)
+                                        angObjectVel.Y = 0f;
+                                    if (m_angularEnable.Z == 0)
+                                        angObjectVel.Z = 0f;
+                                }        
+                        */
+                    angObjectVel = angObjectVel * rotq; // ================ Converts to WORLD rotation
+
+                    // Vertical attractor section
+                    Vector3 vertattr = Vector3.Zero;
+
+                    if (m_verticalAttractionTimescale < 300)
+                    {
+                        float VAservo = 1.0f / (m_verticalAttractionTimescale * timestep);
+                        // make a vector pointing up
+                        Vector3 verterr = Vector3.Zero;
+                        verterr.Z = 1.0f;
+                        // rotate it to Body Angle
+                        verterr = verterr * rotq;
+                        // verterr.X and .Y are the World error ammounts. They are 0 when there is no error (Vehicle Body is 'vertical'), and .Z will be 1.
+                        // As the body leans to its side |.X| will increase to 1 and .Z fall to 0. As body inverts |.X| will fall and .Z will go
+                        // negative. Similar for tilt and |.Y|. .X and .Y must be modulated to prevent a stable inverted body.
+
+                        if (verterr.Z < 0.0f)
+                        {	// Deflection from vertical exceeds 90-degrees. This method will ensure stable return to
+                            // vertical, BUT for some reason a z-rotation is imparted to the object. TBI.
+                            //Console.WriteLine("InvertFlip");	
+                            verterr.X = 2.0f - verterr.X;
+                            verterr.Y = 2.0f - verterr.Y;
+                        }
+                        verterr *= 0.5f;
+                        // verterror is 0 (no error) to +/- 1 (max error at 180-deg tilt)
+                        Vector3 xyav = angObjectVel;
+                        xyav.Z = 0.0f;
+                        if ((!xyav.ApproxEquals(Vector3.Zero, 0.001f)) || (verterr.Z < 0.49f))
+                        {
+                            // As the body rotates around the X axis, then verterr.Y increases; Rotated around Y then .X increases, so 
+                            // Change  Body angular velocity  X based on Y, and Y based on X. Z is not changed.
+                            vertattr.X = verterr.Y;
+                            vertattr.Y = -verterr.X;
+                            vertattr.Z = 0f;
+                            //if(frcount == 0) Console.WriteLine("VAerr=" + verterr);	
+
+                            // scaling appears better usingsquare-law
+                            float damped = m_verticalAttractionEfficiency * m_verticalAttractionEfficiency;
+                            float bounce = 1.0f - damped;
+                            // 0 = crit damp, 1 = bouncy
+                            float oavz = angObjectVel.Z;   // retain z velocity
+                            // time-scaled correction, which sums, therefore is bouncy:
+                            angObjectVel = (angObjectVel + (vertattr * VAservo * 0.0333f)) * bounce;
+                            // damped, good @ < 90:
+                            angObjectVel = angObjectVel + (vertattr * VAservo * 0.0667f * damped);
+                            angObjectVel.Z = oavz;
+                            //if(frcount == 0) Console.WriteLine("VA+");					
+                            //Console.WriteLine("VAttr {0}         OAvel {1}", vertattr, angObjectVel);
+                        }
+                        else
+                        {
+                            // else error is very small
+                            angObjectVel.X = 0f;
+                            angObjectVel.Y = 0f;
+                            //if(frcount == 0) Console.WriteLine("VA0");					
+                        }
+                    } // else vertical attractor is off
+                    //if(frcount == 0) Console.WriteLine("V1 = {0}", angObjectVel);        	
+
+
+                    m_lastAngularVelocity = angObjectVel;
+                    // apply Angular Velocity to body
+                    d.BodySetAngularVel(Body, m_lastAngularVelocity.X, m_lastAngularVelocity.Y, m_lastAngularVelocity.Z);
+                    //if(frcount == 0) Console.WriteLine("V4 = {0}", m_lastAngularVelocity);        	
+
+                }  // end VEHICLES
+                else
+                {
+                    // Dyamics (NON-'VEHICLES') are dealt with here ================================================================	                
+
+                    if (!d.BodyIsEnabled(Body)) d.BodyEnable(Body); // KF add 161009
+
+                    /// Dynamics Buoyancy
+                    //KF: m_buoyancy is set by llSetBuoyancy() and is for non-vehicle.
+                    // m_buoyancy: (unlimited value) <0=Falls fast; 0=1g; 1=0g; >1 = floats up 
+                    // NB Prims in ODE are no subject to global gravity
+                    // This should only affect gravity operations 
+
+                    float m_mass = CalculateMass();
+                    // calculate z-force due togravity on object.
+                    fz = _parent_scene.gravityz * (1.0f - m_buoyancy) * m_mass; // force = acceleration * mass
+                    if ((m_usePID) && (m_PIDTau > 0.0f))  // Dynamics  llMoveToTarget.
+                    {
+                        fz = 0;     // llMoveToTarget ignores gravity.
+                        // it also ignores mass of object, and any physical resting on it.
+                        // Vector3 m_PIDTarget is where we are going
+                        // float m_PIDTau is time to get there
                         fx = 0;
-                        fy = 0;                                    
-	                    d.Vector3 pos = d.BodyGetPosition(Body);
-	                    Vector3 error = new Vector3(
-	                            (m_PIDTarget.X - pos.X),
-	                            (m_PIDTarget.Y - pos.Y),
-	                            (m_PIDTarget.Z - pos.Z));
-	                    if (error.ApproxEquals(Vector3.Zero,0.01f))
-	                    {   // Very close, Jump there and quit move
+                        fy = 0;
+                        d.Vector3 pos = d.BodyGetPosition(Body);
+                        Vector3 error = new Vector3(
+                                (m_PIDTarget.X - pos.X),
+                                (m_PIDTarget.Y - pos.Y),
+                                (m_PIDTarget.Z - pos.Z));
+                        if (error.ApproxEquals(Vector3.Zero, 0.01f))
+                        {   // Very close, Jump there and quit move
 
-	                        d.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
-	                        _target_velocity = Vector3.Zero;
+                            d.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
+                            _target_velocity = Vector3.Zero;
                             d.BodySetLinearVel(Body, _target_velocity.X, _target_velocity.Y, _target_velocity.Z);
                             d.BodySetForce(Body, 0f, 0f, 0f);
-	                    }
-	                    else 
-	                    {
-    	                    float scale =  50.0f * timestep / m_PIDTau;
-     	                    if ((error.ApproxEquals(Vector3.Zero,0.5f)) && (_target_velocity != Vector3.Zero))
-     	                    {
-	                            // Nearby, quit update of velocity
-	                        }
-	                        else
-	                        {  // Far, calc damped velocity
-	                            _target_velocity = error * scale;
-	                        }
-                            d.BodySetLinearVel(Body, _target_velocity.X, _target_velocity.Y, _target_velocity.Z);	                            
                         }
-	                } // end PID MoveToTarget
-	                
- 	                
-	                /// Dynamics Hover ===================================================================================
-	                // Hover PID Controller can only run if the PIDcontroller is not in use.
-	                if (m_useHoverPID && !m_usePID)
-	                {
-//Console.WriteLine("Hover " +  m_primName);           	
-	                
-	                    // If we're using the PID controller, then we have no gravity
-	                    fz = (-1 * _parent_scene.gravityz) * m_mass;
-
-	                    //  no lock; for now it's only called from within Simulate()
-
-	                    // If the PID Controller isn't active then we set our force
-	                    // calculating base velocity to the current position
-
-	                    if ((m_PIDTau < 1))
-	                    {
-	                        PID_G = PID_G / m_PIDTau;
-	                    }
-
-	                    if ((PID_G - m_PIDTau) <= 0)
-	                    {
-	                        PID_G = m_PIDTau + 1;
-	                    }
-                    
-
-	                    // Where are we, and where are we headed?
-	                    d.Vector3 pos = d.BodyGetPosition(Body);
-//	                    d.Vector3 vel = d.BodyGetLinearVel(Body);
+                        else
+                        {
+                            float scale = 50.0f * timestep / m_PIDTau;
+                            if ((error.ApproxEquals(Vector3.Zero, 0.5f)) && (_target_velocity != Vector3.Zero))
+                            {
+                                // Nearby, quit update of velocity
+                            }
+                            else
+                            {  // Far, calc damped velocity
+                                _target_velocity = error * scale;
+                            }
+                            d.BodySetLinearVel(Body, _target_velocity.X, _target_velocity.Y, _target_velocity.Z);
+                        }
+                    } // end PID MoveToTarget
 
 
-						//    Non-Vehicles have a limited set of Hover options.
-	                    // determine what our target height really is based on HoverType
-	                    switch (m_PIDHoverType)
-	                    {
-	                        case PIDHoverType.Ground:
-	                            m_groundHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
-	                            m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
-	                            break;
-	                        case PIDHoverType.GroundAndWater:
-	                            m_groundHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
-	                            m_waterHeight  = _parent_scene.GetWaterLevel();
-	                            if (m_groundHeight > m_waterHeight)
-	                            {
-	                                m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
-	                            }
-	                            else
-	                            {
-	                                m_targetHoverHeight = m_waterHeight + m_PIDHoverHeight;
-	                            }
-	                            break;
+                    /// Dynamics Hover ===================================================================================
+                    // Hover PID Controller can only run if the PIDcontroller is not in use.
+                    if (m_useHoverPID && !m_usePID)
+                    {
+                        //Console.WriteLine("Hover " +  m_primName);           	
 
-	                    } 	// end switch (m_PIDHoverType)
+                        // If we're using the PID controller, then we have no gravity
+                        fz = (-1 * _parent_scene.gravityz) * m_mass;
+
+                        //  no lock; for now it's only called from within Simulate()
+
+                        // If the PID Controller isn't active then we set our force
+                        // calculating base velocity to the current position
+
+                        if ((m_PIDTau < 1))
+                        {
+                            PID_G = PID_G / m_PIDTau;
+                        }
+
+                        if ((PID_G - m_PIDTau) <= 0)
+                        {
+                            PID_G = m_PIDTau + 1;
+                        }
 
 
-	                    _target_velocity =
+                        // Where are we, and where are we headed?
+                        d.Vector3 pos = d.BodyGetPosition(Body);
+                        //	                    d.Vector3 vel = d.BodyGetLinearVel(Body);
+
+
+                        //    Non-Vehicles have a limited set of Hover options.
+                        // determine what our target height really is based on HoverType
+                        switch (m_PIDHoverType)
+                        {
+                            case PIDHoverType.Ground:
+                                m_groundHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
+                                m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
+                                break;
+                            case PIDHoverType.GroundAndWater:
+                                m_groundHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
+                                m_waterHeight = _parent_scene.GetWaterLevel();
+                                if (m_groundHeight > m_waterHeight)
+                                {
+                                    m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
+                                }
+                                else
+                                {
+                                    m_targetHoverHeight = m_waterHeight + m_PIDHoverHeight;
+                                }
+                                break;
+
+                        } 	// end switch (m_PIDHoverType)
+
+
+                        _target_velocity =
                             new Vector3(0.0f, 0.0f,
-    	                        (m_targetHoverHeight - pos.Z) * ((PID_G - m_PIDHoverTau) * timestep)
-    	                        );
+                                (m_targetHoverHeight - pos.Z) * ((PID_G - m_PIDHoverTau) * timestep)
+                                );
 
-    	                //  if velocity is zero, use position control; otherwise, velocity control
+                        //  if velocity is zero, use position control; otherwise, velocity control
 
-    	                if (_target_velocity.ApproxEquals(Vector3.Zero, 0.1f))
-    	                {
-    	                    //  keep track of where we stopped.  No more slippin' & slidin'
-	
-    	                    // We only want to deactivate the PID Controller if we think we want to have our surrogate
-    	                    // react to the physics scene by moving it's position.
-    	                    // Avatar to Avatar collisions
-    	                    // Prim to avatar collisions
-			    		    d.Vector3 dlinvel = vel;
-    	                    d.BodySetPosition(Body, pos.X, pos.Y, m_targetHoverHeight);
-					        d.BodySetLinearVel(Body, dlinvel.X, dlinvel.Y, dlinvel.Z);       
-    	                    d.BodyAddForce(Body, 0, 0, fz);
-    	            //KF this prevents furthur motions         return;
-    	                }
-    	                else
-    	                {
-    	                    _zeroFlag = false;
+                        if (_target_velocity.ApproxEquals(Vector3.Zero, 0.1f))
+                        {
+                            //  keep track of where we stopped.  No more slippin' & slidin'
 
-    	                    // We're flying and colliding with something
-    	                    fz = fz + ((_target_velocity.Z - vel.Z) * (PID_D) * m_mass);
-    	                }
-    	            } // end m_useHoverPID && !m_usePID
-    	            
-	                
-	                /// Dynamics Apply Forces ===================================================================================
-    	            fx *= m_mass;
-    	            fy *= m_mass;
-    	            //fz *= m_mass;
-    	            fx += m_force.X;
-    	            fy += m_force.Y;
-    	            fz += m_force.Z;
+                            // We only want to deactivate the PID Controller if we think we want to have our surrogate
+                            // react to the physics scene by moving it's position.
+                            // Avatar to Avatar collisions
+                            // Prim to avatar collisions
+                            d.Vector3 dlinvel = vel;
+                            d.BodySetPosition(Body, pos.X, pos.Y, m_targetHoverHeight);
+                            d.BodySetLinearVel(Body, dlinvel.X, dlinvel.Y, dlinvel.Z);
+                            d.BodyAddForce(Body, 0, 0, fz);
+                            //KF this prevents furthur motions         return;
+                        }
+                        else
+                        {
+                            _zeroFlag = false;
 
-    	            //m_log.Info("[OBJPID]: X:" + fx.ToString() + " Y:" + fy.ToString() + " Z:" + fz.ToString());
-    	            if (fx != 0 || fy != 0 || fz != 0)
-    	            {
-    	                //m_taintdisable = true;
-    	                //base.RaiseOutOfBounds(Position);
-    	                //d.BodySetLinearVel(Body, fx, fy, 0f);
-    	                if (!d.BodyIsEnabled(Body))
-    	                {
-    	                	// A physical body at rest on a surface will auto-disable after a while,
-    	                	// this appears to re-enable it incase the surface it is upon vanishes,
-    	                	// and the body should fall again. 
-    	                    d.BodySetLinearVel(Body, 0f, 0f, 0f);
-    	                    d.BodySetForce(Body, 0f, 0f, 0f);
-    	                    enableBodySoft();
-    	                }
+                            // We're flying and colliding with something
+                            fz = fz + ((_target_velocity.Z - vel.Z) * (PID_D) * m_mass);
+                        }
+                    } // end m_useHoverPID && !m_usePID
 
-    	                // 35x10 = 350n times the mass per second applied maximum.
-    	                float nmax = 35f * m_mass;
-    	                float nmin = -35f * m_mass;
 
-                    
-    	                if (fx > nmax)
-    	                    fx = nmax;
-    	                if (fx < nmin)
-    	                    fx = nmin;
-    	                if (fy > nmax)
-    	                    fy = nmax;
-    	                if (fy < nmin)
-    	                    fy = nmin;
-    	                d.BodyAddForce(Body, fx, fy, fz);
-    	            }  // end apply forces
-				} // end Vehicle/Dynamics
+                    /// Dynamics Apply Forces ===================================================================================
+                    fx *= m_mass;
+                    fy *= m_mass;
+                    //fz *= m_mass;
+                    fx += m_force.X;
+                    fy += m_force.Y;
+                    fz += m_force.Z;
 
-   	            /// RotLookAt / LookAt =================================================================================
+                    //m_log.Info("[OBJPID]: X:" + fx.ToString() + " Y:" + fy.ToString() + " Z:" + fz.ToString());
+                    if (fx != 0 || fy != 0 || fz != 0)
+                    {
+                        //m_taintdisable = true;
+                        //base.RaiseOutOfBounds(Position);
+                        //d.BodySetLinearVel(Body, fx, fy, 0f);
+                        if (!d.BodyIsEnabled(Body))
+                        {
+                            // A physical body at rest on a surface will auto-disable after a while,
+                            // this appears to re-enable it incase the surface it is upon vanishes,
+                            // and the body should fall again. 
+                            d.BodySetLinearVel(Body, 0f, 0f, 0f);
+                            d.BodySetForce(Body, 0f, 0f, 0f);
+                            enableBodySoft();
+                        }
+
+                        // 35x10 = 350n times the mass per second applied maximum.
+                        float nmax = 35f * m_mass;
+                        float nmin = -35f * m_mass;
+
+
+                        if (fx > nmax)
+                            fx = nmax;
+                        if (fx < nmin)
+                            fx = nmin;
+                        if (fy > nmax)
+                            fy = nmax;
+                        if (fy < nmin)
+                            fy = nmin;
+                        d.BodyAddForce(Body, fx, fy, fz);
+                    }  // end apply forces
+                } // end Vehicle/Dynamics
+
+                /// RotLookAt / LookAt =================================================================================
                 if (m_useAPID)
                 {
-                	// RotLookAt, apparently overrides all other rotation sources. Inputs:
-                	// Quaternion m_APIDTarget
-					// float m_APIDStrength		// From SL experiments, this is the time to get there
-					// float m_APIDDamping		// From SL experiments, this is damping, 1.0 = damped, 0.1 = wobbly
-												// Also in SL the mass of the object has no effect on time to get there.
-					// Factors:
-		    	    // get present body rotation
-		    	    float limit = 1.0f;
-		    	    float rscaler = 50f;		// adjusts rotation damping time
-		    	    float lscaler = 10f;		// adjusts linear damping time in llLookAt
-		    	    float RLAservo = 0f;
+                    // RotLookAt, apparently overrides all other rotation sources. Inputs:
+                    // Quaternion m_APIDTarget
+                    // float m_APIDStrength		// From SL experiments, this is the time to get there
+                    // float m_APIDDamping		// From SL experiments, this is damping, 1.0 = damped, 0.1 = wobbly
+                    // Also in SL the mass of the object has no effect on time to get there.
+                    // Factors:
+                    // get present body rotation
+                    float limit = 1.0f;
+                    float rscaler = 50f;		// adjusts rotation damping time
+                    float lscaler = 10f;		// adjusts linear damping time in llLookAt
+                    float RLAservo = 0f;
                     Vector3 diff_axis;
                     float diff_angle;
-		    	    d.Quaternion rot = d.BodyGetQuaternion(Body);						// prim present rotation
-		    	    Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
-		    	    Quaternion rtarget = new Quaternion();
+                    d.Quaternion rot = d.BodyGetQuaternion(Body);						// prim present rotation
+                    Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
+                    Quaternion rtarget = new Quaternion();
 
-					if(m_APIDTarget.W == -99.9f)
-					{
-						// this is really a llLookAt(), x,y,z is the target vector
-						Vector3 target = new Vector3(m_APIDTarget.X, m_APIDTarget.Y, m_APIDTarget.Z);
-                        Vector3 ospin = new Vector3(1.0f, 0.0f, 0.0f) *  rotq;
+                    if (m_APIDTarget.W == -99.9f)
+                    {
+                        // this is really a llLookAt(), x,y,z is the target vector
+                        Vector3 target = new Vector3(m_APIDTarget.X, m_APIDTarget.Y, m_APIDTarget.Z);
+                        Vector3 ospin = new Vector3(1.0f, 0.0f, 0.0f) * rotq;
                         Vector3 error = new Vector3(0.0f, 0.0f, 0.0f);
                         float twopi = 2.0f * (float)Math.PI;
-						Vector3 dir = target - _position;
-						dir.Normalize();
+                        Vector3 dir = target - _position;
+                        dir.Normalize();
                         float tzrot = (float)Math.Atan2(dir.Y, dir.X);
                         float txy = (float)Math.Sqrt((dir.X * dir.X) + (dir.Y * dir.Y));
                         float terot = (float)Math.Atan2(dir.Z, txy);
@@ -3882,63 +4238,63 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                         float oxy = (float)Math.Sqrt((ospin.X * ospin.X) + (ospin.Y * ospin.Y));
                         float oerot = (float)Math.Atan2(ospin.Z, oxy);
                         float ra = 2.0f * ((rotq.W * rotq.X) + (rotq.Y * rotq.Z));
-                        float rb = 1.0f - 2.0f * ((rotq.Y * rotq.Y)+(rotq.X * rotq.X));
+                        float rb = 1.0f - 2.0f * ((rotq.Y * rotq.Y) + (rotq.X * rotq.X));
                         float roll = (float)Math.Atan2(ra, rb);
                         float errorz = tzrot - ozrot;
-                        if(errorz > (float)Math.PI) errorz -= twopi;
-                        else if(errorz < -(float)Math.PI) errorz += twopi;
+                        if (errorz > (float)Math.PI) errorz -= twopi;
+                        else if (errorz < -(float)Math.PI) errorz += twopi;
                         float errory = oerot - terot;
-                        if(errory > (float)Math.PI) errory -= twopi;
-                        else if(errory < -(float)Math.PI) errory += twopi;
+                        if (errory > (float)Math.PI) errory -= twopi;
+                        else if (errory < -(float)Math.PI) errory += twopi;
                         diff_angle = Math.Abs(errorz) + Math.Abs(errory) + Math.Abs(roll);
-						if(diff_angle > 0.01f * m_APIDdamper)
-						{	
-						    m_APIDdamper = 1.0f;
-       	                    RLAservo = timestep / m_APIDStrength * rscaler;
+                        if (diff_angle > 0.01f * m_APIDdamper)
+                        {
+                            m_APIDdamper = 1.0f;
+                            RLAservo = timestep / m_APIDStrength * rscaler;
                             errorz *= RLAservo;
                             errory *= RLAservo;
                             error.X = -roll * 8.0f;
                             error.Y = errory;
                             error.Z = errorz;
                             error *= rotq;
-					        d.BodySetAngularVel (Body,  error.X, error.Y, error.Z);
-						}
-						else
-						{
-							d.BodySetAngularVel (Body,  0.0f, 0.0f, 0.0f);
-							m_APIDdamper = 2.0f;
-						}
-					}
-					else
-					{
-						// this is a llRotLookAt()
-						rtarget = m_APIDTarget;
+                            d.BodySetAngularVel(Body, error.X, error.Y, error.Z);
+                        }
+                        else
+                        {
+                            d.BodySetAngularVel(Body, 0.0f, 0.0f, 0.0f);
+                            m_APIDdamper = 2.0f;
+                        }
+                    }
+                    else
+                    {
+                        // this is a llRotLookAt()
+                        rtarget = m_APIDTarget;
 
-				    	Quaternion rot_diff = Quaternion.Inverse(rotq) * rtarget;		// difference to desired rot
-		                rot_diff.GetAxisAngle(out diff_axis, out diff_angle);				// convert to axis to point at & error angle
-//if(frcount == 0) Console.WriteLine("axis {0}   angle {1}",diff_axis * 57.3f, diff_angle);
+                        Quaternion rot_diff = Quaternion.Inverse(rotq) * rtarget;		// difference to desired rot
+                        rot_diff.GetAxisAngle(out diff_axis, out diff_angle);				// convert to axis to point at & error angle
+                        //if(frcount == 0) Console.WriteLine("axis {0}   angle {1}",diff_axis * 57.3f, diff_angle);
 
-		             //   diff_axis.Normalize(); it already is!
-						if(diff_angle > 0.01f * m_APIDdamper)			// diff_angle is always +ve			// if there is enough error
-						{	
-								m_APIDdamper = 1.0f;
-		                        Vector3 rotforce = new Vector3(diff_axis.X, diff_axis.Y, diff_axis.Z);
-	    	                    rotforce = rotforce * rotq;
-	    	                    if(diff_angle > limit) diff_angle = limit;		// cap the rotate rate
-	    	                    RLAservo = timestep / m_APIDStrength * lscaler;
-	    	                    rotforce = rotforce * RLAservo * diff_angle ;
-								d.BodySetAngularVel (Body,  rotforce.X, rotforce.Y, rotforce.Z);
-//Console.WriteLine("axis= " + diff_axis + "    angle= " + diff_angle + "servo= " + RLAservo);							
-						}
-						else
-						{	// close enough
-							d.BodySetAngularVel (Body,  0.0f, 0.0f, 0.0f);
-							m_APIDdamper = 2.0f;
-						}
-					} // end llLookAt/llRotLookAt
-//if(frcount == 0) Console.WriteLine("mass= " + m_mass + "  servo= " + RLAservo + "   angle= " + diff_angle);
+                        //   diff_axis.Normalize(); it already is!
+                        if (diff_angle > 0.01f * m_APIDdamper)			// diff_angle is always +ve			// if there is enough error
+                        {
+                            m_APIDdamper = 1.0f;
+                            Vector3 rotforce = new Vector3(diff_axis.X, diff_axis.Y, diff_axis.Z);
+                            rotforce = rotforce * rotq;
+                            if (diff_angle > limit) diff_angle = limit;		// cap the rotate rate
+                            RLAservo = timestep / m_APIDStrength * lscaler;
+                            rotforce = rotforce * RLAservo * diff_angle;
+                            d.BodySetAngularVel(Body, rotforce.X, rotforce.Y, rotforce.Z);
+                            //Console.WriteLine("axis= " + diff_axis + "    angle= " + diff_angle + "servo= " + RLAservo);							
+                        }
+                        else
+                        {	// close enough
+                            d.BodySetAngularVel(Body, 0.0f, 0.0f, 0.0f);
+                            m_APIDdamper = 2.0f;
+                        }
+                    } // end llLookAt/llRotLookAt
+                    //if(frcount == 0) Console.WriteLine("mass= " + m_mass + "  servo= " + RLAservo + "   angle= " + diff_angle);
                 } // end m_useAPID
             } // end root prims
-       }  // end Move()
-	} // end class
+        }  // end Move()
+    } // end class
 }

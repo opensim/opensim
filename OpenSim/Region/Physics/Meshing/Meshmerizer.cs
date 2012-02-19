@@ -74,6 +74,8 @@ namespace OpenSim.Region.Physics.Meshing
 #endif
 
         private bool cacheSculptMaps = true;
+        private bool cacheSculptAlphaMaps = true;
+
         private string decodedSculptMapPath = null;
         private bool useMeshiesPhysicsMesh = false;
 
@@ -87,7 +89,16 @@ namespace OpenSim.Region.Physics.Meshing
             IConfig mesh_config = config.Configs["Mesh"];
 
             decodedSculptMapPath = start_config.GetString("DecodedSculptMapPath","j2kDecodeCache");
+
             cacheSculptMaps = start_config.GetBoolean("CacheSculptMaps", cacheSculptMaps);
+
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                cacheSculptAlphaMaps = false;
+            }
+            else
+                cacheSculptAlphaMaps = cacheSculptMaps;      
+
             if(mesh_config != null)
                 useMeshiesPhysicsMesh = mesh_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
 
@@ -268,15 +279,18 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     if (!GenerateCoordsAndFacesFromPrimSculptData(primName, primShape, size, lod, out coords, out faces))
                         return null;
+                    // Remove the reference to any JPEG2000 sculpt data so it can be GCed
+                    // don't loose it
+                    //            primShape.SculptData = Utils.EmptyBytes;
                 }
+//                primShape.SculptDataLoaded = true;
             }
             else
             {
                 if (!GenerateCoordsAndFacesFromPrimShapeData(primName, primShape, size, lod, out coords, out faces))
                     return null;
             }
-
-            // Remove the reference to any JPEG2000 sculpt data so it can be GCed
+            // keep compatible
             primShape.SculptData = Utils.EmptyBytes;
 
             int numCoords = coords.Count;
@@ -482,7 +496,8 @@ namespace OpenSim.Region.Physics.Meshing
 
                     //idata = CSJ2K.J2kImage.FromBytes(primShape.SculptData);
 
-                    if (cacheSculptMaps)
+                    if (cacheSculptMaps && (cacheSculptAlphaMaps || (((ImageFlags)(idata.Flags) & ImageFlags.HasAlpha) ==0)))
+                        // don't cache images with alpha channel in linux since mono can't load them correctly)
                     {
                         try { idata.Save(decodedSculptFileName, ImageFormat.MemoryBmp); }
                         catch (Exception e) { m_log.Error("[SCULPT]: unable to cache sculpt map " + decodedSculptFileName + " " + e.Message); }

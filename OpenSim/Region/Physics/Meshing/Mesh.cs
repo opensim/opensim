@@ -46,11 +46,36 @@ namespace OpenSim.Region.Physics.Meshing
         IntPtr m_indicesPtr = IntPtr.Zero;
         int m_indexCount = 0;
         public float[] m_normals;
+        Vector3 _centroid;
+        int _centroidDiv;
+
+        private class vertexcomp : IEqualityComparer<Vertex>
+        {
+            public bool Equals(Vertex v1, Vertex v2)
+            {
+                if (v1.X == v2.X && v1.Y == v2.Y && v1.Z == v2.Z)
+                    return true;
+                else
+                    return false;
+            }
+            public int GetHashCode(Vertex v)
+            {
+                int a = v.X.GetHashCode();
+                int b = v.Y.GetHashCode();
+                int c = v.Z.GetHashCode();
+                return (a << 16) ^ (b << 8) ^ c;
+            }
+
+        }
 
         public Mesh()
         {
-            m_vertices = new Dictionary<Vertex, int>();
+            vertexcomp vcomp = new vertexcomp();
+
+            m_vertices = new Dictionary<Vertex, int>(vcomp);
             m_triangles = new List<Triangle>();
+            _centroid = Vector3.Zero;
+            _centroidDiv = 0;
         }
 
         public Mesh Clone()
@@ -61,7 +86,8 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 result.Add(new Triangle(t.v1.Clone(), t.v2.Clone(), t.v3.Clone()));
             }
-
+            result._centroid = _centroid;
+            result._centroidDiv = _centroidDiv;
             return result;
         }
 
@@ -71,13 +97,55 @@ namespace OpenSim.Region.Physics.Meshing
                 throw new NotSupportedException("Attempt to Add to a pinned Mesh");
             // If a vertex of the triangle is not yet in the vertices list,
             // add it and set its index to the current index count
+            // vertex == seems broken
+            // skip colapsed triangles
+            if ((triangle.v1.X == triangle.v2.X && triangle.v1.Y == triangle.v2.Y && triangle.v1.Z == triangle.v2.Z)
+                || (triangle.v1.X == triangle.v3.X && triangle.v1.Y == triangle.v3.Y && triangle.v1.Z == triangle.v3.Z)
+                || (triangle.v2.X == triangle.v3.X && triangle.v2.Y == triangle.v3.Y && triangle.v2.Z == triangle.v3.Z)
+                )               
+            {               
+                return;
+            }
+
+            if (m_vertices.Count == 0)
+            {
+                _centroidDiv = 0;
+                _centroid = Vector3.Zero;
+            }
+
             if (!m_vertices.ContainsKey(triangle.v1))
+            {
                 m_vertices[triangle.v1] = m_vertices.Count;
+                _centroid.X += triangle.v1.X;
+                _centroid.Y += triangle.v1.Y;
+                _centroid.Z += triangle.v1.Z;
+                _centroidDiv++;
+            }
             if (!m_vertices.ContainsKey(triangle.v2))
+            {
                 m_vertices[triangle.v2] = m_vertices.Count;
+                _centroid.X += triangle.v2.X;
+                _centroid.Y += triangle.v2.Y;
+                _centroid.Z += triangle.v2.Z;
+                _centroidDiv++;
+            }
             if (!m_vertices.ContainsKey(triangle.v3))
+            {
                 m_vertices[triangle.v3] = m_vertices.Count;
+                _centroid.X += triangle.v3.X;
+                _centroid.Y += triangle.v3.Y;
+                _centroid.Z += triangle.v3.Z;
+                _centroidDiv++;
+            }
             m_triangles.Add(triangle);
+        }
+
+        public Vector3 GetCentroid()
+        {
+            if (_centroidDiv > 0)
+                return new Vector3(_centroid.X / _centroidDiv, _centroid.Y / _centroidDiv, _centroid.Z / _centroidDiv);
+            else
+                return Vector3.Zero;
         }
 
         public void CalcNormals()

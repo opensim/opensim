@@ -417,7 +417,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 so.AttachedAvatar = UUID.Zero;
                 rootPart.SetParentLocalId(0);
                 so.ClearPartAttachmentData();
-                rootPart.ApplyPhysics(rootPart.GetEffectiveObjectFlags(), rootPart.VolumeDetectActive);
+                rootPart.ApplyPhysics(rootPart.GetEffectiveObjectFlags(), rootPart.VolumeDetectActive,false);
                 so.HasGroupChanged = true;
                 rootPart.Rezzed = DateTime.Now;
                 rootPart.RemFlag(PrimFlags.TemporaryOnRez);
