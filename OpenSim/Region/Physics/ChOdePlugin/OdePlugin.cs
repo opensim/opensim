@@ -3440,15 +3440,15 @@ namespace OpenSim.Region.Physics.OdePlugin
            
             int regionsize = (int) Constants.RegionSize;		// visible region size eg. 256(M)
             
-            int heightmapWidth = regionsize + 2;				// ODE map size 257 x 257 (Meters) (1 extra 
+            int heightmapWidth = regionsize + 2;				// ODE map size 258 x 258 (Meters) (1 extra each side)
             int heightmapHeight = regionsize + 2;
             
-            int heightmapWidthSamples = (int)regionsize + 2;		// Sample file size, 258 x 258 samples
-            int heightmapHeightSamples = (int)regionsize + 2;
+            int heightmapWidthSamples = (int)regionsize + 3;	// to have 258m we need 259 samples
+            int heightmapHeightSamples = (int)regionsize + 3;
             
             // Array of height samples for ODE 
             float[] _heightmap;
-            _heightmap = new float[(heightmapWidthSamples * heightmapHeightSamples)];	// loaded samples 258 x 258
+            _heightmap = new float[(heightmapWidthSamples * heightmapHeightSamples)];	// loaded samples 259 x 259
 
 			// Other ODE parameters
             const float scale = 1.0f;
