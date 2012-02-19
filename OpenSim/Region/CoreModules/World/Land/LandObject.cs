@@ -272,7 +272,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.AllowGroupScripts |
                         ParcelFlags.CreateGroupObjects |
                         ParcelFlags.AllowAPrimitiveEntry |
-                        ParcelFlags.AllowGroupObjectEntry);
+                        ParcelFlags.AllowGroupObjectEntry |
+                        ParcelFlags.AllowFly);
             }
 
             if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandSetSale))
