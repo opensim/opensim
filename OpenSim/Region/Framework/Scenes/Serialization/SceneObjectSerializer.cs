@@ -352,7 +352,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("VolumeDetectActive", ProcessVolumeDetectActive);
 
             //Ubit comented until proper testing
-            //            m_SOPXmlProcessors.Add("Vehicle", ProcessVehicle);
+                        m_SOPXmlProcessors.Add("Vehicle", ProcessVehicle);
 
 
             #endregion
@@ -1259,8 +1259,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("VolumeDetectActive", sop.VolumeDetectActive.ToString().ToLower());
 
             //Ubit comented until proper testing
-            //            if (sop.sopVehicle != null)
-            //                sop.sopVehicle.ToXml2(writer);
+                        if (sop.sopVehicle != null)
+                            sop.sopVehicle.ToXml2(writer);
 
             writer.WriteEndElement();
         }
