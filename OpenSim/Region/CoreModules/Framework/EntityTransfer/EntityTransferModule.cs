@@ -1217,13 +1217,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 if (neighbour.RegionHandle != sp.Scene.RegionInfo.RegionHandle)
                 {
-                    InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
                     try
                     {
-                        //neighbour.ExternalEndPoint may return null, which will be caught
-                        d.BeginInvoke(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent,
-                                      InformClientOfNeighbourCompleted,
-                                      d);
+                        // Let's put this back at sync, so that it doesn't clog 
+                        // the network, especially for regions in the same physical server.
+                        // We're really not in a hurry here.
+                        InformClientOfNeighbourAsync(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent);
+                        //InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
+                        //d.BeginInvoke(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent,
+                        //              InformClientOfNeighbourCompleted,
+                        //              d);
                     }
 
                     catch (ArgumentOutOfRangeException)

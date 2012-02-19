@@ -2787,7 +2787,8 @@ namespace OpenSim.Region.Framework.Scenes
                 AgentPosition agentpos = new AgentPosition();
                 agentpos.CopyFrom(cadu);
 
-                m_scene.SendOutChildAgentUpdates(agentpos, this);
+                // Let's get this out of the update loop
+                Util.FireAndForget(delegate { m_scene.SendOutChildAgentUpdates(agentpos, this); });
             }
         }
 

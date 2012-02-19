@@ -3395,10 +3395,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// also return a reason.</returns>
         public bool NewUserConnection(AgentCircuitData agent, uint teleportFlags, out string reason, bool requirePresenceLookup)
         {
-            bool vialogin = ((teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0 ||
-                             (teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0);
-            bool viahome = ((teleportFlags & (uint)Constants.TeleportFlags.ViaHome) != 0);
-            bool godlike = ((teleportFlags & (uint)Constants.TeleportFlags.Godlike) != 0);
+            bool vialogin = ((teleportFlags & (uint)TPFlags.ViaLogin) != 0 ||
+                             (teleportFlags & (uint)TPFlags.ViaHGLogin) != 0);
+            bool viahome = ((teleportFlags & (uint)TPFlags.ViaHome) != 0);
+            bool godlike = ((teleportFlags & (uint)TPFlags.Godlike) != 0);
 
             reason = String.Empty;
 
@@ -3411,9 +3411,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Don't disable this log message - it's too helpful
             m_log.DebugFormat(
-                "[SCENE]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, IP {6}, viewer {7}, teleportflags {8}, position {9})",
+                "[SCENE]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, IP {6}, viewer {7}, teleportflags ({8}), position {9})",
                 RegionInfo.RegionName, (agent.child ? "child" : "root"),agent.firstname, agent.lastname,
-                agent.AgentID, agent.circuitcode, agent.IPAddress, agent.Viewer, teleportFlags, agent.startpos);
+                agent.AgentID, agent.circuitcode, agent.IPAddress, agent.Viewer, ((TPFlags)teleportFlags).ToString(), agent.startpos);
 
             if (LoginsDisabled)
             {
