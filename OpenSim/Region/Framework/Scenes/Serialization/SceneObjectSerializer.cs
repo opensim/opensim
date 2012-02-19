@@ -350,6 +350,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             m_SOPXmlProcessors.Add("Buoyancy", ProcessBuoyancy);
             m_SOPXmlProcessors.Add("VolumeDetectActive", ProcessVolumeDetectActive);
+
+            //Ubit comented until proper testing
+            //            m_SOPXmlProcessors.Add("Vehicle", ProcessVehicle);
+
+
             #endregion
 
             #region TaskInventoryXmlProcessors initialization
@@ -571,6 +576,25 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         {
             obj.ClickAction = (byte)reader.ReadElementContentAsInt("ClickAction", String.Empty);
         }
+
+        private static void ProcessVehicle(SceneObjectPart obj, XmlTextReader reader)
+        {
+            bool errors = false;
+            SOPVehicle _vehicle = new SOPVehicle();
+
+            _vehicle.FromXml2(reader, out errors);
+
+            if (errors)
+            {
+                obj.sopVehicle = null;
+                m_log.DebugFormat(
+                    "[SceneObjectSerializer]: Parsing Vehicle for object part {0} {1} encountered errors.  Please see earlier log entries.",
+                    obj.Name, obj.UUID);
+            }
+            else
+                obj.sopVehicle = _vehicle;
+        }
+                   
 
         private static void ProcessShape(SceneObjectPart obj, XmlTextReader reader)
         {
@@ -1233,6 +1257,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             writer.WriteElementString("Buoyancy", sop.Buoyancy.ToString());
             writer.WriteElementString("VolumeDetectActive", sop.VolumeDetectActive.ToString().ToLower());
+
+            //Ubit comented until proper testing
+            //            if (sop.sopVehicle != null)
+            //                sop.sopVehicle.ToXml2(writer);
 
             writer.WriteEndElement();
         }

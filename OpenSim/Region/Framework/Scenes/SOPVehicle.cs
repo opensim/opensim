@@ -26,12 +26,14 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using System.Xml;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -44,7 +46,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return vd.m_type; }
         }
-        
+
         public SOPVehicle()
         {
             vd = new VehicleData();
@@ -116,8 +118,6 @@ namespace OpenSim.Region.Framework.Scenes
                     vd.m_linearDeflectionTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
-                    //                    if (pValue < timestep) pValue = timestep;
-                    // try to make impulses to work a bit better
                     if (pValue < timestep) pValue = timestep;
                     else if (pValue > 120) pValue = 120;
                     vd.m_linearMotorDecayTimescale = pValue;
@@ -439,7 +439,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void ToXml2(XmlTextWriter twriter)
         {
             writer = twriter;
-            writer.WriteStartElement("SOGVehicle");
+            writer.WriteStartElement("Vehicle");
 
             XWint("TYPE", (int)vd.m_type);
             XWint("FLAGS", (int)vd.m_flags);
@@ -482,6 +482,261 @@ namespace OpenSim.Region.Framework.Scenes
 
             writer.WriteEndElement();
             writer = null;
+        }
+
+
+
+        XmlTextReader reader;
+
+        private int XRint()
+        {
+            return reader.ReadElementContentAsInt();
+        }
+
+        private float XRfloat()
+        {
+            return reader.ReadElementContentAsFloat();
+        }
+
+        public Vector3 XRvector()
+        {
+            Vector3 vec;
+            reader.ReadStartElement();
+            vec.X = reader.ReadElementContentAsFloat();
+            vec.Y = reader.ReadElementContentAsFloat();
+            vec.Z = reader.ReadElementContentAsFloat();
+            reader.ReadEndElement();
+            return vec;
+        }
+
+        public Quaternion XRquat()
+        {
+            Quaternion q;
+            reader.ReadStartElement();
+            q.X = reader.ReadElementContentAsFloat();
+            q.Y = reader.ReadElementContentAsFloat();
+            q.Z = reader.ReadElementContentAsFloat();
+            q.W = reader.ReadElementContentAsFloat();
+            reader.ReadEndElement();
+            return q;
+        }
+
+        public static bool EReadProcessors(
+            Dictionary<string, Action> processors,
+            XmlTextReader xtr)
+        {
+            bool errors = false;
+
+            string nodeName = string.Empty;
+            while (xtr.NodeType != XmlNodeType.EndElement)
+            {
+                nodeName = xtr.Name;
+
+                //                        m_log.DebugFormat("[ExternalRepresentationUtils]: Processing: {0}", nodeName);
+
+                Action p = null;
+                if (processors.TryGetValue(xtr.Name, out p))
+                {
+                    //                            m_log.DebugFormat("[ExternalRepresentationUtils]: Found {0} processor, nodeName);
+
+                    try
+                    {
+                        p();
+                    }
+                    catch (Exception e)
+                    {
+                        errors = true;
+                        if (xtr.NodeType == XmlNodeType.EndElement)
+                            xtr.Read();
+                    }
+                }
+                else
+                {
+                    // m_log.DebugFormat("[LandDataSerializer]: caught unknown element {0}", nodeName);
+                    xtr.ReadOuterXml(); // ignore
+                }
+            }
+
+            return errors;
+        }
+
+        
+
+        public void FromXml2(XmlTextReader _reader, out bool errors)
+        {
+            errors = false;
+            reader = _reader;
+
+            Dictionary<string, Action> m_VehicleXmlProcessors
+            = new Dictionary<string, Action>();
+
+            m_VehicleXmlProcessors.Add("TYPE", ProcessXR_type);
+            m_VehicleXmlProcessors.Add("FLAGS", ProcessXR_flags);
+
+            // Linear properties
+            m_VehicleXmlProcessors.Add("LMDIR", ProcessXR_linearMotorDirection);
+            m_VehicleXmlProcessors.Add("LMFTIME", ProcessXR_linearFrictionTimescale);
+            m_VehicleXmlProcessors.Add("LMDTIME", ProcessXR_linearMotorDecayTimescale);
+            m_VehicleXmlProcessors.Add("LMTIME", ProcessXR_linearMotorTimescale);
+            m_VehicleXmlProcessors.Add("LMOFF", ProcessXR_linearMotorOffset);
+
+            //Angular properties
+            m_VehicleXmlProcessors.Add("AMDIR", ProcessXR_angularMotorDirection);
+            m_VehicleXmlProcessors.Add("AMTIME", ProcessXR_angularMotorTimescale);
+            m_VehicleXmlProcessors.Add("AMDTIME", ProcessXR_angularMotorDecayTimescale);
+            m_VehicleXmlProcessors.Add("AMFTIME", ProcessXR_angularFrictionTimescale);
+
+            //Deflection properties
+            m_VehicleXmlProcessors.Add("ADEFF", ProcessXR_angularDeflectionEfficiency);
+            m_VehicleXmlProcessors.Add("ADTIME", ProcessXR_angularDeflectionTimescale);
+            m_VehicleXmlProcessors.Add("LDEFF", ProcessXR_linearDeflectionEfficiency);
+            m_VehicleXmlProcessors.Add("LDTIME", ProcessXR_linearDeflectionTimescale);
+
+            //Banking properties
+            m_VehicleXmlProcessors.Add("BEFF", ProcessXR_bankingEfficiency);
+            m_VehicleXmlProcessors.Add("BMIX", ProcessXR_bankingMix);
+            m_VehicleXmlProcessors.Add("BTIME", ProcessXR_bankingTimescale);
+
+            //Hover and Buoyancy properties
+            m_VehicleXmlProcessors.Add("HHEI", ProcessXR_VhoverHeight);
+            m_VehicleXmlProcessors.Add("HEFF", ProcessXR_VhoverEfficiency);
+            m_VehicleXmlProcessors.Add("HTIME", ProcessXR_VhoverTimescale);
+
+            m_VehicleXmlProcessors.Add("VBUO", ProcessXR_VehicleBuoyancy);
+
+            //Attractor properties
+            m_VehicleXmlProcessors.Add("VAEFF", ProcessXR_verticalAttractionEfficiency);
+            m_VehicleXmlProcessors.Add("VATIME", ProcessXR_verticalAttractionTimescale);
+
+            m_VehicleXmlProcessors.Add("REF_FRAME", ProcessXR_referenceFrame);
+
+            vd = new VehicleData();
+
+            reader.ReadStartElement("Vehicle", String.Empty);
+
+            errors = EReadProcessors(
+                m_VehicleXmlProcessors,
+                reader);
+
+            reader.ReadEndElement();
+            reader = null;
+        }
+
+        private void ProcessXR_type()
+        {
+            vd.m_type = (Vehicle)XRint();
+        }
+        private void ProcessXR_flags()
+        {
+            vd.m_flags = (VehicleFlag)XRint();
+        }
+        // Linear properties
+        private void ProcessXR_linearMotorDirection()
+        {
+            vd.m_linearMotorDirection = XRvector();
+        }
+
+        private void ProcessXR_linearFrictionTimescale()
+        {
+            vd.m_linearFrictionTimescale = XRvector();
+        }
+
+        private void ProcessXR_linearMotorDecayTimescale()
+        {
+            vd.m_linearMotorDecayTimescale = XRfloat();
+        }
+        private void ProcessXR_linearMotorTimescale()
+        {
+            vd.m_linearMotorTimescale = XRfloat();
+        }
+        private void ProcessXR_linearMotorOffset()
+        {
+            vd.m_linearMotorOffset = XRvector();
+        }
+
+
+        //Angular properties
+        private void ProcessXR_angularMotorDirection()
+        {
+            vd.m_angularMotorDirection = XRvector();
+        }
+        private void ProcessXR_angularMotorTimescale()
+        {
+            vd.m_angularMotorTimescale = XRfloat();
+        }
+        private void ProcessXR_angularMotorDecayTimescale()
+        {
+            vd.m_angularMotorDecayTimescale = XRfloat();
+        }
+        private void ProcessXR_angularFrictionTimescale()
+        {
+            vd.m_angularFrictionTimescale = XRvector();
+        }
+
+        //Deflection properties
+        private void ProcessXR_angularDeflectionEfficiency()
+        {
+            vd.m_angularDeflectionEfficiency = XRfloat();
+        }
+        private void ProcessXR_angularDeflectionTimescale()
+        {
+            vd.m_angularDeflectionTimescale = XRfloat();
+        }
+        private void ProcessXR_linearDeflectionEfficiency()
+        {
+            vd.m_linearDeflectionEfficiency = XRfloat();
+        }
+        private void ProcessXR_linearDeflectionTimescale()
+        {
+            vd.m_linearDeflectionTimescale = XRfloat();
+        }
+
+        //Banking properties
+        private void ProcessXR_bankingEfficiency()
+        {
+            vd.m_bankingEfficiency = XRfloat();
+        }
+        private void ProcessXR_bankingMix()
+        {
+            vd.m_bankingMix = XRfloat();
+        }
+        private void ProcessXR_bankingTimescale()
+        {
+            vd.m_bankingTimescale = XRfloat();
+        }
+
+        //Hover and Buoyancy properties
+        private void ProcessXR_VhoverHeight()
+        {
+            vd.m_VhoverHeight = XRfloat();
+        }
+        private void ProcessXR_VhoverEfficiency()
+        {
+            vd.m_VhoverEfficiency = XRfloat();
+        }
+        private void ProcessXR_VhoverTimescale()
+        {
+            vd.m_VhoverTimescale = XRfloat();
+        }
+
+        private void ProcessXR_VehicleBuoyancy()
+        {
+            vd.m_VehicleBuoyancy = XRfloat();
+        }
+
+        //Attractor properties
+        private void ProcessXR_verticalAttractionEfficiency()
+        {
+            vd.m_verticalAttractionEfficiency = XRfloat();
+        }
+        private void ProcessXR_verticalAttractionTimescale()
+        {
+            vd.m_verticalAttractionTimescale = XRfloat();
+        }
+
+        private void ProcessXR_referenceFrame()
+        {
+            vd.m_referenceFrame = XRquat();
         }
     }
 }
