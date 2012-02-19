@@ -26,12 +26,14 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using System.Xml;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -44,7 +46,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return vd.m_type; }
         }
-        
+
         public SOPVehicle()
         {
             vd = new VehicleData();
@@ -116,8 +118,6 @@ namespace OpenSim.Region.Framework.Scenes
                     vd.m_linearDeflectionTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
-                    //                    if (pValue < timestep) pValue = timestep;
-                    // try to make impulses to work a bit better
                     if (pValue < timestep) pValue = timestep;
                     else if (pValue > 120) pValue = 120;
                     vd.m_linearMotorDecayTimescale = pValue;
@@ -439,7 +439,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void ToXml2(XmlTextWriter twriter)
         {
             writer = twriter;
-            writer.WriteStartElement("SOGVehicle");
+            writer.WriteStartElement("Vehicle");
 
             XWint("TYPE", (int)vd.m_type);
             XWint("FLAGS", (int)vd.m_flags);
@@ -482,6 +482,221 @@ namespace OpenSim.Region.Framework.Scenes
 
             writer.WriteEndElement();
             writer = null;
+        }
+
+        private int XRint(XmlTextReader reader, string name)
+        {
+            return reader.ReadElementContentAsInt(name, String.Empty);
+        }
+
+        private float XRfloat(XmlTextReader reader, string name)
+        {
+            return reader.ReadElementContentAsFloat(name, String.Empty);
+        }
+
+        public Vector3 XRvector(XmlTextReader reader, string name)
+        {
+            Vector3 vec;
+            reader.ReadStartElement(name);
+            vec.X = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // X or x
+            vec.Y = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Y or y
+            vec.Z = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Z or z
+            reader.ReadEndElement();
+            return vec;
+        }
+
+        public Quaternion XRquat(XmlTextReader reader, string name)
+        {
+            Quaternion q;
+            reader.ReadStartElement(name);
+            q.X = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+            q.Y = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+            q.Z = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+            q.W = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+            reader.ReadEndElement();
+            return q;
+        }
+
+        public void FromXml2(XmlTextReader reader, out bool errors)
+        {
+            errors = false;
+
+            Dictionary<string, Action<VehicleData, XmlTextReader>> m_VehicleXmlProcessors
+            = new Dictionary<string, Action<VehicleData, XmlTextReader>>();
+
+            m_VehicleXmlProcessors.Add("TYPE", ProcessXR_type);
+            m_VehicleXmlProcessors.Add("FLAGS", ProcessXR_flags);
+
+            // Linear properties
+            m_VehicleXmlProcessors.Add("LMDIR", ProcessXR_linearMotorDirection);
+            m_VehicleXmlProcessors.Add("LMFTIME", ProcessXR_linearFrictionTimescale);
+            m_VehicleXmlProcessors.Add("LMDTIME", ProcessXR_linearMotorDecayTimescale);
+            m_VehicleXmlProcessors.Add("LMTIME", ProcessXR_linearMotorTimescale);
+            m_VehicleXmlProcessors.Add("LMOFF", ProcessXR_linearMotorOffset);
+
+            //Angular properties
+            m_VehicleXmlProcessors.Add("AMDIR", ProcessXR_angularMotorDirection);
+            m_VehicleXmlProcessors.Add("AMTIME", ProcessXR_angularMotorTimescale);
+            m_VehicleXmlProcessors.Add("AMDTIME", ProcessXR_angularMotorDecayTimescale);
+            m_VehicleXmlProcessors.Add("AMFTIME", ProcessXR_angularFrictionTimescale);
+
+            //Deflection properties
+            m_VehicleXmlProcessors.Add("ADEFF", ProcessXR_angularDeflectionEfficiency);
+            m_VehicleXmlProcessors.Add("ADTIME", ProcessXR_angularDeflectionTimescale);
+            m_VehicleXmlProcessors.Add("LDEFF", ProcessXR_linearDeflectionEfficiency);
+            m_VehicleXmlProcessors.Add("LDTIME", ProcessXR_linearDeflectionTimescale);
+
+            //Banking properties
+            m_VehicleXmlProcessors.Add("BEFF", ProcessXR_bankingEfficiency);
+            m_VehicleXmlProcessors.Add("BMIX", ProcessXR_bankingMix);
+            m_VehicleXmlProcessors.Add("BTIME", ProcessXR_bankingTimescale);
+
+            //Hover and Buoyancy properties
+            m_VehicleXmlProcessors.Add("HHEI", ProcessXR_VhoverHeight);
+            m_VehicleXmlProcessors.Add("HEFF", ProcessXR_VhoverEfficiency);
+            m_VehicleXmlProcessors.Add("HTIME", ProcessXR_VhoverTimescale);
+
+            m_VehicleXmlProcessors.Add("VBUO", ProcessXR_VehicleBuoyancy);
+
+            //Attractor properties
+            m_VehicleXmlProcessors.Add("VAEFF", ProcessXR_verticalAttractionEfficiency);
+            m_VehicleXmlProcessors.Add("VATIME", ProcessXR_verticalAttractionTimescale);
+
+            m_VehicleXmlProcessors.Add("REF_FRAME", ProcessXR_referenceFrame);
+
+            vd = new VehicleData();
+
+            reader.ReadStartElement("Vehicle", String.Empty);
+
+            errors = ExternalRepresentationUtils.ExecuteReadProcessors(
+                vd,
+                m_VehicleXmlProcessors,
+                reader,
+                (o, nodeName, e)
+                    =>
+                {
+                }
+            );
+
+            reader.ReadEndElement();
+        }
+
+        private void ProcessXR_type(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_type = (Vehicle)XRint(reader, "TYPE");
+        }
+        private void ProcessXR_flags(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_flags = (VehicleFlag)XRint(reader, "FLAGS");
+        }
+        // Linear properties
+        private void ProcessXR_linearMotorDirection(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_linearMotorDirection = XRvector(reader, "LMDIR");
+        }
+
+        private void ProcessXR_linearFrictionTimescale(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_linearFrictionTimescale = XRvector(reader, "LMFTIME");
+        }
+
+        private void ProcessXR_linearMotorDecayTimescale(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_linearMotorDecayTimescale = XRfloat(reader, "LMDTIME");
+        }
+        private void ProcessXR_linearMotorTimescale(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_linearMotorTimescale = XRfloat(reader, "LMTIME");
+        }
+        private void ProcessXR_linearMotorOffset(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_linearMotorOffset = XRvector(reader, "LMOFF");
+        }
+
+
+        //Angular properties
+        private void ProcessXR_angularMotorDirection(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_angularMotorDirection = XRvector(reader, "AMDIR");
+        }
+        private void ProcessXR_angularMotorTimescale(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_angularMotorTimescale = XRfloat(reader, "AMTIME");
+        }
+        private void ProcessXR_angularMotorDecayTimescale(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_angularMotorDecayTimescale = XRfloat(reader, "AMDTIME");
+        }
+        private void ProcessXR_angularFrictionTimescale(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_angularFrictionTimescale = XRvector(reader, "AMFTIME");
+        }
+
+        //Deflection properties
+        private void ProcessXR_angularDeflectionEfficiency(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_angularDeflectionEfficiency = XRfloat(reader, "ADEFF");
+        }
+        private void ProcessXR_angularDeflectionTimescale(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_angularDeflectionTimescale = XRfloat(reader, "ADTIME");
+        }
+        private void ProcessXR_linearDeflectionEfficiency(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_linearDeflectionEfficiency = XRfloat(reader, "LDEFF");
+        }
+        private void ProcessXR_linearDeflectionTimescale(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_linearDeflectionTimescale = XRfloat(reader, "LDTIME");
+        }
+
+        //Banking properties
+        private void ProcessXR_bankingEfficiency(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_bankingEfficiency = XRfloat(reader, "BEFF");
+        }
+        private void ProcessXR_bankingMix(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_bankingMix = XRfloat(reader, "BMIX");
+        }
+        private void ProcessXR_bankingTimescale(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_bankingTimescale = XRfloat(reader, "BTIME");
+        }
+
+        //Hover and Buoyancy properties
+        private void ProcessXR_VhoverHeight(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_VhoverHeight = XRfloat(reader, "HHEI");
+        }
+        private void ProcessXR_VhoverEfficiency(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_VhoverEfficiency = XRfloat(reader, "HEFF");
+        }
+        private void ProcessXR_VhoverTimescale(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_VhoverTimescale = XRfloat(reader, "HTIME");
+        }
+
+        private void ProcessXR_VehicleBuoyancy(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_VehicleBuoyancy = XRfloat(reader, "VBUO");
+        }
+
+        //Attractor properties
+        private void ProcessXR_verticalAttractionEfficiency(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_verticalAttractionEfficiency = XRfloat(reader, "VAEFF");
+        }
+        private void ProcessXR_verticalAttractionTimescale(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_verticalAttractionTimescale = XRfloat(reader, "VATIME");
+        }
+
+        private void ProcessXR_referenceFrame(VehicleData obj, XmlTextReader reader)
+        {
+            vd.m_referenceFrame = XRquat(reader, "REF_FRAME");
+
         }
     }
 }

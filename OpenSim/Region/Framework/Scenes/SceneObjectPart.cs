@@ -3177,6 +3177,18 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public SOPVehicle sopVehicle
+        {
+            get
+            {
+                return m_vehicle;
+            }
+            set
+            {
+                m_vehicle = value;
+            }
+        }
+
 
         public int VehicleType
         {
@@ -3196,6 +3208,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SetVehicleType(int type)
         {
                 m_vehicle = null;
+                
                 if (type == (int)Vehicle.TYPE_NONE)
                 {
                     if (_parentID ==0 && PhysActor != null)
