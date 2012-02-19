@@ -1556,9 +1556,9 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.GroupPosition = GroupPosition;
             dupe.OffsetPosition = OffsetPosition;
             dupe.RotationOffset = RotationOffset;
-            dupe.Velocity = new Vector3(0, 0, 0);
-            dupe.Acceleration = new Vector3(0, 0, 0);
-            dupe.AngularVelocity = new Vector3(0, 0, 0);
+            dupe.Velocity = Velocity;
+            dupe.Acceleration = Acceleration;
+            dupe.AngularVelocity = AngularVelocity;
             dupe.Flags = Flags;
 
             dupe.OwnershipCost = OwnershipCost;
