@@ -310,6 +310,9 @@ namespace OpenSim.Region.Framework.Scenes
         private UUID m_collisionSound;
         private float m_collisionSoundVolume;
 
+
+        private SOPVehicle m_vehicle = null;
+
         #endregion Fields
 
 //        ~SceneObjectPart()
@@ -1556,8 +1559,14 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         PhysActor.SOPName = this.Name; // save object into the PhysActor so ODE internals know the joint/body info
                         PhysActor.SetMaterial(Material);
+
+                        // if root part apply vehicle
+                        if (m_vehicle != null && LocalId == ParentGroup.RootPart.LocalId)
+                            m_vehicle.SetVehicle(PhysActor);
+
                         DoPhysicsPropertyUpdate(RigidBody, true);
                         PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
+
 						if (!building)
                             PhysActor.Building = false;
                     }
@@ -3168,39 +3177,90 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+
+        public int VehicleType
+        {
+            get
+            {
+                if (m_vehicle == null)
+                    return (int)Vehicle.TYPE_NONE;
+                else
+                    return (int)m_vehicle.Type;
+            }
+            set
+            {
+                SetVehicleType(value);
+            }
+        }
+
         public void SetVehicleType(int type)
         {
-            if (ParentGroup.IsDeleted)
-                return;
-            ParentGroup.VehicleType = type;
+                m_vehicle = null;
+                if (type == (int)Vehicle.TYPE_NONE)
+                {
+                    if (_parentID ==0 && PhysActor != null)
+                        PhysActor.VehicleType = (int)Vehicle.TYPE_NONE;
+                    return;
+                }
+                m_vehicle = new SOPVehicle();
+                m_vehicle.ProcessTypeChange((Vehicle)type);
+                {
+                    if (_parentID ==0 && PhysActor != null)
+                        PhysActor.VehicleType = type;
+                    return;
+                }
         }
 
         public void SetVehicleFlags(int param, bool remove)
         {
-            if (ParentGroup.IsDeleted)
+            if (m_vehicle == null)
                 return;
-            ParentGroup.SetVehicleFlags(param, remove);
+
+            m_vehicle.ProcessVehicleFlags(param, remove);
+
+            if (_parentID ==0 && PhysActor != null)
+            {
+                PhysActor.VehicleFlags(param, remove);
+            }
         }
 
         public void SetVehicleFloatParam(int param, float value)
         {
-            if (ParentGroup.IsDeleted)
+            if (m_vehicle == null)
                 return;
-            ParentGroup.SetVehicleFloatParam(param, value);
+
+            m_vehicle.ProcessFloatVehicleParam((Vehicle)param, value);
+
+            if (_parentID == 0 && PhysActor != null)
+            {
+                PhysActor.VehicleFloatParam(param, value);
+            }
         }
 
         public void SetVehicleVectorParam(int param, Vector3 value)
         {
-            if (ParentGroup.IsDeleted)
+            if (m_vehicle == null)
                 return;
-            ParentGroup.SetVehicleVectorParam(param, value);
+
+            m_vehicle.ProcessVectorVehicleParam((Vehicle)param, value);
+
+            if (_parentID == 0 && PhysActor != null)
+            {
+                PhysActor.VehicleVectorParam(param, value);
+            }
         }
 
         public void SetVehicleRotationParam(int param, Quaternion rotation)
         {
-            if (ParentGroup.IsDeleted)
+            if (m_vehicle == null)
                 return;
-            ParentGroup.SetVehicleRotationParam(param, rotation);
+
+            m_vehicle.ProcessRotationVehicleParam((Vehicle)param, rotation);
+
+            if (_parentID == 0 && PhysActor != null)
+            {
+                PhysActor.VehicleRotationParam(param, rotation);
+            }
         }
 
         /// <summary>
@@ -4380,6 +4440,11 @@ namespace OpenSim.Region.Framework.Scenes
                         m_localId);
 
                     PhysActor.SetMaterial(Material);
+
+                    // if root part apply vehicle
+                    if (m_vehicle != null && LocalId == ParentGroup.RootPart.LocalId)
+                        m_vehicle.SetVehicle(PhysActor);
+
                     DoPhysicsPropertyUpdate(UsePhysics, true);
 
                     if (!ParentGroup.IsDeleted)

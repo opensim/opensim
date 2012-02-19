@@ -36,7 +36,7 @@ using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    public class SOGVehicle
+    public class SOPVehicle
     {
         public VehicleData vd;
 
@@ -45,7 +45,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return vd.m_type; }
         }
         
-        public SOGVehicle()
+        public SOPVehicle()
         {
             vd = new VehicleData();
             ProcessTypeChange(Vehicle.TYPE_NONE); // is needed?
@@ -259,7 +259,7 @@ namespace OpenSim.Region.Framework.Scenes
                     vd.m_bankingEfficiency = 0;
                     vd.m_bankingMix = 1;
                     vd.m_bankingTimescale = 1000;
-                   vd.m_verticalAttractionEfficiency = 0;
+                    vd.m_verticalAttractionEfficiency = 0;
                     vd.m_verticalAttractionTimescale = 1000;
 
                     vd.m_flags = (VehicleFlag)0;
