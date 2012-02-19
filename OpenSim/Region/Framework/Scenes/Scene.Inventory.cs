@@ -265,6 +265,10 @@ namespace OpenSim.Region.Framework.Scenes
                 //
                 errors = part.Inventory.CreateScriptInstanceEr(item.ItemID, 0, false, DefaultScriptEngine, 0);
             }
+
+            // Tell anyone managing scripts that a script has been reloaded/changed
+            EventManager.TriggerUpdateScript(remoteClient.AgentId, itemId, primId, isScriptRunning, item.AssetID);
+
             part.ParentGroup.ResumeScripts();
             return errors;
         }
@@ -1643,9 +1647,13 @@ namespace OpenSim.Region.Framework.Scenes
                     // have state in inventory
                     part.Inventory.CreateScriptInstance(copyID, 0, false, DefaultScriptEngine, 0);
 
+                    // tell anyone watching that there is a new script in town
+                    EventManager.TriggerNewScript(agentID, part, copyID);
+
                     //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
                     //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
                     //                                         item.inventoryName, localID, remoteClient.Name);
+
                     part.ParentGroup.ResumeScripts();
 
                     return part;
@@ -1726,6 +1734,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             part.Inventory.AddInventoryItem(taskItem, false);
             part.Inventory.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 0);
+
+            // tell anyone managing scripts that a new script exists
+            EventManager.TriggerNewScript(agentID, part, taskItem.ItemID);
+
             part.ParentGroup.ResumeScripts();
 
             return part;
@@ -1954,7 +1966,7 @@ namespace OpenSim.Region.Framework.Scenes
                             permissionToTake = true;
                             permissionToDelete = true;
 
-                            AddReturn(grp.OwnerID, grp.Name, grp.AbsolutePosition, "parcel owner return");
+                            AddReturn(grp.OwnerID == grp.GroupID ? grp.LastOwnerID : grp.OwnerID, grp.Name, grp.AbsolutePosition, "parcel owner return");
                         }
                     }
                     else // Auto return passes through here with null agent

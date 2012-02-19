@@ -565,9 +565,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                    "[INVENTORY ACCESS MODULE]: Target of {0} in CreateItemForObject() is {1} {2}",
 //                    action, remoteClient.Name, userID);
             }
+            else if (so.RootPart.OwnerID == so.RootPart.GroupID)
+            {
+                // Group owned objects go to the last owner before the object was transferred.
+                userID = so.RootPart.LastOwnerID;
+            }
             else
             {
-                // All returns / deletes go to the object owner
+                // Other returns / deletes go to the object owner
                 //
                 userID = so.RootPart.OwnerID;
 

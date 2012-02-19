@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using log4net;
@@ -573,13 +574,15 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShape(SceneObjectPart obj, XmlTextReader reader)
         {
-            bool errors = false;
-            obj.Shape = ReadShape(reader, "Shape", out errors);
+            List<string> errorNodeNames;
+            obj.Shape = ReadShape(reader, "Shape", out errorNodeNames);
 
-            if (errors)
+            if (errorNodeNames != null)
+            {
                 m_log.DebugFormat(
-                    "[SceneObjectSerializer]: Parsing PrimitiveBaseShape for object part {0} {1} encountered errors.  Please see earlier log entries.",
-                    obj.Name, obj.UUID);
+                    "[SceneObjectSerializer]: Parsing PrimitiveBaseShape for object part {0} {1} encountered errors in properties {2}.",
+                    obj.Name, obj.UUID, string.Join(", ", errorNodeNames.ToArray()));
+            }
         }
 
         private static void ProcessScale(SceneObjectPart obj, XmlTextReader reader)
@@ -1529,30 +1532,43 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// </summary>
         /// <param name="reader"></param>
         /// <param name="name">The name of the xml element containing the shape</param>
-        /// <param name="errors">true if any errors were encountered during parsing, false otherwise</param>
+        /// <param name="errors">a list containing the failing node names.  If no failures then null.</param>
         /// <returns>The shape parsed</returns>
-        public static PrimitiveBaseShape ReadShape(XmlTextReader reader, string name, out bool errors)
+        public static PrimitiveBaseShape ReadShape(XmlTextReader reader, string name, out List<string> errorNodeNames)
         {
-            errors = false;
+            List<string> internalErrorNodeNames = null;
 
             PrimitiveBaseShape shape = new PrimitiveBaseShape();
 
+            if (reader.IsEmptyElement)
+            {
+                reader.Read();
+                errorNodeNames = null;
+                return shape;
+            }
+
             reader.ReadStartElement(name, String.Empty); // Shape
 
-            errors = ExternalRepresentationUtils.ExecuteReadProcessors(
+            ExternalRepresentationUtils.ExecuteReadProcessors(
                 shape,
                 m_ShapeXmlProcessors,
                 reader,
                 (o, nodeName, e)
                     =>
                     {
-                        m_log.DebugFormat(
-                            "[SceneObjectSerializer]: Exception while parsing Shape property {0}: {1}{2}",
-                            nodeName, e.Message, e.StackTrace);
+//                        m_log.DebugFormat(
+//                            "[SceneObjectSerializer]: Exception while parsing Shape property {0}: {1}{2}",
+//                            nodeName, e.Message, e.StackTrace);
+                        if (internalErrorNodeNames == null)
+                            internalErrorNodeNames = new List<string>();
+
+                        internalErrorNodeNames.Add(nodeName);
                     }
             );
 
             reader.ReadEndElement(); // Shape
+
+            errorNodeNames = internalErrorNodeNames;
 
             return shape;
         }

@@ -3397,6 +3397,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool vialogin = ((teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0 ||
                              (teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0);
+            bool viahome = ((teleportFlags & (uint)Constants.TeleportFlags.ViaHome) != 0);
+            bool godlike = ((teleportFlags & (uint)Constants.TeleportFlags.Godlike) != 0);
+
             reason = String.Empty;
 
             //Teleport flags:
@@ -3571,6 +3574,29 @@ namespace OpenSim.Region.Framework.Scenes
                             agent.startpos.Z = 720;
                     }
                 }
+
+                // Honor Estate teleport routing via Telehubs excluding ViaHome and GodLike TeleportFlags
+                if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero &&
+                    RegionInfo.EstateSettings.AllowDirectTeleport == false &&
+                    !viahome && !godlike)
+                {
+                    SceneObjectGroup telehub = GetSceneObjectGroup(RegionInfo.RegionSettings.TelehubObject);
+                    // Can have multiple SpawnPoints
+                    List<SpawnPoint> spawnpoints = RegionInfo.RegionSettings.SpawnPoints();
+                    if ( spawnpoints.Count  > 1)
+                    {
+                        // We have multiple SpawnPoints, Route the agent to a random one
+                        agent.startpos =  spawnpoints[Util.RandomClass.Next(spawnpoints.Count)].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                    }
+                    else
+                    {
+                        // We have a single SpawnPoint and will route the agent to it
+                        agent.startpos = spawnpoints[0].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                    }
+
+                    return true;
+                }
+
                 // Honor parcel landing type and position.
                 /*
                 ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);

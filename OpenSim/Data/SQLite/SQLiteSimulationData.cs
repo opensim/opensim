@@ -61,6 +61,7 @@ namespace OpenSim.Data.SQLite
         private const string regionbanListSelect = "select * from regionban";
         private const string regionSettingsSelect = "select * from regionsettings";
         private const string regionWindlightSelect = "select * from regionwindlight";
+        private const string regionSpawnPointsSelect = "select * from spawn_points";
 
         private DataSet ds;
         private SqliteDataAdapter primDa;
@@ -71,6 +72,7 @@ namespace OpenSim.Data.SQLite
         private SqliteDataAdapter landAccessListDa;
         private SqliteDataAdapter regionSettingsDa;
         private SqliteDataAdapter regionWindlightDa;
+        private SqliteDataAdapter regionSpawnPointsDa;
 
         private SqliteConnection m_conn;
         private String m_connectionString;
@@ -140,6 +142,10 @@ namespace OpenSim.Data.SQLite
 
                 SqliteCommand regionWindlightSelectCmd = new SqliteCommand(regionWindlightSelect, m_conn);
                 regionWindlightDa = new SqliteDataAdapter(regionWindlightSelectCmd);
+
+                SqliteCommand regionSpawnPointsSelectCmd = new SqliteCommand(regionSpawnPointsSelect, m_conn);
+                regionSpawnPointsDa = new SqliteDataAdapter(regionSpawnPointsSelectCmd);
+
                 // This actually does the roll forward assembly stuff
                 Migration m = new Migration(m_conn, Assembly, "RegionStore");
                 m.Update();
@@ -169,6 +175,9 @@ namespace OpenSim.Data.SQLite
 
                     ds.Tables.Add(createRegionWindlightTable());
                     setupRegionWindlightCommands(regionWindlightDa, m_conn);
+
+                    ds.Tables.Add(createRegionSpawnPointsTable());
+                    setupRegionSpawnPointsCommands(regionSpawnPointsDa, m_conn);
 
                     // WORKAROUND: This is a work around for sqlite on
                     // windows, which gets really unhappy with blob columns
@@ -246,6 +255,15 @@ namespace OpenSim.Data.SQLite
                         m_log.ErrorFormat("[SQLITE REGION DB]: Caught fill error on regionwindlight table :{0}", e.Message);
                     }
 
+                    try
+                    {
+                        regionSpawnPointsDa.Fill(ds.Tables["spawn_points"]);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[SQLITE REGION DB]: Caught fill error on spawn_points table :{0}", e.Message);
+                    }
+
                     // We have to create a data set mapping for every table, otherwise the IDataAdaptor.Update() will not populate rows with values!
                     // Not sure exactly why this is - this kind of thing was not necessary before - justincc 20100409
                     // Possibly because we manually set up our own DataTables before connecting to the database
@@ -257,6 +275,7 @@ namespace OpenSim.Data.SQLite
                     CreateDataSetMapping(landAccessListDa, "landaccesslist");
                     CreateDataSetMapping(regionSettingsDa, "regionsettings");
                     CreateDataSetMapping(regionWindlightDa, "regionwindlight");
+                    CreateDataSetMapping(regionSpawnPointsDa, "spawn_points");
                 }
             }
             catch (Exception e)
@@ -319,6 +338,11 @@ namespace OpenSim.Data.SQLite
                 regionWindlightDa.Dispose();
                 regionWindlightDa = null;
             }
+            if (regionSpawnPointsDa != null)
+            {
+                regionSpawnPointsDa.Dispose();
+                regionWindlightDa = null;
+            }
         }
 
         public void StoreRegionSettings(RegionSettings rs)
@@ -339,7 +363,42 @@ namespace OpenSim.Data.SQLite
                     fillRegionSettingsRow(settingsRow, rs);
                 }
 
+                StoreSpawnPoints(rs);
+
                 Commit();
+            }
+
+        }
+
+        public void StoreSpawnPoints(RegionSettings rs)
+        {
+            lock (ds)
+            {
+                // DataTable spawnpoints = ds.Tables["spawn_points"];
+
+                // remove region's spawnpoints
+                using (
+                    SqliteCommand cmd =
+                        new SqliteCommand("delete from spawn_points where RegionID=:RegionID",
+                                          m_conn))
+                {
+
+                    cmd.Parameters.Add(new SqliteParameter(":RegionID", rs.RegionUUID.ToString()));
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            foreach (SpawnPoint sp in rs.SpawnPoints())
+            {
+                using (SqliteCommand cmd = new SqliteCommand("insert into spawn_points(RegionID, Yaw, Pitch, Distance)" +
+                                                              "values ( :RegionID, :Yaw, :Pitch, :Distance)", m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":RegionID", rs.RegionUUID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":Yaw", sp.Yaw));
+                    cmd.Parameters.Add(new SqliteParameter(":Pitch", sp.Pitch));
+                    cmd.Parameters.Add(new SqliteParameter(":Distance", sp.Distance));
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
 
@@ -435,7 +494,28 @@ namespace OpenSim.Data.SQLite
                 RegionSettings newSettings = buildRegionSettings(row);
                 newSettings.OnSave += StoreRegionSettings;
 
+                LoadSpawnPoints(newSettings);
+
                 return newSettings;
+            }
+        }
+
+        private void LoadSpawnPoints(RegionSettings rs)
+        {
+            rs.ClearSpawnPoints();
+
+            DataTable spawnpoints = ds.Tables["spawn_points"];
+            string byRegion = "RegionID = '" + rs.RegionUUID + "'";
+            DataRow[] spForRegion = spawnpoints.Select(byRegion);
+
+            foreach (DataRow spRow in spForRegion)
+            {
+                SpawnPoint sp = new SpawnPoint();
+                sp.Pitch = (float)spRow["Pitch"];
+                sp.Yaw = (float)spRow["Yaw"];
+                sp.Distance = (float)spRow["Distance"];
+
+                rs.AddSpawnPoint(sp);
             }
         }
 
@@ -1265,6 +1345,8 @@ namespace OpenSim.Data.SQLite
             createCol(regionsettings, "covenant", typeof(String));
             createCol(regionsettings, "covenant_datetime", typeof(Int32));
             createCol(regionsettings, "map_tile_ID", typeof(String));
+            createCol(regionsettings, "TelehubObject", typeof(String));
+            createCol(regionsettings, "parcel_tile_ID", typeof(String));
             regionsettings.PrimaryKey = new DataColumn[] { regionsettings.Columns["regionUUID"] };
             return regionsettings;
         }
@@ -1343,6 +1425,17 @@ namespace OpenSim.Data.SQLite
 
             regionwindlight.PrimaryKey = new DataColumn[] { regionwindlight.Columns["region_id"] };
             return regionwindlight;
+        }
+
+        private static DataTable createRegionSpawnPointsTable()
+        {
+            DataTable spawn_points = new DataTable("spawn_points");
+            createCol(spawn_points, "regionID", typeof(String));
+            createCol(spawn_points, "Yaw", typeof(float));
+            createCol(spawn_points, "Pitch", typeof(float));
+            createCol(spawn_points, "Distance", typeof(float));
+
+            return spawn_points;
         }
 
         /***********************************************************************
@@ -1666,6 +1759,8 @@ namespace OpenSim.Data.SQLite
             newSettings.Covenant = new UUID((String)row["covenant"]);
             newSettings.CovenantChangedDateTime = Convert.ToInt32(row["covenant_datetime"]);
             newSettings.TerrainImageID = new UUID((String)row["map_tile_ID"]);
+            newSettings.TelehubObject = new UUID((String)row["TelehubObject"]);
+            newSettings.ParcelImageID = new UUID((String)row["parcel_tile_ID"]);
 
             return newSettings;
         }
@@ -2068,6 +2163,8 @@ namespace OpenSim.Data.SQLite
             row["covenant"] = settings.Covenant.ToString();
             row["covenant_datetime"] = settings.CovenantChangedDateTime;
             row["map_tile_ID"] = settings.TerrainImageID.ToString();
+            row["TelehubObject"] = settings.TelehubObject.ToString();
+            row["parcel_tile_ID"] = settings.ParcelImageID.ToString();
         }
 
         /// <summary>
@@ -2588,6 +2685,14 @@ namespace OpenSim.Data.SQLite
             da.InsertCommand = createInsertCommand("regionwindlight", ds.Tables["regionwindlight"]);
             da.InsertCommand.Connection = conn;
             da.UpdateCommand = createUpdateCommand("regionwindlight", "region_id=:region_id", ds.Tables["regionwindlight"]);
+            da.UpdateCommand.Connection = conn;
+        }
+
+        private void setupRegionSpawnPointsCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("spawn_points", ds.Tables["spawn_points"]);
+            da.InsertCommand.Connection = conn;
+            da.UpdateCommand = createUpdateCommand("spawn_points", "RegionID=:RegionID", ds.Tables["spawn_points"]);
             da.UpdateCommand.Connection = conn;
         }
 

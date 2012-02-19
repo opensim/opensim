@@ -1764,7 +1764,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 m_log.DebugFormat(
                                     "[SCENE OBJECT GROUP]: Returning object {0} due to parcel autoreturn", 
                                      RootPart.UUID);
-                                m_scene.AddReturn(OwnerID, Name, AbsolutePosition, "parcel autoreturn");
+                                m_scene.AddReturn(OwnerID == GroupID ? LastOwnerID : OwnerID, Name, AbsolutePosition, "parcel autoreturn");
                                 m_scene.DeRezObjects(null, new List<uint>() { RootPart.LocalId }, UUID.Zero,
                                         DeRezAction.Return, UUID.Zero);
 

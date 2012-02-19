@@ -65,13 +65,26 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
         }
 
+        internal struct ScopedRegionPosition
+        {
+            public UUID m_scopeID;
+            public ulong m_regionHandle;
+            public ScopedRegionPosition(UUID scopeID, ulong handle)
+            {
+                m_scopeID = scopeID;
+                m_regionHandle = handle;
+            }
+        }
+
         private ExpiringCache<ScopedRegionUUID, GridRegion> m_UUIDCache;
         private ExpiringCache<ScopedRegionName, ScopedRegionUUID> m_NameCache;
+        private ExpiringCache<ScopedRegionPosition, GridRegion> m_PositionCache;
 
         public RegionInfoCache()
         {
             m_UUIDCache = new ExpiringCache<ScopedRegionUUID, GridRegion>();
-            m_NameCache = new ExpiringCache<ScopedRegionName, ScopedRegionUUID>(); 
+            m_NameCache = new ExpiringCache<ScopedRegionName, ScopedRegionUUID>();
+            m_PositionCache = new ExpiringCache<ScopedRegionPosition, GridRegion>();
         }
 
         public void Cache(GridRegion rinfo)
@@ -96,6 +109,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 ScopedRegionName name = new ScopedRegionName(scopeID,rinfo.RegionName);
                 m_NameCache.AddOrUpdate(name, id, CACHE_EXPIRATION_SECONDS);
+
+                ScopedRegionPosition pos = new ScopedRegionPosition(scopeID, rinfo.RegionHandle);
+                m_PositionCache.AddOrUpdate(pos, rinfo, CACHE_EXPIRATION_SECONDS);
             }
         }
 
@@ -113,6 +129,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             return null;
         }
+
+        public GridRegion Get(UUID scopeID, ulong handle, out bool inCache)
+        {
+            inCache = false;
+
+            GridRegion rinfo = null;
+            ScopedRegionPosition pos = new ScopedRegionPosition(scopeID, handle);
+            if (m_PositionCache.TryGetValue(pos, out rinfo))
+            {
+                inCache = true;
+                return rinfo;
+            }
+
+            return null;
+        }
+
 
         public GridRegion Get(UUID scopeID, string name, out bool inCache)
         {
