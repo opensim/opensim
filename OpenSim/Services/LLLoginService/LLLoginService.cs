@@ -465,6 +465,7 @@ namespace OpenSim.Services.LLLoginService
 
                     position = pinfo.HomePosition;
                     lookAt = pinfo.HomeLookAt;
+                    flags |= TeleportFlags.ViaHome;
                 }
                 
                 if (tryDefaults)
@@ -753,6 +754,7 @@ namespace OpenSim.Services.LLLoginService
             {
                 circuitCode = (uint)Util.RandomClass.Next(); ;
                 aCircuit = MakeAgent(destination, account, avatar, session, secureSession, circuitCode, position, clientIP.Address.ToString(), viewer, channel, mac, id0);
+                aCircuit.teleportFlags |= (uint)flags;
                 success = LaunchAgentIndirectly(gatekeeper, destination, aCircuit, clientIP, out reason);
                 if (!success && m_GridService != null)
                 {

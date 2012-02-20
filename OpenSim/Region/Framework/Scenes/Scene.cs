@@ -3259,8 +3259,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// also return a reason.</returns>
         public bool NewUserConnection(AgentCircuitData agent, uint teleportFlags, out string reason, bool requirePresenceLookup)
         {
-            bool vialogin = ((teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0 ||
-                             (teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0);
+            bool vialogin = ((teleportFlags & (uint)TPFlags.ViaLogin) != 0 ||
+                             (teleportFlags & (uint)TPFlags.ViaHGLogin) != 0);
+            bool viahome = ((teleportFlags & (uint)TPFlags.ViaHome) != 0);
+            bool godlike = ((teleportFlags & (uint)TPFlags.Godlike) != 0);
+
             reason = String.Empty;
 
             //Teleport flags:
@@ -3272,9 +3275,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Don't disable this log message - it's too helpful
             m_log.DebugFormat(
-                "[SCENE]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, IP {6}, viewer {7}, teleportflags {8}, position {9})",
+                "[SCENE]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, IP {6}, viewer {7}, teleportflags ({8}), position {9})",
                 RegionInfo.RegionName, (agent.child ? "child" : "root"),agent.firstname, agent.lastname,
-                agent.AgentID, agent.circuitcode, agent.IPAddress, agent.Viewer, teleportFlags, agent.startpos);
+                agent.AgentID, agent.circuitcode, agent.IPAddress, agent.Viewer, ((TPFlags)teleportFlags).ToString(), agent.startpos);
 
             if (LoginsDisabled)
             {
@@ -3427,6 +3430,29 @@ namespace OpenSim.Region.Framework.Scenes
                             agent.startpos.Z = 720;
                     }
                 }
+
+                // Honor Estate teleport routing via Telehubs excluding ViaHome and GodLike TeleportFlags
+                if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero &&
+                    RegionInfo.EstateSettings.AllowDirectTeleport == false &&
+                    !viahome && !godlike)
+                {
+                    SceneObjectGroup telehub = GetSceneObjectGroup(RegionInfo.RegionSettings.TelehubObject);
+                    // Can have multiple SpawnPoints
+                    List<SpawnPoint> spawnpoints = RegionInfo.RegionSettings.SpawnPoints();
+                    if ( spawnpoints.Count  > 1)
+                    {
+                        // We have multiple SpawnPoints, Route the agent to a random one
+                        agent.startpos =  spawnpoints[Util.RandomClass.Next(spawnpoints.Count)].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                    }
+                    else
+                    {
+                        // We have a single SpawnPoint and will route the agent to it
+                        agent.startpos = spawnpoints[0].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                    }
+
+                    return true;
+                }
+
                 // Honor parcel landing type and position.
                 if (land != null)
                 {

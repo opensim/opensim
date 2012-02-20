@@ -542,3 +542,25 @@ CREATE TABLE regionwindlight (
   draw_classic_clouds INTEGER NOT NULL DEFAULT '1');
 
 COMMIT;
+
+
+:VERSION 24
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS `spawn_points` (
+  `RegionID` varchar(36) NOT NULL DEFAULT '000000-0000-0000-0000-000000000000',
+  `Yaw` float NOT NULL,
+  `Pitch` float NOT NULL,
+  `Distance` float NOT NULL
+);
+
+ALTER TABLE `regionsettings` ADD COLUMN `TelehubObject` varchar(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+
+COMMIT;
+
+:VERSION 25
+
+BEGIN;
+ALTER TABLE `regionsettings` ADD COLUMN `parcel_tile_ID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+COMMIT;
