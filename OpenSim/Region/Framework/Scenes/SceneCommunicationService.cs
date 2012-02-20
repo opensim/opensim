@@ -140,7 +140,6 @@ namespace OpenSim.Region.Framework.Scenes
             icon.EndInvoke(iar);
         }
 
-        ExpiringCache<string, bool> _failedSims = new ExpiringCache<string, bool>();
         public void SendChildAgentDataUpdate(AgentPosition cAgentData, ScenePresence presence)
         {
             // This assumes that we know what our neighbors are.
@@ -158,15 +157,13 @@ namespace OpenSim.Region.Framework.Scenes
                         Utils.LongToUInts(regionHandle, out x, out y);
                         GridRegion dest = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                         bool v = true;
-                        if (! simulatorList.Contains(dest.ServerURI) && !_failedSims.TryGetValue(dest.ServerURI, out v))
+                        if (! simulatorList.Contains(dest.ServerURI))
                         {
                             // we havent seen this simulator before, add it to the list
                             // and send it an update
                             simulatorList.Add(dest.ServerURI);
                             // Let move this to sync. Mono definitely does not like async networking.
-                            if (!m_scene.SimulationService.UpdateAgent(dest, cAgentData))
-                                // Also if it fails, get it out of the loop for a bit
-                                _failedSims.Add(dest.ServerURI, true, 120);
+                            m_scene.SimulationService.UpdateAgent(dest, cAgentData);
 
                             // Leaving this here as a reminder that we tried, and it sucks.
                             //SendChildAgentDataUpdateDelegate d = SendChildAgentDataUpdateAsync;
