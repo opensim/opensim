@@ -215,8 +215,11 @@ namespace OpenSim.Services.Connectors.Simulation
             }
             // we get here iff success == false
             // blacklist sim for 2 minutes
-            _failedSims.AddOrUpdate(destination.ServerURI, true, 120);
-            m_updateAgentQueue.Clear();
+            lock (m_updateAgentQueue)
+            {
+                _failedSims.AddOrUpdate(destination.ServerURI, true, 120);
+                m_updateAgentQueue.Remove(uri);
+            }
             return false;
         }
 
