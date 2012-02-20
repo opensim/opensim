@@ -153,6 +153,7 @@ namespace OpenSim.Services.Connectors.Simulation
             return UpdateAgent(destination, (IAgentData)data, 200000); // yes, 200 seconds
         }
 
+        private ExpiringCache<string, bool> _failedSims = new ExpiringCache<string, bool>();
         /// <summary>
         /// Send updated position information about an agent in this region to a neighbor
         /// This operation may be called very frequently if an avatar is moving about in
@@ -160,6 +161,10 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         public bool UpdateAgent(GridRegion destination, AgentPosition data)
         {
+            bool v = true;
+            if (_failedSims.TryGetValue(destination.ServerURI, out v))
+                return false;
+
             // The basic idea of this code is that the first thread that needs to
             // send an update for a specific avatar becomes the worker for any subsequent
             // requests until there are no more outstanding requests. Further, only send the most
@@ -183,9 +188,10 @@ namespace OpenSim.Services.Connectors.Simulation
                 // Otherwise update the reference and start processing
                 m_updateAgentQueue[uri] = data;
             }
-            
+
             AgentPosition pos = null;
-            while (true)
+            bool success = true;
+            while (success)
             {
                 lock (m_updateAgentQueue)
                 {
@@ -205,11 +211,13 @@ namespace OpenSim.Services.Connectors.Simulation
                     }
                 }
 
-                UpdateAgent(destination, (IAgentData)pos, 10000);
+                success = UpdateAgent(destination, (IAgentData)pos, 10000);
             }
-
-            // unreachable
-//            return true;
+            // we get here iff success == false
+            // blacklist sim for 2 minutes
+            _failedSims.AddOrUpdate(destination.ServerURI, true, 120);
+            m_updateAgentQueue.Clear();
+            return false;
         }
 
         /// <summary>
