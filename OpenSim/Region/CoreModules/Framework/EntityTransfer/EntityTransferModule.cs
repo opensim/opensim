@@ -949,6 +949,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                          neighbourRegion.RegionHandle);
                         return agent;
                     }
+                    // No turning back
+                    agent.IsChildAgent = true;
+
                     string capsPath = neighbourRegion.ServerURI + CapsUtil.GetCapsSeedPath(agentcaps);
     
                     m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
@@ -1097,7 +1100,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         /// <summary>
         /// This informs all neighbouring regions about agent "avatar".
-        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
         /// <param name="sp"></param>
         public void EnableChildAgents(ScenePresence sp)

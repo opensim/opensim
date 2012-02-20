@@ -1255,7 +1255,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                 if (m_agentTransfer != null)
-                    m_agentTransfer.EnableChildAgents(this);
+                    Util.FireAndForget(delegate { m_agentTransfer.EnableChildAgents(this); });
 
                 IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                 if (friendsModule != null)
