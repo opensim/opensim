@@ -605,6 +605,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public override Vector3 Velocity
+        {
+            get { return RootPart.Velocity; }
+            set { RootPart.Velocity = value; }
+        }
+
         private void CrossAgentToNewRegionCompleted(IAsyncResult iar)
         {
             CrossAgentToNewRegionDelegate icon = (CrossAgentToNewRegionDelegate)iar.AsyncState;
