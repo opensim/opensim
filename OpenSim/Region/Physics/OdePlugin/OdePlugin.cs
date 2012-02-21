@@ -66,20 +66,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // This isn't necessary for other platforms (e.g. Mac OSX and Linux) since the DLL used can be
                 // controlled in Ode.NET.dll.config
                 if (Util.IsWindows())
-                {
-                    string nativeLibraryPath;
-
-                    if (Util.Is64BitProcess())
-                        nativeLibraryPath = "lib64/ode.dll";
-                    else
-                        nativeLibraryPath = "lib32/ode.dll";
-
-                    m_log.DebugFormat("[ODE PLUGIN]: Loading native Windows ODE library at {0}", nativeLibraryPath);
-
-                    if (Util.LoadLibrary(nativeLibraryPath) == IntPtr.Zero)
-                        m_log.ErrorFormat(
-                            "[ODE PLUGIN]: Couldn't find native Windows ODE library at {0}", nativeLibraryPath);
-                }
+                    Util.LoadArchSpecificWindowsDll("ode.dll");
 
                 // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
                 // http://opensimulator.org/mantis/view.php?id=2750).

@@ -110,6 +110,9 @@ namespace OpenSim.Data.SQLite
         {
             try
             {
+                if (Util.IsWindows())
+                    Util.LoadArchSpecificWindowsDll("sqlite3.dll");
+
                 m_connectionString = connectionString;
 
                 ds = new DataSet("Region");

@@ -392,6 +392,36 @@ namespace OpenSim.Framework
                 || platformId == PlatformID.WinCE);
         }
 
+        public static bool LoadArchSpecificWindowsDll(string libraryName)
+        {
+            // We do this so that OpenSimulator on Windows loads the correct native library depending on whether
+            // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
+            // will find it already loaded later on.
+            //
+            // This isn't necessary for other platforms (e.g. Mac OSX and Linux) since the DLL used can be
+            // controlled in config files.
+            string nativeLibraryPath;
+
+            if (Util.Is64BitProcess())
+                nativeLibraryPath = "lib64/" + libraryName;
+            else
+                nativeLibraryPath = "lib32/" + libraryName;
+
+            m_log.DebugFormat("[UTIL]: Loading native Windows library at {0}", nativeLibraryPath);
+
+            if (Util.LoadLibrary(nativeLibraryPath) == IntPtr.Zero)
+            {
+                m_log.ErrorFormat(
+                    "[UTIL]: Couldn't find native Windows library at {0}", nativeLibraryPath);
+
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         public static bool IsEnvironmentSupported(ref string reason)
         {
             // Must have .NET 2.0 (Generics / libsl)

@@ -69,6 +69,9 @@ namespace OpenSim.Data.SQLite
 
         public void Initialise(string connectionString)
         {
+            if (Util.IsWindows())
+                Util.LoadArchSpecificWindowsDll("sqlite3.dll");
+
             m_connectionString = connectionString;
 
             m_log.Info("[ESTATE DB]: Sqlite - connecting: "+m_connectionString);
