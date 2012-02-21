@@ -864,16 +864,16 @@ namespace OpenSim.Region.Framework.Scenes
                     try
                     {
                         ForEachRootScenePresence(delegate(ScenePresence agent)
-                            {
-                                //agent.ControllingClient.new
-                                //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
+                        {
+                            //agent.ControllingClient.new
+                            //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
 
-                                List<ulong> old = new List<ulong>();
-                                old.Add(otherRegion.RegionHandle);
-                                agent.DropOldNeighbours(old);
-                                if (m_teleportModule != null)
-                                    m_teleportModule.EnableChildAgent(agent, otherRegion);
-                            });
+                            List<ulong> old = new List<ulong>();
+                            old.Add(otherRegion.RegionHandle);
+                            agent.DropOldNeighbours(old);
+                            if (m_teleportModule != null && agent.PresenceType != PresenceType.Npc)
+                                m_teleportModule.EnableChildAgent(agent, otherRegion);
+                        });
                     }
                     catch (NullReferenceException)
                     {
@@ -881,7 +881,6 @@ namespace OpenSim.Region.Framework.Scenes
                         // This shouldn't happen too often anymore.
                         m_log.Error("[SCENE]: Couldn't inform client of regionup because we got a null reference exception");
                     }
-
                 }
                 else
                 {
@@ -1009,10 +1008,10 @@ namespace OpenSim.Region.Framework.Scenes
                     try
                     {
                         ForEachRootScenePresence(delegate(ScenePresence agent)
-                            {
-                                if (m_teleportModule != null)
-                                        m_teleportModule.EnableChildAgent(agent, r);
-                            });
+                        {
+                            if (m_teleportModule != null && agent.PresenceType != PresenceType.Npc)
+                                m_teleportModule.EnableChildAgent(agent, r);
+                        });
                     }
                     catch (NullReferenceException)
                     {
