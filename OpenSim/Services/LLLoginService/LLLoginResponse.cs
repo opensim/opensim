@@ -168,6 +168,9 @@ namespace OpenSim.Services.LLLoginService
         // Web map
         private string mapTileURL;
 
+        // Web Profiles
+        private string profileURL;
+
         private string searchURL;
 
         // Error Flags
@@ -220,7 +223,7 @@ namespace OpenSim.Services.LLLoginService
         public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, GridUserInfo pinfo,
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
-            GridRegion home, IPEndPoint clientIP, string mapTileURL, string searchURL, string currency)
+            GridRegion home, IPEndPoint clientIP, string mapTileURL, string profileURL, string searchURL, string currency)
             : this()
         {
             FillOutInventoryData(invSkel, libService);
@@ -237,6 +240,8 @@ namespace OpenSim.Services.LLLoginService
             BuddList = ConvertFriendListItem(friendsList);
             StartLocation = where;
             MapTileURL = mapTileURL;
+            ProfileURL = profileURL;
+
             SearchURL = searchURL;
             Currency = currency;
 
@@ -384,6 +389,7 @@ namespace OpenSim.Services.LLLoginService
             InitialOutfitHash["gender"] = "female";
             initialOutfit.Add(InitialOutfitHash);
             mapTileURL = String.Empty;
+            profileURL = String.Empty;
             searchURL = String.Empty;
 
             currency = String.Empty;
@@ -455,6 +461,9 @@ namespace OpenSim.Services.LLLoginService
 
                 if (mapTileURL != String.Empty)
                     responseData["map-server-url"] = mapTileURL;
+
+                if (profileURL != String.Empty)
+                    responseData["profile-server-url"] = profileURL;
 
                 if (m_buddyList != null)
                 {
@@ -560,6 +569,9 @@ namespace OpenSim.Services.LLLoginService
 
                 if (mapTileURL != String.Empty)
                     map["map-server-url"] = OSD.FromString(mapTileURL);
+
+                if (profileURL != String.Empty)
+                    map["profile-server-url"] = OSD.FromString(profileURL);
 
                 if (searchURL != String.Empty)
                     map["search"] = OSD.FromString(searchURL);
@@ -931,6 +943,12 @@ namespace OpenSim.Services.LLLoginService
         {
             get { return mapTileURL; }
             set { mapTileURL = value; }
+        }
+
+        public string ProfileURL
+        {
+            get { return profileURL; }
+            set { profileURL = value; }
         }
 
         public string SearchURL
