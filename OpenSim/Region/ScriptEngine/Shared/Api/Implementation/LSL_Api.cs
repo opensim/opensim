@@ -3845,7 +3845,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Single prim
             if (m_host.LinkNum == 0)
             {
-                if (linknum == 0)
+                if (linknum == 0 || linknum == ScriptBaseClass.LINK_ROOT)
                     return m_host.Name;
                 else
                     return UUID.Zero.ToString();
