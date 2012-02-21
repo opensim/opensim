@@ -1153,6 +1153,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
 
+            if (null == taskItem)
+            {
+                m_log.WarnFormat("[PRIM INVENTORY]: Move of inventory item {0} from prim with local id {1} failed"
+                    + " because the inventory item could not be found",
+                    itemId, primLocalId);
+
+                return;
+            }
+
             if ((taskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
             {
                 // If the item to be moved is no copy, we need to be able to
