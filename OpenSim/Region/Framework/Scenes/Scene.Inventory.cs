@@ -1151,34 +1151,20 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            UUID partUUID = part.UUID;
-            SceneObjectGroup group = part.ParentGroup;
-            if (group != null)
-                partUUID = group.RootPart.UUID;
-
             TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
-
-            if (null == taskItem)
-            {
-                m_log.WarnFormat("[PRIM INVENTORY]: Move of inventory item {0} from prim with local id {1} failed"
-                    + " because the inventory item could not be found",
-                    itemId, primLocalId);
-
-                return;
-            }
 
             if ((taskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
             {
                 // If the item to be moved is no copy, we need to be able to
                 // edit the prim.
-                if (!Permissions.CanEditObjectInventory(partUUID, remoteClient.AgentId))
+                if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
                     return;
             }
             else
             {
                 // If the item is copiable, then we just need to have perms
                 // on it. The delete check is a pure rights check
-                if (!Permissions.CanDeleteObject(partUUID, remoteClient.AgentId))
+                if (!Permissions.CanDeleteObject(part.UUID, remoteClient.AgentId))
                     return;
             }
 
