@@ -1540,6 +1540,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!isPhantom && !ParentGroup.IsAttachment && !(Shape.PathCurve == (byte)Extrusion.Flexible))
                 {
                     Vector3 velocity = Velocity;
+                    Vector3 rotationalVelocity = AngularVelocity;
                     try
                     {
                         PhysActor = ParentGroup.Scene.PhysicsScene.AddPrimShape(
@@ -1572,7 +1573,9 @@ namespace OpenSim.Region.Framework.Scenes
                         PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
 
                         Velocity = velocity;
+                        AngularVelocity = rotationalVelocity;
                         PhysActor.Velocity = velocity;
+                        PhysActor.RotationalVelocity = rotationalVelocity;
 
 						if (!building)
                             PhysActor.Building = false;
