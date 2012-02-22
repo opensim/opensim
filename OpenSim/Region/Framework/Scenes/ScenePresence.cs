@@ -91,7 +91,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// rotation, prim cut, prim twist, prim taper, and prim shear. See mantis
         /// issue #1716
         /// </summary>
-        public static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.0f, 0.0f, 0.418f);
+        public static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.0f, 0.0f, 0.4f);
 
         /// <summary>
         /// Movement updates for agents in neighboring regions are sent directly to clients.
@@ -2301,7 +2301,27 @@ namespace OpenSim.Region.Framework.Scenes
 
                     //Quaternion result = (sitTargetOrient * vq) * nq;
 
-                    m_pos = sitTargetPos + SIT_TARGET_ADJUSTMENT;
+                    double x, y, z, m;
+
+                    Quaternion r = sitTargetOrient;
+                    m = r.X * r.X + r.Y * r.Y + r.Z * r.Z + r.W * r.W;
+
+                    if (Math.Abs(1.0 - m) > 0.000001)
+                    {
+                        m = 1.0 / Math.Sqrt(m);
+                        r.X *= (float)m;
+                        r.Y *= (float)m;
+                        r.Z *= (float)m;
+                        r.W *= (float)m;
+                    }
+
+                    x = 2 * (r.X * r.Z + r.Y * r.W);
+                    y = 2 * (-r.X * r.W + r.Y * r.Z);
+                    z = -r.X * r.X - r.Y * r.Y + r.Z * r.Z + r.W * r.W;
+
+                    Vector3 up = new Vector3((float)x, (float)y, (float)z);
+                    Vector3 sitOffset = up * Appearance.AvatarHeight * 0.02638f;
+                    m_pos = sitTargetPos + sitOffset + SIT_TARGET_ADJUSTMENT;
                     Rotation = sitTargetOrient;
                     ParentPosition = part.AbsolutePosition;
                     part.ParentGroup.AddAvatar(UUID);

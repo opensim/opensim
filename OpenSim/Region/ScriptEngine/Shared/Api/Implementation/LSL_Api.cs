@@ -7542,27 +7542,59 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 int remain = rules.Length - idx;
 
-                
-
                 switch (code)
                 {
                     case (int)ScriptBaseClass.PRIM_POSITION:
-                        if (remain < 1)
-                            return;
-                        LSL_Vector v;
-                        v = rules.GetVector3Item(idx++);
-                        av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
-                        av.SendAvatarDataToAllAgents();
+                        {
+                            if (remain < 1)
+                                return;
+                            LSL_Vector v;
+                            v = rules.GetVector3Item(idx++);
 
+                            SceneObjectPart part = World.GetSceneObjectPart(av.ParentID);
+                            if (part == null)
+                                break;
+
+                            LSL_Rotation localRot = ScriptBaseClass.ZERO_ROTATION;
+                            LSL_Vector localPos = ScriptBaseClass.ZERO_VECTOR;
+                            if (llGetLinkNumber() > 1)
+                            {
+                                localRot = llGetLocalRot();
+                                localPos = llGetLocalPos();
+                            }
+
+                            v -= localPos;
+                            v /= localRot;
+
+                            LSL_Vector sitOffset = (llRot2Up(new LSL_Rotation(av.Rotation.X, av.Rotation.Y, av.Rotation.Z, av.Rotation.W)) * av.Appearance.AvatarHeight * 0.02638f);
+                            
+                            v = v + 2 * sitOffset;
+
+                            av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
+                            av.SendAvatarDataToAllAgents();
+
+                        }
                         break;
 
                     case (int)ScriptBaseClass.PRIM_ROTATION:
-                        if (remain < 1)
-                            return;
-                        LSL_Rotation r;
-                        r = rules.GetQuaternionItem(idx++);
-                        av.Rotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
-                        av.SendAvatarDataToAllAgents();
+                        {
+                            if (remain < 1)
+                                return;
+
+                            LSL_Rotation localRot = ScriptBaseClass.ZERO_ROTATION;
+                            LSL_Vector localPos = ScriptBaseClass.ZERO_VECTOR;
+                            if (llGetLinkNumber() > 1)
+                            {
+                                localRot = llGetLocalRot();
+                                localPos = llGetLocalPos();
+                            }
+
+                            LSL_Rotation r;
+                            r = rules.GetQuaternionItem(idx++);
+                            r = r * llGetRootRotation() / localRot;
+                            av.Rotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
+                            av.SendAvatarDataToAllAgents();
+                        }
                         break;
                 }
             }
