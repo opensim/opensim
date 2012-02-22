@@ -75,6 +75,7 @@ namespace OpenSim.Services.LLLoginService
         protected bool m_AllowRemoteSetLoginLevel;
         protected string m_MapTileURL;
         protected string m_ProfileURL;
+        protected string m_OpenIDURL;
         protected string m_SearchURL;
         protected string m_Currency;
 
@@ -110,6 +111,7 @@ namespace OpenSim.Services.LLLoginService
             m_GatekeeperURL = m_LoginServerConfig.GetString("GatekeeperURI", string.Empty);
             m_MapTileURL = m_LoginServerConfig.GetString("MapTileURL", string.Empty);
             m_ProfileURL = m_LoginServerConfig.GetString("ProfileServerURL", string.Empty);
+            m_OpenIDURL = m_LoginServerConfig.GetString("OpenIDServerURL", String.Empty);
             m_SearchURL = m_LoginServerConfig.GetString("SearchURL", string.Empty);
             m_Currency = m_LoginServerConfig.GetString("Currency", string.Empty);
 
@@ -415,7 +417,7 @@ namespace OpenSim.Services.LLLoginService
                 // Finally, fill out the response and return it
                 //
                 LLLoginResponse response = new LLLoginResponse(account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
-                    where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP, m_MapTileURL, m_ProfileURL, m_SearchURL, m_Currency);
+                    where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP, m_MapTileURL, m_ProfileURL, m_OpenIDURL, m_SearchURL, m_Currency);
 
                 m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to client.");
                 return response;
