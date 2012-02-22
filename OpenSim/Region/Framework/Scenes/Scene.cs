@@ -4257,10 +4257,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="action"></param>
         public void ForEachRootScenePresence(Action<ScenePresence> action)
         {
-            if (m_sceneGraph != null)
-            {
-                m_sceneGraph.ForEachAvatar(action);
-            }
+            m_sceneGraph.ForEachAvatar(action);
         }
 
         /// <summary>
@@ -4269,10 +4266,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="action"></param>
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
-            if (m_sceneGraph != null)
-            {
-                m_sceneGraph.ForEachScenePresence(action);
-            }
+            m_sceneGraph.ForEachScenePresence(action);
         }
 
         /// <summary>
