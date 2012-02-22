@@ -1688,6 +1688,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSitTarget(offset, rot);
         }
 
+        public void llLinkSitTarget(LSL_Integer link, LSL_Vector offset, LSL_Rotation rot)
+        {
+            m_LSL_Functions.llLinkSitTarget(link, offset, rot);
+        }
+
         public void llSleep(double sec)
         {
             m_LSL_Functions.llSleep(sec);
