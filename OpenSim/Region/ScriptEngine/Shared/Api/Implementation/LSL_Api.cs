@@ -5709,7 +5709,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetRegionAgentCount()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Integer(World.GetRootAgentCount());
+
+            int count = 0;
+            World.ForEachRootScenePresence(delegate(ScenePresence sp) {
+                count++;
+            });
+
+            return new LSL_Integer(count);
         }
 
         public LSL_Vector llGetRegionCorner()
