@@ -3443,8 +3443,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             int heightmapWidth = regionsize + 2;				// ODE map size 257 x 257 (Meters) (1 extra 
             int heightmapHeight = regionsize + 2;
             
-            int heightmapWidthSamples = (int)regionsize + 2;		// Sample file size, 258 x 258 samples
-            int heightmapHeightSamples = (int)regionsize + 2;
+            int heightmapWidthSamples = (int)regionsize + 3;		// Sample file size, 258 x 258 samples
+            int heightmapHeightSamples = (int)regionsize + 3;
             
             // Array of height samples for ODE 
             float[] _heightmap;
@@ -3481,7 +3481,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         			// Output x = 0  1  2  3  ..... 255  256  257      258 total out
                     float val= heightMap[(yy * regionsize) + xx];  // input from heightMap,  <0-255 * 256> <0-255>
                     if (val < minele) val = minele;
-                    _heightmap[x * (regionsize + 2) + y] = val; // samples output to _heightmap,  <0-257 * 258> <0-257>
+                    _heightmap[x * (heightmapWidthSamples) + y] = val; // samples output to _heightmap,  <0-257 * 258> <0-257>
                     hfmin = (val < hfmin) ? val : hfmin;
                     hfmax = (val > hfmax) ? val : hfmax;
                 }
