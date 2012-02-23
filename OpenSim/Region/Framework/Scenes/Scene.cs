@@ -2317,7 +2317,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="sog"></param>
         /// <returns></returns>
-        public bool IncomingCreateObject(ISceneObject sog)
+        public bool IncomingCreateObject(Vector3 newPosition, ISceneObject sog)
         {
             //m_log.DebugFormat(" >>> IncomingCreateObject(sog) <<< {0} deleted? {1} isAttach? {2}", ((SceneObjectGroup)sog).AbsolutePosition,
             //    ((SceneObjectGroup)sog).IsDeleted, ((SceneObjectGroup)sog).RootPart.IsAttachment);
@@ -2332,6 +2332,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat("[SCENE]: Problem casting object, exception {0}{1}", e.Message, e.StackTrace);
                 return false;
             }
+
+            if (newPosition != Vector3.Zero)
+                newObject.RootPart.GroupPosition = newPosition;
 
             if (!AddSceneObject(newObject))
             {

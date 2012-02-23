@@ -408,7 +408,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// <summary>
         ///
         /// </summary>
-        public bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall)
+        public bool CreateObject(GridRegion destination, Vector3 newPosition, ISceneObject sog, bool isLocalCall)
         {
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: CreateObject start");
 
@@ -421,6 +421,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["sog"] = OSD.FromString(sog.ToXml2());
                 args["extra"] = OSD.FromString(sog.ExtraToXmlString());
                 args["modified"] = OSD.FromBoolean(sog.HasGroupChanged);
+                args["new_position"] = newPosition.ToString();
 
                 string state = sog.GetStateSnapshot();
                 if (state.Length > 0)

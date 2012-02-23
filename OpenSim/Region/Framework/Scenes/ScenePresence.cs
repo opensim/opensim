@@ -3223,7 +3223,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ((SceneObjectGroup)so).LocalId = 0;
                     ((SceneObjectGroup)so).RootPart.ClearUpdateSchedule();
                     so.SetState(cAgent.AttachmentObjectStates[i++], m_scene);
-                    m_scene.IncomingCreateObject(so);
+                    m_scene.IncomingCreateObject(Vector3.Zero, so);
                 }
             }
         }
