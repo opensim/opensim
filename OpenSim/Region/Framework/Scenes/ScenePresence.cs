@@ -984,12 +984,15 @@ namespace OpenSim.Region.Framework.Scenes
                     Util.FireAndForget(delegate(object x) {
                         foreach (SceneObjectGroup sog in m_attachments)
                         {
+                            sog.ScheduleGroupForFullUpdate();
                             sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
                             sog.ResumeScripts();
                         }
                     });
                 }
             }
+
+            SendAvatarDataToAllAgents();
 
             // send the animations of the other presences to me
             m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)

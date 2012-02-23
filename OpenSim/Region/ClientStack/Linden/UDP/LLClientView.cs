@@ -3774,6 +3774,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // doesn't seem to be attached, skip
                         if (!found)
                             continue;
+
+                        // On vehicle crossing, the attachments are received
+                        // while the avatar is still a child. Don't send
+                        // updates here because the LocalId has not yet
+                        // been updated and the viewer will derender the
+                        // attachments until the avatar becomes root.
+                        if (sp.IsChildAgent)
+                            continue;
                     }
                     if (part.ParentGroup.IsAttachment && m_disableFacelights)
                     {
