@@ -106,7 +106,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="sog"></param>
         /// <param name="isLocalCall"></param>
         /// <returns></returns>
-        bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall);
+        bool CreateObject(GridRegion destination, Vector3 newPosition, ISceneObject sog, bool isLocalCall);
 
         /// <summary>
         /// Create an object from the user's inventory in the destination region. 

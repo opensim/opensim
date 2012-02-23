@@ -328,7 +328,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
          * Object-related communications
          */
 
-        public bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall)
+        public bool CreateObject(GridRegion destination, Vector3 newPosition, ISceneObject sog, bool isLocalCall)
         {
             if (destination == null)
                 return false;
@@ -343,12 +343,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                         // We need to make a local copy of the object
                         ISceneObject sogClone = sog.CloneForNewScene();
                         sogClone.SetState(sog.GetStateSnapshot(), s);
-                        return s.IncomingCreateObject(sogClone);
+                        return s.IncomingCreateObject(newPosition, sogClone);
                     }
                     else
                     {
                         // Use the object as it came through the wire
-                        return s.IncomingCreateObject(sog);
+                        return s.IncomingCreateObject(newPosition, sog);
                     }
                 }
             }

@@ -136,6 +136,8 @@ namespace OpenSim.Server.Handlers.Simulation
             int x = 0, y = 0;
             UUID uuid = UUID.Zero;
             string regionname = string.Empty;
+            Vector3 newPosition = Vector3.Zero;
+
             if (args.ContainsKey("destination_x") && args["destination_x"] != null)
                 Int32.TryParse(args["destination_x"].AsString(), out x);
             if (args.ContainsKey("destination_y") && args["destination_y"] != null)
@@ -144,6 +146,8 @@ namespace OpenSim.Server.Handlers.Simulation
                 UUID.TryParse(args["destination_uuid"].AsString(), out uuid);
             if (args.ContainsKey("destination_name") && args["destination_name"] != null)
                 regionname = args["destination_name"].ToString();
+            if (args.ContainsKey("new_position") && args["new_position"] != null)
+                Vector3.TryParse(args["new_position"], out newPosition);
 
             GridRegion destination = new GridRegion();
             destination.RegionID = uuid;
@@ -199,7 +203,7 @@ namespace OpenSim.Server.Handlers.Simulation
             try
             {
                 // This is the meaning of POST object
-                result = CreateObject(destination, sog);
+                result = CreateObject(destination, newPosition, sog);
             }
             catch (Exception e)
             {
@@ -211,9 +215,9 @@ namespace OpenSim.Server.Handlers.Simulation
         }
 
         // subclasses can override this
-        protected virtual bool CreateObject(GridRegion destination, ISceneObject sog)
+        protected virtual bool CreateObject(GridRegion destination, Vector3 newPosition, ISceneObject sog)
         {
-            return m_SimulationService.CreateObject(destination, sog, false);
+            return m_SimulationService.CreateObject(destination, newPosition, sog, false);
         }
 
         protected virtual void DoObjectPut(Hashtable request, Hashtable responsedata, UUID regionID)
