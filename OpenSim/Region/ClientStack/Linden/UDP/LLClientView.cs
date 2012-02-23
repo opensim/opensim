@@ -4845,7 +4845,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (part != null && part != part.ParentGroup.RootPart)
                     {
                         position = part.OffsetPosition + presence.OffsetPosition * part.RotationOffset;
-                        rotation = presence.Rotation * part.RotationOffset;
+                        rotation = part.RotationOffset * presence.Rotation;
                     }
                 }
 
@@ -4974,7 +4974,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (part != null && part != part.ParentGroup.RootPart)
                 {
                     offsetPosition = part.OffsetPosition + data.OffsetPosition * part.RotationOffset;
-                    rotation = data.Rotation * part.RotationOffset;
+                    rotation = part.RotationOffset * data.Rotation;
                     parentID = part.ParentGroup.RootPart.LocalId;
                 }
             }
