@@ -874,6 +874,8 @@ namespace OpenSim.Region.Framework.Scenes
                 "[SCENE]: Upgrading child to root agent for {0} in {1}",
                 Name, m_scene.RegionInfo.RegionName);
 
+            bool wasChild = IsChildAgent;
+
             if (ParentUUID != UUID.Zero)
             {
                 m_log.DebugFormat("[SCENE PRESENCE]: Sitting avatar back on prim {0}", ParentUUID);
@@ -893,10 +895,16 @@ namespace OpenSim.Region.Framework.Scenes
                     pos = ParentPosition;
                 }
                 ParentUUID = UUID.Zero;
+
+                IsChildAgent = false;
+
+                Animator.TrySetMovementAnimation("SIT");
+            }
+            else
+            {
+                IsChildAgent = false;
             }
 
-            bool wasChild = IsChildAgent;
-            IsChildAgent = false;
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
