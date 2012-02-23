@@ -346,6 +346,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetParcelMusicURL(string url);
               void llSetPayPrice(int price, LSL_List quick_pay_buttons);
               void llSetPos(LSL_Vector pos);
+       LSL_Integer llSetRegionPos(LSL_Vector pos);
        LSL_Integer llSetPrimMediaParams(int face, LSL_List rules);
               void llSetPrimitiveParams(LSL_List rules);
               void llSetLinkPrimitiveParamsFast(int linknum, LSL_List rules);

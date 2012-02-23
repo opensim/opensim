@@ -2177,6 +2177,54 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return real_vec;
         }
 
+        public LSL_Integer llSetRegionPos(LSL_Vector pos)
+        {
+            return new LSL_Integer(SetRegionPos(m_host, pos));
+        }
+
+        protected int SetRegionPos(SceneObjectPart part, LSL_Vector targetPos)
+        {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return 0;
+
+            SceneObjectGroup grp = part.ParentGroup;
+
+            if (grp.IsAttachment)
+                return 0;
+
+            if (grp.RootPart.PhysActor != null && grp.RootPart.PhysActor.IsPhysical)
+                return 0;
+
+            if (targetPos.x < -10.0f || targetPos.x >= (float)Constants.RegionSize || targetPos.y < -10.0f || targetPos.y >= (float)Constants.RegionSize || targetPos.z < 0 || targetPos.z >= 4096.0f)
+                return 0;
+
+            float constrainedX = (float)targetPos.x;
+            float constrainedY = (float)targetPos.y;
+
+            if (constrainedX < 0.0f)
+                constrainedX = 0.0f;
+            if (constrainedY < 0.0f)
+                constrainedY = 0.0f;
+            if (constrainedX >= (float)Constants.RegionSize)
+                constrainedX = (float)Constants.RegionSize - 0.1f;
+            if (constrainedY >= (float)Constants.RegionSize)
+                constrainedY = (float)Constants.RegionSize -0.1f;
+
+            float ground = World.GetGroundHeight(constrainedX, constrainedY);
+
+            if (targetPos.z < ground)
+                targetPos.z = ground;
+
+            Vector3 dest = new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z);
+
+            if (!World.Permissions.CanObjectEntry(grp.UUID, false, dest))
+                return 0;
+
+            grp.UpdateGroupPosition(dest);
+
+            return 1;
+        }
+
         protected void SetPos(SceneObjectPart part, LSL_Vector targetPos)
         {
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
@@ -2185,11 +2233,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_Vector currentPos = GetPartLocalPos(part);
             LSL_Vector toPos = GetSetPosTarget(part, targetPos, currentPos);
 
+
             if (part.ParentGroup.RootPart == part)
             {
                 SceneObjectGroup parent = part.ParentGroup;
+                Vector3 dest = new Vector3((float)toPos.x, (float)toPos.y, (float)toPos.z);
+                if (!World.Permissions.CanObjectEntry(parent.UUID, false, dest))
+                    return;
                 Util.FireAndForget(delegate(object x) {
-                    parent.UpdateGroupPosition(new Vector3((float)toPos.x, (float)toPos.y, (float)toPos.z));
+                    parent.UpdateGroupPosition(dest);
                 });
             }
             else
@@ -5709,7 +5761,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetRegionAgentCount()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Integer(World.GetRootAgentCount());
+
+            int count = 0;
+            World.ForEachRootScenePresence(delegate(ScenePresence sp) {
+                count++;
+            });
+
+            return new LSL_Integer(count);
         }
 
         public LSL_Vector llGetRegionCorner()

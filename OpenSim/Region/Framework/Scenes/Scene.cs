@@ -2403,7 +2403,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="sog"></param>
         /// <returns></returns>
-        public bool IncomingCreateObject(ISceneObject sog)
+        public bool IncomingCreateObject(Vector3 newPosition, ISceneObject sog)
         {
             //m_log.DebugFormat(" >>> IncomingCreateObject(sog) <<< {0} deleted? {1} isAttach? {2}", ((SceneObjectGroup)sog).AbsolutePosition,
             //    ((SceneObjectGroup)sog).IsDeleted, ((SceneObjectGroup)sog).RootPart.IsAttachment);
@@ -2418,6 +2418,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat("[SCENE]: Problem casting object, exception {0}{1}", e.Message, e.StackTrace);
                 return false;
             }
+
+            if (newPosition != Vector3.Zero)
+                newObject.RootPart.GroupPosition = newPosition;
 
             if (!AddSceneObject(newObject))
             {
@@ -4431,10 +4434,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="action"></param>
         public void ForEachRootScenePresence(Action<ScenePresence> action)
         {
-            if (m_sceneGraph != null)
-            {
-                m_sceneGraph.ForEachAvatar(action);
-            }
+            m_sceneGraph.ForEachAvatar(action);
         }
 
         /// <summary>
@@ -4443,10 +4443,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="action"></param>
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
-            if (m_sceneGraph != null)
-            {
-                m_sceneGraph.ForEachScenePresence(action);
-            }
+            m_sceneGraph.ForEachScenePresence(action);
         }
 
         /// <summary>

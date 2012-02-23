@@ -1580,6 +1580,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetPos(pos);
         }
 
+        public LSL_Integer llSetRegionPos(LSL_Vector pos)
+        {
+            return m_LSL_Functions.llSetRegionPos(pos);
+        }
+
         public void llSetPrimitiveParams(LSL_List rules)
         {
             m_LSL_Functions.llSetPrimitiveParams(rules);
