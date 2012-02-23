@@ -5472,7 +5472,7 @@ Environment.Exit(1);
 //                            presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget);
 
                     Vector3 agent_control_v3 = new Vector3();
-                    presence.HandleMoveToTargetUpdate(ref agent_control_v3);
+                    presence.HandleMoveToTargetUpdate(1, ref agent_control_v3);
                     presence.AddNewMovement(agent_control_v3);
                 }
             }
