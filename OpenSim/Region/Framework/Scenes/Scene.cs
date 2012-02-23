@@ -4699,7 +4699,10 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3? nearestPoint = GetNearestPointInParcelAlongDirectionFromPoint(avatar.AbsolutePosition, dir, nearestParcel);
                 if (nearestPoint != null)
                 {
-                    Debug.WriteLine("Found a sane previous position based on velocity, sending them to: " + nearestPoint.ToString());
+//                    m_log.DebugFormat(
+//                        "[SCENE]: Found a sane previous position based on velocity for {0}, sending them to {1} in {2}",
+//                        avatar.Name, nearestPoint, nearestParcel.LandData.Name);
+
                     return nearestPoint.Value;
                 }
 
@@ -4709,12 +4712,16 @@ namespace OpenSim.Region.Framework.Scenes
                 nearestPoint = GetNearestPointInParcelAlongDirectionFromPoint(avatar.AbsolutePosition, dir, nearestParcel);
                 if (nearestPoint != null)
                 {
-                    Debug.WriteLine("They had a zero velocity, sending them to: " + nearestPoint.ToString());
+//                    m_log.DebugFormat(
+//                        "[SCENE]: {0} had a zero velocity, sending them to {1}", avatar.Name, nearestPoint);
+
                     return nearestPoint.Value;
                 }
 
-                //Ultimate backup if we have no idea where they are 
-                Debug.WriteLine("Have no idea where they are, sending them to: " + avatar.lastKnownAllowedPosition.ToString());
+                //Ultimate backup if we have no idea where they are
+//                m_log.DebugFormat(
+//                    "[SCENE]: No idea where {0} is, sending them to {1}", avatar.Name, avatar.lastKnownAllowedPosition);
+
                 return avatar.lastKnownAllowedPosition;
             }
 
@@ -5120,7 +5127,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                            presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget);
 
                     Vector3 agent_control_v3 = new Vector3();
-                    presence.HandleMoveToTargetUpdate(ref agent_control_v3);
+                    presence.HandleMoveToTargetUpdate(1, ref agent_control_v3);
                     presence.AddNewMovement(agent_control_v3);
                 }
             }
