@@ -4828,9 +4828,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 ScenePresence presence = (ScenePresence)entity;
 
+                position = presence.OffsetPosition;
+                rotation = presence.Rotation;
+
+                if (presence.ParentID != 0)
+                {
+                    SceneObjectPart part = m_scene.GetSceneObjectPart(presence.ParentID);
+                    if (part != null && part != part.ParentGroup.RootPart)
+                    {
+                        position = part.OffsetPosition + presence.OffsetPosition * part.RotationOffset;
+                        rotation = presence.Rotation * part.RotationOffset;
+                    }
+                }
+
                 attachPoint = 0;
                 collisionPlane = presence.CollisionPlane;
-                position = presence.OffsetPosition;
                 velocity = presence.Velocity;
                 acceleration = Vector3.Zero;
 
@@ -4840,7 +4852,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                acceleration = new Vector3(1, 0, 0);
                 
                 angularVelocity = Vector3.Zero;
-                rotation = presence.Rotation;
 
                 if (sendTexture)
                     textureEntry = presence.Appearance.Texture.GetBytes();
@@ -4945,13 +4956,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected ObjectUpdatePacket.ObjectDataBlock CreateAvatarUpdateBlock(ScenePresence data)
         {
+            Vector3 offsetPosition = data.OffsetPosition;
+            Quaternion rotation = data.Rotation;
+            uint parentID = data.ParentID;
+
+            if (parentID != 0)
+            {
+                SceneObjectPart part = m_scene.GetSceneObjectPart(parentID);
+                if (part != null && part != part.ParentGroup.RootPart)
+                {
+                    offsetPosition = part.OffsetPosition + data.OffsetPosition * part.RotationOffset;
+                    rotation = data.Rotation * part.RotationOffset;
+                    parentID = part.ParentGroup.RootPart.LocalId;
+                }
+            }
+
             byte[] objectData = new byte[76];
 
             data.CollisionPlane.ToBytes(objectData, 0);
-            data.OffsetPosition.ToBytes(objectData, 16);
+            offsetPosition.ToBytes(objectData, 16);
 //            data.Velocity.ToBytes(objectData, 28);
 //            data.Acceleration.ToBytes(objectData, 40);
-            data.Rotation.ToBytes(objectData, 52);
+            rotation.ToBytes(objectData, 52);
             //data.AngularVelocity.ToBytes(objectData, 64);
 
             ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();
@@ -4965,7 +4991,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.NameValue = Utils.StringToBytes("FirstName STRING RW SV " + data.Firstname + "\nLastName STRING RW SV " +
                 data.Lastname + "\nTitle STRING RW SV " + data.Grouptitle);
             update.ObjectData = objectData;
-            update.ParentID = data.ParentID;
+            update.ParentID = parentID;
             update.PathCurve = 16;
             update.PathScaleX = 100;
             update.PathScaleY = 100;
