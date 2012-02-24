@@ -52,6 +52,9 @@ namespace OpenSim.Data.SQLite
 
         public SQLiteXInventoryData(string conn, string realm)
         {
+            if (Util.IsWindows())
+                Util.LoadArchSpecificWindowsDll("sqlite3.dll");
+
             m_Folders = new SQLiteGenericTableHandler<XInventoryFolder>(
                     conn, "inventoryfolders", "XInventoryStore");
             m_Items = new SqliteItemHandler(

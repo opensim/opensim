@@ -864,16 +864,16 @@ namespace OpenSim.Region.Framework.Scenes
                     try
                     {
                         ForEachRootScenePresence(delegate(ScenePresence agent)
-                            {
-                                //agent.ControllingClient.new
-                                //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
+                        {
+                            //agent.ControllingClient.new
+                            //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
 
-                                List<ulong> old = new List<ulong>();
-                                old.Add(otherRegion.RegionHandle);
-                                agent.DropOldNeighbours(old);
-                                if (m_teleportModule != null)
-                                    m_teleportModule.EnableChildAgent(agent, otherRegion);
-                            });
+                            List<ulong> old = new List<ulong>();
+                            old.Add(otherRegion.RegionHandle);
+                            agent.DropOldNeighbours(old);
+                            if (m_teleportModule != null && agent.PresenceType != PresenceType.Npc)
+                                m_teleportModule.EnableChildAgent(agent, otherRegion);
+                        });
                     }
                     catch (NullReferenceException)
                     {
@@ -881,7 +881,6 @@ namespace OpenSim.Region.Framework.Scenes
                         // This shouldn't happen too often anymore.
                         m_log.Error("[SCENE]: Couldn't inform client of regionup because we got a null reference exception");
                     }
-
                 }
                 else
                 {
@@ -1009,10 +1008,10 @@ namespace OpenSim.Region.Framework.Scenes
                     try
                     {
                         ForEachRootScenePresence(delegate(ScenePresence agent)
-                            {
-                                if (m_teleportModule != null)
-                                        m_teleportModule.EnableChildAgent(agent, r);
-                            });
+                        {
+                            if (m_teleportModule != null && agent.PresenceType != PresenceType.Npc)
+                                m_teleportModule.EnableChildAgent(agent, r);
+                        });
                     }
                     catch (NullReferenceException)
                     {
@@ -1141,7 +1140,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             HeartbeatThread
                 = Watchdog.StartThread(
-                    Heartbeat, string.Format("Heartbeat ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false);
+                    Heartbeat, string.Format("Heartbeat ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, false);
         }
 
         /// <summary>
@@ -1179,6 +1178,13 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
                 m_eventManager.TriggerOnRegionStarted(this);
+
+                // The first frame can take a very long time due to physics actors being added on startup.  Therefore,
+                // don't turn on the watchdog alarm for this thread until the second frame, in order to prevent false
+                // alarms for scenes with many objects.
+                Update();
+                Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
+
                 while (!shuttingdown)
                     Update();
 
@@ -1207,7 +1213,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             ++Frame;
 
-//            m_log.DebugFormat("[SCENE]: Processing frame {0}", Frame);
+//            m_log.DebugFormat("[SCENE]: Processing frame {0} in {1}", Frame, RegionInfo.RegionName);
 
             try
             {
@@ -1362,26 +1368,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 throw;
             }
-            catch (AccessViolationException e)
-            {
-                m_log.ErrorFormat(
-                    "[REGION]: Failed on region {0} with exception {1}{2}",
-                    RegionInfo.RegionName, e.Message, e.StackTrace);
-            }
-            //catch (NullReferenceException e)
-            //{
-            //   m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-            //}
-            catch (InvalidOperationException e)
-            {
-                m_log.ErrorFormat(
-                    "[REGION]: Failed on region {0} with exception {1}{2}",
-                    RegionInfo.RegionName, e.Message, e.StackTrace);
-            }
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[REGION]: Failed on region {0} with exception {1}{2}",
+                    "[SCENE]: Failed on region {0} with exception {1}{2}",
                     RegionInfo.RegionName, e.Message, e.StackTrace);
             }
 
@@ -1418,7 +1408,6 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectGroup entry in objs)
                 entry.checkAtTargets();
         }
-
 
         /// <summary>
         /// Send out simstats data to all clients
@@ -2318,7 +2307,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="sog"></param>
         /// <returns></returns>
-        public bool IncomingCreateObject(ISceneObject sog)
+        public bool IncomingCreateObject(Vector3 newPosition, ISceneObject sog)
         {
             //m_log.DebugFormat(" >>> IncomingCreateObject(sog) <<< {0} deleted? {1} isAttach? {2}", ((SceneObjectGroup)sog).AbsolutePosition,
             //    ((SceneObjectGroup)sog).IsDeleted, ((SceneObjectGroup)sog).RootPart.IsAttachment);
@@ -2333,6 +2322,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat("[SCENE]: Problem casting object, exception {0}{1}", e.Message, e.StackTrace);
                 return false;
             }
+
+            if (newPosition != Vector3.Zero)
+                newObject.RootPart.GroupPosition = newPosition;
 
             if (!AddSceneObject(newObject))
             {
@@ -4258,10 +4250,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="action"></param>
         public void ForEachRootScenePresence(Action<ScenePresence> action)
         {
-            if (m_sceneGraph != null)
-            {
-                m_sceneGraph.ForEachAvatar(action);
-            }
+            m_sceneGraph.ForEachAvatar(action);
         }
 
         /// <summary>
@@ -4270,10 +4259,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="action"></param>
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
-            if (m_sceneGraph != null)
-            {
-                m_sceneGraph.ForEachScenePresence(action);
-            }
+            m_sceneGraph.ForEachScenePresence(action);
         }
 
         /// <summary>
@@ -4703,7 +4689,10 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3? nearestPoint = GetNearestPointInParcelAlongDirectionFromPoint(avatar.AbsolutePosition, dir, nearestParcel);
                 if (nearestPoint != null)
                 {
-                    Debug.WriteLine("Found a sane previous position based on velocity, sending them to: " + nearestPoint.ToString());
+//                    m_log.DebugFormat(
+//                        "[SCENE]: Found a sane previous position based on velocity for {0}, sending them to {1} in {2}",
+//                        avatar.Name, nearestPoint, nearestParcel.LandData.Name);
+
                     return nearestPoint.Value;
                 }
 
@@ -4713,12 +4702,16 @@ namespace OpenSim.Region.Framework.Scenes
                 nearestPoint = GetNearestPointInParcelAlongDirectionFromPoint(avatar.AbsolutePosition, dir, nearestParcel);
                 if (nearestPoint != null)
                 {
-                    Debug.WriteLine("They had a zero velocity, sending them to: " + nearestPoint.ToString());
+//                    m_log.DebugFormat(
+//                        "[SCENE]: {0} had a zero velocity, sending them to {1}", avatar.Name, nearestPoint);
+
                     return nearestPoint.Value;
                 }
 
-                //Ultimate backup if we have no idea where they are 
-                Debug.WriteLine("Have no idea where they are, sending them to: " + avatar.lastKnownAllowedPosition.ToString());
+                //Ultimate backup if we have no idea where they are
+//                m_log.DebugFormat(
+//                    "[SCENE]: No idea where {0} is, sending them to {1}", avatar.Name, avatar.lastKnownAllowedPosition);
+
                 return avatar.lastKnownAllowedPosition;
             }
 
@@ -5124,7 +5117,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                            presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget);
 
                     Vector3 agent_control_v3 = new Vector3();
-                    presence.HandleMoveToTargetUpdate(ref agent_control_v3);
+                    presence.HandleMoveToTargetUpdate(1, ref agent_control_v3);
                     presence.AddNewMovement(agent_control_v3);
                 }
             }

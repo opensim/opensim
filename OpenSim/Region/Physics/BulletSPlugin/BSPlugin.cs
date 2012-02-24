@@ -51,6 +51,9 @@ public class BSPlugin : IPhysicsPlugin
     {
         if (_mScene == null)
         {
+            if (Util.IsWindows())
+                Util.LoadArchSpecificWindowsDll("BulletSim.dll");
+
             _mScene = new BSScene(sceneIdentifier);
         }
         return (_mScene);

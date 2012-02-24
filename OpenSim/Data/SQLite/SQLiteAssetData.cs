@@ -81,6 +81,9 @@ namespace OpenSim.Data.SQLite
         /// <param name="dbconnect">connect string</param>
         override public void Initialise(string dbconnect)
         {
+            if (Util.IsWindows())
+                Util.LoadArchSpecificWindowsDll("sqlite3.dll");
+
             if (dbconnect == string.Empty)
             {
                 dbconnect = "URI=file:Asset.db,version=3";

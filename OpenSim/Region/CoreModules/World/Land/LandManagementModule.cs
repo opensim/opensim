@@ -94,8 +94,11 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         // caches ExtendedLandData
         private Cache parcelInfoCache;
-        private Dictionary<UUID, Vector3> forcedPosition =
-                new Dictionary<UUID, Vector3>();
+
+        /// <summary>
+        /// Record positions that avatar's are currently being forced to move to due to parcel entry restrictions.
+        /// </summary>
+        private Dictionary<UUID, Vector3> forcedPosition = new Dictionary<UUID, Vector3>();
 
         #region INonSharedRegionModule Members
 
@@ -224,22 +227,34 @@ namespace OpenSim.Region.CoreModules.World.Land
                 //When the avatar walks into a ban line on the ground, it prevents getting stuck
                 agentData.ControlFlags = (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
 
-
                 //Make sure we stop if they get about to the right place to prevent yoyo and prevents getting stuck on banlines
                 if (Vector3.Distance(clientAvatar.AbsolutePosition, forcedPosition[remoteClient.AgentId]) < .2)
                 {
-                    Debug.WriteLine(string.Format("Stopping force position because {0} is close enough to position {1}", forcedPosition[remoteClient.AgentId], clientAvatar.AbsolutePosition));
+//                    m_log.DebugFormat(
+//                        "[LAND MANAGEMENT MODULE]: Stopping force position of {0} because {1} is close enough to {2}",
+//                        clientAvatar.Name, clientAvatar.AbsolutePosition, forcedPosition[remoteClient.AgentId]);
+
                     forcedPosition.Remove(remoteClient.AgentId);
                 }
                 //if we are far away, teleport
                 else if (Vector3.Distance(clientAvatar.AbsolutePosition, forcedPosition[remoteClient.AgentId]) > 3)
                 {
-                    Debug.WriteLine(string.Format("Teleporting out because {0} is too far from avatar position {1}", forcedPosition[remoteClient.AgentId], clientAvatar.AbsolutePosition));
-                    clientAvatar.Teleport(forcedPosition[remoteClient.AgentId]);
+                    Vector3 forcePosition = forcedPosition[remoteClient.AgentId];
+//                    m_log.DebugFormat(
+//                        "[LAND MANAGEMENT MODULE]: Teleporting out {0} because {1} is too far from avatar position {2}",
+//                        clientAvatar.Name, clientAvatar.AbsolutePosition, forcePosition);
+
+                    m_scene.RequestTeleportLocation(remoteClient, m_scene.RegionInfo.RegionHandle,
+                        forcePosition, clientAvatar.Lookat, (uint)Constants.TeleportFlags.ForceRedirect);
+
                     forcedPosition.Remove(remoteClient.AgentId);
                 }
                 else
                 {
+//                    m_log.DebugFormat(
+//                        "[LAND MANAGEMENT MODULE]: Forcing {0} from {1} to {2}",
+//                        clientAvatar.Name, clientAvatar.AbsolutePosition, forcedPosition[remoteClient.AgentId]);
+
                     //Forces them toward the forced position we want if they aren't there yet
                     agentData.UseClientAgentPosition = true;
                     agentData.ClientAgentPosition = forcedPosition[remoteClient.AgentId];

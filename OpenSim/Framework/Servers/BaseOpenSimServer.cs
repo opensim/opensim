@@ -247,7 +247,7 @@ namespace OpenSim.Framework.Servers
             string reportFormat = "{0,6}   {1,35}   {2,16}   {3,13}   {4,10}   {5,30}";
 
             StringBuilder sb = new StringBuilder();
-            Watchdog.ThreadWatchdogInfo[] threads = Watchdog.GetThreads();
+            Watchdog.ThreadWatchdogInfo[] threads = Watchdog.GetThreadsInfo();
 
             sb.Append(threads.Length + " threads are being tracked:" + Environment.NewLine);
 
@@ -308,7 +308,9 @@ namespace OpenSim.Framework.Servers
             // clr version potentially is more confusing than helpful, since it doesn't tell us if we're running under Mono/MS .NET and
             // the clr version number doesn't match the project version number under Mono.
             //m_log.Info("[STARTUP]: Virtual machine runtime version: " + Environment.Version + Environment.NewLine);
-            m_log.Info("[STARTUP]: Operating system version: " + Environment.OSVersion + Environment.NewLine);
+            m_log.InfoFormat(
+                "[STARTUP]: Operating system version: {0}, .NET platform {1}, {2}-bit\n",
+                Environment.OSVersion, Environment.OSVersion.Platform, Util.Is64BitProcess() ? "64" : "32");
             
             StartupSpecific();
             

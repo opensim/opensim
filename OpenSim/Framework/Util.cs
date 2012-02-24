@@ -36,6 +36,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
@@ -375,6 +376,50 @@ namespace OpenSim.Framework
             }
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Is the platform Windows?
+        /// </summary>
+        /// <returns>true if so, false otherwise</returns>
+        public static bool IsWindows()
+        {
+            PlatformID platformId = Environment.OSVersion.Platform;
+
+            return (platformId == PlatformID.Win32NT
+                || platformId == PlatformID.Win32S
+                || platformId == PlatformID.Win32Windows
+                || platformId == PlatformID.WinCE);
+        }
+
+        public static bool LoadArchSpecificWindowsDll(string libraryName)
+        {
+            // We do this so that OpenSimulator on Windows loads the correct native library depending on whether
+            // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
+            // will find it already loaded later on.
+            //
+            // This isn't necessary for other platforms (e.g. Mac OSX and Linux) since the DLL used can be
+            // controlled in config files.
+            string nativeLibraryPath;
+
+            if (Util.Is64BitProcess())
+                nativeLibraryPath = "lib64/" + libraryName;
+            else
+                nativeLibraryPath = "lib32/" + libraryName;
+
+            m_log.DebugFormat("[UTIL]: Loading native Windows library at {0}", nativeLibraryPath);
+
+            if (Util.LoadLibrary(nativeLibraryPath) == IntPtr.Zero)
+            {
+                m_log.ErrorFormat(
+                    "[UTIL]: Couldn't find native Windows library at {0}", nativeLibraryPath);
+
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         public static bool IsEnvironmentSupported(ref string reason)
@@ -1457,6 +1502,27 @@ namespace OpenSim.Framework
             }
 
             return data;
+        }
+
+        /// <summary>
+        /// Used to trigger an early library load on Windows systems.
+        /// </summary>
+        /// <remarks>
+        /// Required to get 32-bit and 64-bit processes to automatically use the
+        /// appropriate native library.
+        /// </remarks>
+        /// <param name="dllToLoad"></param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr LoadLibrary(string dllToLoad);
+
+        /// <summary>
+        /// Determine whether the current process is 64 bit
+        /// </summary>
+        /// <returns>true if so, false if not</returns>
+        public static bool Is64BitProcess()
+        {
+            return IntPtr.Size == 8;
         }
 
         #region FireAndForget Threading Pattern

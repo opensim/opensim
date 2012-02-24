@@ -282,13 +282,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
          * Object-related communications
          */
 
-        public bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall)
+        public bool CreateObject(GridRegion destination, Vector3 newPosition, ISceneObject sog, bool isLocalCall)
         {
             if (destination == null)
                 return false;
 
             // Try local first
-            if (m_localBackend.CreateObject(destination, sog, isLocalCall))
+            if (m_localBackend.CreateObject(destination, newPosition, sog, isLocalCall))
             {
                 //m_log.Debug("[REST COMMS]: LocalBackEnd SendCreateObject succeeded");
                 return true;
@@ -296,7 +296,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
-                return m_remoteConnector.CreateObject(destination, sog, isLocalCall);
+                return m_remoteConnector.CreateObject(destination, newPosition, sog, isLocalCall);
 
             return false;
         }

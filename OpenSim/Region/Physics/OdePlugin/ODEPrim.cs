@@ -1474,6 +1474,8 @@ Console.WriteLine("CreateGeom:");
         /// </summary>
         private void changeadd()
         {
+//            m_log.DebugFormat("[ODE PRIM]: Adding prim {0}", Name);
+            
             int[] iprimspaceArrItem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
             IntPtr targetspace = _parent_scene.calculateSpaceForGeom(_position);
 
