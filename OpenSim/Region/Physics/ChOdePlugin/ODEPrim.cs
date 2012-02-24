@@ -1762,7 +1762,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private static Dictionary<IMesh, IntPtr> m_MeshToTriMeshMap = new Dictionary<IMesh, IntPtr>();
 
-        public void setMesh(OdeScene parent_scene, IMesh mesh)
+        public bool setMesh(OdeScene parent_scene, IMesh mesh)
         {
             // This sleeper is there to moderate how long it takes between
             // setting up the mesh and pre-processing it when we get rapid fire mesh requests on a single object
@@ -1791,18 +1791,30 @@ namespace OpenSim.Region.Physics.OdePlugin
             mesh.getVertexListAsPtrToFloatArray(out vertices, out vertexStride, out vertexCount); // Note, that vertices are fixed in unmanaged heap
             mesh.getIndexListAsPtrToIntArray(out indices, out triStride, out indexCount); // Also fixed, needs release after usage
 
+            if (vertexCount == 0 || indexCount == 0)
+            {
+                m_log.WarnFormat("[PHYSICS]: Got invalid mesh on prim {0} at <{1},{2},{3}>. It can be a sculp with alpha channel in map. Replacing it by a small box.", Name, _position.X, _position.Y, _position.Z);
+                _size.X = 0.01f;
+                _size.Y = 0.01f;
+                _size.Z = 0.01f;
+                return false;
+            }
+
+
+/*
             mesh.releaseSourceMeshData(); // free up the original mesh data to save memory
             if (m_MeshToTriMeshMap.ContainsKey(mesh))
             {
                 _triMeshData = m_MeshToTriMeshMap[mesh];
             }
             else
+ */
             {
                 _triMeshData = d.GeomTriMeshDataCreate();
 
                 d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
                 d.GeomTriMeshDataPreprocess(_triMeshData);
-                m_MeshToTriMeshMap[mesh] = _triMeshData;
+//                m_MeshToTriMeshMap[mesh] = _triMeshData;
             }
 
             _parent_scene.waitForSpaceUnlock(m_targetSpace);
@@ -1817,7 +1829,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             catch (AccessViolationException)
             {
                 m_log.Error("[PHYSICS]: MESH LOCKED");
-                return;
+                return false;
             }
 
 
@@ -1829,6 +1841,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             //     enableBody();
             // }
+            return true;
         }
 
         public void ProcessTaints(float timestep) //=============================================================================
@@ -2287,11 +2300,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void CreateGeom(IntPtr m_targetSpace, IMesh _mesh)
         {
+            bool gottrimesh = false;
+
             if (_mesh != null)					// Special - make mesh
             {
-                setMesh(_parent_scene, _mesh);
+                gottrimesh = setMesh(_parent_scene, _mesh);
             }
-            else						// not a mesh
+
+            if(!gottrimesh)						// not a mesh
             {
                 if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1)		// special profile??
                 {
