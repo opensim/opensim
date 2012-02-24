@@ -1810,7 +1810,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 //    if (prim_geom == IntPtr.Zero)  // setGeom takes care of phys engine recreate and prim_geom pointer 
                 //    {
-                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
+                //                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
+                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null));
                 //    }
             }
             catch (AccessViolationException)
