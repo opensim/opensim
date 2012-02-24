@@ -3774,6 +3774,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // doesn't seem to be attached, skip
                         if (!found)
                             continue;
+
+                        // On vehicle crossing, the attachments are received
+                        // while the avatar is still a child. Don't send
+                        // updates here because the LocalId has not yet
+                        // been updated and the viewer will derender the
+                        // attachments until the avatar becomes root.
+                        if (sp.IsChildAgent)
+                            continue;
                     }
                     if (part.ParentGroup.IsAttachment && m_disableFacelights)
                     {
@@ -4837,7 +4845,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (part != null && part != part.ParentGroup.RootPart)
                     {
                         position = part.OffsetPosition + presence.OffsetPosition * part.RotationOffset;
-                        rotation = presence.Rotation * part.RotationOffset;
+                        rotation = part.RotationOffset * presence.Rotation;
                     }
                 }
 
@@ -4966,7 +4974,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (part != null && part != part.ParentGroup.RootPart)
                 {
                     offsetPosition = part.OffsetPosition + data.OffsetPosition * part.RotationOffset;
-                    rotation = data.Rotation * part.RotationOffset;
+                    rotation = part.RotationOffset * data.Rotation;
                     parentID = part.ParentGroup.RootPart.LocalId;
                 }
             }

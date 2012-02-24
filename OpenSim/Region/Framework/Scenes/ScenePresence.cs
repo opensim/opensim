@@ -874,6 +874,8 @@ namespace OpenSim.Region.Framework.Scenes
                 "[SCENE]: Upgrading child to root agent for {0} in {1}",
                 Name, m_scene.RegionInfo.RegionName);
 
+            bool wasChild = IsChildAgent;
+
             if (ParentUUID != UUID.Zero)
             {
                 m_log.DebugFormat("[SCENE PRESENCE]: Sitting avatar back on prim {0}", ParentUUID);
@@ -893,10 +895,16 @@ namespace OpenSim.Region.Framework.Scenes
                     pos = ParentPosition;
                 }
                 ParentUUID = UUID.Zero;
+
+                IsChildAgent = false;
+
+                Animator.TrySetMovementAnimation("SIT");
+            }
+            else
+            {
+                IsChildAgent = false;
             }
 
-            bool wasChild = IsChildAgent;
-            IsChildAgent = false;
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
@@ -984,12 +992,15 @@ namespace OpenSim.Region.Framework.Scenes
                     Util.FireAndForget(delegate(object x) {
                         foreach (SceneObjectGroup sog in m_attachments)
                         {
+                            sog.ScheduleGroupForFullUpdate();
                             sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
                             sog.ResumeScripts();
                         }
                     });
                 }
             }
+
+            SendAvatarDataToAllAgents();
 
             // send the animations of the other presences to me
             m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
@@ -1084,7 +1095,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Do not call this directly.  Call Scene.RequestTeleportLocation() instead.
         /// </summary>
         /// <param name="pos"></param>
         public void Teleport(Vector3 pos)
@@ -1558,7 +1569,10 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else if (bAllowUpdateMoveToPosition)
                         {
-                            if (HandleMoveToTargetUpdate(ref agent_control_v3))
+                            // The UseClientAgentPosition is set if parcel ban is forcing the avatar to move to a
+                            // certain position.  It's only check for tolerance on returning to that position is 0.2
+                            // rather than 1, at which point it removes its force target.
+                            if (HandleMoveToTargetUpdate(agentData.UseClientAgentPosition ? 0.2 : 1, ref agent_control_v3))
                                 update_movementflag = true;
                         }
                     }
@@ -1620,7 +1634,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         /// <param value="agent_control_v3">Cumulative agent movement that this method will update.</param>
         /// <returns>True if movement has been updated in some way.  False otherwise.</returns>
-        public bool HandleMoveToTargetUpdate(ref Vector3 agent_control_v3)
+        public bool HandleMoveToTargetUpdate(double tolerance, ref Vector3 agent_control_v3)
         {
 //            m_log.DebugFormat("[SCENE PRESENCE]: Called HandleMoveToTargetUpdate() for {0}", Name);
 
@@ -1637,7 +1651,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                            Name, AbsolutePosition, MoveToPositionTarget, distanceToTarget);
 
             // Check the error term of the current position in relation to the target position
-            if (distanceToTarget <= 1)
+            if (distanceToTarget <= tolerance)
             {
                 // We are close enough to the target
                 AbsolutePosition = MoveToPositionTarget;
@@ -1813,7 +1827,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, Rotation);
             
             Vector3 agent_control_v3 = new Vector3();
-            HandleMoveToTargetUpdate(ref agent_control_v3);
+            HandleMoveToTargetUpdate(1, ref agent_control_v3);
             AddNewMovement(agent_control_v3);
         }
 
