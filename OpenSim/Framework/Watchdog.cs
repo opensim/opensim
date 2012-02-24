@@ -72,6 +72,11 @@ namespace OpenSim.Framework
             /// </summary>
             public bool IsTimedOut { get; set; }
 
+            /// <summary>
+            /// Will this thread trigger the alarm function if it has timed out?
+            /// </summary>
+            public bool AlarmIfTimeout { get; set; }
+
             public ThreadWatchdogInfo(Thread thread, int timeout)
             {
                 Thread = thread;
@@ -112,12 +117,13 @@ namespace OpenSim.Framework
         /// <param name="start">The method that will be executed in a new thread</param>
         /// <param name="name">A name to give to the new thread</param>
         /// <param name="priority">Priority to run the thread at</param>
-        /// <param name="isBackground">True to run this thread as a background
-        /// thread, otherwise false</param>
+        /// <param name="isBackground">True to run this thread as a background thread, otherwise false</param>
+        /// <param name="alarmIfTimeout">Trigger an alarm function is we have timed out</param>
         /// <returns>The newly created Thread object</returns>
-        public static Thread StartThread(ThreadStart start, string name, ThreadPriority priority, bool isBackground)
+        public static Thread StartThread(
+            ThreadStart start, string name, ThreadPriority priority, bool isBackground, bool alarmIfTimeout)
         {
-            return StartThread(start, name, priority, isBackground, WATCHDOG_TIMEOUT_MS);
+            return StartThread(start, name, priority, isBackground, alarmIfTimeout, WATCHDOG_TIMEOUT_MS);
         }
 
         /// <summary>
@@ -128,21 +134,21 @@ namespace OpenSim.Framework
         /// <param name="priority">Priority to run the thread at</param>
         /// <param name="isBackground">True to run this thread as a background
         /// thread, otherwise false</param>
-        /// <param name="timeout">
-        /// Number of milliseconds to wait until we issue a warning about timeout.
-        /// </para>
+        /// <param name="alarmIfTimeout">Trigger an alarm function is we have timed out</param>
+        /// <param name="timeout">Number of milliseconds to wait until we issue a warning about timeout.</param>
         /// <returns>The newly created Thread object</returns>
         public static Thread StartThread(
-            ThreadStart start, string name, ThreadPriority priority, bool isBackground, int timeout)
+            ThreadStart start, string name, ThreadPriority priority, bool isBackground, bool alarmIfTimeout, int timeout)
         {
             Thread thread = new Thread(start);
             thread.Name = name;
             thread.Priority = priority;
             thread.IsBackground = isBackground;
             
-            ThreadWatchdogInfo twi = new ThreadWatchdogInfo(thread, timeout);
+            ThreadWatchdogInfo twi = new ThreadWatchdogInfo(thread, timeout) { AlarmIfTimeout = alarmIfTimeout };
 
-            m_log.Debug("[WATCHDOG]: Started tracking thread \"" + twi.Thread.Name + "\" (ID " + twi.Thread.ManagedThreadId + ")");
+            m_log.DebugFormat(
+                "[WATCHDOG]: Started tracking thread {0}, ID {1}", twi.Thread.Name, twi.Thread.ManagedThreadId);
 
             lock (m_threads)
                 m_threads.Add(twi.Thread.ManagedThreadId, twi);
@@ -230,6 +236,26 @@ namespace OpenSim.Framework
                 return m_threads.Values.ToArray();
         }
 
+        /// <summary>
+        /// Return the current thread's watchdog info.
+        /// </summary>
+        /// <returns>The watchdog info.  null if the thread isn't being monitored.</returns>
+        public static ThreadWatchdogInfo GetCurrentThreadInfo()
+        {
+            lock (m_threads)
+            {
+                if (m_threads.ContainsKey(Thread.CurrentThread.ManagedThreadId))
+                    return m_threads[Thread.CurrentThread.ManagedThreadId];
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Check watched threads.  Fire alarm if appropriate.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private static void WatchdogTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             WatchdogTimeout callback = OnWatchdogTimeout;
@@ -246,21 +272,18 @@ namespace OpenSim.Framework
                     {
                         if (threadInfo.Thread.ThreadState == ThreadState.Stopped)
                         {
-                            timedOut = threadInfo;
                             RemoveThread(threadInfo.Thread.ManagedThreadId);
-                            break;
+                            callback(threadInfo.Thread, threadInfo.LastTick);
                         }
                         else if (!threadInfo.IsTimedOut && now - threadInfo.LastTick >= threadInfo.Timeout)
                         {
                             threadInfo.IsTimedOut = true;
-                            timedOut = threadInfo;
-                            break;
+
+                            if (threadInfo.AlarmIfTimeout)
+                                callback(threadInfo.Thread, threadInfo.LastTick);
                         }
                     }
                 }
-
-                if (timedOut != null)
-                    callback(timedOut.Thread, timedOut.LastTick);
             }
 
             m_watchdogTimer.Start();
