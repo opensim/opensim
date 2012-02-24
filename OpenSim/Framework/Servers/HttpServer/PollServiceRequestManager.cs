@@ -65,6 +65,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         String.Format("PollServiceWorkerThread{0}", i),
                         ThreadPriority.Normal,
                         false,
+                        true,
                         int.MaxValue);
             }
 
@@ -73,6 +74,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 "PollServiceWatcherThread",
                 ThreadPriority.Normal,
                 false,
+                true,
                 1000 * 60 * 10);
         }
 

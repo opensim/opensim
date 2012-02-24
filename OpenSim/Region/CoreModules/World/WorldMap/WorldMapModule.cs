@@ -351,6 +351,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 process,
                 string.Format("MapItemRequestThread ({0})", m_scene.RegionInfo.RegionName),
                 ThreadPriority.BelowNormal,
+                true,
                 true);
         }
 

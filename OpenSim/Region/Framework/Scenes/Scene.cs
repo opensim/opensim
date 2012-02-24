@@ -1181,7 +1181,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             HeartbeatThread
                 = Watchdog.StartThread(
-                    Heartbeat, string.Format("Heartbeat ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false);
+                    Heartbeat, string.Format("Heartbeat ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, false);
         }
 
         /// <summary>
@@ -1219,6 +1219,13 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
                 m_eventManager.TriggerOnRegionStarted(this);
+
+                // The first frame can take a very long time due to physics actors being added on startup.  Therefore,
+                // don't turn on the watchdog alarm for this thread until the second frame, in order to prevent false
+                // alarms for scenes with many objects.
+                Update();
+                Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
+
                 while (!shuttingdown)
                     Update();
             }
@@ -1244,7 +1251,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             ++Frame;
 
-//            m_log.DebugFormat("[SCENE]: Processing frame {0}", Frame);
+//            m_log.DebugFormat("[SCENE]: Processing frame {0} in {1}", Frame, RegionInfo.RegionName);
 
             try
             {
@@ -1406,26 +1413,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 throw;
             }
-            catch (AccessViolationException e)
-            {
-                m_log.ErrorFormat(
-                    "[REGION]: Failed on region {0} with exception {1}{2}",
-                    RegionInfo.RegionName, e.Message, e.StackTrace);
-            }
-            //catch (NullReferenceException e)
-            //{
-            //   m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-            //}
-            catch (InvalidOperationException e)
-            {
-                m_log.ErrorFormat(
-                    "[REGION]: Failed on region {0} with exception {1}{2}",
-                    RegionInfo.RegionName, e.Message, e.StackTrace);
-            }
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[REGION]: Failed on region {0} with exception {1}{2}",
+                    "[SCENE]: Failed on region {0} with exception {1}{2}",
                     RegionInfo.RegionName, e.Message, e.StackTrace);
             }
 
@@ -1466,7 +1457,6 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectGroup entry in objs)
                 entry.checkAtTargets();
         }
-
 
         /// <summary>
         /// Send out simstats data to all clients

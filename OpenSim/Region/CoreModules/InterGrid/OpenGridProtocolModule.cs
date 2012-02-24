@@ -1210,7 +1210,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             if (homeScene.TryGetScenePresence(avatarId,out avatar))
             {
                 KillAUser ku = new KillAUser(avatar,mod);
-                Watchdog.StartThread(ku.ShutdownNoLogout, "OGPShutdown", ThreadPriority.Normal, true);
+                Watchdog.StartThread(ku.ShutdownNoLogout, "OGPShutdown", ThreadPriority.Normal, true, true);
             }
         }
 

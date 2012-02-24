@@ -6834,16 +6834,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void llSitTarget(LSL_Vector offset, LSL_Rotation rot)
+        protected void SitTarget(SceneObjectPart part, LSL_Vector offset, LSL_Rotation rot)
         {
-            m_host.AddScriptLPS(1);
             // LSL quaternions can normalize to 0, normal Quaternions can't.
             if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
                 rot.z = 1; // ZERO_ROTATION = 0,0,0,1
 
-            m_host.SitTargetPosition = new Vector3((float)offset.x, (float)offset.y, (float)offset.z);
-            m_host.SitTargetOrientation = Rot2Quaternion(rot);
-            m_host.ParentGroup.HasGroupChanged = true;
+            part.SitTargetPosition = new Vector3((float)offset.x, (float)offset.y, (float)offset.z);
+            part.SitTargetOrientation = Rot2Quaternion(rot);
+            part.ParentGroup.HasGroupChanged = true;
+        }
+
+        public void llSitTarget(LSL_Vector offset, LSL_Rotation rot)
+        {
+            m_host.AddScriptLPS(1);
+            SitTarget(m_host, offset, rot);
+        }
+
+        public void llLinkSitTarget(LSL_Integer link, LSL_Vector offset, LSL_Rotation rot)
+        {
+            m_host.AddScriptLPS(1);
+            if (link == ScriptBaseClass.LINK_ROOT)
+                SitTarget(m_host.ParentGroup.RootPart, offset, rot);
+            else if (link == ScriptBaseClass.LINK_THIS)
+                SitTarget(m_host, offset, rot);
+            else
+            {
+                SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(link);
+                if (null != part)
+                {
+                    SitTarget(part, offset, rot);
+                }
+            }
         }
 
         public LSL_String llAvatarOnSitTarget()
