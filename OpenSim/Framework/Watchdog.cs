@@ -230,7 +230,7 @@ namespace OpenSim.Framework
         /// Get currently watched threads for diagnostic purposes
         /// </summary>
         /// <returns></returns>
-        public static ThreadWatchdogInfo[] GetThreads()
+        public static ThreadWatchdogInfo[] GetThreadsInfo()
         {
             lock (m_threads)
                 return m_threads.Values.ToArray();
