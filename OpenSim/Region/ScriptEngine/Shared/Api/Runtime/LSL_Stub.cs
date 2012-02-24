@@ -1887,15 +1887,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llGetPrimMediaParams(face, rules);
         }
-        
+
+        public LSL_List llGetLinkMedia(LSL_Integer link, LSL_Integer face, LSL_List rules)
+        {
+            return m_LSL_Functions.llGetLinkMedia(link, face, rules);
+        }
+
         public LSL_Integer llSetPrimMediaParams(int face, LSL_List rules)
         {
             return m_LSL_Functions.llSetPrimMediaParams(face, rules);
         }
-        
+
+        public LSL_Integer llSetLinkMedia(LSL_Integer link, LSL_Integer face, LSL_List rules)
+        {
+            return m_LSL_Functions.llSetLinkMedia(link, face, rules);
+        }
+
         public LSL_Integer llClearPrimMedia(LSL_Integer face)
         {
             return m_LSL_Functions.llClearPrimMedia(face);
+        }
+
+        public LSL_Integer llClearLinkMedia(LSL_Integer link, LSL_Integer face)
+        {
+            return m_LSL_Functions.llClearLinkMedia(link, face);
         }
 
         public void print(string str)
