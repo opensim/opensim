@@ -1000,7 +1000,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            SendAvatarDataToAllAgents();
+            if (wasChild)
+                SendAvatarDataToAllAgents();
 
             // send the animations of the other presences to me
             m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
