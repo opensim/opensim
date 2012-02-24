@@ -156,8 +156,8 @@ namespace OpenSim.Region.Framework.Scenes
                         // that the region position is cached or performance will degrade
                         Utils.LongToUInts(regionHandle, out x, out y);
                         GridRegion dest = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
-                        bool v = true;
-                        if (! simulatorList.Contains(dest.ServerURI))
+//                        bool v = true;
+                        if (!simulatorList.Contains(dest.ServerURI))
                         {
                             // we havent seen this simulator before, add it to the list
                             // and send it an update

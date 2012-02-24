@@ -262,7 +262,7 @@ namespace OpenSim.Framework
 
             if (callback != null)
             {
-                ThreadWatchdogInfo timedOut = null;
+                List<ThreadWatchdogInfo> callbackInfos = null;
 
                 lock (m_threads)
                 {
@@ -273,17 +273,30 @@ namespace OpenSim.Framework
                         if (threadInfo.Thread.ThreadState == ThreadState.Stopped)
                         {
                             RemoveThread(threadInfo.Thread.ManagedThreadId);
-                            callback(threadInfo.Thread, threadInfo.LastTick);
+
+                            if (callbackInfos == null)
+                                callbackInfos = new List<ThreadWatchdogInfo>();
+
+                            callbackInfos.Add(threadInfo);
                         }
                         else if (!threadInfo.IsTimedOut && now - threadInfo.LastTick >= threadInfo.Timeout)
                         {
                             threadInfo.IsTimedOut = true;
 
                             if (threadInfo.AlarmIfTimeout)
-                                callback(threadInfo.Thread, threadInfo.LastTick);
+                            {
+                                if (callbackInfos == null)
+                                    callbackInfos = new List<ThreadWatchdogInfo>();
+
+                                callbackInfos.Add(threadInfo);
+                            }
                         }
                     }
                 }
+
+                if (callbackInfos != null)
+                    foreach (ThreadWatchdogInfo callbackInfo in callbackInfos)
+                        callback(callbackInfo.Thread, callbackInfo.LastTick);
             }
 
             m_watchdogTimer.Start();
