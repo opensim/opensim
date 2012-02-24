@@ -48,6 +48,9 @@ namespace OpenSim.Services.Connectors
 
         private string m_ServerURI = String.Empty;
 
+        private ExpiringCache<ulong, GridRegion> m_regionCache =
+                new ExpiringCache<ulong, GridRegion>();
+
         public GridServicesConnector()
         {
         }
@@ -265,6 +268,11 @@ namespace OpenSim.Services.Connectors
 
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
+            ulong regionHandle = Util.UIntsToLong((uint)x, (uint)y);
+
+            if (m_regionCache.Contains(regionHandle))
+                return (GridRegion)m_regionCache[regionHandle];
+
             Dictionary<string, object> sendData = new Dictionary<string, object>();
 
             sendData["SCOPEID"] = scopeID.ToString();
@@ -305,6 +313,8 @@ namespace OpenSim.Services.Connectors
             }
             else
                 m_log.DebugFormat("[GRID CONNECTOR]: GetRegionByPosition received null reply");
+
+            m_regionCache.Add(regionHandle, rinfo, TimeSpan.FromSeconds(600));
 
             return rinfo;
         }
