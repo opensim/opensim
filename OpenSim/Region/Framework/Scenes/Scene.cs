@@ -1368,26 +1368,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 throw;
             }
-            catch (AccessViolationException e)
-            {
-                m_log.ErrorFormat(
-                    "[REGION]: Failed on region {0} with exception {1}{2}",
-                    RegionInfo.RegionName, e.Message, e.StackTrace);
-            }
-            //catch (NullReferenceException e)
-            //{
-            //   m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-            //}
-            catch (InvalidOperationException e)
-            {
-                m_log.ErrorFormat(
-                    "[REGION]: Failed on region {0} with exception {1}{2}",
-                    RegionInfo.RegionName, e.Message, e.StackTrace);
-            }
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[REGION]: Failed on region {0} with exception {1}{2}",
+                    "[SCENE]: Failed on region {0} with exception {1}{2}",
                     RegionInfo.RegionName, e.Message, e.StackTrace);
             }
 
