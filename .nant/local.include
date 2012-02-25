@@ -2,13 +2,19 @@
 <!-- please leave the top comment for us emacs folks -->
 <property name="nunitcmd" value="nunit-console" />
 
-<!-- For safety/laziness sake, we're going to take the approach of deleting known extraneous files here rather than
-     trying to copy across only the essential ones -->
-<property name="distbindir" value="distbin" />
-<target name="distbin">
+<!-- This target produces a source distribution of OpenSimulator -->
+<!-- TODO: A few parameters still need to be tweaked after running this - need to do this automatically with sed or similar -->
+<target name="distsrc">
   <copy file="bin/OpenSim.ini.example" tofile="bin/OpenSim.ini"/>
   <copy file="bin/config-include/StandaloneCommon.ini.example" tofile="bin/config-include/StandaloneCommon.ini"/>
   <copy file="bin/config-include/FlotsamCache.ini.example" tofile="bin/config-include/FlotsamCache.ini"/>
+</target>
+
+<property name="distbindir" value="distbin" />
+<!-- This target produces a binary directory called distbin/ in OpenSim/bin which contains everything needed for binary distribution -->
+<!-- For safety/laziness sake, we're going to take the approach of deleting known extraneous files here rather than
+     trying to copy across only the essential ones -->
+<target name="distbin">
   <delete dir="${distbindir}"/>
   <copy todir="${distbindir}">
     <fileset>

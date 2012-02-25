@@ -64,6 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
           LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options);
        LSL_Integer llCeil(double f);
               void llClearCameraParams();
+       LSL_Integer llClearLinkMedia(LSL_Integer link, LSL_Integer face);
        LSL_Integer llClearPrimMedia(LSL_Integer face);
               void llCloseRemoteDataChannel(string channel);
          LSL_Float llCloud(LSL_Vector offset);
@@ -140,7 +141,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llGetLinkName(int linknum);
        LSL_Integer llGetLinkNumber();
        LSL_Integer llGetLinkNumberOfSides(int link);
-       LSL_List    llGetLinkPrimitiveParams(int linknum, LSL_List rules);
+          LSL_List llGetLinkMedia(LSL_Integer link, LSL_Integer face, LSL_List rules);
+          LSL_List llGetLinkPrimitiveParams(int linknum, LSL_List rules);
        LSL_Integer llGetListEntryType(LSL_List src, int index);
        LSL_Integer llGetListLength(LSL_List src);
         LSL_Vector llGetLocalPos();
@@ -337,6 +339,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetInventoryPermMask(string item, int mask, int value);
               void llSetLinkAlpha(int linknumber, double alpha, int face);
               void llSetLinkColor(int linknumber, LSL_Vector color, int face);
+       LSL_Integer llSetLinkMedia(LSL_Integer link, LSL_Integer face, LSL_List rules);
               void llSetLinkPrimitiveParams(int linknumber, LSL_List rules);
               void llSetLinkTexture(int linknumber, string texture, int face);
               void llSetLinkTextureAnim(int linknum, int mode, int face, int sizex, int sizey, double start, double length, double rate);
@@ -348,7 +351,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetPayPrice(int price, LSL_List quick_pay_buttons);
               void llSetPos(LSL_Vector pos);
        LSL_Integer llSetRegionPos(LSL_Vector pos);
-       LSL_Integer llSetPrimMediaParams(int face, LSL_List rules);
+       LSL_Integer llSetPrimMediaParams(LSL_Integer face, LSL_List rules);
               void llSetPrimitiveParams(LSL_List rules);
               void llSetLinkPrimitiveParamsFast(int linknum, LSL_List rules);
               void llSetPrimURL(string url);
