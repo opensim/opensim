@@ -551,12 +551,17 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         /// <param name="client"></param>
         private void Client_OnRequestWearables(IClientAPI client)
         {
-            // m_log.DebugFormat("[AVFACTORY]: Client_OnRequestWearables called for {0} ({1})", client.Name, client.AgentId);
-            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
-            if (sp != null)
-                client.SendWearables(sp.Appearance.Wearables, sp.Appearance.Serial++);
-            else
-                m_log.WarnFormat("[AVFACTORY]: Client_OnRequestWearables unable to find presence for {0}", client.AgentId);
+            Util.FireAndForget(delegate(object x)
+            {
+                Thread.Sleep(2000);
+
+                // m_log.DebugFormat("[AVFACTORY]: Client_OnRequestWearables called for {0} ({1})", client.Name, client.AgentId);
+                ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
+                if (sp != null)
+                    client.SendWearables(sp.Appearance.Wearables, sp.Appearance.Serial++);
+                else
+                    m_log.WarnFormat("[AVFACTORY]: Client_OnRequestWearables unable to find presence for {0}", client.AgentId);
+            });
         }
         
         /// <summary>
