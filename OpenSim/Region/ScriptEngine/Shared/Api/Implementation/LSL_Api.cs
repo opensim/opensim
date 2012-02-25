@@ -7069,10 +7069,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             shapeBlock.PathScaleX = 100;
             shapeBlock.PathScaleY = 150;
 
-            if (type != (int)ScriptBaseClass.PRIM_SCULPT_TYPE_CYLINDER &&
-                type != (int)ScriptBaseClass.PRIM_SCULPT_TYPE_PLANE &&
-                type != (int)ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE &&
-                type != (int)ScriptBaseClass.PRIM_SCULPT_TYPE_TORUS)
+            int flag = type & (ScriptBaseClass.PRIM_SCULPT_FLAG_INVERT | ScriptBaseClass.PRIM_SCULPT_FLAG_MIRROR);
+
+            if (type != (ScriptBaseClass.PRIM_SCULPT_TYPE_CYLINDER | flag) &&
+                type != (ScriptBaseClass.PRIM_SCULPT_TYPE_PLANE | flag) &&
+                type != (ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE | flag) &&
+                type != (ScriptBaseClass.PRIM_SCULPT_TYPE_TORUS | flag))
             {
                 // default
                 type = (int)ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE;
