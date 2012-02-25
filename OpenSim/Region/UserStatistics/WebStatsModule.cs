@@ -83,6 +83,9 @@ namespace OpenSim.Region.UserStatistics
             {
                 if (m_scenes.Count == 0)
                 {
+                    if (Util.IsWindows())
+                        Util.LoadArchSpecificWindowsDll("sqlite3.dll");
+                    
                     //IConfig startupConfig = config.Configs["Startup"];
 
                     dbConn = new SqliteConnection("URI=file:LocalUserStatistics.db,version=3");

@@ -247,7 +247,7 @@ namespace OpenSim.Framework.Servers
             string reportFormat = "{0,6}   {1,35}   {2,16}   {3,13}   {4,10}   {5,30}";
 
             StringBuilder sb = new StringBuilder();
-            Watchdog.ThreadWatchdogInfo[] threads = Watchdog.GetThreads();
+            Watchdog.ThreadWatchdogInfo[] threads = Watchdog.GetThreadsInfo();
 
             sb.Append(threads.Length + " threads are being tracked:" + Environment.NewLine);
 
