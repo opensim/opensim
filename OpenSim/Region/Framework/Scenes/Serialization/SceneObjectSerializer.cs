@@ -349,6 +349,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("PayPrice4", ProcessPayPrice4);
 
             m_SOPXmlProcessors.Add("Buoyancy", ProcessBuoyancy);
+            m_SOPXmlProcessors.Add("Force", ProcessForce);
+            m_SOPXmlProcessors.Add("Torque", ProcessTorque);
             m_SOPXmlProcessors.Add("VolumeDetectActive", ProcessVolumeDetectActive);
 
             //Ubit comented until proper testing
@@ -762,7 +764,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessBuoyancy(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.Buoyancy = (int)reader.ReadElementContentAsFloat("Buoyancy", String.Empty);
+            obj.Buoyancy = (float)reader.ReadElementContentAsFloat("Buoyancy", String.Empty);
+        }
+
+        private static void ProcessForce(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.Force = Util.ReadVector(reader, "Force");
+        }
+        private static void ProcessTorque(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.Torque = Util.ReadVector(reader, "Torque");
         }
 
         private static void ProcessVolumeDetectActive(SceneObjectPart obj, XmlTextReader reader)
@@ -1256,6 +1267,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("PayPrice4", sop.PayPrice[4].ToString());
 
             writer.WriteElementString("Buoyancy", sop.Buoyancy.ToString());
+
+            WriteVector(writer, "Force", sop.Force);
+            WriteVector(writer, "Torque", sop.Torque);
+
             writer.WriteElementString("VolumeDetectActive", sop.VolumeDetectActive.ToString().ToLower());
 
             //Ubit comented until proper testing
