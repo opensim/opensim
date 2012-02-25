@@ -349,8 +349,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             try
             {
-                m_log.Info("[INVENTORY ARCHIVER]: PLEASE NOTE THAT THIS FACILITY IS EXPERIMENTAL.  BUG REPORTS WELCOME.");
-                
                 Dictionary<string, object> options = new Dictionary<string, object>();
                 OptionSet optionSet = new OptionSet().Add("m|merge", delegate (string v) { options["merge"] = v != null; });
                 
@@ -412,7 +410,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     return;
                 }
     
-                m_log.Info("[INVENTORY ARCHIVER]: PLEASE NOTE THAT THIS FACILITY IS EXPERIMENTAL.  BUG REPORTS WELCOME.");
                 if (options.ContainsKey("home"))
                     m_log.WarnFormat("[INVENTORY ARCHIVER]: Please be aware that inventory archives with creator information are not compatible with OpenSim 0.7.0.2 and earlier.  Do not use the -home option if you want to produce a compatible IAR");
 
