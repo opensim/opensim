@@ -72,6 +72,8 @@ namespace OpenSim.Region.Framework.Scenes
         private DataFormat m_data = DataFormat.Translation | DataFormat.Rotation;
 
         private bool m_running = false;
+        [NonSerialized()]
+        private bool m_selected = false;
 
         private int m_iterations = 0;
 
@@ -80,6 +82,25 @@ namespace OpenSim.Region.Framework.Scenes
         public DataFormat Data
         {
             get { return m_data; }
+        }
+
+        public bool Selected
+        {
+            set
+            {
+                if (value)
+                {
+                    // Once we're let go, recompute positions
+                    if (m_selected)
+                        UpdateSceneObject(m_group);
+                }
+                else
+                {
+                    // Save selection position in case we get moved
+                    if (!m_selected)
+                        m_serializedPosition = tmp.AbsolutePosition;
+                }
+                m_selected = value; }
         }
 
         public static KeyframeMotion FromData(SceneObjectGroup grp, Byte[] data)
@@ -274,6 +295,16 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_currentFrame = m_frames[0];
+            }
+
+            if (m_selected)
+            {
+                if (m_group.RootPart.Velocity != Vector3.Zero)
+                {
+                    m_group.RootPart.Velocity = Vector3.Zero;
+                    m_group.SendGroupRootTerseUpdate();
+                }
+                return;
             }
 
             // Do the frame processing

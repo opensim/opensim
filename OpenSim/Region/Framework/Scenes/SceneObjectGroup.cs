@@ -726,6 +726,8 @@ namespace OpenSim.Region.Framework.Scenes
                             child.PhysActor.Selected = value;
                     }
                 }
+                if (KeyframeMotion != null)
+                    KeyframeMotion.Selected = value;
             }
         }
 

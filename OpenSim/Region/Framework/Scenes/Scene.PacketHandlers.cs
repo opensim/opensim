@@ -138,12 +138,12 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectGroup sog = part.ParentGroup;
                 sog.SendPropertiesToClient(remoteClient);
-                sog.IsSelected = true;
 
                 // A prim is only tainted if it's allowed to be edited by the person clicking it.
                 if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
                     || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
                 {
+                    sog.IsSelected = true;
                     EventManager.TriggerParcelPrimCountTainted();
                 }
             }
@@ -215,7 +215,9 @@ namespace OpenSim.Region.Framework.Scenes
             // handled by group, but by prim. Legacy cruft.
             // TODO: Make selection flagging per prim!
             //
-            part.ParentGroup.IsSelected = false;
+            if (Permissions.CanEditObject(part.ParentGroup.UUID, remoteClient.AgentId)
+                || Permissions.CanMoveObject(part.ParentGroup.UUID, remoteClient.AgentId))
+                part.ParentGroup.IsSelected = false;
             
             if (part.ParentGroup.IsAttachment)
                 isAttachment = true;
