@@ -357,6 +357,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             {
                 if (objectGroup.KeyframeMotion != null)
                     objectGroup.KeyframeMotion.Stop();
+                objectGroup.RootPart.SetForce(Vector3.Zero);
+                objectGroup.RootPart.SetAngularImpulse(Vector3.Zero, false);
                 objectGroup.KeyframeMotion = null;
 
                 Vector3 inventoryStoredPosition = new Vector3
