@@ -1823,6 +1823,11 @@ namespace OpenSim.Region.Framework.Scenes
 //                            Name, UUID, m_scene.RegionInfo.RegionName);
 
                         SceneObjectGroup backup_group = Copy(false);
+                        if (KeyframeMotion != null)
+                        {
+                            backup_group.KeyframeMotion = KeyframeMotion.FromData(backup_group, KeyframeMotion.Serialize());
+                            KeyframeMotion.UpdateSceneObject(this);
+                        }
                         backup_group.RootPart.Velocity = RootPart.Velocity;
                         backup_group.RootPart.Acceleration = RootPart.Acceleration;
                         backup_group.RootPart.AngularVelocity = RootPart.AngularVelocity;

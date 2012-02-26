@@ -4,6 +4,7 @@
 
 using System;
 using System.Timers;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
@@ -14,11 +15,14 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 using Timer = System.Timers.Timer;
 using log4net;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+    [Serializable]
     public class KeyframeMotion
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -38,6 +42,7 @@ namespace OpenSim.Region.Framework.Scenes
             Rotation = 2
         }
 
+        [Serializable]
         public struct Keyframe
         {
             public Vector3? Position;
@@ -50,18 +55,23 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Vector3 m_basePosition;
         private Quaternion m_baseRotation;
+        private Vector3 m_serializedPosition;
 
         private Keyframe m_currentFrame;
         private List<Keyframe> m_frames = new List<Keyframe>();
 
         private Keyframe[] m_keyframes;
 
-        private Timer m_timer = new Timer();
+        [NonSerialized()]
+        protected Timer m_timer = new Timer();
 
-        private readonly SceneObjectGroup m_group;
+        [NonSerialized()]
+        private SceneObjectGroup m_group;
 
         private PlayMode m_mode = PlayMode.Forward;
         private DataFormat m_data = DataFormat.Translation | DataFormat.Rotation;
+
+        private bool m_running = false;
 
         private int m_iterations = 0;
 
@@ -70,6 +80,41 @@ namespace OpenSim.Region.Framework.Scenes
         public DataFormat Data
         {
             get { return m_data; }
+        }
+
+        public static KeyframeMotion FromData(SceneObjectGroup grp, Byte[] data)
+        {
+            MemoryStream ms = new MemoryStream(data);
+
+            BinaryFormatter fmt = new BinaryFormatter();
+
+            KeyframeMotion newMotion = (KeyframeMotion)fmt.Deserialize(ms);
+
+            // This will be started when position is updated
+            newMotion.m_timer = new Timer();
+            newMotion.m_timer.Interval = (int)timerInterval;
+            newMotion.m_timer.AutoReset = true;
+            newMotion.m_timer.Elapsed += newMotion.OnTimer;
+
+            return newMotion;
+        }
+
+        public void UpdateSceneObject(SceneObjectGroup grp)
+        {
+            m_group = grp;
+            Vector3 offset = grp.AbsolutePosition - m_serializedPosition;
+
+            m_basePosition += offset;
+            m_currentFrame.Position += offset;
+            for (int i = 0 ; i < m_frames.Count ; i++)
+            {
+                Keyframe k = m_frames[i];
+                k.Position += offset;
+                m_frames[i] = k;
+            }
+
+            if (m_running)
+                Start();
         }
 
         public KeyframeMotion(SceneObjectGroup grp, PlayMode mode, DataFormat data)
@@ -95,10 +140,14 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_keyframes.Length > 0)
                 m_timer.Start();
+            m_running = true;
         }
 
         public void Stop()
         {
+            // Failed object creation
+            if (m_timer == null)
+                return;
             m_timer.Stop();
 
             m_basePosition = m_group.AbsolutePosition;
@@ -109,6 +158,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_group.SendGroupRootTerseUpdate();
 
             m_frames.Clear();
+            m_running = false;
         }
 
         public void Pause()
@@ -118,6 +168,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_group.SendGroupRootTerseUpdate();
 
             m_timer.Stop();
+            m_running = false;
         }
 
         private void GetNextList()
@@ -211,7 +262,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private void OnTimer(object sender, ElapsedEventArgs e)
+        protected void OnTimer(object sender, ElapsedEventArgs e)
         {
             if (m_frames.Count == 0)
             {
@@ -310,6 +361,20 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_frames.Count > 0)
                     m_currentFrame = m_frames[0];
             }
+        }
+
+        public Byte[] Serialize()
+        {
+            MemoryStream ms = new MemoryStream();
+            m_timer.Stop();
+
+            BinaryFormatter fmt = new BinaryFormatter();
+            SceneObjectGroup tmp = m_group;
+            m_group = null;
+            m_serializedPosition = tmp.AbsolutePosition;
+            fmt.Serialize(ms, this);
+            m_group = tmp;
+            return ms.ToArray();
         }
     }
 }

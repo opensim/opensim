@@ -2421,6 +2421,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (newPosition != Vector3.Zero)
                 newObject.RootPart.GroupPosition = newPosition;
+            if (newObject.KeyframeMotion != null)
+                newObject.KeyframeMotion.UpdateSceneObject(newObject);
 
             if (!AddSceneObject(newObject))
             {
