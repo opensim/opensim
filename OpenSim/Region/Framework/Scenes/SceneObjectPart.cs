@@ -1855,6 +1855,9 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (UsePhysics)
                             {
+                                if (ParentGroup.KeyframeMotion != null)
+                                    ParentGroup.KeyframeMotion.Stop();
+                                ParentGroup.KeyframeMotion = null;
                                 ParentGroup.Scene.AddPhysicalPrim(1);
 
                                 PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;

@@ -553,7 +553,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         {
             Util.FireAndForget(delegate(object x)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(4000);
 
                 // m_log.DebugFormat("[AVFACTORY]: Client_OnRequestWearables called for {0} ({1})", client.Name, client.AgentId);
                 ScenePresence sp = m_scene.GetScenePresence(client.AgentId);

@@ -114,6 +114,12 @@ namespace OpenSim.Region.Framework.Scenes
         private Random m_rand;
         private bool m_suspendUpdates;
         private List<ScenePresence> m_linkedAvatars = new List<ScenePresence>();
+        private KeyframeMotion m_keyframeMotion = null;
+
+        public KeyframeMotion KeyframeMotion
+        {
+            get; set;
+        }
 
         public bool areUpdatesSuspended
         {
@@ -1982,6 +1988,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ScriptSetPhysicsStatus(bool usePhysics)
         {
+            if (usePhysics)
+            {
+                if (KeyframeMotion != null)
+                    KeyframeMotion.Stop();
+                KeyframeMotion = null;
+            }
             UpdatePrimFlags(RootPart.LocalId, usePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
         }
 

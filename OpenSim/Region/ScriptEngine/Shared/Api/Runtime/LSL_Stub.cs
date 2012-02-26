@@ -1917,7 +1917,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public LSL_Integer llGetLinkNumberOfSides(LSL_Integer link)
         {
-            return  m_LSL_Functions.llGetLinkNumberOfSides(link);
+            return m_LSL_Functions.llGetLinkNumberOfSides(link);
+        }
+
+        public void llSetKeyframedMotion(LSL_List frames, LSL_List options)
+        {
+            m_LSL_Functions.llSetKeyframedMotion(frames, options);
         }
     }
 }
