@@ -294,6 +294,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_lastAngularVelocity;
         protected int m_lastTerseSent;
         protected float m_buoyancy = 0.0f;
+        protected Vector3 m_force;
+        protected Vector3 m_torque;
         
         /// <summary>
         /// Stores media texture data
@@ -1302,14 +1304,66 @@ namespace OpenSim.Region.Framework.Scenes
 
         public float Buoyancy
         {
-            get { return m_buoyancy; }
+            get
+            {
+                if (ParentID != 0 && ParentGroup != null)
+                    m_buoyancy = ParentGroup.RootPart.Buoyancy;
+                return m_buoyancy;
+            }
             set
             {
                 m_buoyancy = value;
-                if (PhysActor != null)
+                if (ParentID != 0)
                 {
-                    PhysActor.Buoyancy = value;
+                    if (ParentGroup != null)
+                        ParentGroup.RootPart.Buoyancy = value;
                 }
+                else if (PhysActor != null)
+                    PhysActor.Buoyancy = value;
+            }
+        }
+
+        public Vector3 Force
+        {
+            get
+            {
+                if (ParentID != 0 && ParentGroup != null)
+                    m_force = ParentGroup.RootPart.Force;
+                return m_force;
+            }
+
+            set
+            {
+                m_force = value;
+                if (ParentID != 0)
+                {
+                    if (ParentGroup != null)
+                        ParentGroup.RootPart.Force = value;
+                }
+                else if (PhysActor != null)
+                    PhysActor.Force = value;
+            }
+        }
+
+        public Vector3 Torque
+        {
+            get
+            {
+                if (ParentID != 0 && ParentGroup != null)
+                    m_torque = ParentGroup.RootPart.Torque;
+                return m_torque;
+            }
+
+            set
+            {
+                m_torque = value;
+                if (ParentID != 0)
+                {
+                    if (ParentGroup != null)
+                        ParentGroup.RootPart.Torque = value;
+                }
+                else if (PhysActor != null)
+                    PhysActor.Torque = value;
             }
         }
 
@@ -1488,20 +1542,24 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="impulsei">Vector force</param>
         /// <param name="localGlobalTF">true for the local frame, false for the global frame</param>
-        public void SetAngularImpulse(Vector3 impulsei, bool localGlobalTF)
+        
+        // this is actualy Set Torque.. keeping naming so not to edit lslapi also
+        public void SetAngularImpulse(Vector3 torquei, bool localGlobalTF)
         {
-            Vector3 impulse = impulsei;
+            Vector3 torque = torquei;
 
             if (localGlobalTF)
             {
+/*
                 Quaternion grot = GetWorldRotation();
                 Quaternion AXgrot = grot;
                 Vector3 AXimpulsei = impulsei;
                 Vector3 newimpulse = AXimpulsei * AXgrot;
-                impulse = newimpulse;
+ */
+                torque *= GetWorldRotation();
             }
 
-            ParentGroup.setAngularImpulse(impulse);
+            Torque = torque;
         }
 
         /// <summary>
@@ -1571,14 +1629,22 @@ namespace OpenSim.Region.Framework.Scenes
 
                         DoPhysicsPropertyUpdate(RigidBody, true);
                         PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
+                     
+                        if (!building)
+                            PhysActor.Building = false;
 
                         Velocity = velocity;
                         AngularVelocity = rotationalVelocity;
                         PhysActor.Velocity = velocity;
                         PhysActor.RotationalVelocity = rotationalVelocity;
 
-						if (!building)
-                            PhysActor.Building = false;
+                        // if not vehicle and root part apply force and torque
+                        if ((m_vehicle == null || m_vehicle.Type == Vehicle.TYPE_NONE)
+                                && LocalId == ParentGroup.RootPart.LocalId)
+                        {
+                            PhysActor.Force = Force;
+                            PhysActor.Torque = Torque;
+                        }
                     }
                 }
             }
@@ -2005,10 +2071,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Vector3 GetForce()
         {
-            if (PhysActor != null)
-                return PhysActor.Force;
-            else
-                return Vector3.Zero;
+                return Force;
         }
 
         /// <summary>
@@ -3153,10 +3216,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetBuoyancy(float fvalue)
         {
+            Buoyancy = fvalue;
+/*            
             if (PhysActor != null)
             {
                 PhysActor.Buoyancy = fvalue;
             }
+ */
         }
 
         public void SetDieAtEdge(bool p)
@@ -3184,10 +3250,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetForce(Vector3 force)
         {
+            Force = force;
+/*
             if (PhysActor != null)
             {
                 PhysActor.Force = force;
             }
+ */
         }
 
         public SOPVehicle sopVehicle
