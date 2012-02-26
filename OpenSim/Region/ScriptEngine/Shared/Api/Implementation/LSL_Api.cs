@@ -11908,9 +11908,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (frames.Data.Length > 0) // We are getting a new motion
             {
-                if (group.KeyframeMotion != null)
-                    group.KeyframeMotion.Stop();
-                group.KeyframeMotion = null;
+                if (group.RootPart.KeyframeMotion != null)
+                    group.RootPart.KeyframeMotion.Stop();
+                group.RootPart.KeyframeMotion = null;
 
                 int idx = 0;
 
@@ -11953,7 +11953,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
 
-                group.KeyframeMotion = new KeyframeMotion(group, mode, data);
+                group.RootPart.KeyframeMotion = new KeyframeMotion(group, mode, data);
 
                 idx = 0;
 
@@ -11990,17 +11990,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     keyframes.Add(frame);
                 }
 
-                group.KeyframeMotion.SetKeyframes(keyframes.ToArray());
-                group.KeyframeMotion.Start();
+                group.RootPart.KeyframeMotion.SetKeyframes(keyframes.ToArray());
+                group.RootPart.KeyframeMotion.Start();
             }
             else
             {
-                if (group.KeyframeMotion == null)
+                if (group.RootPart.KeyframeMotion == null)
                     return;
 
                 if (options.Data.Length == 0)
                 {
-                    group.KeyframeMotion.Stop();
+                    group.RootPart.KeyframeMotion.Stop();
                     return;
                 }
                     
@@ -12020,13 +12020,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             switch (cmd)
                             {
                                 case ScriptBaseClass.KFM_CMD_PLAY:
-                                    group.KeyframeMotion.Start();
+                                    group.RootPart.KeyframeMotion.Start();
                                     break;
                                 case ScriptBaseClass.KFM_CMD_STOP:
-                                    group.KeyframeMotion.Stop();
+                                    group.RootPart.KeyframeMotion.Stop();
                                     break;
                                 case ScriptBaseClass.KFM_CMD_PAUSE:
-                                    group.KeyframeMotion.Pause();
+                                    group.RootPart.KeyframeMotion.Pause();
                                     break;
                             }
                             break;

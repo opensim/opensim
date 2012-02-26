@@ -170,7 +170,7 @@ namespace OpenSim.Data.MySQL
                                 "ParticleSystem, ClickAction, Material, " +
                                 "CollisionSound, CollisionSoundVolume, " +
                                 "PassTouches, " +
-                                "LinkNumber, MediaURL) values (" + "?UUID, " +
+                                "LinkNumber, MediaURL, KeyframeMotion) values (" + "?UUID, " +
                                 "?CreationDate, ?Name, ?Text, " +
                                 "?Description, ?SitName, ?TouchName, " +
                                 "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, " +
@@ -201,7 +201,7 @@ namespace OpenSim.Data.MySQL
                                 "?SaleType, ?ColorR, ?ColorG, " +
                                 "?ColorB, ?ColorA, ?ParticleSystem, " +
                                 "?ClickAction, ?Material, ?CollisionSound, " +
-                                "?CollisionSoundVolume, ?PassTouches, ?LinkNumber, ?MediaURL)";
+                                "?CollisionSoundVolume, ?PassTouches, ?LinkNumber, ?MediaURL, ?KeyframeMotion)";
 
                         FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -446,7 +446,11 @@ namespace OpenSim.Data.MySQL
             foreach (SceneObjectPart prim in prims.Values)
             {
                 if (prim.ParentUUID == UUID.Zero)
+                {
                     objects[prim.UUID] = new SceneObjectGroup(prim);
+                    if (prim.KeyframeMotion != null)
+                        prim.KeyframeMotion.UpdateSceneObject(objects[prim.UUID]);
+                }
             }
 
             // Add all of the children objects to the SOGs
@@ -1227,6 +1231,18 @@ namespace OpenSim.Data.MySQL
             if (!(row["MediaURL"] is System.DBNull))
                 prim.MediaUrl = (string)row["MediaURL"];
 
+            if (!(row["KeyframeMotion"] is DBNull))
+            {
+                Byte[] data = (byte[])row["KeyframeMotion"];
+                if (data.Length > 0)
+                    prim.KeyframeMotion = KeyframeMotion.FromData(null, data);
+                else
+                    prim.KeyframeMotion = null;
+            }
+            else
+            {
+                prim.KeyframeMotion = null;
+            }
             return prim;
         }
 
@@ -1579,6 +1595,11 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
+
+            if (prim.KeyframeMotion != null)
+                cmd.Parameters.AddWithValue("KeyframeMotion", prim.KeyframeMotion.Serialize());
+            else
+                cmd.Parameters.AddWithValue("KeyframeMotion", new Byte[0]);
         }
 
         /// <summary>
