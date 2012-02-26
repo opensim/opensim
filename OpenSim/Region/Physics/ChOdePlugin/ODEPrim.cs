@@ -704,6 +704,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_isphysical)
                 m_targetSpace = _parent_scene.space;
 
+            _triMeshData = IntPtr.Zero;
+
             m_primName = primName;
             m_taintserial = null;
             m_taintadd = true;
@@ -772,6 +774,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_isphysical)
                     m_targetSpace = _parent_scene.space;
             }
+
+            _triMeshData = IntPtr.Zero;
 
             m_taintserial = null;
             m_primName = primName;
@@ -1785,6 +1789,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     disableBody();
                 }
             }
+
+// do it on caller instead
+/*
+            if (_triMeshData != IntPtr.Zero)
+            {
+                d.GeomTriMeshDataDestroy(_triMeshData);
+                _triMeshData = IntPtr.Zero;
+            }
+*/
             IntPtr vertices, indices;
             int vertexCount, indexCount;
             int vertexStride, triStride;
@@ -1801,14 +1814,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
 
-/*
+            // warning this destroys the mesh for eventual future use. Only pinned float arrays stay valid
             mesh.releaseSourceMeshData(); // free up the original mesh data to save memory
+/*
             if (m_MeshToTriMeshMap.ContainsKey(mesh))
             {
                 _triMeshData = m_MeshToTriMeshMap[mesh];
             }
             else
- */
+*/
+
+
             {
                 _triMeshData = d.GeomTriMeshDataCreate();
 
@@ -1829,6 +1845,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             catch (AccessViolationException)
             {
                 m_log.Error("[PHYSICS]: MESH LOCKED");
+
+                if (_triMeshData != IntPtr.Zero)
+                {
+                    d.GeomTriMeshDataDestroy(_triMeshData);
+                    _triMeshData = IntPtr.Zero;
+                }
+
                 return false;
             }
 
@@ -2301,6 +2324,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void CreateGeom(IntPtr m_targetSpace, IMesh _mesh)
         {
             bool gottrimesh = false;
+
+            if (_triMeshData != IntPtr.Zero)
+            {
+                d.GeomTriMeshDataDestroy(_triMeshData);
+                _triMeshData = IntPtr.Zero;
+            }
 
             if (_mesh != null)					// Special - make mesh
             {

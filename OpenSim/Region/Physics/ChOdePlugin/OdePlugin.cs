@@ -2174,6 +2174,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         prim.ResetTaints();
 
+                        try
+                        {
+                            if (prim._triMeshData != IntPtr.Zero)
+                            {
+                                d.GeomTriMeshDataDestroy(prim._triMeshData);
+                                prim._triMeshData = IntPtr.Zero;
+                            }
+                        }
+                        catch { };
+
                         if (prim.IsPhysical)
                         {
                             prim.disableBody();
@@ -2184,7 +2194,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 prim.m_disabled = true;
                                 prim.IsPhysical = false;
                             }
-
 
                         }
                         // we don't want to remove the main space
