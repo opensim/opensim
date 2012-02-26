@@ -246,14 +246,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                 XmlNodeList keymotion = doc.GetElementsByTagName("KeyframeMotion");
                 if (keymotion.Count > 0)
-                {
-                    m_log.DebugFormat("[SERIALIZER]: Deserialized KeyframeMotion");
                     sceneObject.KeyframeMotion = KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(keymotion[0].InnerText));
-                }
                 else
-                {
                     sceneObject.KeyframeMotion = null;
-                }
 
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.

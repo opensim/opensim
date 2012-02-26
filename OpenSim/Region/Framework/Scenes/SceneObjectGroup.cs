@@ -896,6 +896,10 @@ namespace OpenSim.Region.Framework.Scenes
             ApplyPhysics();
 
             if (RootPart.PhysActor != null)
+                RootPart.Force = RootPart.Force;
+            if (RootPart.PhysActor != null)
+                RootPart.Torque = RootPart.Torque;
+            if (RootPart.PhysActor != null)
                 RootPart.Buoyancy = RootPart.Buoyancy;
 
             // Don't trigger the update here - otherwise some client issues occur when multiple updates are scheduled

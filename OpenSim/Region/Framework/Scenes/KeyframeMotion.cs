@@ -245,7 +245,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
 
-                    m_log.DebugFormat("[KEYFRAME]: Angle {0} aabb {1}", angle, aa_bb);
                     k.AngularVelocity = (new Vector3(0, 0, 1) * (Quaternion)k.Rotation) * (angle / (k.TimeMS / 1000));
                     k.TimeTotal = k.TimeMS;
 

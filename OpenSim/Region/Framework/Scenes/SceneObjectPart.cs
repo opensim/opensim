@@ -1313,7 +1313,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
-                if (ParentGroup.RootPart != this)
+                if (ParentGroup != null && ParentGroup.RootPart != null && ParentGroup.RootPart != this)
                 {
                     ParentGroup.RootPart.Buoyancy = value;
                     return;
@@ -1336,7 +1336,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             set
             {
-                if (ParentGroup.RootPart != this)
+                if (ParentGroup != null && ParentGroup.RootPart != null && ParentGroup.RootPart != this)
                 {
                     ParentGroup.RootPart.Force = value;
                     return;
@@ -1359,7 +1359,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             set
             {
-                if (ParentGroup.RootPart != this)
+                if (ParentGroup != null && ParentGroup.RootPart != null && ParentGroup.RootPart != this)
                 {
                     ParentGroup.RootPart.Torque = value;
                     return;
