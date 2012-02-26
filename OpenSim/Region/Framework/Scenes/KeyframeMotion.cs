@@ -98,7 +98,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // Save selection position in case we get moved
                     if (!m_selected)
-                        m_serializedPosition = tmp.AbsolutePosition;
+                        m_serializedPosition = m_group.AbsolutePosition;
                 }
                 m_selected = value; }
         }
