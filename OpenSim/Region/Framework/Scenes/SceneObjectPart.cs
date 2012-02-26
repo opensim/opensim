@@ -1306,19 +1306,20 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (ParentID != 0 && ParentGroup != null)
-                    m_buoyancy = ParentGroup.RootPart.Buoyancy;
-                return m_buoyancy;
+                if (ParentGroup.RootPart == this)
+                    return m_buoyancy;
+
+                return ParentGroup.RootPart.Buoyancy;
             }
             set
             {
-                m_buoyancy = value;
-                if (ParentID != 0)
+                if (ParentGroup.RootPart != this)
                 {
-                    if (ParentGroup != null)
-                        ParentGroup.RootPart.Buoyancy = value;
+                    ParentGroup.RootPart.Buoyancy = value;
+                    return;
                 }
-                else if (PhysActor != null)
+                m_buoyancy = value;
+                if (PhysActor != null)
                     PhysActor.Buoyancy = value;
             }
         }
@@ -1327,20 +1328,21 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (ParentID != 0 && ParentGroup != null)
-                    m_force = ParentGroup.RootPart.Force;
-                return m_force;
+                if (ParentGroup.RootPart == this)
+                    return m_force;
+
+                return ParentGroup.RootPart.Force;
             }
 
             set
             {
-                m_force = value;
-                if (ParentID != 0)
+                if (ParentGroup.RootPart != this)
                 {
-                    if (ParentGroup != null)
-                        ParentGroup.RootPart.Force = value;
+                    ParentGroup.RootPart.Force = value;
+                    return;
                 }
-                else if (PhysActor != null)
+                m_force = value;
+                if (PhysActor != null)
                     PhysActor.Force = value;
             }
         }
@@ -1349,20 +1351,21 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (ParentID != 0 && ParentGroup != null)
-                    m_torque = ParentGroup.RootPart.Torque;
-                return m_torque;
+                if (ParentGroup.RootPart == this)
+                    return m_torque;
+                
+                return ParentGroup.RootPart.Torque;
             }
 
             set
             {
-                m_torque = value;
-                if (ParentID != 0)
+                if (ParentGroup.RootPart != this)
                 {
-                    if (ParentGroup != null)
-                        ParentGroup.RootPart.Torque = value;
+                    ParentGroup.RootPart.Torque = value;
+                    return;
                 }
-                else if (PhysActor != null)
+                m_torque = value;
+                if (PhysActor != null)
                     PhysActor.Torque = value;
             }
         }
