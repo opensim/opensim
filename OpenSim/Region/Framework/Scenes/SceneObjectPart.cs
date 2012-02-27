@@ -916,7 +916,7 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 PhysicsActor actor = PhysActor;
-                if ((actor != null) && actor.IsPhysical)
+                if ((actor != null) && actor.IsPhysical && ParentGroup.RootPart == this)
                 {
                     m_angularVelocity = actor.RotationalVelocity;
                 }
@@ -1893,7 +1893,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                             Velocity = new Vector3(0, 0, 0);
                             Acceleration = new Vector3(0, 0, 0);
-                            AngularVelocity = new Vector3(0, 0, 0);
+                            if (ParentGroup.RootPart == this)
+                                AngularVelocity = new Vector3(0, 0, 0);
 
                             PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
                             PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
@@ -1917,7 +1918,8 @@ namespace OpenSim.Region.Framework.Scenes
                             // velocity-vector.
                             Velocity = new Vector3(0, 0, 0);
                             Acceleration = new Vector3(0, 0, 0);
-                            AngularVelocity = new Vector3(0, 0, 0);
+                            if (ParentGroup.RootPart == this)
+                                AngularVelocity = new Vector3(0, 0, 0);
                             //RotationalVelocity = new Vector3(0, 0, 0);
                         }
 
