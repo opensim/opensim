@@ -1,4 +1,3 @@
-
 /*
  * based on:
  * Ode.NET - .NET bindings for ODE

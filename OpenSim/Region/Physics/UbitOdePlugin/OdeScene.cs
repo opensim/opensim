@@ -137,6 +137,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         VehicleVectorParam,
         VehicleRotationParam,
         VehicleFlags,
+        SetVehicle,
 
         Null             //keep this last used do dim the methods array. does nothing but pulsing the prim
     }
@@ -166,8 +167,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         
         float frictionMovementMult = 0.3f;
 
-        float TerrainBounce = 0.3f;
-        float TerrainFriction = 0.3f;
+        float TerrainBounce = 0.1f;
+        float TerrainFriction = 0.1f;
 
         public float AvatarBounce = 0.3f;
         public float AvatarFriction = 0;// 0.9f * 0.5f;
@@ -989,145 +990,62 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="timeStep"></param>
         private void collision_optimized()
         {
-//        _perloopContact.Clear();
-// clear characts IsColliding until we do it some other way
-
             lock (_characters)
                 {
-                foreach (OdeCharacter chr in _characters)
+                try
+                {
+                    foreach (OdeCharacter chr in _characters)
                     {
-                    // this are odd checks  if they are needed something is wrong elsewhere
-                    // keep for now
-                    if (chr == null)
-                        continue;
+                        if (chr == null || chr.Shell == IntPtr.Zero || chr.Body == IntPtr.Zero)
+                            continue;
 
-                    if (chr.Shell == IntPtr.Zero || chr.Body == IntPtr.Zero)
-                        continue;
-
-                    chr.IsColliding = false;
-                    //                    chr.CollidingGround = false; not done here
-                    chr.CollidingObj = false;
+                        chr.IsColliding = false;
+                        //                    chr.CollidingGround = false; not done here
+                        chr.CollidingObj = false;
+                        // do colisions with static space
+                        d.SpaceCollide2(StaticSpace, chr.Shell, IntPtr.Zero, nearCallback);
                     }
                 }
-
-            // now let ode do its job
-            // colide active things amoung them
-
-            int st = Util.EnvironmentTickCount();
-            int ta;
-            int ts;
-            try
+                catch (AccessViolationException)
                 {
+                    m_log.Warn("[PHYSICS]: Unable to collide Character to static space");
+                }
+
+            }
+
+            // collide active prims with static enviroment
+            lock (_activeprims)
+            {
+                try
+                {
+                    foreach (OdePrim prm in _activeprims)
+                    {
+                        if (d.BodyIsEnabled(prm.Body))
+                            d.SpaceCollide2(StaticSpace, prm.prim_geom, IntPtr.Zero, nearCallback);
+                    }
+                }
+                catch (AccessViolationException)
+                {
+                    m_log.Warn("[PHYSICS]: Unable to collide Active prim to static space");
+                }
+            }
+
+            // finally colide active things amoung them
+            try
+            {
                 d.SpaceCollide(ActiveSpace, IntPtr.Zero, nearCallback);
-                }
+            }
             catch (AccessViolationException)
-                {
-                m_log.Warn("[PHYSICS]: Unable to Active space collide");
-                }
-            ta = Util.EnvironmentTickCountSubtract(st);
-            // then active things with static enviroment
-            try
-                {
-                d.SpaceCollide2(ActiveSpace,StaticSpace, IntPtr.Zero, nearCallback);
-                }
-            catch (AccessViolationException)
-                {
-                m_log.Warn("[PHYSICS]: Unable to Active to static space collide");
-                }
-            ts = Util.EnvironmentTickCountSubtract(st);
+            {
+                m_log.Warn("[PHYSICS]: Unable to collide in Active space");
+            }
+
 //            _perloopContact.Clear();
         }
 
         #endregion
 
 
-        public float GetTerrainHeightAtXY(float x, float y)
-        {
-            // assumes 1m size grid and constante size square regions
-            // region offset in mega position
-
-            int offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-            int offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-
-            IntPtr heightFieldGeom = IntPtr.Zero;
-
-            // get region map
-            if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
-                return 0f;
-
-            if (heightFieldGeom == IntPtr.Zero)
-                return 0f;
-
-            if (!TerrainHeightFieldHeights.ContainsKey(heightFieldGeom))
-                return 0f;
-
-            // TerrainHeightField for ODE as offset 1m
-            x += 1f - offsetX;
-            y += 1f - offsetY;
-
-            // make position fit into array
-            if (x < 0)
-                x = 0;
-            if (y < 0)
-                y = 0;
-
-            // integer indexs
-            int ix;
-            int iy;
-            //  interpolators offset
-            float dx;
-            float dy;
-
-            int regsize = (int)Constants.RegionSize + 2; // map size see setterrain
-
-            // we  still have square fixed size regions
-            // also flip x and y because of how map is done for ODE fliped axis
-            // so ix,iy,dx and dy are inter exchanged
-            if (x < regsize - 1)
-            {
-                iy = (int)x;
-                dy = x - (float)iy;
-            }
-            else // out world use external height
-            {
-                iy = regsize - 1;
-                dy = 0;
-            }
-            if (y < regsize - 1)
-            {
-                ix = (int)y;
-                dx = y - (float)ix;
-            }
-            else
-            {
-                ix = regsize - 1;
-                dx = 0;
-            }
-
-            float h0;
-            float h1;
-            float h2;
-
-            iy *= regsize;
-            iy += ix; // all indexes have iy + ix
-
-            float[] heights = TerrainHeightFieldHeights[heightFieldGeom];
-
-            if ((dx + dy) <= 1.0f)
-            {
-                h0 = ((float)heights[iy]); // 0,0 vertice
-                h1 = (((float)heights[iy + 1]) - h0) * dx; // 1,0 vertice minus 0,0
-                h2 = (((float)heights[iy + regsize]) - h0) * dy; // 0,1 vertice minus 0,0
-            }
-            else
-            {
-                h0 = ((float)heights[iy + regsize + 1]); // 1,1 vertice
-                h1 = (((float)heights[iy + 1]) - h0) * (1 - dy); // 1,1 vertice minus 1,0
-                h2 = (((float)heights[iy + regsize]) - h0) * (1 - dx); // 1,1 vertice minus 0,1
-            }
-
-            return h0 + h1 + h2;
-        }
 
         /// <summary>
         /// Add actor to the list that should receive collision events in the simulate loop.
@@ -1835,273 +1753,94 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return (false); }
         }
 
-        #region ODE Specific Terrain Fixes
-        public float[] ResizeTerrain512NearestNeighbour(float[] heightMap)
+        public float GetTerrainHeightAtXY(float x, float y)
         {
-            float[] returnarr = new float[262144];
-            float[,] resultarr = new float[(int)WorldExtents.X, (int)WorldExtents.Y];
+            // assumes 1m size grid and constante size square regions
+            // needs to know about sims around in future
+            // region offset in mega position
 
-            // Filling out the array into its multi-dimensional components
-            for (int y = 0; y < WorldExtents.Y; y++)
+            int offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
+            int offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
+
+            IntPtr heightFieldGeom = IntPtr.Zero;
+
+            // get region map
+            if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
+                return 0f;
+
+            if (heightFieldGeom == IntPtr.Zero)
+                return 0f;
+
+            if (!TerrainHeightFieldHeights.ContainsKey(heightFieldGeom))
+                return 0f;
+
+            // TerrainHeightField for ODE as offset 1m
+            x += 1f - offsetX;
+            y += 1f - offsetY;
+
+            // make position fit into array
+            if (x < 0)
+                x = 0;
+            if (y < 0)
+                y = 0;
+
+            // integer indexs
+            int ix;
+            int iy;
+            //  interpolators offset
+            float dx;
+            float dy;
+
+            int regsize = (int)Constants.RegionSize + 3; // map size see setterrain number of samples
+
+            // we  still have square fixed size regions
+            // also flip x and y because of how map is done for ODE fliped axis
+            // so ix,iy,dx and dy are inter exchanged
+            if (x < regsize - 1)
             {
-                for (int x = 0; x < WorldExtents.X; x++)
-                {
-                    resultarr[y, x] = heightMap[y * (int)WorldExtents.Y + x];
-                }
+                iy = (int)x;
+                dy = x - (float)iy;
+            }
+            else // out world use external height
+            {
+                iy = regsize - 1;
+                dy = 0;
+            }
+            if (y < regsize - 1)
+            {
+                ix = (int)y;
+                dx = y - (float)ix;
+            }
+            else
+            {
+                ix = regsize - 1;
+                dx = 0;
             }
 
-            // Resize using Nearest Neighbour
+            float h0;
+            float h1;
+            float h2;
 
-            // This particular way is quick but it only works on a multiple of the original
+            iy *= regsize;
+            iy += ix; // all indexes have iy + ix
 
-            // The idea behind this method can be described with the following diagrams
-            // second pass and third pass happen in the same loop really..  just separated
-            // them to show what this does.
+            float[] heights = TerrainHeightFieldHeights[heightFieldGeom];
 
-            // First Pass
-            // ResultArr:
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-
-            // Second Pass
-            // ResultArr2:
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-
-            // Third pass fills in the blanks
-            // ResultArr2:
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-
-            // X,Y = .
-            // X+1,y = ^
-            // X,Y+1 = *
-            // X+1,Y+1 = #
-
-            // Filling in like this;
-            // .*
-            // ^#
-            // 1st .
-            // 2nd *
-            // 3rd ^
-            // 4th #
-            // on single loop.
-
-            float[,] resultarr2 = new float[512, 512];
-            for (int y = 0; y < WorldExtents.Y; y++)
+            if ((dx + dy) <= 1.0f)
             {
-                for (int x = 0; x < WorldExtents.X; x++)
-                {
-                    resultarr2[y * 2, x * 2] = resultarr[y, x];
-
-                    if (y < WorldExtents.Y)
-                    {
-                        resultarr2[(y * 2) + 1, x * 2] = resultarr[y, x];
-                    }
-                    if (x < WorldExtents.X)
-                    {
-                        resultarr2[y * 2, (x * 2) + 1] = resultarr[y, x];
-                    }
-                    if (x < WorldExtents.X && y < WorldExtents.Y)
-                    {
-                        resultarr2[(y * 2) + 1, (x * 2) + 1] = resultarr[y, x];
-                    }
-                }
+                h0 = ((float)heights[iy]); // 0,0 vertice
+                h1 = (((float)heights[iy + 1]) - h0) * dx; // 1,0 vertice minus 0,0
+                h2 = (((float)heights[iy + regsize]) - h0) * dy; // 0,1 vertice minus 0,0
+            }
+            else
+            {
+                h0 = ((float)heights[iy + regsize + 1]); // 1,1 vertice
+                h1 = (((float)heights[iy + 1]) - h0) * (1 - dy); // 1,1 vertice minus 1,0
+                h2 = (((float)heights[iy + regsize]) - h0) * (1 - dx); // 1,1 vertice minus 0,1
             }
 
-            //Flatten out the array
-            int i = 0;
-            for (int y = 0; y < 512; y++)
-            {
-                for (int x = 0; x < 512; x++)
-                {
-                    if (resultarr2[y, x] <= 0)
-                        returnarr[i] = 0.0000001f;
-                    else
-                        returnarr[i] = resultarr2[y, x];
-
-                    i++;
-                }
-            }
-
-            return returnarr;
+            return h0 + h1 + h2;
         }
-
-        public float[] ResizeTerrain512Interpolation(float[] heightMap)
-        {
-            float[] returnarr = new float[262144];
-            float[,] resultarr = new float[512,512];
-
-            // Filling out the array into its multi-dimensional components
-            for (int y = 0; y < 256; y++)
-            {
-                for (int x = 0; x < 256; x++)
-                {
-                    resultarr[y, x] = heightMap[y * 256 + x];
-                }
-            }
-
-            // Resize using interpolation
-
-            // This particular way is quick but it only works on a multiple of the original
-
-            // The idea behind this method can be described with the following diagrams
-            // second pass and third pass happen in the same loop really..  just separated
-            // them to show what this does.
-
-            // First Pass
-            // ResultArr:
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-
-            // Second Pass
-            // ResultArr2:
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-
-            // Third pass fills in the blanks
-            // ResultArr2:
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-
-            // X,Y = .
-            // X+1,y = ^
-            // X,Y+1 = *
-            // X+1,Y+1 = #
-
-            // Filling in like this;
-            // .*
-            // ^#
-            // 1st .
-            // 2nd *
-            // 3rd ^
-            // 4th #
-            // on single loop.
-
-            float[,] resultarr2 = new float[512,512];
-            for (int y = 0; y < (int)Constants.RegionSize; y++)
-            {
-                for (int x = 0; x < (int)Constants.RegionSize; x++)
-                {
-                    resultarr2[y*2, x*2] = resultarr[y, x];
-
-                    if (y < (int)Constants.RegionSize)
-                    {
-                        if (y + 1 < (int)Constants.RegionSize)
-                        {
-                            if (x + 1 < (int)Constants.RegionSize)
-                            {
-                                resultarr2[(y*2) + 1, x*2] = ((resultarr[y, x] + resultarr[y + 1, x] +
-                                                               resultarr[y, x + 1] + resultarr[y + 1, x + 1])/4);
-                            }
-                            else
-                            {
-                                resultarr2[(y*2) + 1, x*2] = ((resultarr[y, x] + resultarr[y + 1, x])/2);
-                            }
-                        }
-                        else
-                        {
-                            resultarr2[(y*2) + 1, x*2] = resultarr[y, x];
-                        }
-                    }
-                    if (x < (int)Constants.RegionSize)
-                    {
-                        if (x + 1 < (int)Constants.RegionSize)
-                        {
-                            if (y + 1 < (int)Constants.RegionSize)
-                            {
-                                resultarr2[y*2, (x*2) + 1] = ((resultarr[y, x] + resultarr[y + 1, x] +
-                                                               resultarr[y, x + 1] + resultarr[y + 1, x + 1])/4);
-                            }
-                            else
-                            {
-                                resultarr2[y*2, (x*2) + 1] = ((resultarr[y, x] + resultarr[y, x + 1])/2);
-                            }
-                        }
-                        else
-                        {
-                            resultarr2[y*2, (x*2) + 1] = resultarr[y, x];
-                        }
-                    }
-                    if (x < (int)Constants.RegionSize && y < (int)Constants.RegionSize)
-                    {
-                        if ((x + 1 < (int)Constants.RegionSize) && (y + 1 < (int)Constants.RegionSize))
-                        {
-                            resultarr2[(y*2) + 1, (x*2) + 1] = ((resultarr[y, x] + resultarr[y + 1, x] +
-                                                                 resultarr[y, x + 1] + resultarr[y + 1, x + 1])/4);
-                        }
-                        else
-                        {
-                            resultarr2[(y*2) + 1, (x*2) + 1] = resultarr[y, x];
-                        }
-                    }
-                }
-            }
-            //Flatten out the array
-            int i = 0;
-            for (int y = 0; y < 512; y++)
-            {
-                for (int x = 0; x < 512; x++)
-                {
-                    if (Single.IsNaN(resultarr2[y, x]) || Single.IsInfinity(resultarr2[y, x]))
-                    {
-                        m_log.Warn("[PHYSICS]: Non finite heightfield element detected.  Setting it to 0");
-                        resultarr2[y, x] = 0;
-                    }
-                    returnarr[i] = resultarr2[y, x];
-                    i++;
-                }
-            }
-
-            return returnarr;
-        }
-
-        #endregion
-
         public override void SetTerrain(float[] heightMap)
         {
             if (m_worldOffset != Vector3.Zero && m_parentScene != null)
@@ -2124,48 +1863,47 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void SetTerrain(float[] heightMap, Vector3 pOffset)
             {
+            // assumes 1m size grid and constante size square regions
+            // needs to know about sims around in future
 
             float[] _heightmap;
-            _heightmap = new float[(((int)Constants.RegionSize + 2) * ((int)Constants.RegionSize + 2))];
 
             uint heightmapWidth = Constants.RegionSize + 2;
             uint heightmapHeight = Constants.RegionSize + 2;
 
-            uint heightmapWidthSamples;
+            uint heightmapWidthSamples = heightmapWidth + 1;
+            uint heightmapHeightSamples = heightmapHeight + 1;
 
-            uint heightmapHeightSamples;
- 
-            heightmapWidthSamples = (uint)Constants.RegionSize + 2;
-            heightmapHeightSamples = (uint)Constants.RegionSize + 2;
+            _heightmap = new float[heightmapWidthSamples * heightmapHeightSamples];
 
             const float scale = 1.0f;
             const float offset = 0.0f;
             const float thickness = 10f;
             const int wrap = 0;
 
-            int regionsize = (int) Constants.RegionSize + 2;
+            uint regionsize = Constants.RegionSize;
  
             float hfmin = float.MaxValue;
             float hfmax = float.MinValue;
             float val;
-            int xx;
-            int yy;
+            uint xx;
+            uint yy;
 
-            int maxXXYY = regionsize - 3;
+            uint maxXXYY = regionsize - 1;
             // flipping map adding one margin all around so things don't fall in edges
 
-            int xt = 0;
+            uint xt = 0;
             xx = 0;
 
-            for (int x = 0; x < heightmapWidthSamples; x++)
+            for (uint x = 0; x < heightmapWidthSamples; x++)
             {
                 if (x > 1 && xx < maxXXYY)
                     xx++;
                 yy = 0;
-                for (int y = 0; y < heightmapHeightSamples; y++)
+                for (uint y = 0; y < heightmapHeightSamples; y++)
                 {
                     if (y > 1 && y < maxXXYY)
-                        yy += (int)Constants.RegionSize;
+                        yy += regionsize;
 
                     val = heightMap[yy + xx];
                     _heightmap[xt + y] = val;
@@ -2176,8 +1914,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         hfmax = val;
 
                 }
-
-                xt += regionsize;
+                xt += heightmapHeightSamples;
             }
             lock (OdeLock)
             {
@@ -2230,11 +1967,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(GroundGeom, ref R);
                 d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f - 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f - 0.5f, 0);
-                IntPtr testGround = IntPtr.Zero;
-                if (RegionTerrain.TryGetValue(pOffset, out testGround))
-                {
-                    RegionTerrain.Remove(pOffset);
-                }
                 RegionTerrain.Add(pOffset, GroundGeom, GroundGeom);
 //                TerrainHeightFieldHeights.Add(GroundGeom, ODElandMap);
                 TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
