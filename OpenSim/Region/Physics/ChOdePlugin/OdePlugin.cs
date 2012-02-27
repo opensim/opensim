@@ -1772,7 +1772,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             IMesh mesh = null;
 
             if (needsMeshing(pbs))
-                mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
+                mesh = mesher.CreateMesh(primName, pbs, size, (int)LevelOfDetail.High, true);
 
             result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical, localid);
 
@@ -2514,7 +2514,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             // if it's a standard box or sphere with no cuts, hollows, twist or top shear, return false since ODE can use an internal representation for the prim
-            if (!forceSimplePrimMeshing)
+            if (!forceSimplePrimMeshing && !pbs.SculptEntry)
             {
                 if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
                     || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
@@ -2536,6 +2536,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
             }
+
+            if (forceSimplePrimMeshing)
+                return true;
 
             if (pbs.ProfileHollow != 0)
                 iPropertiesNotSupportedDefault++;
@@ -2601,6 +2604,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
+            if (pbs.SculptEntry && meshSculptedPrim)
+                iPropertiesNotSupportedDefault++;
 
             if (iPropertiesNotSupportedDefault == 0)
             {

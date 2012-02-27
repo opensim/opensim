@@ -2421,7 +2421,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // Don't need to re-enable body..   it's done in SetMesh
                     try
                     {
-                        _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
+                        _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, (int)LevelOfDetail.High, true);
                     }
                     catch
                     {
@@ -2676,7 +2676,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 try
                 {
                     if (_parent_scene.needsMeshing(_pbs))
-                        mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
+                        mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, (int)LevelOfDetail.High, true);
                 }
                 catch
                 {
@@ -2783,7 +2783,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     meshlod = _parent_scene.MeshSculptphysicalLOD;
                 try
                 {
-                    IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
+                    IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, (int)LevelOfDetail.High, true);
                     CreateGeom(m_targetSpace, mesh);
                 }
                 catch
