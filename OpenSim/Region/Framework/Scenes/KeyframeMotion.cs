@@ -406,5 +406,17 @@ namespace OpenSim.Region.Framework.Scenes
             m_group = tmp;
             return ms.ToArray();
         }
+
+        public void CrossingFailure()
+        {
+            // The serialization has stopped the timer, so let's wait a moment
+            // then retry the crossing. We'll get back here if it fails.
+            Util.FireAndForget(delegate (object x)
+            {
+                Thread.Sleep(60000);
+                if (m_running)
+                    m_timer.Start();
+            });
+        }
     }
 }

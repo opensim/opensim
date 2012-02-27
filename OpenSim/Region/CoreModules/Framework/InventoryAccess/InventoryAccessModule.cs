@@ -355,11 +355,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             foreach (SceneObjectGroup objectGroup in objlist)
             {
-                if (objectGroup.KeyframeMotion != null)
-                    objectGroup.KeyframeMotion.Stop();
+                if (objectGroup.RootPart.KeyframeMotion != null)
+                    objectGroup.RootPart.KeyframeMotion.Stop();
                 objectGroup.RootPart.SetForce(Vector3.Zero);
                 objectGroup.RootPart.SetAngularImpulse(Vector3.Zero, false);
-                objectGroup.KeyframeMotion = null;
+                objectGroup.RootPart.KeyframeMotion = null;
 
                 Vector3 inventoryStoredPosition = new Vector3
                             (((objectGroup.AbsolutePosition.X > (int)Constants.RegionSize)

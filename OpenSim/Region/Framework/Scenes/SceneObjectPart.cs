@@ -315,6 +315,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         private SOPVehicle m_vehicle = null;
 
+        private KeyframeMotion m_keyframeMotion = null;
+
+        public KeyframeMotion KeyframeMotion
+        {
+            get; set;
+        }
+
+
         #endregion Fields
 
 //        ~SceneObjectPart()
@@ -1924,9 +1932,9 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (UsePhysics)
                             {
-                                if (ParentGroup.KeyframeMotion != null)
-                                    ParentGroup.KeyframeMotion.Stop();
-                                ParentGroup.KeyframeMotion = null;
+                                if (ParentGroup.RootPart.KeyframeMotion != null)
+                                    ParentGroup.RootPart.KeyframeMotion.Stop();
+                                ParentGroup.RootPart.KeyframeMotion = null;
                                 ParentGroup.Scene.AddPhysicalPrim(1);
 
                                 PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;

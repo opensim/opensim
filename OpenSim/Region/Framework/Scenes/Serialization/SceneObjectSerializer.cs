@@ -246,9 +246,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                 XmlNodeList keymotion = doc.GetElementsByTagName("KeyframeMotion");
                 if (keymotion.Count > 0)
-                    sceneObject.KeyframeMotion = KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(keymotion[0].InnerText));
+                    sceneObject.RootPart.KeyframeMotion = KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(keymotion[0].InnerText));
                 else
-                    sceneObject.KeyframeMotion = null;
+                    sceneObject.RootPart.KeyframeMotion = null;
 
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
@@ -1174,9 +1174,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             writer.WriteEndElement();
 
-            if (sog.KeyframeMotion != null)
+            if (sog.RootPart.KeyframeMotion != null)
             {
-                Byte[] data = sog.KeyframeMotion.Serialize();
+                Byte[] data = sog.RootPart.KeyframeMotion.Serialize();
 
                 writer.WriteStartElement(String.Empty, "KeyframeMotion", String.Empty);
                 writer.WriteBase64(data, 0, data.Length);

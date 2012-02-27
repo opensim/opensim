@@ -114,12 +114,6 @@ namespace OpenSim.Region.Framework.Scenes
         private Random m_rand;
         private bool m_suspendUpdates;
         private List<ScenePresence> m_linkedAvatars = new List<ScenePresence>();
-        private KeyframeMotion m_keyframeMotion = null;
-
-        public KeyframeMotion KeyframeMotion
-        {
-            get; set;
-        }
 
         public bool areUpdatesSuspended
         {
@@ -726,8 +720,8 @@ namespace OpenSim.Region.Framework.Scenes
                             child.PhysActor.Selected = value;
                     }
                 }
-                if (KeyframeMotion != null)
-                    KeyframeMotion.Selected = value;
+                if (RootPart.KeyframeMotion != null)
+                    RootPart.KeyframeMotion.Selected = value;
             }
         }
 
@@ -1829,11 +1823,6 @@ namespace OpenSim.Region.Framework.Scenes
 //                            Name, UUID, m_scene.RegionInfo.RegionName);
 
                         SceneObjectGroup backup_group = Copy(false);
-                        if (KeyframeMotion != null)
-                        {
-                            backup_group.KeyframeMotion = KeyframeMotion.FromData(backup_group, KeyframeMotion.Serialize());
-                            KeyframeMotion.UpdateSceneObject(this);
-                        }
                         backup_group.RootPart.Velocity = RootPart.Velocity;
                         backup_group.RootPart.Acceleration = RootPart.Acceleration;
                         backup_group.RootPart.AngularVelocity = RootPart.AngularVelocity;
@@ -1846,6 +1835,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                         backup_group.ForEachPart(delegate(SceneObjectPart part) 
                         { 
+                            if (part.KeyframeMotion != null)
+                            {
+                                part.KeyframeMotion = KeyframeMotion.FromData(backup_group, part.KeyframeMotion.Serialize());
+                                part.KeyframeMotion.UpdateSceneObject(this);
+                            }
                             part.Inventory.ProcessInventoryBackup(datastore); 
                         });
 
@@ -2001,9 +1995,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (usePhysics)
             {
-                if (KeyframeMotion != null)
-                    KeyframeMotion.Stop();
-                KeyframeMotion = null;
+                if (RootPart.KeyframeMotion != null)
+                    RootPart.KeyframeMotion.Stop();
+                RootPart.KeyframeMotion = null;
             }
             UpdatePrimFlags(RootPart.LocalId, usePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
         }
