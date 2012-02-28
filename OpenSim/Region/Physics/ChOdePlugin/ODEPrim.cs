@@ -1810,7 +1810,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _size.X = 0.01f;
                 _size.Y = 0.01f;
                 _size.Z = 0.01f;
-                return false;
+                mesh.releaseSourceMeshData();
+                // Temporarily hacking this to true which causes the object
+                // to get no physical representation, effectively making it
+                // phantom
+                return true;
             }
 
 
