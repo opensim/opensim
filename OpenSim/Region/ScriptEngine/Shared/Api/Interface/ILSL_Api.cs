@@ -395,6 +395,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llTargetOmega(LSL_Vector axis, double spinrate, double gain);
               void llTargetRemove(int number);
               void llTeleportAgentHome(string agent);
+              void llTeleportAgent(string agent, string simname, LSL_Vector pos, LSL_Vector lookAt);
               void llTextBox(string avatar, string message, int chat_channel);
         LSL_String llToLower(string source);
         LSL_String llToUpper(string source);

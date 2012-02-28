@@ -4657,7 +4657,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(5000);
         }
 
-        public void llTeleportAgentHome(string agent, string simname, LSL_Vector pos, LSL_Vector lookAt)
+        public void llTeleportAgent(string agent, string simname, LSL_Vector pos, LSL_Vector lookAt)
         {
             m_host.AddScriptLPS(1);
             UUID agentId = new UUID();
