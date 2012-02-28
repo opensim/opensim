@@ -224,13 +224,11 @@ namespace OpenSim.Region.UserStatistics
                 concurrencyCounter--;
                 
                 response_code = 200;
-
             }
             else
             {
                 strOut = MainServer.Instance.GetHTTP404("");
             }
-            
 
             responsedata["int_response_code"] = response_code;
             responsedata["content_type"] = contenttype;
@@ -247,43 +245,44 @@ namespace OpenSim.Region.UserStatistics
                 // TODO: FIXME: implement stats migrations
                 const string SQL = @"SELECT * FROM migrations LIMIT 1";
 
-                SqliteCommand cmd = new SqliteCommand(SQL, db);
-
-                try
+                using (SqliteCommand cmd = new SqliteCommand(SQL, db))
                 {
-                    cmd.ExecuteNonQuery();
-                }
-                catch (SqliteSyntaxException)
-                {
-                    CreateTables(db);
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (SqliteSyntaxException)
+                    {
+                        CreateTables(db);
+                    }
                 }
             }
         }
 
         public void CreateTables(SqliteConnection db)
         {
-            SqliteCommand createcmd = new SqliteCommand(SQL_STATS_TABLE_CREATE, db);
-            createcmd.ExecuteNonQuery();
+            using (SqliteCommand createcmd = new SqliteCommand(SQL_STATS_TABLE_CREATE, db))
+            {
+                createcmd.ExecuteNonQuery();
 
-            createcmd.CommandText = SQL_MIGRA_TABLE_CREATE;
-            createcmd.ExecuteNonQuery();
+                createcmd.CommandText = SQL_MIGRA_TABLE_CREATE;
+                createcmd.ExecuteNonQuery();
+            }
         }
 
         public virtual void PostInitialise()
         {
             if (!enabled)
-            {
                 return;
-            }
+
             AddHandlers();
         }
 
         public virtual void Close()
         {
             if (!enabled)
-            {
                 return;
-            }
+
             dbConn.Close();
             dbConn.Dispose();
             m_sessions.Clear();
@@ -304,7 +303,8 @@ namespace OpenSim.Region.UserStatistics
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            m_log.DebugFormat("[WEB STATS MODULE]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
+//            m_log.DebugFormat("[WEB STATS MODULE]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
+
             string capsPath = "/CAPS/VS/" + UUID.Random();
             caps.RegisterHandler("ViewerStats",
                                  new RestStreamHandler("POST", capsPath,
@@ -318,7 +318,6 @@ namespace OpenSim.Region.UserStatistics
 
         public void OnDeRegisterCaps(UUID agentID, Caps caps)
         {
-            
         }
 
         protected virtual void AddHandlers()
@@ -368,7 +367,6 @@ namespace OpenSim.Region.UserStatistics
 
         public void OnMakeChildAgent(ScenePresence agent)
         {
-            
         }
 
         public void OnClientClosed(UUID agentID, Scene scene)
@@ -430,6 +428,7 @@ namespace OpenSim.Region.UserStatistics
                         return scene.RegionInfo.RegionID;
                 }
             }
+
             return UUID.Zero;
         }
 
@@ -458,14 +457,14 @@ namespace OpenSim.Region.UserStatistics
             UserSessionData usd;
             OSD message = OSDParser.DeserializeLLSDXml(request);
             OSDMap mmap;
+
             lock (m_sessions)
             {
                 if (agentID != UUID.Zero)
                 {
-                
                     if (!m_sessions.ContainsKey(agentID))
                     {
-                        m_log.Warn("[WEB STATS MODULE]: no session for stat disclosure");
+                        m_log.WarnFormat("[WEB STATS MODULE]: no session for stat disclosure for agent {0}", agentID);
                         return new UserSessionID();
                     }
                     uid = m_sessions[agentID];
@@ -585,8 +584,6 @@ namespace OpenSim.Region.UserStatistics
                         usd.n_out_kb = (float)net_out["kbytes"].AsReal();
                         usd.n_out_pk = net_out["packets"].AsInteger();
                     }
-
-
                 }
             }
 
@@ -602,83 +599,85 @@ namespace OpenSim.Region.UserStatistics
 
             lock (db)
             {
-                SqliteCommand updatecmd = new SqliteCommand(SQL_STATS_TABLE_UPDATE, db);
-                updatecmd.Parameters.Add(new SqliteParameter(":session_id", uid.session_data.session_id.ToString()));
-                updatecmd.Parameters.Add(new SqliteParameter(":agent_id", uid.session_data.agent_id.ToString()));
-                updatecmd.Parameters.Add(new SqliteParameter(":region_id", uid.session_data.region_id.ToString()));
-                updatecmd.Parameters.Add(new SqliteParameter(":last_updated", (int) uid.session_data.last_updated));
-                updatecmd.Parameters.Add(new SqliteParameter(":remote_ip", uid.session_data.remote_ip));
-                updatecmd.Parameters.Add(new SqliteParameter(":name_f", uid.session_data.name_f));
-                updatecmd.Parameters.Add(new SqliteParameter(":name_l", uid.session_data.name_l));
-                updatecmd.Parameters.Add(new SqliteParameter(":avg_agents_in_view", uid.session_data.avg_agents_in_view));
-                updatecmd.Parameters.Add(new SqliteParameter(":min_agents_in_view",
-                                                             (int) uid.session_data.min_agents_in_view));
-                updatecmd.Parameters.Add(new SqliteParameter(":max_agents_in_view",
-                                                             (int) uid.session_data.max_agents_in_view));
-                updatecmd.Parameters.Add(new SqliteParameter(":mode_agents_in_view",
-                                                             (int) uid.session_data.mode_agents_in_view));
-                updatecmd.Parameters.Add(new SqliteParameter(":avg_fps", uid.session_data.avg_fps));
-                updatecmd.Parameters.Add(new SqliteParameter(":min_fps", uid.session_data.min_fps));
-                updatecmd.Parameters.Add(new SqliteParameter(":max_fps", uid.session_data.max_fps));
-                updatecmd.Parameters.Add(new SqliteParameter(":mode_fps", uid.session_data.mode_fps));
-                updatecmd.Parameters.Add(new SqliteParameter(":a_language", uid.session_data.a_language));
-                updatecmd.Parameters.Add(new SqliteParameter(":mem_use", uid.session_data.mem_use));
-                updatecmd.Parameters.Add(new SqliteParameter(":meters_traveled", uid.session_data.meters_traveled));
-                updatecmd.Parameters.Add(new SqliteParameter(":avg_ping", uid.session_data.avg_ping));
-                updatecmd.Parameters.Add(new SqliteParameter(":min_ping", uid.session_data.min_ping));
-                updatecmd.Parameters.Add(new SqliteParameter(":max_ping", uid.session_data.max_ping));
-                updatecmd.Parameters.Add(new SqliteParameter(":mode_ping", uid.session_data.mode_ping));
-                updatecmd.Parameters.Add(new SqliteParameter(":regions_visited", uid.session_data.regions_visited));
-                updatecmd.Parameters.Add(new SqliteParameter(":run_time", uid.session_data.run_time));
-                updatecmd.Parameters.Add(new SqliteParameter(":avg_sim_fps", uid.session_data.avg_sim_fps));
-                updatecmd.Parameters.Add(new SqliteParameter(":min_sim_fps", uid.session_data.min_sim_fps));
-                updatecmd.Parameters.Add(new SqliteParameter(":max_sim_fps", uid.session_data.max_sim_fps));
-                updatecmd.Parameters.Add(new SqliteParameter(":mode_sim_fps", uid.session_data.mode_sim_fps));
-                updatecmd.Parameters.Add(new SqliteParameter(":start_time", uid.session_data.start_time));
-                updatecmd.Parameters.Add(new SqliteParameter(":client_version", uid.session_data.client_version));
-                updatecmd.Parameters.Add(new SqliteParameter(":s_cpu", uid.session_data.s_cpu));
-                updatecmd.Parameters.Add(new SqliteParameter(":s_gpu", uid.session_data.s_gpu));
-                updatecmd.Parameters.Add(new SqliteParameter(":s_os", uid.session_data.s_os));
-                updatecmd.Parameters.Add(new SqliteParameter(":s_ram", uid.session_data.s_ram));
-                updatecmd.Parameters.Add(new SqliteParameter(":d_object_kb", uid.session_data.d_object_kb));
-                updatecmd.Parameters.Add(new SqliteParameter(":d_texture_kb", uid.session_data.d_texture_kb));
-                updatecmd.Parameters.Add(new SqliteParameter(":d_world_kb", uid.session_data.d_world_kb));
-                updatecmd.Parameters.Add(new SqliteParameter(":n_in_kb", uid.session_data.n_in_kb));
-                updatecmd.Parameters.Add(new SqliteParameter(":n_in_pk", uid.session_data.n_in_pk));
-                updatecmd.Parameters.Add(new SqliteParameter(":n_out_kb", uid.session_data.n_out_kb));
-                updatecmd.Parameters.Add(new SqliteParameter(":n_out_pk", uid.session_data.n_out_pk));
-                updatecmd.Parameters.Add(new SqliteParameter(":f_dropped", uid.session_data.f_dropped));
-                updatecmd.Parameters.Add(new SqliteParameter(":f_failed_resends", uid.session_data.f_failed_resends));
-                updatecmd.Parameters.Add(new SqliteParameter(":f_invalid", uid.session_data.f_invalid));
-
-                updatecmd.Parameters.Add(new SqliteParameter(":f_off_circuit", uid.session_data.f_off_circuit));
-                updatecmd.Parameters.Add(new SqliteParameter(":f_resent", uid.session_data.f_resent));
-                updatecmd.Parameters.Add(new SqliteParameter(":f_send_packet", uid.session_data.f_send_packet));
-
-                updatecmd.Parameters.Add(new SqliteParameter(":session_key", uid.session_data.session_id.ToString()));
-                updatecmd.Parameters.Add(new SqliteParameter(":agent_key", uid.session_data.agent_id.ToString()));
-                updatecmd.Parameters.Add(new SqliteParameter(":region_key", uid.session_data.region_id.ToString()));
-//                m_log.Debug("UPDATE");
-
-                int result = updatecmd.ExecuteNonQuery();
-
-                if (result == 0)
+                using (SqliteCommand updatecmd = new SqliteCommand(SQL_STATS_TABLE_UPDATE, db))
                 {
-//                    m_log.Debug("INSERT");
-                    updatecmd.CommandText = SQL_STATS_TABLE_INSERT;
-                    try
-                    {
-                        updatecmd.ExecuteNonQuery();
-                    }
-                    catch (SqliteExecutionException)
-                    {
-                        m_log.Warn("[WEB STATS MODULE]: failed to write stats to storage Execution Exception");
-                    }
-                    catch (SqliteSyntaxException)
-                    {
-                        m_log.Warn("[WEB STATS MODULE]: failed to write stats to storage SQL Syntax Exception");
-                    }
+                    updatecmd.Parameters.Add(new SqliteParameter(":session_id", uid.session_data.session_id.ToString()));
+                    updatecmd.Parameters.Add(new SqliteParameter(":agent_id", uid.session_data.agent_id.ToString()));
+                    updatecmd.Parameters.Add(new SqliteParameter(":region_id", uid.session_data.region_id.ToString()));
+                    updatecmd.Parameters.Add(new SqliteParameter(":last_updated", (int) uid.session_data.last_updated));
+                    updatecmd.Parameters.Add(new SqliteParameter(":remote_ip", uid.session_data.remote_ip));
+                    updatecmd.Parameters.Add(new SqliteParameter(":name_f", uid.session_data.name_f));
+                    updatecmd.Parameters.Add(new SqliteParameter(":name_l", uid.session_data.name_l));
+                    updatecmd.Parameters.Add(new SqliteParameter(":avg_agents_in_view", uid.session_data.avg_agents_in_view));
+                    updatecmd.Parameters.Add(new SqliteParameter(":min_agents_in_view",
+                                                                 (int) uid.session_data.min_agents_in_view));
+                    updatecmd.Parameters.Add(new SqliteParameter(":max_agents_in_view",
+                                                                 (int) uid.session_data.max_agents_in_view));
+                    updatecmd.Parameters.Add(new SqliteParameter(":mode_agents_in_view",
+                                                                 (int) uid.session_data.mode_agents_in_view));
+                    updatecmd.Parameters.Add(new SqliteParameter(":avg_fps", uid.session_data.avg_fps));
+                    updatecmd.Parameters.Add(new SqliteParameter(":min_fps", uid.session_data.min_fps));
+                    updatecmd.Parameters.Add(new SqliteParameter(":max_fps", uid.session_data.max_fps));
+                    updatecmd.Parameters.Add(new SqliteParameter(":mode_fps", uid.session_data.mode_fps));
+                    updatecmd.Parameters.Add(new SqliteParameter(":a_language", uid.session_data.a_language));
+                    updatecmd.Parameters.Add(new SqliteParameter(":mem_use", uid.session_data.mem_use));
+                    updatecmd.Parameters.Add(new SqliteParameter(":meters_traveled", uid.session_data.meters_traveled));
+                    updatecmd.Parameters.Add(new SqliteParameter(":avg_ping", uid.session_data.avg_ping));
+                    updatecmd.Parameters.Add(new SqliteParameter(":min_ping", uid.session_data.min_ping));
+                    updatecmd.Parameters.Add(new SqliteParameter(":max_ping", uid.session_data.max_ping));
+                    updatecmd.Parameters.Add(new SqliteParameter(":mode_ping", uid.session_data.mode_ping));
+                    updatecmd.Parameters.Add(new SqliteParameter(":regions_visited", uid.session_data.regions_visited));
+                    updatecmd.Parameters.Add(new SqliteParameter(":run_time", uid.session_data.run_time));
+                    updatecmd.Parameters.Add(new SqliteParameter(":avg_sim_fps", uid.session_data.avg_sim_fps));
+                    updatecmd.Parameters.Add(new SqliteParameter(":min_sim_fps", uid.session_data.min_sim_fps));
+                    updatecmd.Parameters.Add(new SqliteParameter(":max_sim_fps", uid.session_data.max_sim_fps));
+                    updatecmd.Parameters.Add(new SqliteParameter(":mode_sim_fps", uid.session_data.mode_sim_fps));
+                    updatecmd.Parameters.Add(new SqliteParameter(":start_time", uid.session_data.start_time));
+                    updatecmd.Parameters.Add(new SqliteParameter(":client_version", uid.session_data.client_version));
+                    updatecmd.Parameters.Add(new SqliteParameter(":s_cpu", uid.session_data.s_cpu));
+                    updatecmd.Parameters.Add(new SqliteParameter(":s_gpu", uid.session_data.s_gpu));
+                    updatecmd.Parameters.Add(new SqliteParameter(":s_os", uid.session_data.s_os));
+                    updatecmd.Parameters.Add(new SqliteParameter(":s_ram", uid.session_data.s_ram));
+                    updatecmd.Parameters.Add(new SqliteParameter(":d_object_kb", uid.session_data.d_object_kb));
+                    updatecmd.Parameters.Add(new SqliteParameter(":d_texture_kb", uid.session_data.d_texture_kb));
+                    updatecmd.Parameters.Add(new SqliteParameter(":d_world_kb", uid.session_data.d_world_kb));
+                    updatecmd.Parameters.Add(new SqliteParameter(":n_in_kb", uid.session_data.n_in_kb));
+                    updatecmd.Parameters.Add(new SqliteParameter(":n_in_pk", uid.session_data.n_in_pk));
+                    updatecmd.Parameters.Add(new SqliteParameter(":n_out_kb", uid.session_data.n_out_kb));
+                    updatecmd.Parameters.Add(new SqliteParameter(":n_out_pk", uid.session_data.n_out_pk));
+                    updatecmd.Parameters.Add(new SqliteParameter(":f_dropped", uid.session_data.f_dropped));
+                    updatecmd.Parameters.Add(new SqliteParameter(":f_failed_resends", uid.session_data.f_failed_resends));
+                    updatecmd.Parameters.Add(new SqliteParameter(":f_invalid", uid.session_data.f_invalid));
+    
+                    updatecmd.Parameters.Add(new SqliteParameter(":f_off_circuit", uid.session_data.f_off_circuit));
+                    updatecmd.Parameters.Add(new SqliteParameter(":f_resent", uid.session_data.f_resent));
+                    updatecmd.Parameters.Add(new SqliteParameter(":f_send_packet", uid.session_data.f_send_packet));
+    
+                    updatecmd.Parameters.Add(new SqliteParameter(":session_key", uid.session_data.session_id.ToString()));
+                    updatecmd.Parameters.Add(new SqliteParameter(":agent_key", uid.session_data.agent_id.ToString()));
+                    updatecmd.Parameters.Add(new SqliteParameter(":region_key", uid.session_data.region_id.ToString()));
 
+//                    m_log.DebugFormat("[WEB STATS MODULE]: Database stats update for {0}", uid.session_data.agent_id);
+
+                    int result = updatecmd.ExecuteNonQuery();
+
+                    if (result == 0)
+                    {
+//                        m_log.DebugFormat("[WEB STATS MODULE]: Database stats insert for {0}", uid.session_data.agent_id);
+
+                        updatecmd.CommandText = SQL_STATS_TABLE_INSERT;
+
+                        try
+                        {
+                            updatecmd.ExecuteNonQuery();
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.WarnFormat(
+                                "[WEB STATS MODULE]: failed to write stats for {0}, storage Execution Exception {1}{2}",
+                                uid.session_data.agent_id, e.Message, e.StackTrace);
+                        }
+                    }
                 }
             }
         }
