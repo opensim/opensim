@@ -4657,6 +4657,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(5000);
         }
 
+        public void llTeleportAgentHome(string agent, string simname, LSL_Vector pos, LSL_Vector lookAt)
+        {
+            m_host.AddScriptLPS(1);
+            UUID agentId = new UUID();
+            if (UUID.TryParse(agent, out agentId))
+            {
+                ScenePresence presence = World.GetScenePresence(agentId);
+                if (presence != null)
+                {
+                    // agent must not be a god
+                    if (presence.UserLevel >= 200) return;
+
+                    // agent must be over the owners land
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(
+                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
+                    {
+                        World.RequestTeleportLocation(presence.ControllingClient, simname, new Vector3((float)pos.x, (float)pos.y, (float)pos.z), new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z), (uint)TeleportFlags.ViaLocation);
+                    }
+                }
+            }
+        }
+
         public void llTextBox(string agent, string message, int chatChannel)
         {
             IDialogModule dm = World.RequestModuleInterface<IDialogModule>();
