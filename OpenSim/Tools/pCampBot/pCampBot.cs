@@ -56,6 +56,10 @@ namespace pCampBot
             {
                 Help();
             }
+            else if (config.Get("firstname") == null ||  config.Get("lastname") == null || config.Get("password") == null)
+            {
+                Console.WriteLine("ERROR: You must supply a firstname, lastname and password for the bots.");
+            }
             else
             {
                 int botcount = config.GetInt("botcount", 1);
