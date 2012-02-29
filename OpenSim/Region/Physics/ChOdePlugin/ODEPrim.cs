@@ -893,10 +893,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (m_isphysical)
                     {
                         d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
-                        d.GeomDisable(prim_geom);
                     }
                     else
+                    {
                         d.GeomSetCollideBits(prim_geom, 0);
+                        d.GeomDisable(prim_geom);
+                    }
                 }
                 else
                 {
