@@ -1815,6 +1815,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llTargetRemove(number);
         }
 
+        public void llTeleportAgent(string agent, string simname, LSL_Vector pos, LSL_Vector lookAt)
+        {
+            m_LSL_Functions.llTeleportAgent(agent, simname, pos, lookAt);
+        }
+
         public void llTeleportAgentHome(string agent)
         {
             m_LSL_Functions.llTeleportAgentHome(agent);
