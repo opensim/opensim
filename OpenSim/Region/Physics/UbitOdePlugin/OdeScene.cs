@@ -1302,7 +1302,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         waitForSpaceUnlock(currentspace);
                         d.SpaceRemove(currentspace, geom);
 
-                        if (d.SpaceGetSublevel(currentspace) > 1 && d.SpaceGetNumGeoms(currentspace) == 0)
+                        if (d.SpaceGetSublevel(currentspace) > 2 && d.SpaceGetNumGeoms(currentspace) == 0)
                         {
                             d.SpaceDestroy(currentspace);
                         }
