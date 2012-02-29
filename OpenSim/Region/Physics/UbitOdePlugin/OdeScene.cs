@@ -224,6 +224,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
         private readonly HashSet<OdePrim> _prims = new HashSet<OdePrim>();
         private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
+        private readonly HashSet<OdePrim> _activegroups = new HashSet<OdePrim>();
 
         public OpenSim.Framework.LocklessQueue<ODEchangeitem> ChangesQueue = new OpenSim.Framework.LocklessQueue<ODEchangeitem>();
 
@@ -1013,15 +1014,24 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             }
 
-            // collide active prims with static enviroment
             lock (_activeprims)
+            {
+                foreach (OdePrim aprim in _activeprims)
+                {
+                    aprim.CollisionScore = 0;
+                    aprim.IsColliding = false;
+                }
+            }
+
+            // collide active prims with static enviroment
+            lock (_activegroups)
             {
                 try
                 {
-                    foreach (OdePrim prm in _activeprims)
+                    foreach (OdePrim prm in _activegroups)
                     {
-                        if (d.BodyIsEnabled(prm.Body))
-                            d.SpaceCollide2(StaticSpace, prm.prim_geom, IntPtr.Zero, nearCallback);
+                        if (d.BodyIsEnabled(prm.Body) && !prm.m_outbounds)
+                            d.SpaceCollide2(StaticSpace, prm.collide_geom, IntPtr.Zero, nearCallback);
                     }
                 }
                 catch (AccessViolationException)
@@ -1029,7 +1039,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_log.Warn("[PHYSICS]: Unable to collide Active prim to static space");
                 }
             }
-
             // finally colide active things amoung them
             try
             {
@@ -1039,7 +1048,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_log.Warn("[PHYSICS]: Unable to collide in Active space");
             }
-
 //            _perloopContact.Clear();
         }
 
@@ -1148,13 +1156,20 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void addActivePrim(OdePrim activatePrim)
         {
-            // adds active prim..   (ones that should be iterated over in collisions_optimized
+            // adds active prim..   
             lock (_activeprims)
             {
                 if (!_activeprims.Contains(activatePrim))
                     _activeprims.Add(activatePrim);
-                //else
-                  //  m_log.Warn("[PHYSICS]: Double Entry in _activeprims detected, potential crash immenent");
+            }
+        }
+
+        public void addActiveGroups(OdePrim activatePrim)
+        {
+            lock (_activegroups)
+            {
+                if (!_activegroups.Contains(activatePrim))
+                    _activegroups.Add(activatePrim);
             }
         }
 
@@ -1184,6 +1199,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             lock (_activeprims)
             {
                 _activeprims.Remove(deactivatePrim);
+            }
+        }
+        public void remActiveGroup(OdePrim deactivatePrim)
+        {
+            lock (_activegroups)
+            {
+                _activegroups.Remove(deactivatePrim);
             }
         }
 
@@ -1258,6 +1280,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     waitForSpaceUnlock(currentspace);
                     d.SpaceRemove(currentspace, geom);
+
+                    if (d.SpaceGetSublevel(currentspace) > 2 && d.SpaceGetNumGeoms(currentspace) == 0)
+                    {
+                        d.SpaceDestroy(currentspace);
+                    }
                 }
                 else
                 {
@@ -1274,6 +1301,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         waitForSpaceUnlock(currentspace);
                         d.SpaceRemove(currentspace, geom);
+
+                        if (d.SpaceGetSublevel(currentspace) > 1 && d.SpaceGetNumGeoms(currentspace) == 0)
+                        {
+                            d.SpaceDestroy(currentspace);
+                        }
+
                     }
                 }
             }
@@ -1577,41 +1610,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         statchanges += Util.EnvironmentTickCountSubtract(statstart);
 
-                        // Move characters
-                        lock (_characters)
-                        {
-                            List<OdeCharacter> defects = new List<OdeCharacter>();
-                            foreach (OdeCharacter actor in _characters)
-                            {
-                                if (actor != null)
-                                    actor.Move(ODE_STEPSIZE, defects);
-                            }
-                            if (defects.Count != 0)
-                            {
-                                foreach (OdeCharacter defect in defects)
-                                {
-                                    RemoveCharacter(defect);
-                                }
-                            }
-                        }
-                        statchmove += Util.EnvironmentTickCountSubtract(statstart);
-
-                        // Move other active objects
-                        lock (_activeprims)
-                        {
-                            foreach (OdePrim aprim in _activeprims)
-                            {
-                                aprim.CollisionScore = 0;
-                                aprim.IsColliding = false;
-                                aprim.Move();
-                            }
-                        }
-
                         statactmove += Util.EnvironmentTickCountSubtract(statstart);
                         //if ((framecount % m_randomizeWater) == 0)
                         // randomizeWater(waterlevel);
 
                         m_rayCastManager.ProcessQueuedRequests();
+
+
 
                         statray += Util.EnvironmentTickCountSubtract(statstart);
                         collision_optimized();
@@ -1642,8 +1647,35 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         d.WorldQuickStep(world, ODE_STEPSIZE);
                         statstep += Util.EnvironmentTickCountSubtract(statstart);
-                        d.JointGroupEmpty(contactgroup);
-                        totjcontact += m_global_contactcount;
+
+                        // Move characters
+                        lock (_characters)
+                        {
+                            List<OdeCharacter> defects = new List<OdeCharacter>();
+                            foreach (OdeCharacter actor in _characters)
+                            {
+                                if (actor != null)
+                                    actor.Move(ODE_STEPSIZE, defects);
+                            }
+                            if (defects.Count != 0)
+                            {
+                                foreach (OdeCharacter defect in defects)
+                                {
+                                    RemoveCharacter(defect);
+                                }
+                            }
+                        }
+                        statchmove += Util.EnvironmentTickCountSubtract(statstart);
+
+                        // Move other active objects
+                        lock (_activegroups)
+                        {
+                            foreach (OdePrim aprim in _activegroups)
+                            {
+                                aprim.Move();
+                            }
+                        }
+
                         //ode.dunlock(world);
                     }
                     catch (Exception e)
@@ -1651,6 +1683,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_log.ErrorFormat("[PHYSICS]: {0}, {1}, {2}", e.Message, e.TargetSite, e);
 //                        ode.dunlock(world);
                     }
+
+                    d.JointGroupEmpty(contactgroup);
+                    totjcontact += m_global_contactcount;
 
                     step_time -= ODE_STEPSIZE;
                     nodeframes++;
@@ -1686,10 +1721,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 statmovchar = Util.EnvironmentTickCountSubtract(statstart);
 
-                lock (_activeprims)
+                lock (_activegroups)
                 {
                     {
-                        foreach (OdePrim actor in _activeprims)
+                        foreach (OdePrim actor in _activegroups)
                         {
                             if (actor.IsPhysical)
                             {
@@ -1966,7 +2001,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(GroundGeom, ref R);
-                d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f - 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f - 0.5f, 0);
+                d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f, 0);
                 RegionTerrain.Add(pOffset, GroundGeom, GroundGeom);
 //                TerrainHeightFieldHeights.Add(GroundGeom, ODElandMap);
                 TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
