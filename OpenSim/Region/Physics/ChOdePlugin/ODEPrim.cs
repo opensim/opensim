@@ -163,6 +163,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_isphysical;
         private bool m_isSelected;
 
+        private bool m_NoColide;  // for now only for internal use for bad meshs
+
         internal bool m_isVolumeDetect; // If true, this prim only detects collisions but doesn't collide actively
 
         private bool m_throttleUpdates;
@@ -253,7 +255,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_verticalAttractionEfficiency = 1.0f;		// damped     
         private float m_verticalAttractionTimescale = 500f;			// Timescale > 300  means no vert attractor.
 
-        SerialControl m_taintserial = null;
+//        SerialControl m_taintserial = null;
         object m_taintvehicledata = null;
 
         public void DoSetVehicle()
@@ -309,410 +311,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintvehicledata = vdata;
             _parent_scene.AddPhysicsActorTaint(this);
         }
-
-        public override byte[] Serialize(bool PhysIsRunning)
-        {
-            SerialControl sc = new SerialControl();
-
-            lock (sc.alock)
-            {
-                if (PhysIsRunning)
-                {
-                    m_taintserial = sc;
-                
-                    if (!Monitor.Wait(sc.alock, 1000))
-                    {
-                        m_log.Error("[chOde] prim data serialization timed out");
-                        m_taintserial = null;
-                        return new byte[0];
-                    }
-                }
-                else
-                    DoSerialize(sc);
-            }
-
-            return sc.data;
-        }
-
-        public void DoSerialize(SerialControl sc)
-        {
-            wstreamer st = new wstreamer();
-            Vector3 vtmp;
-
-            ushort version = 2;
-            if (!BitConverter.IsLittleEndian)
-                version |= 1;
-            st.Wushort(version); //version lower bit codes endian type for future use
-
-            // compact booleans in a ushort
-            ushort flags = 0;
-
-            if (m_isphysical) // this should be true for now
-                flags |= 1;
-            if (m_isSelected)
-                flags |= 2;
-            if (m_isVolumeDetect)
-                flags |= 4;
-            if (m_disabled)
-                flags |= 8;
-            if (m_collidesWater)
-                flags |= 16;
-            if (m_collidesLand)
-                flags |= 32;
-            if (m_usePID)
-                flags |= 64;
-            if (m_useAPID)
-                flags |= 128;
-            if (m_useHoverPID)
-                flags |= 256;
-            if (m_throttleUpdates)
-                flags |= 512;
-
-            st.Wushort(flags);
-
-            st.Wvector3(_size);
-            st.Wint(m_material);
-            st.Wfloat(m_density);
-            st.Wfloat(0); // future gravity mod V3
-            st.Wfloat(0); // future friction V3
-            st.Wfloat(0); // future bounce V3
-
-//            st.Wuint((uint)m_collisionCategories);
-//            st.Wuint((uint)m_collisionFlags);
-
-            if (_parent == null)
-            {
-                st.Wvector3(_position); // ??
-                st.Wquat(_orientation);
-            }
-            else // for childs save offsets
-            {
-                Quaternion to;
-                Quaternion ipo = Quaternion.Inverse(_parent.Orientation);
-
-                if (m_isphysical && prim_geom != IntPtr.Zero)
-                {
-                    d.Vector3 dvt;
-                    d.GeomCopyPosition(prim_geom, out dvt);
-
-                    vtmp.X = dvt.X;
-                    vtmp.Y = dvt.Y;
-                    vtmp.Z = dvt.Z;
-
-                    d.Quaternion dqt;
-                    d.GeomCopyQuaternion(prim_geom, out dqt);
-
-                    to.X = dqt.X;
-                    to.Y = dqt.Y;
-                    to.Z = dqt.Z;
-                    to.W = dqt.W; // rotation in world
-                }
-                else
-                {
-                    vtmp = _position;
-                    to = _orientation;
-                }
-
-                vtmp -= _parent.Position; // offset in world
-                vtmp *= ipo; // offset in local
-                st.Wvector3(vtmp);
-
-                ipo *= to; // own rotation
-                st.Wquat(ipo);
-            }
-
-            st.Wvector3(_velocity);
-            st.Wvector3(m_rotationalVelocity);
-            st.Wvector3(_acceleration);
-            st.Wvector3(m_rotateEnable);
-
-            vtmp = Vector3.Zero;
-            for (int i = 0; i < m_forcelist.Count; i++)
-                {
-
-                    vtmp += (m_forcelist[i] * 100);
-                }
-
-            st.Wvector3(vtmp); // force acc
-
-            vtmp = Vector3.Zero;
-            for (int i = 0; i < m_angularforcelist.Count; i++)
-            {
-                vtmp += (m_angularforcelist[i] * 100);
-            }
-
-            st.Wvector3(vtmp); // angular force acc
-
-            st.Wvector3(m_PIDTarget);
-            st.Wfloat(m_PIDTau);
-            st.Wfloat(PID_D);
-            st.Wfloat(PID_G);
-            st.Wquat(m_APIDTarget);
-            st.Wfloat(m_APIDStrength);
-            st.Wfloat(m_APIDDamping);
-            st.Wfloat(m_APIDdamper);
-
-            st.Wint((int)m_PIDHoverType);
-            st.Wfloat(m_PIDHoverHeight);
-            st.Wfloat(m_PIDHoverTau);
-            st.Wfloat(m_targetHoverHeight);
-
-            st.Wfloat(m_groundHeight);
-            st.Wfloat(m_waterHeight);
-
-            st.Wfloat(m_buoyancy);
-
-            // this must be last since type none ends stream
-            if (m_type == Vehicle.TYPE_NONE)
-                st.Wint((int)Vehicle.TYPE_NONE);
-            else
-            {
-                st.Wint((int)m_type);
-
-                st.Wquat(Quaternion.Identity); //m_referenceFrame
-
-                st.Wint((int)m_flags);
-
-                st.Wvector3(m_linearMotorDirection);
-                st.Wfloat(
-                    (float)Math.Sqrt(m_lLinMotorDVel.LengthSquared() / m_linearMotorDirection.LengthSquared()));
-
-                st.Wvector3(m_linearFrictionTimescale);
-                st.Wfloat(m_linearMotorDecayTimescale);
-                st.Wfloat(m_linearMotorTimescale);
-                st.Wvector3(new Vector3(0, 0, 0)); //m_linearMotorOffset);
-
-                st.Wvector3(m_angularMotorDirection);
-                st.Wfloat((float)Math.Sqrt(m_angularMotorDVel.LengthSquared() / m_angularMotorDirection.LengthSquared()));
-
-                st.Wvector3(m_angularFrictionTimescale);
-                st.Wfloat(m_angularMotorDecayTimescale);
-                st.Wfloat(m_angularMotorTimescale);
-
-                st.Wfloat(0); //m_linearDeflectionEfficiency);
-                st.Wfloat(1000); //m_linearDeflectionTimescale);
-
-                st.Wfloat(0); //m_angularDeflectionEfficiency);
-                st.Wfloat(120);   //m_angularDeflectionTimescale);
-
-                st.Wfloat(0); // m_bankingEfficiency);
-                st.Wfloat(0); //m_bankingMix);
-                st.Wfloat(1000);  //m_bankingTimescale);
-
-                st.Wfloat(m_VhoverHeight);
-                st.Wfloat(0.5f);   //m_VhoverEfficiency);
-                st.Wfloat(m_VhoverTimescale);
-
-                st.Wfloat(m_VehicleBuoyancy);
-
-                st.Wfloat(m_verticalAttractionEfficiency);
-                st.Wfloat(m_verticalAttractionTimescale);
-            }
-            sc.data = st.close();
-            m_taintserial = null;
-            Monitor.PulseAll(sc.alock);
-        }
-
-        public bool DeSerialize(byte[] data)
-        {
-            rstreamer st = new rstreamer(data);
-
-            int version =st.Rushort(); //version
-
-            // merge booleans in a ushort
-            ushort flags = st.Rushort();
-            if ((flags & 1) != 0)
-                m_isphysical = true;
-            if ((flags & 2) != 0)
-                m_taintselected = true;
-            if ((flags & 4) != 0)
-                m_isVolumeDetect = true;
-            if ((flags & 8) != 0)
-                m_taintdisable = true;
-            if ((flags & 16) != 0)
-                m_taintCollidesWater = true;
-            if ((flags & 32) != 0)
-                m_collidesLand = true;
-            if ((flags & 64) != 0)
-                m_usePID = true;
-            if ((flags & 128) != 0)
-                m_useAPID = true;
-            if ((flags & 256) != 0)
-                m_useHoverPID = true;
-            if ((flags & 512) != 0)
-                m_throttleUpdates = true;
-
-            _size = st.Rvector3();
-            m_taintsize = _size;
-
-            m_material= st.Rint();
-            m_density = st.Rfloat();
-            st.Rfloat(); // future gravity mod V3
-            st.Rfloat(); // future friction V3
-            st.Rfloat(); // future bounce V3
-
-//            m_collisionCategories = (CollisionCategories)st.Ruint();
-//            m_collisionFlags = (CollisionCategories) st.Ruint();
-
-            if (m_taintparent == null)
-            {
-                st.Rvector3(); // ignore old position sop/sog as to tell the new one
-                m_taintrot = st.Rquat(); // 
-                _orientation = m_taintrot;
-            }
-            else
-            {
-                m_taintrot = _parent.Orientation;
-                m_taintposition = st.Rvector3(); // ??
-                _position = m_taintposition;
-
-                m_taintposition *= m_taintrot;
-                m_taintposition += _parent.Position;
-
-                m_taintrot *= st.Rquat(); // 
-                _orientation = m_taintrot;
-            }
-            
-            m_taintVelocity = st.Rvector3();
-            m_rotationalVelocity = st.Rvector3();
-            
-            _acceleration = st.Rvector3();
-            m_rotateEnableRequest = st.Rvector3();
-            m_rotateEnableUpdate = true;
-
-            Vector3 vtmp;
-
-            vtmp = st.Rvector3(); // forces acc
-            m_forcelist.Add(vtmp);
-            m_taintforce = true;
-
-            vtmp = st.Rvector3(); // angular forces acc
-            m_angularforcelist.Add(vtmp);
-            m_taintaddangularforce = true;
-
-            m_PIDTarget = st.Rvector3();
-            m_PIDTau = st.Rfloat();
-            PID_D = st.Rfloat();
-            PID_G = st.Rfloat();
-
-            m_APIDTarget = st.Rquat();
-            m_APIDStrength = st.Rfloat();
-            m_APIDDamping = st.Rfloat();
-            m_APIDdamper = st.Rfloat();
-
-            m_PIDHoverType = (PIDHoverType) st.Rint();
-            m_PIDHoverHeight = st.Rfloat();
-            m_PIDHoverTau = st.Rfloat();
-            m_targetHoverHeight = st.Rfloat();
-
-            m_groundHeight = st.Rfloat();
-            m_waterHeight = st.Rfloat();
-
-            m_buoyancy = st.Rfloat();
-
-
-            // this must be last since type none ends stream
-
-            m_type = (Vehicle) st.Rint();
-
-            if (m_type != Vehicle.TYPE_NONE)
-            {
-                float ftmp;
-
-                st.Rquat(); //m_referenceFrame
-
-                m_flags = (VehicleFlag) st.Rint();
-
-                m_linearMotorDirection = st.Rvector3();
-
-                ftmp = st.Rfloat();
-                m_lLinMotorDVel = m_linearMotorDirection * ftmp;
-
-                m_linearFrictionTimescale = st.Rvector3();
-                m_linearMotorDecayTimescale = st.Rfloat();
-                m_linearMotorTimescale = st.Rfloat();
-                st.Rvector3(); //m_linearMotorOffset);
-
-                m_angularMotorDirection = st.Rvector3();
-                ftmp = st.Rfloat();
-                m_angularMotorDVel = m_angularMotorDirection * ftmp;
-
-                m_angularFrictionTimescale = st.Rvector3();
-                m_angularMotorDecayTimescale = st.Rfloat();
-                m_angularMotorTimescale = st.Rfloat();
-
-                st.Rfloat(); //m_linearDeflectionEfficiency);
-                st.Rfloat(); //m_linearDeflectionTimescale);
-
-                st.Rfloat(); //m_angularDeflectionEfficiency);
-                st.Rfloat();   //m_angularDeflectionTimescale);
-
-                st.Rfloat(); // m_bankingEfficiency);
-                st.Rfloat(); //m_bankingMix);
-                st.Rfloat();  //m_bankingTimescale);
-
-                m_VhoverHeight = st.Rfloat();
-                st.Rfloat();   //m_VhoverEfficiency);
-                m_VhoverTimescale = st.Rfloat();
-
-                m_VehicleBuoyancy = st.Rfloat();
-
-                m_verticalAttractionEfficiency = st.Rfloat();
-                m_verticalAttractionTimescale = st.Rfloat();
-            }
-            st.close();
-            return true;
-        }
-
-        public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, PhysicsActor parent,
-                       PrimitiveBaseShape pbs, CollisionLocker dode, uint localid, byte[] sdata)
-        {
-            m_localID = localid;
-            ode = dode;
-
-            if (parent == null)
-            {
-                m_taintparent = null;
-
-                if (!pos.IsFinite())
-                {
-                    pos = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f),
-                        parent_scene.GetTerrainHeightAtXY(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f)) + 0.5f);
-                    m_log.Warn("[PHYSICS]: Got nonFinite Object create Position");
-                }
-
-                _position = pos;
-                m_taintposition = pos;
-            }
-            else
-                m_taintparent = parent;
-
-            body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
-
-            prim_geom = IntPtr.Zero;
-
-            _mesh = null;
-            m_meshfailed = false;
-            _pbs = pbs;
-
-            _parent_scene = parent_scene;
-            m_targetSpace = (IntPtr)0;
-
-            if(sdata != null && sdata.Length > 1)
-                DeSerialize(sdata);
-
-            if (m_isphysical)
-                m_targetSpace = _parent_scene.space;
-
-            _triMeshData = IntPtr.Zero;
-
-            m_primName = primName;
-            m_taintserial = null;
-            m_taintadd = true;
-            _parent_scene.AddPhysicsActorTaint(this);
-            //  don't do .add() here; old geoms get recycled with the same hash
-        }
-
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode, uint localid)
         {
@@ -776,8 +374,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             _triMeshData = IntPtr.Zero;
+            m_NoColide = false;
 
-            m_taintserial = null;
+//            m_taintserial = null;
             m_primName = primName;
             m_taintadd = true;
             _parent_scene.AddPhysicsActorTaint(this);
@@ -814,7 +413,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             set
             {
-
                 //Console.WriteLine("Sel {0}  {1}  {2}", m_primName, value,   m_isphysical);        
                 // This only makes the object not collidable if the object
                 // is physical or the object is modified somehow *IN THE FUTURE*
@@ -1077,7 +675,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-
         public override bool FloatOnWater
         {
             set
@@ -1270,7 +867,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-
         public void SetGeom(IntPtr geom)
         {
             if (prim_geom != IntPtr.Zero)
@@ -1290,9 +886,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 _parent_scene.geom_name_map[prim_geom] = this.m_primName;
                 _parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
-                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                 //Console.WriteLine("**** Create {2}    Dicts: actor={0}   name={1}", _parent_scene.actor_name_map.Count, _parent_scene.geom_name_map.Count, this.m_primName);
+                if (m_NoColide)
+                {
+                    d.GeomSetCategoryBits(prim_geom, 0);
+                    if (m_isphysical)
+                    {
+                        d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
+                        d.GeomDisable(prim_geom);
+                    }
+                    else
+                        d.GeomSetCollideBits(prim_geom, 0);
+                }
+                else
+                {
+                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                }
             }
 
             if (childPrim)
@@ -1351,11 +961,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                 myrot.W = _orientation.W;
                 d.BodySetQuaternion(Body, ref myrot);
                 d.GeomSetBody(prim_geom, Body);
+
                 m_collisionCategories |= CollisionCategories.Body;
                 m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
-                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                if (m_NoColide)
+                {
+                    d.GeomSetCategoryBits(prim_geom, 0);
+                    d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
+                }
+                else
+                {
+                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                }
 
                 d.BodySetAutoDisableFlag(Body, true);
                 d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
@@ -1723,10 +1342,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         if (prim_geom != IntPtr.Zero)
                         {
-                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                            if (m_NoColide)
+                            {
+                                d.GeomSetCategoryBits(prim_geom, 0);
+                                d.GeomSetCollideBits(prim_geom, 0);
+                                d.GeomDisable(prim_geom);
+                            }
+                            else
+                            {
+                                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                            }
                         }
-
 
                         d.BodyDestroy(Body);
                         lock (childrenPrim)
@@ -1735,6 +1362,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 foreach (OdePrim prm in childrenPrim)
                                 {
+                                    if (prm.m_NoColide && prm.prim_geom != IntPtr.Zero)
+                                    {
+                                        d.GeomSetCategoryBits(prm.prim_geom, 0);
+                                        d.GeomSetCollideBits(prm.prim_geom, 0);
+                                        d.GeomDisable(prm.prim_geom);
+                                    }
+
                                     _parent_scene.remActivePrim(prm);
                                     prm.Body = IntPtr.Zero;
                                 }
@@ -1752,8 +1386,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if (prim_geom != IntPtr.Zero)
                     {
-                        d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                        d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                        if (m_NoColide)
+                        {
+                            d.GeomSetCategoryBits(prim_geom, 0);
+                            d.GeomSetCollideBits(prim_geom, 0);
+                            d.GeomDisable(prim_geom);
+                        }
+                        else
+                        {
+                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                        }
+
                     }
 
 
@@ -1768,11 +1412,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public bool setMesh(OdeScene parent_scene, IMesh mesh)
         {
-            // This sleeper is there to moderate how long it takes between
-            // setting up the mesh and pre-processing it when we get rapid fire mesh requests on a single object
-
-            //Thread.Sleep(10);
-
             //Kill Body so that mesh can re-make the geom
             if (IsPhysical && Body != IntPtr.Zero)
             {
@@ -1790,14 +1429,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-// do it on caller instead
-/*
-            if (_triMeshData != IntPtr.Zero)
-            {
-                d.GeomTriMeshDataDestroy(_triMeshData);
-                _triMeshData = IntPtr.Zero;
-            }
-*/
             IntPtr vertices, indices;
             int vertexCount, indexCount;
             int vertexStride, triStride;
@@ -1809,38 +1440,20 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (vertexCount == 0 || indexCount == 0)
             {
-                m_log.WarnFormat("[PHYSICS]: Got invalid mesh on prim {0} at <{1},{2},{3}>. It can be a sculp with alpha channel in map. Replacing it by a small box.", Name, _position.X, _position.Y, _position.Z);
-                _size.X = 0.05f;
-                _size.Y = 0.05f;
-                _size.Z = 0.05f;
+                m_log.WarnFormat("[PHYSICS]: Got invalid mesh on prim {0} at <{1},{2},{3}>. mesh UUID {4}", Name, _position.X, _position.Y, _position.Z, _pbs.SculptTexture.ToString());
                 return false;
             }
 
-/*
-            if (m_MeshToTriMeshMap.ContainsKey(mesh))
-            {
-                _triMeshData = m_MeshToTriMeshMap[mesh];
-            }
-            else
-*/
-
-
-            {
-                _triMeshData = d.GeomTriMeshDataCreate();
-
-                d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
-                d.GeomTriMeshDataPreprocess(_triMeshData);
-//                m_MeshToTriMeshMap[mesh] = _triMeshData;
-            }
-
-            _parent_scene.waitForSpaceUnlock(m_targetSpace);
+            IntPtr geo = IntPtr.Zero;
             try
             {
-                //    if (prim_geom == IntPtr.Zero)  // setGeom takes care of phys engine recreate and prim_geom pointer 
-                //    {
-                //                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
-                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null));
-                //    }
+                _triMeshData = d.GeomTriMeshDataCreate();
+                d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
+                d.GeomTriMeshDataPreprocess(_triMeshData);
+
+                _parent_scene.waitForSpaceUnlock(m_targetSpace);
+
+                 geo = d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null);
             }
             catch (Exception e)
             {
@@ -1851,21 +1464,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomTriMeshDataDestroy(_triMeshData);
                     _triMeshData = IntPtr.Zero;
                 }
-                _size.X = 0.05f;
-                _size.Y = 0.05f;
-                _size.Z = 0.05f;
                 return false;
             }
 
+            SetGeom(geo);
 
-            // if (IsPhysical && Body == (IntPtr) 0)
-            // {
-            // Recreate the body
-            //     m_interpenetrationcount = 0;
-            //     m_collisionscore = 0;
-
-            //     enableBody();
-            // }
             return true;
         }
 
@@ -1943,18 +1546,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_taintvehicledata != null)
                     DoSetVehicle();
 
-                if (m_taintserial != null)
-                    DoSerialize(m_taintserial);
-
                 /* obsolete                    
                                 if (!m_angularLock.ApproxEquals(m_taintAngularLock,0f))
                                     changeAngularLock(timestep);
                  */
             }
+
             else
             {
-                m_log.Error("[PHYSICS]: The scene reused a disposed PhysActor! *waves finger*, Don't be evil.  A couple of things can cause this.   An improper prim breakdown(be sure to set prim_geom to zero after d.GeomDestroy!   An improper buildup (creating the geom failed).   Or, the Scene Reused a physics actor after disposing it.)");
+                m_log.Error("[PHYSICS]: prim {0} at <{1},{2},{3}> as invalid geom");
+
+                // not sure this will not flame...
+                m_taintremove = true;
+                _parent_scene.AddPhysicsActorTaint(this);
             }
+
         }
 
         /* obsolete
@@ -2058,7 +1664,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             foreach (OdePrim prm in childrenPrim)
                             {
-
                                 prm.m_collisionCategories |= CollisionCategories.Body;
                                 prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
@@ -2067,9 +1672,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     m_log.Warn("[PHYSICS]: Unable to link one of the linkset elements.  No geom yet");
                                     continue;
                                 }
-                                d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
-                                d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
 
+                                if (prm.m_NoColide)
+                                {
+                                    d.GeomSetCategoryBits(prm.prim_geom, 0);
+                                    d.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
+                                }
+                                else
+                                {
+                                    d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
+                                    d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
+                                }
 
                                 d.Quaternion quat = new d.Quaternion();
                                 quat.W = prm._orientation.W;
@@ -2098,20 +1711,28 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     m_log.Debug("[PHYSICS]:I ain't got no boooooooooddy, no body");
                                 }
 
-
                                 prm.m_interpenetrationcount = 0;
                                 prm.m_collisionscore = 0;
                                 prm.m_disabled = false;
 
                                 prm.Body = Body;
-                                _parent_scene.addActivePrim(prm);
+
+                                    _parent_scene.addActivePrim(prm);
                             }
+
                             m_collisionCategories |= CollisionCategories.Body;
                             m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
-                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-
+                            if (m_NoColide)
+                            {
+                                d.GeomSetCategoryBits(prim_geom, 0);
+                                d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
+                            }
+                            else
+                            {
+                                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                            }
 
                             d.Quaternion quat2 = new d.Quaternion();
                             quat2.W = _orientation.W;
@@ -2134,19 +1755,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                             d.BodySetAutoDisableFlag(Body, true);
                             d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
 
-
                             m_interpenetrationcount = 0;
                             m_collisionscore = 0;
                             m_disabled = false;
 
                             d.BodySetPosition(Body, Position.X, Position.Y, Position.Z);
                             if (m_type != Vehicle.TYPE_NONE) Enable(Body, _parent_scene);
+
                             _parent_scene.addActivePrim(this);
                         }
                     }
                 }
             }
-
         }
 
         private void ChildSetGeom(OdePrim odePrim)
@@ -2258,6 +1878,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                     d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                    if (m_NoColide)
+                        d.GeomDisable(prim_geom);
                 }
 
                 if (m_isphysical)
@@ -2275,22 +1897,35 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                m_collisionCategories = CollisionCategories.Geom;
+                    m_collisionCategories = CollisionCategories.Geom;
+                    if (m_isphysical)
+                        m_collisionCategories |= CollisionCategories.Body;
 
-                if (m_isphysical)
-                    m_collisionCategories |= CollisionCategories.Body;
+                    m_collisionFlags = m_default_collisionFlags;
 
-                m_collisionFlags = m_default_collisionFlags;
-
-                if (m_collidesLand)
-                    m_collisionFlags |= CollisionCategories.Land;
-                if (m_collidesWater)
-                    m_collisionFlags |= CollisionCategories.Water;
+                    if (m_collidesLand)
+                        m_collisionFlags |= CollisionCategories.Land;
+                    if (m_collidesWater)
+                        m_collisionFlags |= CollisionCategories.Water;
 
                 if (prim_geom != IntPtr.Zero)
                 {
-                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                    if (m_NoColide)
+                    {
+                        d.GeomSetCategoryBits(prim_geom, 0);
+                        if (m_isphysical)
+                            d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
+                        else
+                        {
+                            d.GeomSetCollideBits(prim_geom, 0);
+                            d.GeomDisable(prim_geom);
+                        }
+                    }
+                    else
+                    {
+                        d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                        d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                    }
                 }
                 if (Body != IntPtr.Zero)
                 {
@@ -2330,19 +1965,29 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             bool gottrimesh = false;
 
+            m_NoColide = false; // assume all will go well
+
             if (_triMeshData != IntPtr.Zero)
             {
                 d.GeomTriMeshDataDestroy(_triMeshData);
                 _triMeshData = IntPtr.Zero;
             }
 
-            if (_mesh != null)					// Special - make mesh
+            if (_mesh != null)
             {
                 gottrimesh = setMesh(_parent_scene, _mesh);
+                if (!gottrimesh)
+                {
+                    // getting a mesh failed,
+                    // lets go on having a basic box or sphere, with prim size but not coliding
+                    // physical colides with land, non with nothing
+
+                    m_NoColide = true;
+                }
             }
 
-            if (!gottrimesh)	// not a mesh
-            {
+            if (!gottrimesh)
+            { // we will have a basic box or sphere
                 IntPtr geo = IntPtr.Zero;
 
                 if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1
@@ -2376,14 +2021,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
-                if (geo == IntPtr.Zero)
+                if (geo == IntPtr.Zero) // if this happens it must be fixed
                 {
+                    // if it does lets stop what we can
+                    // not sure this will not flame...
+
                     m_taintremove = true;
                     _parent_scene.AddPhysicsActorTaint(this);
                     return;
                 }
 
-                SetGeom(geo);
+                SetGeom(geo); // this processes the m_NoColide
             }
         }
 
@@ -2414,7 +2062,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
             }
-
 
             lock (_parent_scene.OdeLock)
             {
@@ -2517,8 +2164,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             resetCollisionAccounting();
             m_taintposition = _position;
         }
-
-
 
         public void rotate(float timestep)
         {
