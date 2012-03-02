@@ -150,7 +150,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
             string skillsText = String.Empty;
             string languages = String.Empty;
 
-            Byte[] charterMember = Utils.StringToBytes("Avatar");
+            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, avatarID);
+
+            string name = "Avatar";
+            int created = 0;
+            if (account != null)
+            {
+                name = account.FirstName + " " + account.LastName;
+                created = account.Created;
+            }
+            Byte[] charterMember = Utils.StringToBytes(name);
 
             profileUrl = "No profile data";
             aboutText = string.Empty;
@@ -160,7 +169,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
             partner = UUID.Zero;
 
             remoteClient.SendAvatarProperties(avatarID, aboutText,
-                        Util.ToDateTime(0).ToString(
+                        Util.ToDateTime(created).ToString(
                                 "M/d/yyyy", CultureInfo.InvariantCulture),
                         charterMember, firstLifeAboutText,
                         (uint)(0 & 0xff),
