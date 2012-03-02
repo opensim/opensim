@@ -3495,7 +3495,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         			// Output x = 0  1  2  3  ..... 255  256  257      258 total out
                     float val= heightMap[(yy * regionsize) + xx];  // input from heightMap,  <0-255 * 256> <0-255>
                     if (val < minele) val = minele;
-                    _heightmap[x * (heightmapHeightSamples) + y] = val; // samples output to _heightmap,  <0-257 * 258> <0-257>
+                    _heightmap[x * (heightmapWidthSamples) + y] = val; // samples output to _heightmap,  <0-257 * 258> <0-257>
                     hfmin = (val < hfmin) ? val : hfmin;
                     hfmax = (val > hfmax) ? val : hfmax;
                 }
@@ -3545,8 +3545,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(GroundGeom, ref R);
                 d.GeomSetPosition(GroundGeom, (pOffset.X + (regionsize * 0.5f)) - 0.5f, (pOffset.Y + (regionsize * 0.5f)) - 0.5f, 0);
-                // having nsamples = size + 1  center is actually at size/2
-                d.GeomSetPosition(GroundGeom, (pOffset.X + (regionsize * 0.5f)), (pOffset.Y + (regionsize * 0.5f)), 0);
                 IntPtr testGround = IntPtr.Zero;
                 if (RegionTerrain.TryGetValue(pOffset, out testGround))
                 {
