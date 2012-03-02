@@ -166,71 +166,83 @@ namespace OpenSim.Data.MySQL
                 {
                     dbcon.Open();
 
-                    string assetName = asset.Name;
-                    if (asset.Name.Length > 64)
+                    using (MySqlTransaction transaction = dbcon.BeginTransaction())
                     {
-                        assetName = asset.Name.Substring(0, 64);
-                        m_log.Warn("[XASSET DB]: Name field truncated from " + asset.Name.Length + " to " + assetName.Length + " characters on add");
-                    }
-
-                    string assetDescription = asset.Description;
-                    if (asset.Description.Length > 64)
-                    {
-                        assetDescription = asset.Description.Substring(0, 64);
-                        m_log.Warn("[XASSET DB]: Description field truncated from " + asset.Description.Length + " to " + assetDescription.Length + " characters on add");
-                    }
-
-                    string hash = Util.SHA1Hash(asset.Data);
-
-                    try
-                    {
-                        using (MySqlCommand cmd =
-                            new MySqlCommand(
-                                "replace INTO xassetsmeta(id, hash, name, description, asset_type, local, temporary, create_time, access_time, asset_flags, creator_id)" +
-                                "VALUES(?id, ?hash, ?name, ?description, ?asset_type, ?local, ?temporary, ?create_time, ?access_time, ?asset_flags, ?creator_id)",
-                                dbcon))
+    
+                        string assetName = asset.Name;
+                        if (asset.Name.Length > 64)
                         {
-                            // create unix epoch time
-                            int now = (int)Utils.DateTimeToUnixTime(DateTime.UtcNow);
-                            cmd.Parameters.AddWithValue("?id", asset.ID);
-                            cmd.Parameters.AddWithValue("?hash", hash);
-                            cmd.Parameters.AddWithValue("?name", assetName);
-                            cmd.Parameters.AddWithValue("?description", assetDescription);
-                            cmd.Parameters.AddWithValue("?asset_type", asset.Type);
-                            cmd.Parameters.AddWithValue("?local", asset.Local);
-                            cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
-                            cmd.Parameters.AddWithValue("?create_time", now);
-                            cmd.Parameters.AddWithValue("?access_time", now);
-                            cmd.Parameters.AddWithValue("?creator_id", asset.Metadata.CreatorID);
-                            cmd.Parameters.AddWithValue("?asset_flags", (int)asset.Flags);
-                            cmd.Parameters.AddWithValue("?data", asset.Data);
-                            cmd.ExecuteNonQuery();
-                            cmd.Dispose();
+                            assetName = asset.Name.Substring(0, 64);
+                            m_log.Warn("[XASSET DB]: Name field truncated from " + asset.Name.Length + " to " + assetName.Length + " characters on add");
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat("[ASSET DB]: MySQL failure creating asset metadata {0} with name \"{1}\". Error: {2}",
-                            asset.FullID, asset.Name, e.Message);
-                    }
-
-                    try
-                    {
-                        using (MySqlCommand cmd =
-                            new MySqlCommand(
-                                "replace INTO xassetsdata(hash, data) VALUES(?hash, ?data)",
-                                dbcon))
+    
+                        string assetDescription = asset.Description;
+                        if (asset.Description.Length > 64)
                         {
-                            cmd.Parameters.AddWithValue("?hash", hash);
-                            cmd.Parameters.AddWithValue("?data", asset.Data);
-                            cmd.ExecuteNonQuery();
-                            cmd.Dispose();
+                            assetDescription = asset.Description.Substring(0, 64);
+                            m_log.Warn("[XASSET DB]: Description field truncated from " + asset.Description.Length + " to " + assetDescription.Length + " characters on add");
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat("[XASSET DB]: MySQL failure creating asset data {0} with name \"{1}\". Error: {2}",
-                            asset.FullID, asset.Name, e.Message);
+    
+                        string hash = Util.SHA1Hash(asset.Data);
+    
+                        try
+                        {
+                            using (MySqlCommand cmd =
+                                new MySqlCommand(
+                                    "replace INTO xassetsmeta(id, hash, name, description, asset_type, local, temporary, create_time, access_time, asset_flags, creator_id)" +
+                                    "VALUES(?id, ?hash, ?name, ?description, ?asset_type, ?local, ?temporary, ?create_time, ?access_time, ?asset_flags, ?creator_id)",
+                                    dbcon))
+                            {
+                                // create unix epoch time
+                                int now = (int)Utils.DateTimeToUnixTime(DateTime.UtcNow);
+                                cmd.Parameters.AddWithValue("?id", asset.ID);
+                                cmd.Parameters.AddWithValue("?hash", hash);
+                                cmd.Parameters.AddWithValue("?name", assetName);
+                                cmd.Parameters.AddWithValue("?description", assetDescription);
+                                cmd.Parameters.AddWithValue("?asset_type", asset.Type);
+                                cmd.Parameters.AddWithValue("?local", asset.Local);
+                                cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
+                                cmd.Parameters.AddWithValue("?create_time", now);
+                                cmd.Parameters.AddWithValue("?access_time", now);
+                                cmd.Parameters.AddWithValue("?creator_id", asset.Metadata.CreatorID);
+                                cmd.Parameters.AddWithValue("?asset_flags", (int)asset.Flags);
+                                cmd.Parameters.AddWithValue("?data", asset.Data);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.ErrorFormat("[ASSET DB]: MySQL failure creating asset metadata {0} with name \"{1}\". Error: {2}",
+                                asset.FullID, asset.Name, e.Message);
+
+                            transaction.Rollback();
+
+                            return;
+                        }
+
+                        try
+                        {
+                            using (MySqlCommand cmd =
+                                new MySqlCommand(
+                                    "replace INTO xassetsdata(hash, data) VALUES(?hash, ?data)",
+                                    dbcon))
+                            {
+                                cmd.Parameters.AddWithValue("?hash", hash);
+                                cmd.Parameters.AddWithValue("?data", asset.Data);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.ErrorFormat("[XASSET DB]: MySQL failure creating asset data {0} with name \"{1}\". Error: {2}",
+                                asset.FullID, asset.Name, e.Message);
+
+                            transaction.Rollback();
+    
+                            return;
+                        }
+    
+                        transaction.Commit();
                     }
                 }
             }
