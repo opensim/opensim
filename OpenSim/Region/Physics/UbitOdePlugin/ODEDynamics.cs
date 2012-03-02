@@ -38,7 +38,7 @@
  * settings use.
  */
 
-// Ubit 2012
+// Extensive change Ubit 2012
 
 using System;
 using System.Collections.Generic;
@@ -614,6 +614,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             return vec;
         }
 
+        private const float pi = (float)Math.PI;
         private const float halfpi = 0.5f * (float)Math.PI;
 
         public static Vector3 ubitRot2Euler(Quaternion rot)
@@ -884,35 +885,64 @@ namespace OpenSim.Region.Physics.OdePlugin
                 float ftmp = 1.0f / m_verticalAttractionTimescale / m_verticalAttractionTimescale / _pParentScene.ODE_STEPSIZE;
                 float ftmp2 = m_verticalAttractionEfficiency / _pParentScene.ODE_STEPSIZE;
 
-                if (Math.Abs(roll) > 0.01) // roll
+                if (roll > halfpi)
+                    roll = pi - roll;
+                else if (roll < -halfpi)
+                    roll = -pi - roll;                           
+
+                float effroll = pitch / halfpi;
+                effroll *= effroll;
+                effroll = 1 - effroll;
+                effroll *= roll;
+
+                if (Math.Abs(effroll) > 0.01) // roll
                 {
-                    torque.X -= -roll * ftmp + curLocalAngVel.X * ftmp2;
+                    torque.X -= -effroll * ftmp + curLocalAngVel.X * ftmp2;
                 }
 
-                if (Math.Abs(pitch) > 0.01 && ((m_flags & VehicleFlag.LIMIT_ROLL_ONLY) == 0)) // pitch
+                if ((m_flags & VehicleFlag.LIMIT_ROLL_ONLY) == 0)
                 {
-                    torque.Y -= -pitch * ftmp + curLocalAngVel.Y * ftmp2;
+                    float effpitch = roll / halfpi;
+                    effpitch *= effpitch;
+                    effpitch = 1 - effpitch;
+                    effpitch *= pitch;
+                    
+                    if (Math.Abs(effpitch) > 0.01) // pitch
+                    {
+                        torque.Y -= -effpitch * ftmp + curLocalAngVel.Y * ftmp2;
+                    }
                 }
 
-                if (m_bankingEfficiency != 0 && Math.Abs(roll) > 0.01)
+                if (m_bankingEfficiency != 0 && Math.Abs(effroll) > 0.01)
                 {
-                    float broll = roll * m_bankingEfficiency; ;
+
+                    float broll = effroll;
+/*
+                    if (broll > halfpi)
+                        broll = pi - broll;
+                    else if (broll < -halfpi)
+                        broll = -pi - broll;                           
+*/                    
+                    broll *= m_bankingEfficiency; 
                     if (m_bankingMix != 0)
                     {
                         float vfact = Math.Abs(curLocalVel.X) / 10.0f;
                         if (vfact > 1.0f) vfact = 1.0f;
-                        if (curLocalVel.X >= 0)
-                            broll *= ((1 - m_bankingMix) + vfact);
-                        else
-                            broll *= -((1 - m_bankingMix) + vfact);                      
-                    }
-                    broll = (broll - curLocalAngVel.Z) / m_bankingTimescale;
-                    //                    torque.Z += broll; 
 
+                        if (curLocalVel.X >= 0)
+                            broll *= (1 + (vfact - 1) * m_bankingMix);
+                        else
+                            broll *= -(1 + (vfact - 1) * m_bankingMix);                      
+                    }
                     // make z rot be in world Z not local as seems to be in sl
-                    tmpV.X = 0;
-                    tmpV.Y = 0;
-                    tmpV.Z = broll;
+
+                    broll = broll / m_bankingTimescale;
+
+                    ftmp = -Math.Abs(m_bankingEfficiency) / m_bankingTimescale;
+
+                    tmpV.X = ftmp * curAngVel.X;
+                    tmpV.Y = ftmp * curAngVel.Y;
+                    tmpV.Z = broll + ftmp * curAngVel.Z;
                     tmpV *= irotq;
 
                     torque.X += tmpV.X;
