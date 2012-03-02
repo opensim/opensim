@@ -78,9 +78,9 @@ namespace OpenSim.Services.AuthenticationService
             }
             else
             {
-                string hashed = Util.Md5Hash(Util.Md5Hash(password) + ":" + data.Data["passwordSalt"].ToString());
+                string hashed = Util.Md5Hash(password + ":" + data.Data["passwordSalt"].ToString());
 
-                // m_log.DebugFormat("[PASS AUTH]: got {0}; hashed = {1}; stored = {2}; passonly {3}", password, hashed, data.Data["passwordHash"].ToString(), hashed2);
+                //m_log.DebugFormat("[PASS AUTH]: got {0}; hashed = {1}; stored = {2}", password, hashed, data.Data["passwordHash"].ToString());
 
                 if (data.Data["passwordHash"].ToString() == hashed)
                 {

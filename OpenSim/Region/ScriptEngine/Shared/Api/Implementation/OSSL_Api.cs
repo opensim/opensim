@@ -2160,6 +2160,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return result;
         }
 
+        public LSL_String osReplaceString(string src, string pattern, string replace, int count, int start)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osReplaceString");
+            m_host.AddScriptLPS(1);
+
+            // Normalize indices (if negative).
+            // After normlaization they may still be
+            // negative, but that is now relative to
+            // the start, rather than the end, of the
+            // sequence.
+            if (start < 0)
+            {
+                start = src.Length + start;
+            }
+
+            if (start < 0 || start >= src.Length)
+            {
+                return src;
+            }
+
+            // Find matches beginning at start position
+            Regex matcher = new Regex(pattern);
+            return matcher.Replace(src,replace,count,start);
+        }
+
         public string osLoadedCreationDate()
         {
             CheckThreatLevel(ThreatLevel.Low, "osLoadedCreationDate");

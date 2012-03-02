@@ -420,6 +420,8 @@ namespace pCampBot
 
         public void Network_LoginProgress(object sender, LoginProgressEventArgs args)
         {
+            m_log.DebugFormat("[BOT]: Bot {0} {1} in Network_LoginProcess", Name, args.Status);
+
             if (args.Status == LoginStatus.Success)
             {
                 if (OnConnected != null)
@@ -431,10 +433,15 @@ namespace pCampBot
 
         public void Network_SimConnected(object sender, SimConnectedEventArgs args)
         {
+            m_log.DebugFormat(
+                "[BOT]: Bot {0} connected to {1} at {2}", Name, args.Simulator.Name, args.Simulator.IPEndPoint);
         }
 
         public void Network_OnDisconnected(object sender, DisconnectedEventArgs args)
         {
+            m_log.DebugFormat(
+                "[BOT]: Bot {0} disconnected reason {1}, message {2}", Name, args.Reason, args.Message);
+
 //            m_log.ErrorFormat("Fired Network_OnDisconnected");
 
 //           if (

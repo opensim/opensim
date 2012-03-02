@@ -266,7 +266,7 @@ namespace pCampBot
         /// <returns></returns>
         protected CommandConsole CreateConsole()
         {
-            return new LocalConsole("Region");
+            return new LocalConsole("pCampbot");
         }
 
         private void HandleShutdown(string module, string[] cmd)
