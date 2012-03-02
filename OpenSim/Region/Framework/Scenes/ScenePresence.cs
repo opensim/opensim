@@ -683,7 +683,7 @@ namespace OpenSim.Region.Framework.Scenes
             IClientAPI client, Scene world, AvatarAppearance appearance, PresenceType type)
         {
             AttachmentsSyncLock = new Object();
-
+            AllowMovement = true;
             IsChildAgent = true;
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             Animator = new ScenePresenceAnimator(this);
