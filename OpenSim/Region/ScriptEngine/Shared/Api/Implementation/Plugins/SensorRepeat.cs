@@ -157,12 +157,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         public void CheckSenseRepeaterEvents()
         {
-            // Nothing to do here?
-            if (SenseRepeaters.Count == 0)
-                return;
-
             lock (SenseRepeatListLock)
             {
+                // Nothing to do here?
+                if (SenseRepeaters.Count == 0)
+                    return;
+
                 // Go through all timers
                 foreach (SenseRepeatClass ts in SenseRepeaters)
                 {
