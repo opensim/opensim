@@ -635,7 +635,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 ts.next =
                     DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
 
-                SenseRepeaters.Add(ts);
+                lock (SenseRepeatListLock)
+                    SenseRepeaters.Add(ts);
+                
                 idx += 6;
             }
         }
