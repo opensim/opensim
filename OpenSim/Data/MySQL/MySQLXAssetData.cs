@@ -104,6 +104,8 @@ namespace OpenSim.Data.MySQL
         /// <remarks>On failure : throw an exception and attempt to reconnect to database</remarks>
         override public AssetBase GetAsset(UUID assetID)
         {
+//            m_log.DebugFormat("[MYSQL XASSET DATA]: Looking for asset {0}", assetID);
+
             AssetBase asset = null;
             lock (m_dbLock)
             {
@@ -114,7 +116,7 @@ namespace OpenSim.Data.MySQL
                     string hash = null;
 
                     using (MySqlCommand cmd = new MySqlCommand(
-                        "SELECT name, hash, description, asset_type, local, temporary, asset_flags, creator_id FROM xassetsmeta WHERE id=?id",
+                        "SELECT name, description, asset_type, local, temporary, asset_flags, creator_id, data FROM xassetsmeta JOIN xassetsdata ON xassetsmeta.hash = xassetsdata.hash WHERE id=?id",
                         dbcon))
                     {
                         cmd.Parameters.AddWithValue("?id", assetID.ToString());
@@ -126,7 +128,7 @@ namespace OpenSim.Data.MySQL
                                 if (dbReader.Read())
                                 {
                                     asset = new AssetBase(assetID, (string)dbReader["name"], (sbyte)dbReader["asset_type"], dbReader["creator_id"].ToString());
-                                    hash = (string)dbReader["hash"];
+                                    asset.Data = (byte[])dbReader["data"];
                                     asset.Description = (string)dbReader["description"];
 
                                     string local = dbReader["local"].ToString();
@@ -143,32 +145,6 @@ namespace OpenSim.Data.MySQL
                         catch (Exception e)
                         {
                             m_log.Error("[MYSQL XASSET DATA]: MySql failure fetching asset " + assetID + ": " + e.Message);
-                        }
-                    }
-
-                    if (asset == null)
-                        return null;
-
-                    m_log.DebugFormat(
-                        "[MYSQL XASSET DATA]: Looking for asset {0} {1} with hash {2}", asset.FullID, asset.Name, hash);
-
-                    using (MySqlCommand cmd = new MySqlCommand(
-                        "SELECT data FROM xassetsdata WHERE hash=?hash",
-                        dbcon))
-                    {
-                        cmd.Parameters.AddWithValue("?hash", hash);
-
-                        try
-                        {
-                            using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
-                            {
-                                if (dbReader.Read())
-                                    asset.Data = (byte[])dbReader["data"];
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Error("[MYSQL XASSET DATA]: MySql failure fetching asset metadata " + assetID + ": " + e.Message);
                         }
                     }
                 }
