@@ -472,6 +472,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osMatchString(src, pattern, start);
         }
 
+        public LSL_String osReplaceString(string src, string pattern, string replace, int count, int start)
+        {
+            return m_OSSL_Functions.osReplaceString(src,pattern,replace,count,start);
+        }
+        
+
         // Information about data loaded into the region
         public string osLoadedCreationDate()
         {

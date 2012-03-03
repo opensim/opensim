@@ -113,7 +113,7 @@ namespace OpenSim.Tests.Common
             Console.WriteLine("Setting up test scene {0}", name);
 
             // We must set up a console otherwise setup of some modules may fail
-            MainConsole.Instance = new MockConsole("TEST PROMPT");
+            MainConsole.Instance = new MockConsole();
             
             RegionInfo regInfo = new RegionInfo(x, y, new IPEndPoint(IPAddress.Loopback, 9000), "127.0.0.1");
             regInfo.RegionName = name;

@@ -157,12 +157,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         public void CheckSenseRepeaterEvents()
         {
-            // Nothing to do here?
-            if (SenseRepeaters.Count == 0)
-                return;
-
             lock (SenseRepeatListLock)
             {
+                // Nothing to do here?
+                if (SenseRepeaters.Count == 0)
+                    return;
+
                 // Go through all timers
                 foreach (SenseRepeatClass ts in SenseRepeaters)
                 {
@@ -640,7 +640,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 ts.next =
                     DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
 
-                SenseRepeaters.Add(ts);
+                lock (SenseRepeatListLock)
+                    SenseRepeaters.Add(ts);
+                
                 idx += 6;
             }
         }

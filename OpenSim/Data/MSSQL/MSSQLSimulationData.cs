@@ -1367,7 +1367,7 @@ VALUES
             newSettings.TerrainRaiseLimit = Convert.ToDouble(row["terrain_raise_limit"]);
             newSettings.TerrainLowerLimit = Convert.ToDouble(row["terrain_lower_limit"]);
             newSettings.UseEstateSun = Convert.ToBoolean(row["use_estate_sun"]);
-            newSettings.Sandbox = Convert.ToBoolean(row["sandbox"]);
+            newSettings.Sandbox = Convert.ToBoolean(row["Sandbox"]);
             newSettings.FixedSun = Convert.ToBoolean(row["fixed_sun"]);
             newSettings.SunPosition = Convert.ToDouble(row["sun_position"]);
             newSettings.SunVector = new Vector3(
@@ -1782,7 +1782,7 @@ VALUES
             parameters.Add(_Database.CreateParameter("terrain_raise_limit", settings.TerrainRaiseLimit));
             parameters.Add(_Database.CreateParameter("terrain_lower_limit", settings.TerrainLowerLimit));
             parameters.Add(_Database.CreateParameter("use_estate_sun", settings.UseEstateSun));
-            parameters.Add(_Database.CreateParameter("sandbox", settings.Sandbox));
+            parameters.Add(_Database.CreateParameter("Sandbox", settings.Sandbox));
             parameters.Add(_Database.CreateParameter("fixed_sun", settings.FixedSun));
             parameters.Add(_Database.CreateParameter("sun_position", settings.SunPosition));
             parameters.Add(_Database.CreateParameter("sunvectorx", settings.SunVector.X));
