@@ -168,7 +168,6 @@ namespace OpenSim.Data.MySQL
 
                     using (MySqlTransaction transaction = dbcon.BeginTransaction())
                     {
-    
                         string assetName = asset.Name;
                         if (asset.Name.Length > 64)
                         {
@@ -220,26 +219,29 @@ namespace OpenSim.Data.MySQL
                             return;
                         }
 
-                        try
+                        if (!ExistsData(dbcon, transaction, hash))
                         {
-                            using (MySqlCommand cmd =
-                                new MySqlCommand(
-                                    "replace INTO xassetsdata(hash, data) VALUES(?hash, ?data)",
-                                    dbcon))
+                            try
                             {
-                                cmd.Parameters.AddWithValue("?hash", hash);
-                                cmd.Parameters.AddWithValue("?data", asset.Data);
-                                cmd.ExecuteNonQuery();
+                                using (MySqlCommand cmd =
+                                    new MySqlCommand(
+                                        "INSERT INTO xassetsdata(hash, data) VALUES(?hash, ?data)",
+                                        dbcon))
+                                {
+                                    cmd.Parameters.AddWithValue("?hash", hash);
+                                    cmd.Parameters.AddWithValue("?data", asset.Data);
+                                    cmd.ExecuteNonQuery();
+                                }
                             }
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.ErrorFormat("[XASSET DB]: MySQL failure creating asset data {0} with name \"{1}\". Error: {2}",
-                                asset.FullID, asset.Name, e.Message);
-
-                            transaction.Rollback();
+                            catch (Exception e)
+                            {
+                                m_log.ErrorFormat("[XASSET DB]: MySQL failure creating asset data {0} with name \"{1}\". Error: {2}",
+                                    asset.FullID, asset.Name, e.Message);
     
-                            return;
+                                transaction.Rollback();
+    
+                                return;
+                            }
                         }
     
                         transaction.Commit();
@@ -283,6 +285,46 @@ namespace OpenSim.Data.MySQL
 //            }
 //
 //        }
+
+        /// <summary>
+        /// We assume we already have the m_dbLock.
+        /// </summary>
+        /// TODO: need to actually use the transaction.
+        /// <param name="dbcon"></param>
+        /// <param name="transaction"></param>
+        /// <param name="hash"></param>
+        /// <returns></returns>
+        private bool ExistsData(MySqlConnection dbcon, MySqlTransaction transaction, string hash)
+        {
+//            m_log.DebugFormat("[ASSETS DB]: Checking for asset {0}", uuid);
+
+            bool exists = false;
+
+            using (MySqlCommand cmd = new MySqlCommand("SELECT hash FROM xassetsdata WHERE hash=?hash", dbcon))
+            {
+                cmd.Parameters.AddWithValue("?hash", hash);
+
+                try
+                {
+                    using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+                    {
+                        if (dbReader.Read())
+                        {
+//                                    m_log.DebugFormat("[ASSETS DB]: Found asset {0}", uuid);
+                            exists = true;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[XASSETS DB]: MySql failure in ExistsData fetching hash {0}.  Exception {1}{2}",
+                        hash, e.Message, e.StackTrace);
+                }
+            }
+
+            return exists;
+        }
 
         /// <summary>
         /// Check if the asset exists in the database
