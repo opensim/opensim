@@ -1989,6 +1989,8 @@ namespace OpenSim.Region.Framework.Scenes
         public void CopyRootPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
             SetRootPart(part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, 0, userExposed));
+            if (userExposed)
+                RootPart.Velocity = Vector3.Zero; // In case source is moving
         }
 
         public void ScriptSetPhysicsStatus(bool usePhysics)
