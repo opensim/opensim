@@ -44,6 +44,7 @@ namespace OpenSim.Data.MySQL
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private bool m_enableCompression = false;
         private string m_connectionString;
         private object m_dbLock = new object();
 
@@ -142,16 +143,19 @@ namespace OpenSim.Data.MySQL
                                     asset.Temporary = Convert.ToBoolean(dbReader["temporary"]);
                                     asset.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
 
-                                    using (GZipStream decompressionStream = new GZipStream(new MemoryStream(asset.Data), CompressionMode.Decompress))
+                                    if (m_enableCompression)
                                     {
-                                        MemoryStream outputStream = new MemoryStream();
-                                        WebUtil.CopyTo(decompressionStream, outputStream, int.MaxValue);
-//                                        int compressedLength = asset.Data.Length;
-                                        asset.Data = outputStream.ToArray();
-
-//                                        m_log.DebugFormat(
-//                                            "[XASSET DB]: Decompressed {0} {1} to {2} bytes from {3}",
-//                                            asset.ID, asset.Name, asset.Data.Length, compressedLength);
+                                        using (GZipStream decompressionStream = new GZipStream(new MemoryStream(asset.Data), CompressionMode.Decompress))
+                                        {
+                                            MemoryStream outputStream = new MemoryStream();
+                                            WebUtil.CopyTo(decompressionStream, outputStream, int.MaxValue);
+    //                                        int compressedLength = asset.Data.Length;
+                                            asset.Data = outputStream.ToArray();
+    
+    //                                        m_log.DebugFormat(
+    //                                            "[XASSET DB]: Decompressed {0} {1} to {2} bytes from {3}",
+    //                                            asset.ID, asset.Name, asset.Data.Length, compressedLength);
+                                        }
                                     }
                                 }
                             }
@@ -199,15 +203,19 @@ namespace OpenSim.Data.MySQL
                         byte[] compressedData;
                         MemoryStream outputStream = new MemoryStream();
 
-                        using (GZipStream compressionStream = new GZipStream(outputStream, CompressionMode.Compress, false))
+                        if (m_enableCompression)
                         {
-                            Console.WriteLine(WebUtil.CopyTo(new MemoryStream(asset.Data), compressionStream, int.MaxValue));
-                            // We have to close the compression stream in order to make sure it writes everything out to the underlying memory output stream.
-                            compressionStream.Close();
-                            compressedData = outputStream.ToArray();
+                            using (GZipStream compressionStream = new GZipStream(outputStream, CompressionMode.Compress, false))
+                            {
+    //                            Console.WriteLine(WebUtil.CopyTo(new MemoryStream(asset.Data), compressionStream, int.MaxValue));
+                                // We have to close the compression stream in order to make sure it writes everything out to the underlying memory output stream.
+                                compressionStream.Close();
+                                compressedData = outputStream.ToArray();
+                                asset.Data = compressedData;
+                            }
                         }
 
-                        string hash = Util.SHA1Hash(compressedData);
+                        string hash = Util.SHA1Hash(asset.Data);
 
 //                        m_log.DebugFormat(
 //                            "[XASSET DB]: Compressed data size for {0} {1}, hash {2} is {3}",
@@ -257,7 +265,7 @@ namespace OpenSim.Data.MySQL
                                         dbcon))
                                 {
                                     cmd.Parameters.AddWithValue("?hash", hash);
-                                    cmd.Parameters.AddWithValue("?data", compressedData);
+                                    cmd.Parameters.AddWithValue("?data", asset.Data);
                                     cmd.ExecuteNonQuery();
                                 }
                             }
