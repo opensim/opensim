@@ -163,8 +163,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         const float comumSoftContactERP = 0.1f;
         const float comumContactCFM = 0.0001f;
         
-        float frictionScale = 1.0f;
-        
         float frictionMovementMult = 0.3f;
 
         float TerrainBounce = 0.1f;
@@ -450,32 +448,29 @@ namespace OpenSim.Region.Physics.OdePlugin
             ContactgeomsArray = Marshal.AllocHGlobal(contactsPerCollision * d.ContactGeom.unmanagedSizeOf);
             GlobalContactsArray = GlobalContactsArray = Marshal.AllocHGlobal(maxContactsbeforedeath * d.Contact.unmanagedSizeOf);
 
-            m_materialContactsData[(int)Material.Stone].mu = frictionScale * 0.8f;
+            m_materialContactsData[(int)Material.Stone].mu = 0.8f;
             m_materialContactsData[(int)Material.Stone].bounce = 0.4f;
 
-            m_materialContactsData[(int)Material.Metal].mu = frictionScale * 0.3f;
+            m_materialContactsData[(int)Material.Metal].mu = 0.3f;
             m_materialContactsData[(int)Material.Metal].bounce = 0.4f;
 
-            m_materialContactsData[(int)Material.Glass].mu = frictionScale * 0.2f;
+            m_materialContactsData[(int)Material.Glass].mu = 0.2f;
             m_materialContactsData[(int)Material.Glass].bounce = 0.7f;
 
-            m_materialContactsData[(int)Material.Wood].mu = frictionScale * 0.6f;
+            m_materialContactsData[(int)Material.Wood].mu = 0.6f;
             m_materialContactsData[(int)Material.Wood].bounce = 0.5f;
 
-            m_materialContactsData[(int)Material.Flesh].mu = frictionScale * 0.9f;
+            m_materialContactsData[(int)Material.Flesh].mu = 0.9f;
             m_materialContactsData[(int)Material.Flesh].bounce = 0.3f;
 
-            m_materialContactsData[(int)Material.Plastic].mu = frictionScale * 0.4f;
+            m_materialContactsData[(int)Material.Plastic].mu = 0.4f;
             m_materialContactsData[(int)Material.Plastic].bounce = 0.7f;
 
-            m_materialContactsData[(int)Material.Rubber].mu = frictionScale * 0.9f;
+            m_materialContactsData[(int)Material.Rubber].mu = 0.9f;
             m_materialContactsData[(int)Material.Rubber].bounce = 0.95f;
 
             m_materialContactsData[(int)Material.light].mu = 0.0f;
             m_materialContactsData[(int)Material.light].bounce = 0.0f;
-
-            TerrainFriction *= frictionScale;
-//            AvatarFriction *= frictionScale;
 
             // Set the gravity,, don't disable things automatically (we set it explicitly on some things)
 
@@ -562,13 +557,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
 
-        /// <summary>
-        /// This is our near callback.  A geometry is near a body
-        /// </summary>
-        /// <param name="space">The space that contains the geoms.  Remember, spaces are also geoms</param>
-        /// <param name="g1">a geometry or space</param>
-        /// <param name="g2">another geometry or space</param>
-        /// 
 
         private bool GetCurContactGeom(int index, ref d.ContactGeom newcontactgeom)
         {
@@ -580,7 +568,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             return true;
         }
 
-
+        /// <summary>
+        /// This is our near callback.  A geometry is near a body
+        /// </summary>
+        /// <param name="space">The space that contains the geoms.  Remember, spaces are also geoms</param>
+        /// <param name="g1">a geometry or space</param>
+        /// <param name="g2">another geometry or space</param>
+        /// 
 
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
@@ -699,8 +693,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             // big messy collision analises
             float mu = 0;
             float bounce = 0;
-            ContactData contactdata1;
-            ContactData contactdata2;
+            ContactData contactdata1 = new ContactData(0, 0);
+            ContactData contactdata2 = new ContactData(0, 0);
             bool erpSoft = false;
 
             String name = null;
@@ -714,8 +708,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     switch (p2.PhysicsActorType)
                     {
                         case (int)ActorTypes.Agent:
-                            contactdata1 = p1.ContactData;
-                            contactdata2 = p2.ContactData;
+                            p1.getContactData(ref contactdata1);
+                            p2.getContactData(ref contactdata2);
+                            
                             bounce = contactdata1.bounce * contactdata2.bounce;
                             
                             mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
@@ -727,8 +722,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             p2.CollidingObj = true;
                             break;
                         case (int)ActorTypes.Prim:
-                            contactdata1 = p1.ContactData;
-                            contactdata2 = p2.ContactData;
+                            p1.getContactData(ref contactdata1);
+                            p2.getContactData(ref contactdata2);
                             bounce = contactdata1.bounce * contactdata2.bounce;
                             
                             mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
@@ -749,8 +744,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     switch (p2.PhysicsActorType)
                     {
                         case (int)ActorTypes.Agent:
-                            contactdata1 = p1.ContactData;
-                            contactdata2 = p2.ContactData;
+                            p1.getContactData(ref contactdata1);
+                            p2.getContactData(ref contactdata2);
                             bounce = contactdata1.bounce * contactdata2.bounce;
                             
                             mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
@@ -768,8 +763,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 p1.CollidingObj = true;
                                 p2.CollidingObj = true;
                             }
-                            contactdata1 = p1.ContactData;
-                            contactdata2 = p2.ContactData;
+                            p1.getContactData(ref contactdata1);
+                            p2.getContactData(ref contactdata2);
                             bounce = contactdata1.bounce * contactdata2.bounce;
                             erpSoft = true;
                             mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
@@ -784,7 +779,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 if (name == "Terrain")
                                 {
                                     erpSoft = true;
-                                    contactdata1 = p1.ContactData;
+                                    p1.getContactData(ref contactdata1);
                                     bounce = contactdata1.bounce * TerrainBounce;
                                     mu = (float)Math.Sqrt(contactdata1.mu * TerrainFriction);
                                     if (Math.Abs(p1.Velocity.X) > 0.1f || Math.Abs(p1.Velocity.Y) > 0.1f)
@@ -811,7 +806,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 erpSoft = true;
                                 p2.CollidingGround = true;
-                                contactdata2 = p2.ContactData;
+                                p2.getContactData(ref contactdata2);
                                 bounce = contactdata2.bounce * TerrainBounce;
                                 mu = (float)Math.Sqrt(contactdata2.mu * TerrainFriction);
 

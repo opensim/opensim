@@ -119,24 +119,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         // auxiliar
         private float m_lmEfect = 0;                                            // current linear motor eficiency
         private float m_amEfect = 0;                                            // current angular motor eficiency
+        private float m_ffactor = 1.0f;
 
-        public bool EngineActive
+        public float FrictionFactor
         {
             get
             {
-                if (m_lmEfect > 0.01)
-                    return true;
-                return false;
+                return m_ffactor;
             }
         }
-
 
         public ODEDynamics(OdePrim rootp)
         {
             rootPrim = rootp;
             _pParentScene = rootPrim._parent_scene;
         }
-
 
         public void DoSetVehicle(VehicleData vd)
         {
@@ -212,6 +209,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_lmEfect = 0;
             m_amEfect = 0;
+            m_ffactor = 1.0f;
         }
 
         internal void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
@@ -329,6 +327,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (len > 30.0f)
                         m_linearMotorDirection *= (30.0f / len);
                     m_lmEfect = 1.0f; // turn it on
+                    m_ffactor = 0.01f;
                     if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
                             && !rootPrim.m_isSelected && !rootPrim.m_disabled)
                         d.BodyEnable(rootPrim.Body);
@@ -379,6 +378,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (len > 30.0f)
                         m_linearMotorDirection *= (30.0f / len);
                     m_lmEfect = 1.0f; // turn it on
+                    m_ffactor = 0.01f;
                     if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
                             && !rootPrim.m_isSelected && !rootPrim.m_disabled)
                         d.BodyEnable(rootPrim.Body);
@@ -425,6 +425,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float invtimestep = _pParentScene.ODE_STEPSIZE;
             m_lmEfect = 0;
             m_amEfect = 0;
+            m_ffactor = 1f;
 
             m_linearMotorDirection = Vector3.Zero;
             m_angularMotorDirection = Vector3.Zero;
@@ -602,6 +603,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_lmEfect = 0;
             m_amEfect = 0;
+            m_ffactor = 1f;
         }
 
         public static Vector3 Xrot(Quaternion rot)
@@ -752,9 +754,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     force.Z += tmpV.Z;
                 }
                 m_lmEfect *= (1.0f - 1.0f / m_linearMotorDecayTimescale);
+
+                m_ffactor = 0.01f + 1e-4f * curVel.LengthSquared();
             }
             else
+            {
                 m_lmEfect = 0;
+                m_ffactor = 1f;
+            }
 
             // friction
             if (curLocalVel.X != 0 || curLocalVel.Y != 0 || curLocalVel.Z != 0)

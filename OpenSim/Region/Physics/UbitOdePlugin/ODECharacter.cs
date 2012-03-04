@@ -136,7 +136,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public UUID m_uuid;
         public bool bad = false;
 
-        public ContactData AvatarContactData = new ContactData(10f, 0.3f);
+        float mu;
+        float bounce;
 
         public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, Vector3 size, float pid_d, float pid_p, float capsule_radius, float density, float walk_divisor, float rundivisor)
         {
@@ -168,8 +169,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_density = density;
             m_mass = 80f; // sure we have a default
 
-            AvatarContactData.mu = parent_scene.AvatarFriction;
-            AvatarContactData.bounce = parent_scene.AvatarBounce;
+            mu = parent_scene.AvatarFriction;
+            bounce = parent_scene.AvatarBounce;
 
             walkDivisor = walk_divisor;
             runDivisor = rundivisor;
@@ -190,9 +191,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { return; }
         }
 
-        public override ContactData ContactData
+        public override void getContactData(ref ContactData cdata)
         {
-            get { return AvatarContactData; }
+            cdata.mu = mu;
+            cdata.bounce = bounce;
         }
 
         public override bool Building { get; set; }

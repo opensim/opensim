@@ -158,9 +158,10 @@ namespace OpenSim.Region.Physics.Manager
    
         public virtual bool Building { get; set; }
 
-        public virtual ContactData ContactData
+        public virtual void getContactData(ref ContactData cdata)
         {
-            get { return new ContactData(0, 0); }
+            cdata.mu = 0;
+            cdata.bounce = 0;
         }
 
         public abstract bool Stopped { get; }

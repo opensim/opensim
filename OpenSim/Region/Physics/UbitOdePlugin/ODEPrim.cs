@@ -187,7 +187,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public ODEDynamics m_vehicle;
 
         internal int m_material = (int)Material.Wood;
-        protected ContactData primContactData = new ContactData { mu = 0f, bounce = 0.1f };
+        private float mu;
+        private float bounce;
 
         /// <summary>
         /// Is this prim subject to physics?  Even if not, it's still solid for collision purposes.
@@ -218,25 +219,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public override ContactData ContactData
+        public override void getContactData(ref ContactData cdata)
         {
-            get
-            {
-                if (m_isphysical)
-                {
-                    ODEDynamics veh;
-                    if (_parent != null)
-                        veh = ((OdePrim)_parent).m_vehicle;
-                    else
-                        veh = m_vehicle;
+            cdata.mu = mu;
+            cdata.bounce = bounce;
 
-                    if (veh != null)
-                        if (veh.Type != Vehicle.TYPE_NONE && veh.EngineActive)
-                            return new ContactData(0, 0);
-                }
-                return primContactData;
+            if (m_isphysical)
+            {
+                ODEDynamics veh;
+                if (_parent != null)
+                    veh = ((OdePrim)_parent).m_vehicle;
+                else
+                    veh = m_vehicle;
+
+                if (veh != null && veh.Type != Vehicle.TYPE_NONE)
+                    cdata.mu *= veh.FrictionFactor;
             }
-        }
+        }    
 
         public override int PhysicsActorType
         {
@@ -745,8 +744,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void SetMaterial(int pMaterial)
         {
             m_material = pMaterial;
-            primContactData.mu = _parent_scene.m_materialContactsData[pMaterial].mu;
-            primContactData.bounce = _parent_scene.m_materialContactsData[pMaterial].bounce;
+            mu = _parent_scene.m_materialContactsData[pMaterial].mu;
+            bounce = _parent_scene.m_materialContactsData[pMaterial].bounce;
         }
 
         public void setPrimForRemoval()
@@ -899,8 +898,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_isSelected = false;
             m_delaySelect = false;
 
-            primContactData.mu = parent_scene.m_materialContactsData[(int)Material.Wood].mu;
-            primContactData.bounce = parent_scene.m_materialContactsData[(int)Material.Wood].bounce;
+            mu = parent_scene.m_materialContactsData[(int)Material.Wood].mu;
+            bounce = parent_scene.m_materialContactsData[(int)Material.Wood].bounce;
 
             CalcPrimBodyData();
 
