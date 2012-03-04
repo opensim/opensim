@@ -704,6 +704,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_isphysical)
                 m_targetSpace = _parent_scene.space;
 
+            _triMeshData = IntPtr.Zero;
+
             m_primName = primName;
             m_taintserial = null;
             m_taintadd = true;
@@ -772,6 +774,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_isphysical)
                     m_targetSpace = _parent_scene.space;
             }
+
+            _triMeshData = IntPtr.Zero;
 
             m_taintserial = null;
             m_primName = primName;
@@ -1762,7 +1766,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private static Dictionary<IMesh, IntPtr> m_MeshToTriMeshMap = new Dictionary<IMesh, IntPtr>();
 
-        public void setMesh(OdeScene parent_scene, IMesh mesh)
+        public bool setMesh(OdeScene parent_scene, IMesh mesh)
         {
             // This sleeper is there to moderate how long it takes between
             // setting up the mesh and pre-processing it when we get rapid fire mesh requests on a single object
@@ -1785,24 +1789,48 @@ namespace OpenSim.Region.Physics.OdePlugin
                     disableBody();
                 }
             }
+
+// do it on caller instead
+/*
+            if (_triMeshData != IntPtr.Zero)
+            {
+                d.GeomTriMeshDataDestroy(_triMeshData);
+                _triMeshData = IntPtr.Zero;
+            }
+*/
             IntPtr vertices, indices;
             int vertexCount, indexCount;
             int vertexStride, triStride;
             mesh.getVertexListAsPtrToFloatArray(out vertices, out vertexStride, out vertexCount); // Note, that vertices are fixed in unmanaged heap
             mesh.getIndexListAsPtrToIntArray(out indices, out triStride, out indexCount); // Also fixed, needs release after usage
 
+            // warning this destroys the mesh for eventual future use. Only pinned float arrays stay valid
             mesh.releaseSourceMeshData(); // free up the original mesh data to save memory
+
+            if (vertexCount == 0 || indexCount == 0)
+            {
+                m_log.WarnFormat("[PHYSICS]: Got invalid mesh on prim {0} at <{1},{2},{3}>. It can be a sculp with alpha channel in map. Replacing it by a small box.", Name, _position.X, _position.Y, _position.Z);
+                _size.X = 0.05f;
+                _size.Y = 0.05f;
+                _size.Z = 0.05f;
+                return false;
+            }
+
+/*
             if (m_MeshToTriMeshMap.ContainsKey(mesh))
             {
                 _triMeshData = m_MeshToTriMeshMap[mesh];
             }
             else
+*/
+
+
             {
                 _triMeshData = d.GeomTriMeshDataCreate();
 
                 d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
                 d.GeomTriMeshDataPreprocess(_triMeshData);
-                m_MeshToTriMeshMap[mesh] = _triMeshData;
+//                m_MeshToTriMeshMap[mesh] = _triMeshData;
             }
 
             _parent_scene.waitForSpaceUnlock(m_targetSpace);
@@ -1810,13 +1838,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 //    if (prim_geom == IntPtr.Zero)  // setGeom takes care of phys engine recreate and prim_geom pointer 
                 //    {
-                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
+                //                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
+                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null));
                 //    }
             }
-            catch (AccessViolationException)
+            catch (Exception e)
             {
-                m_log.Error("[PHYSICS]: MESH LOCKED");
-                return;
+                m_log.ErrorFormat("[PHYSICS]: Create trimesh failed on prim {0} : {1}",Name,e.Message);
+
+                if (_triMeshData != IntPtr.Zero)
+                {
+                    d.GeomTriMeshDataDestroy(_triMeshData);
+                    _triMeshData = IntPtr.Zero;
+                }
+                _size.X = 0.05f;
+                _size.Y = 0.05f;
+                _size.Z = 0.05f;
+                return false;
             }
 
 
@@ -1828,6 +1866,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             //     enableBody();
             // }
+            return true;
         }
 
         public void ProcessTaints(float timestep) //=============================================================================
@@ -1836,6 +1875,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 changeadd(timestep);
             }
+
+            if (m_taintremove)
+                return;
 
             if (prim_geom != IntPtr.Zero)
             {
@@ -2286,75 +2328,62 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void CreateGeom(IntPtr m_targetSpace, IMesh _mesh)
         {
+            bool gottrimesh = false;
+
+            if (_triMeshData != IntPtr.Zero)
+            {
+                d.GeomTriMeshDataDestroy(_triMeshData);
+                _triMeshData = IntPtr.Zero;
+            }
+
             if (_mesh != null)					// Special - make mesh
             {
-                setMesh(_parent_scene, _mesh);
+                gottrimesh = setMesh(_parent_scene, _mesh);
             }
-            else						// not a mesh
+
+            if (!gottrimesh)	// not a mesh
             {
-                if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1)		// special profile??
+                IntPtr geo = IntPtr.Zero;
+
+                if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1
+                    && _size.X == _size.Y && _size.X == _size.Z)
                 {
-                    if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)					// Equi-size
+                    // its a sphere
+                    _parent_scene.waitForSpaceUnlock(m_targetSpace);
+                    try
                     {
-                        if (((_size.X / 2f) > 0f))									// Has size
-                        {
-                            _parent_scene.waitForSpaceUnlock(m_targetSpace);
-                            try
-                            {
-                                SetGeom(d.CreateSphere(m_targetSpace, _size.X / 2));
-                            }
-                            catch (AccessViolationException)
-                            {
-                                m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
-                                ode.dunlock(_parent_scene.world);
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            _parent_scene.waitForSpaceUnlock(m_targetSpace);
-                            try
-                            {
-                                SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
-                            }
-                            catch (AccessViolationException)
-                            {
-                                m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
-                                ode.dunlock(_parent_scene.world);
-                                return;
-                            }
-                        }
+                        geo = d.CreateSphere(m_targetSpace, _size.X * 0.5f);
                     }
-                    else												// not equi-size
+                    catch (Exception e)
                     {
-                        _parent_scene.waitForSpaceUnlock(m_targetSpace);
-                        try
-                        {
-                            SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
-                        }
-                        catch (AccessViolationException)
-                        {
-                            m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
-                            ode.dunlock(_parent_scene.world);
-                            return;
-                        }
+                        m_log.WarnFormat("[PHYSICS]: Unable to create basic sphere for object {0}", e.Message);
+                        geo = IntPtr.Zero;
+                        ode.dunlock(_parent_scene.world);
                     }
                 }
-
-                else											// not special profile
+                else // make it a box
                 {
                     _parent_scene.waitForSpaceUnlock(m_targetSpace);
                     try
                     {
-                        SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
+                        geo = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                     }
-                    catch (AccessViolationException)
+                    catch (Exception e)
                     {
-                        m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
+                        m_log.WarnFormat("[PHYSICS]: Unable to create basic sphere for object {0}", e.Message);
+                        geo = IntPtr.Zero;
                         ode.dunlock(_parent_scene.world);
-                        return;
                     }
                 }
+
+                if (geo == IntPtr.Zero)
+                {
+                    m_taintremove = true;
+                    _parent_scene.AddPhysicsActorTaint(this);
+                    return;
+                }
+
+                SetGeom(geo);
             }
         }
 
@@ -2372,18 +2401,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (_parent_scene.needsMeshing(_pbs))
                 {
-                    // Don't need to re-enable body..   it's done in SetMesh
                     try
                     {
-                        _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
+                        _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, (int)LevelOfDetail.High, true);
                     }
                     catch
                     {
                         //Don't continuously try to mesh prims when meshing has failed
                         m_meshfailed = true;
+                        _mesh = null;
+                        m_log.WarnFormat("[PHYSICS]: changeAdd CreateMesh fail on prim {0} at <{1},{2},{3}>", Name, _position.X, _position.Y, _position.Z);
                     }
-                    // createmesh returns null when it's a shape that isn't a cube.
-                    // m_log.Debug(m_localID);
                 }
             }
 
@@ -2630,17 +2658,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                 try
                 {
                     if (_parent_scene.needsMeshing(_pbs))
-                        mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
+                        mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, (int)LevelOfDetail.High, true);
                 }
                 catch
                 {
                     m_meshfailed = true;
+                    mesh = null;
+                    m_log.WarnFormat("[PHYSICS]: changeSize CreateMesh fail on prim {0} at <{1},{2},{3}>", Name, _position.X, _position.Y, _position.Z);
                 }
 
                 //IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
                 CreateGeom(m_targetSpace, mesh);
-
-
             }
             else
             {
@@ -2732,18 +2760,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 // Don't need to re-enable body..   it's done in SetMesh
                 float meshlod = _parent_scene.meshSculptLOD;
+                IMesh mesh;
 
                 if (IsPhysical)
                     meshlod = _parent_scene.MeshSculptphysicalLOD;
                 try
                 {
-                    IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
-                    CreateGeom(m_targetSpace, mesh);
+                    mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, (int)LevelOfDetail.High, true);
                 }
                 catch
                 {
+                    mesh = null;
                     m_meshfailed = true;
+                    m_log.WarnFormat("[PHYSICS]: changeAdd CreateMesh fail on prim {0} at <{1},{2},{3}>", Name, _position.X, _position.Y, _position.Z);
                 }
+
+                CreateGeom(m_targetSpace, mesh);
+
                 // createmesh returns null when it doesn't mesh.
             }
             else

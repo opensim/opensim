@@ -641,5 +641,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public static readonly LSLInteger RCERR_UNKNOWN = -1;        
         public static readonly LSLInteger RCERR_SIM_PERF_LOW = -2;
         public static readonly LSLInteger RCERR_CAST_TIME_EXCEEDED = 3;
+
+        public const int KFM_MODE = 1;
+        public const int KFM_LOOP = 1;
+        public const int KFM_REVERSE = 3;
+        public const int KFM_FORWARD = 0;
+        public const int KFM_PING_PONG = 2;
+        public const int KFM_DATA = 2;
+        public const int KFM_TRANSLATION = 2;
+        public const int KFM_ROTATION = 1;
+        public const int KFM_COMMAND = 0;
+        public const int KFM_CMD_PLAY = 0;
+        public const int KFM_CMD_STOP = 1;
+        public const int KFM_CMD_PAUSE = 2;
     }
 }

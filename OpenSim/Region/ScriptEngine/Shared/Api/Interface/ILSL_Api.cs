@@ -399,6 +399,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llTargetOmega(LSL_Vector axis, double spinrate, double gain);
               void llTargetRemove(int number);
               void llTeleportAgentHome(string agent);
+              void llTeleportAgent(string agent, string simname, LSL_Vector pos, LSL_Vector lookAt);
               void llTextBox(string avatar, string message, int chat_channel);
         LSL_String llToLower(string source);
         LSL_String llToUpper(string source);
@@ -419,5 +420,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
               void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
           LSL_List GetLinkPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
+              void llSetKeyframedMotion(LSL_List frames, LSL_List options);
     }
 }

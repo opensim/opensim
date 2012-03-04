@@ -1746,6 +1746,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         if (grp.RootPart.PhysActor != null)
                         {
                             grp.RootPart.PhysActor.CrossingFailure();
+                            if (grp.RootPart.KeyframeMotion != null)
+                            {
+                                grp.RootPart.Velocity = Vector3.Zero;
+                                grp.RootPart.KeyframeMotion.CrossingFailure();
+                                grp.SendGroupRootTerseUpdate();
+                            }
                         }
                     }
 

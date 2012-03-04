@@ -2484,13 +2484,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llApplyRotationalImpulse(LSL_Vector force, int local)
         {
             m_host.AddScriptLPS(1);
-            m_host.ApplyAngularImpulse(new Vector3((float)force.x, (float)force.y, (float)force.z), local != 0);
+            m_host.ParentGroup.RootPart.ApplyAngularImpulse(new Vector3((float)force.x, (float)force.y, (float)force.z), local != 0);
         }
 
         public void llSetTorque(LSL_Vector torque, int local)
         {
             m_host.AddScriptLPS(1);
-            m_host.SetAngularImpulse(new Vector3((float)torque.x, (float)torque.y, (float)torque.z), local != 0);
+            m_host.ParentGroup.RootPart.SetAngularImpulse(new Vector3((float)torque.x, (float)torque.y, (float)torque.z), local != 0);
         }
 
         public LSL_Vector llGetTorque()
@@ -4655,6 +4655,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
             ScriptSleep(5000);
+        }
+
+        public void llTeleportAgent(string agent, string simname, LSL_Vector pos, LSL_Vector lookAt)
+        {
+            m_host.AddScriptLPS(1);
+            UUID agentId = new UUID();
+            if (UUID.TryParse(agent, out agentId))
+            {
+                ScenePresence presence = World.GetScenePresence(agentId);
+                if (presence != null)
+                {
+                    // agent must not be a god
+                    if (presence.UserLevel >= 200) return;
+
+                    // agent must be over the owners land
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(
+                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
+                    {
+                        World.RequestTeleportLocation(presence.ControllingClient, simname, new Vector3((float)pos.x, (float)pos.y, (float)pos.z), new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z), (uint)TeleportFlags.ViaLocation);
+                    }
+                }
+            }
         }
 
         public void llTextBox(string agent, string message, int chatChannel)
@@ -11980,6 +12002,144 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         #endregion
+
+        public void llSetKeyframedMotion(LSL_List frames, LSL_List options)
+        {
+            SceneObjectGroup group = m_host.ParentGroup;
+
+            if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical)
+                return;
+            if (group.IsAttachment)
+                return;
+
+            if (frames.Data.Length > 0) // We are getting a new motion
+            {
+                if (group.RootPart.KeyframeMotion != null)
+                    group.RootPart.KeyframeMotion.Stop();
+                group.RootPart.KeyframeMotion = null;
+
+                int idx = 0;
+
+                KeyframeMotion.PlayMode mode = KeyframeMotion.PlayMode.Forward;
+                KeyframeMotion.DataFormat data = KeyframeMotion.DataFormat.Translation | KeyframeMotion.DataFormat.Rotation;
+
+                while (idx < options.Data.Length)
+                {
+                    int option = (int)options.GetLSLIntegerItem(idx++);
+                    int remain = options.Data.Length - idx;
+
+                    switch (option)
+                    {
+                        case ScriptBaseClass.KFM_MODE:
+                            if (remain < 1)
+                                break;
+                            int modeval = (int)options.GetLSLIntegerItem(idx++);
+                            switch(modeval)
+                            {
+                                case ScriptBaseClass.KFM_FORWARD:
+                                    mode = KeyframeMotion.PlayMode.Forward;
+                                    break;
+                                case ScriptBaseClass.KFM_REVERSE:
+                                    mode = KeyframeMotion.PlayMode.Reverse;
+                                    break;
+                                case ScriptBaseClass.KFM_LOOP:
+                                    mode = KeyframeMotion.PlayMode.Loop;
+                                    break;
+                                case ScriptBaseClass.KFM_PING_PONG:
+                                    mode = KeyframeMotion.PlayMode.PingPong;
+                                    break;
+                            }
+                            break;
+                        case ScriptBaseClass.KFM_DATA:
+                            if (remain < 1)
+                                break;
+                            int dataval = (int)options.GetLSLIntegerItem(idx++);
+                            data = (KeyframeMotion.DataFormat)dataval;
+                            break;
+                    }
+                }
+
+                group.RootPart.KeyframeMotion = new KeyframeMotion(group, mode, data);
+
+                idx = 0;
+
+                int elemLength = 2;
+                if (data == (KeyframeMotion.DataFormat.Translation | KeyframeMotion.DataFormat.Rotation))
+                    elemLength = 3;
+
+                List<KeyframeMotion.Keyframe> keyframes = new List<KeyframeMotion.Keyframe>();
+                while (idx < frames.Data.Length)
+                {
+                    int remain = frames.Data.Length - idx;
+
+                    if (remain < elemLength)
+                        break;
+
+                    KeyframeMotion.Keyframe frame = new KeyframeMotion.Keyframe();
+                    frame.Position = null;
+                    frame.Rotation = null;
+
+                    if ((data & KeyframeMotion.DataFormat.Translation) != 0)
+                    {
+                        LSL_Types.Vector3 tempv = frames.GetVector3Item(idx++);
+                        frame.Position = new Vector3((float)tempv.x, (float)tempv.y, (float)tempv.z);
+                    }
+                    if ((data & KeyframeMotion.DataFormat.Rotation) != 0)
+                    {
+                        LSL_Types.Quaternion tempq = frames.GetQuaternionItem(idx++);
+                        frame.Rotation = new Quaternion((float)tempq.x, (float)tempq.y, (float)tempq.z, (float)tempq.s);
+                    }
+
+                    float tempf = (float)frames.GetLSLFloatItem(idx++);
+                    frame.TimeMS = (int)(tempf * 1000.0f);
+
+                    keyframes.Add(frame);
+                }
+
+                group.RootPart.KeyframeMotion.SetKeyframes(keyframes.ToArray());
+                group.RootPart.KeyframeMotion.Start();
+            }
+            else
+            {
+                if (group.RootPart.KeyframeMotion == null)
+                    return;
+
+                if (options.Data.Length == 0)
+                {
+                    group.RootPart.KeyframeMotion.Stop();
+                    return;
+                }
+                    
+                int code = (int)options.GetLSLIntegerItem(0);
+
+                int idx = 0;
+
+                while (idx < options.Data.Length)
+                {
+                    int option = (int)options.GetLSLIntegerItem(idx++);
+                    int remain = options.Data.Length - idx;
+
+                    switch (option)
+                    {
+                        case ScriptBaseClass.KFM_COMMAND:
+                            int cmd = (int)options.GetLSLIntegerItem(idx++);
+                            switch (cmd)
+                            {
+                                case ScriptBaseClass.KFM_CMD_PLAY:
+                                    group.RootPart.KeyframeMotion.Start();
+                                    break;
+                                case ScriptBaseClass.KFM_CMD_STOP:
+                                    group.RootPart.KeyframeMotion.Stop();
+                                    break;
+                                case ScriptBaseClass.KFM_CMD_PAUSE:
+                                    group.RootPart.KeyframeMotion.Pause();
+                                    break;
+                            }
+                            break;
+                    }
+                }
+            }
+        }
     }
 
     public class NotecardCache

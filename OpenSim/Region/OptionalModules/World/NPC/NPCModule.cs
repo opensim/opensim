@@ -99,8 +99,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             // Delete existing sp attachments
             scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, false);
 
+            AvatarAppearance app = new AvatarAppearance(appearance, true);
+            sp.Appearance = app;
+
             // Set new sp appearance. Also sends to clients.
-            scene.RequestModuleInterface<IAvatarFactoryModule>().SetAppearance(sp, new AvatarAppearance(appearance, true));
+            scene.RequestModuleInterface<IAvatarFactoryModule>().SetAppearance(sp, app);
             
             // Rez needed sp attachments
             scene.AttachmentsModule.RezAttachments(sp);

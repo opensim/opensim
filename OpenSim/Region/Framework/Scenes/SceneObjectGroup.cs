@@ -582,7 +582,7 @@ namespace OpenSim.Region.Framework.Scenes
                     foreach (ScenePresence av in m_linkedAvatars)
                     {
                         SceneObjectPart p = m_scene.GetSceneObjectPart(av.ParentID);
-                        if (m_parts.TryGetValue(p.UUID, out p))
+                        if (p != null && m_parts.TryGetValue(p.UUID, out p))
                         {
                             Vector3 offset = p.GetWorldPosition() - av.ParentPosition;
                             av.AbsolutePosition += offset;
@@ -720,6 +720,8 @@ namespace OpenSim.Region.Framework.Scenes
                             child.PhysActor.Selected = value;
                     }
                 }
+                if (RootPart.KeyframeMotion != null)
+                    RootPart.KeyframeMotion.Selected = value;
             }
         }
 
@@ -889,6 +891,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             ApplyPhysics();
 
+            if (RootPart.PhysActor != null)
+                RootPart.Force = RootPart.Force;
+            if (RootPart.PhysActor != null)
+                RootPart.Torque = RootPart.Torque;
             if (RootPart.PhysActor != null)
                 RootPart.Buoyancy = RootPart.Buoyancy;
 
@@ -1829,6 +1835,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                         backup_group.ForEachPart(delegate(SceneObjectPart part) 
                         { 
+                            if (part.KeyframeMotion != null)
+                            {
+                                part.KeyframeMotion = KeyframeMotion.FromData(backup_group, part.KeyframeMotion.Serialize());
+                                part.KeyframeMotion.UpdateSceneObject(this);
+                            }
                             part.Inventory.ProcessInventoryBackup(datastore); 
                         });
 
@@ -1978,10 +1989,18 @@ namespace OpenSim.Region.Framework.Scenes
         public void CopyRootPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
             SetRootPart(part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, 0, userExposed));
+            if (userExposed)
+                RootPart.Velocity = Vector3.Zero; // In case source is moving
         }
 
         public void ScriptSetPhysicsStatus(bool usePhysics)
         {
+            if (usePhysics)
+            {
+                if (RootPart.KeyframeMotion != null)
+                    RootPart.KeyframeMotion.Stop();
+                RootPart.KeyframeMotion = null;
+            }
             UpdatePrimFlags(RootPart.LocalId, usePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
         }
 
@@ -2045,30 +2064,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void setAngularImpulse(Vector3 impulse)
-        {
-            if (RootPart.PhysActor != null)
-            {
-                if (!IsAttachment)
-                {
-                    RootPart.PhysActor.Torque = impulse;
-                    m_scene.PhysicsScene.AddPhysicsActorTaint(RootPart.PhysActor);
-                }
-            }
-        }
-
         public Vector3 GetTorque()
         {
-            if (RootPart.PhysActor != null)
-            {
-                if (!IsAttachment)
-                {
-                    Vector3 torque = RootPart.PhysActor.Torque;
-                    return torque;
-                }
-            }
-
-            return Vector3.Zero;
+            return RootPart.Torque;
         }
 
          // This is used by both Double-Click Auto-Pilot and llMoveToTarget() in an attached object

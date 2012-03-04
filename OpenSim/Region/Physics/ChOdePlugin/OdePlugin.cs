@@ -1772,7 +1772,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             IMesh mesh = null;
 
             if (needsMeshing(pbs))
-                mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
+                mesh = mesher.CreateMesh(primName, pbs, size, (int)LevelOfDetail.High, true);
 
             result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical, localid);
 
@@ -2174,6 +2174,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         prim.ResetTaints();
 
+                        try
+                        {
+                            if (prim._triMeshData != IntPtr.Zero)
+                            {
+                                d.GeomTriMeshDataDestroy(prim._triMeshData);
+                                prim._triMeshData = IntPtr.Zero;
+                            }
+                        }
+                        catch { };
+
                         if (prim.IsPhysical)
                         {
                             prim.disableBody();
@@ -2184,7 +2194,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 prim.m_disabled = true;
                                 prim.IsPhysical = false;
                             }
-
 
                         }
                         // we don't want to remove the main space
@@ -2505,7 +2514,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             // if it's a standard box or sphere with no cuts, hollows, twist or top shear, return false since ODE can use an internal representation for the prim
-            if (!forceSimplePrimMeshing)
+            if (!forceSimplePrimMeshing && !pbs.SculptEntry)
             {
                 if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
                     || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
@@ -2527,6 +2536,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
             }
+
+            if (forceSimplePrimMeshing)
+                return true;
 
             if (pbs.ProfileHollow != 0)
                 iPropertiesNotSupportedDefault++;
@@ -2592,6 +2604,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
+            if (pbs.SculptEntry && meshSculptedPrim)
+                iPropertiesNotSupportedDefault++;
 
             if (iPropertiesNotSupportedDefault == 0)
             {
@@ -3443,8 +3457,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             int heightmapWidth = regionsize + 2;				// ODE map size 257 x 257 (Meters) (1 extra 
             int heightmapHeight = regionsize + 2;
             
-            int heightmapWidthSamples = (int)regionsize + 3;		// Sample file size, 258 x 258 samples
-            int heightmapHeightSamples = (int)regionsize + 3;
+            int heightmapWidthSamples = (int)regionsize + 2;		// Sample file size, 258 x 258 samples
+            int heightmapHeightSamples = (int)regionsize + 2;
             
             // Array of height samples for ODE 
             float[] _heightmap;
@@ -3481,7 +3495,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         			// Output x = 0  1  2  3  ..... 255  256  257      258 total out
                     float val= heightMap[(yy * regionsize) + xx];  // input from heightMap,  <0-255 * 256> <0-255>
                     if (val < minele) val = minele;
-                    _heightmap[x * (heightmapHeightSamples) + y] = val; // samples output to _heightmap,  <0-257 * 258> <0-257>
+                    _heightmap[x * (regionsize + 2) + y] = val; // samples output to _heightmap,  <0-257 * 258> <0-257>
                     hfmin = (val < hfmin) ? val : hfmin;
                     hfmax = (val > hfmax) ? val : hfmax;
                 }
@@ -3531,8 +3545,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(GroundGeom, ref R);
                 d.GeomSetPosition(GroundGeom, (pOffset.X + (regionsize * 0.5f)) - 0.5f, (pOffset.Y + (regionsize * 0.5f)) - 0.5f, 0);
-                // having nsamples = size + 1  center is actually at size/2
-                d.GeomSetPosition(GroundGeom, (pOffset.X + (regionsize * 0.5f)), (pOffset.Y + (regionsize * 0.5f)), 0);
                 IntPtr testGround = IntPtr.Zero;
                 if (RegionTerrain.TryGetValue(pOffset, out testGround))
                 {

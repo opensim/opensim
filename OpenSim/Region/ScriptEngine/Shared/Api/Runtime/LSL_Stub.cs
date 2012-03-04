@@ -1820,6 +1820,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llTargetRemove(number);
         }
 
+        public void llTeleportAgent(string agent, string simname, LSL_Vector pos, LSL_Vector lookAt)
+        {
+            m_LSL_Functions.llTeleportAgent(agent, simname, pos, lookAt);
+        }
+
         public void llTeleportAgentHome(string agent)
         {
             m_LSL_Functions.llTeleportAgentHome(agent);
@@ -1937,7 +1942,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public LSL_Integer llGetLinkNumberOfSides(LSL_Integer link)
         {
-            return  m_LSL_Functions.llGetLinkNumberOfSides(link);
+            return m_LSL_Functions.llGetLinkNumberOfSides(link);
+        }
+
+        public void llSetKeyframedMotion(LSL_List frames, LSL_List options)
+        {
+            m_LSL_Functions.llSetKeyframedMotion(frames, options);
         }
     }
 }
