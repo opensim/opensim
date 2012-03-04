@@ -222,6 +222,18 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get
             {
+                if (m_isphysical)
+                {
+                    ODEDynamics veh;
+                    if (_parent != null)
+                        veh = ((OdePrim)_parent).m_vehicle;
+                    else
+                        veh = m_vehicle;
+
+                    if (veh != null)
+                        if (veh.Type != Vehicle.TYPE_NONE && veh.EngineActive)
+                            return new ContactData(0, 0);
+                }
                 return primContactData;
             }
         }

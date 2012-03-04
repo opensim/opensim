@@ -155,7 +155,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly ILog m_log;
         // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
-        private int threadid = 0;
+//        private int threadid = 0;
         private Random fluidRandomizer = new Random(Environment.TickCount);
 
         const d.ContactFlags comumContactFlags = d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM |d.ContactFlags.Approx1 | d.ContactFlags.Bounce;
@@ -168,7 +168,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         float frictionMovementMult = 0.3f;
 
         float TerrainBounce = 0.1f;
-        float TerrainFriction = 0.1f;
+        float TerrainFriction = 0.3f;
 
         public float AvatarBounce = 0.3f;
         public float AvatarFriction = 0;// 0.9f * 0.5f;
@@ -189,8 +189,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal IntPtr WaterGeom;
 
-        public float avPIDD = 3200f; // make it visible
-        public float avPIDP = 1400f; // make it visible
+        public float avPIDD = 2200f; // make it visible
+        public float avPIDP = 900f; // make it visible
         private float avCapRadius = 0.37f;
         private float avDensity = 3f;
         private float avMovementDivisorWalk = 1.3f;
@@ -202,7 +202,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public bool forceSimplePrimMeshing = false;
 
         public float meshSculptLOD = 32;
-        public float MeshSculptphysicalLOD = 16;
+        public float MeshSculptphysicalLOD = 32;
 
         public float geomDefaultDensity = 10.000006836f;
 
@@ -212,12 +212,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float bodyPIDD = 35f;
         public float bodyPIDG = 25;
 
-        public int geomCrossingFailuresBeforeOutofbounds = 6;
+//        public int geomCrossingFailuresBeforeOutofbounds = 6;
 
         public int bodyFramesAutoDisable = 20;
 
         private float[] _watermap;
-        private bool m_filterCollisions = true;
 
         private d.NearCallback nearCallback;
 
@@ -388,9 +387,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // Defaults
 
-            avPIDD = 2200.0f;
-            avPIDP = 900.0f;
-
             int contactsPerCollision = 80;
 
             if (m_config != null)
@@ -398,57 +394,56 @@ namespace OpenSim.Region.Physics.OdePlugin
                 IConfig physicsconfig = m_config.Configs["ODEPhysicsSettings"];
                 if (physicsconfig != null)
                 {
-                    gravityx = physicsconfig.GetFloat("world_gravityx", 0f);
-                    gravityy = physicsconfig.GetFloat("world_gravityy", 0f);
-                    gravityz = physicsconfig.GetFloat("world_gravityz", -9.8f);
+                    gravityx = physicsconfig.GetFloat("world_gravityx", gravityx);
+                    gravityy = physicsconfig.GetFloat("world_gravityy", gravityy);
+                    gravityz = physicsconfig.GetFloat("world_gravityz", gravityz);
 
-                    metersInSpace = physicsconfig.GetFloat("meters_in_small_space", 29.9f);
+                    metersInSpace = physicsconfig.GetFloat("meters_in_small_space", metersInSpace);
 
                     contactsurfacelayer = physicsconfig.GetFloat("world_contact_surface_layer", contactsurfacelayer);
 
-                    ODE_STEPSIZE = physicsconfig.GetFloat("world_stepsize", 0.020f);
-                    m_physicsiterations = physicsconfig.GetInt("world_internal_steps_without_collisions", 10);
+                    ODE_STEPSIZE = physicsconfig.GetFloat("world_stepsize", ODE_STEPSIZE);
+                    m_physicsiterations = physicsconfig.GetInt("world_internal_steps_without_collisions", m_physicsiterations);
 
                     avDensity = physicsconfig.GetFloat("av_density", avDensity);
-                    avMovementDivisorWalk = physicsconfig.GetFloat("av_movement_divisor_walk", 1.3f);
-                    avMovementDivisorRun = physicsconfig.GetFloat("av_movement_divisor_run", 0.8f);
-                    avCapRadius = physicsconfig.GetFloat("av_capsule_radius", 0.37f);
+                    avMovementDivisorWalk = physicsconfig.GetFloat("av_movement_divisor_walk", avMovementDivisorWalk);
+                    avMovementDivisorRun = physicsconfig.GetFloat("av_movement_divisor_run", avMovementDivisorRun);
+                    avCapRadius = physicsconfig.GetFloat("av_capsule_radius", avCapRadius);
 
-                    contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", 80);
+                    contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", contactsPerCollision);
 
                     geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 3);
                     geomUpdatesPerThrottledUpdate = physicsconfig.GetInt("geom_updates_before_throttled_update", 15);
-                    geomCrossingFailuresBeforeOutofbounds = physicsconfig.GetInt("geom_crossing_failures_before_outofbounds", 5);
+//                    geomCrossingFailuresBeforeOutofbounds = physicsconfig.GetInt("geom_crossing_failures_before_outofbounds", 5);
 
-                    geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", 10.000006836f);
-                    bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", 20);
+                    geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", geomDefaultDensity);
+                    bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", bodyFramesAutoDisable);
 
-                    bodyPIDD = physicsconfig.GetFloat("body_pid_derivative", 35f);
-                    bodyPIDG = physicsconfig.GetFloat("body_pid_gain", 25f);
+                    bodyPIDD = physicsconfig.GetFloat("body_pid_derivative", bodyPIDD);
+                    bodyPIDG = physicsconfig.GetFloat("body_pid_gain", bodyPIDG);
 
                     forceSimplePrimMeshing = physicsconfig.GetBoolean("force_simple_prim_meshing", forceSimplePrimMeshing);
-                    meshSculptedPrim = physicsconfig.GetBoolean("mesh_sculpted_prim", true);
-                    meshSculptLOD = physicsconfig.GetFloat("mesh_lod", 32f);
-                    MeshSculptphysicalLOD = physicsconfig.GetFloat("mesh_physical_lod", 16f);
-                    m_filterCollisions = physicsconfig.GetBoolean("filter_collisions", false);
+                    meshSculptedPrim = physicsconfig.GetBoolean("mesh_sculpted_prim", meshSculptedPrim);
+                    meshSculptLOD = physicsconfig.GetFloat("mesh_lod", meshSculptLOD);
+                    MeshSculptphysicalLOD = physicsconfig.GetFloat("mesh_physical_lod", MeshSculptphysicalLOD);
 
                     if (Environment.OSVersion.Platform == PlatformID.Unix)
                     {
-                        avPIDD = physicsconfig.GetFloat("av_pid_derivative_linux", 2200.0f);
-                        avPIDP = physicsconfig.GetFloat("av_pid_proportional_linux", 900.0f);
+                        avPIDD = physicsconfig.GetFloat("av_pid_derivative_linux", avPIDD);
+                        avPIDP = physicsconfig.GetFloat("av_pid_proportional_linux", avPIDP);
                     }
                     else
                     {
-                        avPIDD = physicsconfig.GetFloat("av_pid_derivative_win", 2200.0f);
-                        avPIDP = physicsconfig.GetFloat("av_pid_proportional_win", 900.0f);
+                        avPIDD = physicsconfig.GetFloat("av_pid_derivative_win", avPIDD);
+                        avPIDP = physicsconfig.GetFloat("av_pid_proportional_win", avPIDP);
                     }
 
                     physics_logging = physicsconfig.GetBoolean("physics_logging", false);
                     physics_logging_interval = physicsconfig.GetInt("physics_logging_interval", 0);
                     physics_logging_append_existing_logfile = physicsconfig.GetBoolean("physics_logging_append_existing_logfile", false);
 
-                    minimumGroundFlightOffset = physicsconfig.GetFloat("minimum_ground_flight_offset", 3f);
-                    maximumMassObject = physicsconfig.GetFloat("maximum_mass_object", 10000.01f);
+                    minimumGroundFlightOffset = physicsconfig.GetFloat("minimum_ground_flight_offset", minimumGroundFlightOffset);
+                    maximumMassObject = physicsconfig.GetFloat("maximum_mass_object", maximumMassObject);
                 }
             }
 
@@ -1941,13 +1936,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                         yy += regionsize;
 
                     val = heightMap[yy + xx];
+                    if (val < 0.0f)
+                        val = 0.0f; // no neg terrain as in chode
                     _heightmap[xt + y] = val;
 
                     if (hfmin > val)
                         hfmin = val;
                     if (hfmax < val)
                         hfmax = val;
-
                 }
                 xt += heightmapHeightSamples;
             }

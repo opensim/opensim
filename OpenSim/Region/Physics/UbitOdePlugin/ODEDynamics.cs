@@ -120,6 +120,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_lmEfect = 0;                                            // current linear motor eficiency
         private float m_amEfect = 0;                                            // current angular motor eficiency
 
+        public bool EngineActive
+        {
+            get
+            {
+                if (m_lmEfect > 0.01)
+                    return true;
+                return false;
+            }
+        }
+
 
         public ODEDynamics(OdePrim rootp)
         {
@@ -151,6 +161,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_linearMotorTimescale = vd.m_linearMotorTimescale;
             if (m_linearMotorTimescale < timestep) m_linearMotorTimescale = timestep;
+
 
             m_linearMotorOffset = vd.m_linearMotorOffset;
 
