@@ -241,6 +241,9 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; For V2 map
     MapTileURL = "http://127.0.0.1:8002";
 
+    ; For WebProfiles (V3)
+    ProfileServerURL = "http://127.0.0.1/profiles/[AGENT_NAME]"
+
     ; If you run this login server behind a proxy, set this to true
     ; HasProxy = false
     
