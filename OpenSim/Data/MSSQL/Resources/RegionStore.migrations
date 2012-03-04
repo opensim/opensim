@@ -1044,10 +1044,93 @@ ALTER TABLE primitems ALTER COLUMN CreatorID uniqueidentifier NOT NULL
 
 COMMIT
 
-:VERSION 29         #---------------------
+:VERSION 29         #----------------- Region Covenant changed time
 
 BEGIN TRANSACTION
 
 ALTER TABLE regionsettings ADD covenant_datetime int NOT NULL default 0
 
 COMMIT
+
+:VERSION 30         #------------------Migrate creatorID storage to varchars instead of UUIDs for HG support
+
+BEGIN TRANSACTION
+
+EXECUTE sp_rename N'dbo.prims.creatorid', N'creatoridold', 'COLUMN'
+EXECUTE sp_rename N'dbo.primitems.creatorid', N'creatoridold', 'COLUMN'
+
+COMMIT
+
+:VERSION 31        #---------------------
+
+BEGIN TRANSACTION
+
+ALTER TABLE prims ADD CreatorID varchar(255)
+ALTER TABLE primitems ADD CreatorID varchar(255)
+
+COMMIT
+
+:VERSION 32        #---------------------
+
+BEGIN TRANSACTION
+
+UPDATE prims SET prims.CreatorID = CONVERT(varchar(255), creatoridold)
+UPDATE primitems SET primitems.CreatorID = CONVERT(varchar(255), creatoridold)
+
+COMMIT
+
+:VERSION 33       #---------------------
+
+BEGIN TRANSACTION
+
+ALTER TABLE prims 
+ADD CONSTRAINT DF_prims_CreatorIDNew 
+DEFAULT '00000000-0000-0000-0000-000000000000' 
+FOR CreatorID
+
+ALTER TABLE prims ALTER COLUMN CreatorID varchar(255) NOT NULL
+
+ALTER TABLE primitems
+ADD CONSTRAINT DF_primitems_CreatorIDNew
+DEFAULT '00000000-0000-0000-0000-000000000000' 
+FOR CreatorID
+
+ALTER TABLE primitems ALTER COLUMN CreatorID varchar(255) NOT NULL
+
+COMMIT
+
+:VERSION 34		  #--------------- Telehub support
+
+BEGIN TRANSACTION
+
+CREATE TABLE [dbo].[Spawn_Points](
+	[RegionUUID] [uniqueidentifier] NOT NULL,
+	[Yaw] [float] NOT NULL,
+	[Pitch] [float] NOT NULL,
+	[Distance] [float] NOT NULL,
+	PRIMARY KEY CLUSTERED 
+	(
+		[RegionUUID] ASC
+	)WITH (PAD_INDEX  = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+
+ALTER TABLE regionsettings ADD TelehubObject uniqueidentifier NOT NULL  DEFAULT '00000000-0000-0000-0000-000000000000';
+
+COMMIT
+
+:VERSION 35       #---------------- Parcels for sale
+
+BEGIN TRANSACTION
+
+ALTER TABLE regionsettings ADD parcel_tile_ID uniqueidentifier NOT NULL  DEFAULT '00000000-0000-0000-0000-000000000000';
+
+COMMIT
+
+:VERSION 36       #---------------- Timed bans/access
+
+BEGIN TRANSACTION
+
+ALTER TABLE landaccesslist ADD Expires integer NOT NULL  DEFAULT 0;
+
+COMMIT
+
