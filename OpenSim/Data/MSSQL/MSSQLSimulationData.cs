@@ -675,7 +675,7 @@ VALUES
                 cmd.ExecuteNonQuery();
             }
 
-            sql = "INSERT INTO [landaccesslist] ([LandUUID],[AccessUUID],[Flags]) VALUES (@LandUUID,@AccessUUID,@Flags)";
+            sql = "INSERT INTO [landaccesslist] ([LandUUID],[AccessUUID],[Flags],[Expires]) VALUES (@LandUUID,@AccessUUID,@Flags,@Expires)";
 
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -1215,6 +1215,8 @@ VALUES
             //Store new values
             StoreNewRegionSettings(regionSettings);
 
+            LoadSpawnPoints(regionSettings);
+
             return regionSettings;
         }
 
@@ -1252,7 +1254,7 @@ VALUES
 ,[elevation_1_ne] = @elevation_1_ne ,[elevation_2_ne] = @elevation_2_ne ,[elevation_1_se] = @elevation_1_se ,[elevation_2_se] = @elevation_2_se 
 ,[elevation_1_sw] = @elevation_1_sw ,[elevation_2_sw] = @elevation_2_sw ,[water_height] = @water_height ,[terrain_raise_limit] = @terrain_raise_limit 
 ,[terrain_lower_limit] = @terrain_lower_limit ,[use_estate_sun] = @use_estate_sun ,[fixed_sun] = @fixed_sun ,[sun_position] = @sun_position 
-,[covenant] = @covenant ,[covenant_datetime] = @covenant_datetime, [sunvectorx] = @sunvectorx, [sunvectory] = @sunvectory, [sunvectorz] = @sunvectorz,  [Sandbox] = @Sandbox, [loaded_creation_datetime] = @loaded_creation_datetime, [loaded_creation_id] = @loaded_creation_id
+,[covenant] = @covenant ,[covenant_datetime] = @covenant_datetime, [sunvectorx] = @sunvectorx, [sunvectory] = @sunvectory, [sunvectorz] = @sunvectorz,  [Sandbox] = @Sandbox, [loaded_creation_datetime] = @loaded_creation_datetime, [loaded_creation_id] = @loaded_creation_id, [map_tile_id] = @TerrainImageID, [telehubobject] = @telehubobject, [parcel_tile_id] = @ParcelImageID
  WHERE [regionUUID] = @regionUUID";
 
                 using (SqlConnection conn = new SqlConnection(m_connectionString))
@@ -1263,6 +1265,7 @@ VALUES
                     cmd.ExecuteNonQuery();
                 }
             }
+            SaveSpawnPoints(regionSettings);
         }
 
         public void Shutdown()
@@ -1383,6 +1386,11 @@ VALUES
                 newSettings.LoadedCreationID = "";
             else
                 newSettings.LoadedCreationID = (String)row["loaded_creation_id"];
+
+            newSettings.TerrainImageID = new UUID((string)row["map_tile_ID"]);
+            newSettings.ParcelImageID = new UUID((Guid)row["parcel_tile_ID"]);
+            newSettings.TelehubObject = new UUID((Guid)row["TelehubObject"]);
+
             return newSettings;
         }
 
@@ -1454,6 +1462,13 @@ VALUES
             }
 
             newData.ParcelAccessList = new List<LandAccessEntry>();
+            newData.MediaDescription = (string)row["MediaDescription"];
+            newData.MediaType = (string)row["MediaType"];
+            newData.MediaWidth = Convert.ToInt32((((string)row["MediaSize"]).Split(','))[0]);
+            newData.MediaHeight = Convert.ToInt32((((string)row["MediaSize"]).Split(','))[1]);
+            newData.MediaLoop = Convert.ToBoolean(row["MediaLoop"]);
+            newData.ObscureMusic = Convert.ToBoolean(row["ObscureMusic"]);
+            newData.ObscureMedia = Convert.ToBoolean(row["ObscureMedia"]);
 
             return newData;
         }
@@ -1468,7 +1483,7 @@ VALUES
             LandAccessEntry entry = new LandAccessEntry();
             entry.AgentID = new UUID((Guid)row["AccessUUID"]);
             entry.Flags = (AccessList)Convert.ToInt32(row["Flags"]);
-            entry.Expires = 0;
+            entry.Expires = Convert.ToInt32(row["Expires"]);
             return entry;
         }
 
@@ -1497,7 +1512,8 @@ VALUES
             prim.TouchName = (string)primRow["TouchName"];
             // permissions
             prim.Flags = (PrimFlags)Convert.ToUInt32(primRow["ObjectFlags"]);
-            prim.CreatorID = new UUID((Guid)primRow["CreatorID"]);
+            //prim.CreatorID = new UUID((Guid)primRow["CreatorID"]);
+            prim.CreatorIdentification = (string)primRow["CreatorID"];
             prim.OwnerID = new UUID((Guid)primRow["OwnerID"]);
             prim.GroupID = new UUID((Guid)primRow["GroupID"]);
             prim.LastOwnerID = new UUID((Guid)primRow["LastOwnerID"]);
@@ -1691,7 +1707,8 @@ VALUES
             taskItem.Name = (string)inventoryRow["name"];
             taskItem.Description = (string)inventoryRow["description"];
             taskItem.CreationDate = Convert.ToUInt32(inventoryRow["creationDate"]);
-            taskItem.CreatorID = new UUID((Guid)inventoryRow["creatorID"]);
+            //taskItem.CreatorID = new UUID((Guid)inventoryRow["creatorID"]);
+            taskItem.CreatorIdentification = (string)inventoryRow["creatorID"];
             taskItem.OwnerID = new UUID((Guid)inventoryRow["ownerID"]);
             taskItem.LastOwnerID = new UUID((Guid)inventoryRow["lastOwnerID"]);
             taskItem.GroupID = new UUID((Guid)inventoryRow["groupID"]);
@@ -1792,6 +1809,9 @@ VALUES
             parameters.Add(_Database.CreateParameter("covenant_datetime", settings.CovenantChangedDateTime));
             parameters.Add(_Database.CreateParameter("Loaded_Creation_DateTime", settings.LoadedCreationDateTime));
             parameters.Add(_Database.CreateParameter("Loaded_Creation_ID", settings.LoadedCreationID));
+            parameters.Add(_Database.CreateParameter("TerrainImageID", settings.TerrainImageID));
+            parameters.Add(_Database.CreateParameter("ParcelImageID", settings.ParcelImageID));
+            parameters.Add(_Database.CreateParameter("TelehubObject", settings.TelehubObject));
 
             return parameters.ToArray();
         }
@@ -1859,6 +1879,7 @@ VALUES
             parameters.Add(_Database.CreateParameter("LandUUID", parcelID));
             parameters.Add(_Database.CreateParameter("AccessUUID", parcelAccessEntry.AgentID));
             parameters.Add(_Database.CreateParameter("Flags", parcelAccessEntry.Flags));
+            parameters.Add(_Database.CreateParameter("Expires", parcelAccessEntry.Expires));
 
             return parameters.ToArray();
         }
@@ -2063,5 +2084,57 @@ VALUES
         #endregion
 
         #endregion
+
+        private void LoadSpawnPoints(RegionSettings rs)
+        {
+            rs.ClearSpawnPoints();
+
+            string sql = "SELECT Yaw, Pitch, Distance FROM spawn_points WHERE RegionUUID = @RegionUUID";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", rs.RegionUUID.ToString()));
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        SpawnPoint sp = new SpawnPoint();
+
+                        sp.Yaw = (float)reader["Yaw"];
+                        sp.Pitch = (float)reader["Pitch"];
+                        sp.Distance = (float)reader["Distance"];
+
+                        rs.AddSpawnPoint(sp);
+                    }
+                }
+            }
+        }
+
+        private void SaveSpawnPoints(RegionSettings rs)
+        {
+            string sql = "DELETE FROM spawn_points WHERE RegionUUID = @RegionUUID";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", rs.RegionUUID));
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+            foreach (SpawnPoint p in rs.SpawnPoints())
+            {
+                sql = "INSERT INTO spawn_points (RegionUUID, Yaw, Pitch, Distance) VALUES (@RegionUUID, @Yaw, @Pitch, @Distance)";
+                using (SqlConnection conn = new SqlConnection(m_connectionString))
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", rs.RegionUUID));
+                    cmd.Parameters.Add(_Database.CreateParameter("@Yaw", p.Yaw));
+                    cmd.Parameters.Add(_Database.CreateParameter("@Pitch", p.Pitch));
+                    cmd.Parameters.Add(_Database.CreateParameter("@Distance", p.Distance));
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }
