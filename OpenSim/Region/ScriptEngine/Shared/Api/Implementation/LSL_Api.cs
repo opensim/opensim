@@ -11574,6 +11574,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Vector3 rayEnd = new Vector3((float)end.x, (float)end.y, (float)end.z);
             Vector3 dir = rayEnd - rayStart;
 
+            float dist = Vector3.Mag(dir);
+
             int count = 1;
             bool detectPhantom = false;
             int dataFlags = 0;
@@ -11630,6 +11632,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int values = 0;
             foreach (ContactResult result in results)
             {
+                if (result.Depth > dist)
+                    continue;
+
                 UUID itemID = UUID.Zero;
                 int linkNum = 0;
 
