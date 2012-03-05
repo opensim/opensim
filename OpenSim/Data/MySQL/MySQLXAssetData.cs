@@ -116,8 +116,6 @@ namespace OpenSim.Data.MySQL
                 {
                     dbcon.Open();
 
-                    string hash = null;
-
                     using (MySqlCommand cmd = new MySqlCommand(
                         "SELECT name, description, asset_type, local, temporary, asset_flags, creator_id, data FROM xassetsmeta JOIN xassetsdata ON xassetsmeta.hash = xassetsdata.hash WHERE id=?id",
                         dbcon))
