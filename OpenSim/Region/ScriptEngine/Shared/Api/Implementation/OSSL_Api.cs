@@ -2265,6 +2265,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             string groupTitle = String.Empty;
 
+            if (!World.Permissions.CanRezObject(1, m_host.OwnerID, new Vector3((float)position.x, (float)position.y, (float)position.z)))
+                return new LSL_Key(UUID.Zero.ToString());
+
             if (firstname != String.Empty || lastname != String.Empty)
             {
                 if (firstname != "Shown outfit:")
@@ -2594,8 +2597,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         UUID npcId = new UUID(npc.m_string);
 
-                        if (!module.CheckPermissions(npcId, m_host.OwnerID))
-                            return;
+                        ILandObject l = World.LandChannel.GetLandObject(m_host.GroupPosition.X, m_host.GroupPosition.Y);
+                        if (l == null || m_host.OwnerID != l.LandData.OwnerID)
+                        {
+                            if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                                return;
+                        }
 
                         module.DeleteNPC(npcId, World);
                     }
