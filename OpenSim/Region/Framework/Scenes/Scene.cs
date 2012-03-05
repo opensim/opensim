@@ -4938,9 +4938,16 @@ Environment.Exit(1);
                     return nearestPoint.Value;
                 }
 
-                //Ultimate backup if we have no idea where they are 
-                Debug.WriteLine("Have no idea where they are, sending them to: " + avatar.lastKnownAllowedPosition.ToString());
-                return avatar.lastKnownAllowedPosition;
+                ILandObject dest = LandChannel.GetLandObject(avatar.lastKnownAllowedPosition.X, avatar.lastKnownAllowedPosition.Y);
+                if (dest !=  excludeParcel)
+                {
+                    // Ultimate backup if we have no idea where they are and
+                    // the last allowed position was in another parcel
+                    Debug.WriteLine("Have no idea where they are, sending them to: " + avatar.lastKnownAllowedPosition.ToString());
+                    return avatar.lastKnownAllowedPosition;
+                }
+
+                // else fall through to region edge
             }
 
             //Go to the edge, this happens in teleporting to a region with no available parcels
