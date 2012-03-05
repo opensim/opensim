@@ -114,6 +114,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 //        private bool m_collidesLand = true;
         private bool m_collidesWater;
         public bool m_returnCollisions;
+        private bool m_softcolide;
+
+        private bool m_NoColide;  // for now only for internal use for bad meshs
 
         // Default we're a Geometry
         private CollisionCategories m_collisionCategories = (CollisionCategories.Geom);
@@ -224,6 +227,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             cdata.mu = mu;
             cdata.bounce = bounce;
 
+            //            cdata.softcolide = m_softcolide;
+            cdata.softcolide = false;
+
             if (m_isphysical)
             {
                 ODEDynamics veh;
@@ -303,7 +309,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
                 if (m_colliderfilter == 0)
+                {
+                    m_softcolide = false;
                     m_iscolliding = false;
+                }
                 else
                     m_iscolliding = true;
             }
@@ -859,7 +868,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _size = size;
 
-
             if (!QuaternionIsFinite(rotation))
             {
                 rotation = Quaternion.Identity;
@@ -890,6 +898,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_iscolliding = false;
             m_colliderfilter = 0;
+            m_softcolide = true;
+            m_NoColide = false;
 
             hasOOBoffsetFromMesh = false;
             _triMeshData = IntPtr.Zero;
@@ -1037,34 +1047,42 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (vertexCount == 0 || indexCount == 0)
             {
-                m_log.WarnFormat("[PHYSICS]: Got invalid mesh on prim {0} at <{1},{2},{3}>. It can be a sculp with alpha channel in map. Replacing it by a small box.", Name, _position.X, _position.Y, _position.Z);
-                _size.X = 0.01f;
-                _size.Y = 0.01f;
-                _size.Z = 0.01f;
+                m_log.WarnFormat("[PHYSICS]: Got invalid mesh on prim {0} at <{1},{2},{3}>. mesh UUID {4}",
+                    Name, _position.X, _position.Y, _position.Z, _pbs.SculptTexture.ToString());
+                mesh.releaseSourceMeshData();
                 return false;
             }
 
             primOOBoffset = mesh.GetCentroid();
             hasOOBoffsetFromMesh = true;
 
-            _triMeshData = d.GeomTriMeshDataCreate();
-
-            d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
-            d.GeomTriMeshDataPreprocess(_triMeshData);
-
             mesh.releaseSourceMeshData();
 
-            _parent_scene.waitForSpaceUnlock(m_targetSpace);
+            IntPtr geo = IntPtr.Zero;
+
             try
             {
-                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null));
+                _triMeshData = d.GeomTriMeshDataCreate();
+
+                d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
+                d.GeomTriMeshDataPreprocess(_triMeshData);
+
+                _parent_scene.waitForSpaceUnlock(m_targetSpace);
+                geo = d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null);
             }
 
             catch (Exception e)
             {
                 m_log.ErrorFormat("[PHYSICS]: SetGeom Mesh failed for {0} exception: {1}", Name, e);
+                if (_triMeshData != IntPtr.Zero)
+                {
+                    d.GeomTriMeshDataDestroy(_triMeshData);
+                    _triMeshData = IntPtr.Zero;
+                }
                 return false;
             }
+
+            SetGeom(geo);
             return true;
         }
 
@@ -1074,25 +1092,30 @@ namespace OpenSim.Region.Physics.OdePlugin
             //Console.WriteLine("SetGeom to " + prim_geom + " for " + Name);
             if (prim_geom != IntPtr.Zero)
             {
-                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                if (m_NoColide)
+                {
+                    d.GeomSetCategoryBits(prim_geom, 0);
+                    if (m_isphysical)
+                    {
+                        d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
+                    }
+                    else
+                    {
+                        d.GeomSetCollideBits(prim_geom, 0);
+                        d.GeomDisable(prim_geom);
+                    }
+                }
+                else
+                {
+                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                }
 
                 CalcPrimBodyData();
 
                 _parent_scene.geom_name_map[prim_geom] = Name;
                 _parent_scene.actor_name_map[prim_geom] = this;
 
-                /*
-                                if (childPrim)
-                                {
-                                    if (_parent != null && _parent is OdePrim)
-                                    {
-                                        OdePrim parent = (OdePrim)_parent;
-                                        //Console.WriteLine("SetGeom calls ChildSetGeom");
-                                        parent.ChildSetGeom(this);
-                                    }
-                                }
-                 */
             }
             else
                 m_log.Warn("Setting bad Geom");
@@ -1114,10 +1137,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             bool haveMesh = false;
             hasOOBoffsetFromMesh = false;
+            m_NoColide = false;
 
             if (_parent_scene.needsMeshing(_pbs))
             {
                 haveMesh = setMesh(_parent_scene); // this will give a mesh to non trivial known prims
+                if (!haveMesh)
+                    m_NoColide = true;
             }
 
             if (!haveMesh)
@@ -1209,12 +1235,46 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (!childPrim && !m_isSelected)
             {
-                if (m_isphysical && Body != IntPtr.Zero && prim_geom != IntPtr.Zero)
+                if (m_isphysical && Body != IntPtr.Zero)
                 {
-                    d.GeomEnable(prim_geom);
-                    foreach (OdePrim prm in childrenPrim)
-                        d.GeomEnable(prm.prim_geom);
+                    m_collisionCategories |= CollisionCategories.Body;
+                    m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
+                    foreach (OdePrim prm in childrenPrim)
+                    {
+                        prm.m_collisionCategories = m_collisionCategories;
+                        prm.m_collisionFlags = m_collisionFlags;
+
+                        if (prm.prim_geom != IntPtr.Zero)
+                        {
+                            if (prm.m_NoColide)
+                            {
+                                d.GeomSetCategoryBits(prm.prim_geom, 0);
+                                d.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
+                            }
+                            else
+                            {
+                                d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
+                                d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
+                            }
+                            d.GeomEnable(prm.prim_geom);
+                        }
+                    }
+
+                    if (prim_geom != IntPtr.Zero)
+                    {
+                        if (m_NoColide)
+                        {
+                            d.GeomSetCategoryBits(prim_geom, 0);
+                            d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
+                        }
+                        else
+                        {
+                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                        }
+                        d.GeomEnable(prim_geom);
+                    }
                     d.BodyEnable(Body);
                 }
             }
@@ -1227,11 +1287,47 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_disabled = true;
             if (!childPrim)
             {
-                if (m_isphysical && Body != IntPtr.Zero && prim_geom != IntPtr.Zero)
+                if (m_isphysical && Body != IntPtr.Zero)
                 {
-                    d.GeomDisable(prim_geom);
+                    m_collisionCategories &= ~CollisionCategories.Body;
+                    m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
+
                     foreach (OdePrim prm in childrenPrim)
-                        d.GeomDisable(prm.prim_geom);
+                    {
+                        prm.m_collisionCategories = m_collisionCategories;
+                        prm.m_collisionFlags = m_collisionFlags;
+
+                        if (prm.prim_geom != IntPtr.Zero)
+                        {
+                            if (prm.m_NoColide)
+                            {
+                                d.GeomSetCategoryBits(prm.prim_geom, 0);
+                                d.GeomSetCollideBits(prm.prim_geom, 0);
+                            }
+                            else
+                            {
+                                d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
+                                d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
+                            }
+                            d.GeomDisable(prm.prim_geom);
+                        }
+                    }
+
+                    if (prim_geom != IntPtr.Zero)
+                    {
+                        if (m_NoColide)
+                        {
+                            d.GeomSetCategoryBits(prim_geom, 0);
+                            d.GeomSetCollideBits(prim_geom, 0);
+                        }
+                        else
+                        {
+                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                        }
+                        d.GeomDisable(prim_geom);
+                    }
+
                     d.BodyDisable(Body);
                 }
             }
@@ -1310,8 +1406,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                             continue;
                         }
 
-
-
                         DMassCopy(ref prm.primdMass, ref tmpdmass);
 
                         // apply prim current rotation to inertia
@@ -1373,24 +1467,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             //            d.BodySetAngularDampingThreshold(Body, 0.001f);
             d.BodySetDamping(Body, .002f, .002f);
 
-            m_collisionCategories |= CollisionCategories.Body;
-            m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
-            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-            m_collisionscore = 0;
 
-//            if (m_targetSpace != _parent_scene.ActiveSpace)
-            {
                 if (m_targetSpace != IntPtr.Zero)
                 {
                     _parent_scene.waitForSpaceUnlock(m_targetSpace);
                     if (d.SpaceQuery(m_targetSpace, prim_geom))
                         d.SpaceRemove(m_targetSpace, prim_geom);
                 }
-
-//                m_targetSpace = _parent_scene.ActiveSpace;
-//                d.SpaceAdd(m_targetSpace, prim_geom);
-            }
 
 
             if (childrenPrim.Count == 0)
@@ -1419,12 +1502,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     Vector3 ppos = prm._position;
                     d.GeomSetOffsetWorldPosition(prm.prim_geom, ppos.X, ppos.Y, ppos.Z); // set relative position
 
-                    prm.m_collisionCategories |= CollisionCategories.Body;
-                    prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
-                    d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
-                    d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
-                    prm.m_collisionscore = 0;
-
                     if (prm.m_targetSpace != m_targetSpace)
                     {
                         if (prm.m_targetSpace != IntPtr.Zero)
@@ -1438,9 +1515,32 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
 
                     if (m_isSelected || m_disabled)
+                    {
+                        prm.m_collisionCategories &= ~CollisionCategories.Body;
+                        prm.m_collisionFlags &= ~(CollisionCategories.Land | CollisionCategories.Wind);
                         d.GeomDisable(prm.prim_geom);
+                    }
+                    else
+                    {
+                        prm.m_collisionCategories |= CollisionCategories.Body;
+                        prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                    }
 
-                    prm.m_disabled = false;
+                    if (prm.m_NoColide)
+                    {
+                        d.GeomSetCategoryBits(prm.prim_geom, 0);
+                        d.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
+                    }
+                    else
+                    {
+                        d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
+                        d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
+                    }
+                    prm.m_collisionscore = 0;
+
+                    if(!m_disabled)
+                        prm.m_disabled = false;
+
                     _parent_scene.addActivePrim(prm);
                 }
             }
@@ -1453,15 +1553,35 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (m_isSelected || m_disabled)
             {
+                m_collisionCategories &= ~CollisionCategories.Body;
+                m_collisionFlags &= ~(CollisionCategories.Land | CollisionCategories.Wind);
+
                 d.GeomDisable(prim_geom);
                 d.BodyDisable(Body);
             }
             else
             {
+                m_collisionCategories |= CollisionCategories.Body;
+                m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+
                 d.BodySetAngularVel(Body, m_rotationalVelocity.X, m_rotationalVelocity.Y, m_rotationalVelocity.Z);
                 d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
             }
 
+            if (m_NoColide)
+            {
+                d.GeomSetCategoryBits(prim_geom, 0);
+                d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
+            }
+            else
+            {
+                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+            }
+
+            m_collisionscore = 0;
+
+            m_softcolide = true;
             _parent_scene.addActivePrim(this);
             _parent_scene.addActiveGroups(this);
         }
@@ -1475,8 +1595,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
                 if (prim_geom != IntPtr.Zero)
                 {
-                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                    if (m_NoColide)
+                    {
+                        d.GeomSetCategoryBits(prim_geom, 0);
+                        d.GeomSetCollideBits(prim_geom, 0);
+                    }
+                    else
+                    {
+                        d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                        d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                    }
                     UpdateDataFromGeom();
                     d.GeomSetBody(prim_geom, IntPtr.Zero);
                     SetInStaticSpace(this);
@@ -1489,12 +1617,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                         foreach (OdePrim prm in childrenPrim)
                         {
                             _parent_scene.remActivePrim(prm);
-                            prm.m_collisionCategories &= ~CollisionCategories.Body;
-                            prm.m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
+                            prm.m_collisionCategories = m_collisionCategories;
+                            prm.m_collisionFlags = m_collisionFlags;
                             if (prm.prim_geom != IntPtr.Zero)
                             {
-                                d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
-                                d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
+                                if (prm.m_NoColide)
+                                {
+                                    d.GeomSetCategoryBits(prm.prim_geom, 0);
+                                    d.GeomSetCollideBits(prm.prim_geom, 0);
+                                }
+                                else
+                                {
+                                    d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
+                                    d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
+                                }
                                 prm.UpdateDataFromGeom();
                                 SetInStaticSpace(prm);
                             }
@@ -2044,23 +2180,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 myrot.Z = _orientation.Z;
                 myrot.W = _orientation.W;
                 d.GeomSetQuaternion(prim_geom, ref myrot);
-                // _parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
+
                 if (!m_isphysical)
                     SetInStaticSpace(this);
             }
 
             if (m_isphysical && Body == IntPtr.Zero)
             {
-                /*
-                                if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
-                                {
-                                    changeShape(_pbs);
-                                }
-                                else
-                                {
-                 */
                 MakeBody();
-                //                }
             }
         }
 
@@ -2169,17 +2296,52 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!childPrim && Body != IntPtr.Zero)
                     d.BodyDisable(Body);
 
-                if (m_delaySelect)
+                if (m_delaySelect || m_isphysical)
                 {
+                    m_collisionCategories = CollisionCategories.Selected;
+                    m_collisionFlags = (CollisionCategories.Sensor | CollisionCategories.Space);
+
                     if (!childPrim)
                     {
                         foreach (OdePrim prm in childrenPrim)
                         {
-                            d.GeomDisable(prm.prim_geom);
+                            prm.m_collisionCategories = m_collisionCategories;
+                            prm.m_collisionFlags = m_collisionFlags;
+
+                            if (prm.prim_geom != null)
+                            {
+
+                                if (prm.m_NoColide)
+                                {
+                                    d.GeomSetCategoryBits(prm.prim_geom, 0);
+                                    d.GeomSetCollideBits(prm.prim_geom, 0);
+                                }
+                                else
+                                {
+                                    d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
+                                    d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
+                                }
+                                d.GeomDisable(prm.prim_geom);
+                            }
                             prm.m_delaySelect = false;
                         }
                     }
-                    d.GeomDisable(prim_geom);
+
+                    if (prim_geom != null)
+                    {
+                        if (m_NoColide)
+                        {
+                            d.GeomSetCategoryBits(prim_geom, 0);
+                            d.GeomSetCollideBits(prim_geom, 0);
+                        }
+                        else
+                        {
+                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                        }
+                        d.GeomDisable(prim_geom);
+                    }
+
                     m_delaySelect = false;
                 }
                 else
@@ -2192,19 +2354,64 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!childPrim && Body != IntPtr.Zero && !m_disabled)
                     d.BodyEnable(Body);
 
+                m_collisionCategories = CollisionCategories.Geom;
+                if (m_isphysical)
+                    m_collisionCategories |= CollisionCategories.Body;
+
+                m_collisionFlags = m_default_collisionFlags | CollisionCategories.Land;
+
+                if (m_collidesWater)
+                    m_collisionFlags |= CollisionCategories.Water;
+
                 if (!childPrim)
                 {
                     foreach (OdePrim prm in childrenPrim)
                     {
-                        if(!prm.m_disabled)
+                        prm.m_collisionCategories = m_collisionCategories;
+                        prm.m_collisionFlags = m_collisionFlags;
+
+                        if (!prm.m_disabled && prm.prim_geom != IntPtr.Zero)
+                        {
+                            if (prm.m_NoColide)
+                            {
+                                d.GeomSetCategoryBits(prm.prim_geom, 0);
+                                if (m_isphysical)
+                                    d.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
+                                else
+                                    d.GeomSetCollideBits(prm.prim_geom, 0);
+                            }
+                            else
+                            {
+                                d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
+                                d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
+                            }
                             d.GeomEnable(prm.prim_geom);
+                        }
                         prm.m_delaySelect = false;
+                        prm.m_softcolide = true;
                     }
                 }
-                if(!m_disabled)
+
+                if (!m_disabled && prim_geom != IntPtr.Zero)
+                {
+                    if (m_NoColide)
+                    {
+                        d.GeomSetCategoryBits(prim_geom, 0);
+                        if (m_isphysical)
+                            d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
+                        else
+                            d.GeomSetCollideBits(prim_geom, 0);
+                    }
+                    else
+                    {
+                        d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                        d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                    }
                     d.GeomEnable(prim_geom);
+                }
 
                 m_delaySelect = false;
+                m_softcolide = true;
             }
 
             resetCollisionAccounting();
@@ -2250,6 +2457,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (givefakepos < 0)
                 givefakepos = 0;
             //            changeSelectedStatus();
+            m_softcolide = true;
             resetCollisionAccounting();
         }
 
@@ -2302,6 +2510,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             givefakeori--;
             if (givefakeori < 0)
                 givefakeori = 0;
+            m_softcolide = true;
             resetCollisionAccounting();
         }
 
@@ -2372,6 +2581,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (givefakeori < 0)
                 givefakeori = 0;
 
+            m_softcolide = true;
             resetCollisionAccounting();
         }
 
@@ -2488,6 +2698,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             else
                 MakeBody();
 
+            m_softcolide = true;
             resetCollisionAccounting();
         }
 

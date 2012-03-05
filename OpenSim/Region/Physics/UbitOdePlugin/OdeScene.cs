@@ -693,8 +693,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             // big messy collision analises
             float mu = 0;
             float bounce = 0;
-            ContactData contactdata1 = new ContactData(0, 0);
-            ContactData contactdata2 = new ContactData(0, 0);
+            ContactData contactdata1 = new ContactData(0, 0, false);
+            ContactData contactdata2 = new ContactData(0, 0, false);
             bool erpSoft = false;
 
             String name = null;
@@ -718,6 +718,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
                                 mu *= frictionMovementMult;
 
+                            erpSoft = contactdata1.softcolide | contactdata2.softcolide;
                             p1.CollidingObj = true;
                             p2.CollidingObj = true;
                             break;
@@ -732,6 +733,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 mu *= frictionMovementMult;
                             if (p2.Velocity.LengthSquared() > 0.0f)
                                 p2.CollidingObj = true;
+
+                            erpSoft = contactdata1.softcolide | contactdata2.softcolide;
+
                             dop1foot = true;
                             break;
                         default:
@@ -753,6 +757,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
                                 mu *= frictionMovementMult;
 
+                            erpSoft = contactdata1.softcolide | contactdata2.softcolide;
                             dop2foot = true;
                             if (p1.Velocity.LengthSquared() > 0.0f)
                                 p1.CollidingObj = true;
@@ -766,7 +771,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             p1.getContactData(ref contactdata1);
                             p2.getContactData(ref contactdata2);
                             bounce = contactdata1.bounce * contactdata2.bounce;
-                            erpSoft = true;
+                            erpSoft = contactdata1.softcolide | contactdata2.softcolide;
                             mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
 
                             if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
@@ -778,12 +783,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 if (name == "Terrain")
                                 {
-                                    erpSoft = true;
                                     p1.getContactData(ref contactdata1);
                                     bounce = contactdata1.bounce * TerrainBounce;
                                     mu = (float)Math.Sqrt(contactdata1.mu * TerrainFriction);
                                     if (Math.Abs(p1.Velocity.X) > 0.1f || Math.Abs(p1.Velocity.Y) > 0.1f)
                                         mu *= frictionMovementMult;
+                                    erpSoft = contactdata1.softcolide;
                                     p1.CollidingGround = true;
                                 }
                                 else if (name == "Water")
@@ -804,11 +809,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             if (p2.PhysicsActorType == (int)ActorTypes.Prim)
                             {
-                                erpSoft = true;
                                 p2.CollidingGround = true;
                                 p2.getContactData(ref contactdata2);
                                 bounce = contactdata2.bounce * TerrainBounce;
                                 mu = (float)Math.Sqrt(contactdata2.mu * TerrainFriction);
+                                erpSoft = contactdata2.softcolide;
 
                                 if (Math.Abs(p2.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y) > 0.1f)
                                     mu *= frictionMovementMult;

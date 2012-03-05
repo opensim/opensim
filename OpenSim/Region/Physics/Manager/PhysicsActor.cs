@@ -72,11 +72,13 @@ namespace OpenSim.Region.Physics.Manager
     {
         public float mu;
         public float bounce;
+        public bool softcolide;
 
-        public ContactData(float _mu, float _bounce)
+        public ContactData(float _mu, float _bounce, bool _softcolide)
         {
             mu = _mu;
             bounce = _bounce;
+            softcolide = _softcolide;
         }
     }
     /// <summary>

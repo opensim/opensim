@@ -195,6 +195,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             cdata.mu = mu;
             cdata.bounce = bounce;
+            cdata.softcolide = false;
         }
 
         public override bool Building { get; set; }
