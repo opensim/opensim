@@ -48,8 +48,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static LocalGridServicesConnector m_MainInstance;
-
         private IGridService m_GridService;
         private Dictionary<UUID, RegionCache> m_LocalCache = new Dictionary<UUID, RegionCache>();
 
@@ -62,7 +60,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public LocalGridServicesConnector(IConfigSource source)
         {
             m_log.Debug("[LOCAL GRID CONNECTOR]: LocalGridServicesConnector instantiated");
-            m_MainInstance = this;
             InitialiseService(source);
         }
 
@@ -87,7 +84,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 if (name == Name)
                 {
                     InitialiseService(source);
-                    m_MainInstance = this;
                     m_Enabled = true;
                     m_log.Info("[LOCAL GRID CONNECTOR]: Local grid connector enabled");
                 }
@@ -126,12 +122,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void PostInitialise()
         {
-            if (m_MainInstance == this)
-            {
-                MainConsole.Instance.Commands.AddCommand("LocalGridConnector", false, "show neighbours",
-                    "show neighbours",
-                    "Shows the local regions' neighbours", NeighboursCommand);
-            }
+            MainConsole.Instance.Commands.AddCommand("LocalGridConnector", false, "show neighbours",
+                "show neighbours",
+                "Shows the local regions' neighbours", NeighboursCommand);
         }
 
         public void Close()
@@ -143,22 +136,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (m_Enabled)
                 scene.RegisterModuleInterface<IGridService>(this);
 
-            if (m_MainInstance == this)
-            {
-                if (m_LocalCache.ContainsKey(scene.RegionInfo.RegionID))
-                    m_log.ErrorFormat("[LOCAL GRID CONNECTOR]: simulator seems to have more than one region with the same UUID. Please correct this!");
-                else
-                    m_LocalCache.Add(scene.RegionInfo.RegionID, new RegionCache(scene));
-            }
+            if (m_LocalCache.ContainsKey(scene.RegionInfo.RegionID))
+                m_log.ErrorFormat("[LOCAL GRID CONNECTOR]: simulator seems to have more than one region with the same UUID. Please correct this!");
+            else
+                m_LocalCache.Add(scene.RegionInfo.RegionID, new RegionCache(scene));
         }
 
         public void RemoveRegion(Scene scene)
         {
-            if (m_MainInstance == this)
-            {
-                m_LocalCache[scene.RegionInfo.RegionID].Clear();
-                m_LocalCache.Remove(scene.RegionInfo.RegionID);
-            }
+            m_LocalCache[scene.RegionInfo.RegionID].Clear();
+            m_LocalCache.Remove(scene.RegionInfo.RegionID);
         }
 
         public void RegionLoaded(Scene scene)
@@ -259,6 +246,5 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             MainConsole.Instance.Output(caps.ToString());
         }
-
     }
 }
