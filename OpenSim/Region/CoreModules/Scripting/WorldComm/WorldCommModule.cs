@@ -151,6 +151,14 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         #region IWorldComm Members
 
+        public int ListenerCount
+        {
+            get
+            {
+                return m_listenerManager.ListenerCount;
+            }
+        }
+
         /// <summary>
         /// Create a listen event callback with the specified filters.
         /// The parameters localID,itemID are needed to uniquely identify
@@ -437,6 +445,18 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         private int m_maxlisteners;
         private int m_maxhandles;
         private int m_curlisteners;
+
+        /// <summary>
+        /// Total number of listeners
+        /// </summary>
+        public int ListenerCount
+        {
+            get
+            {
+                lock (m_listeners)
+                    return m_listeners.Count;
+            }
+        }
 
         public ListenerManager(int maxlisteners, int maxhandles)
         {

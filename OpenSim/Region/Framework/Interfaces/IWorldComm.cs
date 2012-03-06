@@ -50,6 +50,11 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IWorldComm
     {
         /// <summary>
+        /// Total number of listeners
+        /// </summary>
+        int ListenerCount { get; }
+
+        /// <summary>
         /// Create a listen event callback with the specified filters.
         /// The parameters localID,itemID are needed to uniquely identify
         /// the script during 'peek' time. Parameter hostID is needed to

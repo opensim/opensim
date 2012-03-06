@@ -42,22 +42,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         public AsyncCommandManager m_CmdManager;
 
+        private IWorldComm m_commsPlugin;
+
+        public int ListenerCount
+        {
+            get { return m_commsPlugin.ListenerCount; }
+        }
+
         public Listener(AsyncCommandManager CmdManager)
         {
             m_CmdManager = CmdManager;
+            m_commsPlugin = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
         }
 
         public void CheckListeners()
         {
             if (m_CmdManager.m_ScriptEngine.World == null)
                 return;
-            IWorldComm comms = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
 
-            if (comms != null)
+            if (m_commsPlugin != null)
             {
-                while (comms.HasMessages())
+                while (m_commsPlugin.HasMessages())
                 {
-                    ListenerInfo lInfo = (ListenerInfo)comms.GetNextMessage();
+                    ListenerInfo lInfo = (ListenerInfo)m_commsPlugin.GetNextMessage();
 
                     //Deliver data to prim's listen handler
                     object[] resobj = new object[]
@@ -81,17 +88,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         public Object[] GetSerializationData(UUID itemID)
         {
-            IWorldComm comms = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-
-            return comms.GetSerializationData(itemID);
+            return m_commsPlugin.GetSerializationData(itemID);
         }
 
         public void CreateFromData(uint localID, UUID itemID, UUID hostID,
                 Object[] data)
         {
-            IWorldComm comms = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-
-            comms.CreateFromData(localID, itemID, hostID, data);
+            m_commsPlugin.CreateFromData(localID, itemID, hostID, data);
         }
     }
 }
