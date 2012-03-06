@@ -1727,8 +1727,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Move afterwards ResetIDs as it clears the localID
             dupe.LocalId = localID;
-            if(dupe.PhysActor != null)
-                dupe.PhysActor.LocalID = localID;
 
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
             dupe.LastOwnerID = OwnerID;
@@ -1749,6 +1747,9 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
             
+            if (dupe.PhysActor != null)
+                dupe.PhysActor.LocalID = localID;
+
             ParentGroup.Scene.EventManager.TriggerOnSceneObjectPartCopy(dupe, this, userExposed);
 
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Clone of {0} {1} finished", Name, UUID);
