@@ -185,6 +185,12 @@ namespace OpenSim.Region.Framework.Scenes
                 OnSendStatsResult += StatsManager.SimExtraStats.ReceiveClassicSimStatsPacket;
         }
 
+        public void Close()
+        {
+            m_report.Elapsed -= statsHeartBeat;
+            m_report.Close();
+        }
+
         public void SetUpdateMS(int ms)
         {
             statsUpdatesEveryMS = ms;

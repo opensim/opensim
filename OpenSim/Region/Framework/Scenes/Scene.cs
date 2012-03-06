@@ -1076,6 +1076,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_log.InfoFormat("[SCENE]: Closing down the single simulator: {0}", RegionInfo.RegionName);
 
+            StatsReporter.Close();
+
             m_restartTimer.Stop();
             m_restartTimer.Close();
 
