@@ -957,15 +957,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public void GetAxisAlignedBoundingBoxRaw(out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ)
         {
-            /* ????
-            maxX = -256f;
-            maxY = -256f;
-            maxZ = -256f;
-            minX = 256f;
-            minY = 256f;
-            minZ = 8192f;
-             */
-
             maxX = float.MinValue;
             maxY = float.MinValue;
             maxZ = float.MinValue;
@@ -1927,8 +1918,6 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.IsAttachment = previousAttachmentStatus;
             }
 
-            
-            
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
             dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
 
