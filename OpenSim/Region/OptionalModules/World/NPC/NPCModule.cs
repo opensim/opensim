@@ -88,22 +88,26 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public bool SetNPCAppearance(UUID agentId, AvatarAppearance appearance, Scene scene)
         {
-            ScenePresence sp = scene.GetScenePresence(agentId);
-            if (sp == null || sp.IsChildAgent)
+            ScenePresence npc = scene.GetScenePresence(agentId);
+            if (npc == null || npc.IsChildAgent)
                 return false;
 
             lock (m_avatars)
                 if (!m_avatars.ContainsKey(agentId))
                     return false;
 
-            // Delete existing sp attachments
-            scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, false);
+            // Delete existing npc attachments
+            scene.AttachmentsModule.DeleteAttachmentsFromScene(npc, false);
 
-            // Set new sp appearance. Also sends to clients.
-            scene.RequestModuleInterface<IAvatarFactoryModule>().SetAppearance(sp, new AvatarAppearance(appearance, true));
+            // XXX: We can't just use IAvatarFactoryModule.SetAppearance() yet since it doesn't transfer attachments
+            AvatarAppearance npcAppearance = new AvatarAppearance(appearance, true);
+            npc.Appearance = npcAppearance;
             
-            // Rez needed sp attachments
-            scene.AttachmentsModule.RezAttachments(sp);
+            // Rez needed npc attachments
+            scene.AttachmentsModule.RezAttachments(npc);
+
+            IAvatarFactoryModule module = scene.RequestModuleInterface<IAvatarFactoryModule>();
+            module.SendAppearance(npc.UUID);
             
             return true;
         }
