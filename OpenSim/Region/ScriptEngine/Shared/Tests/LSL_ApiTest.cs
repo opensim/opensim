@@ -46,7 +46,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     [TestFixture, LongRunning]
     public class LSL_ApiTest
     {
-
         private const double ANGLE_ACCURACY_IN_RADIANS = 1E-6;
         private const double VECTOR_COMPONENT_ACCURACY = 0.0000005d;
         private const float FLOAT_ACCURACY = 0.00005f;
@@ -55,7 +54,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [SetUp]
         public void SetUp()
         {
-
             IConfigSource initConfigSource = new IniConfigSource();
             IConfig config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");
@@ -75,6 +73,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestllAngleBetween()
         {
+            TestHelpers.InMethod();
+
             CheckllAngleBetween(new Vector3(1, 0, 0), 0,   1, 1);
             CheckllAngleBetween(new Vector3(1, 0, 0), 90,  1, 1);
             CheckllAngleBetween(new Vector3(1, 0, 0), 180, 1, 1);
@@ -158,6 +158,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         // llRot2Euler test.
         public void TestllRot2Euler()
         {
+            TestHelpers.InMethod();
+
             // 180, 90 and zero degree rotations.
             CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, 0.0f, 0.0f, 1.0f));
             CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, 0.0f, 0.707107f, 0.707107f));
@@ -256,6 +258,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         // llSetPrimitiveParams and llGetPrimitiveParams test.
         public void TestllSetPrimitiveParams()
         {
+            TestHelpers.InMethod();
+
             // Create Prim1.
             Scene scene = SceneHelpers.SetupScene();
             string obj1Name = "Prim1";
@@ -486,9 +490,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         }
 
         [Test]
-        // llVecNorm test.
         public void TestllVecNorm()
         {
+            TestHelpers.InMethod();
+
             // Check special case for normalizing zero vector.
             CheckllVecNorm(new LSL_Types.Vector3(0.0d, 0.0d, 0.0d), new LSL_Types.Vector3(0.0d, 0.0d, 0.0d));
             // Check various vectors.

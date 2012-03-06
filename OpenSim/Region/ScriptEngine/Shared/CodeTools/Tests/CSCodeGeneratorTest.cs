@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using OpenSim.Region.ScriptEngine.Shared.CodeTools;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
 {
@@ -43,6 +44,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         [Test]
         public void TestDefaultState()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
@@ -63,6 +66,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         [Test]
         public void TestCustomState()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
@@ -93,6 +98,8 @@ state another_state
         [Test]
         public void TestEventWithArguments()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     at_rot_target(integer tnum, rotation targetrot, rotation ourrot)
@@ -113,6 +120,8 @@ state another_state
         [Test]
         public void TestIntegerDeclaration()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     touch_start(integer num_detected)
@@ -135,6 +144,8 @@ state another_state
         [Test]
         public void TestLoneIdent()
         {
+            TestHelpers.InMethod();
+
             // A lone ident should be removed completely as it's an error in C#
             // (MONO at least).
             string input = @"default
@@ -161,6 +172,8 @@ state another_state
         [Test]
         public void TestAssignments()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     touch_start(integer num_detected)
@@ -187,6 +200,8 @@ state another_state
         [Test]
         public void TestAdditionSubtractionOperator()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     touch_start(integer num_detected)
@@ -215,6 +230,8 @@ state another_state
         [Test]
         public void TestStrings()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     touch_start(integer num_detected)
@@ -242,6 +259,8 @@ state another_state
         [Test]
         public void TestBinaryExpression()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     touch_start(integer num_detected)
@@ -284,6 +303,8 @@ state another_state
         [Test]
         public void TestFloatConstants()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     touch_start(integer num_detected)
@@ -336,6 +357,8 @@ state another_state
         [Test]
         public void TestComments()
         {
+            TestHelpers.InMethod();
+
             string input = @"// this test tests comments
 default
 {
@@ -358,6 +381,8 @@ default
         [Test]
         public void TestStringsWithEscapedQuotesAndComments()
         {
+            TestHelpers.InMethod();
+
             string input = @"// this test tests strings, with escaped quotes and comments in strings
 default
 {
@@ -397,6 +422,8 @@ default
         [Test]
         public void TestCStyleComments()
         {
+            TestHelpers.InMethod();
+
             string input = @"/* this test tests comments
    of the C variety
 */
@@ -426,6 +453,8 @@ default
         [Test]
         public void TestGlobalDefinedFunctions()
         {
+            TestHelpers.InMethod();
+
             string input = @"// this test tests custom defined functions
 
 string onefunc()
@@ -470,6 +499,8 @@ default
         [Test]
         public void TestGlobalDeclaredVariables()
         {
+            TestHelpers.InMethod();
+
             string input = @"// this test tests custom defined functions and global variables
 
 string globalString;
@@ -525,6 +556,8 @@ default
         [Test]
         public void TestMoreAssignments()
         {
+            TestHelpers.InMethod();
+
             string input = @"// this test tests +=, -=, *=, /=, %=
 
 string globalString;
@@ -579,6 +612,8 @@ default
         [Test]
         public void TestVectorConstantNotation()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     touch_start(integer num_detected)
@@ -606,6 +641,8 @@ default
         [Test]
         public void TestVectorMemberAccess()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     touch_start(integer num_detected)
@@ -632,6 +669,8 @@ default
         [Test]
         public void TestExpressionInParentheses()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     touch_start(integer num_detected)
@@ -660,6 +699,8 @@ default
         [Test]
         public void TestIncrementDecrementOperator()
         {
+            TestHelpers.InMethod();
+
             string input = @"// here we'll test the ++ and -- operators
 
 default
@@ -690,6 +731,8 @@ default
         [Test]
         public void TestLists()
         {
+            TestHelpers.InMethod();
+
             string input = @"// testing lists
 
 default
@@ -718,6 +761,8 @@ default
         [Test]
         public void TestIfStatement()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test if statements
 
 default
@@ -822,6 +867,8 @@ default
         [Test]
         public void TestIfElseStatement()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test complex logical expressions
 
 default
@@ -928,6 +975,8 @@ default
         [Test]
         public void TestWhileLoop()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test while loops
 
 default
@@ -968,6 +1017,8 @@ default
         [Test]
         public void TestDoWhileLoop()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test do-while loops
 
 default
@@ -1012,6 +1063,8 @@ default
         [Test]
         public void TestForLoop()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test for loops
 
 default
@@ -1056,6 +1109,8 @@ default
         [Test]
         public void TestFloatsWithTrailingDecimal()
         {
+            TestHelpers.InMethod();
+
             string input = @"// a curious feature of LSL that allows floats to be defined with a trailing dot
 
 default
@@ -1108,6 +1163,8 @@ default
         [Test]
         public void TestUnaryAndBinaryOperators()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test a few more operators
 
 default
@@ -1144,6 +1201,8 @@ default
         [Test]
         public void TestTypecasts()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test typecasts
 
 default
@@ -1189,6 +1248,8 @@ default
         [Test]
         public void TestStates()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test states
 
 default
@@ -1229,6 +1290,8 @@ state statetwo
         [Test]
         public void TestHexIntegerConstants()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test hex integers
 
 default
@@ -1261,6 +1324,8 @@ default
         [Test]
         public void TestJumps()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test jumps
 
 default
@@ -1291,6 +1356,8 @@ default
         [Test]
         public void TestImplicitVariableInitialization()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test implicitly initializing variables
 
 default
@@ -1334,6 +1401,8 @@ default
         [Test]
         public void TestMultipleEqualsExpression()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test x = y = 5 type expressions
 
 default
@@ -1366,6 +1435,8 @@ default
         [Test]
         public void TestUnaryExpressionLastInVectorConstant()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test unary expressions some more
 
 default
@@ -1390,6 +1461,8 @@ default
         [Test]
         public void TestVectorMemberPlusEquals()
         {
+            TestHelpers.InMethod();
+
             string input = @"// let's test unary expressions some more
 
 default
@@ -1424,6 +1497,8 @@ default
         [Test]
         public void TestWhileLoopWithNoBody()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
@@ -1447,6 +1522,8 @@ default
         [Test]
         public void TestDoWhileLoopWithNoBody()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
@@ -1472,6 +1549,8 @@ default
         [Test]
         public void TestIfWithNoBody()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
@@ -1495,6 +1574,8 @@ default
         [Test]
         public void TestIfElseWithNoBody()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
@@ -1521,6 +1602,8 @@ default
         [Test]
         public void TestForLoopWithNoBody()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
@@ -1544,6 +1627,8 @@ default
         [Test]
         public void TestForLoopWithNoAssignment()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
@@ -1569,6 +1654,8 @@ default
         [Test]
         public void TestForLoopWithOnlyIdentInAssignment()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
@@ -1594,6 +1681,8 @@ default
         [Test]
         public void TestAssignmentInIfWhileDoWhile()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
@@ -1631,6 +1720,8 @@ default
         [Test]
         public void TestLSLListHack()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
@@ -1656,6 +1747,8 @@ default
         [ExpectedException(typeof(System.Exception))]
         public void TestSyntaxError()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
@@ -1682,6 +1775,8 @@ default
         [ExpectedException(typeof(System.Exception))]
         public void TestSyntaxErrorDeclaringVariableInForLoop()
         {
+            TestHelpers.InMethod();
+
             string input = @"default
 {
     state_entry()
