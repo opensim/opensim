@@ -37,6 +37,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
     {
         public AsyncCommandManager m_CmdManager;
 
+        public int TimersCount
+        {
+            get
+            {
+                lock (TimerListLock)
+                    return Timers.Count;
+            }
+        }
+
         public Timer(AsyncCommandManager CmdManager)
         {
             m_CmdManager = CmdManager;
