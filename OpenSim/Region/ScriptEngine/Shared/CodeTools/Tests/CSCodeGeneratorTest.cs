@@ -1744,10 +1744,11 @@ default
         }
 
         [Test]
-        [ExpectedException(typeof(System.Exception))]
         public void TestSyntaxError()
         {
             TestHelpers.InMethod();
+
+            bool gotException = false;
 
             string input = @"default
 {
@@ -1764,18 +1765,21 @@ default
             }
             catch (System.Exception e)
             {
-                // The syntax error is on line 6, char 5 (expected ';', found
+                // The syntax error is on line 5, char 4 (expected ';', found
                 // '}').
-                Assert.AreEqual("(4,4) syntax error", e.Message);
-                throw;
+                Assert.AreEqual("(5,4) syntax error", e.Message);
+                gotException = true;
             }
+
+            Assert.That(gotException, Is.True);
         }
 
         [Test]
-        [ExpectedException(typeof(System.Exception))]
         public void TestSyntaxErrorDeclaringVariableInForLoop()
         {
             TestHelpers.InMethod();
+
+            bool gotException = false;
 
             string input = @"default
 {
@@ -1792,11 +1796,13 @@ default
             }
             catch (System.Exception e)
             {
-                // The syntax error is on line 5, char 14 (Syntax error)
-                Assert.AreEqual("(3,13) syntax error", e.Message);
+                // The syntax error is on line 4, char 13 (Syntax error)
+                Assert.AreEqual("(4,13) syntax error", e.Message);
 
-                throw;
+                gotException = true;
             }
+
+            Assert.That(gotException, Is.True);
         }
     }
 }
