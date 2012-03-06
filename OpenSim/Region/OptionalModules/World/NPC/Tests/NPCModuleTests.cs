@@ -139,7 +139,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         }
 
         [Test]
-        public void TestAttachments()
+        public void TestCreateWithAttachments()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -158,6 +158,50 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
             UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), UUID.Zero, true, scene, sp.Appearance);
+
+            ScenePresence npc = scene.GetScenePresence(npcId);
+
+            // Check scene presence status
+            Assert.That(npc.HasAttachments(), Is.True);
+            List<SceneObjectGroup> attachments = npc.GetAttachments();
+            Assert.That(attachments.Count, Is.EqualTo(1));
+            SceneObjectGroup attSo = attachments[0];
+
+            // Just for now, we won't test the name since this is (wrongly) the asset part name rather than the item
+            // name.  TODO: Do need to fix ultimately since the item may be renamed before being passed on to an NPC.
+//            Assert.That(attSo.Name, Is.EqualTo(attName));
+
+            Assert.That(attSo.AttachmentPoint, Is.EqualTo((byte)AttachmentPoint.Chest));
+            Assert.That(attSo.IsAttachment);
+            Assert.That(attSo.UsesPhysics, Is.False);
+            Assert.That(attSo.IsTemporary, Is.False);
+            Assert.That(attSo.OwnerID, Is.EqualTo(npc.UUID));
+        }
+
+        [Test]
+        public void TestLoadAppearance()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UserAccountHelpers.CreateUserWithInventory(scene, userId);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, userId);
+
+            INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
+            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), UUID.Zero, true, scene, sp.Appearance);
+
+            // Now add the attachment to the original avatar and use that to load a new appearance
+            // TODO: Could also run tests loading from a notecard though this isn't much different for our purposes here
+            UUID attItemId = TestHelpers.ParseTail(0x2);
+            UUID attAssetId = TestHelpers.ParseTail(0x3);
+            string attName = "att";
+
+            UserInventoryHelpers.CreateInventoryItem(scene, attName, attItemId, attAssetId, sp.UUID, InventoryType.Object);
+
+            am.RezSingleAttachmentFromInventory(sp, attItemId, (uint)AttachmentPoint.Chest);
+
+            npcModule.SetNPCAppearance(npcId, sp.Appearance, scene);
 
             ScenePresence npc = scene.GetScenePresence(npcId);
 
