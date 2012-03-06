@@ -5,7 +5,7 @@ BEGIN;
 
 CREATE TABLE `xassetsmeta` (
   `id` char(36) NOT NULL,
-  `hash` char(64) NOT NULL,
+  `hash` binary(32) NOT NULL,
   `name` varchar(64) NOT NULL,
   `description` varchar(64) NOT NULL,
   `asset_type` tinyint(4) NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE `xassetsmeta` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Version 1';
 
 CREATE TABLE `xassetsdata` (
-  `hash` char(64) NOT NULL,
+  `hash` binary(32) NOT NULL,
   `data` longblob NOT NULL,
   PRIMARY KEY (`hash`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Version 1';

@@ -31,6 +31,7 @@ using System.Data;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using log4net;
 using MySql.Data.MySqlClient;
@@ -44,14 +45,19 @@ namespace OpenSim.Data.MySQL
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private bool m_enableCompression = false;
-        private string m_connectionString;
-        private object m_dbLock = new object();
-
         protected virtual Assembly Assembly
         {
             get { return GetType().Assembly; }
         }
+
+        private bool m_enableCompression = false;
+        private string m_connectionString;
+        private object m_dbLock = new object();
+
+        /// <summary>
+        /// We can reuse this for all hashing since all methods are single-threaded through m_dbBLock
+        /// </summary>
+        private HashAlgorithm hasher = new SHA256CryptoServiceProvider();
 
         #region IPlugin Members
 
@@ -213,7 +219,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
 
-                        string hash = Util.SHA1Hash(asset.Data);
+                        byte[] hash = hasher.ComputeHash(asset.Data);
 
 //                        m_log.DebugFormat(
 //                            "[XASSET DB]: Compressed data size for {0} {1}, hash {2} is {3}",
@@ -328,7 +334,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="transaction"></param>
         /// <param name="hash"></param>
         /// <returns></returns>
-        private bool ExistsData(MySqlConnection dbcon, MySqlTransaction transaction, string hash)
+        private bool ExistsData(MySqlConnection dbcon, MySqlTransaction transaction, byte[] hash)
         {
 //            m_log.DebugFormat("[ASSETS DB]: Checking for asset {0}", uuid);
 
@@ -438,7 +444,9 @@ namespace OpenSim.Data.MySQL
                                 metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
                                 metadata.FullID = DBGuid.FromDB(dbReader["id"]);
                                 metadata.CreatorID = dbReader["creator_id"].ToString();
-                                metadata.SHA1 = Encoding.Default.GetBytes((string)dbReader["hash"]);
+
+                                // We'll ignore this for now - it appears unused!
+//                                metadata.SHA1 = dbReader["hash"]);
 
                                 retList.Add(metadata);
                             }
