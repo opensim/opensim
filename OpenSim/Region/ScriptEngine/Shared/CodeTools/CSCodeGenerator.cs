@@ -118,7 +118,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     emessage = emessage.Substring(slinfo.Length+2);
 
                 message = String.Format("({0},{1}) {2}",
-                        e.slInfo.lineNumber - 2,
+                        e.slInfo.lineNumber - 1,
                         e.slInfo.charPosition - 1, emessage);
 
                 throw new Exception(message);
