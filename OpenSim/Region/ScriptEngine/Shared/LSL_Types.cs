@@ -858,7 +858,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     ret = Math.Sign(Quaternion.Mag(l) - Quaternion.Mag(r));
                 }
 
-                if (ascending == 0)
+                if (ascending != 1)
                 {
                     ret = 0 - ret;
                 }
@@ -891,6 +891,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     stride = 1;
                 }
 
+                if ((Data.Length % stride) != 0)
+                    return new list(ret);
+
                 // we can optimize here in the case where stride == 1 and the list
                 // consists of homogeneous types
 
@@ -910,7 +913,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     if (homogeneous)
                     {
                         Array.Sort(ret, new HomogeneousComparer());
-                        if (ascending == 0)
+                        if (ascending != 1)
                         {
                             Array.Reverse(ret);
                         }

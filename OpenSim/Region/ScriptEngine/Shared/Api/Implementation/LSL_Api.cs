@@ -4641,7 +4641,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (UUID.TryParse(agent, out agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
-                if (presence != null)
+                if (presence != null && presence.PresenceType != PresenceType.Npc)
                 {
                     // agent must not be a god
                     if (presence.UserLevel >= 200) return;
@@ -4650,7 +4650,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (m_host.OwnerID == World.LandChannel.GetLandObject(
                             presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
                     {
-                        World.TeleportClientHome(agentId, presence.ControllingClient);
+                        if (!World.TeleportClientHome(agentId, presence.ControllingClient))
+                        {
+                            // They can't be teleported home for some reason
+                            GridRegion regionInfo = World.GridService.GetRegionByUUID(UUID.Zero, new UUID("2b02daac-e298-42fa-9a75-f488d37896e6"));
+                            if (regionInfo != null)
+                            {
+                                World.RequestTeleportLocation(
+                                    presence.ControllingClient, regionInfo.RegionHandle, new Vector3(128, 128, 23), Vector3.Zero,
+                                    (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome));
+                            }
+                        }
                     }
                 }
             }
@@ -4664,7 +4674,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (UUID.TryParse(agent, out agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
-                if (presence != null)
+                if (presence != null && presence.PresenceType != PresenceType.Npc)
                 {
                     // agent must not be a god
                     if (presence.UserLevel >= 200) return;
@@ -11658,6 +11668,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Vector3 rayEnd = new Vector3((float)end.x, (float)end.y, (float)end.z);
             Vector3 dir = rayEnd - rayStart;
 
+            float dist = Vector3.Mag(dir);
+
             int count = 1;
             bool detectPhantom = false;
             int dataFlags = 0;
@@ -11714,6 +11726,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int values = 0;
             foreach (ContactResult result in results)
             {
+                if (result.Depth > dist)
+                    continue;
+
                 UUID itemID = UUID.Zero;
                 int linkNum = 0;
 
