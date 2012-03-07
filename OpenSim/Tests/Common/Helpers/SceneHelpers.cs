@@ -136,7 +136,7 @@ namespace OpenSim.Tests.Common
                                                                    StartAuthenticationService(testScene);
             LocalInventoryServicesConnector   inventoryService   = StartInventoryService(testScene);
                                                                    StartGridService(testScene);
-            LocalUserAccountServicesConnector userAccountService = StartUserAccountService(testScene);            
+            LocalUserAccountServicesConnector userAccountService = StartUserAccountService(testScene);
             LocalPresenceServicesConnector    presenceService    = StartPresenceService(testScene);
 
             inventoryService.PostInitialise();

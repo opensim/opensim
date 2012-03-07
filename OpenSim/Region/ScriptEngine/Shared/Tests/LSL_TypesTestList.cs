@@ -44,6 +44,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestConcatenateString()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.list testList = new LSL_Types.list(new LSL_Types.LSLInteger(1), new LSL_Types.LSLInteger('a'), new LSL_Types.LSLString("test"));
             testList += new LSL_Types.LSLString("addition");
 
@@ -64,6 +66,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestConcatenateInteger()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.list testList = new LSL_Types.list(new LSL_Types.LSLInteger(1), new LSL_Types.LSLInteger('a'), new LSL_Types.LSLString("test"));
             testList += new LSL_Types.LSLInteger(20);
 
@@ -84,6 +88,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestConcatenateDouble()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.list testList = new LSL_Types.list(new LSL_Types.LSLInteger(1), new LSL_Types.LSLInteger('a'), new LSL_Types.LSLString("test"));
             testList += new LSL_Types.LSLFloat(2.0f);
 
@@ -104,6 +110,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestCastLSLIntegerItemToLSLInteger()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLInteger testValue = new LSL_Types.LSLInteger(123);
             LSL_Types.list testList = new LSL_Types.list(testValue);
 
@@ -116,6 +124,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestCastLSLFloatItemToLSLFloat()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testValue = new LSL_Types.LSLFloat(123.45678987);
             LSL_Types.list testList = new LSL_Types.list(testValue);
 
@@ -128,6 +138,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestCastLSLStringItemToLSLString()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLString testValue = new LSL_Types.LSLString("hello there");
             LSL_Types.list testList = new LSL_Types.list(testValue);
 
@@ -140,6 +152,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestCastVector3ItemToVector3()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.Vector3 testValue = new LSL_Types.Vector3(12.34, 56.987654, 0.00987);
             LSL_Types.list testList = new LSL_Types.list(testValue);
 
@@ -151,6 +165,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestCastQuaternionItemToQuaternion()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.Quaternion testValue = new LSL_Types.Quaternion(12.34, 56.44323, 765.983421, 0.00987);
             LSL_Types.list testList = new LSL_Types.list(testValue);
 
@@ -165,6 +181,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetLSLIntegerItemForLSLIntegerItem()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLInteger testValue = new LSL_Types.LSLInteger(999911);
             LSL_Types.list testList = new LSL_Types.list(testValue);
 
@@ -177,6 +195,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetLSLFloatItemForLSLFloatItem()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testValue = new LSL_Types.LSLFloat(321.45687876);
             LSL_Types.list testList = new LSL_Types.list(testValue);
 
@@ -189,11 +209,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetLSLFloatItemForLSLIntegerItem()
         {
-          LSL_Types.LSLInteger testValue = new LSL_Types.LSLInteger(3060987);
-          LSL_Types.LSLFloat testFloatValue = new LSL_Types.LSLFloat(testValue);
-          LSL_Types.list testList = new LSL_Types.list(testValue);
+            TestHelpers.InMethod();
 
-          Assert.AreEqual(testFloatValue, testList.GetLSLFloatItem(0));
+            LSL_Types.LSLInteger testValue = new LSL_Types.LSLInteger(3060987);
+            LSL_Types.LSLFloat testFloatValue = new LSL_Types.LSLFloat(testValue);
+            LSL_Types.list testList = new LSL_Types.list(testValue);
+
+            Assert.AreEqual(testFloatValue, testList.GetLSLFloatItem(0));
         }
 
         /// <summary>
@@ -202,6 +224,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetLSLStringItemForLSLStringItem()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLString testValue = new LSL_Types.LSLString("hello all");
             LSL_Types.list testList = new LSL_Types.list(testValue);
 
@@ -214,6 +238,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetLSLStringItemForKeyItem()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.key testValue
                 = new LSL_Types.key("98000000-0000-2222-3333-100000001000");
             LSL_Types.LSLString testStringValue = new LSL_Types.LSLString(testValue);
@@ -228,6 +254,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetVector3ItemForVector3Item()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.Vector3 testValue = new LSL_Types.Vector3(92.34, 58.98754, -0.10987);
             LSL_Types.list testList = new LSL_Types.list(testValue);
 
@@ -239,6 +267,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetQuaternionItemForQuaternionItem()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.Quaternion testValue = new LSL_Types.Quaternion(12.64, 59.43723, 765.3421, 4.00987);
             LSL_Types.list testList = new LSL_Types.list(testValue);
 
@@ -251,6 +281,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestGetKeyItemForKeyItem()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.key testValue
                 = new LSL_Types.key("00000000-0000-2222-3333-100000001012");
             LSL_Types.list testList = new LSL_Types.list(testValue);

@@ -50,7 +50,10 @@ using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 using OpenSim.Region.ScriptEngine.Shared.Instance;
+using OpenSim.Region.ScriptEngine.Shared.Api;
+using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
 using OpenSim.Region.ScriptEngine.Interfaces;
+using Timer = OpenSim.Region.ScriptEngine.Shared.Api.Plugins.Timer;
 
 using ScriptCompileQueue = OpenSim.Framework.LocklessQueue<object[]>;
 
@@ -453,6 +456,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             sb.AppendFormat("In use threads             : {0}\n", m_ThreadPool.InUseThreads);
             sb.AppendFormat("Work items waiting         : {0}\n", m_ThreadPool.WaitingCallbacks);
 //            sb.AppendFormat("Assemblies loaded          : {0}\n", m_Assemblies.Count);
+
+            SensorRepeat sr = AsyncCommandManager.GetSensorRepeatPlugin(this);
+            sb.AppendFormat("Sensors                    : {0}\n", sr.SensorsCount);
+
+            Dataserver ds = AsyncCommandManager.GetDataserverPlugin(this);
+            sb.AppendFormat("Dataserver requests        : {0}\n", ds.DataserverRequestsCount);
+
+            Timer t = AsyncCommandManager.GetTimerPlugin(this);
+            sb.AppendFormat("Timers                     : {0}\n", t.TimersCount);
+
+            Listener l = AsyncCommandManager.GetListenerPlugin(this);
+            sb.AppendFormat("Listeners                  : {0}\n", l.ListenerCount);
 
             MainConsole.Instance.OutputFormat(sb.ToString());
         }

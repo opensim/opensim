@@ -213,6 +213,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestConstructFromInt()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
 
             foreach (KeyValuePair<int, double> number in m_intDoubleSet)
@@ -228,6 +230,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestConstructFromDouble()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
 
             foreach (KeyValuePair<double, double> number in m_doubleDoubleSet)
@@ -243,6 +247,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestExplicitCastLSLFloatToInt()
         {
+            TestHelpers.InMethod();
+
             int testNumber;
 
             foreach (KeyValuePair<double, int> number in m_doubleIntSet)
@@ -258,6 +264,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestExplicitCastLSLFloatToUint()
         {
+            TestHelpers.InMethod();
+
             uint testNumber;
 
             foreach (KeyValuePair<double, int> number in m_doubleUintSet)
@@ -273,6 +281,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestImplicitCastLSLFloatToBooleanTrue()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
             bool testBool;
 
@@ -291,6 +301,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestImplicitCastLSLFloatToBooleanFalse()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat = new LSL_Types.LSLFloat(0.0);
             bool testBool = testFloat;
 
@@ -303,6 +315,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestImplicitCastIntToLSLFloat()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
 
             foreach (int number in m_intList)
@@ -318,6 +332,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestImplicitCastLSLIntegerToLSLFloat()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
 
             foreach (int number in m_intList)
@@ -333,6 +349,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestExplicitCastLSLIntegerToLSLFloat()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
 
             foreach (int number in m_intList)
@@ -348,6 +366,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestExplicitCastStringToLSLFloat()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
 
             foreach (KeyValuePair<string, double> number in m_stringDoubleSet)
@@ -363,6 +383,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestExplicitCastLSLStringToLSLFloat()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
 
             foreach (KeyValuePair<string, double> number in m_stringDoubleSet)
@@ -378,6 +400,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestImplicitCastDoubleToLSLFloat()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
 
             foreach (double number in m_doubleList)
@@ -393,6 +417,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestImplicitCastLSLFloatToDouble()
         {
+            TestHelpers.InMethod();
+
             double testNumber;
             LSL_Types.LSLFloat testFloat;
 
@@ -411,19 +437,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestExplicitCastLSLFloatToFloat()
         {
-          float testFloat;
-          float numberAsFloat;
-          LSL_Types.LSLFloat testLSLFloat;
-          foreach (double number in m_doubleList)
-          {
-            testLSLFloat = new LSL_Types.LSLFloat(number);
-            numberAsFloat = (float)number;
-            testFloat = (float)testLSLFloat;
+            TestHelpers.InMethod();
 
-            Assert.That((double)testFloat, new DoubleToleranceConstraint((double)numberAsFloat, _lowPrecisionTolerance));
-          }
+            float testFloat;
+            float numberAsFloat;
+            LSL_Types.LSLFloat testLSLFloat;
+
+            foreach (double number in m_doubleList)
+            {
+                testLSLFloat = new LSL_Types.LSLFloat(number);
+                numberAsFloat = (float)number;
+                testFloat = (float)testLSLFloat;
+
+                Assert.That((double)testFloat, new DoubleToleranceConstraint((double)numberAsFloat, _lowPrecisionTolerance));
+            }
         }
-
 
         /// <summary>
         /// Tests the equality (==) operator.
@@ -431,6 +459,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestEqualsOperator()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloatA, testFloatB;
 
             foreach (double number in m_doubleList)
@@ -450,6 +480,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestNotEqualOperator()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloatA, testFloatB;
 
             foreach (double number in m_doubleList)
@@ -469,6 +501,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestIncrementOperator()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
             double testNumber;
 
@@ -493,6 +527,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestDecrementOperator()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
             double testNumber;
 
@@ -517,6 +553,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestToString()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
 
             foreach (KeyValuePair<double, string> number in m_doubleStringSet)
@@ -532,6 +570,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestAddTwoLSLFloats()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testResult;
 
             foreach (KeyValuePair<double, double> number in m_doubleDoubleSet)
@@ -547,6 +587,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestSubtractTwoLSLFloats()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testResult;
 
             foreach (KeyValuePair<double, double> number in m_doubleDoubleSet)
@@ -562,6 +604,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestMultiplyTwoLSLFloats()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testResult;
 
             foreach (KeyValuePair<double, double> number in m_doubleDoubleSet)
@@ -577,6 +621,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestDivideTwoLSLFloats()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testResult;
 
             foreach (KeyValuePair<double, double> number in m_doubleDoubleSet)
@@ -595,6 +641,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestImplicitCastBooleanToLSLFloat()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLFloat testFloat;
 
             testFloat = (1 == 0);

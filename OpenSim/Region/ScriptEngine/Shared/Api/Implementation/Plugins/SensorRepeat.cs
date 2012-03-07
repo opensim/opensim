@@ -44,6 +44,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         public AsyncCommandManager m_CmdManager;
 
+        /// <summary>
+        /// Number of sensors active.
+        /// </summary>
+        public int SensorsCount
+        {
+            get
+            {
+                lock (SenseRepeatListLock)
+                    return SenseRepeaters.Count;
+            }
+        }
+
         public SensorRepeat(AsyncCommandManager CmdManager)
         {
             m_CmdManager = CmdManager;

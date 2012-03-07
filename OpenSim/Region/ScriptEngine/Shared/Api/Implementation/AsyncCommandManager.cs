@@ -247,7 +247,58 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // Remove Sensors
             m_SensorRepeat[engine].UnSetSenseRepeaterEvents(localID, itemID);
+        }
 
+        /// <summary>
+        /// Get the sensor repeat plugin for this script engine.
+        /// </summary>
+        /// <param name="engine"></param>
+        /// <returns></returns>
+        public static SensorRepeat GetSensorRepeatPlugin(IScriptEngine engine)
+        {
+            if (m_SensorRepeat.ContainsKey(engine))
+                return m_SensorRepeat[engine];
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// Get the dataserver plugin for this script engine.
+        /// </summary>
+        /// <param name="engine"></param>
+        /// <returns></returns>
+        public static Dataserver GetDataserverPlugin(IScriptEngine engine)
+        {
+            if (m_Dataserver.ContainsKey(engine))
+                return m_Dataserver[engine];
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// Get the timer plugin for this script engine.
+        /// </summary>
+        /// <param name="engine"></param>
+        /// <returns></returns>
+        public static Timer GetTimerPlugin(IScriptEngine engine)
+        {
+            if (m_Timer.ContainsKey(engine))
+                return m_Timer[engine];
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// Get the listener plugin for this script engine.
+        /// </summary>
+        /// <param name="engine"></param>
+        /// <returns></returns>
+        public static Listener GetListenerPlugin(IScriptEngine engine)
+        {
+            if (m_Listener.ContainsKey(engine))
+                return m_Listener[engine];
+            else
+                return null;
         }
 
         public static void StateChange(IScriptEngine engine, uint localID, UUID itemID)
@@ -290,7 +341,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 data.AddRange(timers);
             }
 
-            Object[] sensors=m_SensorRepeat[engine].GetSerializationData(itemID);
+            Object[] sensors = m_SensorRepeat[engine].GetSerializationData(itemID);
             if (sensors.Length > 0)
             {
                 data.Add("sensor");

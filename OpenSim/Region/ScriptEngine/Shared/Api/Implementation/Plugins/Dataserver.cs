@@ -38,6 +38,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
     {
         public AsyncCommandManager m_CmdManager;
 
+        public int DataserverRequestsCount
+        {
+            get
+            {
+                lock (DataserverRequests)
+                    return DataserverRequests.Count;
+            }
+        }
+
         private Dictionary<string, DataserverRequest> DataserverRequests =
                 new Dictionary<string, DataserverRequest>();
 
