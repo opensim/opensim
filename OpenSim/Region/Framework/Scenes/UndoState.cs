@@ -66,43 +66,25 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="part"></param>
         /// <param name="forGroup">True if the undo is for an entire group</param>
+        /// only for root parts ????
         public UndoState(SceneObjectPart part, bool forGroup)
         {
             if (part.ParentID == 0)
             {
                 ForGroup = forGroup;
-
-                //                    if (ForGroup)
                 Position = part.ParentGroup.AbsolutePosition;
-                //                    else
-                //                        Position = part.OffsetPosition;
-
-                //                    m_log.DebugFormat(
-                //                        "[UNDO STATE]: Storing undo position {0} for root part", Position);
-
                 Rotation = part.RotationOffset;
-
-                //                    m_log.DebugFormat(
-                //                        "[UNDO STATE]: Storing undo rotation {0} for root part", Rotation);
-
-                Scale = part.Shape.Scale;
-
-                //                    m_log.DebugFormat(
-                //                        "[UNDO STATE]: Storing undo scale {0} for root part", Scale);
+                if (!forGroup)
+                    Scale = part.Shape.Scale;
+                else
+                    Scale = Vector3.Zero;  // until we fix it 
             }
             else
             {
+                ForGroup = false;  // previus code implies only root parts can undo grp
                 Position = part.OffsetPosition;
-                //                    m_log.DebugFormat(
-                //                        "[UNDO STATE]: Storing undo position {0} for child part", Position);
-
                 Rotation = part.RotationOffset;
-                //                    m_log.DebugFormat(
-                //                        "[UNDO STATE]: Storing undo rotation {0} for child part", Rotation);
-
                 Scale = part.Shape.Scale;
-                //                    m_log.DebugFormat(
-                //                        "[UNDO STATE]: Storing undo scale {0} for child part", Scale);
             }
         }
 
@@ -111,35 +93,42 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="part"></param>
         /// <returns>true if both the part's position, rotation and scale match those in this undo state.  False otherwise.</returns>
-        public bool Compare(SceneObjectPart part)
+        public bool Compare(SceneObjectPart part, bool forgrp)
         {
+            if (ForGroup != forgrp) // if diferent targets, then they are diferent
+                return false;
+
             if (part != null)
             {
                 if (part.ParentID == 0)
-                    return
-                        Position == part.ParentGroup.AbsolutePosition
-                            && Rotation == part.RotationOffset
-                            && Scale == part.Shape.Scale;
+                {
+                    // root part
+                    // grp position is same as part
+                    if (Position != part.ParentGroup.AbsolutePosition)
+                        return false;
+                    if (Rotation != part.RotationOffset)
+                        return false;
+                    if (ForGroup)
+                        return true; // for now don't do grp scale
+                    return (Scale == part.Shape.Scale);
+                }
                 else
-                    return
-                        Position == part.OffsetPosition
+                {
+                    return (Position == part.OffsetPosition
                             && Rotation == part.RotationOffset
-                            && Scale == part.Shape.Scale;
+                            && Scale == part.Shape.Scale);
+                }
             }
 
             return false;
         }
 
-        public void PlaybackState(SceneObjectPart part)
+        public void PlayState(SceneObjectPart part)
         {
             part.Undoing = true;
 
             if (part.ParentID == 0)
             {
-                //                    m_log.DebugFormat(
-                //                        "[UNDO STATE]: Undoing position to {0} for root part {1} {2}",
-                //                        Position, part.Name, part.LocalId);
-
                 if (Position != Vector3.Zero)
                 {
                     if (ForGroup)
@@ -148,10 +137,6 @@ namespace OpenSim.Region.Framework.Scenes
                         part.ParentGroup.UpdateRootPosition(Position);
                 }
 
-                //                    m_log.DebugFormat(
-                //                        "[UNDO STATE]: Undoing rotation {0} to {1} for root part {2} {3}",
-                //                        part.RotationOffset, Rotation, part.Name, part.LocalId);
-
                 if (ForGroup)
                     part.UpdateRotation(Rotation);
                 else
@@ -159,82 +144,26 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (Scale != Vector3.Zero)
                 {
-                    //                        m_log.DebugFormat(
-                    //                            "[UNDO STATE]: Undoing scale {0} to {1} for root part {2} {3}",
-                    //                            part.Shape.Scale, Scale, part.Name, part.LocalId);
-
-                    if (ForGroup)
-                        part.ParentGroup.GroupResize(Scale);
-                    else
+                    //                    if (ForGroup)
+                    //                        part.ParentGroup.GroupResize(Scale);
+                    //                    else
+                    if (!ForGroup)   // we don't have grp scale for now
                         part.Resize(Scale);
                 }
-
                 part.ParentGroup.ScheduleGroupForTerseUpdate();
             }
             else
             {
+                if (ForGroup) // trap for group since seems parts can't do it
+                    return;
+
                 // Note: Updating these properties on sop automatically schedules an update if needed
-                if (Position != Vector3.Zero)
-                {
-                    //                        m_log.DebugFormat(
-                    //                            "[UNDO STATE]: Undoing position {0} to {1} for child part {2} {3}",
-                    //                            part.OffsetPosition, Position, part.Name, part.LocalId);
-
-                    part.OffsetPosition = Position;
-                }
-
-                //                    m_log.DebugFormat(
-                //                        "[UNDO STATE]: Undoing rotation {0} to {1} for child part {2} {3}",
-                //                        part.RotationOffset, Rotation, part.Name, part.LocalId);
-
+                part.OffsetPosition = Position;
                 part.UpdateRotation(Rotation);
-
                 if (Scale != Vector3.Zero)
                 {
-                    //                        m_log.DebugFormat(
-                    //                            "[UNDO STATE]: Undoing scale {0} to {1} for child part {2} {3}",
-                    //                            part.Shape.Scale, Scale, part.Name, part.LocalId);
-
                     part.Resize(Scale);
                 }
-            }
-
-            part.Undoing = false;
-        }
-
-        public void PlayfwdState(SceneObjectPart part)
-        {
-            part.Undoing = true;
-
-            if (part.ParentID == 0)
-            {
-                if (Position != Vector3.Zero)
-                    part.ParentGroup.AbsolutePosition = Position;
-
-                if (Rotation != Quaternion.Identity)
-                    part.UpdateRotation(Rotation);
-
-                if (Scale != Vector3.Zero)
-                {
-                    if (ForGroup)
-                        part.ParentGroup.GroupResize(Scale);
-                    else
-                        part.Resize(Scale);
-                }
-
-                part.ParentGroup.ScheduleGroupForTerseUpdate();
-            }
-            else
-            {
-                // Note: Updating these properties on sop automatically schedules an update if needed
-                if (Position != Vector3.Zero)
-                    part.OffsetPosition = Position;
-
-                if (Rotation != Quaternion.Identity)
-                    part.UpdateRotation(Rotation);
-
-                if (Scale != Vector3.Zero)
-                    part.Resize(Scale);
             }
 
             part.Undoing = false;
