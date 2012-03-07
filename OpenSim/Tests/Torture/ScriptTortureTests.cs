@@ -95,6 +95,7 @@ namespace OpenSim.Tests.Torture
         public void TearDown()
         {
             m_scene.Close();
+            m_scene = null;
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }

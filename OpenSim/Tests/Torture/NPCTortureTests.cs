@@ -76,6 +76,7 @@ namespace OpenSim.Tests.Torture
         public void TearDown()
         {
             scene.Close();
+            scene = null;
             GC.Collect();
             GC.WaitForPendingFinalizers();
 
@@ -102,7 +103,7 @@ namespace OpenSim.Tests.Torture
         }
 
         [Test]
-        public void TestAddRemove100NPCs()
+        public void Test_0001_AddRemove100NPCs()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -111,7 +112,7 @@ namespace OpenSim.Tests.Torture
         }
 
         [Test]
-        public void TestAddRemove1000NPCs()
+        public void Test_0002_AddRemove1000NPCs()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -120,7 +121,7 @@ namespace OpenSim.Tests.Torture
         }
 
         [Test]
-        public void TestAddRemove2000NPCs()
+        public void Test_0003_AddRemove2000NPCs()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
