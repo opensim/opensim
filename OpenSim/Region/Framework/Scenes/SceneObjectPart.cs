@@ -1691,8 +1691,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (userExposed)
                 dupe.UUID = UUID.Random();
 
-            // The PhysActor cannot be valid on a copy because the copy is not in the scene yet.
-            // Null it, the caller has to create a new one once the object is added to a scene
             dupe.PhysActor = null;
 
             dupe.OwnerID = AgentID;

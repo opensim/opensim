@@ -66,7 +66,7 @@ namespace OpenSim.Tests.Torture
 //        }
 
         [Test]
-        public void Test0001_10K_1PrimObjects()
+        public void Test_0001_10K_1PrimObjects()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -75,7 +75,7 @@ namespace OpenSim.Tests.Torture
         }
 
         [Test]
-        public void Test0002_100K_1PrimObjects()
+        public void Test_0002_100K_1PrimObjects()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -84,7 +84,7 @@ namespace OpenSim.Tests.Torture
         }
 
         [Test]
-        public void Test0003_200K_1PrimObjects()
+        public void Test_0003_200K_1PrimObjects()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -93,7 +93,7 @@ namespace OpenSim.Tests.Torture
         }
 
         [Test]
-        public void Test0011_100_100PrimObjects()
+        public void Test_0011_100_100PrimObjects()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -102,7 +102,7 @@ namespace OpenSim.Tests.Torture
         }
 
         [Test]
-        public void Test0012_1K_100PrimObjects()
+        public void Test_0012_1K_100PrimObjects()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -111,7 +111,7 @@ namespace OpenSim.Tests.Torture
         }
 
         [Test]
-        public void Test0013_2K_100PrimObjects()
+        public void Test_0013_2K_100PrimObjects()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -123,6 +123,9 @@ namespace OpenSim.Tests.Torture
         {
             UUID ownerId = new UUID("F0000000-0000-0000-0000-000000000000");
 
+            // Using a local variable for scene, at least on mono 2.6.7, means that it's much more likely to be garbage
+            // collected when we teardown this test.  If it's done in a member variable, even if that is subsequently
+            // nulled out, the garbage collect can be delayed.
             TestScene scene = SceneHelpers.SetupScene();
 
 //            Process process = Process.GetCurrentProcess();
