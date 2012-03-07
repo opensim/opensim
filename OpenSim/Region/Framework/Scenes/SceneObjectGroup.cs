@@ -957,12 +957,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public void GetAxisAlignedBoundingBoxRaw(out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ)
         {
-            maxX = -256f;
-            maxY = -256f;
-            maxZ = -256f;
-            minX = 256f;
-            minY = 256f;
-            minZ = 8192f;
+            maxX = float.MinValue;
+            maxY = float.MinValue;
+            maxZ = float.MinValue;
+            minX = float.MaxValue;
+            minY = float.MaxValue;
+            minZ = float.MaxValue;
 
             SceneObjectPart[] parts = m_parts.GetArray();
             foreach (SceneObjectPart part in parts)
@@ -1988,7 +1988,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="cGroupID"></param>
         public void CopyRootPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
-            SetRootPart(part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, 0, userExposed));
+            //            SetRootPart(part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, 0, userExposed));
+            // give newpart a new local ID lettng old part keep same
+            SceneObjectPart newpart = part.Copy(part.LocalId, OwnerID, GroupID, 0, userExposed);
+            newpart.LocalId = m_scene.AllocateLocalId();
+
+            SetRootPart(newpart);
             if (userExposed)
                 RootPart.Velocity = Vector3.Zero; // In case source is moving
         }
@@ -2191,7 +2196,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="cGroupID"></param>
         public SceneObjectPart CopyPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
-            SceneObjectPart newPart = part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, m_parts.Count, userExposed);
+            // give new ID to the new part, letting old keep original
+            //            SceneObjectPart newPart = part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, m_parts.Count, userExposed);
+            SceneObjectPart newPart = part.Copy(part.LocalId, OwnerID, GroupID, m_parts.Count, userExposed);
+            newPart.LocalId = m_scene.AllocateLocalId();
             newPart.SetParent(this);
 
             AddPart(newPart);
@@ -2485,6 +2493,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             SceneObjectPart linkPart = objectGroup.m_rootPart;
 
+            if (m_rootPart.PhysActor != null)
+                m_rootPart.PhysActor.Building = true;
+            if (linkPart.PhysActor != null)
+                linkPart.PhysActor.Building = true;
+
             Vector3 oldGroupPosition = linkPart.GroupPosition;
             Quaternion oldRootRotation = linkPart.RotationOffset;
 
@@ -2528,6 +2541,13 @@ namespace OpenSim.Region.Framework.Scenes
                 linkPart.SetParent(this);
                 linkPart.CreateSelected = true;
 
+                // let physics know
+                if (linkPart.PhysActor != null && m_rootPart.PhysActor != null && m_rootPart.PhysActor.IsPhysical)
+                {
+                    linkPart.PhysActor.link(m_rootPart.PhysActor);
+                    this.Scene.PhysicsScene.AddPhysicsActorTaint(linkPart.PhysActor);
+                }
+
                 linkPart.LinkNum = linkNum++;
 
                 SceneObjectPart[] ogParts = objectGroup.Parts;
@@ -2540,7 +2560,15 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     SceneObjectPart part = ogParts[i];
                     if (part.UUID != objectGroup.m_rootPart.UUID)
+                    {
                         LinkNonRootPart(part, oldGroupPosition, oldRootRotation, linkNum++);
+                        // let physics know
+                        if (part.PhysActor != null && m_rootPart.PhysActor != null && m_rootPart.PhysActor.IsPhysical)
+                        {
+                            part.PhysActor.link(m_rootPart.PhysActor);
+                            this.Scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
+                        }
+                    }
                     part.ClearUndoState();
                 }
             }
@@ -2559,6 +2587,9 @@ namespace OpenSim.Region.Framework.Scenes
             // position of linkset prims.  IF YOU CHANGE THIS, YOU MUST TEST colliding with just linked and 
             // unmoved prims!
             ResetChildPrimPhysicsPositions();
+
+            if (m_rootPart.PhysActor != null)
+                m_rootPart.PhysActor.Building = false;
 
             //HasGroupChanged = true;
             //ScheduleGroupForFullUpdate();
@@ -2612,7 +2643,10 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT GROUP]: Delinking part {0}, {1} from group with root part {2}, {3}",
 //                    linkPart.Name, linkPart.UUID, RootPart.Name, RootPart.UUID);
-            
+
+            if (m_rootPart.PhysActor != null)
+                m_rootPart.PhysActor.Building = true;
+
             linkPart.ClearUndoState();
 
             Quaternion worldRot = linkPart.GetWorldRotation();
@@ -2672,6 +2706,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             // When we delete a group, we currently have to force persist to the database if the object id has changed
             // (since delete works by deleting all rows which have a given object id)
+
+            if (m_rootPart.PhysActor != null)
+                m_rootPart.PhysActor.Building = false;
+
             objectGroup.HasGroupChangedDueToDelink = true;
 
             return objectGroup;
@@ -3284,6 +3322,10 @@ namespace OpenSim.Region.Framework.Scenes
                 part.StoreUndoState(false);
                 part.IgnoreUndoUpdate = true;
 
+// unlock parts position change
+                if (m_rootPart.PhysActor != null)
+                    m_rootPart.PhysActor.Building = true;
+
                 if (part.UUID == m_rootPart.UUID)
                 {
                     UpdateRootPosition(pos);
@@ -3292,6 +3334,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     part.UpdateOffSet(pos);
                 }
+
+                if (m_rootPart.PhysActor != null)
+                    m_rootPart.PhysActor.Building = false;
 
                 HasGroupChanged = true;
                 part.IgnoreUndoUpdate = false;
@@ -3434,6 +3479,9 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT GROUP]: Updating single rotation of {0} {1} to {2}", part.Name, part.LocalId, rot);
 
+                if (m_rootPart.PhysActor != null)
+                    m_rootPart.PhysActor.Building = true;
+
                 if (part.UUID == m_rootPart.UUID)
                 {
                     UpdateRootRotation(rot);
@@ -3442,6 +3490,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     part.UpdateRotation(rot);
                 }
+
+                if (m_rootPart.PhysActor != null)
+                    m_rootPart.PhysActor.Building = false;
             }
         }
 
@@ -3462,6 +3513,9 @@ namespace OpenSim.Region.Framework.Scenes
                 part.StoreUndoState();
                 part.IgnoreUndoUpdate = true;
 
+                if (m_rootPart.PhysActor != null)
+                    m_rootPart.PhysActor.Building = true;
+
                 if (part.UUID == m_rootPart.UUID)
                 {
                     UpdateRootRotation(rot);
@@ -3481,6 +3535,9 @@ namespace OpenSim.Region.Framework.Scenes
                     part.UpdateRotation(rot);
                     part.OffsetPosition = pos;
                 }
+
+                if (m_rootPart.PhysActor != null)
+                    m_rootPart.PhysActor.Building = false;
 
                 part.IgnoreUndoUpdate = false;
             }

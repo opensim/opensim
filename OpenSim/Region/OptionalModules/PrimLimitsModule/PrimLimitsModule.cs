@@ -121,11 +121,17 @@ namespace OpenSim.Region.OptionalModules
 
         private bool CanObjectEnter(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene)
         {
+            if ((newPoint.X > 257f || newPoint.X < -1f || newPoint.Y > 257f || newPoint.Y < -1f))
+                return true;
+
             SceneObjectPart obj = scene.GetSceneObjectPart(objectID);
             Vector3 oldPoint = obj.GroupPosition;
             int objectCount = obj.ParentGroup.PrimCount;
             ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
             ILandObject newParcel = scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
+
+            if (newParcel == null)
+                return true;
 
             int usedPrims = newParcel.PrimCounts.Total;
             int simulatorCapacity = newParcel.GetSimulatorMaxPrimCount();

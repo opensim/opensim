@@ -1735,7 +1735,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             return newPrim;
         }
-
+/*
         private PhysicsActor AddPrim(String name, Vector3 position, PhysicsActor parent,
                                      PrimitiveBaseShape pbs, uint localid, byte[] sdata)
         {
@@ -1751,7 +1751,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             return newPrim;
         }
-
+*/
 
         public void addActivePrim(OdePrim activatePrim)
         {
@@ -1778,7 +1778,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             return result;
         }
-
+/*
         public override PhysicsActor AddPrimShape(string primName, PhysicsActor parent, PrimitiveBaseShape pbs, Vector3 position,
                                                   uint localid, byte[] sdata)
         {
@@ -1789,7 +1789,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             return result;
         }
-
+*/
         public override float TimeDilation
         {
             get { return m_timeDilation; }

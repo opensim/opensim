@@ -1691,10 +1691,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (userExposed)
                 dupe.UUID = UUID.Random();
 
-            //memberwiseclone means it also clones the physics actor reference
-            // This will make physical prim 'bounce' if not set to null.
-            if (!userExposed)
-                dupe.PhysActor = null;
+            // The PhysActor cannot be valid on a copy because the copy is not in the scene yet.
+            // Null it, the caller has to create a new one once the object is added to a scene
+            dupe.PhysActor = null;
 
             dupe.OwnerID = AgentID;
             dupe.GroupID = GroupID;
@@ -1727,8 +1726,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Move afterwards ResetIDs as it clears the localID
             dupe.LocalId = localID;
-            if(dupe.PhysActor != null)
-                dupe.PhysActor.LocalID = localID;
 
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
             dupe.LastOwnerID = OwnerID;
@@ -1749,6 +1746,9 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
             
+            if (dupe.PhysActor != null)
+                dupe.PhysActor.LocalID = localID;
+
             ParentGroup.Scene.EventManager.TriggerOnSceneObjectPartCopy(dupe, this, userExposed);
 
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Clone of {0} {1} finished", Name, UUID);

@@ -72,11 +72,13 @@ namespace OpenSim.Region.Physics.Manager
     {
         public float mu;
         public float bounce;
+        public bool softcolide;
 
-        public ContactData(float _mu, float _bounce)
+        public ContactData(float _mu, float _bounce, bool _softcolide)
         {
             mu = _mu;
             bounce = _bounce;
+            softcolide = _softcolide;
         }
     }
     /// <summary>
@@ -158,9 +160,10 @@ namespace OpenSim.Region.Physics.Manager
    
         public virtual bool Building { get; set; }
 
-        public virtual ContactData ContactData
+        public virtual void getContactData(ref ContactData cdata)
         {
-            get { return new ContactData(0, 0); }
+            cdata.mu = 0;
+            cdata.bounce = 0;
         }
 
         public abstract bool Stopped { get; }
