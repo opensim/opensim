@@ -653,99 +653,102 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Region config overrides global config
             //
-            if (m_config.Configs["Startup"] != null)
+            try
             {
-                IConfig startupConfig = m_config.Configs["Startup"];
-
-                m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
-                m_useBackup = startupConfig.GetBoolean("UseSceneBackup", m_useBackup);
-                if (!m_useBackup)
-                    m_log.InfoFormat("[SCENE]: Backup has been disabled for {0}", RegionInfo.RegionName);
-                
-                //Animation states
-                m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
-
-                PhysicalPrims = startupConfig.GetBoolean("physical_prim", true);
-                CollidablePrims = startupConfig.GetBoolean("collidable_prim", true);
-
-                m_maxNonphys = startupConfig.GetFloat("NonphysicalPrimMax", m_maxNonphys);
-                if (RegionInfo.NonphysPrimMax > 0)
+                if (m_config.Configs["Startup"] != null)
                 {
-                    m_maxNonphys = RegionInfo.NonphysPrimMax;
-                }
+                    IConfig startupConfig = m_config.Configs["Startup"];
 
-                m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", m_maxPhys);
+                    m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
+                    m_useBackup = startupConfig.GetBoolean("UseSceneBackup", m_useBackup);
+                    if (!m_useBackup)
+                        m_log.InfoFormat("[SCENE]: Backup has been disabled for {0}", RegionInfo.RegionName);
+                    
+                    //Animation states
+                    m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
 
-                if (RegionInfo.PhysPrimMax > 0)
-                {
-                    m_maxPhys = RegionInfo.PhysPrimMax;
-                }
+                    PhysicalPrims = startupConfig.GetBoolean("physical_prim", true);
+                    CollidablePrims = startupConfig.GetBoolean("collidable_prim", true);
 
-                // Here, if clamping is requested in either global or
-                // local config, it will be used
-                //
-                m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", m_clampPrimSize);
-                if (RegionInfo.ClampPrimSize)
-                {
-                    m_clampPrimSize = true;
-                }
-
-                m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
-                m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
-                m_dontPersistBefore =
-                  startupConfig.GetLong("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
-                m_dontPersistBefore *= 10000000;
-                m_persistAfter =
-                  startupConfig.GetLong("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
-                m_persistAfter *= 10000000;
-
-                m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "XEngine");
-                m_log.InfoFormat("[SCENE]: Default script engine {0}", m_defaultScriptEngine);
-
-                IConfig packetConfig = m_config.Configs["PacketPool"];
-                if (packetConfig != null)
-                {
-                    PacketPool.Instance.RecyclePackets = packetConfig.GetBoolean("RecyclePackets", true);
-                    PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
-                }
-
-                m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
-                m_seeIntoBannedRegion = startupConfig.GetBoolean("SeeIntoBannedRegion", m_seeIntoBannedRegion);
-                CombineRegions = startupConfig.GetBoolean("CombineContiguousRegions", false);
-
-                m_generateMaptiles = startupConfig.GetBoolean("GenerateMaptiles", true);
-                if (m_generateMaptiles)
-                {
-                    int maptileRefresh = startupConfig.GetInt("MaptileRefresh", 0);
-                    if (maptileRefresh != 0)
+                    m_maxNonphys = startupConfig.GetFloat("NonphysicalPrimMax", m_maxNonphys);
+                    if (RegionInfo.NonphysPrimMax > 0)
                     {
-                        m_mapGenerationTimer.Interval = maptileRefresh * 1000;
-                        m_mapGenerationTimer.Elapsed += RegenerateMaptileAndReregister;
-                        m_mapGenerationTimer.AutoReset = true;
-                        m_mapGenerationTimer.Start();
+                        m_maxNonphys = RegionInfo.NonphysPrimMax;
                     }
-                }
-                else
-                {
-                    string tile = startupConfig.GetString("MaptileStaticUUID", UUID.Zero.ToString());
-                    UUID tileID;
 
-                    if (UUID.TryParse(tile, out tileID))
+                    m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", m_maxPhys);
+
+                    if (RegionInfo.PhysPrimMax > 0)
                     {
-                        RegionInfo.RegionSettings.TerrainImageID = tileID;
+                        m_maxPhys = RegionInfo.PhysPrimMax;
                     }
-                }
 
-                MinFrameTime              = startupConfig.GetFloat( "MinFrameTime",                      MinFrameTime);
-                m_update_backup           = startupConfig.GetInt(   "UpdateStorageEveryNFrames",         m_update_backup);
-                m_update_coarse_locations = startupConfig.GetInt(   "UpdateCoarseLocationsEveryNFrames", m_update_coarse_locations);
-                m_update_entitymovement   = startupConfig.GetInt(   "UpdateEntityMovementEveryNFrames",  m_update_entitymovement);
-                m_update_events           = startupConfig.GetInt(   "UpdateEventsEveryNFrames",          m_update_events);
-                m_update_objects          = startupConfig.GetInt(   "UpdateObjectsEveryNFrames",         m_update_objects);
-                m_update_physics          = startupConfig.GetInt(   "UpdatePhysicsEveryNFrames",         m_update_physics);
-                m_update_presences        = startupConfig.GetInt(   "UpdateAgentsEveryNFrames",          m_update_presences);
-                m_update_terrain          = startupConfig.GetInt(   "UpdateTerrainEveryNFrames",         m_update_terrain);
-                m_update_temp_cleaning    = startupConfig.GetInt(   "UpdateTempCleaningEveryNFrames",    m_update_temp_cleaning);
+                    // Here, if clamping is requested in either global or
+                    // local config, it will be used
+                    //
+                    m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", m_clampPrimSize);
+                    if (RegionInfo.ClampPrimSize)
+                    {
+                        m_clampPrimSize = true;
+                    }
+
+                    m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
+                    m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
+                    m_dontPersistBefore =
+                      startupConfig.GetLong("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
+                    m_dontPersistBefore *= 10000000;
+                    m_persistAfter =
+                      startupConfig.GetLong("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
+                    m_persistAfter *= 10000000;
+
+                    m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "XEngine");
+                    m_log.InfoFormat("[SCENE]: Default script engine {0}", m_defaultScriptEngine);
+
+                    IConfig packetConfig = m_config.Configs["PacketPool"];
+                    if (packetConfig != null)
+                    {
+                        PacketPool.Instance.RecyclePackets = packetConfig.GetBoolean("RecyclePackets", true);
+                        PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
+                    }
+
+                    m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
+                    m_seeIntoBannedRegion = startupConfig.GetBoolean("SeeIntoBannedRegion", m_seeIntoBannedRegion);
+                    CombineRegions = startupConfig.GetBoolean("CombineContiguousRegions", false);
+
+                    m_generateMaptiles = startupConfig.GetBoolean("GenerateMaptiles", true);
+                    if (m_generateMaptiles)
+                    {
+                        int maptileRefresh = startupConfig.GetInt("MaptileRefresh", 0);
+                        if (maptileRefresh != 0)
+                        {
+                            m_mapGenerationTimer.Interval = maptileRefresh * 1000;
+                            m_mapGenerationTimer.Elapsed += RegenerateMaptileAndReregister;
+                            m_mapGenerationTimer.AutoReset = true;
+                            m_mapGenerationTimer.Start();
+                        }
+                    }
+                    else
+                    {
+                        string tile = startupConfig.GetString("MaptileStaticUUID", UUID.Zero.ToString());
+                        UUID tileID;
+
+                        if (UUID.TryParse(tile, out tileID))
+                        {
+                            RegionInfo.RegionSettings.TerrainImageID = tileID;
+                        }
+                    }
+
+                    MinFrameTime              = startupConfig.GetFloat( "MinFrameTime",                      MinFrameTime);
+                    m_update_backup           = startupConfig.GetInt(   "UpdateStorageEveryNFrames",         m_update_backup);
+                    m_update_coarse_locations = startupConfig.GetInt(   "UpdateCoarseLocationsEveryNFrames", m_update_coarse_locations);
+                    m_update_entitymovement   = startupConfig.GetInt(   "UpdateEntityMovementEveryNFrames",  m_update_entitymovement);
+                    m_update_events           = startupConfig.GetInt(   "UpdateEventsEveryNFrames",          m_update_events);
+                    m_update_objects          = startupConfig.GetInt(   "UpdateObjectsEveryNFrames",         m_update_objects);
+                    m_update_physics          = startupConfig.GetInt(   "UpdatePhysicsEveryNFrames",         m_update_physics);
+                    m_update_presences        = startupConfig.GetInt(   "UpdateAgentsEveryNFrames",          m_update_presences);
+                    m_update_terrain          = startupConfig.GetInt(   "UpdateTerrainEveryNFrames",         m_update_terrain);
+                    m_update_temp_cleaning    = startupConfig.GetInt(   "UpdateTempCleaningEveryNFrames",    m_update_temp_cleaning);
+                }
             }
             catch (Exception e)
             {
