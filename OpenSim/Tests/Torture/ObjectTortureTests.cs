@@ -156,11 +156,6 @@ namespace OpenSim.Tests.Torture
             // objects will be clean up by the garbage collector before the next stress test is run.
             scene.Update();
 
-            // Currently, we need to do this in order to garbage collect the scene objects ready for the next test run.
-            // However, what we really need to do is find out why the entire scene is not garbage collected in
-            // teardown.
-            scene.DeleteAllSceneObjects();
-
             Console.WriteLine(
                 "Took {0}ms, {1}MB ({2} - {3}) to create {4} objects each containing {5} prim(s)",
                 Math.Round(elapsed.TotalMilliseconds),
@@ -170,7 +165,8 @@ namespace OpenSim.Tests.Torture
                 objectsToAdd,
                 primsInEachObject);
 
-            scene = null;
+            scene.Close();
+//            scene = null;
         }
     }
 }

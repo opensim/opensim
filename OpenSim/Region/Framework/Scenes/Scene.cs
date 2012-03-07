@@ -628,10 +628,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             #region Region Config
 
-            try
+            // Region config overrides global config
+            //
+            if (m_config.Configs["Startup"] != null)
             {
-                // Region config overrides global config
-                //
                 IConfig startupConfig = m_config.Configs["Startup"];
 
                 m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
@@ -721,46 +721,39 @@ namespace OpenSim.Region.Framework.Scenes
                 m_update_terrain          = startupConfig.GetInt(   "UpdateTerrainEveryNFrames",         m_update_terrain);
                 m_update_temp_cleaning    = startupConfig.GetInt(   "UpdateTempCleaningEveryNFrames",    m_update_temp_cleaning);
             }
-            catch
-            {
-                m_log.Warn("[SCENE]: Failed to load StartupConfig");
-            }
 
             #endregion Region Config
 
             #region Interest Management
 
-            if (m_config != null)
+            IConfig interestConfig = m_config.Configs["InterestManagement"];
+            if (interestConfig != null)
             {
-                IConfig interestConfig = m_config.Configs["InterestManagement"];
-                if (interestConfig != null)
+                string update_prioritization_scheme = interestConfig.GetString("UpdatePrioritizationScheme", "Time").Trim().ToLower();
+
+                try
                 {
-                    string update_prioritization_scheme = interestConfig.GetString("UpdatePrioritizationScheme", "Time").Trim().ToLower();
-
-                    try
-                    {
-                        m_priorityScheme = (UpdatePrioritizationSchemes)Enum.Parse(typeof(UpdatePrioritizationSchemes), update_prioritization_scheme, true);
-                    }
-                    catch (Exception)
-                    {
-                        m_log.Warn("[PRIORITIZER]: UpdatePrioritizationScheme was not recognized, setting to default prioritizer Time");
-                        m_priorityScheme = UpdatePrioritizationSchemes.Time;
-                    }
-
-                    m_reprioritizationEnabled = interestConfig.GetBoolean("ReprioritizationEnabled", true);
-                    m_reprioritizationInterval = interestConfig.GetDouble("ReprioritizationInterval", 5000.0);
-                    m_rootReprioritizationDistance = interestConfig.GetDouble("RootReprioritizationDistance", 10.0);
-                    m_childReprioritizationDistance = interestConfig.GetDouble("ChildReprioritizationDistance", 20.0);
+                    m_priorityScheme = (UpdatePrioritizationSchemes)Enum.Parse(typeof(UpdatePrioritizationSchemes), update_prioritization_scheme, true);
                 }
+                catch (Exception)
+                {
+                    m_log.Warn("[PRIORITIZER]: UpdatePrioritizationScheme was not recognized, setting to default prioritizer Time");
+                    m_priorityScheme = UpdatePrioritizationSchemes.Time;
+                }
+
+                m_reprioritizationEnabled = interestConfig.GetBoolean("ReprioritizationEnabled", true);
+                m_reprioritizationInterval = interestConfig.GetDouble("ReprioritizationInterval", 5000.0);
+                m_rootReprioritizationDistance = interestConfig.GetDouble("RootReprioritizationDistance", 10.0);
+                m_childReprioritizationDistance = interestConfig.GetDouble("ChildReprioritizationDistance", 20.0);
             }
 
-            m_log.InfoFormat("[SCENE]: Using the {0} prioritization scheme", m_priorityScheme);
+            m_log.DebugFormat("[SCENE]: Using the {0} prioritization scheme", m_priorityScheme);
 
             #endregion Interest Management
 
             StatsReporter = new SimStatsReporter(this);
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
-            StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;            
+            StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
         }
 
         /// <summary>

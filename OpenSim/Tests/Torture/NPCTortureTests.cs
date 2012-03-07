@@ -75,6 +75,10 @@ namespace OpenSim.Tests.Torture
         [TestFixtureTearDown]
         public void TearDown()
         {
+            scene.Close();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
             // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
             // threads.  Possibly, later tests should be rewritten not to worry about such things.
             Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
