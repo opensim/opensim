@@ -256,7 +256,7 @@ namespace OpenSim
                                           "debug scene <scripting> <collisions> <physics>",
                                           "Turn on scene debugging", Debug);
 
-            m_console.Commands.AddCommand("Regions", false, "change region",
+            m_console.Commands.AddCommand("General", false, "change region",
                                           "change region <region name>",
                                           "Change current console region", ChangeSelectedRegion);
 
