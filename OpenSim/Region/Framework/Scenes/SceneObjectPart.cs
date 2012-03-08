@@ -1546,10 +1546,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (userExposed)
                 dupe.UUID = UUID.Random();
 
-            //memberwiseclone means it also clones the physics actor reference
-            // This will make physical prim 'bounce' if not set to null.
-            if (!userExposed)
-                dupe.PhysActor = null;
+            dupe.PhysActor = null;
 
             dupe.OwnerID = AgentID;
             dupe.GroupID = GroupID;
