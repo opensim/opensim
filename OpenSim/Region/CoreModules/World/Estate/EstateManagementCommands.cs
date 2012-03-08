@@ -62,58 +62,25 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {            
             m_log.DebugFormat("[ESTATE MODULE]: Setting up estate commands for region {0}", m_module.Scene.RegionInfo.RegionName);
             
-            m_module.Scene.AddCommand("estate", m_module, "set terrain texture",
+            m_module.Scene.AddCommand("Regions", m_module, "set terrain texture",
                                "set terrain texture <number> <uuid> [<x>] [<y>]",
                                "Sets the terrain <number> to <uuid>, if <x> or <y> are specified, it will only " +
                                "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
                                " that coordinate.",
                                consoleSetTerrainTexture);
 
-            m_module.Scene.AddCommand("estate", m_module, "set terrain heights",
+            m_module.Scene.AddCommand("Regions", m_module, "set terrain heights",
                                "set terrain heights <corner> <min> <max> [<x>] [<y>]",
                                "Sets the terrain texture heights on corner #<corner> to <min>/<max>, if <x> or <y> are specified, it will only " +
                                "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
                                " that coordinate. Corner # SW = 0, NW = 1, SE = 2, NE = 3.",
-                               consoleSetTerrainHeights);            
-            
-            Command showCommand 
-                = new Command("show", CommandIntentions.COMMAND_STATISTICAL, ShowEstatesCommand, "Shows all estates on the simulator.");
+                               consoleSetTerrainHeights);
 
-            m_commander.RegisterCommand("show", showCommand);
-
-            m_module.Scene.RegisterModuleCommander(m_commander);            
-            
-            m_module.Scene.EventManager.OnPluginConsole += EventManagerOnPluginConsole;
+            m_module.Scene.AddCommand(
+                "Estates", m_module, "estate show", "estate show", "Shows all estates on the simulator.", "", ShowEstatesCommand);
         }       
         
-        public void Close()
-        {
-            m_module.Scene.EventManager.OnPluginConsole -= EventManagerOnPluginConsole;
-            m_module.Scene.UnregisterModuleCommander(m_commander.Name);            
-        }
-        
-        /// <summary>
-        /// Processes commandline input. Do not call directly.
-        /// </summary>
-        /// <param name="args">Commandline arguments</param>
-        protected void EventManagerOnPluginConsole(string[] args)
-        {
-            if (args[0] == "estate")
-            {
-                if (args.Length == 1)
-                {
-                    m_commander.ProcessConsoleCommand("help", new string[0]);
-                    return;
-                }
-
-                string[] tmpArgs = new string[args.Length - 2];
-                int i;
-                for (i = 2; i < args.Length; i++)
-                    tmpArgs[i - 2] = args[i];
-
-                m_commander.ProcessConsoleCommand(args[1], tmpArgs);
-            }
-        }            
+        public void Close() {}
         
         protected void consoleSetTerrainTexture(string module, string[] args)
         {
@@ -201,7 +168,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
         }     
         
-        protected void ShowEstatesCommand(Object[] args)
+        protected void ShowEstatesCommand(string module, string[] cmd)
         {
             StringBuilder report = new StringBuilder();  
             RegionInfo ri = m_module.Scene.RegionInfo;

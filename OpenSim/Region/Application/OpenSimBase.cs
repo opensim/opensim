@@ -242,8 +242,10 @@ namespace OpenSim
 
                 foreach (string topic in topics)
                 {
-                    m_console.Commands.AddCommand(topic, false, "help " + topic,
-                                                  "help " + topic,
+                    string capitalizedTopic = char.ToUpper(topic[0]) + topic.Substring(1);
+
+                    m_console.Commands.AddCommand(capitalizedTopic, false, "help " + capitalizedTopic,
+                                                  "help " + capitalizedTopic,
                                                   "Get help on plugin command '" + topic + "'",
                                                   HandleCommanderHelp);
 //
@@ -267,7 +269,7 @@ namespace OpenSim
 
                     foreach (string command in commander.Commands.Keys)
                     {
-                        m_console.Commands.AddCommand(topic, false,
+                        m_console.Commands.AddCommand(capitalizedTopic, false,
                                                       topic + " " + command,
                                                       topic + " " + commander.Commands[command].ShortHelp(),
                                                       String.Empty, HandleCommanderCommand);
@@ -286,7 +288,7 @@ namespace OpenSim
             // Only safe for the interactive console, since it won't
             // let us come here unless both scene and commander exist
             //
-            ICommander moduleCommander = SceneManager.CurrentOrFirstScene.GetCommander(cmd[1]);
+            ICommander moduleCommander = SceneManager.CurrentOrFirstScene.GetCommander(cmd[1].ToLower());
             if (moduleCommander != null)
                 m_console.Output(moduleCommander.Help);
         }

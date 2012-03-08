@@ -596,7 +596,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             #endregion Region Settings
 
-            MainConsole.Instance.Commands.AddCommand("estate", false, "reload estate",
+            MainConsole.Instance.Commands.AddCommand("Estates", false, "reload estate",
                                           "reload estate",
                                           "Reload the estate data", HandleReloadEstate);
 
