@@ -88,7 +88,7 @@ namespace OpenSim.Region.OptionalModules.Asset
                 m_scene = scene;
 
             MainConsole.Instance.Commands.AddCommand(
-                "asset",
+                "Assets",
                 false,
                 "show asset",
                 "show asset <ID>",
@@ -96,7 +96,7 @@ namespace OpenSim.Region.OptionalModules.Asset
                 HandleShowAsset);
 
             MainConsole.Instance.Commands.AddCommand(
-                "asset", false, "dump asset",
+                "Assets", false, "dump asset",
                 "dump asset <id>",
                 "Dump an asset",
                 HandleDumpAsset);

@@ -108,7 +108,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 OnInventoryArchiveSaved += SaveInvConsoleCommandCompleted;
                 
                 scene.AddCommand(
-                    this, "load iar",
+                    "Archiving", this, "load iar",
                     "load iar [-m|--merge] <first> <last> <inventory path> <password> [<IAR path>]",
                     "Load user inventory archive (IAR).",
                     "-m|--merge is an option which merges the loaded IAR with existing inventory folders where possible, rather than always creating new ones"
@@ -121,7 +121,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     HandleLoadInvConsoleCommand);
                 
                 scene.AddCommand(
-                    this, "save iar",
+                    "Archiving", this, "save iar",
                     "save iar [-h|--home=<url>] [--noassets] <first> <last> <inventory path> <password> [<IAR path>] [-c|--creators] [-v|--verbose]",
                     "Save user inventory archive (IAR).", 
                     "<first> is the user's first name." + Environment.NewLine

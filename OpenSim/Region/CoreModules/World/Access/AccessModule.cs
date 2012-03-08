@@ -47,21 +47,21 @@ namespace OpenSim.Region.CoreModules.World
 
         public void Initialise(IConfigSource config)
         {
-            MainConsole.Instance.Commands.AddCommand("access", true,
+            MainConsole.Instance.Commands.AddCommand("Users", true,
                     "login enable",
                     "login enable",
                     "Enable simulator logins",
                     String.Empty,
                     HandleLoginCommand);
 
-            MainConsole.Instance.Commands.AddCommand("access", true,
+            MainConsole.Instance.Commands.AddCommand("Users", true,
                     "login disable",
                     "login disable",
                     "Disable simulator logins",
                     String.Empty,
                     HandleLoginCommand);
 
-            MainConsole.Instance.Commands.AddCommand("access", true,
+            MainConsole.Instance.Commands.AddCommand("Users", true,
                     "login status",
                     "login status",
                     "Show login status",

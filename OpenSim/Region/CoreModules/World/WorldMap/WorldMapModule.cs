@@ -102,7 +102,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_scene.RegisterModuleInterface<IWorldMapModule>(this);
 
                 m_scene.AddCommand(
-                    this, "export-map",
+                    "Regions", this, "export-map",
                     "export-map [<path>]",
                     "Save an image of the world map", HandleExportWorldMapConsoleCommand);
 

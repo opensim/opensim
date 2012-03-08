@@ -40,7 +40,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Get help for the given help string
         /// </summary>
-        /// <param name="helpParts">Parsed parts of the help string.  If empty then general help is returned.</param>
+        /// <param name="cmd">Parsed parts of the help string.  If empty then general help is returned.</param>
         /// <returns></returns>
         List<string> GetHelp(string[] cmd);
 

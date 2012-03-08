@@ -161,43 +161,43 @@ namespace OpenSim.Framework.Servers
                     Notice(String.Format("Console log level is {0}", m_consoleAppender.Threshold));
                 }
                 
-                m_console.Commands.AddCommand("base", false, "quit",
+                m_console.Commands.AddCommand("General", false, "quit",
                         "quit",
                         "Quit the application", HandleQuit);
 
-                m_console.Commands.AddCommand("base", false, "shutdown",
+                m_console.Commands.AddCommand("General", false, "shutdown",
                         "shutdown",
                         "Quit the application", HandleQuit);
 
-                m_console.Commands.AddCommand("base", false, "set log level",
+                m_console.Commands.AddCommand("General", false, "set log level",
                         "set log level <level>",
                         "Set the console logging level", HandleLogLevel);
 
-                m_console.Commands.AddCommand("base", false, "show info",
+                m_console.Commands.AddCommand("General", false, "show info",
                         "show info",
                         "Show general information about the server", HandleShow);
 
-                m_console.Commands.AddCommand("base", false, "show stats",
+                m_console.Commands.AddCommand("General", false, "show stats",
                         "show stats",
                         "Show statistics", HandleShow);
 
-                m_console.Commands.AddCommand("base", false, "show threads",
+                m_console.Commands.AddCommand("General", false, "show threads",
                         "show threads",
                         "Show thread status", HandleShow);
 
-                m_console.Commands.AddCommand("base", false, "show uptime",
+                m_console.Commands.AddCommand("General", false, "show uptime",
                         "show uptime",
                         "Show server uptime", HandleShow);
 
-                m_console.Commands.AddCommand("base", false, "show version",
+                m_console.Commands.AddCommand("General", false, "show version",
                         "show version",
                         "Show server version", HandleShow);
 
-                m_console.Commands.AddCommand("base", false, "threads abort",
+                m_console.Commands.AddCommand("General", false, "threads abort",
                         "threads abort <thread-id>",
                         "Abort a managed thread.  Use \"show threads\" to find possible threads.", HandleThreadsAbort);
 
-                m_console.Commands.AddCommand("base", false, "threads show",
+                m_console.Commands.AddCommand("General", false, "threads show",
                         "threads show",
                         "Show thread status.  Synonym for \"show threads\"",
                         (string module, string[] args) => Notice(GetThreadsReport()));

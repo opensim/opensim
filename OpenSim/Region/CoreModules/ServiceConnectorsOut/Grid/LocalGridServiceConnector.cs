@@ -122,7 +122,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void PostInitialise()
         {
-            MainConsole.Instance.Commands.AddCommand("LocalGridConnector", false, "show neighbours",
+            MainConsole.Instance.Commands.AddCommand("Regions", false, "show neighbours",
                 "show neighbours",
                 "Shows the local regions' neighbours", NeighboursCommand);
         }

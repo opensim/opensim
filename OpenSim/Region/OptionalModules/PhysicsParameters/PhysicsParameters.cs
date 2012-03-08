@@ -100,22 +100,22 @@ namespace OpenSim.Region.OptionalModules.PhysicsParameters
         {
             if (!m_commandsLoaded)
             {
-                MainConsole.Instance.Commands.AddCommand("Physics", false, "physics set",
-                    "physics set",
-                    "Set physics parameter from currently selected region" + Environment.NewLine
-                    + "Invocation: " + setInvocation,
+                MainConsole.Instance.Commands.AddCommand(
+                    "Regions", false, "physics set",
+                    setInvocation,
+                    "Set physics parameter from currently selected region",
                     ProcessPhysicsSet);
 
-                MainConsole.Instance.Commands.AddCommand("Physics", false, "physics get",
-                    "physics get",
-                    "Get physics parameter from currently selected region" + Environment.NewLine
-                    + "Invocation: " + getInvocation, 
+                MainConsole.Instance.Commands.AddCommand(
+                    "Regions", false, "physics get",
+                    getInvocation,
+                    "Get physics parameter from currently selected region",
                     ProcessPhysicsGet);
 
-                MainConsole.Instance.Commands.AddCommand("Physics", false, "physics list",
-                    "physics list",
-                    "List settable physics parameters" + Environment.NewLine
-                    + "Invocation: " + listInvocation,
+                MainConsole.Instance.Commands.AddCommand(
+                    "Regions", false, "physics list",
+                    listInvocation,
+                    "List settable physics parameters",
                     ProcessPhysicsList);
 
                 m_commandsLoaded = true;
