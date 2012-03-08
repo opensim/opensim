@@ -263,8 +263,8 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_occupied;					// KF if any av is sitting on this prim
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
-        private readonly Stack<UndoState> m_undo = new Stack<UndoState>(5);
-        private readonly Stack<UndoState> m_redo = new Stack<UndoState>(5);
+        private Stack<UndoState> m_undo = new Stack<UndoState>(5);
+        private Stack<UndoState> m_redo = new Stack<UndoState>(5);
 
         private bool m_passTouches;
 
@@ -1708,6 +1708,11 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.SalePrice = SalePrice;
             dupe.Category = Category;
             dupe.m_rezzed = m_rezzed;
+
+            dupe.m_undo = new Stack<UndoState>(5);
+            dupe.m_redo = new Stack<UndoState>(5);
+            dupe.IgnoreUndoUpdate = false;
+            dupe.Undoing = false;
 
             dupe.m_inventory = new SceneObjectPartInventory(dupe);
             dupe.m_inventory.Items = (TaskInventoryDictionary)m_inventory.Items.Clone();
@@ -3659,61 +3664,38 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StoreUndoState(bool forGroup)
         {
-            if (!Undoing)
+            if (!Undoing && !IgnoreUndoUpdate) // just to read better  - undo is in progress, or suspended
             {
-                if (!IgnoreUndoUpdate)
+                if (ParentGroup != null)
                 {
-                    if (ParentGroup != null)
+                    lock (m_undo)
                     {
-                        lock (m_undo)
+                        if (m_undo.Count > 0) 
                         {
-                            if (m_undo.Count > 0)
-                            {
-                                UndoState last = m_undo.Peek();
-                                if (last != null)
-                                {
-                                    // TODO: May need to fix for group comparison
-                                    if (last.Compare(this))
-                                    {
-                                        //                                        m_log.DebugFormat(
-                                        //                                            "[SCENE OBJECT PART]: Not storing undo for {0} {1} since current state is same as last undo state, initial stack size {2}",
-                                        //                                            Name, LocalId, m_undo.Count);
+                            // see if we had a change
 
-                                        return;
-                                    }
+                            UndoState last = m_undo.Peek();
+                            if (last != null)
+                            {                              
+                                if (last.Compare(this, forGroup))
+                                {
+                                    return;
                                 }
                             }
-    
-    //                            m_log.DebugFormat(
-    //                                "[SCENE OBJECT PART]: Storing undo state for {0} {1}, forGroup {2}, initial stack size {3}",
-    //                                Name, LocalId, forGroup, m_undo.Count);
-    
-                            if (ParentGroup.GetSceneMaxUndo() > 0)
-                            {
-                                UndoState nUndo = new UndoState(this, forGroup);
+                        }
 
-                                m_undo.Push(nUndo);
+                        if (ParentGroup.GetSceneMaxUndo() > 0)
+                        {
+                            UndoState nUndo = new UndoState(this, forGroup);
 
-                                if (m_redo.Count > 0)
-                                    m_redo.Clear();
+                            m_undo.Push(nUndo);
 
-                                //                                m_log.DebugFormat(
-                                //                                    "[SCENE OBJECT PART]: Stored undo state for {0} {1}, forGroup {2}, stack size now {3}",
-                                //                                    Name, LocalId, forGroup, m_undo.Count);
-                            }
+                            if (m_redo.Count > 0)
+                                m_redo.Clear();
                         }
                     }
                 }
-                //                else
-                //                {
-                //                    m_log.DebugFormat("[SCENE OBJECT PART]: Ignoring undo store for {0} {1}", Name, LocalId);
-                //                }
             }
-            //            else
-            //            {
-            //                m_log.DebugFormat(
-            //                    "[SCENE OBJECT PART]: Ignoring undo store for {0} {1} since already undoing", Name, LocalId);
-            //            }
         }
 
         /// <summary>
@@ -3749,7 +3731,7 @@ namespace OpenSim.Region.Framework.Scenes
                             nUndo = new UndoState(this, goback.ForGroup);
                         }
 
-                        goback.PlaybackState(this);
+                        goback.PlayState(this);
 
                         if (nUndo != null)
                             m_redo.Push(nUndo);
@@ -3783,7 +3765,7 @@ namespace OpenSim.Region.Framework.Scenes
                             m_undo.Push(nUndo);
                         }
     
-                        gofwd.PlayfwdState(this);
+                        gofwd.PlayState(this);
                     }
 
 //                m_log.DebugFormat(

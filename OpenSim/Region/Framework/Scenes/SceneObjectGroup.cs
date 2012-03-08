@@ -549,11 +549,12 @@ namespace OpenSim.Region.Framework.Scenes
                         val.Z = Util.Clamp<float>(oldp.Z, 0.5f, 4096.0f);
                     }
                 }
-
+/* don't see the need but worse don't see where is restored to false if things stay in
                 foreach (SceneObjectPart part in m_parts.GetArray())
                 {
                     part.IgnoreUndoUpdate = true;
                 }
+ */
                 if (RootPart.GetStatusSandbox())
                 {
                     if (Util.GetDistanceTo(RootPart.StatusSandboxPos, value) > 10)
@@ -3519,7 +3520,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part.UUID == m_rootPart.UUID)
                 {
                     UpdateRootRotation(rot);
-                    if (!m_rootPart.Undoing)
+/*                    if (!m_rootPart.Undoing)
                     {
                         m_rootPart.Undoing = true;
                         AbsolutePosition = pos;
@@ -3527,8 +3528,9 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
+ */
                         AbsolutePosition = pos;
-                    }
+//                    }
                 }
                 else
                 {
