@@ -296,9 +296,10 @@ namespace OpenSim.Services.HypergridService
                 aCircuit.firstname = account.FirstName;
                 aCircuit.lastname = account.LastName;
             }
-            if (account == null && !aCircuit.lastname.StartsWith("@"))
+            if (account == null)
             {
-                aCircuit.firstname = aCircuit.firstname + "." + aCircuit.lastname;
+                if (!aCircuit.lastname.StartsWith("@"))
+                    aCircuit.firstname = aCircuit.firstname + "." + aCircuit.lastname;
                 try
                 {
                     Uri uri = new Uri(aCircuit.ServiceURLs["HomeURI"].ToString());
