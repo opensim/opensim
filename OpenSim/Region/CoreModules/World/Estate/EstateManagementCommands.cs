@@ -77,7 +77,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                consoleSetTerrainHeights);
 
             m_module.Scene.AddCommand(
-                "Estates", m_module, "estate show", "estate show", "Shows all estates on the simulator.", "", ShowEstatesCommand);
+                "Estates", m_module, "estate show", "estate show", "Shows all estates on the simulator.", ShowEstatesCommand);
         }       
         
         public void Close() {}
