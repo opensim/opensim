@@ -242,15 +242,15 @@ namespace OpenSim
 
                 foreach (string topic in topics)
                 {
-                    m_console.Commands.AddCommand("plugin", false, "help " + topic,
+                    m_console.Commands.AddCommand(topic, false, "help " + topic,
                                                   "help " + topic,
                                                   "Get help on plugin command '" + topic + "'",
                                                   HandleCommanderHelp);
-
-                    m_console.Commands.AddCommand("plugin", false, topic,
-                                                  topic,
-                                                  "Execute subcommand for plugin '" + topic + "'",
-                                                  null);
+//
+//                    m_console.Commands.AddCommand("General", false, topic,
+//                                                  topic,
+//                                                  "Execute subcommand for plugin '" + topic + "'",
+//                                                  null);
 
                     ICommander commander = null;
 

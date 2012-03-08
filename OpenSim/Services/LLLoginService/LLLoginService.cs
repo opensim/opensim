@@ -893,16 +893,16 @@ namespace OpenSim.Services.LLLoginService
         private void RegisterCommands()
         {
             //MainConsole.Instance.Commands.AddCommand
-            MainConsole.Instance.Commands.AddCommand("loginservice", false, "login level",
+            MainConsole.Instance.Commands.AddCommand("Users", false, "login level",
                     "login level <level>",
                     "Set the minimum user level to log in", HandleLoginCommand);
 
-            MainConsole.Instance.Commands.AddCommand("loginservice", false, "login reset",
+            MainConsole.Instance.Commands.AddCommand("Users", false, "login reset",
                     "login reset",
                     "Reset the login level to allow all users",
                     HandleLoginCommand);
 
-            MainConsole.Instance.Commands.AddCommand("loginservice", false, "login text",
+            MainConsole.Instance.Commands.AddCommand("Users", false, "login text",
                     "login text <text>",
                     "Set the text users will see on login", HandleLoginCommand);
 

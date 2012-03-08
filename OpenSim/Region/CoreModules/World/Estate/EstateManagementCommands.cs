@@ -62,14 +62,14 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {            
             m_log.DebugFormat("[ESTATE MODULE]: Setting up estate commands for region {0}", m_module.Scene.RegionInfo.RegionName);
             
-            m_module.Scene.AddCommand(m_module, "set terrain texture",
+            m_module.Scene.AddCommand("estate", m_module, "set terrain texture",
                                "set terrain texture <number> <uuid> [<x>] [<y>]",
                                "Sets the terrain <number> to <uuid>, if <x> or <y> are specified, it will only " +
                                "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
                                " that coordinate.",
                                consoleSetTerrainTexture);
 
-            m_module.Scene.AddCommand(m_module, "set terrain heights",
+            m_module.Scene.AddCommand("estate", m_module, "set terrain heights",
                                "set terrain heights <corner> <min> <max> [<x>] [<y>]",
                                "Sets the terrain texture heights on corner #<corner> to <min>/<max>, if <x> or <y> are specified, it will only " +
                                "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +

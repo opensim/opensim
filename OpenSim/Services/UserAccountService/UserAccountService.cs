@@ -89,17 +89,17 @@ namespace OpenSim.Services.UserAccountService
             if (m_RootInstance == null && MainConsole.Instance != null)
             {
                 m_RootInstance = this;
-                MainConsole.Instance.Commands.AddCommand("UserService", false,
+                MainConsole.Instance.Commands.AddCommand("Users", false,
                         "create user",
                         "create user [<first> [<last> [<pass> [<email> [<user id>]]]]]",
                         "Create a new user", HandleCreateUser);
 
-                MainConsole.Instance.Commands.AddCommand("UserService", false,
+                MainConsole.Instance.Commands.AddCommand("Users", false,
                         "reset user password",
                         "reset user password [<first> [<last> [<password>]]]",
                         "Reset a user password", HandleResetUserPassword);
 
-                MainConsole.Instance.Commands.AddCommand("UserService", false,
+                MainConsole.Instance.Commands.AddCommand("Users", false,
                         "set user level",
                         "set user level [<first> [<last> [<level>]]]",
                         "Set user level. If >= 200 and 'allow_grid_gods = true' in OpenSim.ini, "
@@ -107,7 +107,7 @@ namespace OpenSim.Services.UserAccountService
                             + "It will also affect the 'login level' command. ",
                         HandleSetUserLevel);
 
-                MainConsole.Instance.Commands.AddCommand("UserService", false,
+                MainConsole.Instance.Commands.AddCommand("Users", false,
                         "show account",
                         "show account <first> <last>",
                         "Show account details for the given user", HandleShowAccount);

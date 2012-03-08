@@ -29,6 +29,7 @@ using System;
 using System.Xml;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -40,6 +41,8 @@ namespace OpenSim.Framework.Console
 {
     public class Commands : ICommands
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Encapsulates a command that can be invoked from the console
         /// </summary>
@@ -76,11 +79,18 @@ namespace OpenSim.Framework.Console
             public List<CommandDelegate> fn;
         }
 
+        public const string GeneralHelpText = "For more information, type 'help <item>' where <item> is one of the following categories:";
+
         /// <value>
         /// Commands organized by keyword in a tree
         /// </value>
         private Dictionary<string, object> tree =
                 new Dictionary<string, object>();
+
+        /// <summary>
+        /// Commands organized by module
+        /// </summary>
+        private Dictionary<string, List<CommandInfo>> m_modulesCommands = new Dictionary<string, List<CommandInfo>>();
 
         /// <summary>
         /// Get help for the given help string
@@ -98,8 +108,8 @@ namespace OpenSim.Framework.Console
             // General help
             if (helpParts.Count == 0)
             {
-                help.AddRange(CollectHelp(tree));
-                help.Sort();
+                help.Add(GeneralHelpText);
+                help.AddRange(CollectModulesHelp(tree));
             }
             else
             {
@@ -118,6 +128,13 @@ namespace OpenSim.Framework.Console
         {
             string originalHelpRequest = string.Join(" ", helpParts.ToArray());
             List<string> help = new List<string>();
+
+            // Check modules first to see if we just need to display a list of those commands
+            if (TryCollectModuleHelp(originalHelpRequest, help))
+            {
+                help.Insert(0, GeneralHelpText);
+                return help;
+            }
             
             Dictionary<string, object> dict = tree;
             while (helpParts.Count > 0)
@@ -161,25 +178,61 @@ namespace OpenSim.Framework.Console
             return help;
         }
 
-        private List<string> CollectHelp(Dictionary<string, object> dict)
+        /// <summary>
+        /// Try to collect help for the given module if that module exists.
+        /// </summary>
+        /// <param name="moduleName"></param>
+        /// <param name="helpText">/param>
+        /// <returns>true if there was the module existed, false otherwise.</returns>
+        private bool TryCollectModuleHelp(string moduleName, List<string> helpText)
         {
-            List<string> result = new List<string>();
-
-            foreach (KeyValuePair<string, object> kvp in dict)
+            lock (m_modulesCommands)
             {
-                if (kvp.Value is Dictionary<string, Object>)
+                if (m_modulesCommands.ContainsKey(moduleName))
                 {
-                    result.AddRange(CollectHelp((Dictionary<string, Object>)kvp.Value));
+                    List<CommandInfo> commands = m_modulesCommands[moduleName];
+                    var ourHelpText = commands.ConvertAll(c => string.Format("{0} - {1}", c.help_text, c.long_help));
+                    ourHelpText.Sort();
+                    helpText.AddRange(ourHelpText);
+
+                    return true;
                 }
                 else
                 {
-                    if (((CommandInfo)kvp.Value).long_help != String.Empty)
-                        result.Add(((CommandInfo)kvp.Value).help_text+" - "+
-                                ((CommandInfo)kvp.Value).long_help);
+                    return false;
                 }
             }
-            return result;
         }
+
+        private List<string> CollectModulesHelp(Dictionary<string, object> dict)
+        {
+            lock (m_modulesCommands)
+            {
+                List<string> helpText = new List<string>(m_modulesCommands.Keys);
+                helpText.Sort();
+                return helpText;
+            }
+        }
+
+//        private List<string> CollectHelp(Dictionary<string, object> dict)
+//        {
+//            List<string> result = new List<string>();
+//
+//            foreach (KeyValuePair<string, object> kvp in dict)
+//            {
+//                if (kvp.Value is Dictionary<string, Object>)
+//                {
+//                    result.AddRange(CollectHelp((Dictionary<string, Object>)kvp.Value));
+//                }
+//                else
+//                {
+//                    if (((CommandInfo)kvp.Value).long_help != String.Empty)
+//                        result.Add(((CommandInfo)kvp.Value).help_text+" - "+
+//                                ((CommandInfo)kvp.Value).long_help);
+//                }
+//            }
+//            return result;
+//        }
         
         /// <summary>
         /// Add a command to those which can be invoked from the console.
@@ -212,21 +265,19 @@ namespace OpenSim.Framework.Console
 
             Dictionary<string, Object> current = tree;
             
-            foreach (string s in parts)
+            foreach (string part in parts)
             {
-                if (current.ContainsKey(s))
+                if (current.ContainsKey(part))
                 {
-                    if (current[s] is Dictionary<string, Object>)
-                    {
-                        current = (Dictionary<string, Object>)current[s];
-                    }
+                    if (current[part] is Dictionary<string, Object>)
+                        current = (Dictionary<string, Object>)current[part];
                     else
                         return;
                 }
                 else
                 {
-                    current[s] = new Dictionary<string, Object>();
-                    current = (Dictionary<string, Object>)current[s];
+                    current[part] = new Dictionary<string, Object>();
+                    current = (Dictionary<string, Object>)current[part];
                 }
             }
 
@@ -250,6 +301,24 @@ namespace OpenSim.Framework.Console
             info.fn = new List<CommandDelegate>();
             info.fn.Add(fn);
             current[String.Empty] = info;
+
+            // Now add command to modules dictionary
+            lock (m_modulesCommands)
+            {
+                List<CommandInfo> commands;
+                if (m_modulesCommands.ContainsKey(module))
+                {
+                    commands = m_modulesCommands[module];
+                }
+                else
+                {
+                    commands = new List<CommandInfo>();
+                    m_modulesCommands[module] = commands;
+                }
+
+//                m_log.DebugFormat("[COMMAND CONSOLE]: Adding to category {0} command {1}", module, command);
+                commands.Add(info);
+            }
         }
 
         public string[] FindNextOption(string[] cmd, bool term)
@@ -607,8 +676,9 @@ namespace OpenSim.Framework.Console
         {
             Commands = new Commands();
 
-            Commands.AddCommand("console", false, "help", "help [<command>]", 
-                    "Get general command list or more detailed help on a specific command", Help);
+            Commands.AddCommand(
+                "Help", false, "help", "help [<item>]",
+                "Display help on a particular command or on a list of commands in a category", Help);
         }
 
         private void Help(string module, string[] cmd)

@@ -117,23 +117,30 @@ namespace OpenSim.Region.CoreModules
                 }
 
                 // This one puts an entry in the main help screen
-                m_scene.AddCommand(this, String.Empty, "wind", "Usage: wind <plugin> <param> [value] - Get or Update Wind paramaters", null);
+//                m_scene.AddCommand("Regions", this, "wind", "wind", "Usage: wind <plugin> <param> [value] - Get or Update Wind paramaters", null);
                 
                 // This one enables the ability to type just the base command without any parameters
-                m_scene.AddCommand(this, "wind", "", "", HandleConsoleCommand);
+//                m_scene.AddCommand("Regions", this, "wind", "", "", HandleConsoleCommand);
 
                 // Get a list of the parameters for each plugin
                 foreach (IWindModelPlugin windPlugin in m_availableWindPlugins.Values)
                 {
-                    m_scene.AddCommand(this, String.Format("wind base wind_plugin {0}", windPlugin.Name), String.Format("{0} - {1}", windPlugin.Name, windPlugin.Description), "", HandleConsoleBaseCommand);
-                    m_scene.AddCommand(this, String.Format("wind base wind_update_rate"), "Change the wind update rate.", "", HandleConsoleBaseCommand);
+//                    m_scene.AddCommand("Regions", this, String.Format("wind base wind_plugin {0}", windPlugin.Name), String.Format("{0} - {1}", windPlugin.Name, windPlugin.Description), "", HandleConsoleBaseCommand);
+                    m_scene.AddCommand(
+                        "Regions",
+                        this,
+                        "wind base wind_update_rate",
+                        "wind base wind_update_rate [<value>]",
+                        "Get or set the wind update rate.",
+                        "",
+                        HandleConsoleBaseCommand);
                     
                     foreach (KeyValuePair<string, string> kvp in windPlugin.WindParams())
                     {
-                        m_scene.AddCommand(this, String.Format("wind {0} {1}", windPlugin.Name, kvp.Key), String.Format("{0} : {1} - {2}", windPlugin.Name, kvp.Key, kvp.Value), "", HandleConsoleParamCommand);
+                        string windCommand = String.Format("wind {0} {1}", windPlugin.Name, kvp.Key);
+                        m_scene.AddCommand("Regions", this, windCommand, string.Format("{0} [<value>]", windCommand), kvp.Value, "", HandleConsoleParamCommand);
                     }
                 }
-
 
                 // Register event handlers for when Avatars enter the region, and frame ticks
                 m_scene.EventManager.OnFrame += WindUpdate;

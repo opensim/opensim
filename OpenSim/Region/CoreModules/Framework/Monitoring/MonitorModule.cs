@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
 
             m_scene = scene;
 
-            m_scene.AddCommand(this, "monitor report",
+            m_scene.AddCommand("General", this, "monitor report",
                                "monitor report",
                                "Returns a variety of statistics about the current region and/or simulator",
                                DebugMonitors);

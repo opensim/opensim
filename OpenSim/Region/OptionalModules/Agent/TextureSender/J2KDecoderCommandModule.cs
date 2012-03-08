@@ -92,7 +92,7 @@ namespace OpenSim.Region.OptionalModules.Agent.TextureSender
                 m_scene = scene;
 
             MainConsole.Instance.Commands.AddCommand(
-                "j2k",
+                "Assets",
                 false,
                 "j2k decode",
                 "j2k decode <ID>",
