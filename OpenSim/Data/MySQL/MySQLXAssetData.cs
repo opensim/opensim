@@ -214,17 +214,16 @@ namespace OpenSim.Data.MySQL
                             m_log.Warn("[XASSET DB]: Description field truncated from " + asset.Description.Length + " to " + assetDescription.Length + " characters on add");
                         }
 
-                        byte[] compressedData;
-                        MemoryStream outputStream = new MemoryStream();
-
                         if (m_enableCompression)
                         {
+                            MemoryStream outputStream = new MemoryStream();
+
                             using (GZipStream compressionStream = new GZipStream(outputStream, CompressionMode.Compress, false))
                             {
     //                            Console.WriteLine(WebUtil.CopyTo(new MemoryStream(asset.Data), compressionStream, int.MaxValue));
                                 // We have to close the compression stream in order to make sure it writes everything out to the underlying memory output stream.
                                 compressionStream.Close();
-                                compressedData = outputStream.ToArray();
+                                byte[] compressedData = outputStream.ToArray();
                                 asset.Data = compressedData;
                             }
                         }
