@@ -4213,7 +4213,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<String> nametable = new List<String>();
             World.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
-                if (presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
+                SceneObjectPart sitPart = presence.ParentPart;
+                if (sitPart != null && m_host.ParentGroup.HasChildPrim(sitPart.LocalId))
                     nametable.Add(presence.ControllingClient.Name);
             });
 
@@ -4844,22 +4845,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 // Find pushee position
                 // Pushee Linked?
-                if (pusheeav.ParentID != 0)
-                {
-                    SceneObjectPart parentobj = World.GetSceneObjectPart(pusheeav.ParentID);
-                    if (parentobj != null)
-                    {
-                        PusheePos = parentobj.AbsolutePosition;
-                    }
-                    else
-                    {
-                        PusheePos = pusheeav.AbsolutePosition;
-                    }
-                }
+                SceneObjectPart sitPart = pusheeav.ParentPart;
+                if (sitPart != null)
+                    PusheePos = sitPart.AbsolutePosition;
                 else
-                {
                     PusheePos = pusheeav.AbsolutePosition;
-                }
             }
 
             if (!pusheeIsAvatar)
@@ -6067,7 +6057,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     flags |= ScriptBaseClass.AGENT_IN_AIR;
             }
 
-             if (agent.ParentID != 0)
+             if (agent.ParentPart != null)
              {
                  flags |= ScriptBaseClass.AGENT_ON_OBJECT;
                  flags |= ScriptBaseClass.AGENT_SITTING;
