@@ -73,13 +73,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                         return;
                     }
 
-                    string serviceDll = assetConfig.GetString("LocalServiceModule",
-                            String.Empty);
+                    string serviceDll = assetConfig.GetString("LocalServiceModule", String.Empty);
 
                     if (serviceDll == String.Empty)
                     {
                         m_log.Error("[LOCAL ASSET SERVICES CONNECTOR]: No LocalServiceModule named in section AssetService");
                         return;
+                    }
+                    else
+                    {
+                        m_log.DebugFormat("[LOCAL ASSET SERVICES CONNECTOR]: Loading asset service at {0}", serviceDll);
                     }
 
                     Object[] args = new Object[] { source };
