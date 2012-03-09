@@ -76,6 +76,16 @@ namespace OpenSim.Data.MySQL
         /// <param name="connect">connect string</param>
         public override void Initialise(string connect)
         {
+            m_log.ErrorFormat("[MYSQL XASSETDATA]: ***********************************************************");
+            m_log.ErrorFormat("[MYSQL XASSETDATA]: ***********************************************************");
+            m_log.ErrorFormat("[MYSQL XASSETDATA]: ***********************************************************");
+            m_log.ErrorFormat("[MYSQL XASSETDATA]: THIS PLUGIN IS STRICTLY EXPERIMENTAL.");
+            m_log.ErrorFormat("[MYSQL XASSETDATA]: DO NOT USE FOR ANY DATA THAT YOU DO NOT MIND LOSING.");
+            m_log.ErrorFormat("[MYSQL XASSETDATA]: DATABASE TABLES CAN CHANGE AT ANY TIME, CAUSING EXISTING DATA TO BE LOST.");
+            m_log.ErrorFormat("[MYSQL XASSETDATA]: ***********************************************************");
+            m_log.ErrorFormat("[MYSQL XASSETDATA]: ***********************************************************");
+            m_log.ErrorFormat("[MYSQL XASSETDATA]: ***********************************************************");
+
             m_connectionString = connect;
 
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
