@@ -455,12 +455,12 @@ namespace OpenSim.Region.Framework.Scenes
                     // in the sim unless the avatar is on a sit target. While
                     // on a sit target, m_pos will contain the desired offset
                     // without the parent rotation applied.
-                    if (ParentID != 0)
-                    {
-                        SceneObjectPart part = ParentPart;
-                        return part.AbsolutePosition + (m_pos * part.GetWorldRotation());
-                    }
+                    SceneObjectPart sitPart = ParentPart;
+
+                    if (sitPart != null)
+                        return sitPart.AbsolutePosition + (m_pos * sitPart.GetWorldRotation());
                 }
+                
                 return m_pos;
             }
             set
