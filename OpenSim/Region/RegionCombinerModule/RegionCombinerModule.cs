@@ -716,29 +716,17 @@ namespace OpenSim.Region.RegionCombinerModule
             {
                 if (sp.UUID != presence.UUID)
                 {
-                    if (sp.ParentID != 0)
-                    {
-                        // sitting avatar
-                        SceneObjectPart sop = connectiondata.RegionScene.GetSceneObjectPart(sp.ParentID);
-                        if (sop != null)
-                        {
-                            CoarseLocations.Add(sop.AbsolutePosition + sp.AbsolutePosition);
-                            AvatarUUIDs.Add(sp.UUID);
-                        }
-                        else
-                        {
-                            // we can't find the parent..  ! arg!
-                            CoarseLocations.Add(sp.AbsolutePosition);
-                            AvatarUUIDs.Add(sp.UUID);
-                        }
-                    }
+                    SceneObjectPart sitPart = sp.ParentPart;
+
+                    if (sitPart != null)
+                        CoarseLocations.Add(sitPart.AbsolutePosition + sp.AbsolutePosition);
                     else
-                    {
                         CoarseLocations.Add(sp.AbsolutePosition);
-                        AvatarUUIDs.Add(sp.UUID);
-                    }
+
+                    AvatarUUIDs.Add(sp.UUID);
                 }
             });
+
             DistributeCourseLocationUpdates(CoarseLocations, AvatarUUIDs, connectiondata, presence);
         }
 
