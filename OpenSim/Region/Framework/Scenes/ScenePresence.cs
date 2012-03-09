@@ -457,15 +457,8 @@ namespace OpenSim.Region.Framework.Scenes
                     // without the parent rotation applied.
                     if (ParentID != 0)
                     {
-                        SceneObjectPart part = m_scene.GetSceneObjectPart(ParentID);
-                        if (part != null)
-                        {
-                            return part.AbsolutePosition + (m_pos * part.GetWorldRotation());
-                        }
-                        else
-                        {
-                            return ParentPosition + m_pos;
-                        }
+                        SceneObjectPart part = ParentPart;
+                        return part.AbsolutePosition + (m_pos * part.GetWorldRotation());
                     }
                 }
                 return m_pos;
@@ -575,6 +568,13 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_parentID = value; }
         }
         private uint m_parentID;
+
+        public SceneObjectPart ParentPart
+        {
+            get { return m_parentPart; }
+            set { m_parentPart = value; }
+        }
+        private SceneObjectPart m_parentPart = null;
 
         public float Health
         {
@@ -1751,36 +1751,34 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (ParentID != 0)
             {
-                SceneObjectPart part = m_scene.GetSceneObjectPart(ParentID);
-                if (part != null)
+                SceneObjectPart part = ParentPart;
+                TaskInventoryDictionary taskIDict = part.TaskInventory;
+                if (taskIDict != null)
                 {
-                    TaskInventoryDictionary taskIDict = part.TaskInventory;
-                    if (taskIDict != null)
+                    lock (taskIDict)
                     {
-                        lock (taskIDict)
+                        foreach (UUID taskID in taskIDict.Keys)
                         {
-                            foreach (UUID taskID in taskIDict.Keys)
-                            {
-                                UnRegisterControlEventsToScript(LocalId, taskID);
-                                taskIDict[taskID].PermsMask &= ~(
-                                    2048 | //PERMISSION_CONTROL_CAMERA
-                                    4); // PERMISSION_TAKE_CONTROLS
-                            }
+                            UnRegisterControlEventsToScript(LocalId, taskID);
+                            taskIDict[taskID].PermsMask &= ~(
+                                2048 | //PERMISSION_CONTROL_CAMERA
+                                4); // PERMISSION_TAKE_CONTROLS
                         }
                     }
-
-                    // Reset sit target.
-                    if (part.SitTargetAvatar == UUID)
-                        part.SitTargetAvatar = UUID.Zero;
-
-                    ParentPosition = part.GetWorldPosition();
-                    ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
                 }
+
+                // Reset sit target.
+                if (part.SitTargetAvatar == UUID)
+                    part.SitTargetAvatar = UUID.Zero;
+
+                ParentPosition = part.GetWorldPosition();
+                ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
 
                 m_pos += ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
                 ParentPosition = Vector3.Zero;
 
                 ParentID = 0;
+                ParentPart = null;
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
 
@@ -2211,6 +2209,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 return;
             }
+
+            ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
+            if (ParentPart == null)
+                return;
 
             ParentID = m_requestedSitTargetID;
 
