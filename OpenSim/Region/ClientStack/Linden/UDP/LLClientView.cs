@@ -11518,166 +11518,113 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                        }
 
                         UpdatePrimGroupRotation handlerUpdatePrimGroupRotation;
+                        UpdateVector handlerUpdatePrimGroupScale;
+
+                        Quaternion arot;
+                        Vector3 ascale;
+                        Vector3 apos;
+/*ubit from ll JIRA:
+ * 0x01 position
+ * 0x02 rotation
+ * 0x04 scale
+  
+ * 0x08 LINK_SET
+ * 0x10 UNIFORM for scale
+ */
+
 
                         switch (block.Type)
                         {
-                            case 1:
-                                Vector3 pos1 = new Vector3(block.Data, 0);
+                            case 1: //change position sp
+                                apos = new Vector3(block.Data, 0);
 
                                 UpdateVector handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
                                 if (handlerUpdatePrimSinglePosition != null)
                                 {
+                                    part.StoreUndoState();
+                                    part.IgnoreUndoUpdate = true;
+
                                     // m_log.Debug("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
-                                    handlerUpdatePrimSinglePosition(localId, pos1, this);
+                                    handlerUpdatePrimSinglePosition(localId, apos, this);
+
+                                    part.IgnoreUndoUpdate = false;
                                 }
                                 break;
 
-                            case 2:
-                                Quaternion rot1 = new Quaternion(block.Data, 0, true);
+                            case 2: // rotation sp
+                                arot = new Quaternion(block.Data, 0, true);
 
                                 UpdatePrimSingleRotation handlerUpdatePrimSingleRotation = OnUpdatePrimSingleRotation;
                                 if (handlerUpdatePrimSingleRotation != null)
                                 {
-                                    // m_log.Info("new tab rotation is " + rot1.X + " , " + rot1.Y + " , " + rot1.Z + " , " + rot1.W);
-                                    handlerUpdatePrimSingleRotation(localId, rot1, this);
+                                    part.StoreUndoState();
+                                    part.IgnoreUndoUpdate = true;
+
+                                    handlerUpdatePrimSingleRotation(localId, arot, this);
+
+                                    part.IgnoreUndoUpdate = false;
                                 }
                                 break;
 
-                            case 3:
-                                Vector3 rotPos = new Vector3(block.Data, 0);
-                                Quaternion rot2 = new Quaternion(block.Data, 12, true);
+                            case 3: // position plus rotation
+                                apos = new Vector3(block.Data, 0);
+                                arot = new Quaternion(block.Data, 12, true);
 
                                 UpdatePrimSingleRotationPosition handlerUpdatePrimSingleRotationPosition = OnUpdatePrimSingleRotationPosition;
                                 if (handlerUpdatePrimSingleRotationPosition != null)
                                 {
-                                    // m_log.Debug("new mouse rotation position is " + rotPos.X + " , " + rotPos.Y + " , " + rotPos.Z);
-                                    // m_log.Info("new mouse rotation is " + rot2.X + " , " + rot2.Y + " , " + rot2.Z + " , " + rot2.W);
-                                    handlerUpdatePrimSingleRotationPosition(localId, rot2, rotPos, this);
+                                    part.StoreUndoState();
+                                    part.IgnoreUndoUpdate = true;
+
+                                    handlerUpdatePrimSingleRotationPosition(localId, arot, apos, this);
+
+                                    part.IgnoreUndoUpdate = false;
                                 }
                                 break;
 
-                            case 4:
-                            case 20:
-                                Vector3 scale4 = new Vector3(block.Data, 0);
+                            case 4: // scale sp
+                            case 0x14: // uniform scale sp 
+                                ascale = new Vector3(block.Data, 0);
 
                                 UpdateVector handlerUpdatePrimScale = OnUpdatePrimScale;
                                 if (handlerUpdatePrimScale != null)
                                 {
-                                    //                                     m_log.Debug("new scale is " + scale4.X + " , " + scale4.Y + " , " + scale4.Z);
-                                    handlerUpdatePrimScale(localId, scale4, this);
-                                }
-                                break;
-
-                            case 5:
-                                Vector3 scale1 = new Vector3(block.Data, 12);
-                                Vector3 pos11 = new Vector3(block.Data, 0);
-
-                                handlerUpdatePrimScale = OnUpdatePrimScale;
-                                if (handlerUpdatePrimScale != null)
-                                {
-                                    // m_log.Debug("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
-                                    handlerUpdatePrimScale(localId, scale1, this);
-
-                                    handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
-                                    if (handlerUpdatePrimSinglePosition != null)
-                                    {
-                                        handlerUpdatePrimSinglePosition(localId, pos11, this);
-                                    }
-                                }
-                                break;
-
-                            case 9:
-                                Vector3 pos2 = new Vector3(block.Data, 0);
-
-                                UpdateVector handlerUpdateVector = OnUpdatePrimGroupPosition;
-
-                                if (handlerUpdateVector != null)
-                                {
-                                    handlerUpdateVector(localId, pos2, this);
-                                }
-                                break;
-
-                            case 10:
-                                Quaternion rot3 = new Quaternion(block.Data, 0, true);
-
-                                UpdatePrimRotation handlerUpdatePrimRotation = OnUpdatePrimGroupRotation;
-                                if (handlerUpdatePrimRotation != null)
-                                {
-                                    //  Console.WriteLine("new rotation is " + rot3.X + " , " + rot3.Y + " , " + rot3.Z + " , " + rot3.W);
-                                    handlerUpdatePrimRotation(localId, rot3, this);
-                                }
-                                break;
-
-                            case 11:
-                                Vector3 pos3 = new Vector3(block.Data, 0);
-                                Quaternion rot4 = new Quaternion(block.Data, 12, true);
-
-                                handlerUpdatePrimGroupRotation = OnUpdatePrimGroupMouseRotation;
-                                if (handlerUpdatePrimGroupRotation != null)
-                                {
-                                    //  m_log.Debug("new rotation position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
-                                    // m_log.Debug("new group mouse rotation is " + rot4.X + " , " + rot4.Y + " , " + rot4.Z + " , " + rot4.W);
-                                    handlerUpdatePrimGroupRotation(localId, pos3, rot4, this);
-                                }
-                                break;
-                            case 12:
-                            case 28:
-                                Vector3 scale7 = new Vector3(block.Data, 0);
-
-                                UpdateVector handlerUpdatePrimGroupScale = OnUpdatePrimGroupScale;
-                                if (handlerUpdatePrimGroupScale != null)
-                                {
-                                    //                                     m_log.Debug("new scale is " + scale7.X + " , " + scale7.Y + " , " + scale7.Z);
-                                    handlerUpdatePrimGroupScale(localId, scale7, this);
-                                }
-                                break;
-
-                            case 13:
-                                Vector3 scale2 = new Vector3(block.Data, 12);
-                                Vector3 pos4 = new Vector3(block.Data, 0);
-
-                                handlerUpdatePrimScale = OnUpdatePrimScale;
-                                if (handlerUpdatePrimScale != null)
-                                {
-                                    //m_log.Debug("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
-                                    handlerUpdatePrimScale(localId, scale2, this);
-
-                                    // Change the position based on scale (for bug number 246)
-                                    handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
-                                    // m_log.Debug("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
-                                    if (handlerUpdatePrimSinglePosition != null)
-                                    {
-                                        handlerUpdatePrimSinglePosition(localId, pos4, this);
-                                    }
-                                }
-                                break;
-
-                            case 29:
-                                Vector3 scale5 = new Vector3(block.Data, 12);
-                                Vector3 pos5 = new Vector3(block.Data, 0);
-
-                                handlerUpdatePrimGroupScale = OnUpdatePrimGroupScale;
-                                if (handlerUpdatePrimGroupScale != null)
-                                {
-                                    // m_log.Debug("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
-                                    part.StoreUndoState(true);
+                                    part.StoreUndoState();
                                     part.IgnoreUndoUpdate = true;
-                                    handlerUpdatePrimGroupScale(localId, scale5, this);
-                                    handlerUpdateVector = OnUpdatePrimGroupPosition;
 
-                                    if (handlerUpdateVector != null)
-                                    {
-                                        handlerUpdateVector(localId, pos5, this);
-                                    }
+                                    handlerUpdatePrimScale(localId, ascale, this);
 
                                     part.IgnoreUndoUpdate = false;
                                 }
-
                                 break;
 
-                            case 21:
-                                Vector3 scale6 = new Vector3(block.Data, 12);
-                                Vector3 pos6 = new Vector3(block.Data, 0);
+                            case 5: // scale and position sp
+                                apos = new Vector3(block.Data, 0);
+                                ascale = new Vector3(block.Data, 12);
+                                
+
+                                handlerUpdatePrimScale = OnUpdatePrimScale;
+                                if (handlerUpdatePrimScale != null)
+                                {
+                                    part.StoreUndoState();
+                                    part.IgnoreUndoUpdate = true;
+
+                                    handlerUpdatePrimScale(localId, ascale, this);
+
+                                    handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
+
+                                    if (handlerUpdatePrimSinglePosition != null)
+                                    {
+                                        handlerUpdatePrimSinglePosition(localId, apos, this);
+                                    }
+                                    part.IgnoreUndoUpdate = false;
+                                }
+                                break;
+
+                            case 0x15: //uniform scale and position
+                                apos = new Vector3(block.Data, 0);
+                                ascale = new Vector3(block.Data, 12);
+                                
 
                                 handlerUpdatePrimScale = OnUpdatePrimScale;
                                 if (handlerUpdatePrimScale != null)
@@ -11686,15 +11633,155 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     part.IgnoreUndoUpdate = true;
 
                                     // m_log.Debug("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
-                                    handlerUpdatePrimScale(localId, scale6, this);
+                                    handlerUpdatePrimScale(localId, ascale, this);
                                     handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
                                     if (handlerUpdatePrimSinglePosition != null)
                                     {
-                                        handlerUpdatePrimSinglePosition(localId, pos6, this);
+                                        handlerUpdatePrimSinglePosition(localId, apos, this);
                                     }
 
                                     part.IgnoreUndoUpdate = false;
                                 }
+                                break;
+
+// now group related (bit 4)
+                            case 9: //( 8 + 1 )group position
+                                apos = new Vector3(block.Data, 0);
+
+                                UpdateVector handlerUpdateVector = OnUpdatePrimGroupPosition;
+
+                                if (handlerUpdateVector != null)
+                                {
+                                    part.StoreUndoState(true);
+                                    part.IgnoreUndoUpdate = true;
+
+                                    handlerUpdateVector(localId, apos, this);
+
+                                    part.IgnoreUndoUpdate = false;
+                                }
+                                break;
+
+                            case 0x0A: // (8 + 2) group rotation
+                                arot = new Quaternion(block.Data, 0, true);
+
+                                UpdatePrimRotation handlerUpdatePrimRotation = OnUpdatePrimGroupRotation;
+                                if (handlerUpdatePrimRotation != null)
+                                {
+                                    //  Console.WriteLine("new rotation is " + rot3.X + " , " + rot3.Y + " , " + rot3.Z + " , " + rot3.W);
+                                    part.StoreUndoState(true);
+                                    part.IgnoreUndoUpdate = true;
+
+                                    handlerUpdatePrimRotation(localId, arot, this);
+
+                                    part.IgnoreUndoUpdate = false;
+                                }
+                                break;
+
+                            case 0x0B: //( 8 + 2 + 1) group rotation and position
+                                apos = new Vector3(block.Data, 0);
+                                arot = new Quaternion(block.Data, 12, true);
+
+                                handlerUpdatePrimGroupRotation = OnUpdatePrimGroupMouseRotation;
+                                if (handlerUpdatePrimGroupRotation != null)
+                                {
+                                    //  m_log.Debug("new rotation position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
+                                    // m_log.Debug("new group mouse rotation is " + rot4.X + " , " + rot4.Y + " , " + rot4.Z + " , " + rot4.W);
+                                    part.StoreUndoState(true);
+                                    part.IgnoreUndoUpdate = true;
+
+                                    handlerUpdatePrimGroupRotation(localId, apos, arot, this);
+
+                                    part.IgnoreUndoUpdate = false;
+                                }
+                                break;
+
+                            case 0x0C: // (8 + 4) group scale
+                                // only afects root prim and only sent by viewer editor object tab scaling
+                                // mouse edition only allows uniform scaling
+                                // SL MAY CHANGE THIS in viewers
+
+                                ascale = new Vector3(block.Data, 0);
+
+                                handlerUpdatePrimScale = OnUpdatePrimScale;
+                                if (handlerUpdatePrimScale != null)
+                                {
+                                    //                                     m_log.Debug("new scale is " + scale7.X + " , " + scale7.Y + " , " + scale7.Z);
+                                    part.StoreUndoState(false); // <- SL Exception make it apply to root prim and not  group
+                                    part.IgnoreUndoUpdate = true;
+
+                                    handlerUpdatePrimScale(localId, ascale, this);
+
+                                    part.IgnoreUndoUpdate = false;
+                                }
+                                break;
+
+                            case 0x0D: //(8 + 4 + 1) group scale and position
+                                // exception as above
+
+                                apos = new Vector3(block.Data, 0);
+                                ascale = new Vector3(block.Data, 12);
+                                
+                                handlerUpdatePrimScale = OnUpdatePrimScale;
+                                if (handlerUpdatePrimScale != null)
+                                {
+                                    //m_log.Debug("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
+                                    part.StoreUndoState(false); // <- make it apply to root prim and not  group
+                                    part.IgnoreUndoUpdate = true;
+
+                                    handlerUpdatePrimScale(localId, ascale, this);
+
+                                    // Change the position based on scale (for bug number 246)
+                                    handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
+                                    // m_log.Debug("new movement position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
+                                    if (handlerUpdatePrimSinglePosition != null)
+                                    {
+                                        handlerUpdatePrimSinglePosition(localId, apos, this);
+                                    }
+
+                                    part.IgnoreUndoUpdate = false;
+                                }
+                                break;
+
+                            case 0x1C: // (0x10 + 8 + 4 ) group scale UNIFORM
+                                ascale = new Vector3(block.Data, 0);
+
+                                handlerUpdatePrimGroupScale = OnUpdatePrimGroupScale;
+                                if (handlerUpdatePrimGroupScale != null)
+                                {
+                                    //                                     m_log.Debug("new scale is " + scale7.X + " , " + scale7.Y + " , " + scale7.Z);
+                                    part.StoreUndoState(true);
+                                    part.IgnoreUndoUpdate = true;
+
+                                    handlerUpdatePrimGroupScale(localId, ascale, this);
+
+                                    part.IgnoreUndoUpdate = false;
+                                }
+                                break;
+
+                            case 0x1D: // (UNIFORM + GROUP + SCALE + POS)
+                                apos = new Vector3(block.Data, 0);
+                                ascale = new Vector3(block.Data, 12);
+                                
+
+                                handlerUpdatePrimGroupScale = OnUpdatePrimGroupScale;
+                                if (handlerUpdatePrimGroupScale != null)
+                                {
+                                    // m_log.Debug("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
+                                    part.StoreUndoState(true);
+                                    part.IgnoreUndoUpdate = true;
+
+                                    handlerUpdatePrimGroupScale(localId, ascale, this);
+
+                                    handlerUpdateVector = OnUpdatePrimGroupPosition;
+
+                                    if (handlerUpdateVector != null)
+                                    {
+                                        handlerUpdateVector(localId, apos, this);
+                                    }
+
+                                    part.IgnoreUndoUpdate = false;
+                                }
+
                                 break;
 
                             default:
@@ -11704,6 +11791,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 //                        for (int j = 0; j < parts.Length; j++)
 //                            parts[j].IgnoreUndoUpdate = false;
+
                     }
                 }
             }

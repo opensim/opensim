@@ -828,7 +828,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             set
             {
-                StoreUndoState();
+//                StoreUndoState();
                 m_rotationOffset = value;
 
                 PhysicsActor actor = PhysActor;
@@ -1007,7 +1007,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_shape != null)
                 {
-                    StoreUndoState();
+//                    StoreUndoState();
 
                     m_shape.Scale = value;
 
