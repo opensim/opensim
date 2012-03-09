@@ -215,11 +215,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (sp.IsChildAgent)
                     continue;
 
-                SceneObjectPart sitPart = sp.ParentPart;
-                if (sitPart != null)
-                    coarseLocations.Add(sitPart.AbsolutePosition + sp.OffsetPosition);
-                else
-                    coarseLocations.Add(sp.AbsolutePosition);
+                coarseLocations.Add(sp.AbsolutePosition);
 
                 avatarUUIDs.Add(sp.UUID);
             }

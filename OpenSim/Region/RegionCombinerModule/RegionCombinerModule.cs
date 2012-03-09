@@ -712,17 +712,12 @@ namespace OpenSim.Region.RegionCombinerModule
 
             List<Vector3> CoarseLocations = new List<Vector3>();
             List<UUID> AvatarUUIDs = new List<UUID>();
+            
             connectiondata.RegionScene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
                 if (sp.UUID != presence.UUID)
                 {
-                    SceneObjectPart sitPart = sp.ParentPart;
-
-                    if (sitPart != null)
-                        CoarseLocations.Add(sitPart.AbsolutePosition + sp.AbsolutePosition);
-                    else
-                        CoarseLocations.Add(sp.AbsolutePosition);
-
+                    CoarseLocations.Add(sp.AbsolutePosition);
                     AvatarUUIDs.Add(sp.UUID);
                 }
             });
