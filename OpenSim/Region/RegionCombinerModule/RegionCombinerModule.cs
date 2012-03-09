@@ -712,33 +712,16 @@ namespace OpenSim.Region.RegionCombinerModule
 
             List<Vector3> CoarseLocations = new List<Vector3>();
             List<UUID> AvatarUUIDs = new List<UUID>();
+            
             connectiondata.RegionScene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
                 if (sp.UUID != presence.UUID)
                 {
-                    if (sp.ParentID != 0)
-                    {
-                        // sitting avatar
-                        SceneObjectPart sop = connectiondata.RegionScene.GetSceneObjectPart(sp.ParentID);
-                        if (sop != null)
-                        {
-                            CoarseLocations.Add(sop.AbsolutePosition + sp.AbsolutePosition);
-                            AvatarUUIDs.Add(sp.UUID);
-                        }
-                        else
-                        {
-                            // we can't find the parent..  ! arg!
-                            CoarseLocations.Add(sp.AbsolutePosition);
-                            AvatarUUIDs.Add(sp.UUID);
-                        }
-                    }
-                    else
-                    {
-                        CoarseLocations.Add(sp.AbsolutePosition);
-                        AvatarUUIDs.Add(sp.UUID);
-                    }
+                    CoarseLocations.Add(sp.AbsolutePosition);
+                    AvatarUUIDs.Add(sp.UUID);
                 }
             });
+
             DistributeCourseLocationUpdates(CoarseLocations, AvatarUUIDs, connectiondata, presence);
         }
 

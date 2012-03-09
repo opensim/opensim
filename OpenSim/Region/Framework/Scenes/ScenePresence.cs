@@ -432,7 +432,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (PhysicsActor != null && m_parentID == 0)
+                if (PhysicsActor != null)
                 {
                     m_pos = PhysicsActor.Position;
 
@@ -477,7 +477,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                // Don't update while sitting
+                // Don't update while sitting.  The PhysicsActor above is null whilst sitting.
                 if (ParentID == 0)
                 {
                     m_pos = value;
@@ -504,6 +504,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // There is no offset position when not seated
                 if (ParentID == 0)
                     return;
+
                 m_pos = value;
             }
         }
@@ -562,19 +563,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool IsChildAgent { get; set; }
 
-        public uint ParentID
-        {
-            get { return m_parentID; }
-            set { m_parentID = value; }
-        }
-        private uint m_parentID;
+        /// <summary>
+        /// If the avatar is sitting, the local ID of the prim that it's sitting on.  If not sitting then zero.
+        /// </summary>
+        public uint ParentID { get; set; }
 
-        public SceneObjectPart ParentPart
-        {
-            get { return m_parentPart; }
-            set { m_parentPart = value; }
-        }
-        private SceneObjectPart m_parentPart = null;
+        /// <summary>
+        /// If the avatar is sitting, the prim that it's sitting on.  If not sitting then null.
+        /// </summary>
+        /// <remarks>
+        /// If you use this property then you must take a reference since another thread could set it to null.
+        /// </remarks>
+        public SceneObjectPart ParentPart { get; set; }
 
         public float Health
         {
@@ -2204,23 +2204,16 @@ namespace OpenSim.Region.Framework.Scenes
 //                            "[SCENE PRESENCE]: Sitting {0} at position {1} ({2} + {3}) on part {4} {5} without sit target",
 //                            Name, part.AbsolutePosition, m_pos, ParentPosition, part.Name, part.LocalId);
                 }
+
+                ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
+                ParentID = m_requestedSitTargetID;
+
+                Velocity = Vector3.Zero;
+                RemoveFromPhysicalScene();
+        
+                Animator.TrySetMovementAnimation(sitAnimation);
+                SendAvatarDataToAllAgents();
             }
-            else
-            {
-                return;
-            }
-
-            ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
-            if (ParentPart == null)
-                return;
-
-            ParentID = m_requestedSitTargetID;
-
-            Velocity = Vector3.Zero;
-            RemoveFromPhysicalScene();
-
-            Animator.TrySetMovementAnimation(sitAnimation);
-            SendAvatarDataToAllAgents();
         }
 
         public void HandleAgentSitOnGround()
