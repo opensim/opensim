@@ -52,6 +52,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public bool Init()
         {
+            if (Util.IsWindows())
+                Util.LoadArchSpecificWindowsDll("ode.dll");
+
             if (d.InitODE2(0) != 0)
             {
                 if (d.AllocateODEDataForThread(~0U) == 0)
@@ -68,6 +71,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (m_scene == null)
             {
+
                 m_scene = new OdeScene(sceneIdentifier);
             }
             return (m_scene);
