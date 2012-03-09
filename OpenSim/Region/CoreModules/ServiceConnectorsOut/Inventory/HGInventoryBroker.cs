@@ -58,6 +58,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private List<Scene> m_Scenes = new List<Scene>();
 
+        private InventoryCache m_Cache = new InventoryCache();
+
         protected IUserManagement m_UserManagement;
         protected IUserManagement UserManagementModule
         {
@@ -312,6 +314,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         public InventoryFolderBase GetRootFolder(UUID userID)
         {
             //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetRootFolder for {0}", userID);
+            InventoryFolderBase root = m_Cache.GetRootFolder(userID);
+            if (root != null)
+                return root;
 
             string invURL = GetInventoryServiceURL(userID);
 
@@ -320,12 +325,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             IInventoryService connector = GetConnector(invURL);
 
-            return connector.GetRootFolder(userID);
+            root = connector.GetRootFolder(userID);
+
+            m_Cache.Cache(userID, root);
+
+            return root;
         }
 
         public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
         {
             //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetFolderForType {0} type {1}", userID, type);
+            InventoryFolderBase f = m_Cache.GetFolderForType(userID, type);
+            if (f != null)
+                return f;
 
             string invURL = GetInventoryServiceURL(userID);
 
@@ -334,7 +346,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             IInventoryService connector = GetConnector(invURL);
 
-            return connector.GetFolderForType(userID, type);
+            f = connector.GetFolderForType(userID, type);
+
+            m_Cache.Cache(userID, type, f);
+
+            return f;
         }
 
         public InventoryCollection GetFolderContent(UUID userID, UUID folderID)

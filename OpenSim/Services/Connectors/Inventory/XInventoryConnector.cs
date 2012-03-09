@@ -48,6 +48,8 @@ namespace OpenSim.Services.Connectors
 
         private string m_ServerURI = String.Empty;
 
+        private object m_Lock = new object();
+
         public XInventoryServicesConnector()
         {
         }
@@ -514,9 +516,11 @@ namespace OpenSim.Services.Connectors
         {
             sendData["METHOD"] = method;
 
-            string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                    m_ServerURI + "/xinventory",
-                    ServerUtils.BuildQueryString(sendData));
+            string reply = string.Empty;
+            lock (m_Lock)
+                reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                         m_ServerURI + "/xinventory",
+                         ServerUtils.BuildQueryString(sendData));
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
                     reply);
