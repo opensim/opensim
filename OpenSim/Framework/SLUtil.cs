@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Xml;
 using log4net;
 using OpenMetaverse;
 
@@ -38,6 +39,13 @@ namespace OpenSim.Framework
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         #region SL / file extension / content-type conversions
+
+        public static Dictionary<string, UUID> DefaultAvatarAnimations = new Dictionary<string, UUID>();
+
+        static SLUtil()
+        {
+            DefaultAvatarAnimations = LoadDefaultAvatarAnimations("data/avataranimations.xml");
+        }
 
         public static string SLAssetTypeToContentType(int assetType)
         {
@@ -373,6 +381,48 @@ namespace OpenSim.Framework
             }
             
             return output;
+        }
+
+        /// <summary>
+        /// Load the default SL avatar animations.
+        /// </summary>
+        /// <returns></returns>
+        public static Dictionary<string, UUID> LoadDefaultAvatarAnimations(string path)
+        {
+            Dictionary<string, UUID> animations = new Dictionary<string, UUID>();
+            
+            using (XmlTextReader reader = new XmlTextReader(path))
+            {
+                XmlDocument doc = new XmlDocument();
+                doc.Load(reader);
+                if (doc.DocumentElement != null)
+                {
+                    foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
+                    {
+                        if (nod.Attributes["name"] != null)
+                        {
+                            string name = nod.Attributes["name"].Value.ToLower();
+                            string id = nod.InnerText;
+                            animations.Add(name, (UUID)id);
+                        }
+                    }
+                }
+            }
+
+            return animations;
+        }
+
+        /// <summary>
+        /// Get the default SL avatar animation with the given name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static UUID GetDefaultAvatarAnimation(string name)
+        {
+            if (DefaultAvatarAnimations.ContainsKey(name))
+                return DefaultAvatarAnimations[name];
+
+            return UUID.Zero;
         }
     }
 }

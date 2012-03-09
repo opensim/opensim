@@ -42,9 +42,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 {
     public class NPCAvatar : IClientAPI, INPC
     {
-        private static readonly Dictionary<string, UUID> m_defaultAnimations = new Dictionary<string, UUID>();
-
         public bool SenseAsAgent { get; set; }
+
         private readonly string m_firstname;
         private readonly string m_lastname;
         private readonly Vector3 m_startPos;
@@ -61,15 +60,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             m_scene = scene;
             m_ownerID = ownerID;
             SenseAsAgent = senseAsAgent;
-            
         }
-
-        static NPCAvatar()
-        {
-            InitDefaultAnimations();
-        }
-
-       
 
         public IScene Scene
         {
@@ -142,32 +133,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         }
 
-        private static void InitDefaultAnimations()
-        {
-            using (XmlTextReader reader = new XmlTextReader("data/avataranimations.xml"))
-            {
-                XmlDocument doc = new XmlDocument();
-                doc.Load(reader);
-                if (doc.DocumentElement != null)
-                    foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
-                    {
-                        if (nod.Attributes["name"] != null)
-                        {
-                            string name = nod.Attributes["name"].Value.ToLower();
-                            string id = nod.InnerText;
-                            m_defaultAnimations.Add(name, (UUID)id);
-                        }
-                    }
-            }
-        }
-
         public UUID GetDefaultAnimation(string name)
         {
-            if (m_defaultAnimations.ContainsKey(name))
-            {
-                return m_defaultAnimations[name];
-            }
-            return UUID.Zero;
+            return SLUtil.GetDefaultAvatarAnimation(name);
         }
 
         public Vector3 Position
