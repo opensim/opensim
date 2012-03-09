@@ -190,7 +190,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="asset">Asset UUID to create</param>
         /// <remarks>On failure : Throw an exception and attempt to reconnect to database</remarks>
-        override public void StoreAsset(AssetBase asset)
+        override public bool StoreAsset(AssetBase asset)
         {
             lock (m_dbLock)
             {
@@ -265,7 +265,7 @@ namespace OpenSim.Data.MySQL
 
                             transaction.Rollback();
 
-                            return;
+                            return false;
                         }
 
                         if (!ExistsData(dbcon, transaction, hash))
@@ -289,7 +289,7 @@ namespace OpenSim.Data.MySQL
     
                                 transaction.Rollback();
     
-                                return;
+                                return false;
                             }
                         }
     
@@ -297,6 +297,7 @@ namespace OpenSim.Data.MySQL
                     }
                 }
             }
+            return true;
         }
 
 //        private void UpdateAccessTime(AssetBase asset)
