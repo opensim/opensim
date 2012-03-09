@@ -72,6 +72,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (_mScene == null)
             {
+                if (Util.IsWindows())
+                    Util.LoadArchSpecificWindowsDll("ode.dll");
+
                 // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
                 // http://opensimulator.org/mantis/view.php?id=2750).
                 d.InitODE();
