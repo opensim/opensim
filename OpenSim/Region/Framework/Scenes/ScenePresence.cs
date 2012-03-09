@@ -432,7 +432,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (PhysicsActor != null && ParentID == 0)
+                if (PhysicsActor != null)
                 {
                     m_pos = PhysicsActor.Position;
 
@@ -477,7 +477,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                // Don't update while sitting
+                // Don't update while sitting.  The PhysicsActor above is null whilst sitting.
                 if (ParentID == 0)
                 {
                     m_pos = value;
