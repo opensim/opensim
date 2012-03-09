@@ -74,14 +74,11 @@ namespace OpenSim.Region.Framework.Scenes
                 ForGroup = forGroup;
                 Position = part.ParentGroup.AbsolutePosition;
                 Rotation = part.RotationOffset;
-                if (!forGroup)
-                    Scale = part.Shape.Scale;
-                else
-                    Scale = Vector3.Zero;  // until we fix it 
+                Scale = part.Shape.Scale;
             }
             else
             {
-                ForGroup = false;  // previus code implies only root parts can undo grp
+                ForGroup = false;  // only root parts can undo grp
                 Position = part.OffsetPosition;
                 Rotation = part.RotationOffset;
                 Scale = part.Shape.Scale;
@@ -108,9 +105,7 @@ namespace OpenSim.Region.Framework.Scenes
                         return false;
                     if (Rotation != part.RotationOffset)
                         return false;
-                    if (ForGroup)
-                        return true; // for now don't do grp scale
-                    return (Scale == part.Shape.Scale);
+                    return Scale == part.Shape.Scale;
                 }
                 else
                 {
@@ -144,10 +139,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (Scale != Vector3.Zero)
                 {
-                    //                    if (ForGroup)
-                    //                        part.ParentGroup.GroupResize(Scale);
-                    //                    else
-                    if (!ForGroup)   // we don't have grp scale for now
+                    if (ForGroup)
+                        part.ParentGroup.GroupResize(Scale);
+                    else
                         part.Resize(Scale);
                 }
                 part.ParentGroup.ScheduleGroupForTerseUpdate();

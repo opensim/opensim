@@ -11760,7 +11760,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                             case 0x1D: // (UNIFORM + GROUP + SCALE + POS)
                                 apos = new Vector3(block.Data, 0);
-                                Vector3 scale5 = new Vector3(block.Data, 12);
+                                ascale = new Vector3(block.Data, 12);
                                 
 
                                 handlerUpdatePrimGroupScale = OnUpdatePrimGroupScale;
@@ -11770,7 +11770,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     part.StoreUndoState(true);
                                     part.IgnoreUndoUpdate = true;
 
-                                    handlerUpdatePrimGroupScale(localId, scale5, this);
+                                    handlerUpdatePrimGroupScale(localId, ascale, this);
+
                                     handlerUpdateVector = OnUpdatePrimGroupPosition;
 
                                     if (handlerUpdateVector != null)
