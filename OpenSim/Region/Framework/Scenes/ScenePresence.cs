@@ -2204,23 +2204,16 @@ namespace OpenSim.Region.Framework.Scenes
 //                            "[SCENE PRESENCE]: Sitting {0} at position {1} ({2} + {3}) on part {4} {5} without sit target",
 //                            Name, part.AbsolutePosition, m_pos, ParentPosition, part.Name, part.LocalId);
                 }
+
+                ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
+                ParentID = m_requestedSitTargetID;
+
+                Velocity = Vector3.Zero;
+                RemoveFromPhysicalScene();
+        
+                Animator.TrySetMovementAnimation(sitAnimation);
+                SendAvatarDataToAllAgents();
             }
-            else
-            {
-                return;
-            }
-
-            ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
-            if (ParentPart == null)
-                return;
-
-            ParentID = m_requestedSitTargetID;
-
-            Velocity = Vector3.Zero;
-            RemoveFromPhysicalScene();
-
-            Animator.TrySetMovementAnimation(sitAnimation);
-            SendAvatarDataToAllAgents();
         }
 
         public void HandleAgentSitOnGround()
