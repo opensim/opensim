@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 m_assMapper.Get(item.AssetID, sender, userAssetServer);
 
             if (IsForeignUser(receiver, out userAssetServer) && userAssetServer != string.Empty && m_OutboundPermission)
-                m_assMapper.Post(item.AssetID, receiver, userAssetServer);
+                Util.FireAndForget(delegate { m_assMapper.Post(item.AssetID, receiver, userAssetServer); });
         }
 
         public override bool IsForeignUser(UUID userID, out string assetServerURL)
