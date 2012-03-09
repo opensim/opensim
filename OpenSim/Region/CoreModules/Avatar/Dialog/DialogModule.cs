@@ -51,12 +51,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             m_scene.RegisterModuleInterface<IDialogModule>(this);
 
             m_scene.AddCommand(
-                this, "alert", "alert <message>",
+                "Users", this, "alert", "alert <message>",
                 "Send an alert to everyone",
                 HandleAlertConsoleCommand);
 
             m_scene.AddCommand(
-                this, "alert-user", "alert-user <first> <last> <message>",
+                "Users", this, "alert-user", "alert-user <first> <last> <message>",
                 "Send an alert to a user",
                 HandleAlertConsoleCommand);
         }

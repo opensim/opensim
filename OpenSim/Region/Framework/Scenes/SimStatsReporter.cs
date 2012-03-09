@@ -178,11 +178,17 @@ namespace OpenSim.Region.Framework.Scenes
             m_objectCapacity = scene.RegionInfo.ObjectCapacity;
             m_report.AutoReset = true;
             m_report.Interval = statsUpdatesEveryMS;
-            m_report.Elapsed += new ElapsedEventHandler(statsHeartBeat);
+            m_report.Elapsed += statsHeartBeat;
             m_report.Enabled = true;
 
             if (StatsManager.SimExtraStats != null)
                 OnSendStatsResult += StatsManager.SimExtraStats.ReceiveClassicSimStatsPacket;
+        }
+
+        public void Close()
+        {
+            m_report.Elapsed -= statsHeartBeat;
+            m_report.Close();
         }
 
         public void SetUpdateMS(int ms)

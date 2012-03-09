@@ -50,7 +50,10 @@ using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 using OpenSim.Region.ScriptEngine.Shared.Instance;
+using OpenSim.Region.ScriptEngine.Shared.Api;
+using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
 using OpenSim.Region.ScriptEngine.Interfaces;
+using Timer = OpenSim.Region.ScriptEngine.Shared.Api.Plugins.Timer;
 
 using ScriptCompileQueue = OpenSim.Framework.LocklessQueue<object[]>;
 
@@ -342,22 +345,22 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             MainConsole.Instance.Commands.AddCommand(
-                "scripts", false, "xengine status", "xengine status", "Show status information",
+                "Scripts", false, "xengine status", "xengine status", "Show status information",
                 "Show status information on the script engine.",
                 HandleShowStatus);
 
             MainConsole.Instance.Commands.AddCommand(
-                "scripts", false, "scripts show", "scripts show [<script-item-uuid>]", "Show script information",
+                "Scripts", false, "scripts show", "scripts show [<script-item-uuid>]", "Show script information",
                 "Show information on all scripts known to the script engine."
                     + "If a <script-item-uuid> is given then only information on that script will be shown.",
                 HandleShowScripts);
 
             MainConsole.Instance.Commands.AddCommand(
-                "scripts", false, "show scripts", "show scripts [<script-item-uuid>]", "Show script information",
+                "Scripts", false, "show scripts", "show scripts [<script-item-uuid>]", "Show script information",
                 "Synonym for scripts show command", HandleShowScripts);
 
             MainConsole.Instance.Commands.AddCommand(
-                "scripts", false, "scripts suspend", "scripts suspend [<script-item-uuid>]", "Suspends all running scripts",
+                "Scripts", false, "scripts suspend", "scripts suspend [<script-item-uuid>]", "Suspends all running scripts",
                 "Suspends all currently running scripts.  This only suspends event delivery, it will not suspend a"
                     + " script that is currently processing an event.\n"
                     + "Suspended scripts will continue to accumulate events but won't process them.\n"
@@ -365,20 +368,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                  (module, cmdparams) => HandleScriptsAction(cmdparams, HandleSuspendScript));
 
             MainConsole.Instance.Commands.AddCommand(
-                "scripts", false, "scripts resume", "scripts resume [<script-item-uuid>]", "Resumes all suspended scripts",
+                "Scripts", false, "scripts resume", "scripts resume [<script-item-uuid>]", "Resumes all suspended scripts",
                 "Resumes all currently suspended scripts.\n"
                     + "Resumed scripts will process all events accumulated whilst suspended."
                     + "If a <script-item-uuid> is given then only that script will be resumed.  Otherwise, all suitable scripts are resumed.",
                 (module, cmdparams) => HandleScriptsAction(cmdparams, HandleResumeScript));
 
             MainConsole.Instance.Commands.AddCommand(
-                "scripts", false, "scripts stop", "scripts stop [<script-item-uuid>]", "Stops all running scripts",
+                "Scripts", false, "scripts stop", "scripts stop [<script-item-uuid>]", "Stops all running scripts",
                 "Stops all running scripts."
                     + "If a <script-item-uuid> is given then only that script will be stopped.  Otherwise, all suitable scripts are stopped.",
                 (module, cmdparams) => HandleScriptsAction(cmdparams, HandleStopScript));
 
             MainConsole.Instance.Commands.AddCommand(
-                "scripts", false, "scripts start", "scripts start [<script-item-uuid>]", "Starts all stopped scripts",
+                "Scripts", false, "scripts start", "scripts start [<script-item-uuid>]", "Starts all stopped scripts",
                 "Starts all stopped scripts."
                     + "If a <script-item-uuid> is given then only that script will be started.  Otherwise, all suitable scripts are started.",
                 (module, cmdparams) => HandleScriptsAction(cmdparams, HandleStartScript));
@@ -453,6 +456,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             sb.AppendFormat("In use threads             : {0}\n", m_ThreadPool.InUseThreads);
             sb.AppendFormat("Work items waiting         : {0}\n", m_ThreadPool.WaitingCallbacks);
 //            sb.AppendFormat("Assemblies loaded          : {0}\n", m_Assemblies.Count);
+
+            SensorRepeat sr = AsyncCommandManager.GetSensorRepeatPlugin(this);
+            sb.AppendFormat("Sensors                    : {0}\n", sr.SensorsCount);
+
+            Dataserver ds = AsyncCommandManager.GetDataserverPlugin(this);
+            sb.AppendFormat("Dataserver requests        : {0}\n", ds.DataserverRequestsCount);
+
+            Timer t = AsyncCommandManager.GetTimerPlugin(this);
+            sb.AppendFormat("Timers                     : {0}\n", t.TimersCount);
+
+            Listener l = AsyncCommandManager.GetListenerPlugin(this);
+            sb.AppendFormat("Listeners                  : {0}\n", l.ListenerCount);
 
             MainConsole.Instance.OutputFormat(sb.ToString());
         }

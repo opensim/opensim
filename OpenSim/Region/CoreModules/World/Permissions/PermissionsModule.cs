@@ -206,17 +206,17 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnControlPrimMedia += CanControlPrimMedia;
             m_scene.Permissions.OnInteractWithPrimMedia += CanInteractWithPrimMedia;
 
-            m_scene.AddCommand(this, "bypass permissions",
+            m_scene.AddCommand("Users", this, "bypass permissions",
                     "bypass permissions <true / false>",
                     "Bypass permission checks",
                     HandleBypassPermissions);
 
-            m_scene.AddCommand(this, "force permissions",
+            m_scene.AddCommand("Users", this, "force permissions",
                     "force permissions <true / false>",
                     "Force permissions on or off",
                     HandleForcePermissions);
 
-            m_scene.AddCommand(this, "debug permissions",
+            m_scene.AddCommand("Users", this, "debug permissions",
                     "debug permissions <true / false>",
                     "Turn on permissions debugging",
                     HandleDebugPermissions);                    

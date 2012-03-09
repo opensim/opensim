@@ -1,0 +1,27 @@
+# -----------------
+:VERSION 1
+
+BEGIN;
+
+CREATE TABLE `xassetsmeta` (
+  `id` char(36) NOT NULL,
+  `hash` binary(32) NOT NULL,
+  `name` varchar(64) NOT NULL,
+  `description` varchar(64) NOT NULL,
+  `asset_type` tinyint(4) NOT NULL,
+  `local` tinyint(1) NOT NULL,
+  `temporary` tinyint(1) NOT NULL,
+  `create_time` int(11) NOT NULL,
+  `access_time` int(11) NOT NULL,
+  `asset_flags` int(11) NOT NULL,
+  `creator_id` varchar(128) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Version 1';
+
+CREATE TABLE `xassetsdata` (
+  `hash` binary(32) NOT NULL,
+  `data` longblob NOT NULL,
+  PRIMARY KEY (`hash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Version 1';
+
+COMMIT;

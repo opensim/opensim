@@ -102,7 +102,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_scene.RegisterModuleInterface<IWorldMapModule>(this);
 
                 m_scene.AddCommand(
-                    this, "export-map",
+                    "Regions", this, "export-map",
                     "export-map [<path>]",
                     "Save an image of the world map", HandleExportWorldMapConsoleCommand);
 
@@ -132,7 +132,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
         }
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -220,7 +220,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // There is a major hack going on in this method. The viewer doesn't request
             // map blocks (RequestMapBlocks) above 2048. That means that if we don't hack,
             // grids above that cell don't have a map at all. So, here's the hack: we wait
-            // for this CAP request to come, and we inject the map blocks at this point. 
+            // for this CAP request to come, and we inject the map blocks at this point.
             // In a normal scenario, this request simply sends back the MapLayer (the blue color).
             // In the hacked scenario, it also sends the map blocks via UDP.
             //
@@ -351,6 +351,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 process,
                 string.Format("MapItemRequestThread ({0})", m_scene.RegionInfo.RegionName),
                 ThreadPriority.BelowNormal,
+                true,
                 true);
         }
 
@@ -750,7 +751,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             {
                 uint x = 0, y = 0;
                 Utils.LongToUInts(regionhandle, out x, out y);
-                GridRegion mreg = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y); 
+                GridRegion mreg = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y);
 
                 if (mreg != null)
                 {
@@ -856,7 +857,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             finally
             {
                 if (os != null)
-                    os.Close();                    
+                    os.Close();
             }
 
             string response_mapItems_reply = null;
@@ -959,16 +960,16 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 // on an unloaded square.
                 // But make sure: Look whether the one we requested is in there
                 List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                    minX * (int)Constants.RegionSize, 
-                    maxX * (int)Constants.RegionSize, 
-                    minY * (int)Constants.RegionSize, 
+                    minX * (int)Constants.RegionSize,
+                    maxX * (int)Constants.RegionSize,
+                    minY * (int)Constants.RegionSize,
                     maxY * (int)Constants.RegionSize);
 
                 if (regions != null)
                 {
                     foreach (GridRegion r in regions)
                     {
-                        if ((r.RegionLocX == minX * (int)Constants.RegionSize) && 
+                        if ((r.RegionLocX == minX * (int)Constants.RegionSize) &&
                             (r.RegionLocY == minY * (int)Constants.RegionSize))
                         {
                             // found it => add it to response
@@ -1003,7 +1004,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                (minX - 4) * (int)Constants.RegionSize, 
+                (minX - 4) * (int)Constants.RegionSize,
                 (maxX + 4) * (int)Constants.RegionSize,
                 (minY - 4) * (int)Constants.RegionSize,
                 (maxY + 4) * (int)Constants.RegionSize);
@@ -1335,7 +1336,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // Cannot create a map for a nonexistant heightmap
             if (m_scene.Heightmap == null)
                 return;
-            
+
             //create a texture asset of the terrain
             IMapImageGenerator terrain = m_scene.RequestModuleInterface<IMapImageGenerator>();
             if (terrain == null)
@@ -1344,7 +1345,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             byte[] data = terrain.WriteJpeg2000Image();
             if (data == null)
                 return;
-            
+
             byte[] overlay = GenerateOverlay();
 
             m_log.Debug("[WORLDMAP]: STORING MAPTILE IMAGE");
@@ -1365,7 +1366,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // Store the new one
             m_log.DebugFormat("[WORLDMAP]: Storing map tile {0}", asset.ID);
             m_scene.AssetService.Store(asset);
-            
+
             if (overlay != null)
             {
                 parcelImageID = UUID.Random();
@@ -1389,7 +1390,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_scene.RegionInfo.RegionSettings.TerrainImageID = terrainImageID;
             m_scene.RegionInfo.RegionSettings.ParcelImageID = parcelImageID;
             m_scene.RegionInfo.RegionSettings.Save();
-            
+
             // Delete the old one
             // m_log.DebugFormat("[WORLDMAP]: Deleting old map tile {0}", lastTerrainImageID);
             m_scene.AssetService.Delete(lastTerrainImageID.ToString());
@@ -1510,11 +1511,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             if (!landForSale)
             {
-                m_log.DebugFormat("[WORLD MAP]: Region {0} has no parcels for sale, not geenrating overlay", m_scene.RegionInfo.RegionName);
+                m_log.DebugFormat("[WORLD MAP]: Region {0} has no parcels for sale, not generating overlay", m_scene.RegionInfo.RegionName);
                 return null;
             }
 
-            m_log.DebugFormat("[WORLD MAP]: Region {0} has parcels for sale, genrating overlay", m_scene.RegionInfo.RegionName);
+            m_log.DebugFormat("[WORLD MAP]: Region {0} has parcels for sale, generating overlay", m_scene.RegionInfo.RegionName);
 
             try
             {

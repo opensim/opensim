@@ -32,16 +32,17 @@ using OpenSim.Region.ScriptEngine.Shared;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
+    /// <summary>
+    /// Tests for Vector3
+    /// </summary>
     [TestFixture]
     public class LSL_TypesTestVector3
     {
-        /// <summary>
-        /// Tests for Vector3
-        /// </summary>
         [Test]
-
         public void TestDotProduct()
         {
+            TestHelpers.InMethod();
+
             // The numbers we test for.
             Dictionary<string, double> expectsSet = new Dictionary<string, double>();
             expectsSet.Add("<1, 2, 3> * <2, 3, 4>", 20.0);

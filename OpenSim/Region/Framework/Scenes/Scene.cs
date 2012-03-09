@@ -619,7 +619,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             #endregion Region Settings
 
-            MainConsole.Instance.Commands.AddCommand("region", false, "reload estate",
+            MainConsole.Instance.Commands.AddCommand("Estates", false, "reload estate",
                                           "reload estate",
                                           "Reload the estate data", HandleReloadEstate);
 
@@ -651,101 +651,104 @@ namespace OpenSim.Region.Framework.Scenes
 
             #region Region Config
 
+            // Region config overrides global config
+            //
             try
             {
-                // Region config overrides global config
-                //
-                IConfig startupConfig = m_config.Configs["Startup"];
-
-                m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
-                m_useBackup = startupConfig.GetBoolean("UseSceneBackup", m_useBackup);
-                if (!m_useBackup)
-                    m_log.InfoFormat("[SCENE]: Backup has been disabled for {0}", RegionInfo.RegionName);
-                
-                //Animation states
-                m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
-
-                PhysicalPrims = startupConfig.GetBoolean("physical_prim", true);
-                CollidablePrims = startupConfig.GetBoolean("collidable_prim", true);
-
-                m_maxNonphys = startupConfig.GetFloat("NonphysicalPrimMax", m_maxNonphys);
-                if (RegionInfo.NonphysPrimMax > 0)
+                if (m_config.Configs["Startup"] != null)
                 {
-                    m_maxNonphys = RegionInfo.NonphysPrimMax;
-                }
+                    IConfig startupConfig = m_config.Configs["Startup"];
 
-                m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", m_maxPhys);
+                    m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
+                    m_useBackup = startupConfig.GetBoolean("UseSceneBackup", m_useBackup);
+                    if (!m_useBackup)
+                        m_log.InfoFormat("[SCENE]: Backup has been disabled for {0}", RegionInfo.RegionName);
+                    
+                    //Animation states
+                    m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
 
-                if (RegionInfo.PhysPrimMax > 0)
-                {
-                    m_maxPhys = RegionInfo.PhysPrimMax;
-                }
+                    PhysicalPrims = startupConfig.GetBoolean("physical_prim", true);
+                    CollidablePrims = startupConfig.GetBoolean("collidable_prim", true);
 
-                // Here, if clamping is requested in either global or
-                // local config, it will be used
-                //
-                m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", m_clampPrimSize);
-                if (RegionInfo.ClampPrimSize)
-                {
-                    m_clampPrimSize = true;
-                }
-
-                m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
-                m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
-                m_dontPersistBefore =
-                  startupConfig.GetLong("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
-                m_dontPersistBefore *= 10000000;
-                m_persistAfter =
-                  startupConfig.GetLong("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
-                m_persistAfter *= 10000000;
-
-                m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "XEngine");
-                m_log.InfoFormat("[SCENE]: Default script engine {0}", m_defaultScriptEngine);
-
-                IConfig packetConfig = m_config.Configs["PacketPool"];
-                if (packetConfig != null)
-                {
-                    PacketPool.Instance.RecyclePackets = packetConfig.GetBoolean("RecyclePackets", true);
-                    PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
-                }
-
-                m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
-                m_seeIntoBannedRegion = startupConfig.GetBoolean("SeeIntoBannedRegion", m_seeIntoBannedRegion);
-                CombineRegions = startupConfig.GetBoolean("CombineContiguousRegions", false);
-
-                m_generateMaptiles = startupConfig.GetBoolean("GenerateMaptiles", true);
-                if (m_generateMaptiles)
-                {
-                    int maptileRefresh = startupConfig.GetInt("MaptileRefresh", 0);
-                    if (maptileRefresh != 0)
+                    m_maxNonphys = startupConfig.GetFloat("NonphysicalPrimMax", m_maxNonphys);
+                    if (RegionInfo.NonphysPrimMax > 0)
                     {
-                        m_mapGenerationTimer.Interval = maptileRefresh * 1000;
-                        m_mapGenerationTimer.Elapsed += RegenerateMaptileAndReregister;
-                        m_mapGenerationTimer.AutoReset = true;
-                        m_mapGenerationTimer.Start();
+                        m_maxNonphys = RegionInfo.NonphysPrimMax;
                     }
-                }
-                else
-                {
-                    string tile = startupConfig.GetString("MaptileStaticUUID", UUID.Zero.ToString());
-                    UUID tileID;
 
-                    if (UUID.TryParse(tile, out tileID))
+                    m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", m_maxPhys);
+
+                    if (RegionInfo.PhysPrimMax > 0)
                     {
-                        RegionInfo.RegionSettings.TerrainImageID = tileID;
+                        m_maxPhys = RegionInfo.PhysPrimMax;
                     }
-                }
 
-                MinFrameTime              = startupConfig.GetFloat( "MinFrameTime",                      MinFrameTime);
-                m_update_backup           = startupConfig.GetInt(   "UpdateStorageEveryNFrames",         m_update_backup);
-                m_update_coarse_locations = startupConfig.GetInt(   "UpdateCoarseLocationsEveryNFrames", m_update_coarse_locations);
-                m_update_entitymovement   = startupConfig.GetInt(   "UpdateEntityMovementEveryNFrames",  m_update_entitymovement);
-                m_update_events           = startupConfig.GetInt(   "UpdateEventsEveryNFrames",          m_update_events);
-                m_update_objects          = startupConfig.GetInt(   "UpdateObjectsEveryNFrames",         m_update_objects);
-                m_update_physics          = startupConfig.GetInt(   "UpdatePhysicsEveryNFrames",         m_update_physics);
-                m_update_presences        = startupConfig.GetInt(   "UpdateAgentsEveryNFrames",          m_update_presences);
-                m_update_terrain          = startupConfig.GetInt(   "UpdateTerrainEveryNFrames",         m_update_terrain);
-                m_update_temp_cleaning    = startupConfig.GetInt(   "UpdateTempCleaningEveryNFrames",    m_update_temp_cleaning);
+                    // Here, if clamping is requested in either global or
+                    // local config, it will be used
+                    //
+                    m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", m_clampPrimSize);
+                    if (RegionInfo.ClampPrimSize)
+                    {
+                        m_clampPrimSize = true;
+                    }
+
+                    m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
+                    m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
+                    m_dontPersistBefore =
+                      startupConfig.GetLong("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
+                    m_dontPersistBefore *= 10000000;
+                    m_persistAfter =
+                      startupConfig.GetLong("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
+                    m_persistAfter *= 10000000;
+
+                    m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "XEngine");
+                    m_log.InfoFormat("[SCENE]: Default script engine {0}", m_defaultScriptEngine);
+
+                    IConfig packetConfig = m_config.Configs["PacketPool"];
+                    if (packetConfig != null)
+                    {
+                        PacketPool.Instance.RecyclePackets = packetConfig.GetBoolean("RecyclePackets", true);
+                        PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
+                    }
+
+                    m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
+                    m_seeIntoBannedRegion = startupConfig.GetBoolean("SeeIntoBannedRegion", m_seeIntoBannedRegion);
+                    CombineRegions = startupConfig.GetBoolean("CombineContiguousRegions", false);
+
+                    m_generateMaptiles = startupConfig.GetBoolean("GenerateMaptiles", true);
+                    if (m_generateMaptiles)
+                    {
+                        int maptileRefresh = startupConfig.GetInt("MaptileRefresh", 0);
+                        if (maptileRefresh != 0)
+                        {
+                            m_mapGenerationTimer.Interval = maptileRefresh * 1000;
+                            m_mapGenerationTimer.Elapsed += RegenerateMaptileAndReregister;
+                            m_mapGenerationTimer.AutoReset = true;
+                            m_mapGenerationTimer.Start();
+                        }
+                    }
+                    else
+                    {
+                        string tile = startupConfig.GetString("MaptileStaticUUID", UUID.Zero.ToString());
+                        UUID tileID;
+
+                        if (UUID.TryParse(tile, out tileID))
+                        {
+                            RegionInfo.RegionSettings.TerrainImageID = tileID;
+                        }
+                    }
+
+                    MinFrameTime              = startupConfig.GetFloat( "MinFrameTime",                      MinFrameTime);
+                    m_update_backup           = startupConfig.GetInt(   "UpdateStorageEveryNFrames",         m_update_backup);
+                    m_update_coarse_locations = startupConfig.GetInt(   "UpdateCoarseLocationsEveryNFrames", m_update_coarse_locations);
+                    m_update_entitymovement   = startupConfig.GetInt(   "UpdateEntityMovementEveryNFrames",  m_update_entitymovement);
+                    m_update_events           = startupConfig.GetInt(   "UpdateEventsEveryNFrames",          m_update_events);
+                    m_update_objects          = startupConfig.GetInt(   "UpdateObjectsEveryNFrames",         m_update_objects);
+                    m_update_physics          = startupConfig.GetInt(   "UpdatePhysicsEveryNFrames",         m_update_physics);
+                    m_update_presences        = startupConfig.GetInt(   "UpdateAgentsEveryNFrames",          m_update_presences);
+                    m_update_terrain          = startupConfig.GetInt(   "UpdateTerrainEveryNFrames",         m_update_terrain);
+                    m_update_temp_cleaning    = startupConfig.GetInt(   "UpdateTempCleaningEveryNFrames",    m_update_temp_cleaning);
+                }
             }
             catch (Exception e)
             {
@@ -756,37 +759,34 @@ namespace OpenSim.Region.Framework.Scenes
 
             #region Interest Management
 
-            if (m_config != null)
+            IConfig interestConfig = m_config.Configs["InterestManagement"];
+            if (interestConfig != null)
             {
-                IConfig interestConfig = m_config.Configs["InterestManagement"];
-                if (interestConfig != null)
+                string update_prioritization_scheme = interestConfig.GetString("UpdatePrioritizationScheme", "Time").Trim().ToLower();
+
+                try
                 {
-                    string update_prioritization_scheme = interestConfig.GetString("UpdatePrioritizationScheme", "Time").Trim().ToLower();
-
-                    try
-                    {
-                        m_priorityScheme = (UpdatePrioritizationSchemes)Enum.Parse(typeof(UpdatePrioritizationSchemes), update_prioritization_scheme, true);
-                    }
-                    catch (Exception)
-                    {
-                        m_log.Warn("[PRIORITIZER]: UpdatePrioritizationScheme was not recognized, setting to default prioritizer Time");
-                        m_priorityScheme = UpdatePrioritizationSchemes.Time;
-                    }
-
-                    m_reprioritizationEnabled = interestConfig.GetBoolean("ReprioritizationEnabled", true);
-                    m_reprioritizationInterval = interestConfig.GetDouble("ReprioritizationInterval", 5000.0);
-                    m_rootReprioritizationDistance = interestConfig.GetDouble("RootReprioritizationDistance", 10.0);
-                    m_childReprioritizationDistance = interestConfig.GetDouble("ChildReprioritizationDistance", 20.0);
+                    m_priorityScheme = (UpdatePrioritizationSchemes)Enum.Parse(typeof(UpdatePrioritizationSchemes), update_prioritization_scheme, true);
                 }
+                catch (Exception)
+                {
+                    m_log.Warn("[PRIORITIZER]: UpdatePrioritizationScheme was not recognized, setting to default prioritizer Time");
+                    m_priorityScheme = UpdatePrioritizationSchemes.Time;
+                }
+
+                m_reprioritizationEnabled = interestConfig.GetBoolean("ReprioritizationEnabled", true);
+                m_reprioritizationInterval = interestConfig.GetDouble("ReprioritizationInterval", 5000.0);
+                m_rootReprioritizationDistance = interestConfig.GetDouble("RootReprioritizationDistance", 10.0);
+                m_childReprioritizationDistance = interestConfig.GetDouble("ChildReprioritizationDistance", 20.0);
             }
 
-            m_log.InfoFormat("[SCENE]: Using the {0} prioritization scheme", m_priorityScheme);
+            m_log.DebugFormat("[SCENE]: Using the {0} prioritization scheme", m_priorityScheme);
 
             #endregion Interest Management
 
             StatsReporter = new SimStatsReporter(this);
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
-            StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;            
+            StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
         }
 
         /// <summary>
@@ -1102,6 +1102,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_log.InfoFormat("[SCENE]: Closing down the single simulator: {0}", RegionInfo.RegionName);
 
+            StatsReporter.Close();
+
             m_restartTimer.Stop();
             m_restartTimer.Close();
 
@@ -1181,7 +1183,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             HeartbeatThread
                 = Watchdog.StartThread(
-                    Heartbeat, string.Format("Heartbeat ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false);
+                    Heartbeat, string.Format("Heartbeat ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, false);
         }
 
         /// <summary>
@@ -1219,6 +1221,13 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
                 m_eventManager.TriggerOnRegionStarted(this);
+
+                // The first frame can take a very long time due to physics actors being added on startup.  Therefore,
+                // don't turn on the watchdog alarm for this thread until the second frame, in order to prevent false
+                // alarms for scenes with many objects.
+                Update();
+                Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
+
                 while (!shuttingdown)
                     Update();
             }
@@ -1244,7 +1253,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             ++Frame;
 
-//            m_log.DebugFormat("[SCENE]: Processing frame {0}", Frame);
+//            m_log.DebugFormat("[SCENE]: Processing frame {0} in {1}", Frame, RegionInfo.RegionName);
 
             try
             {
@@ -1406,26 +1415,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 throw;
             }
-            catch (AccessViolationException e)
-            {
-                m_log.ErrorFormat(
-                    "[REGION]: Failed on region {0} with exception {1}{2}",
-                    RegionInfo.RegionName, e.Message, e.StackTrace);
-            }
-            //catch (NullReferenceException e)
-            //{
-            //   m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-            //}
-            catch (InvalidOperationException e)
-            {
-                m_log.ErrorFormat(
-                    "[REGION]: Failed on region {0} with exception {1}{2}",
-                    RegionInfo.RegionName, e.Message, e.StackTrace);
-            }
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[REGION]: Failed on region {0} with exception {1}{2}",
+                    "[SCENE]: Failed on region {0} with exception {1}{2}",
                     RegionInfo.RegionName, e.Message, e.StackTrace);
             }
 
@@ -1466,7 +1459,6 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectGroup entry in objs)
                 entry.checkAtTargets();
         }
-
 
         /// <summary>
         /// Send out simstats data to all clients
@@ -4342,16 +4334,11 @@ namespace OpenSim.Region.Framework.Scenes
         public bool PipeEventsForScript(uint localID)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
+
             if (part != null)
             {
-                // Changed so that child prims of attachments return ScriptDanger for their parent, so that
-                //  their scripts will actually run.
-                //      -- Leaf, Tue Aug 12 14:17:05 EDT 2008
                 SceneObjectPart parent = part.ParentGroup.RootPart;
-                if (part.ParentGroup.IsAttachment)
-                    return ScriptDanger(parent, parent.GetWorldPosition());
-                else
-                    return ScriptDanger(part, part.GetWorldPosition());
+                return ScriptDanger(parent, parent.GetWorldPosition());
             }
             else
             {

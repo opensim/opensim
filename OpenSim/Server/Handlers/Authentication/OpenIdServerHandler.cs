@@ -248,7 +248,7 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
                             if (passwordValues != null && passwordValues.Length == 1)
                             {
                                 if (account != null && 
-                                    (m_authenticationService.Authenticate(account.PrincipalID, passwordValues[0], 30) != string.Empty))
+                                    (m_authenticationService.Authenticate(account.PrincipalID,Util.Md5Hash(passwordValues[0]), 30) != string.Empty))
                                     authRequest.IsAuthenticated = true;
                                 else
                                     authRequest.IsAuthenticated = false;

@@ -4213,7 +4213,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<String> nametable = new List<String>();
             World.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
-                if (presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
+                SceneObjectPart sitPart = presence.ParentPart;
+                if (sitPart != null && m_host.ParentGroup.HasChildPrim(sitPart.LocalId))
                     nametable.Add(presence.ControllingClient.Name);
             });
 
@@ -4450,7 +4451,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Vector3 av3 = new Vector3(Util.Clip((float)color.x, 0.0f, 1.0f),
                                       Util.Clip((float)color.y, 0.0f, 1.0f),
                                       Util.Clip((float)color.z, 0.0f, 1.0f));
-            m_host.SetText(text.Length > 254 ? text.Remove(255) : text, av3, Util.Clip((float)alpha, 0.0f, 1.0f));
+            m_host.SetText(text.Length > 254 ? text.Remove(254) : text, av3, Util.Clip((float)alpha, 0.0f, 1.0f));
             //m_host.ParentGroup.HasGroupChanged = true;
             //m_host.ParentGroup.ScheduleGroupForFullUpdate();
         }
@@ -4844,22 +4845,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 // Find pushee position
                 // Pushee Linked?
-                if (pusheeav.ParentID != 0)
-                {
-                    SceneObjectPart parentobj = World.GetSceneObjectPart(pusheeav.ParentID);
-                    if (parentobj != null)
-                    {
-                        PusheePos = parentobj.AbsolutePosition;
-                    }
-                    else
-                    {
-                        PusheePos = pusheeav.AbsolutePosition;
-                    }
-                }
+                SceneObjectPart sitPart = pusheeav.ParentPart;
+                if (sitPart != null)
+                    PusheePos = sitPart.AbsolutePosition;
                 else
-                {
                     PusheePos = pusheeav.AbsolutePosition;
-                }
             }
 
             if (!pusheeIsAvatar)
@@ -6067,7 +6057,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     flags |= ScriptBaseClass.AGENT_IN_AIR;
             }
 
-             if (agent.ParentID != 0)
+             if (agent.ParentPart != null)
              {
                  flags |= ScriptBaseClass.AGENT_ON_OBJECT;
                  flags |= ScriptBaseClass.AGENT_SITTING;
@@ -6866,16 +6856,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void llSitTarget(LSL_Vector offset, LSL_Rotation rot)
+        protected void SitTarget(SceneObjectPart part, LSL_Vector offset, LSL_Rotation rot)
         {
-            m_host.AddScriptLPS(1);
             // LSL quaternions can normalize to 0, normal Quaternions can't.
             if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
                 rot.z = 1; // ZERO_ROTATION = 0,0,0,1
 
-            m_host.SitTargetPosition = new Vector3((float)offset.x, (float)offset.y, (float)offset.z);
-            m_host.SitTargetOrientation = Rot2Quaternion(rot);
-            m_host.ParentGroup.HasGroupChanged = true;
+            part.SitTargetPosition = new Vector3((float)offset.x, (float)offset.y, (float)offset.z);
+            part.SitTargetOrientation = Rot2Quaternion(rot);
+            part.ParentGroup.HasGroupChanged = true;
+        }
+
+        public void llSitTarget(LSL_Vector offset, LSL_Rotation rot)
+        {
+            m_host.AddScriptLPS(1);
+            SitTarget(m_host, offset, rot);
+        }
+
+        public void llLinkSitTarget(LSL_Integer link, LSL_Vector offset, LSL_Rotation rot)
+        {
+            m_host.AddScriptLPS(1);
+            if (link == ScriptBaseClass.LINK_ROOT)
+                SitTarget(m_host.ParentGroup.RootPart, offset, rot);
+            else if (link == ScriptBaseClass.LINK_THIS)
+                SitTarget(m_host, offset, rot);
+            else
+            {
+                SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(link);
+                if (null != part)
+                {
+                    SitTarget(part, offset, rot);
+                }
+            }
         }
 
         public LSL_String llAvatarOnSitTarget()
@@ -7560,10 +7572,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             shapeBlock.PathScaleX = 100;
             shapeBlock.PathScaleY = 150;
 
-            if ((type & (int)ScriptBaseClass.PRIM_SCULPT_TYPE_CYLINDER) == 0 &&
-                (type & (int)ScriptBaseClass.PRIM_SCULPT_TYPE_PLANE) == 0 &&
-                (type & (int)ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE) == 0 &&
-                (type & (int)ScriptBaseClass.PRIM_SCULPT_TYPE_TORUS) == 0)
+            int flag = type & (ScriptBaseClass.PRIM_SCULPT_FLAG_INVERT | ScriptBaseClass.PRIM_SCULPT_FLAG_MIRROR);
+
+            if (type != (ScriptBaseClass.PRIM_SCULPT_TYPE_CYLINDER | flag) &&
+                type != (ScriptBaseClass.PRIM_SCULPT_TYPE_PLANE | flag) &&
+                type != (ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE | flag) &&
+                type != (ScriptBaseClass.PRIM_SCULPT_TYPE_TORUS | flag))
             {
                 // default
                 type = type | (int)ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE;
@@ -8851,23 +8865,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             ScriptSleep(1000);
+            return GetPrimMediaParams(m_host, face, rules);
+        }
 
+        public LSL_List llGetLinkMedia(LSL_Integer link, LSL_Integer face, LSL_List rules)
+        {
+            m_host.AddScriptLPS(1);
+            ScriptSleep(1000);
+            if (link == ScriptBaseClass.LINK_ROOT)
+                return GetPrimMediaParams(m_host.ParentGroup.RootPart, face, rules);
+            else if (link == ScriptBaseClass.LINK_THIS)
+                return GetPrimMediaParams(m_host, face, rules);
+            else
+            {
+                SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(link);
+                if (null != part)
+                    return GetPrimMediaParams(part, face, rules);
+            }
+
+            return new LSL_List();
+        }
+
+        private LSL_List GetPrimMediaParams(SceneObjectPart part, int face, LSL_List rules)
+        {
             // LSL Spec http://wiki.secondlife.com/wiki/LlGetPrimMediaParams says to fail silently if face is invalid
             // TODO: Need to correctly handle case where a face has no media (which gives back an empty list).
             // Assuming silently fail means give back an empty list.  Ideally, need to check this.
-            if (face < 0 || face > m_host.GetNumberOfSides() - 1)
+            if (face < 0 || face > part.GetNumberOfSides() - 1)
                 return new LSL_List();
 
-            return GetPrimMediaParams(face, rules);
-        }
-
-        private LSL_List GetPrimMediaParams(int face, LSL_List rules)
-        {
             IMoapModule module = m_ScriptEngine.World.RequestModuleInterface<IMoapModule>();
             if (null == module)
-                throw new Exception("Media on a prim functions not available");
+                return new LSL_List();
 
-            MediaEntry me = module.GetMediaEntry(m_host, face);
+            MediaEntry me = module.GetMediaEntry(part, face);
 
             // As per http://wiki.secondlife.com/wiki/LlGetPrimMediaParams
             if (null == me)
@@ -8949,33 +8980,52 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case ScriptBaseClass.PRIM_MEDIA_PERMS_CONTROL:
                         res.Add(new LSL_Integer((int)me.ControlPermissions));
                         break;
+
+                    default: return ScriptBaseClass.LSL_STATUS_MALFORMED_PARAMS;
                 }
             }
 
             return res;
         }
 
-        public LSL_Integer llSetPrimMediaParams(int face, LSL_List rules)
+        public LSL_Integer llSetPrimMediaParams(LSL_Integer face, LSL_List rules)
         {
             m_host.AddScriptLPS(1);
             ScriptSleep(1000);
+            return SetPrimMediaParams(m_host, face, rules);
+        }
 
+        public LSL_Integer llSetLinkMedia(LSL_Integer link, LSL_Integer face, LSL_List rules)
+        {
+            m_host.AddScriptLPS(1);
+            ScriptSleep(1000);
+            if (link == ScriptBaseClass.LINK_ROOT)
+                return SetPrimMediaParams(m_host.ParentGroup.RootPart, face, rules);
+            else if (link == ScriptBaseClass.LINK_THIS)
+                return SetPrimMediaParams(m_host, face, rules);
+            else
+            {
+                SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(link);
+                if (null != part)
+                    return SetPrimMediaParams(part, face, rules);
+            }
+
+            return ScriptBaseClass.LSL_STATUS_NOT_FOUND;
+        }
+
+        private LSL_Integer SetPrimMediaParams(SceneObjectPart part, LSL_Integer face, LSL_List rules)
+        {
             // LSL Spec http://wiki.secondlife.com/wiki/LlSetPrimMediaParams says to fail silently if face is invalid
             // Assuming silently fail means sending back LSL_STATUS_OK.  Ideally, need to check this.
             // Don't perform the media check directly
-            if (face < 0 || face > m_host.GetNumberOfSides() - 1)
-                return ScriptBaseClass.LSL_STATUS_OK;
+            if (face < 0 || face > part.GetNumberOfSides() - 1)
+                return ScriptBaseClass.LSL_STATUS_NOT_FOUND;
 
-            return SetPrimMediaParams(face, rules);
-        }
-
-        private LSL_Integer SetPrimMediaParams(int face, LSL_List rules)
-        {
             IMoapModule module = m_ScriptEngine.World.RequestModuleInterface<IMoapModule>();
             if (null == module)
-                throw new Exception("Media on a prim functions not available");
+                return ScriptBaseClass.LSL_STATUS_NOT_SUPPORTED;
 
-            MediaEntry me = module.GetMediaEntry(m_host, face);
+            MediaEntry me = module.GetMediaEntry(part, face);
             if (null == me)
                 me = new MediaEntry();
 
@@ -9054,10 +9104,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case ScriptBaseClass.PRIM_MEDIA_PERMS_CONTROL:
                         me.ControlPermissions = (MediaPermission)(byte)(int)rules.GetLSLIntegerItem(i++);
                         break;
+
+                    default: return ScriptBaseClass.LSL_STATUS_MALFORMED_PARAMS;
                 }
             }
 
-            module.SetMediaEntry(m_host, face, me);
+            module.SetMediaEntry(part, face, me);
 
             return ScriptBaseClass.LSL_STATUS_OK;
         }
@@ -9066,18 +9118,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             ScriptSleep(1000);
+            return ClearPrimMedia(m_host, face);
+        }
 
+        public LSL_Integer llClearLinkMedia(LSL_Integer link, LSL_Integer face)
+        {
+            m_host.AddScriptLPS(1);
+            ScriptSleep(1000);
+            if (link == ScriptBaseClass.LINK_ROOT)
+                return ClearPrimMedia(m_host.ParentGroup.RootPart, face);
+            else if (link == ScriptBaseClass.LINK_THIS)
+                return ClearPrimMedia(m_host, face);
+            else
+            {
+                SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(link);
+                if (null != part)
+                    return ClearPrimMedia(part, face);
+            }
+
+            return ScriptBaseClass.LSL_STATUS_NOT_FOUND;
+        }
+
+        private LSL_Integer ClearPrimMedia(SceneObjectPart part, LSL_Integer face)
+        {
             // LSL Spec http://wiki.secondlife.com/wiki/LlClearPrimMedia says to fail silently if face is invalid
             // Assuming silently fail means sending back LSL_STATUS_OK.  Ideally, need to check this.
             // FIXME: Don't perform the media check directly
-            if (face < 0 || face > m_host.GetNumberOfSides() - 1)
-                return ScriptBaseClass.LSL_STATUS_OK;
+            if (face < 0 || face > part.GetNumberOfSides() - 1)
+                return ScriptBaseClass.LSL_STATUS_NOT_FOUND;
 
             IMoapModule module = m_ScriptEngine.World.RequestModuleInterface<IMoapModule>();
             if (null == module)
-                throw new Exception("Media on a prim functions not available");
+                return ScriptBaseClass.LSL_STATUS_NOT_SUPPORTED;
 
-            module.ClearMediaEntry(m_host, face);
+            module.ClearMediaEntry(part, face);
 
             return ScriptBaseClass.LSL_STATUS_OK;
         }

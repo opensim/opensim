@@ -71,6 +71,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestConstructFromLSLFloat()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLString testString;
 
             foreach (KeyValuePair<double, string> number in m_doubleStringSet)
@@ -86,6 +88,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestExplicitCastLSLFloatToLSLString()
         {
+            TestHelpers.InMethod();
+
             LSL_Types.LSLString testString;
 
             foreach (KeyValuePair<double, string> number in m_doubleStringSet)
@@ -101,6 +105,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestExplicitCastLSLStringToQuaternion()
         {
+            TestHelpers.InMethod();
+
             string quaternionString = "<0.00000, 0.70711, 0.00000, 0.70711>";
             LSL_Types.LSLString quaternionLSLString = new LSL_Types.LSLString(quaternionString);
 
@@ -118,6 +124,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         [Test]
         public void TestImplicitCastBooleanToLSLFloat()
         {
+            TestHelpers.InMethod();
+            
             LSL_Types.LSLString testString;
 
             testString = (LSL_Types.LSLString) (1 == 0);

@@ -72,19 +72,19 @@ namespace OpenSim.Server.Handlers.Asset
             server.AddStreamHandler(new AssetServerPostHandler(m_AssetService));
             server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService, allowDelete));
 
-            MainConsole.Instance.Commands.AddCommand("kfs", false,
+            MainConsole.Instance.Commands.AddCommand("Assets", false,
                     "show asset",
                     "show asset <ID>",
                     "Show asset information",
                     HandleShowAsset);
 
-            MainConsole.Instance.Commands.AddCommand("kfs", false,
+            MainConsole.Instance.Commands.AddCommand("Assets", false,
                     "delete asset",
                     "delete asset <ID>",
                     "Delete asset from database",
                     HandleDeleteAsset);
 
-            MainConsole.Instance.Commands.AddCommand("kfs", false,
+            MainConsole.Instance.Commands.AddCommand("Assets", false,
                     "dump asset",
                     "dump asset <ID>",
                     "Dump asset to a file",

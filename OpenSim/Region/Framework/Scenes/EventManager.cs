@@ -142,8 +142,11 @@ namespace OpenSim.Region.Framework.Scenes
         public event OnPermissionErrorDelegate OnPermissionError;
 
         /// <summary>
-        /// Fired when a new script is created.
+        /// Fired when a script is run.
         /// </summary>
+        /// <remarks>
+        /// Occurs after OnNewScript.
+        /// </remarks>
         public event NewRezScript OnRezScript;
         public delegate void NewRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource);
 
@@ -191,10 +194,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event ClientClosed OnClientClosed;
 
-        // Fired when a script is created
-        // The indication that a new script exists in this region.
         public delegate void NewScript(UUID clientID, SceneObjectPart part, UUID itemID);
+
+        /// <summary>
+        /// Fired when a script is created.
+        /// </summary>
+        /// <remarks>
+        /// Occurs before OnRezScript
+        /// </remarks>
         public event NewScript OnNewScript;
+
         public virtual void TriggerNewScript(UUID clientID, SceneObjectPart part, UUID itemID)
         {
             NewScript handlerNewScript = OnNewScript;
@@ -216,10 +225,16 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        //TriggerUpdateScript: triggered after Scene receives client's upload of updated script and stores it as asset
-        // An indication that the script has changed.
         public delegate void UpdateScript(UUID clientID, UUID itemId, UUID primId, bool isScriptRunning, UUID newAssetID);
+
+        /// <summary>
+        /// An indication that the script has changed.
+        /// </summary>
+        /// <remarks>
+        /// Triggered after the scene receives a client's upload of an updated script and has stored it in an asset.
+        /// </remarks>
         public event UpdateScript OnUpdateScript;
+        
         public virtual void TriggerUpdateScript(UUID clientId, UUID itemId, UUID primId, bool isScriptRunning, UUID newAssetID)
         {
             UpdateScript handlerUpdateScript = OnUpdateScript;

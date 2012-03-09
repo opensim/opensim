@@ -69,9 +69,10 @@ namespace OpenSim.Region.CoreModules.Framework
         {
             m_scene = scene;
             m_scene.RegisterModuleInterface<ICapabilitiesModule>(this);
-            MainConsole.Instance.Commands.AddCommand("Capabilities", false, "show caps",
+
+            MainConsole.Instance.Commands.AddCommand("Comms", false, "show caps",
                 "show caps",
-                "Shows all registered capabilities", HandleShowCapsCommand);
+                "Shows all registered capabilities for users", HandleShowCapsCommand);
         }
 
         public void RegionLoaded(Scene scene)

@@ -277,18 +277,19 @@ namespace OpenSim.Region.CoreModules
             m_frame = 0;
 
             // This one puts an entry in the main help screen
-            m_scene.AddCommand(this, String.Empty, "sun", "Usage: sun [param] [value] - Get or Update Sun module paramater", null);
+//            m_scene.AddCommand("Regions", this, "sun", "sun", "Usage: sun [param] [value] - Get or Update Sun module paramater", null);
 
             // This one enables the ability to type just "sun" without any parameters
-            m_scene.AddCommand(this, "sun", "", "", HandleSunConsoleCommand);
+//            m_scene.AddCommand("Regions", this, "sun", "", "", HandleSunConsoleCommand);
             foreach (KeyValuePair<string, string> kvp in GetParamList())
             {
-                m_scene.AddCommand(this, String.Format("sun {0}", kvp.Key), String.Format("{0} - {1}", kvp.Key, kvp.Value), "", HandleSunConsoleCommand);
+                string sunCommand = string.Format("sun {0}", kvp.Key);
+                m_scene.AddCommand("Regions", this, sunCommand, string.Format("{0} [<value>]", sunCommand), kvp.Value, "", HandleSunConsoleCommand);
             }
 
             TimeZone local = TimeZone.CurrentTimeZone;
             TicksUTCOffset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Ticks;
-            m_log.Debug("[SUN]: localtime offset is " + TicksUTCOffset);
+            m_log.DebugFormat("[SUN]: localtime offset is {0}", TicksUTCOffset);
 
             // Align ticks with Second Life
 

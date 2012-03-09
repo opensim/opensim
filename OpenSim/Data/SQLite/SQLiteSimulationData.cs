@@ -2157,7 +2157,7 @@ namespace OpenSim.Data.SQLite
             row["terrain_raise_limit"] = settings.TerrainRaiseLimit;
             row["terrain_lower_limit"] = settings.TerrainLowerLimit;
             row["use_estate_sun"] = settings.UseEstateSun;
-            row["Sandbox"] = settings.Sandbox; // database uses upper case S for sandbox
+            row["sandbox"] = settings.Sandbox; // unlike other database modules, sqlite uses a lower case s for sandbox!
             row["sunvectorx"] = settings.SunVector.X;
             row["sunvectory"] = settings.SunVector.Y;
             row["sunvectorz"] = settings.SunVector.Z;
