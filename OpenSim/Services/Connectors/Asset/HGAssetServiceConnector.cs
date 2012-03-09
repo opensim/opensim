@@ -45,6 +45,24 @@ namespace OpenSim.Services.Connectors
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
+        private Dictionary<IAssetService, object> m_endpointSerializer = new Dictionary<IAssetService, object>();
+        private object EndPointLock(IAssetService connector)
+        {
+            lock (m_endpointSerializer)
+            {
+                object eplock = null;
+
+                if (! m_endpointSerializer.TryGetValue(connector, out eplock))
+                {
+                    eplock = new object();
+                    m_endpointSerializer.Add(connector, eplock);
+                    // m_log.WarnFormat("[WEB UTIL] add a new host to end point serializer {0}",endpoint);
+                }
+
+                return eplock;
+            }
+        }
+
         private Dictionary<string, IAssetService> m_connectors = new Dictionary<string, IAssetService>();
 
         public HGAssetServiceConnector(IConfigSource source)
@@ -197,7 +215,8 @@ namespace OpenSim.Services.Connectors
                 IAssetService connector = GetConnector(url);
                 // Restore the assetID to a simple UUID
                 asset.ID = assetID;
-                return connector.Store(asset);
+                lock (EndPointLock(connector))
+                    return connector.Store(asset);
             }
 
             return String.Empty;
