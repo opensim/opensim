@@ -230,7 +230,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
                 else
                 {
-                    Util.FireAndForget(o => awre.ReceivedAllAssets(new List<UUID>(), new List<UUID>()));
+                    awre.ReceivedAllAssets(new List<UUID>(), new List<UUID>());
                 }
             }
             catch (Exception) 
