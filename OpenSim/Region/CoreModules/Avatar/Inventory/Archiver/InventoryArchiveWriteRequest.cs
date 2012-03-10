@@ -270,12 +270,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             
                 m_archiveWriter = new TarArchiveWriter(m_saveStream);
 
+                m_log.InfoFormat("[INVENTORY ARCHIVER]: Adding control file to archive.");
+
                 // Write out control file.  This has to be done first so that subsequent loaders will see this file first
                 // XXX: I know this is a weak way of doing it since external non-OAR aware tar executables will not do this
                 // not sure how to fix this though, short of going with a completely different file format.
                 m_archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, CreateControlFile(options));
-                m_log.InfoFormat("[INVENTORY ARCHIVER]: Added control file to archive.");
-                
+
                 if (inventoryFolder != null)
                 {
                     m_log.DebugFormat(
