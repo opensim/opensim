@@ -141,13 +141,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 PerformAssetsRequestCallback(null);
                 return;
             }
-            
-            foreach (KeyValuePair<UUID, AssetType> kvp in m_uuids)
-            {
-                m_assetService.Get(kvp.Key.ToString(), kvp.Value, PreAssetRequestCallback);
-            }
 
             m_requestCallbackTimer.Enabled = true;
+
+            foreach (KeyValuePair<UUID, AssetType> kvp in m_uuids)
+            {
+//                m_assetService.Get(kvp.Key.ToString(), kvp.Value, PreAssetRequestCallback);
+                AssetBase asset = m_assetService.Get(kvp.Key.ToString());
+                PreAssetRequestCallback(kvp.Key.ToString(), kvp.Value, asset);
+            }
         }
 
         protected void OnRequestCallbackTimeout(object source, ElapsedEventArgs args)

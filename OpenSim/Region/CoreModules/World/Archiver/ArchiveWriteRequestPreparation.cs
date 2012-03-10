@@ -219,12 +219,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
 
                 if (SaveAssets)
-                    new AssetsRequest(
-                        new AssetsArchiver(archiveWriter), assetUuids,
-                        m_scene.AssetService, m_scene.UserAccountService, 
-                        m_scene.RegionInfo.ScopeID, options, awre.ReceivedAllAssets).Execute();
+                {
+                    AssetsRequest ar
+                        = new AssetsRequest(
+                            new AssetsArchiver(archiveWriter), assetUuids,
+                            m_scene.AssetService, m_scene.UserAccountService, 
+                            m_scene.RegionInfo.ScopeID, options, awre.ReceivedAllAssets);
+
+                    Util.FireAndForget(o => ar.Execute());
+                }
                 else
-                    awre.ReceivedAllAssets(new List<UUID>(), new List<UUID>());
+                {
+                    Util.FireAndForget(o => awre.ReceivedAllAssets(new List<UUID>(), new List<UUID>()));
+                }
             }
             catch (Exception) 
             {
