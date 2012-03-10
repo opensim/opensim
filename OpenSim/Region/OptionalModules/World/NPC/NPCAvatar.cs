@@ -34,6 +34,9 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.World.Estate;
+using log4net;
+using System.Reflection;
+using System.Xml;
 
 namespace OpenSim.Region.OptionalModules.World.NPC
 {
@@ -132,7 +135,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public UUID GetDefaultAnimation(string name)
         {
-            return UUID.Zero;
+            return SLUtil.GetDefaultAvatarAnimation(name);
         }
 
         public Vector3 Position
