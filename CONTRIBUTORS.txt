@@ -86,6 +86,7 @@ what it is today.
 * Grumly57
 * GuduleLapointe
 * Ewe Loon
+* Fernando Oliveira
 * Fly-Man
 * Flyte Xevious
 * Imaze Rhiano
@@ -135,6 +136,7 @@ what it is today.
 * Ruud Lathorp
 * SachaMagne
 * Salahzar Stenvaag
+* satguru p srivastava
 * sempuki
 * SignpostMarv
 * SpotOn3D
