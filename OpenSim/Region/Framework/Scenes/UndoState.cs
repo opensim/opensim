@@ -48,6 +48,7 @@ namespace OpenSim.Region.Framework.Scenes
         STATE_ALL = 63       
     }
 
+/*
     public class UndoState
     {
         //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -121,9 +122,16 @@ namespace OpenSim.Region.Framework.Scenes
         public void PlayState(SceneObjectPart part)
         {
             part.Undoing = true;
-
+            bool physbuilding = false;
+            
             if (part.ParentID == 0)
             {
+                if (!ForGroup && part.PhysActor != null)
+                {
+                    part.PhysActor.Building = true;
+                    physbuilding = true;
+                }
+
                 if (Position != Vector3.Zero)
                 {
                     if (ForGroup)
@@ -139,17 +147,34 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (Scale != Vector3.Zero)
                 {
+                    if (!physbuilding && part.PhysActor != null)
+                    {
+                        part.PhysActor.Building = true;
+                        physbuilding = true;
+                    }
+
                     if (ForGroup)
                         part.ParentGroup.GroupResize(Scale);
                     else
                         part.Resize(Scale);
                 }
+
+                if (physbuilding)
+                    part.PhysActor.Building = false;
+
                 part.ParentGroup.ScheduleGroupForTerseUpdate();
             }
             else
             {
                 if (ForGroup) // trap for group since seems parts can't do it
                     return;
+                
+                // changing a part invalidates entire object physical rep
+                if (part.ParentGroup != null && part.ParentGroup.RootPart != null && part.ParentGroup.RootPart.PhysActor != null)
+                {
+                    part.ParentGroup.RootPart.PhysActor.Building = true;
+                    physbuilding = true;
+                }
 
                 // Note: Updating these properties on sop automatically schedules an update if needed
                 part.OffsetPosition = Position;
@@ -158,11 +183,97 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     part.Resize(Scale);
                 }
+
+                if (physbuilding)
+                    part.ParentGroup.RootPart.PhysActor.Building = false;
             }
 
             part.Undoing = false;
         }
     }
+*/
+    public class UndoState
+    {
+        public ObjectChangeData data;
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="forGroup">True if the undo is for an entire group</param>
+        /// only for root parts ????
+        public UndoState(SceneObjectPart part, ObjectChangeWhat what)
+        {
+            data = new ObjectChangeData();
+
+            data.what = what;
+
+            if (part.ParentGroup.RootPart == part)
+            {
+                if ((what & ObjectChangeWhat.Position) != 0)
+                    data.position = part.ParentGroup.AbsolutePosition;
+                if ((what & ObjectChangeWhat.Rotation) != 0)
+                    data.rotation = part.RotationOffset;
+                if ((what & ObjectChangeWhat.Scale) != 0)
+                    data.scale = part.Shape.Scale;
+            }
+            else
+            {
+                if ((what & ObjectChangeWhat.Position) != 0)
+                    data.position = part.OffsetPosition;
+                if ((what & ObjectChangeWhat.Rotation) != 0)
+                    data.rotation = part.RotationOffset;
+                if ((what & ObjectChangeWhat.Scale) != 0)
+                    data.scale = part.Shape.Scale;
+            }
+        }
+
+        /// <summary>
+        /// Compare the relevant state in the given part to this state.
+        /// </summary>
+        /// <param name="part"></param>
+        /// <returns>true if both the part's position, rotation and scale match those in this undo state.  False otherwise.</returns>
+        public bool Compare(SceneObjectPart part, ObjectChangeWhat what)
+        {
+            if (data.what != what) // if diferent targets, then they are diferent
+                return false;
+
+            if (part != null)
+            {
+                if (part.ParentID == 0)
+                {
+                    if ((what & ObjectChangeWhat.Position) != 0 && data.position != part.ParentGroup.AbsolutePosition)
+                        return false;
+                }
+                else
+                {
+                    if ((what & ObjectChangeWhat.Position) != 0 && data.position != part.OffsetPosition)
+                        return false;
+                }
+
+                if ((what & ObjectChangeWhat.Rotation) != 0 && data.rotation != part.RotationOffset)
+                    return false;
+                if ((what & ObjectChangeWhat.Rotation) != 0 && data.scale == part.Shape.Scale)
+                    return false;
+                return true;
+
+            }
+            return false;
+        }
+
+        public void PlayState(SceneObjectPart part)
+        {
+            part.Undoing = true;
+
+            SceneObjectGroup grp = part.ParentGroup;
+
+            if (grp != null)
+            {
+                grp.doChangeObject(part, data);              
+            }
+            part.Undoing = false;
+        }
+    }
+
 
     public class LandUndoState
     {

@@ -2811,6 +2811,8 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnUpdatePrimGroupPosition += m_sceneGraph.UpdatePrimGroupPosition;
             client.OnUpdatePrimSinglePosition += m_sceneGraph.UpdatePrimSinglePosition;
 
+            client.onClientChangeObject += m_sceneGraph.ClientChangeObject;
+
             client.OnUpdatePrimGroupRotation += m_sceneGraph.UpdatePrimGroupRotation;
             client.OnUpdatePrimGroupMouseRotation += m_sceneGraph.UpdatePrimGroupRotation;
             client.OnUpdatePrimSingleRotation += m_sceneGraph.UpdatePrimSingleRotation;
@@ -2939,6 +2941,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             client.OnUpdatePrimGroupPosition -= m_sceneGraph.UpdatePrimGroupPosition;
             client.OnUpdatePrimSinglePosition -= m_sceneGraph.UpdatePrimSinglePosition;
+
+            client.onClientChangeObject -= m_sceneGraph.ClientChangeObject;
 
             client.OnUpdatePrimGroupRotation -= m_sceneGraph.UpdatePrimGroupRotation;
             client.OnUpdatePrimGroupMouseRotation -= m_sceneGraph.UpdatePrimGroupRotation;

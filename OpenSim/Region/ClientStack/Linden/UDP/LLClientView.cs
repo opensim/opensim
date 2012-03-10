@@ -125,6 +125,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         public event UpdatePrimFlags OnUpdatePrimFlags;
         public event UpdatePrimTexture OnUpdatePrimTexture;
+        public event ClientChangeObject onClientChangeObject;
         public event UpdateVector OnUpdatePrimGroupPosition;
         public event UpdateVector OnUpdatePrimSinglePosition;
         public event UpdatePrimRotation OnUpdatePrimGroupRotation;
@@ -11517,22 +11518,151 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                            parts[j].IgnoreUndoUpdate = true;
 //                        }
 
-                        UpdatePrimGroupRotation handlerUpdatePrimGroupRotation;
-                        UpdateVector handlerUpdatePrimGroupScale;
+//                        UpdatePrimGroupRotation handlerUpdatePrimGroupRotation;
+//                        UpdateVector handlerUpdatePrimGroupScale;
 
-                        Quaternion arot;
-                        Vector3 ascale;
-                        Vector3 apos;
-/*ubit from ll JIRA:
- * 0x01 position
- * 0x02 rotation
- * 0x04 scale
+                        ClientChangeObject updatehandler = onClientChangeObject;
+
+                        if (updatehandler != null)
+                        {
+                            ObjectChangeData udata = new ObjectChangeData();
+
+                            /*ubit from ll JIRA:
+                             * 0x01 position
+                             * 0x02 rotation
+                             * 0x04 scale
   
- * 0x08 LINK_SET
- * 0x10 UNIFORM for scale
- */
+                             * 0x08 LINK_SET
+                             * 0x10 UNIFORM for scale
+                             */
 
+                            // translate to internal changes
+                            // not all cases .. just the ones older code did
 
+                            switch (block.Type)
+                            {
+                                case 1: //change position sp
+                                    udata.position = new Vector3(block.Data, 0);
+
+                                    udata.what = ObjectChangeWhat.primP;
+                                    updatehandler(localId, udata, this);
+                                    break;
+
+                                case 2: // rotation sp
+                                    udata.rotation = new Quaternion(block.Data, 0, true);
+
+                                    udata.what = ObjectChangeWhat.primR;
+                                    updatehandler(localId, udata, this);
+                                    break;
+
+                                case 3: // position plus rotation
+                                    udata.position = new Vector3(block.Data, 0);
+                                    udata.rotation = new Quaternion(block.Data, 12, true);
+
+                                    udata.what = ObjectChangeWhat.primPR;
+                                    updatehandler(localId, udata, this);
+
+                                    break;
+
+                                case 4: // scale sp
+                                    udata.scale = new Vector3(block.Data, 0);
+                                    udata.what = ObjectChangeWhat.primS;
+
+                                    updatehandler(localId, udata, this);
+                                    break;
+
+                                case 0x14: // uniform scale sp 
+                                    udata.scale = new Vector3(block.Data, 0);
+
+                                    udata.what = ObjectChangeWhat.primUS;
+                                    updatehandler(localId, udata, this);
+                                    break;
+
+                                case 5: // scale and position sp
+                                    udata.position = new Vector3(block.Data, 0);
+                                    udata.scale = new Vector3(block.Data, 12);
+
+                                    udata.what = ObjectChangeWhat.primPS;
+                                    updatehandler(localId, udata, this);
+                                    break;
+
+                                case 0x15: //uniform scale and position
+                                    udata.position = new Vector3(block.Data, 0);
+                                    udata.scale = new Vector3(block.Data, 12);
+
+                                    udata.what = ObjectChangeWhat.primPUS;
+                                    updatehandler(localId, udata, this);
+                                    break;
+
+                                // now group related (bit 4)
+                                case 9: //( 8 + 1 )group position
+                                    udata.position = new Vector3(block.Data, 0);
+
+                                    udata.what = ObjectChangeWhat.groupP;
+                                    updatehandler(localId, udata, this);
+                                    break;
+
+                                case 0x0A: // (8 + 2) group rotation
+                                    udata.rotation = new Quaternion(block.Data, 0, true);
+
+                                    udata.what = ObjectChangeWhat.groupR;
+                                    updatehandler(localId, udata, this);
+                                    break;
+
+                                case 0x0B: //( 8 + 2 + 1) group rotation and position
+                                    udata.position = new Vector3(block.Data, 0);
+                                    udata.rotation = new Quaternion(block.Data, 12, true);
+
+                                    udata.what = ObjectChangeWhat.groupPR;
+                                    updatehandler(localId, udata, this);
+                                    break;
+
+                                case 0x0C: // (8 + 4) group scale
+                                    // only afects root prim and only sent by viewer editor object tab scaling
+                                    // mouse edition only allows uniform scaling
+                                    // SL MAY CHANGE THIS in viewers
+
+                                    udata.scale = new Vector3(block.Data, 0);
+
+                                    //                                    udata.what = ObjectChangeWhat.groupS;
+                                    udata.what = ObjectChangeWhat.primS; // to conform to current SL
+                                    updatehandler(localId, udata, this);
+
+                                    break;
+
+                                case 0x0D: //(8 + 4 + 1) group scale and position
+                                    // exception as above
+
+                                    udata.position = new Vector3(block.Data, 0);
+                                    udata.scale = new Vector3(block.Data, 12);
+
+                                    //                                    udata.what = ObjectChangeWhat.groupPS;
+                                    udata.what = ObjectChangeWhat.primPS; // to conform to current SL
+                                    updatehandler(localId, udata, this);
+                                    break;
+
+                                case 0x1C: // (0x10 + 8 + 4 ) group scale UNIFORM
+                                    udata.scale = new Vector3(block.Data, 0);
+
+                                    udata.what = ObjectChangeWhat.groupUS;
+                                    updatehandler(localId, udata, this);
+                                    break;
+
+                                case 0x1D: // (UNIFORM + GROUP + SCALE + POS)
+                                    udata.position = new Vector3(block.Data, 0);
+                                    udata.scale = new Vector3(block.Data, 12);
+
+                                    udata.what = ObjectChangeWhat.groupPUS;
+                                    updatehandler(localId, udata, this);
+                                    break;
+
+                                default:
+                                    m_log.Debug("[CLIENT]: MultipleObjUpdate recieved an unknown packet type: " + (block.Type));
+                                    break;
+                            }
+                        }
+
+/*
                         switch (block.Type)
                         {
                             case 1: //change position sp
@@ -11788,7 +11918,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 m_log.Debug("[CLIENT]: MultipleObjUpdate recieved an unknown packet type: " + (block.Type));
                                 break;
                         }
-
+*/
 //                        for (int j = 0; j < parts.Length; j++)
 //                            parts[j].IgnoreUndoUpdate = false;
 

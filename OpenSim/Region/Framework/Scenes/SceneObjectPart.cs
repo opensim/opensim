@@ -1944,6 +1944,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                                 PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
                                 PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
+
                                 if (ParentID != 0 && ParentID != LocalId)
                                 {
                                     if (ParentGroup.RootPart.PhysActor != null)
@@ -3656,7 +3657,7 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.ScheduleGroupForTerseUpdate();
             //ParentGroup.ScheduleGroupForFullUpdate();
         }
-
+/*
         public void StoreUndoState()
         {
             StoreUndoState(false);
@@ -3697,6 +3698,44 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+*/
+
+
+        public void StoreUndoState(ObjectChangeWhat what)
+        {
+            if (!Undoing && !IgnoreUndoUpdate) // just to read better  - undo is in progress, or suspended
+            {
+                if (ParentGroup != null)
+                {
+                    lock (m_undo)
+                    {
+                        if (m_undo.Count > 0)
+                        {
+                            // see if we had a change
+
+                            UndoState last = m_undo.Peek();
+                            if (last != null)
+                            {
+                                if (last.Compare(this, what))
+                                {
+                                    return;
+                                }
+                            }
+                        }
+
+                        if (ParentGroup.GetSceneMaxUndo() > 0)
+                        {
+                            UndoState nUndo = new UndoState(this, what);
+
+                            m_undo.Push(nUndo);
+
+                            if (m_redo.Count > 0)
+                                m_redo.Clear();
+                        }
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Return number of undos on the stack.  Here temporarily pending a refactor.
@@ -3725,10 +3764,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if (goback != null)
                     {
                         UndoState nUndo = null;
-        
+       
                         if (ParentGroup.GetSceneMaxUndo() > 0)
                         {
-                            nUndo = new UndoState(this, goback.ForGroup);
+                            nUndo = new UndoState(this, goback.data.what);
                         }
 
                         goback.PlayState(this);
@@ -3760,7 +3799,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (ParentGroup.GetSceneMaxUndo() > 0)
                         {
-                            UndoState nUndo = new UndoState(this, gofwd.ForGroup);
+                            UndoState nUndo = new UndoState(this, gofwd.data.what);
     
                             m_undo.Push(nUndo);
                         }

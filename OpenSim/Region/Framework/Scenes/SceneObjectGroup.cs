@@ -3124,10 +3124,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="scale"></param>
         public void GroupResize(Vector3 scale)
         {
-//            m_log.DebugFormat(
-//                "[SCENE OBJECT GROUP]: Group resizing {0} {1} from {2} to {3}", Name, LocalId, RootPart.Scale, scale);
-//            RootPart.StoreUndoState(true);
-
             scale.X = Math.Min(scale.X, Scene.m_maxNonphys);
             scale.Y = Math.Min(scale.Y, Scene.m_maxNonphys);
             scale.Z = Math.Min(scale.Z, Scene.m_maxNonphys);
@@ -3152,7 +3148,6 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart obPart = parts[i];
                     if (obPart.UUID != m_rootPart.UUID)
                     {
-//                        obPart.IgnoreUndoUpdate = true;
                         Vector3 oldSize = new Vector3(obPart.Scale);
 
                         float f = 1.0f;
@@ -3216,8 +3211,6 @@ namespace OpenSim.Region.Framework.Scenes
                                 z *= a;
                             }
                         }
-
-//                        obPart.IgnoreUndoUpdate = false;
                     }
                 }
             }
@@ -3226,9 +3219,8 @@ namespace OpenSim.Region.Framework.Scenes
             prevScale.X *= x;
             prevScale.Y *= y;
             prevScale.Z *= z;
-//            RootPart.IgnoreUndoUpdate = true;
+
             RootPart.Resize(prevScale);
-//            RootPart.IgnoreUndoUpdate = false;
 
             parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
@@ -3237,8 +3229,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (obPart.UUID != m_rootPart.UUID)
                 {
-//                    obPart.IgnoreUndoUpdate = true;
-
                     Vector3 currentpos = new Vector3(obPart.OffsetPosition);
                     currentpos.X *= x;
                     currentpos.Y *= y;
@@ -3251,18 +3241,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                     obPart.Resize(newSize);
                     obPart.UpdateOffSet(currentpos);
-
-//                    obPart.IgnoreUndoUpdate = false;                    
                 }
 
-//                obPart.IgnoreUndoUpdate = false;
                 HasGroupChanged = true;
                 m_rootPart.TriggerScriptChangedEvent(Changed.SCALE);
                 ScheduleGroupForTerseUpdate();
             }
-
-//            m_log.DebugFormat(
-//                "[SCENE OBJECT GROUP]: Finished group resizing {0} {1} to {2}", Name, LocalId, RootPart.Scale);
         }
 
         #endregion
@@ -3275,14 +3259,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         public void UpdateGroupPosition(Vector3 pos)
         {
-//            m_log.DebugFormat("[SCENE OBJECT GROUP]: Updating group position on {0} {1} to {2}", Name, LocalId, pos);
-
-//            RootPart.StoreUndoState(true);
-
-//            SceneObjectPart[] parts = m_parts.GetArray();
-//            for (int i = 0; i < parts.Length; i++)
-//                parts[i].StoreUndoState();
-
             if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
             {
                 if (IsAttachment)
@@ -3314,22 +3290,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="pos"></param>
         /// <param name="localID"></param>
+        /// 
+
         public void UpdateSinglePosition(Vector3 pos, uint localID)
         {
             SceneObjectPart part = GetChildPart(localID);
 
-//            SceneObjectPart[] parts = m_parts.GetArray();
-//            for (int i = 0; i < parts.Length; i++)
-//                parts[i].StoreUndoState();
-
             if (part != null)
             {
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT GROUP]: Updating single position of {0} {1} to {2}", part.Name, part.LocalId, pos);
-
-//                part.StoreUndoState(false);
-//                part.IgnoreUndoUpdate = true;
-
 // unlock parts position change
                 if (m_rootPart.PhysActor != null)
                     m_rootPart.PhysActor.Building = true;
@@ -3347,7 +3315,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_rootPart.PhysActor.Building = false;
 
                 HasGroupChanged = true;
-//                part.IgnoreUndoUpdate = false;
             }
         }
 
@@ -3357,13 +3324,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         public void UpdateRootPosition(Vector3 pos)
         {
-//            m_log.DebugFormat(
-//                "[SCENE OBJECT GROUP]: Updating root position of {0} {1} to {2}", Name, LocalId, pos);
-
-//            SceneObjectPart[] parts = m_parts.GetArray();
-//            for (int i = 0; i < parts.Length; i++)
-//                parts[i].StoreUndoState();
-
+            // needs to be called with phys building true
             Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
             Vector3 oldPos =
                 new Vector3(AbsolutePosition.X + m_rootPart.OffsetPosition.X,
@@ -3383,17 +3344,7 @@ namespace OpenSim.Region.Framework.Scenes
                     obPart.OffsetPosition = obPart.OffsetPosition + diff;
             }
 
-            //We have to set undoing here because otherwise an undo state will be saved
-//            if (!m_rootPart.Undoing)
-//            {
-//                m_rootPart.Undoing = true;
-                AbsolutePosition = newPos;
-//                m_rootPart.Undoing = false;
-//            }
-//            else
-//            {
-//                AbsolutePosition = newPos;
-//            }
+            AbsolutePosition = newPos;
 
             HasGroupChanged = true;
             if (m_rootPart.Undoing)
@@ -3416,17 +3367,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public void UpdateGroupRotationR(Quaternion rot)
         {
-//            m_log.DebugFormat(
-//                "[SCENE OBJECT GROUP]: Updating group rotation R of {0} {1} to {2}", Name, LocalId, rot);
-
-//            SceneObjectPart[] parts = m_parts.GetArray();
-//            for (int i = 0; i < parts.Length; i++)
-//                parts[i].StoreUndoState();
-
-//            m_rootPart.StoreUndoState(true);
-
-//            m_rootPart.UpdateRotation(rot);
-
             PhysicsActor actor = m_rootPart.PhysActor;
             if (actor != null)
             {
@@ -3445,16 +3385,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public void UpdateGroupRotationPR(Vector3 pos, Quaternion rot)
         {
-//            m_log.DebugFormat(
-//                "[SCENE OBJECT GROUP]: Updating group rotation PR of {0} {1} to {2}", Name, LocalId, rot);
-
-//            SceneObjectPart[] parts = m_parts.GetArray();
-//            for (int i = 0; i < parts.Length; i++)
-//                parts[i].StoreUndoState();
-
-//            RootPart.StoreUndoState(true);
-//            RootPart.IgnoreUndoUpdate = true;
-
             m_rootPart.UpdateRotation(rot);
 
             PhysicsActor actor = m_rootPart.PhysActor;
@@ -3468,8 +3398,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             HasGroupChanged = true;
             ScheduleGroupForTerseUpdate();
-
-//            RootPart.IgnoreUndoUpdate = false;
         }
 
         /// <summary>
@@ -3484,9 +3412,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (part != null)
             {
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT GROUP]: Updating single rotation of {0} {1} to {2}", part.Name, part.LocalId, rot);
-
                 if (m_rootPart.PhysActor != null)
                     m_rootPart.PhysActor.Building = true;
 
@@ -3514,30 +3439,13 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT GROUP]: Updating single position and rotation of {0} {1} to {2}",
-//                    part.Name, part.LocalId, rot);
-
-//                part.StoreUndoState();
-//                part.IgnoreUndoUpdate = true;
-
                 if (m_rootPart.PhysActor != null)
                     m_rootPart.PhysActor.Building = true;
 
                 if (part.UUID == m_rootPart.UUID)
                 {
                     UpdateRootRotation(rot);
-/*                    if (!m_rootPart.Undoing)
-                    {
-                        m_rootPart.Undoing = true;
-                        AbsolutePosition = pos;
-                        m_rootPart.Undoing = false;
-                    }
-                    else
-                    {
- */
-                        AbsolutePosition = pos;
-//                    }
+                    AbsolutePosition = pos;
                 }
                 else
                 {
@@ -3547,8 +3455,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_rootPart.PhysActor != null)
                     m_rootPart.PhysActor.Building = false;
-
-//                part.IgnoreUndoUpdate = false;
             }
         }
 
@@ -3558,13 +3464,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public void UpdateRootRotation(Quaternion rot)
         {
-//            m_log.DebugFormat(
-//                "[SCENE OBJECT GROUP]: Updating root rotation of {0} {1} to {2}",
-//                Name, LocalId, rot);
-
+            // needs to be called with phys building true
             Quaternion axRot = rot;
             Quaternion oldParentRot = m_rootPart.RotationOffset;
-//            m_rootPart.StoreUndoState();
             
             //Don't use UpdateRotation because it schedules an update prematurely
             m_rootPart.RotationOffset = rot;
@@ -3580,8 +3482,6 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart prim = parts[i];
                 if (prim.UUID != m_rootPart.UUID)
                 {
-//                    prim.IgnoreUndoUpdate = true;
-
                     Quaternion NewRot = oldParentRot * prim.RotationOffset;
                     NewRot = Quaternion.Inverse(axRot) * NewRot;
                     prim.RotationOffset = NewRot;
@@ -3591,26 +3491,88 @@ namespace OpenSim.Region.Framework.Scenes
                     axPos *= oldParentRot;
                     axPos *= Quaternion.Inverse(axRot);
                     prim.OffsetPosition = axPos;
-
-//                    prim.IgnoreUndoUpdate = false;
                 }
             }
 
-//            for (int i = 0; i < parts.Length; i++)
-//            {
-//                SceneObjectPart childpart = parts[i];
-//                if (childpart != m_rootPart)
-//                {
-////                    childpart.IgnoreUndoUpdate = false;
-////                    childpart.StoreUndoState();
-//                }
-//            }
             HasGroupChanged = true;
             ScheduleGroupForFullUpdate();
+        }
 
-//            m_log.DebugFormat(
-//                "[SCENE OBJECT GROUP]: Updated root rotation of {0} {1} to {2}",
-//                Name, LocalId, rot);
+        public void doChangeObject(SceneObjectPart part, ObjectChangeData data)
+        {
+            // TODO  this still as excessive ScheduleGroupForTerseUpdate()s
+
+            if (part != null && part.ParentGroup != null)
+            {
+                ObjectChangeWhat what = data.what;
+                bool togroup = ((what & ObjectChangeWhat.Group) != 0);
+                //                bool uniform = ((what & ObjectChangeWhat.UniformScale) != 0);  not in use
+
+                SceneObjectGroup group = part.ParentGroup;
+                PhysicsActor pha = group.RootPart.PhysActor;
+
+                bool needgrpUpdate = false;
+
+                if (togroup)
+                {
+                    // related to group                  
+                    if ((what & ObjectChangeWhat.Position) != 0)
+                    {
+                        group.AbsolutePosition = data.position;
+                        needgrpUpdate = true;
+                    }
+                    if ((what & ObjectChangeWhat.Rotation) != 0)
+                        group.RootPart.UpdateRotation(data.rotation);
+                    if ((what & ObjectChangeWhat.Scale) != 0)
+                    {
+                        if (pha != null)
+                            pha.Building = true;
+                        group.GroupResize(data.scale);
+                        if (pha != null)
+                            pha.Building = false;
+                    }
+                }
+                else
+                {
+                    // related to single prim in a link-set ( ie group)
+                    if (pha != null)
+                        pha.Building = true;
+
+                    // must deal with root part specially for position and rotation
+                    // so parts offset positions or rotations are fixed
+
+                    if (part == group.RootPart)
+                    {
+                        if ((what & ObjectChangeWhat.Position) != 0)
+                            group.UpdateRootPosition(data.position);
+                        if ((what & ObjectChangeWhat.Rotation) != 0)
+                            group.UpdateRootRotation(data.rotation);
+                    }
+                    else
+                    {
+
+                        if ((what & ObjectChangeWhat.Position) != 0)
+                        {
+                            part.OffsetPosition = data.position;
+                            needgrpUpdate = true;
+                        }
+                        if ((what & ObjectChangeWhat.Rotation) != 0)
+                            part.UpdateRotation(data.rotation);
+                    }
+
+                    if ((what & ObjectChangeWhat.Scale) != 0)
+                        part.Resize(data.scale);
+
+                    if (pha != null)
+                        pha.Building = false;
+                }
+
+                if (needgrpUpdate)
+                {
+                    HasGroupChanged = true;
+                    ScheduleGroupForTerseUpdate();
+                }
+            }
         }
 
         #endregion
