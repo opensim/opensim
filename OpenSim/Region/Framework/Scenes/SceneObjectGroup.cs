@@ -3509,7 +3509,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void doChangeObject(SceneObjectPart part, ObjectChangeData data)
         {
-            // TODO  this still as excessive ScheduleGroupForTerseUpdate()s
+            // TODO  this still as excessive *.Schedule*Update()s
 
             if (part != null && part.ParentGroup != null)
             {
@@ -3553,8 +3553,8 @@ namespace OpenSim.Region.Framework.Scenes
                     if (pha != null)
                         pha.Building = true;
 
-                    // must deal with root part specially for position and rotation
-                    // so parts offset positions or rotations are fixed
+                    // root part is special
+                    // parts offset positions or rotations need to change also
 
                     if (part == group.RootPart)
                     {
