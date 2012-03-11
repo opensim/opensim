@@ -65,6 +65,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_isphysical;
+        private bool m_isPhantom;
         private bool m_fakeisphysical;
 
         protected bool m_building;
@@ -831,9 +832,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
-                       Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
+                       Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical,bool pisPhantom,uint plocalID)
         {
             Name = primName;
+            LocalID = plocalID;
 
             m_vehicle = null;
 
@@ -907,6 +909,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_lastdoneSelected = false;
             m_isSelected = false;
             m_delaySelect = false;
+
+            m_isPhantom = pisPhantom;
 
             mu = parent_scene.m_materialContactsData[(int)Material.Wood].mu;
             bounce = parent_scene.m_materialContactsData[(int)Material.Wood].bounce;

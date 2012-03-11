@@ -131,6 +131,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public bool m_disabled;
         public bool m_taintadd;
         public bool m_taintselected;
+        public bool m_taintphantom;
         public bool m_taintCollidesWater;
 
         public uint m_localID;
@@ -161,6 +162,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private bool iscolliding;
         private bool m_isphysical;
+        private bool m_isphantom;
         private bool m_isSelected;
 
         private bool m_NoColide;  // for now only for internal use for bad meshs
@@ -311,8 +313,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintvehicledata = vdata;
             _parent_scene.AddPhysicsActorTaint(this);
         }
+
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
-                       Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode, uint localid)
+                       Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical,bool pisPhantom, CollisionLocker dode, uint localid)
         {
             m_localID = localid;
             ode = dode;
@@ -372,6 +375,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_isphysical)
                     m_targetSpace = _parent_scene.space;
             }
+
+            m_isphantom = pisPhantom;
+            m_taintphantom = pisPhantom;
 
             _triMeshData = IntPtr.Zero;
             m_NoColide = false;

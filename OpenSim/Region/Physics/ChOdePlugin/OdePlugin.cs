@@ -1730,7 +1730,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             OdePrim newPrim;
             lock (OdeLock)
             {
-                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical, ode, localid);
+                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical,false, ode, localid);
 
                 lock (_prims)
                     _prims.Add(newPrim);
@@ -1738,23 +1738,27 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             return newPrim;
         }
-/*
-        private PhysicsActor AddPrim(String name, Vector3 position, PhysicsActor parent,
-                                     PrimitiveBaseShape pbs, uint localid, byte[] sdata)
+
+        private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
+                             IMesh mesh, PrimitiveBaseShape pbs, bool isphysical, bool isphantom, uint localid)
         {
+
             Vector3 pos = position;
+            Vector3 siz = size;
+            Quaternion rot = rotation;
 
             OdePrim newPrim;
             lock (OdeLock)
             {
-                newPrim = new OdePrim(name, this, pos, parent, pbs, ode, localid, sdata);               
+                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical, isphantom, ode, localid);
+
                 lock (_prims)
                     _prims.Add(newPrim);
             }
 
             return newPrim;
         }
-*/
+
 
         public void addActivePrim(OdePrim activatePrim)
         {
@@ -1781,6 +1785,23 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             return result;
         }
+
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
+                                                  Vector3 size, Quaternion rotation, bool isPhysical, bool isPhantom, uint localid)
+        {
+            PhysicsActor result;
+            IMesh mesh = null;
+
+            if (needsMeshing(pbs))
+                mesh = mesher.CreateMesh(primName, pbs, size, (int)LevelOfDetail.High, true);
+
+            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical, isPhantom, localid);
+
+            return result;
+        }
+
+
+
 /*
         public override PhysicsActor AddPrimShape(string primName, PhysicsActor parent, PrimitiveBaseShape pbs, Vector3 position,
                                                   uint localid, byte[] sdata)

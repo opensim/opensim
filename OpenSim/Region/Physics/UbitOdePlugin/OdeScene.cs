@@ -1140,12 +1140,29 @@ namespace OpenSim.Region.Physics.OdePlugin
             OdePrim newPrim;
             lock (OdeLock)
             {
-                newPrim = new OdePrim(name, this, pos, siz, rot, pbs, isphysical);
+                newPrim = new OdePrim(name, this, pos, siz, rot, pbs, isphysical,false,localID);
 
                 lock (_prims)
                     _prims.Add(newPrim);
             }
-            newPrim.LocalID = localID;
+            return newPrim;
+        }
+
+        private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
+                                     PrimitiveBaseShape pbs, bool isphysical, bool isPhantom, uint localID)
+        {
+            Vector3 pos = position;
+            Vector3 siz = size;
+            Quaternion rot = rotation;
+
+            OdePrim newPrim;
+            lock (OdeLock)
+            {
+                newPrim = new OdePrim(name, this, pos, siz, rot, pbs, isphysical,isPhantom,localID);
+
+                lock (_prims)
+                    _prims.Add(newPrim);
+            }
             return newPrim;
         }
 
@@ -1167,6 +1184,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _activegroups.Add(activatePrim);
             }
         }
+
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
+                                                  Vector3 size, Quaternion rotation, bool isPhysical, bool isPhantom, uint localid)
+        {
+            return AddPrim(primName, position, size, rotation, pbs, isPhysical, isPhantom, localid);
+        }
+
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
