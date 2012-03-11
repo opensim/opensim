@@ -36,7 +36,6 @@
 
 
 [Startup]
-
     ;# {ConsolePrompt} {} {ConsolePrompt} {} "Region (\R) "
     ;; Console prompt
     ;; Certain special characters can be used to customize the prompt
@@ -231,6 +230,24 @@
     ;; The email module requires some configuration. It needs an SMTP
     ;; server to send mail through.
     ; emailmodule = DefaultEmailModule
+
+[Estates]
+    ; If these values are commented out then the user will be asked for estate details when required (this is the normal case).
+  	; If these values are uncommented then they will be used to create a default estate as necessary.
+    ; New regions will be automatically assigned to that default estate.
+	
+    ; DefaultEstateName = My Estate
+    ; DefaultEstateOwnerName = FirstName LastName
+	
+    ; The following parameters will only be used on a standalone system to create an estate owner that does not already exist
+
+    ; If DefaultEstateOwnerUUID is left at UUID.Zero (as below) then a random UUID will be assigned.
+    ; This is normally what you want
+    ; DefaultEstateOwnerUUID = 00000000-0000-0000-0000-000000000000
+
+    ; DefaultEstateOwnerEMail = owner@domain.com
+    ; DefaultEstateOwnerPassword = password
+
 
 [SMTP]
     ;; The SMTP server enabled the email module to send email to external
@@ -753,8 +770,7 @@
     ;; groups service if the service is using these keys
     ; XmlRpcServiceReadKey    = 1234
     ; XmlRpcServiceWriteKey   = 1234
-
-
+	
 [InterestManagement]
      ;# {UpdatePrioritizationScheme} {} {Update prioritization scheme?} {BestAvatarResponsiveness Time Distance SimpleAngularDistance FrontBack} BestAvatarResponsiveness
      ;; This section controls how state updates are prioritized for each client

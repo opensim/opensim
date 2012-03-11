@@ -320,7 +320,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected readonly UUID m_agentId;
         private readonly uint m_circuitCode;
         private readonly byte[] m_channelVersion = Utils.EmptyBytes;
-        private readonly Dictionary<string, UUID> m_defaultAnimations = new Dictionary<string, UUID>();
         private readonly IGroupsModule m_GroupsModule;
 
         private int m_cachedTextureSerial;
@@ -464,10 +463,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RegisterInterface<IClientChat>(this);
             RegisterInterface<IClientIPEndpoint>(this);
 
-            InitDefaultAnimations();
-
             m_scene = scene;
-
             m_entityUpdates = new PriorityQueue(m_scene.Entities.Count);
             m_entityProps = new PriorityQueue(m_scene.Entities.Count);
             m_fullUpdateDataBlocksBuilder = new List<ObjectUpdatePacket.ObjectDataBlock>();
@@ -11374,30 +11370,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(scriptQuestion, ThrottleOutPacketType.Task);
         }
 
-        private void InitDefaultAnimations()
-        {
-            using (XmlTextReader reader = new XmlTextReader("data/avataranimations.xml"))
-            {
-                XmlDocument doc = new XmlDocument();
-                doc.Load(reader);
-                if (doc.DocumentElement != null)
-                    foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
-                    {
-                        if (nod.Attributes["name"] != null)
-                        {
-                            string name = nod.Attributes["name"].Value.ToLower();
-                            string id = nod.InnerText;
-                            m_defaultAnimations.Add(name, (UUID)id);
-                        }
-                    }
-            }
-        }
-
         public UUID GetDefaultAnimation(string name)
         {
-            if (m_defaultAnimations.ContainsKey(name))
-                return m_defaultAnimations[name];
-            return UUID.Zero;
+            return SLUtil.GetDefaultAvatarAnimation(name);
         }
 
         /// <summary>
