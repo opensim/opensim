@@ -268,6 +268,39 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             else if (im.dialog == (byte) InstantMessageDialog.InventoryAccepted ||
                      im.dialog == (byte) InstantMessageDialog.TaskInventoryAccepted)
             {
+                UUID inventoryID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
+                IInventoryService invService = scene.InventoryService;
+
+                // Special case: folder redirect.
+                // RLV uses this
+                if (im.dialog == (byte) InstantMessageDialog.TaskInventoryAccepted)
+                {
+                    InventoryFolderBase folder = new InventoryFolderBase(inventoryID, client.AgentId);
+                    folder = invService.GetFolder(folder);
+
+                    if (folder != null)
+                    {
+                        if (im.binaryBucket.Length >= 16)
+                        {
+                            UUID destFolderID = new UUID(im.binaryBucket, 0);
+                            if (destFolderID != UUID.Zero)
+                            {
+                                InventoryFolderBase destFolder = new InventoryFolderBase(destFolderID, client.AgentId);
+                                destFolder = invService.GetFolder(destFolder);
+                                if (destFolder != null)
+                                {
+                                    if (folder.ParentID != destFolder.ID)
+                                    {
+                                        folder.ParentID = destFolder.ID;
+                                        invService.MoveFolder(folder);
+                                        client.SendBulkUpdateInventory(folder);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));
 
                 if (user != null) // Local
