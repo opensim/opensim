@@ -65,8 +65,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_isphysical;
-        private bool m_isPhantom;
         private bool m_fakeisphysical;
+        private bool m_isphantom;
+        private bool m_fakeisphantom;
 
         protected bool m_building;
         private Quaternion m_lastorientation = new Quaternion();
@@ -209,6 +210,19 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!value) // Zero the remembered last velocity
                     m_lastVelocity = Vector3.Zero;
                 AddChange(changes.Physical, value);
+            }
+        }
+
+        public override bool Phantom  // this is not reliable for internal use
+        {
+            get { return m_fakeisphantom; }
+            set
+            {
+                m_fakeisphantom = value; // we show imediatly to outside that we changed physical
+                // and also to stop imediatly some updates
+                // but real change will only happen in taintprocessing
+
+                AddChange(changes.Phantom, value);
             }
         }
 
@@ -910,7 +924,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_isSelected = false;
             m_delaySelect = false;
 
-            m_isPhantom = pisPhantom;
+            m_isphantom = pisPhantom;
+            m_fakeisphantom = pisPhantom;
 
             mu = parent_scene.m_materialContactsData[(int)Material.Wood].mu;
             bounce = parent_scene.m_materialContactsData[(int)Material.Wood].bounce;
@@ -1241,8 +1256,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (m_isphysical && Body != IntPtr.Zero)
                 {
-                    m_collisionCategories |= CollisionCategories.Body;
-                    m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                    if (m_isphantom && !m_isVolumeDetect)
+                    {
+                        m_collisionCategories = 0;
+                        m_collisionFlags = CollisionCategories.Land;
+                    }
+                    else
+                    {
+                        m_collisionCategories |= CollisionCategories.Body;
+                        m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                    }
 
                     foreach (OdePrim prm in childrenPrim)
                     {
@@ -1496,6 +1519,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 collide_geom = m_targetSpace;
             }
 
+            if (m_delaySelect)
+            {
+                m_isSelected = true;
+                m_delaySelect = false;
+            }
+
             lock (childrenPrim)
             {
                 foreach (OdePrim prm in childrenPrim)
@@ -1526,8 +1555,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        prm.m_collisionCategories |= CollisionCategories.Body;
-                        prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                        if (m_isphantom && !m_isVolumeDetect)
+                        {
+                            prm.m_collisionCategories = 0;
+                            prm.m_collisionFlags = CollisionCategories.Land;
+                        }
+                        else
+                        {
+                            prm.m_collisionCategories |= CollisionCategories.Body;
+                            prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                        }
                         d.GeomEnable(prm.prim_geom);
                     }
 
@@ -1567,8 +1604,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                m_collisionCategories |= CollisionCategories.Body;
-                m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                if (m_isphantom && !m_isVolumeDetect)
+                {
+                    m_collisionCategories = 0;
+                    m_collisionFlags = CollisionCategories.Land;
+                }
+                else
+                {
+                    m_collisionCategories |= CollisionCategories.Body;
+                    m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                }
 
                 d.BodySetAngularVel(Body, m_rotationalVelocity.X, m_rotationalVelocity.Y, m_rotationalVelocity.Z);
                 d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
@@ -2275,6 +2320,88 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+
+        private void changePhantomStatus(bool newval)
+        {
+            m_isphantom = newval;
+
+            if (m_isSelected)
+            {
+                m_collisionCategories = CollisionCategories.Selected;
+                m_collisionFlags = (CollisionCategories.Sensor | CollisionCategories.Space);
+            }
+            else
+            {
+                if (m_isphantom && !m_isVolumeDetect)
+                {
+                    m_collisionCategories = 0;
+                    if (m_isphysical)
+                        m_collisionFlags = CollisionCategories.Land;
+                    else
+                        m_collisionFlags = 0; // should never happen
+                }
+
+                else
+                {
+                    m_collisionCategories = CollisionCategories.Geom;
+                    if (m_isphysical)
+                        m_collisionCategories |= CollisionCategories.Body;
+
+                    m_collisionFlags = m_default_collisionFlags | CollisionCategories.Land;
+
+                    if (m_collidesWater)
+                        m_collisionFlags |= CollisionCategories.Water;
+                }
+            }
+
+            if (!childPrim)
+            {
+                foreach (OdePrim prm in childrenPrim)
+                {
+                    prm.m_collisionCategories = m_collisionCategories;
+                    prm.m_collisionFlags = m_collisionFlags;
+
+                    if (!prm.m_disabled && prm.prim_geom != IntPtr.Zero)
+                    {
+                        if (prm.m_NoColide)
+                        {
+                            d.GeomSetCategoryBits(prm.prim_geom, 0);
+                            if (m_isphysical)
+                                d.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
+                            else
+                                d.GeomSetCollideBits(prm.prim_geom, 0);
+                        }
+                        else
+                        {
+                            d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
+                            d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
+                        }
+                        if(!m_isSelected)
+                            d.GeomEnable(prm.prim_geom);
+                    }
+                }
+            }
+
+            if (!m_disabled && prim_geom != IntPtr.Zero)
+            {
+                if (m_NoColide)
+                {
+                    d.GeomSetCategoryBits(prim_geom, 0);
+                    if (m_isphysical)
+                        d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
+                    else
+                        d.GeomSetCollideBits(prim_geom, 0);
+                }
+                else
+                {
+                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                }
+                if(!m_isSelected)
+                    d.GeomEnable(prim_geom);
+            }
+        }
+
         private void changeSelectedStatus(bool newval)
         {
             if (m_lastdoneSelected == newval)
@@ -2350,7 +2477,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     m_delaySelect = false;
                 }
-                else
+                else if(!m_isphysical)
                 {
                     m_delaySelect = true;
                 }
@@ -2617,30 +2744,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (NewStatus)
                 {
                     if (Body == IntPtr.Zero)
-                    {
-                        /*
-                                                if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
-                                                {
-                                                    changeShape(_pbs);
-                                                }
-                                                else
-                         */
-                        {
-                            MakeBody();
-                        }
-                    }
+                        MakeBody();
                 }
                 else
                 {
                     if (Body != IntPtr.Zero)
                     {
-                        //                        UpdateChildsfromgeom();
-                        /*                        if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
-                                                {
-                                                    changeShape(_pbs);
-                                                }
-                                                else
-                         */                       
                         DestroyBody();
                     }
                     Stop();
@@ -2724,7 +2833,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_collidesWater = newval;
 
-            if (prim_geom != IntPtr.Zero)
+            if (prim_geom != IntPtr.Zero && !m_isphantom)
             {
                 if (m_collidesWater)
                 {
@@ -3494,6 +3603,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 case changes.VolumeDtc:
                     changeVolumedetetion((bool)arg);
+                    break;
+
+                case changes.Phantom:
+                    changePhantomStatus((bool)arg);
                     break;
 
                 case changes.Physical:
