@@ -31,170 +31,9 @@ using System.Collections.Generic;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Interfaces;
-using System;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-
-/*
-    [Flags]
-    public enum UndoType
-    {
-        STATE_PRIM_POSITION = 1,
-        STATE_PRIM_ROTATION = 2,
-        STATE_PRIM_SCALE = 4,
-        STATE_PRIM_ALL = 7,
-        STATE_GROUP_POSITION = 8,
-        STATE_GROUP_ROTATION = 16,
-        STATE_GROUP_SCALE = 32,
-        STATE_GROUP_ALL = 56,
-        STATE_ALL = 63       
-    }
-
-
-    public class UndoState
-    {
-        //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        public Vector3 Position = Vector3.Zero;
-        public Vector3 Scale = Vector3.Zero;
-        public Quaternion Rotation = Quaternion.Identity;
-
-        /// <summary>
-        /// Is this undo state for an entire group?
-        /// </summary>
-        public bool ForGroup;
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="part"></param>
-        /// <param name="forGroup">True if the undo is for an entire group</param>
-        /// only for root parts ????
-        public UndoState(SceneObjectPart part, bool forGroup)
-        {
-            if (part.ParentID == 0)
-            {
-                ForGroup = forGroup;
-                Position = part.ParentGroup.AbsolutePosition;
-                Rotation = part.RotationOffset;
-                Scale = part.Shape.Scale;
-            }
-            else
-            {
-                ForGroup = false;  // only root parts can undo grp
-                Position = part.OffsetPosition;
-                Rotation = part.RotationOffset;
-                Scale = part.Shape.Scale;
-            }
-        }
-
-        /// <summary>
-        /// Compare the relevant state in the given part to this state.
-        /// </summary>
-        /// <param name="part"></param>
-        /// <returns>true if both the part's position, rotation and scale match those in this undo state.  False otherwise.</returns>
-        public bool Compare(SceneObjectPart part, bool forgrp)
-        {
-            if (ForGroup != forgrp) // if diferent targets, then they are diferent
-                return false;
-
-            if (part != null)
-            {
-                if (part.ParentID == 0)
-                {
-                    // root part
-                    // grp position is same as part
-                    if (Position != part.ParentGroup.AbsolutePosition)
-                        return false;
-                    if (Rotation != part.RotationOffset)
-                        return false;
-                    return Scale == part.Shape.Scale;
-                }
-                else
-                {
-                    return (Position == part.OffsetPosition
-                            && Rotation == part.RotationOffset
-                            && Scale == part.Shape.Scale);
-                }
-            }
-
-            return false;
-        }
-
-        public void PlayState(SceneObjectPart part)
-        {
-            part.Undoing = true;
-            bool physbuilding = false;
-            
-            if (part.ParentID == 0)
-            {
-                if (!ForGroup && part.PhysActor != null)
-                {
-                    part.PhysActor.Building = true;
-                    physbuilding = true;
-                }
-
-                if (Position != Vector3.Zero)
-                {
-                    if (ForGroup)
-                        part.ParentGroup.AbsolutePosition = Position;
-                    else
-                        part.ParentGroup.UpdateRootPosition(Position);
-                }
-
-                if (ForGroup)
-                    part.UpdateRotation(Rotation);
-                else
-                    part.ParentGroup.UpdateRootRotation(Rotation);
-
-                if (Scale != Vector3.Zero)
-                {
-                    if (!physbuilding && part.PhysActor != null)
-                    {
-                        part.PhysActor.Building = true;
-                        physbuilding = true;
-                    }
-
-                    if (ForGroup)
-                        part.ParentGroup.GroupResize(Scale);
-                    else
-                        part.Resize(Scale);
-                }
-
-                if (physbuilding)
-                    part.PhysActor.Building = false;
-
-                part.ParentGroup.ScheduleGroupForTerseUpdate();
-            }
-            else
-            {
-                if (ForGroup) // trap for group since seems parts can't do it
-                    return;
-                
-                // changing a part invalidates entire object physical rep
-                if (part.ParentGroup != null && part.ParentGroup.RootPart != null && part.ParentGroup.RootPart.PhysActor != null)
-                {
-                    part.ParentGroup.RootPart.PhysActor.Building = true;
-                    physbuilding = true;
-                }
-
-                // Note: Updating these properties on sop automatically schedules an update if needed
-                part.OffsetPosition = Position;
-                part.UpdateRotation(Rotation);
-                if (Scale != Vector3.Zero)
-                {
-                    part.Resize(Scale);
-                }
-
-                if (physbuilding)
-                    part.ParentGroup.RootPart.PhysActor.Building = false;
-            }
-
-            part.Undoing = false;
-        }
-    }
-*/
     public class UndoState
     {
         const int UNDOEXPIRESECONDS = 300; // undo expire time   (nice to have it came from a ini later)
@@ -205,8 +44,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// Constructor.
         /// </summary>
         /// <param name="part"></param>
-        /// <param name="forGroup">True if the undo is for an entire group</param>
-        /// only for root parts ????
+        /// <param name="what">bit field with what is changed</param>
+        /// 
         public UndoState(SceneObjectPart part, ObjectChangeWhat what)
         {
             data = new ObjectChangeData();
@@ -232,6 +71,9 @@ namespace OpenSim.Region.Framework.Scenes
                     data.scale = part.Shape.Scale;
             }
         }
+        /// <summary>
+        /// check if undo or redo is too old 
+        /// </summary>
 
         public bool checkExpire()
         {
@@ -241,6 +83,9 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        /// <summary>
+        /// updates undo or redo creation time to now
+        /// </summary>
         public void updateExpire()
         {
             creationtime = DateTime.UtcNow;
@@ -250,7 +95,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// Compare the relevant state in the given part to this state.
         /// </summary>
         /// <param name="part"></param>
-        /// <returns>true if both the part's position, rotation and scale match those in this undo state.  False otherwise.</returns>
+        /// <returns>true what fiels and related data are equal, False otherwise.</returns>
+        /// 
         public bool Compare(SceneObjectPart part, ObjectChangeWhat what)    
         {
             if (data.what != what) // if diferent targets, then they are diferent
@@ -279,6 +125,12 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        /// <summary>
+        /// executes the undo or redo to a part or its group
+        /// </summary>
+        /// <param name="part"></param>
+        /// 
+
         public void PlayState(SceneObjectPart part)
         {
             part.Undoing = true;
@@ -298,11 +150,20 @@ namespace OpenSim.Region.Framework.Scenes
         int size;
         public LinkedList<UndoState> m_redo = new LinkedList<UndoState>();
         public LinkedList<UndoState> m_undo = new LinkedList<UndoState>();
- 
+
+        /// <summary>
+        /// creates a new UndoRedoState with default states memory size
+        /// </summary>
+
         public UndoRedoState()
         {
             size = 5;
         }
+
+        /// <summary>
+        /// creates a new UndoRedoState with states memory having indicated size
+        /// </summary>
+        /// <param name="size"></param>
 
         public UndoRedoState(int _size)
         {
@@ -312,16 +173,30 @@ namespace OpenSim.Region.Framework.Scenes
                 size = _size;
         }
 
+        /// <summary>
+        /// returns number of undo entries in memory
+        /// </summary>
+
         public int Count
         {
             get { return m_undo.Count; }
         }
+
+        /// <summary>
+        /// clears all undo and redo entries
+        /// </summary>
 
         public void Clear()
         {
             m_undo.Clear();
             m_redo.Clear();
         }
+
+        /// <summary>
+        /// adds a new state undo to part or its group, with changes indicated by what bits
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="what">bit field with what is changed</param>
 
         public void StoreUndo(SceneObjectPart part, ObjectChangeWhat what)
         {
@@ -359,6 +234,12 @@ namespace OpenSim.Region.Framework.Scenes
                 m_undo.AddFirst(nUndo);
             }
         }
+
+        /// <summary>
+        /// executes last state undo to part or its group
+        /// current state is pushed into redo
+        /// </summary>
+        /// <param name="part"></param>
 
         public void Undo(SceneObjectPart part)
         {
@@ -401,6 +282,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// executes last state redo to part or its group
+        /// current state is pushed into undo
+        /// </summary>
+        /// <param name="part"></param>
+
         public void Redo(SceneObjectPart part)
         {
             lock (m_undo)
@@ -441,8 +328,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
-
     }
 
     public class LandUndoState
