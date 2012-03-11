@@ -170,7 +170,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract Vector3 Size { get; set; }
 
-        public bool Phantom { get; set; }
+        public virtual bool Phantom { get; set; }
 
         public abstract PrimitiveBaseShape Shape { set; }
 

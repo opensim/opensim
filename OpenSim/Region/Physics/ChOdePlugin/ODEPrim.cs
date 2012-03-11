@@ -453,6 +453,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        public override bool Phantom
+        {
+            get { return m_isphantom; }
+            set
+            {
+                m_isphantom = value;
+            }
+        }
+
         public void setPrimForRemoval()
         {
             m_taintremove = true;
@@ -896,7 +905,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_NoColide)
                 {
                     d.GeomSetCategoryBits(prim_geom, 0);
-                    if (m_isphysical)
+                    if (m_isphysical && !m_isVolumeDetect)
                     {
                         d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
                     }
@@ -1405,9 +1414,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                             d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                         }
-
                     }
-
 
                     Body = IntPtr.Zero;
                 }
@@ -1416,7 +1423,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_collisionscore = 0;
         }
 
-        private static Dictionary<IMesh, IntPtr> m_MeshToTriMeshMap = new Dictionary<IMesh, IntPtr>();
+//        private static Dictionary<IMesh, IntPtr> m_MeshToTriMeshMap = new Dictionary<IMesh, IntPtr>();
 
         public bool setMesh(OdeScene parent_scene, IMesh mesh)
         {
@@ -1513,11 +1520,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
                 //
+                if (m_taintphantom != m_isphantom )
+                {
+                    changePhantomStatus();
+                }//
 
                 if (m_taintPhysics != m_isphysical && !(m_taintparent != _parent))
                 {
                     changePhysicsStatus(timestep);
                 }//
+
 
                 if (!_size.ApproxEquals(m_taintsize, 0f))
                     changesize(timestep);
@@ -1540,7 +1552,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     changedisable(timestep);
 
                 if (m_taintselected != m_isSelected)
-                    changeSelectedStatus(timestep);
+                    changeSelectedStatus();
 
                 if (!m_taintVelocity.ApproxEquals(Vector3.Zero, 0.001f))
                     changevelocity(timestep);
@@ -1571,16 +1583,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         }
 
-        /* obsolete
-                private void changeAngularLock(float timestep) 
-                {
-                    if (_parent == null)
-                    {
-                        m_angularLock = m_taintAngularLock;
-                        m_angularLockSet = true;
-                    }
-                }
-         */
         private void changelink(float timestep)
         {
             // If the newly set parent is not null
@@ -1590,18 +1592,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_taintparent.PhysicsActorType == (int)ActorTypes.Prim)
                 {
                     OdePrim obj = (OdePrim)m_taintparent;
-                    //obj.disableBody();
                     obj.ParentPrim(this);
-
-                    /*
-                    if (obj.Body != (IntPtr)0 && Body != (IntPtr)0 && obj.Body != Body)
-                    {
-                        _linkJointGroup = d.JointGroupCreate(0);
-                        m_linkJoint = d.JointCreateFixed(_parent_scene.world, _linkJointGroup);
-                        d.JointAttach(m_linkJoint, obj.Body, Body);
-                        d.JointSetFixed(m_linkJoint);
-                    }
-                     */
                 }
             }
             // If the newly set parent is null
@@ -1613,16 +1604,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     OdePrim obj = (OdePrim)_parent;
                     obj.ChildDelink(this);
                     childPrim = false;
-                    //_parent = null;
                 }
-
-                /*
-                    if (Body != (IntPtr)0 && _linkJointGroup != (IntPtr)0)
-                    d.JointGroupDestroy(_linkJointGroup);
-                        
-                    _linkJointGroup = (IntPtr)0;
-                    m_linkJoint = (IntPtr)0;
-                */
             }
 
             _parent = m_taintparent;
@@ -1672,9 +1654,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             foreach (OdePrim prm in childrenPrim)
                             {
-                                prm.m_collisionCategories |= CollisionCategories.Body;
-                                prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
-
+                                if (m_isphantom && !prm.m_isVolumeDetect)
+                                {
+                                    prm.m_collisionCategories = 0;
+                                    prm.m_collisionFlags = CollisionCategories.Land;
+                                }
+                                else
+                                {
+                                    prm.m_collisionCategories |= CollisionCategories.Body;
+                                    prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                                }
                                 if (prm.prim_geom == IntPtr.Zero)
                                 {
                                     m_log.Warn("[PHYSICS]: Unable to link one of the linkset elements.  No geom yet");
@@ -1728,8 +1717,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     _parent_scene.addActivePrim(prm);
                             }
 
-                            m_collisionCategories |= CollisionCategories.Body;
-                            m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                            if (m_isphantom && !m_isVolumeDetect)
+                            {
+                                m_collisionCategories = 0;
+                                m_collisionFlags = CollisionCategories.Land;
+                            }
+                            else
+                            {
+                                m_collisionCategories |= CollisionCategories.Body;
+                                m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                            }
 
                             if (m_NoColide)
                             {
@@ -1779,22 +1776,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void ChildSetGeom(OdePrim odePrim)
         {
-            //if (m_isphysical && Body != IntPtr.Zero)
             lock (childrenPrim)
             {
                 foreach (OdePrim prm in childrenPrim)
                 {
-                    //prm.childPrim = true;
                     prm.disableBody();
-                    //prm.m_taintparent = null;
-                    //prm._parent = null;
-                    //prm.m_taintPhysics = false;
-                    //prm.m_disabled = true;
-                    //prm.childPrim = false;
                 }
             }
             disableBody();
-
 
             if (Body != IntPtr.Zero)
             {
@@ -1808,7 +1797,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     ParentPrim(prm);
                 }
             }
-
         }
 
         private void ChildDelink(OdePrim odePrim)
@@ -1820,11 +1808,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     prm.childPrim = true;
                     prm.disableBody();
-                    //prm.m_taintparent = null;
-                    //prm._parent = null;
-                    //prm.m_taintPhysics = false;
-                    //prm.m_disabled = true;
-                    //prm.childPrim = false;
                 }
             }
             disableBody();
@@ -1848,7 +1831,73 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        private void changeSelectedStatus(float timestep)
+        private void changePhantomStatus()
+        {
+            m_taintphantom = m_isphantom;
+            changeSelectedStatus();
+        }
+
+/* not in use
+        private void SetCollider()
+        {
+            SetCollider(m_isSelected, m_isphysical, m_isphantom, m_isSelected);
+        }
+
+        private void SetCollider(bool sel, bool phys, bool phan, bool vdtc)
+        {
+            if (sel)
+            {
+                m_collisionCategories = CollisionCategories.Selected;
+                m_collisionFlags = (CollisionCategories.Sensor | CollisionCategories.Space);
+            }
+            else
+            {
+                if (phan && !vdtc)
+                {
+                    m_collisionCategories = 0;
+                    if (phys)
+                        m_collisionFlags = CollisionCategories.Land;
+                    else
+                        m_collisionFlags = 0; // this case should not happen non physical phantoms should not have physics
+                }
+                else
+                {
+                    m_collisionCategories = CollisionCategories.Geom;
+                    if (phys)
+                        m_collisionCategories |= CollisionCategories.Body;
+
+                    m_collisionFlags = m_default_collisionFlags;
+
+                    if (m_collidesLand)
+                        m_collisionFlags |= CollisionCategories.Land;
+                    if (m_collidesWater)
+                        m_collisionFlags |= CollisionCategories.Water;
+                }
+            }
+
+            if (prim_geom != IntPtr.Zero)
+            {
+                if (m_NoColide)
+                {
+                    d.GeomSetCategoryBits(prim_geom, 0);
+                    if (phys)
+                        d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
+                    else
+                    {
+                        d.GeomSetCollideBits(prim_geom, 0);
+                        d.GeomDisable(prim_geom);
+                    }
+                }
+                else
+                {
+                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                }
+            }
+        }
+*/
+
+        private void changeSelectedStatus()
         {
             if (m_taintselected)
             {
@@ -1901,10 +1950,19 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.BodySetAngularVel(Body, 0.0f, 0.0f, 0.0f);
                     d.BodySetTorque(Body, 0.0f, 0.0f, 0.0f);
                 }
-
             }
             else
             {
+                if (m_isphantom && !m_isVolumeDetect)
+                {
+                    m_collisionCategories = 0;
+                    if (m_isphysical)
+                        m_collisionFlags = CollisionCategories.Land;
+                    else
+                        m_collisionFlags = 0; // this case should not happen non physical phantoms should not have physics
+                }
+                else
+                {
                     m_collisionCategories = CollisionCategories.Geom;
                     if (m_isphysical)
                         m_collisionCategories |= CollisionCategories.Body;
@@ -1915,6 +1973,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_collisionFlags |= CollisionCategories.Land;
                     if (m_collidesWater)
                         m_collisionFlags |= CollisionCategories.Water;
+                }
 
                 if (prim_geom != IntPtr.Zero)
                 {
@@ -2092,7 +2151,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            changeSelectedStatus(timestep);
+            changeSelectedStatus();
 
             m_taintadd = false;
         }
@@ -2167,7 +2226,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            changeSelectedStatus(timestep);
+            changeSelectedStatus();
 
             resetCollisionAccounting();
             m_taintposition = _position;
@@ -2254,7 +2313,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            changeSelectedStatus(timestep);
+            changeSelectedStatus();
 
             resetCollisionAccounting();
             m_taintPhysics = m_isphysical;
@@ -2348,7 +2407,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _parent_scene.geom_name_map[prim_geom] = oldname;
 
-            changeSelectedStatus(timestamp);
+            changeSelectedStatus();
             if (childPrim)
             {
                 if (_parent is OdePrim)
@@ -2460,7 +2519,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             _parent_scene.geom_name_map[prim_geom] = oldname;
 
-            changeSelectedStatus(timestamp);
+            changeSelectedStatus();
             if (childPrim)
             {
                 if (_parent is OdePrim)
