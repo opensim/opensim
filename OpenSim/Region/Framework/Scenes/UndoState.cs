@@ -27,6 +27,7 @@
 
 using System;
 using System.Reflection;
+using System.Collections.Generic;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Interfaces;
@@ -34,6 +35,8 @@ using System;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+
+/*
     [Flags]
     public enum UndoType
     {
@@ -48,7 +51,7 @@ namespace OpenSim.Region.Framework.Scenes
         STATE_ALL = 63       
     }
 
-/*
+
     public class UndoState
     {
         //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -194,7 +197,10 @@ namespace OpenSim.Region.Framework.Scenes
 */
     public class UndoState
     {
+        const int UNDOEXPIRESECONDS = 300; // undo expire time   (nice to have it came from a ini later)
+
         public ObjectChangeData data;
+        public DateTime creationtime;
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -204,8 +210,8 @@ namespace OpenSim.Region.Framework.Scenes
         public UndoState(SceneObjectPart part, ObjectChangeWhat what)
         {
             data = new ObjectChangeData();
-
             data.what = what;
+            creationtime = DateTime.UtcNow;
 
             if (part.ParentGroup.RootPart == part)
             {
@@ -227,12 +233,25 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public bool checkExpire()
+        {
+            TimeSpan t = DateTime.UtcNow - creationtime;
+            if (t.Seconds > UNDOEXPIRESECONDS)
+                return true;
+            return false;
+        }
+
+        public void updateExpire()
+        {
+            creationtime = DateTime.UtcNow;
+        }
+
         /// <summary>
         /// Compare the relevant state in the given part to this state.
         /// </summary>
         /// <param name="part"></param>
         /// <returns>true if both the part's position, rotation and scale match those in this undo state.  False otherwise.</returns>
-        public bool Compare(SceneObjectPart part, ObjectChangeWhat what)
+        public bool Compare(SceneObjectPart part, ObjectChangeWhat what)    
         {
             if (data.what != what) // if diferent targets, then they are diferent
                 return false;
@@ -274,6 +293,157 @@ namespace OpenSim.Region.Framework.Scenes
         }
     }
 
+    public class UndoRedoState
+    {
+        int size;
+        public LinkedList<UndoState> m_redo = new LinkedList<UndoState>();
+        public LinkedList<UndoState> m_undo = new LinkedList<UndoState>();
+ 
+        public UndoRedoState()
+        {
+            size = 5;
+        }
+
+        public UndoRedoState(int _size)
+        {
+            if (_size < 3)
+                size = 3;
+            else
+                size = _size;
+        }
+
+        public int Count
+        {
+            get { return m_undo.Count; }
+        }
+
+        public void Clear()
+        {
+            m_undo.Clear();
+            m_redo.Clear();
+        }
+
+        public void StoreUndo(SceneObjectPart part, ObjectChangeWhat what)
+        {
+            lock (m_undo)
+            {
+                UndoState last;
+
+                if (m_redo.Count > 0) // last code seems to clear redo on every new undo
+                {
+                    m_redo.Clear();
+                }
+
+                if (m_undo.Count > 0)
+                {
+                    // check expired entry
+                    last = m_undo.First.Value;
+                    if (last != null && last.checkExpire())
+                        m_undo.Clear();
+                    else
+                    {
+                        // see if we actually have a change
+                        if (last != null)
+                        {
+                            if (last.Compare(part, what))
+                                return;
+                        }
+                    }
+                }
+
+                // limite size
+                while (m_undo.Count >= size)
+                    m_undo.RemoveLast();
+
+                UndoState nUndo = new UndoState(part, what);
+                m_undo.AddFirst(nUndo);
+            }
+        }
+
+        public void Undo(SceneObjectPart part)
+        {
+            lock (m_undo)
+            {
+                UndoState nUndo;
+
+                // expire redo
+                if (m_redo.Count > 0)
+                {
+                    nUndo = m_redo.First.Value;
+                    if (nUndo != null && nUndo.checkExpire())
+                        m_redo.Clear();
+                }
+
+                if (m_undo.Count > 0)
+                {
+                    UndoState goback = m_undo.First.Value;
+                    // check expired
+                    if (goback != null && goback.checkExpire())
+                    {
+                        m_undo.Clear();
+                        return;
+                    }
+
+                    if (goback != null)
+                    {
+                        m_undo.RemoveFirst();
+
+                        // redo limite size
+                        while (m_redo.Count >= size)
+                            m_redo.RemoveLast();
+
+                        nUndo = new UndoState(part, goback.data.what); // new value in part should it be full goback copy?
+                        m_redo.AddFirst(nUndo);
+
+                        goback.PlayState(part);
+                    }
+                }
+            }
+        }
+
+        public void Redo(SceneObjectPart part)
+        {
+            lock (m_undo)
+            {
+                UndoState nUndo;
+
+                // expire undo
+                if (m_undo.Count > 0)
+                {
+                    nUndo = m_undo.First.Value;
+                    if (nUndo != null && nUndo.checkExpire())
+                        m_undo.Clear();
+                }
+
+                if (m_redo.Count > 0)
+                {
+                    UndoState gofwd = m_redo.First.Value;
+                    // check expired
+                    if (gofwd != null && gofwd.checkExpire())
+                    {
+                        m_redo.Clear();
+                        return;
+                    }
+
+                    if (gofwd != null)
+                    {
+                        m_redo.RemoveFirst();
+
+                        // limite undo size
+                        while (m_undo.Count >= size)
+                            m_undo.RemoveLast();
+
+                        nUndo = new UndoState(part, gofwd.data.what);   // new value in part should it be full gofwd copy?
+                        m_undo.AddFirst(nUndo);
+
+                        gofwd.PlayState(part);
+                    }
+                }
+            }
+        }
+
+
+    }
 
     public class LandUndoState
     {
