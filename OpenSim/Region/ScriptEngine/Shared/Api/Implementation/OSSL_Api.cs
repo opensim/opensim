@@ -2093,6 +2093,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return HomeURI;
         }
 
+        public string osGetGridGatekeeperURI()
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridGatekeeperURI");
+            m_host.AddScriptLPS(1);
+
+            string gatekeeperURI = String.Empty;
+            IConfigSource config = m_ScriptEngine.ConfigSource;
+
+            if (config.Configs["GridService"] != null)
+                gatekeeperURI = config.Configs["GridService"].GetString("Gatekeeper", gatekeeperURI);
+
+            return gatekeeperURI;
+        }
+
         public string osGetGridCustom(string key)
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridCustom");
