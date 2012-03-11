@@ -1577,15 +1577,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="rootObjectFlags"></param>
         /// <param name="VolumeDetectActive"></param>
-//        public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive)
+
 		public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive, bool building)
         {
             if (!ParentGroup.Scene.CollidablePrims)
                 return;
-
-//            m_log.DebugFormat(
-//                "[SCENE OBJECT PART]: Applying physics to {0} {1}, m_physicalPrim {2}",
-//                Name, LocalId, UUID, m_physicalPrim);
 
             bool isPhysical = (rootObjectFlags & (uint) PrimFlags.Physics) != 0;
             bool isPhantom = (rootObjectFlags & (uint) PrimFlags.Phantom) != 0;
@@ -1597,15 +1593,16 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 // Special case for VolumeDetection: If VolumeDetection is set, the phantom flag is locally ignored
-                if (VolumeDetectActive)
-                    isPhantom = false;
+//                if (VolumeDetectActive)
+//                    isPhantom = false;
 
                 // Added clarification..   since A rigid body is an object that you can kick around, etc.
-                bool RigidBody = isPhysical && !isPhantom;
+//                bool RigidBody = isPhysical && !isPhantom;
 
                 // The only time the physics scene shouldn't know about the prim is if it's phantom or an attachment, which is phantom by definition
                 // or flexible
-                if (!isPhantom && !ParentGroup.IsAttachment && !(Shape.PathCurve == (byte)Extrusion.Flexible))
+                //                if (!isPhantom && !ParentGroup.IsAttachment && !(Shape.PathCurve == (byte)Extrusion.Flexible))
+                if ((!isPhantom || isPhysical || VolumeDetectActive) && !ParentGroup.IsAttachment && !(Shape.PathCurve == (byte)Extrusion.Flexible))
                 {
                     Vector3 velocity = Velocity;
                     Vector3 rotationalVelocity = AngularVelocity;
@@ -1616,9 +1613,9 @@ namespace OpenSim.Region.Framework.Scenes
                                 Shape,
                                 AbsolutePosition,
                                 Scale,
-//                                RotationOffset,
-                                GetWorldRotation(),  // physics wants world rotation
-                                RigidBody,
+                                GetWorldRotation(),
+                                isPhysical,
+                                isPhantom,
                                 m_localId);
                     }
                     catch
@@ -1637,8 +1634,9 @@ namespace OpenSim.Region.Framework.Scenes
                         if (m_vehicle != null && LocalId == ParentGroup.RootPart.LocalId)
                             m_vehicle.SetVehicle(PhysActor);
 
-                        DoPhysicsPropertyUpdate(RigidBody, true);
-                        PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
+                        DoPhysicsPropertyUpdate(isPhysical, true);
+                        if(VolumeDetectActive) // change if not the default only
+                            PhysActor.SetVolumeDetect(1);
                      
                         if (!building)
                             PhysActor.Building = false;
@@ -1888,72 +1886,61 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (UsePhysics != PhysActor.IsPhysical || isNew)
                     {
-                        if (PhysActor.IsPhysical) // implies UsePhysics==false for this block
+                        if (PhysActor.IsPhysical)
                         {
-                            if (!isNew)
+                            if (!isNew)  // implies UsePhysics==false for this block
+                            {
                                 ParentGroup.Scene.RemovePhysicalPrim(1);
 
-                            Velocity = new Vector3(0, 0, 0);
-                            Acceleration = new Vector3(0, 0, 0);
-                            if (ParentGroup.RootPart == this)
-                                AngularVelocity = new Vector3(0, 0, 0);
+                                Velocity = new Vector3(0, 0, 0);
+                                Acceleration = new Vector3(0, 0, 0);
+                                if (ParentGroup.RootPart == this)
+                                    AngularVelocity = new Vector3(0, 0, 0);
 
-                            PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
-                            PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
-                            PhysActor.delink();
-
-                            if (ParentGroup.Scene.PhysicsScene.SupportsNINJAJoints && (!isNew))
-                            {
-                                // destroy all joints connected to this now deactivated body
-                                ParentGroup.Scene.PhysicsScene.RemoveAllJointsConnectedToActorThreadLocked(PhysActor);
-                            }
-
-                            // stop client-side interpolation of all joint proxy objects that have just been deleted
-                            // this is done because RemoveAllJointsConnectedToActor invokes the OnJointDeactivated callback,
-                            // which stops client-side interpolation of deactivated joint proxy objects.
-                        }
-
-                        if (!UsePhysics && !isNew)
-                        {
-                            // reset velocity to 0 on physics switch-off. Without that, the client thinks the
-                            // prim still has velocity and continues to interpolate its position along the old
-                            // velocity-vector.
-                            Velocity = new Vector3(0, 0, 0);
-                            Acceleration = new Vector3(0, 0, 0);
-                            if (ParentGroup.RootPart == this)
-                                AngularVelocity = new Vector3(0, 0, 0);
-                            //RotationalVelocity = new Vector3(0, 0, 0);
-                        }
-
-                        PhysActor.IsPhysical = UsePhysics;
-
-                        // If we're not what we're supposed to be in the physics scene, recreate ourselves.
-                        //m_parentGroup.Scene.PhysicsScene.RemovePrim(PhysActor);
-                        /// that's not wholesome.  Had to make Scene public
-                        //PhysActor = null;
-
-                        if ((Flags & PrimFlags.Phantom) == 0)
-                        {
-                            if (UsePhysics)
-                            {
-                                if (ParentGroup.RootPart.KeyframeMotion != null)
-                                    ParentGroup.RootPart.KeyframeMotion.Stop();
-                                ParentGroup.RootPart.KeyframeMotion = null;
-                                ParentGroup.Scene.AddPhysicalPrim(1);
-
-                                PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
-                                PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
-
-                                if (ParentID != 0 && ParentID != LocalId)
+                                if (PhysActor.Phantom)
                                 {
-                                    if (ParentGroup.RootPart.PhysActor != null)
-                                    {
-                                        PhysActor.link(ParentGroup.RootPart.PhysActor);
-                                    }
+                                    RemoveFromPhysics();
+                                    return;
+                                }
+
+                                PhysActor.IsPhysical = UsePhysics;
+                                PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
+                                PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
+                                PhysActor.delink();
+                                if (ParentGroup.Scene.PhysicsScene.SupportsNINJAJoints)
+                                {
+                                    // destroy all joints connected to this now deactivated body
+                                    ParentGroup.Scene.PhysicsScene.RemoveAllJointsConnectedToActorThreadLocked(PhysActor);
                                 }
                             }
                         }
+
+                        if (PhysActor.IsPhysical != UsePhysics)
+                            PhysActor.IsPhysical = UsePhysics;
+
+                        if (UsePhysics)
+                        {
+                            if (ParentGroup.RootPart.KeyframeMotion != null)
+                                ParentGroup.RootPart.KeyframeMotion.Stop();
+                            ParentGroup.RootPart.KeyframeMotion = null;
+                            ParentGroup.Scene.AddPhysicalPrim(1);
+
+                            PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
+                            PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
+
+                            if (ParentID != 0 && ParentID != LocalId)
+                            {
+                                if (ParentGroup.RootPart.PhysActor != null)
+                                {
+                                    PhysActor.link(ParentGroup.RootPart.PhysActor);
+                                }
+                            }
+                        }                           
                     }
+
+                    bool phan = ((Flags & PrimFlags.Phantom) != 0);
+                    if (PhysActor.Phantom != phan)
+                        PhysActor.Phantom = phan;
 
                     // If this part is a sculpt then delay the physics update until we've asynchronously loaded the
                     // mesh data.
@@ -4355,40 +4342,45 @@ namespace OpenSim.Region.Framework.Scenes
             bool wasPhantom = ((Flags & PrimFlags.Phantom) != 0);
             bool wasVD = VolumeDetectActive;
 
-//            m_log.DebugFormat("[SOP]: Old states: phys: {0} temp: {1} phan: {2} vd: {3}", wasUsingPhysics, wasTemporary, wasPhantom, wasVD);
-//            m_log.DebugFormat("[SOP]: New states: phys: {0} temp: {1} phan: {2} vd: {3}", UsePhysics, SetTemporary, SetPhantom, SetVD);
-
             if ((UsePhysics == wasUsingPhysics) && (wasTemporary == SetTemporary) && (wasPhantom == SetPhantom) && (SetVD == wasVD))
                 return;
+
+            // do this first
+            if (building && PhysActor != null && PhysActor.Building != building)
+                PhysActor.Building = building;
 
             // Special cases for VD. VD can only be called from a script 
             // and can't be combined with changes to other states. So we can rely
             // that...
             // ... if VD is changed, all others are not.
             // ... if one of the others is changed, VD is not.
-           // do this first
-            if (building && PhysActor != null && PhysActor.Building != building)
-                PhysActor.Building = building;
-            if (SetVD) // VD is active, special logic applies
-            {
-                // State machine logic for VolumeDetect
-                // More logic below
-                bool phanReset = (SetPhantom != wasPhantom) && !SetPhantom;
 
-                if (phanReset) // Phantom changes from on to off switch VD off too
-                {
-                    SetVD = false;               // Switch it of for the course of this routine
-                    VolumeDetectActive = false; // and also permanently
-                    if (PhysActor != null)
-                        PhysActor.SetVolumeDetect(0);   // Let physics know about it too
-                }
-                else
-                {
-                    // If volumedetect is active we don't want phantom to be applied.
-                    // If this is a new call to VD out of the state "phantom"
-                    // this will also cause the prim to be visible to physics
+            if (SetVD) // VD is active, special logic applies
+
+                /* volume detection is now independent of phantom in sl
+
+                            {
+                                // State machine logic for VolumeDetect
+                                // More logic below
+
+
+                                bool phanReset = (SetPhantom != wasPhantom) && !SetPhantom;
+
+                                if (phanReset) // Phantom changes from on to off switch VD off too
+                                {
+                                    SetVD = false;               // Switch it of for the course of this routine
+                                    VolumeDetectActive = false; // and also permanently
+                                    if (PhysActor != null)
+                                        PhysActor.SetVolumeDetect(0);   // Let physics know about it too
+                                }
+                                else
+                                {
+                                    // If volumedetect is active we don't want phantom to be applied.
+                                    // If this is a new call to VD out of the state "phantom"
+                                    // this will also cause the prim to be visible to physics
+                 */
                     SetPhantom = false;
-                }
+/*                }
             }
             else if (wasVD)
             {
@@ -4400,10 +4392,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SetPhantom = true;
             }
-
+*/
             if (UsePhysics)
             {
                 AddFlag(PrimFlags.Physics);
+/*
                 if (!wasUsingPhysics)
                 {
                     DoPhysicsPropertyUpdate(UsePhysics, false);
@@ -4416,84 +4409,99 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
+ */
             }
             else
             {
                 RemFlag(PrimFlags.Physics);
+/*
                 if (wasUsingPhysics)
                 {
                     DoPhysicsPropertyUpdate(UsePhysics, false);
                 }
-            }
+*/
+            }         
 
-            if (SetPhantom
-                || ParentGroup.IsAttachment
+            if (SetPhantom)
+                AddFlag(PrimFlags.Phantom);
+            else
+                RemFlag(PrimFlags.Phantom);
+
+            if ((SetPhantom && !UsePhysics) ||  ParentGroup.IsAttachment
                 || (Shape.PathCurve == (byte)Extrusion.Flexible)) // note: this may have been changed above in the case of joints
             {
                 AddFlag(PrimFlags.Phantom);
 
-                if (PhysActor != null)
-                    RemoveFromPhysics();
-            }
-            else // Not phantom
-            {
-                RemFlag(PrimFlags.Phantom);
+                Velocity = new Vector3(0, 0, 0);
+                Acceleration = new Vector3(0, 0, 0);
+                if (ParentGroup.RootPart == this)
+                    AngularVelocity = new Vector3(0, 0, 0);
 
+                if (PhysActor != null)
+                {
+                    ParentGroup.Scene.RemovePhysicalPrim(1);
+                    RemoveFromPhysics();
+                }
+            }
+            else
+            {
                 if (ParentGroup.Scene == null)
                     return;
 
-                if (ParentGroup.Scene.CollidablePrims && PhysActor == null)
+                if (ParentGroup.Scene.CollidablePrims)
                 {
-                    // It's not phantom anymore. So make sure the physics engine get's knowledge of it
-                    PhysActor = ParentGroup.Scene.PhysicsScene.AddPrimShape(
-                        string.Format("{0}/{1}", Name, UUID),
-                        Shape,
-                        AbsolutePosition,
-                        Scale,
-//                        RotationOffset,
-                        GetWorldRotation(), //physics wants world rotation like all other functions send
-                        UsePhysics,
-                        m_localId);
-
-                    PhysActor.SetMaterial(Material);
-
-                    // if root part apply vehicle
-                    if (m_vehicle != null && LocalId == ParentGroup.RootPart.LocalId)
-                        m_vehicle.SetVehicle(PhysActor);
-
-                    DoPhysicsPropertyUpdate(UsePhysics, true);
-
-                    if (!ParentGroup.IsDeleted)
+                    if (PhysActor == null)
                     {
-                        if (LocalId == ParentGroup.RootPart.LocalId)
+                        PhysActor = ParentGroup.Scene.PhysicsScene.AddPrimShape(
+                            string.Format("{0}/{1}", Name, UUID),
+                            Shape,
+                            AbsolutePosition,
+                            Scale,
+                            GetWorldRotation(), //physics wants world rotation like all other functions send
+                            UsePhysics,
+                            SetPhantom,
+                            m_localId);
+
+                        PhysActor.SetMaterial(Material);
+
+                        // if root part apply vehicle
+                        if (m_vehicle != null && LocalId == ParentGroup.RootPart.LocalId)
+                            m_vehicle.SetVehicle(PhysActor);
+
+                        DoPhysicsPropertyUpdate(UsePhysics, true);
+
+                        if (!ParentGroup.IsDeleted)
                         {
-                            ParentGroup.CheckSculptAndLoad();
+                            if (LocalId == ParentGroup.RootPart.LocalId)
+                            {
+                                ParentGroup.CheckSculptAndLoad();
+                            }
+                        }
+
+                        if (
+                            ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
+                            (CollisionSound != UUID.Zero)
+                            )
+                        {
+                            PhysActor.OnCollisionUpdate += PhysicsCollision;
+                            PhysActor.SubscribeEvents(1000);
                         }
                     }
-
-                    if (
-                        ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
-                        ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
-                        ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
-                        ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
-                        ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
-                        ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
-                        (CollisionSound != UUID.Zero)
-                        )
+                    else // it already has a physical representation
                     {
-                        PhysActor.OnCollisionUpdate += PhysicsCollision;
-                        PhysActor.SubscribeEvents(1000);
-                    }
-                }
-                else // it already has a physical representation
-                {
-                    DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status. If it's phantom this will remove the prim
+                        DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status.
 
-                    if (!ParentGroup.IsDeleted)
-                    {
-                        if (LocalId == ParentGroup.RootPart.LocalId)
+                        if (!ParentGroup.IsDeleted)
                         {
-                            ParentGroup.CheckSculptAndLoad();
+                            if (LocalId == ParentGroup.RootPart.LocalId)
+                            {
+                                ParentGroup.CheckSculptAndLoad();
+                            }
                         }
                     }
                 }
@@ -4509,7 +4517,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (this.PhysActor != null)
                 {
                     PhysActor.SetVolumeDetect(1);
-                    AddFlag(PrimFlags.Phantom); // We set this flag also if VD is active
+//                    AddFlag(PrimFlags.Phantom); // We set this flag also if VD is active
                     this.VolumeDetectActive = true;
                 }
             }
@@ -4517,8 +4525,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
                 // (mumbles, well, at least if you have infinte CPU powers :-))
-                PhysicsActor pa = this.PhysActor;
-                if (pa != null)
+                if (this.PhysActor != null)
                 {
                     PhysActor.SetVolumeDetect(0);
                 }
