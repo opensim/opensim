@@ -3498,6 +3498,15 @@ namespace OpenSim.Region.Framework.Scenes
             ScheduleGroupForFullUpdate();
         }
 
+        private enum updatetype :int
+        {
+            none = 0,
+            partterse = 1,
+            partfull = 2,
+            groupterse = 3,
+            groupfull = 4
+        }
+
         public void doChangeObject(SceneObjectPart part, ObjectChangeData data)
         {
             // TODO  this still as excessive ScheduleGroupForTerseUpdate()s
@@ -3511,7 +3520,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectGroup group = part.ParentGroup;
                 PhysicsActor pha = group.RootPart.PhysActor;
 
-                bool needgrpUpdate = false;
+                updatetype updateType = updatetype.none;
 
                 if (togroup)
                 {
@@ -3519,15 +3528,21 @@ namespace OpenSim.Region.Framework.Scenes
                     if ((what & ObjectChangeWhat.Position) != 0)
                     {
                         group.AbsolutePosition = data.position;
-                        needgrpUpdate = true;
+                        updateType = updatetype.groupterse;
                     }
                     if ((what & ObjectChangeWhat.Rotation) != 0)
+                    {
                         group.RootPart.UpdateRotation(data.rotation);
+                        updateType = updatetype.none;
+                    }
                     if ((what & ObjectChangeWhat.Scale) != 0)
                     {
                         if (pha != null)
                             pha.Building = true;
+
                         group.GroupResize(data.scale);
+                        updateType = updatetype.none;
+
                         if (pha != null)
                             pha.Building = false;
                     }
@@ -3547,30 +3562,53 @@ namespace OpenSim.Region.Framework.Scenes
                             group.UpdateRootPosition(data.position);
                         if ((what & ObjectChangeWhat.Rotation) != 0)
                             group.UpdateRootRotation(data.rotation);
+                        if ((what & ObjectChangeWhat.Scale) != 0)
+                            part.Resize(data.scale);
                     }
                     else
                     {
-
                         if ((what & ObjectChangeWhat.Position) != 0)
                         {
                             part.OffsetPosition = data.position;
-                            needgrpUpdate = true;
+                            updateType = updatetype.partterse;
                         }
                         if ((what & ObjectChangeWhat.Rotation) != 0)
+                        {
                             part.UpdateRotation(data.rotation);
+                            updateType = updatetype.none;
+                        }
+                        if ((what & ObjectChangeWhat.Scale) != 0)
+                        {
+                            part.Resize(data.scale);
+                            updateType = updatetype.none;
+                        }
                     }
-
-                    if ((what & ObjectChangeWhat.Scale) != 0)
-                        part.Resize(data.scale);
 
                     if (pha != null)
                         pha.Building = false;
                 }
 
-                if (needgrpUpdate)
+                if (updateType != updatetype.none)
                 {
-                    HasGroupChanged = true;
-                    ScheduleGroupForTerseUpdate();
+                    group.HasGroupChanged = true;
+
+                    switch (updateType)
+                    {
+                        case updatetype.partterse:
+                            part.ScheduleTerseUpdate();
+                            break;
+                        case updatetype.partfull:
+                            part.ScheduleFullUpdate();
+                            break;
+                        case updatetype.groupterse:
+                            group.ScheduleGroupForTerseUpdate();
+                            break;
+                        case updatetype.groupfull:
+                            group.ScheduleGroupForFullUpdate();
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         }
