@@ -1524,17 +1524,19 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         prm.m_collisionCategories |= CollisionCategories.Body;
                         prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                        d.GeomEnable(prm.prim_geom);
                     }
 
                     if (prm.m_NoColide)
                     {
                         d.GeomSetCategoryBits(prm.prim_geom, 0);
                         d.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
+                        d.GeomEnable(prm.prim_geom);
                     }
                     else
                     {
-                        d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
-                        d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
+                        d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
+                        d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
                     }
                     prm.m_collisionscore = 0;
 

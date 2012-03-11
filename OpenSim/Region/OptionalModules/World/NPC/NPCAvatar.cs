@@ -275,6 +275,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event UpdatePrimTexture OnUpdatePrimTexture;
         public event UpdateVector OnUpdatePrimGroupPosition;
         public event UpdateVector OnUpdatePrimSinglePosition;
+        public event ClientChangeObject onClientChangeObject;
         public event UpdatePrimRotation OnUpdatePrimGroupRotation;
         public event UpdatePrimSingleRotationPosition OnUpdatePrimSingleRotationPosition;
         public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;

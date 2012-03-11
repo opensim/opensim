@@ -714,6 +714,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         public event UpdatePrimFlags OnUpdatePrimFlags;
         public event UpdatePrimTexture OnUpdatePrimTexture;
+        public event ClientChangeObject onClientChangeObject;
         public event UpdateVector OnUpdatePrimGroupPosition;
         public event UpdateVector OnUpdatePrimSinglePosition;
         public event UpdatePrimRotation OnUpdatePrimGroupRotation;

@@ -130,6 +130,8 @@ namespace OpenSim.Framework
 
     public delegate void UpdateVector(uint localID, Vector3 pos, IClientAPI remoteClient);
 
+    public delegate void ClientChangeObject(uint localID, object data ,IClientAPI remoteClient);
+
     public delegate void UpdatePrimRotation(uint localID, Quaternion rot, IClientAPI remoteClient);
 
     public delegate void UpdatePrimSingleRotation(uint localID, Quaternion rot, IClientAPI remoteClient);
@@ -838,6 +840,7 @@ namespace OpenSim.Framework
         event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         event UpdatePrimFlags OnUpdatePrimFlags;
         event UpdatePrimTexture OnUpdatePrimTexture;
+        event ClientChangeObject onClientChangeObject;
         event UpdateVector OnUpdatePrimGroupPosition;
         event UpdateVector OnUpdatePrimSinglePosition;
         event UpdatePrimRotation OnUpdatePrimGroupRotation;

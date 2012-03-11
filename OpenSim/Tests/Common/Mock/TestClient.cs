@@ -135,6 +135,7 @@ namespace OpenSim.Tests.Common.Mock
         public event GenericCall7 OnObjectMaterial;
         public event UpdatePrimFlags OnUpdatePrimFlags;
         public event UpdatePrimTexture OnUpdatePrimTexture;
+        public event ClientChangeObject onClientChangeObject;
         public event UpdateVector OnUpdatePrimGroupPosition;
         public event UpdateVector OnUpdatePrimSinglePosition;
         public event UpdatePrimRotation OnUpdatePrimGroupRotation;

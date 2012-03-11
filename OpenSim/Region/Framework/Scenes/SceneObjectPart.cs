@@ -263,8 +263,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_occupied;					// KF if any av is sitting on this prim
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
-        private Stack<UndoState> m_undo = new Stack<UndoState>(5);
-        private Stack<UndoState> m_redo = new Stack<UndoState>(5);
+        private UndoRedoState m_UndoRedo = new UndoRedoState(5);
 
         private bool m_passTouches;
 
@@ -1709,8 +1708,8 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.Category = Category;
             dupe.m_rezzed = m_rezzed;
 
-            dupe.m_undo = new Stack<UndoState>(5);
-            dupe.m_redo = new Stack<UndoState>(5);
+            dupe.m_UndoRedo = new UndoRedoState(5);
+
             dupe.IgnoreUndoUpdate = false;
             dupe.Undoing = false;
 
@@ -1944,6 +1943,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                                 PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
                                 PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
+
                                 if (ParentID != 0 && ParentID != LocalId)
                                 {
                                     if (ParentGroup.RootPart.PhysActor != null)
@@ -3657,43 +3657,13 @@ namespace OpenSim.Region.Framework.Scenes
             //ParentGroup.ScheduleGroupForFullUpdate();
         }
 
-        public void StoreUndoState()
+        public void StoreUndoState(ObjectChangeWhat what)
         {
-            StoreUndoState(false);
-        }
-
-        public void StoreUndoState(bool forGroup)
-        {
-            if (!Undoing && !IgnoreUndoUpdate) // just to read better  - undo is in progress, or suspended
+            lock (m_UndoRedo)
             {
-                if (ParentGroup != null)
+                if (!Undoing && !IgnoreUndoUpdate && ParentGroup != null) // just to read better  - undo is in progress, or suspended
                 {
-                    lock (m_undo)
-                    {
-                        if (m_undo.Count > 0) 
-                        {
-                            // see if we had a change
-
-                            UndoState last = m_undo.Peek();
-                            if (last != null)
-                            {                              
-                                if (last.Compare(this, forGroup))
-                                {
-                                    return;
-                                }
-                            }
-                        }
-
-                        if (ParentGroup.GetSceneMaxUndo() > 0)
-                        {
-                            UndoState nUndo = new UndoState(this, forGroup);
-
-                            m_undo.Push(nUndo);
-
-                            if (m_redo.Count > 0)
-                                m_redo.Clear();
-                        }
-                    }
+                    m_UndoRedo.StoreUndo(this, what);
                 }
             }
         }
@@ -3705,84 +3675,42 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                lock (m_undo)
-                    return m_undo.Count;
+                lock (m_UndoRedo)
+                    return m_UndoRedo.Count;
             }
         }
 
         public void Undo()
         {
-            lock (m_undo)
+            lock (m_UndoRedo)
             {
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT PART]: Handling undo request for {0} {1}, stack size {2}",
-//                    Name, LocalId, m_undo.Count);
+                if (Undoing || ParentGroup == null)
+                    return;
 
-                if (m_undo.Count > 0)
-                {
-                    UndoState goback = m_undo.Pop();
-
-                    if (goback != null)
-                    {
-                        UndoState nUndo = null;
-        
-                        if (ParentGroup.GetSceneMaxUndo() > 0)
-                        {
-                            nUndo = new UndoState(this, goback.ForGroup);
-                        }
-
-                        goback.PlayState(this);
-
-                        if (nUndo != null)
-                            m_redo.Push(nUndo);
-                    }
-                }
-
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT PART]: Handled undo request for {0} {1}, stack size now {2}",
-//                    Name, LocalId, m_undo.Count);
+                Undoing = true;
+                m_UndoRedo.Undo(this);
+                Undoing = false;
             }
         }
 
         public void Redo()
         {
-            lock (m_undo)
+            lock (m_UndoRedo)
             {
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT PART]: Handling redo request for {0} {1}, stack size {2}",
-//                    Name, LocalId, m_redo.Count);
+                if (Undoing || ParentGroup == null)
+                    return;
 
-                if (m_redo.Count > 0)
-                {
-                    UndoState gofwd = m_redo.Pop();
-    
-                    if (gofwd != null)
-                    {
-                        if (ParentGroup.GetSceneMaxUndo() > 0)
-                        {
-                            UndoState nUndo = new UndoState(this, gofwd.ForGroup);
-    
-                            m_undo.Push(nUndo);
-                        }
-    
-                        gofwd.PlayState(this);
-                    }
-
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT PART]: Handled redo request for {0} {1}, stack size now {2}",
-//                    Name, LocalId, m_redo.Count);
-                }
+                Undoing = true;
+                m_UndoRedo.Redo(this);
+                Undoing = false;
             }
         }
 
         public void ClearUndoState()
         {
-//            m_log.DebugFormat("[SCENE OBJECT PART]: Clearing undo and redo stacks in {0} {1}", Name, LocalId);
-
-            lock (m_undo)
+            lock (m_UndoRedo)
             {
-                m_undo.Clear();
-                m_redo.Clear();
+                m_UndoRedo.Clear();
             }
         }
 
