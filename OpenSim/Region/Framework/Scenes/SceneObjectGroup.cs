@@ -1940,37 +1940,46 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
                     newPart.LinkNum = part.LinkNum;
-                }
+                    if (userExposed)
+                        newPart.ParentID = dupe.m_rootPart.LocalId;
+                 }
                 else
                 {
                     newPart = dupe.m_rootPart;
                 }
+/*
+                bool isphys = ((newPart.Flags & PrimFlags.Physics) != 0);
+                bool isphan = ((newPart.Flags & PrimFlags.Phantom) != 0);
 
                 // Need to duplicate the physics actor as well
-                if (part.PhysActor != null && userExposed)
+                if (userExposed && (isphys || !isphan || newPart.VolumeDetectActive))
                 {
                     PrimitiveBaseShape pbs = newPart.Shape;
-
                     newPart.PhysActor
                         = m_scene.PhysicsScene.AddPrimShape(
                             string.Format("{0}/{1}", newPart.Name, newPart.UUID),
                             pbs,
                             newPart.AbsolutePosition,
                             newPart.Scale,
-                            //newPart.RotationOffset,
                             newPart.GetWorldRotation(),
-                            part.PhysActor.IsPhysical,
+                            isphys,
+                            isphan,
                             newPart.LocalId);
 
-                    newPart.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
-                }
+                    newPart.DoPhysicsPropertyUpdate(isphys, true);
+ */
+                if (userExposed)
+                    newPart.ApplyPhysics((uint)newPart.Flags,newPart.VolumeDetectActive,true);
+//                }
             }
-            if (dupe.m_rootPart.PhysActor != null && userExposed)
-                dupe.m_rootPart.PhysActor.Building = false; // tell physics to finish building
 
             if (userExposed)
             {
-                dupe.UpdateParentIDs();
+// done above                dupe.UpdateParentIDs();
+
+                if (dupe.m_rootPart.PhysActor != null)
+                    dupe.m_rootPart.PhysActor.Building = false; // tell physics to finish building
+
                 dupe.HasGroupChanged = true;
                 dupe.AttachToBackup();
 
