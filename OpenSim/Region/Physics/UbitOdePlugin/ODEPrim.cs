@@ -2487,14 +2487,25 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!childPrim && Body != IntPtr.Zero && !m_disabled)
                     d.BodyEnable(Body);
 
-                m_collisionCategories = CollisionCategories.Geom;
-                if (m_isphysical)
-                    m_collisionCategories |= CollisionCategories.Body;
+                if (m_isphantom && !m_isVolumeDetect)
+                {
+                    m_collisionCategories = 0;
+                    if(m_isphysical)
+                        m_collisionFlags = CollisionCategories.Land;
+                    else
+                        m_collisionFlags = 0;
+                }
+                else
+                {
+                    m_collisionCategories = CollisionCategories.Geom;
+                    if (m_isphysical)
+                        m_collisionCategories |= CollisionCategories.Body;
 
-                m_collisionFlags = m_default_collisionFlags | CollisionCategories.Land;
+                    m_collisionFlags = m_default_collisionFlags | CollisionCategories.Land;
 
-                if (m_collidesWater)
-                    m_collisionFlags |= CollisionCategories.Water;
+                    if (m_collidesWater)
+                        m_collisionFlags |= CollisionCategories.Water;
+                }
 
                 if (!childPrim)
                 {
