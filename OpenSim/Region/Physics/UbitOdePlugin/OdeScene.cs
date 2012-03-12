@@ -128,6 +128,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         VolumeDtc,
 
         Physical,
+        Phantom,
         Selected,
         disabled,
         building,
