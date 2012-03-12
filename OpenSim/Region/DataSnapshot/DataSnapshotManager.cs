@@ -103,10 +103,10 @@ namespace OpenSim.Region.DataSnapshot
                         m_enabled = config.Configs["DataSnapshot"].GetBoolean("index_sims", m_enabled);
                         IConfig conf = config.Configs["GridService"];
                         if (conf != null)
-                            m_gridinfo.Add("gridserverURL", conf.GetString("GridServerURI", "http://127.0.0.1:8003"));
+                            m_gridinfo.Add("gatekeeperURL", conf.GetString("Gatekeeper", String.Empty));
 
                         m_gridinfo.Add(
-                            "Name", config.Configs["DataSnapshot"].GetString("gridname", "the lost continent of hippo"));
+                            "name", config.Configs["DataSnapshot"].GetString("gridname", "the lost continent of hippo"));
                         m_exposure_level = config.Configs["DataSnapshot"].GetString("data_exposure", m_exposure_level);
                         m_period = config.Configs["DataSnapshot"].GetInt("default_snapshot_period", m_period);
                         m_maxStales = config.Configs["DataSnapshot"].GetInt("max_changes_before_update", m_maxStales);
