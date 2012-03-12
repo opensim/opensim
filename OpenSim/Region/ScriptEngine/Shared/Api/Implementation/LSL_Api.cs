@@ -6069,6 +6069,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                  flags |= ScriptBaseClass.AGENT_SITTING;
              }
 
+             if (agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_MALE] > 0)
+             {
+                 flags |= ScriptBaseClass.AGENT_MALE;
+             }
+
             return flags;
         }
 

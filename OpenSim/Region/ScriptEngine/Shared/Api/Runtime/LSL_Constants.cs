@@ -94,6 +94,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int AGENT_CROUCHING = 1024;
         public const int AGENT_BUSY = 2048;
         public const int AGENT_ALWAYS_RUN = 4096;
+        public const int AGENT_MALE = 8192;
 
         //Particle Systems
         public const int PSYS_PART_INTERP_COLOR_MASK = 1;
