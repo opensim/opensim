@@ -578,7 +578,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 return true;
 
             if (!m_InSelfDelete)
+            {
+//                m_log.ErrorFormat("[SCRIPT INSTANCE]: Aborting script {0} {1}", ScriptName, ItemID);
                 result.Abort();
+            }
 
             lock (m_EventQueue)
             {
