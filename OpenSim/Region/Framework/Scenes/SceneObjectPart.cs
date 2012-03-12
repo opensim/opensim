@@ -263,7 +263,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_occupied;					// KF if any av is sitting on this prim
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
-        private UndoRedoState m_UndoRedo = new UndoRedoState(5);
+        private UndoRedoState m_UndoRedo = null;
 
         private bool m_passTouches;
 
@@ -1706,7 +1706,7 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.Category = Category;
             dupe.m_rezzed = m_rezzed;
 
-            dupe.m_UndoRedo = new UndoRedoState(5);
+            dupe.m_UndoRedo = null;
 
             dupe.IgnoreUndoUpdate = false;
             dupe.Undoing = false;
@@ -3646,6 +3646,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StoreUndoState(ObjectChangeWhat what)
         {
+            if (m_UndoRedo == null)
+                m_UndoRedo = new UndoRedoState(5);
+
             lock (m_UndoRedo)
             {
                 if (!Undoing && !IgnoreUndoUpdate && ParentGroup != null) // just to read better  - undo is in progress, or suspended
@@ -3662,18 +3665,19 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                lock (m_UndoRedo)
-                    return m_UndoRedo.Count;
+                if (m_UndoRedo == null)
+                    return 0;
+                return m_UndoRedo.Count;
             }
         }
 
         public void Undo()
         {
+            if (m_UndoRedo == null || Undoing || ParentGroup == null)
+                return;
+
             lock (m_UndoRedo)
             {
-                if (Undoing || ParentGroup == null)
-                    return;
-
                 Undoing = true;
                 m_UndoRedo.Undo(this);
                 Undoing = false;
@@ -3682,11 +3686,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Redo()
         {
+            if (m_UndoRedo == null || Undoing || ParentGroup == null)
+                return;
+
             lock (m_UndoRedo)
             {
-                if (Undoing || ParentGroup == null)
-                    return;
-
                 Undoing = true;
                 m_UndoRedo.Redo(this);
                 Undoing = false;
@@ -3695,6 +3699,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ClearUndoState()
         {
+            if (m_UndoRedo == null || Undoing)
+                return;
+
             lock (m_UndoRedo)
             {
                 m_UndoRedo.Clear();
