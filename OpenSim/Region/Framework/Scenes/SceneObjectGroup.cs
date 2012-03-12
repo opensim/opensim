@@ -2511,7 +2511,6 @@ namespace OpenSim.Region.Framework.Scenes
             // physics flags from group to be applied to linked parts
             bool grpusephys = UsesPhysics;
             bool grptemporary = IsTemporary;
-            bool gprphantom = IsPhantom;
 
             Vector3 oldGroupPosition = linkPart.GroupPosition;
             Quaternion oldRootRotation = linkPart.RotationOffset;
@@ -2557,7 +2556,7 @@ namespace OpenSim.Region.Framework.Scenes
                 linkPart.CreateSelected = true;
 
                 // let physics know preserve part volume dtc messy since UpdatePrimFlags doesn't look to parent changes for now
-                linkPart.UpdatePrimFlags(grpusephys, grptemporary, gprphantom, linkPart.VolumeDetectActive, true);
+                linkPart.UpdatePrimFlags(grpusephys, grptemporary, (linkPart.Flags & PrimFlags.Phantom) != null, linkPart.VolumeDetectActive, true);
                 if (linkPart.PhysActor != null && m_rootPart.PhysActor != null && m_rootPart.PhysActor.IsPhysical)
                 {
                     linkPart.PhysActor.link(m_rootPart.PhysActor);
@@ -2579,7 +2578,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         LinkNonRootPart(part, oldGroupPosition, oldRootRotation, linkNum++);
                         // let physics know
-                        part.UpdatePrimFlags(grpusephys, grptemporary, gprphantom, part.VolumeDetectActive, true);
+                        part.UpdatePrimFlags(grpusephys, grptemporary, (part.Flags & PrimFlags.Phantom) != null, part.VolumeDetectActive, true);
                         if (part.PhysActor != null && m_rootPart.PhysActor != null && m_rootPart.PhysActor.IsPhysical)
                         {
                             part.PhysActor.link(m_rootPart.PhysActor);
