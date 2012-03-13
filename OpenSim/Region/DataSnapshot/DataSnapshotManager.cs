@@ -66,6 +66,7 @@ namespace OpenSim.Region.DataSnapshot
         private string m_dataServices = "noservices";
         public string m_listener_port = ConfigSettings.DefaultRegionHttpPort.ToString();
         public string m_hostname = "127.0.0.1";
+        private UUID m_Secret = UUID.Random();
 
         //Update timers
         private int m_period = 20; // in seconds
@@ -83,6 +84,11 @@ namespace OpenSim.Region.DataSnapshot
         public string ExposureLevel
         {
             get { return m_exposure_level; }
+        }
+
+        public UUID Secret
+        {
+            get { return m_Secret; }
         }
 
         #endregion
@@ -315,6 +321,7 @@ namespace OpenSim.Region.DataSnapshot
                 cli.AddQueryParameter("service", serviceName);
                 cli.AddQueryParameter("host", m_hostname);
                 cli.AddQueryParameter("port", m_listener_port);
+                cli.AddQueryParameter("secret", m_Secret.ToString());
                 cli.RequestMethod = "GET";
                 try
                 {
@@ -341,7 +348,7 @@ namespace OpenSim.Region.DataSnapshot
                 }
                 // This is not quite working, so...
                 // string responseStr = Util.UTF8.GetString(response);
-                m_log.Info("[DATASNAPSHOT]: data service notified: " + url);
+                m_log.Info("[DATASNAPSHOT]: data service " + url + " notified. Secret: " + m_Secret);
             }
 
         }
