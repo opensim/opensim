@@ -96,6 +96,7 @@ namespace OpenSim.Region.ClientStack.Linden
         //        private static readonly string m_fetchInventoryPath = "0006/";
         private static readonly string m_copyFromNotecardPath = "0007/";
         // private static readonly string m_remoteParcelRequestPath = "0009/";// This is in the LandManagementModule.
+        private static readonly string m_getObjectPhysicsDataPath = "0101/";
 
 
         // These are callbacks which will be setup by the scene so that we can update scene data when we
@@ -182,6 +183,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgent", req);
                 m_HostCapsObj.RegisterHandler("CopyInventoryFromNotecard", new RestStreamHandler("POST", capsBase + m_copyFromNotecardPath, CopyInventoryFromNotecard));
+                IRequestHandler getObjectPhysicsDataHandler = new RestStreamHandler("POST", capsBase + m_getObjectPhysicsDataPath, GetObjectPhysicsData);
+                m_HostCapsObj.RegisterHandler("GetObjectPhysicsData", getObjectPhysicsDataHandler);
              
                 // As of RC 1.22.9 of the Linden client this is
                 // supported
@@ -798,6 +801,41 @@ namespace OpenSim.Region.ClientStack.Linden
 
             response["int_response_code"] = 200;
             return LLSDHelpers.SerialiseLLSDReply(response);
+        }
+
+        public string GetObjectPhysicsData(string request, string path,
+                string param, IOSHttpRequest httpRequest,
+                IOSHttpResponse httpResponse)
+        {
+            OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+            OSDMap resp = new OSDMap();
+            OSDArray object_ids = (OSDArray)req["object_ids"];
+
+            for (int i = 0 ; i < object_ids.Count ; i++)
+            {
+                UUID uuid = object_ids[i].AsUUID();
+
+                SceneObjectPart obj = m_Scene.GetSceneObjectPart(uuid);
+                if (obj != null)
+                {
+                    OSDMap object_data = new OSDMap();
+
+                    object_data["PhysicsShapeType"] = OSD.FromInteger(1);
+                    if (false) // Check whether to include the rest
+                    {
+                        object_data["Density"] = OSD.FromReal(1);
+                        object_data["Friction"] = OSD.FromReal(1);
+                        object_data["Restitution"] = OSD.FromReal(1);
+                        object_data["GravityMultiplier"] = OSD.FromReal(1);
+                    }
+
+                    resp[uuid.ToString()] = object_data;
+                }
+            }
+
+            string response = OSDParser.SerializeLLSDXmlString(resp);
+            Console.WriteLine(response);
+            return response;
         }
     }
 
