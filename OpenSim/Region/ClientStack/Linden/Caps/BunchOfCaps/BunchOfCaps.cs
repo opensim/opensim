@@ -820,14 +820,11 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     OSDMap object_data = new OSDMap();
 
-                    object_data["PhysicsShapeType"] = OSD.FromInteger(1);
-                    if (false) // Check whether to include the rest
-                    {
-                        object_data["Density"] = OSD.FromReal(1);
-                        object_data["Friction"] = OSD.FromReal(1);
-                        object_data["Restitution"] = OSD.FromReal(1);
-                        object_data["GravityMultiplier"] = OSD.FromReal(1);
-                    }
+                    object_data["PhysicsShapeType"] = obj.PhysicsShapeType;
+                    object_data["Density"] = obj.Density;
+                    object_data["Friction"] = obj.Friction;
+                    object_data["Restitution"] = obj.Bounciness;
+                    object_data["GravityMultiplier"] = obj.GravityModifier;
 
                     resp[uuid.ToString()] = object_data;
                 }
