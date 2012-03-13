@@ -7006,10 +7006,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // 46,47,48 are special positions within the packet
                 // This may change so perhaps we need a better way
                 // of storing this (OMV.FlagUpdatePacket.UsePhysics,etc?)
-                bool UsePhysics = (data[46] != 0) ? true : false;
-                bool IsTemporary = (data[47] != 0) ? true : false;
-                bool IsPhantom = (data[48] != 0) ? true : false;
-                handlerUpdatePrimFlags(flags.AgentData.ObjectLocalID, UsePhysics, IsTemporary, IsPhantom, this);
+                /*
+                                bool UsePhysics = (data[46] != 0) ? true : false;
+                                bool IsTemporary = (data[47] != 0) ? true : false;
+                                bool IsPhantom = (data[48] != 0) ? true : false;
+                                handlerUpdatePrimFlags(flags.AgentData.ObjectLocalID, UsePhysics, IsTemporary, IsPhantom, this);
+                 */
+                bool UsePhysics = flags.AgentData.UsePhysics;
+                bool IsPhantom = flags.AgentData.IsPhantom;
+                bool IsTemporary = flags.AgentData.IsTemporary;
+                ObjectFlagUpdatePacket.ExtraPhysicsBlock[] blocks = flags.ExtraPhysics;
+                ExtraPhysicsData physdata = new ExtraPhysicsData();
+
+                if (blocks == null || blocks.Length == 0)
+                {
+                    physdata.PhysShapeType = PhysShapeType.invalid;
+                }
+                else
+                {
+                    ObjectFlagUpdatePacket.ExtraPhysicsBlock phsblock = blocks[0];
+                    physdata.PhysShapeType = (PhysShapeType)phsblock.PhysicsShapeType;
+                    physdata.Bounce = phsblock.Restitution;
+                    physdata.Density = phsblock.Density;
+                    physdata.Friction = phsblock.Friction;
+                }
+                handlerUpdatePrimFlags(flags.AgentData.ObjectLocalID, UsePhysics, IsTemporary, IsPhantom, physdata, this);
             }
             return true;
         }

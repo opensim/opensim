@@ -295,7 +295,13 @@ namespace OpenSim.Region.Framework.Scenes
         protected float m_buoyancy = 0.0f;
         protected Vector3 m_force;
         protected Vector3 m_torque;
-        
+
+        protected byte m_physicsShapeType = (byte)PhysShapeType.prim;
+        protected float m_density = 1000.0f; // in kg/m^3
+        protected float m_gravitymod = 1.0f;
+        protected float m_friction = 0.6f; // wood
+        protected float m_bounce = 0.5f; // wood
+
         /// <summary>
         /// Stores media texture data
         /// </summary>
@@ -552,19 +558,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (PhysActor != null)
                 {
                     PhysActor.SOPName = value;
-                }
-            }
-        }
-
-        public byte Material
-        {
-            get { return (byte) m_material; }
-            set
-            {
-                m_material = (Material)value;
-                if (PhysActor != null)
-                {
-                    PhysActor.SetMaterial((int)value);
                 }
             }
         }
@@ -1376,6 +1369,87 @@ namespace OpenSim.Region.Framework.Scenes
                     PhysActor.Torque = value;
             }
         }
+
+        public byte Material
+        {
+            get { return (byte)m_material; }
+            set
+            {
+                if (value >= 0 && value <= (byte)SOPMaterialData.MaxMaterial)
+                {
+                    m_material = (Material)value;
+                    m_friction = SOPMaterialData.friction(m_material);
+                    m_bounce = SOPMaterialData.bounce(m_material);
+                    if (PhysActor != null)
+                    {
+                        PhysActor.SetMaterial((int)value);
+                    }
+                }
+            }
+        }
+
+        public byte PhysicsShapeType
+        {
+            get { return m_physicsShapeType; }
+            set
+            {
+                if (value < 0 || value >= (byte)PhysShapeType.convex)
+                    value = (byte)PhysShapeType.prim; //convex  not supported ?
+
+                else if (value == (byte)PhysShapeType.none)
+                {
+                    if (ParentGroup == null || ParentGroup.RootPart == this)
+                        value = (byte)PhysShapeType.prim;
+                }
+                m_physicsShapeType = value;
+            }
+        }
+
+        public float Density // in kg/m^3
+        {
+            get { return m_density; }
+            set
+            {
+                if (value >=1 && value <= 22587.0)
+                {
+                    m_density = value;
+                }
+            }
+        }
+
+        public float GravityModifier
+        {
+            get { return m_gravitymod; }
+            set
+            {   if( value >= -1 && value <=28.0f)
+                m_gravitymod = value;
+            }
+        }
+
+        public float Friction
+        {
+            get { return m_friction; }
+            set
+            {
+                if (value >= 0 && value <= 255.0f)
+                {
+                    m_friction = value;
+                }
+            }
+        }
+
+        public float Bounciness
+        {
+            get { return m_bounce; }
+            set
+            {
+                if (value >= 0 && value <= 1.0f)
+                {
+                    m_bounce = value;
+                }
+            }
+        }
+
 
         #endregion Public Properties with only Get
 
@@ -4334,6 +4408,18 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+
+        public void UpdateExtraPhysics(ExtraPhysicsData physdata)
+        {
+            if (physdata.PhysShapeType == PhysShapeType.invalid || ParentGroup == null)
+                return;
+
+            PhysicsShapeType = (byte)physdata.PhysShapeType;
+            Density = physdata.Density;
+            GravityModifier = physdata.GravitationModifier;
+            Friction = physdata.Friction;
+            Bounciness = physdata.Bounce;
+        }
         /// <summary>
         /// Update the flags on this prim.  This covers properties such as phantom, physics and temporary.
         /// </summary>
