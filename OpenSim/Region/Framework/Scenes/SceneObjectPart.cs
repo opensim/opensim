@@ -3644,7 +3644,7 @@ namespace OpenSim.Region.Framework.Scenes
             //ParentGroup.ScheduleGroupForFullUpdate();
         }
 
-        public void StoreUndoState(ObjectChangeWhat what)
+        public void StoreUndoState(ObjectChangeType change)
         {
             if (m_UndoRedo == null)
                 m_UndoRedo = new UndoRedoState(5);
@@ -3653,7 +3653,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (!Undoing && !IgnoreUndoUpdate && ParentGroup != null) // just to read better  - undo is in progress, or suspended
                 {
-                    m_UndoRedo.StoreUndo(this, what);
+                    m_UndoRedo.StoreUndo(this, change);
                 }
             }
         }

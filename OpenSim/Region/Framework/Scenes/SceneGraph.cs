@@ -47,57 +47,6 @@ namespace OpenSim.Region.Framework.Scenes
 
     public delegate void ChangedBackupDelegate(SceneObjectGroup sog);
 
-
-    public enum ObjectChangeWhat : uint
-    {
-        // bits definitions
-        Position = 0x01,
-        Rotation = 0x02,
-        Scale   = 0x04,
-        Group = 0x08,
-        UniformScale = 0x10,
-
-        // macros from above
-        // single prim
-        primP = 0x01,
-        primR = 0x02,
-        primPR = 0x03,
-        primS = 0x04,
-        primPS = 0x05,
-        primRS = 0x06,
-        primPSR = 0x07,
-
-        primUS = 0x14,
-        primPUS = 0x15,
-        primRUS = 0x16,
-        primPUSR = 0x17,
-
-        // group
-        groupP = 0x09,
-        groupR = 0x0A,
-        groupPR = 0x0B,
-        groupS = 0x0C,
-        groupPS = 0x0D,
-        groupRS = 0x0E,
-        groupPSR = 0x0F,
-
-        groupUS = 0x1C,
-        groupPUS = 0x1D,
-        groupRUS = 0x1E,
-        groupPUSR = 0x1F,
-
-        PRSmask = 0x07
-    }
-
-    public struct ObjectChangeData
-    {
-        public Quaternion rotation;
-        public Vector3 position;
-        public Vector3 scale;
-        public ObjectChangeWhat what;
-    }
-        
-   
     /// <summary>
     /// This class used to be called InnerScene and may not yet truly be a SceneGraph.  The non scene graph components
     /// should be migrated out over time.
@@ -1352,75 +1301,13 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (m_parentScene.Permissions.CanEditObject(grp.UUID, remoteClient.AgentId))
                     {
-//                        part.StoreUndoState(data.what | ObjectChangeWhat.PRSmask); // for now save all to keep previus behavour ???
-                        part.StoreUndoState(data.what); // lets test only saving what we changed
+                        part.StoreUndoState(data.change); // lets test only saving what we changed
                         grp.doChangeObject(part, (ObjectChangeData)data);
                     }
                 }
             }
         }
 
-/* moved to SOG
-        protected internal void doChangeObject(SceneObjectPart part, ObjectChangeData data)
-        {
-            if (part != null && part.ParentGroup != null)
-            {
-                ObjectChangeWhat what = data.what;
-                bool togroup = ((what & ObjectChangeWhat.Group) != 0);
-//                bool uniform = ((what & ObjectChangeWhat.UniformScale) != 0);  not in use
-
-                SceneObjectGroup group = part.ParentGroup;
-                PhysicsActor pha = group.RootPart.PhysActor;
-              
-                if (togroup)
-                {
-                    // related to group                  
-                    if ((what & ObjectChangeWhat.Position) != 0)
-                        group.AbsolutePosition = data.position;
-                    if ((what & ObjectChangeWhat.Rotation) != 0)
-                        group.RootPart.UpdateRotation(data.rotation);
-                    if ((what & ObjectChangeWhat.Scale) != 0)
-                    {
-                        if (pha != null)
-                            pha.Building = true;
-                        group.GroupResize(data.scale);
-                        if (pha != null)
-                            pha.Building = false;
-                    }
-                }
-                else
-                {
-                    // related to single prim in a link-set ( ie group)
-                    if (pha != null)
-                        pha.Building = true;
-
-                    // must deal with root part specially for position and rotation
-                    // so parts offset positions or rotations are fixed
-
-                    if (part == group.RootPart)
-                    {
-                        if ((what & ObjectChangeWhat.Position) != 0)
-                            group.UpdateRootPosition(data.position);
-                        if ((what & ObjectChangeWhat.Rotation) != 0)
-                            group.UpdateRootRotation(data.rotation);
-                    }
-                    else
-                    {
-                        if ((what & ObjectChangeWhat.Position) != 0)
-                            part.OffsetPosition = data.position;
-                        if ((what & ObjectChangeWhat.Rotation) != 0)
-                            part.UpdateRotation(data.rotation);
-                    }
-
-                    if ((what & ObjectChangeWhat.Scale) != 0)
-                        part.Resize(data.scale);
-
-                    if (pha != null)
-                        pha.Building = false;
-                }
-            }
-        }
-*/
         /// <summary>
         /// Update the scale of an individual prim.
         /// </summary>

@@ -30,6 +30,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using log4net;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -44,30 +45,30 @@ namespace OpenSim.Region.Framework.Scenes
         /// Constructor.
         /// </summary>
         /// <param name="part"></param>
-        /// <param name="what">bit field with what is changed</param>
+        /// <param name="change">bit field with what is changed</param>
         /// 
-        public UndoState(SceneObjectPart part, ObjectChangeWhat what)
+        public UndoState(SceneObjectPart part, ObjectChangeType change)
         {
             data = new ObjectChangeData();
-            data.what = what;
+            data.change = change;
             creationtime = DateTime.UtcNow;
 
             if (part.ParentGroup.RootPart == part)
             {
-                if ((what & ObjectChangeWhat.Position) != 0)
+                if ((change & ObjectChangeType.Position) != 0)
                     data.position = part.ParentGroup.AbsolutePosition;
-                if ((what & ObjectChangeWhat.Rotation) != 0)
+                if ((change & ObjectChangeType.Rotation) != 0)
                     data.rotation = part.RotationOffset;
-                if ((what & ObjectChangeWhat.Scale) != 0)
+                if ((change & ObjectChangeType.Scale) != 0)
                     data.scale = part.Shape.Scale;
             }
             else
             {
-                if ((what & ObjectChangeWhat.Position) != 0)
+                if ((change & ObjectChangeType.Position) != 0)
                     data.position = part.OffsetPosition;
-                if ((what & ObjectChangeWhat.Rotation) != 0)
+                if ((change & ObjectChangeType.Rotation) != 0)
                     data.rotation = part.RotationOffset;
-                if ((what & ObjectChangeWhat.Scale) != 0)
+                if ((change & ObjectChangeType.Scale) != 0)
                     data.scale = part.Shape.Scale;
             }
         }
@@ -97,27 +98,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="part"></param>
         /// <returns>true what fiels and related data are equal, False otherwise.</returns>
         /// 
-        public bool Compare(SceneObjectPart part, ObjectChangeWhat what)    
+        public bool Compare(SceneObjectPart part, ObjectChangeType change)    
         {
-            if (data.what != what) // if diferent targets, then they are diferent
+            if (data.change != change) // if diferent targets, then they are diferent
                 return false;
 
             if (part != null)
             {
                 if (part.ParentID == 0)
                 {
-                    if ((what & ObjectChangeWhat.Position) != 0 && data.position != part.ParentGroup.AbsolutePosition)
+                    if ((change & ObjectChangeType.Position) != 0 && data.position != part.ParentGroup.AbsolutePosition)
                         return false;
                 }
                 else
                 {
-                    if ((what & ObjectChangeWhat.Position) != 0 && data.position != part.OffsetPosition)
+                    if ((change & ObjectChangeType.Position) != 0 && data.position != part.OffsetPosition)
                         return false;
                 }
 
-                if ((what & ObjectChangeWhat.Rotation) != 0 && data.rotation != part.RotationOffset)
+                if ((change & ObjectChangeType.Rotation) != 0 && data.rotation != part.RotationOffset)
                     return false;
-                if ((what & ObjectChangeWhat.Rotation) != 0 && data.scale == part.Shape.Scale)
+                if ((change & ObjectChangeType.Rotation) != 0 && data.scale == part.Shape.Scale)
                     return false;
                 return true;
 
@@ -196,9 +197,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// adds a new state undo to part or its group, with changes indicated by what bits
         /// </summary>
         /// <param name="part"></param>
-        /// <param name="what">bit field with what is changed</param>
+        /// <param name="change">bit field with what is changed</param>
 
-        public void StoreUndo(SceneObjectPart part, ObjectChangeWhat what)
+        public void StoreUndo(SceneObjectPart part, ObjectChangeType change)
         {
             lock (m_undo)
             {
@@ -220,7 +221,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // see if we actually have a change
                         if (last != null)
                         {
-                            if (last.Compare(part, what))
+                            if (last.Compare(part, change))
                                 return;
                         }
                     }
@@ -230,7 +231,7 @@ namespace OpenSim.Region.Framework.Scenes
                 while (m_undo.Count >= size)
                     m_undo.RemoveLast();
 
-                UndoState nUndo = new UndoState(part, what);
+                UndoState nUndo = new UndoState(part, change);
                 m_undo.AddFirst(nUndo);
             }
         }
@@ -273,7 +274,7 @@ namespace OpenSim.Region.Framework.Scenes
                         while (m_redo.Count >= size)
                             m_redo.RemoveLast();
 
-                        nUndo = new UndoState(part, goback.data.what); // new value in part should it be full goback copy?
+                        nUndo = new UndoState(part, goback.data.change); // new value in part should it be full goback copy?
                         m_redo.AddFirst(nUndo);
 
                         goback.PlayState(part);
@@ -320,7 +321,7 @@ namespace OpenSim.Region.Framework.Scenes
                         while (m_undo.Count >= size)
                             m_undo.RemoveLast();
 
-                        nUndo = new UndoState(part, gofwd.data.what);   // new value in part should it be full gofwd copy?
+                        nUndo = new UndoState(part, gofwd.data.change);   // new value in part should it be full gofwd copy?
                         m_undo.AddFirst(nUndo);
 
                         gofwd.PlayState(part);

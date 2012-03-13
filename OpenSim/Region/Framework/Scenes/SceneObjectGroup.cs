@@ -3521,9 +3521,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (part != null && part.ParentGroup != null)
             {
-                ObjectChangeWhat what = data.what;
-                bool togroup = ((what & ObjectChangeWhat.Group) != 0);
-                //                bool uniform = ((what & ObjectChangeWhat.UniformScale) != 0);  not in use
+                ObjectChangeType change = data.change;
+                bool togroup = ((change & ObjectChangeType.Group) != 0);
+                //                bool uniform = ((what & ObjectChangeType.UniformScale) != 0);  not in use
 
                 SceneObjectGroup group = part.ParentGroup;
                 PhysicsActor pha = group.RootPart.PhysActor;
@@ -3533,17 +3533,17 @@ namespace OpenSim.Region.Framework.Scenes
                 if (togroup)
                 {
                     // related to group                  
-                    if ((what & ObjectChangeWhat.Position) != 0)
+                    if ((change & ObjectChangeType.Position) != 0)
                     {
                         group.AbsolutePosition = data.position;
                         updateType = updatetype.groupterse;
                     }
-                    if ((what & ObjectChangeWhat.Rotation) != 0)
+                    if ((change & ObjectChangeType.Rotation) != 0)
                     {
                         group.RootPart.UpdateRotation(data.rotation);
                         updateType = updatetype.none;
                     }
-                    if ((what & ObjectChangeWhat.Scale) != 0)
+                    if ((change & ObjectChangeType.Scale) != 0)
                     {
                         if (pha != null)
                             pha.Building = true;
@@ -3566,26 +3566,26 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (part == group.RootPart)
                     {
-                        if ((what & ObjectChangeWhat.Position) != 0)
+                        if ((change & ObjectChangeType.Position) != 0)
                             group.UpdateRootPosition(data.position);
-                        if ((what & ObjectChangeWhat.Rotation) != 0)
+                        if ((change & ObjectChangeType.Rotation) != 0)
                             group.UpdateRootRotation(data.rotation);
-                        if ((what & ObjectChangeWhat.Scale) != 0)
+                        if ((change & ObjectChangeType.Scale) != 0)
                             part.Resize(data.scale);
                     }
                     else
                     {
-                        if ((what & ObjectChangeWhat.Position) != 0)
+                        if ((change & ObjectChangeType.Position) != 0)
                         {
                             part.OffsetPosition = data.position;
                             updateType = updatetype.partterse;
                         }
-                        if ((what & ObjectChangeWhat.Rotation) != 0)
+                        if ((change & ObjectChangeType.Rotation) != 0)
                         {
                             part.UpdateRotation(data.rotation);
                             updateType = updatetype.none;
                         }
-                        if ((what & ObjectChangeWhat.Scale) != 0)
+                        if ((change & ObjectChangeType.Scale) != 0)
                         {
                             part.Resize(data.scale);
                             updateType = updatetype.none;

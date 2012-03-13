@@ -11504,14 +11504,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 case 1: //change position sp
                                     udata.position = new Vector3(block.Data, 0);
 
-                                    udata.what = ObjectChangeWhat.primP;
+                                    udata.change = ObjectChangeType.primP;
                                     updatehandler(localId, udata, this);
                                     break;
 
                                 case 2: // rotation sp
                                     udata.rotation = new Quaternion(block.Data, 0, true);
 
-                                    udata.what = ObjectChangeWhat.primR;
+                                    udata.change = ObjectChangeType.primR;
                                     updatehandler(localId, udata, this);
                                     break;
 
@@ -11519,13 +11519,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     udata.position = new Vector3(block.Data, 0);
                                     udata.rotation = new Quaternion(block.Data, 12, true);
 
-                                    udata.what = ObjectChangeWhat.primPR;
+                                    udata.change = ObjectChangeType.primPR;
                                     updatehandler(localId, udata, this);
                                     break;
 
                                 case 4: // scale sp
                                     udata.scale = new Vector3(block.Data, 0);
-                                    udata.what = ObjectChangeWhat.primS;
+                                    udata.change = ObjectChangeType.primS;
 
                                     updatehandler(localId, udata, this);
                                     break;
@@ -11533,7 +11533,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 case 0x14: // uniform scale sp 
                                     udata.scale = new Vector3(block.Data, 0);
 
-                                    udata.what = ObjectChangeWhat.primUS;
+                                    udata.change = ObjectChangeType.primUS;
                                     updatehandler(localId, udata, this);
                                     break;
 
@@ -11541,7 +11541,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     udata.position = new Vector3(block.Data, 0);
                                     udata.scale = new Vector3(block.Data, 12);
 
-                                    udata.what = ObjectChangeWhat.primPS;
+                                    udata.change = ObjectChangeType.primPS;
                                     updatehandler(localId, udata, this);
                                     break;
 
@@ -11549,7 +11549,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     udata.position = new Vector3(block.Data, 0);
                                     udata.scale = new Vector3(block.Data, 12);
 
-                                    udata.what = ObjectChangeWhat.primPUS;
+                                    udata.change = ObjectChangeType.primPUS;
                                     updatehandler(localId, udata, this);
                                     break;
 
@@ -11557,14 +11557,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 case 9: //( 8 + 1 )group position
                                     udata.position = new Vector3(block.Data, 0);
 
-                                    udata.what = ObjectChangeWhat.groupP;
+                                    udata.change = ObjectChangeType.groupP;
                                     updatehandler(localId, udata, this);
                                     break;
 
                                 case 0x0A: // (8 + 2) group rotation
                                     udata.rotation = new Quaternion(block.Data, 0, true);
 
-                                    udata.what = ObjectChangeWhat.groupR;
+                                    udata.change = ObjectChangeType.groupR;
                                     updatehandler(localId, udata, this);
                                     break;
 
@@ -11572,7 +11572,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     udata.position = new Vector3(block.Data, 0);
                                     udata.rotation = new Quaternion(block.Data, 12, true);
 
-                                    udata.what = ObjectChangeWhat.groupPR;
+                                    udata.change = ObjectChangeType.groupPR;
                                     updatehandler(localId, udata, this);
                                     break;
 
@@ -11583,8 +11583,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                                     udata.scale = new Vector3(block.Data, 0);
 
-                                    //                                    udata.what = ObjectChangeWhat.groupS;
-                                    udata.what = ObjectChangeWhat.primS; // to conform to current SL
+                                    //                                    udata.change = ObjectChangeType.groupS;
+                                    udata.change = ObjectChangeType.primS; // to conform to current SL
                                     updatehandler(localId, udata, this);
 
                                     break;
@@ -11595,15 +11595,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     udata.position = new Vector3(block.Data, 0);
                                     udata.scale = new Vector3(block.Data, 12);
 
-                                    //                                    udata.what = ObjectChangeWhat.groupPS;
-                                    udata.what = ObjectChangeWhat.primPS; // to conform to current SL
+                                    //                                    udata.change = ObjectChangeType.groupPS;
+                                    udata.change = ObjectChangeType.primPS; // to conform to current SL
                                     updatehandler(localId, udata, this);
                                     break;
 
                                 case 0x1C: // (0x10 + 8 + 4 ) group scale UNIFORM
                                     udata.scale = new Vector3(block.Data, 0);
 
-                                    udata.what = ObjectChangeWhat.groupUS;
+                                    udata.change = ObjectChangeType.groupUS;
                                     updatehandler(localId, udata, this);
                                     break;
 
@@ -11611,7 +11611,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     udata.position = new Vector3(block.Data, 0);
                                     udata.scale = new Vector3(block.Data, 12);
 
-                                    udata.what = ObjectChangeWhat.groupPUS;
+                                    udata.change = ObjectChangeType.groupPUS;
                                     updatehandler(localId, udata, this);
                                     break;
 
