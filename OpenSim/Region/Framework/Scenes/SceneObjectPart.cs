@@ -1657,8 +1657,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (!ParentGroup.Scene.CollidablePrims)
                 return;
 
+            if (PhysicsShapeType == (byte)PhysShapeType.none)
+                return;
+
             bool isPhysical = (rootObjectFlags & (uint) PrimFlags.Physics) != 0;
             bool isPhantom = (rootObjectFlags & (uint) PrimFlags.Phantom) != 0;
+
 
             if (IsJoint())
             {
@@ -2015,6 +2019,7 @@ namespace OpenSim.Region.Framework.Scenes
                     bool phan = ((Flags & PrimFlags.Phantom) != 0);
                     if (PhysActor.Phantom != phan)
                         PhysActor.Phantom = phan;
+
 
                     // If this part is a sculpt then delay the physics update until we've asynchronously loaded the
                     // mesh data.
@@ -4414,11 +4419,34 @@ namespace OpenSim.Region.Framework.Scenes
             if (physdata.PhysShapeType == PhysShapeType.invalid || ParentGroup == null)
                 return;
 
-            PhysicsShapeType = (byte)physdata.PhysShapeType;
-            Density = physdata.Density;
-            GravityModifier = physdata.GravitationModifier;
-            Friction = physdata.Friction;
-            Bounciness = physdata.Bounce;
+            if (PhysicsShapeType != (byte)physdata.PhysShapeType)
+            {
+                PhysicsShapeType = (byte)physdata.PhysShapeType;
+
+                if (PhysicsShapeType == (byte)PhysShapeType.none)
+                {
+                    if (PhysActor != null)
+                    {
+                        Velocity = new Vector3(0, 0, 0);
+                        Acceleration = new Vector3(0, 0, 0);
+                        if (ParentGroup.RootPart == this)
+                            AngularVelocity = new Vector3(0, 0, 0);
+                        ParentGroup.Scene.RemovePhysicalPrim(1);
+                        RemoveFromPhysics();
+                    }
+                }
+                else if (PhysActor == null)
+                    ApplyPhysics((uint)Flags, VolumeDetectActive, false);
+            }
+
+            if(Density != physdata.Density)
+                Density = physdata.Density;
+            if(GravityModifier != physdata.GravitationModifier)
+                GravityModifier = physdata.GravitationModifier;
+            if(Friction != physdata.Friction)
+                Friction = physdata.Friction;
+            if(Bounciness != physdata.Bounce)
+                Bounciness = physdata.Bounce;
         }
         /// <summary>
         /// Update the flags on this prim.  This covers properties such as phantom, physics and temporary.
@@ -4448,9 +4476,10 @@ namespace OpenSim.Region.Framework.Scenes
             // ... if VD is changed, all others are not.
             // ... if one of the others is changed, VD is not.
 
+/*
             if (SetVD) // VD is active, special logic applies
 
-                /* volume detection is now independent of phantom in sl
+                 volume detection is now independent of phantom in sl
 
                             {
                                 // State machine logic for VolumeDetect
@@ -4471,9 +4500,8 @@ namespace OpenSim.Region.Framework.Scenes
                                     // If volumedetect is active we don't want phantom to be applied.
                                     // If this is a new call to VD out of the state "phantom"
                                     // this will also cause the prim to be visible to physics
-                 */
                     SetPhantom = false;
-/*                }
+               }
             }
             else if (wasVD)
             {
@@ -4520,10 +4548,10 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 RemFlag(PrimFlags.Phantom);
 
-            if ((SetPhantom && !UsePhysics) ||  ParentGroup.IsAttachment
+            if ((SetPhantom && !UsePhysics) ||  ParentGroup.IsAttachment || PhysicsShapeType == (byte)PhysShapeType.none
                 || (Shape.PathCurve == (byte)Extrusion.Flexible)) // note: this may have been changed above in the case of joints
             {
-                AddFlag(PrimFlags.Phantom);
+//                AddFlag(PrimFlags.Phantom);
 
                 Velocity = new Vector3(0, 0, 0);
                 Acceleration = new Vector3(0, 0, 0);
