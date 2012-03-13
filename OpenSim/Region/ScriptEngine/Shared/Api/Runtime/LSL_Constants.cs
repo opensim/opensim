@@ -570,6 +570,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_MEDIA_PERM_OWNER = 1;
         public const int PRIM_MEDIA_PERM_GROUP = 2;
         public const int PRIM_MEDIA_PERM_ANYONE = 4;
+
+        public const int PRIM_PHYSICS_SHAPE_TYPE = 30;
+        public const int PRIM_PHYSICS_SHAPE_PRIM = 0;
+        public const int PRIM_PHYSICS_SHAPE_CONVEX = 2;
+        public const int PRIM_PHYSICS_SHAPE_NONE = 1;
+
+        public const int PRIM_PHYSICS_MATERIAL = 31;
+        public const int DENSITY = 1;
+        public const int FRICTION = 2;
+        public const int RESTITUTION = 4;
+        public const int GRAVITY_MULTIPLIER = 8;
         
         // extra constants for llSetPrimMediaParams
         public static readonly LSLInteger LSL_STATUS_OK = new LSLInteger(0);

@@ -7632,6 +7632,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        private void SetPhysicsMaterial(SceneObjectPart part, int material_bits,
+                float material_density, float material_friction,
+                float material_restitution, float material_gravity_modifier)
+        {
+            ExtraPhysicsData physdata = new ExtraPhysicsData();
+            physdata.PhysShapeType = (PhysShapeType)part.PhysicsShapeType;
+            physdata.Density = part.Density;
+            physdata.Friction = part.Friction;
+            physdata.Bounce = part.Bounciness;
+            physdata.GravitationModifier = part.GravityModifier;
+
+            if ((material_bits & (int)ScriptBaseClass.DENSITY) != 0)
+                physdata.Density = material_density;
+            if ((material_bits & (int)ScriptBaseClass.FRICTION) != 0)
+                physdata.Friction = material_friction;
+            if ((material_bits & (int)ScriptBaseClass.RESTITUTION) != 0)
+                physdata.Bounce = material_restitution;
+            if ((material_bits & (int)ScriptBaseClass.GRAVITY_MULTIPLIER) != 0)
+                physdata.GravitationModifier = material_gravity_modifier;
+
+            part.UpdateExtraPhysics(physdata);
+        }
+
+        public void llSetPhysicsMaterial(int material_bits,
+                float material_gravity_modifier, float material_restitution,
+                float material_friction, float material_density)
+        {
+            SetPhysicsMaterial(m_host, material_bits, material_density, material_friction, material_restitution, material_gravity_modifier);
+        }
+
         public void llSetLinkPrimitiveParams(int linknumber, LSL_List rules)
         {
             llSetLinkPrimitiveParamsFast(linknumber, rules);
@@ -8042,6 +8072,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                              part.ScriptSetPhysicsStatus(physics);
                              break;
+
+                        case (int)ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
+                            if (remain < 1)
+                                return;
+
+                            int shape_type = rules.GetLSLIntegerItem(idx++);
+
+                            ExtraPhysicsData physdata = new ExtraPhysicsData();
+                            physdata.Density = part.Density;
+                            physdata.Bounce = part.Bounciness;
+                            physdata.GravitationModifier = part.GravityModifier;
+                            physdata.PhysShapeType = (PhysShapeType)shape_type;
+
+                            part.UpdateExtraPhysics(physdata);
+
+                            break;
+
+                        case (int)ScriptBaseClass.PRIM_PHYSICS_MATERIAL:
+                            if (remain < 5)
+                                return;
+
+                            int material_bits = rules.GetLSLIntegerItem(idx++);
+                            float material_density = (float)rules.GetLSLFloatItem(idx++);
+                            float material_friction = (float)rules.GetLSLFloatItem(idx++);
+                            float material_restitution = (float)rules.GetLSLFloatItem(idx++);
+                            float material_gravity_modifier = (float)rules.GetLSLFloatItem(idx++);
+
+                            SetPhysicsMaterial(part, material_bits, material_density, material_friction, material_restitution, material_gravity_modifier);
+
+                            break;
 
                         case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
                             if (remain < 1)
