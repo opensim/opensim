@@ -384,6 +384,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             sb.AppendFormat("Unique scripts             : {0}\n", m_uniqueScripts.Count);
             sb.AppendFormat("Scripts waiting for load   : {0}\n", m_CompileQueue.Count);
+            sb.AppendFormat("Max threads                : {0}\n", m_ThreadPool.MaxThreads);
+            sb.AppendFormat("Min threads                : {0}\n", m_ThreadPool.MinThreads);
             sb.AppendFormat("Allocated threads          : {0}\n", m_ThreadPool.ActiveThreads);
             sb.AppendFormat("In use threads             : {0}\n", m_ThreadPool.InUseThreads);
             sb.AppendFormat("Work items waiting         : {0}\n", m_ThreadPool.WaitingCallbacks);

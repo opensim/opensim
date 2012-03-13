@@ -172,6 +172,7 @@
 
     ;# {permissionmodules} {} {Permission modules to use (may specify multiple modules, separated by comma} {} DefaultPermissionsModule
     ;; Permission modules to use, separated by comma.
+    ;; Possible modules are DefaultPermissionsModule, PrimLimitsModule
     ; permissionmodules = DefaultPermissionsModule
 
     ;# {serverside_object_permissions} {permissionmodules:DefaultPermissionsModule} {Activate permission handling by the sim?} {true false} true
@@ -789,11 +790,6 @@
     ;# {Enabled} {} {Enable Non Player Character (NPC) facilities} {true false} false
     ; Enabled = false
 
-
-[PrimLimitsModule]
-    ;# {EnforcePrimLimits} {} {Enforce parcel prim limits} {true false} false
-    ;; Enable parcel prim limits.  Off by default to emulate pre-existing behavior.
-    ; EnforcePrimLimits = false
 
 
 [Architecture]

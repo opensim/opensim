@@ -162,7 +162,7 @@ namespace OpenSim.Data.MySQL
                                         using (GZipStream decompressionStream = new GZipStream(new MemoryStream(asset.Data), CompressionMode.Decompress))
                                         {
                                             MemoryStream outputStream = new MemoryStream();
-                                            WebUtil.CopyTo(decompressionStream, outputStream, int.MaxValue);
+                                            WebUtil.CopyStream(decompressionStream, outputStream, int.MaxValue);
     //                                        int compressedLength = asset.Data.Length;
                                             asset.Data = outputStream.ToArray();
     
