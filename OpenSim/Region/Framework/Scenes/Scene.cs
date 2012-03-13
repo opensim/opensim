@@ -4882,7 +4882,7 @@ Environment.Exit(1);
 
         private void CheckHeartbeat()
         {
-//            if (m_firstHeartbeat)
+            if (m_firstHeartbeat)
                 return;
 
             if (Util.EnvironmentTickCountSubtract(m_lastUpdate) > 5000)
