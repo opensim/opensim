@@ -46,8 +46,6 @@ namespace OpenSim.Region.DataSnapshot
         private DataSnapshotManager m_externalData = null;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly string m_discoveryPath = "DS0001/";
-
         public DataRequestHandler(Scene scene, DataSnapshotManager externalData)
         {
             m_scene = scene;
@@ -58,37 +56,9 @@ namespace OpenSim.Region.DataSnapshot
             {
                 m_log.Info("[DATASNAPSHOT]: Set up snapshot service");
             }
+            // Register validation callback handler
+            MainServer.Instance.AddHTTPHandler("validate", OnValidate);
 
-            //Register CAPS handler event
-            m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
-
-            //harbl
-        }
-
-        public void OnRegisterCaps(UUID agentID, Caps caps)
-        {
-//            m_log.InfoFormat("[DATASNAPSHOT]: Registering service discovery capability for {0}", agentID);
-            string capsBase = "/CAPS/" + caps.CapsObjectPath;
-            caps.RegisterHandler("PublicSnapshotDataInfo",
-                new RestStreamHandler("POST", capsBase + m_discoveryPath, OnDiscoveryAttempt));
-        }
-
-        public string OnDiscoveryAttempt(string request, string path, string param,
-                                         IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-        {
-            //Very static for now, flexible enough to add new formats
-            LLSDDiscoveryResponse llsd_response = new LLSDDiscoveryResponse();
-            llsd_response.snapshot_resources = new OSDArray();
-
-            LLSDDiscoveryDataURL llsd_dataurl = new LLSDDiscoveryDataURL();
-            llsd_dataurl.snapshot_format = "os-datasnapshot-v1";
-            llsd_dataurl.snapshot_url = "http://" + m_externalData.m_hostname + ":" + m_externalData.m_listener_port + "/?method=collector";
-
-            llsd_response.snapshot_resources.Array.Add(llsd_dataurl);
-
-            string response = LLSDHelpers.SerialiseLLSDReply(llsd_response);
-
-            return response;
         }
 
         public Hashtable OnGetSnapshot(Hashtable keysvals)
@@ -107,5 +77,23 @@ namespace OpenSim.Region.DataSnapshot
 
             return reply;
         }
+
+        public Hashtable OnValidate(Hashtable keysvals)
+        {
+            m_log.Info("[DATASNAPSHOT] Received validation request");
+            Hashtable reply = new Hashtable();
+            int statuscode = 200;
+
+            string secret = (string)keysvals["secret"];
+            if (secret == m_externalData.Secret.ToString())
+                statuscode = 403;
+
+            reply["str_response_string"] = string.Empty;
+            reply["int_response_code"] = statuscode;
+            reply["content_type"] = "text/plain";
+
+            return reply;
+        }
+
     }
 }
