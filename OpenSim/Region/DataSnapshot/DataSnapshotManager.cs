@@ -66,6 +66,7 @@ namespace OpenSim.Region.DataSnapshot
         private string m_dataServices = "noservices";
         public string m_listener_port = ConfigSettings.DefaultRegionHttpPort.ToString();
         public string m_hostname = "127.0.0.1";
+        private UUID m_Secret = UUID.Random();
 
         //Update timers
         private int m_period = 20; // in seconds
@@ -83,6 +84,11 @@ namespace OpenSim.Region.DataSnapshot
         public string ExposureLevel
         {
             get { return m_exposure_level; }
+        }
+
+        public UUID Secret
+        {
+            get { return m_Secret; }
         }
 
         #endregion
@@ -103,10 +109,10 @@ namespace OpenSim.Region.DataSnapshot
                         m_enabled = config.Configs["DataSnapshot"].GetBoolean("index_sims", m_enabled);
                         IConfig conf = config.Configs["GridService"];
                         if (conf != null)
-                            m_gridinfo.Add("gridserverURL", conf.GetString("GridServerURI", "http://127.0.0.1:8003"));
+                            m_gridinfo.Add("gatekeeperURL", conf.GetString("Gatekeeper", String.Empty));
 
                         m_gridinfo.Add(
-                            "Name", config.Configs["DataSnapshot"].GetString("gridname", "the lost continent of hippo"));
+                            "name", config.Configs["DataSnapshot"].GetString("gridname", "the lost continent of hippo"));
                         m_exposure_level = config.Configs["DataSnapshot"].GetString("data_exposure", m_exposure_level);
                         m_period = config.Configs["DataSnapshot"].GetInt("default_snapshot_period", m_period);
                         m_maxStales = config.Configs["DataSnapshot"].GetInt("max_changes_before_update", m_maxStales);
@@ -315,6 +321,7 @@ namespace OpenSim.Region.DataSnapshot
                 cli.AddQueryParameter("service", serviceName);
                 cli.AddQueryParameter("host", m_hostname);
                 cli.AddQueryParameter("port", m_listener_port);
+                cli.AddQueryParameter("secret", m_Secret.ToString());
                 cli.RequestMethod = "GET";
                 try
                 {
@@ -341,7 +348,7 @@ namespace OpenSim.Region.DataSnapshot
                 }
                 // This is not quite working, so...
                 // string responseStr = Util.UTF8.GetString(response);
-                m_log.Info("[DATASNAPSHOT]: data service notified: " + url);
+                m_log.Info("[DATASNAPSHOT]: data service " + url + " notified. Secret: " + m_Secret);
             }
 
         }

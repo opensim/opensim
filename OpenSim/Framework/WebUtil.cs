@@ -511,8 +511,13 @@ namespace OpenSim.Framework
         /// <remarks>
         /// Copying begins at the streams' current positions. The positions are
         /// NOT reset after copying is complete.
+        /// NOTE!! .NET 4.0 adds the method 'Stream.CopyTo(stream, bufferSize)'.
+        /// This function could be replaced with that method once we move
+        /// totally to .NET 4.0. For versions before, this routine exists.
+        /// This routine used to be named 'CopyTo' but the int parameter has
+        /// a different meaning so this method was renamed to avoid any confusion.
         /// </remarks>
-        public static int CopyTo(this Stream copyFrom, Stream copyTo, int maximumBytesToCopy)
+        public static int CopyStream(this Stream copyFrom, Stream copyTo, int maximumBytesToCopy)
         {
             byte[] buffer = new byte[4096];
             int readBytes;

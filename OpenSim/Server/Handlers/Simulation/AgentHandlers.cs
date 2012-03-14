@@ -295,22 +295,27 @@ namespace OpenSim.Server.Handlers.Simulation
             keysvals.Add("headers", headervals);
             keysvals.Add("querystringkeys", querystringkeys);
 
-            Stream inputStream;
+            httpResponse.StatusCode = 200;
+            httpResponse.ContentType = "text/html";
+            httpResponse.KeepAlive = false;
+            Encoding encoding = Encoding.UTF8;
+
+            Stream inputStream = null;
             if (httpRequest.ContentType == "application/x-gzip")
                 inputStream = new GZipStream(request, CompressionMode.Decompress);
-            else
+            else if (httpRequest.ContentType == "application/json")
                 inputStream = request;
+            else // no go
+            {
+                httpResponse.StatusCode = 406;
+                return encoding.GetBytes("false");
+            }
 
-            Encoding encoding = Encoding.UTF8;
             StreamReader reader = new StreamReader(inputStream, encoding);
 
             string requestBody = reader.ReadToEnd();
             reader.Close();
             keysvals.Add("body", requestBody);
-
-            httpResponse.StatusCode = 200;
-            httpResponse.ContentType = "text/html";
-            httpResponse.KeepAlive = false;
 
             Hashtable responsedata = new Hashtable();
 
