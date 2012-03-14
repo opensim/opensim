@@ -990,7 +990,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             lock (m_Scripts)
             {
                 // Create the object record
-
                 if ((!m_Scripts.ContainsKey(itemID)) ||
                     (m_Scripts[itemID].AssetID != assetID))
                 {
