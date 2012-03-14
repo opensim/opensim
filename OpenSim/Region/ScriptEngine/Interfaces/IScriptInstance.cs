@@ -89,7 +89,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         void Start();
 
         /// <summary>
-        /// Stop the script.
+        /// Stop the script instance.
         /// </summary>
         /// <param name="timeout"></param>
         /// <returns>true if the script was successfully stopped, false otherwise</returns>
@@ -97,13 +97,17 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 
         void SetState(string state);
 
+        /// <summary>
+        /// Post an event to this script instance.
+        /// </summary>
+        /// <param name="data"></param>
         void PostEvent(EventParams data);
         
         void Suspend();
         void Resume();
 
         /// <summary>
-        /// Process the next event queued for this script
+        /// Process the next event queued for this script instance.
         /// </summary>
         /// <returns></returns>
         object EventProcessor();
