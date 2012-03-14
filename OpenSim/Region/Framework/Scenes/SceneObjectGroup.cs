@@ -2723,6 +2723,10 @@ namespace OpenSim.Region.Framework.Scenes
             // When we delete a group, we currently have to force persist to the database if the object id has changed
             // (since delete works by deleting all rows which have a given object id)
 
+            // this is as it seems to be in sl now
+            if(linkPart.PhysicsShapeType == (byte)PhysShapeType.none)
+                linkPart.PhysicsShapeType = linkPart.DefaultPhysicsShapeType(); // root prims can't have type none for now
+
             if (m_rootPart.PhysActor != null)
                 m_rootPart.PhysActor.Building = false;
 

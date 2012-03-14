@@ -986,7 +986,11 @@ namespace OpenSim.Region.Framework.Scenes
         public PrimitiveBaseShape Shape
         {
             get { return m_shape; }
-            set { m_shape = value;}
+            set
+            {
+                m_shape = value;
+                m_physicsShapeType = DefaultPhysicsShapeType();
+            }
         }
 
         /// <summary>
@@ -1377,15 +1381,51 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (value >= 0 && value <= (byte)SOPMaterialData.MaxMaterial)
                 {
-                    m_material = (Material)value;
-                    m_friction = SOPMaterialData.friction(m_material);
-                    m_bounce = SOPMaterialData.bounce(m_material);
-                    if (PhysActor != null)
+                    bool update = false;
+
+                    if (m_material != (Material)value)
                     {
-                        PhysActor.SetMaterial((int)value);
+                        update = true;
+                        m_material = (Material)value;
+                    }
+
+                    if (m_friction != SOPMaterialData.friction(m_material))
+                    {
+                        update = true;
+                        m_friction = SOPMaterialData.friction(m_material);
+                    }
+
+                    if (m_bounce != SOPMaterialData.bounce(m_material))
+                    {
+                        update = true;
+                        m_bounce = SOPMaterialData.bounce(m_material);
+                    }
+
+                    if (update)
+                    {
+                        if (PhysActor != null)
+                        {
+                            PhysActor.SetMaterial((int)value);
+                        }
+                        if(ParentGroup != null)
+                            ParentGroup.HasGroupChanged = true;
+                        ScheduleFullUpdateIfNone();
                     }
                 }
             }
+        }
+
+        // not a propriety to move to methods place later
+        public byte DefaultPhysicsShapeType()
+        {
+            byte type;
+
+            if (Shape != null && (Shape.SculptType == (byte)SculptType.Mesh))
+                type = (byte)PhysShapeType.convex;
+            else
+                type = (byte)PhysShapeType.prim;
+
+            return type;
         }
 
         public byte PhysicsShapeType
@@ -1393,15 +1433,16 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_physicsShapeType; }
             set
             {
-                if (value < 0 || value >= (byte)PhysShapeType.convex)
-                    value = (byte)PhysShapeType.prim; //convex  not supported ?
-
-                else if (value == (byte)PhysShapeType.none)
+                if (value >= 0 && value <= (byte)PhysShapeType.convex)
                 {
-                    if (ParentGroup == null || ParentGroup.RootPart == this)
-                        value = (byte)PhysShapeType.prim;
+                    if (value == (byte)PhysShapeType.none && ParentGroup != null && ParentGroup.RootPart == this)
+                        m_physicsShapeType = DefaultPhysicsShapeType();
+                    else
+                        m_physicsShapeType = value;
+                    ScheduleFullUpdateIfNone();
                 }
-                m_physicsShapeType = value;
+                else
+                    m_physicsShapeType = DefaultPhysicsShapeType();
             }
         }
 
@@ -1413,6 +1454,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (value >=1 && value <= 22587.0)
                 {
                     m_density = value;
+                    ScheduleFullUpdateIfNone();
                 }
             }
         }
@@ -1423,6 +1465,7 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {   if( value >= -1 && value <=28.0f)
                 m_gravitymod = value;
+                ScheduleFullUpdateIfNone();
             }
         }
 
@@ -1434,6 +1477,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (value >= 0 && value <= 255.0f)
                 {
                     m_friction = value;
+                    ScheduleFullUpdateIfNone();
                 }
             }
         }
@@ -1446,6 +1490,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (value >= 0 && value <= 1.0f)
                 {
                     m_bounce = value;
+                    ScheduleFullUpdateIfNone();
                 }
             }
         }
@@ -2940,6 +2985,19 @@ namespace OpenSim.Region.Framework.Scenes
         public void StopLookAt()
         {
             APIDTarget = Quaternion.Identity;
+        }
+
+
+
+        public void ScheduleFullUpdateIfNone()
+        {
+            if (ParentGroup == null)
+                return;
+
+// ???            ParentGroup.HasGroupChanged = true;
+
+            if (UpdateFlag != UpdateRequired.FULL)
+                ScheduleFullUpdate();
         }
 
         /// <summary>
