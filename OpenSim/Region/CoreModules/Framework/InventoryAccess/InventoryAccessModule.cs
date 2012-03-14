@@ -935,6 +935,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!isAttachment))
                     remoteClient.SendBulkUpdateInventory(item);
 
+                ILandObject land = m_Scene.LandChannel.GetLandObject(pos.X, pos.Y);
+                remoteClient.SendAlertMessage(string.Format(
+                    "Can't rez object '{0}' at <{1:F3}, {2:F3}, {3:F3}> on parcel '{4}' in region {5}.",
+                    item.Name, pos.X, pos.Y, pos.Z, land != null ? land.LandData.Name : "Unknow", m_Scene.RegionInfo.RegionName));
+
                 return false;
             }
 
