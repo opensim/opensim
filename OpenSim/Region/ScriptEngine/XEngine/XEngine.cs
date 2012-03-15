@@ -244,12 +244,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return m_ConfigSource; }
         }
 
+        /// <summary>
+        /// Event fired after the script engine has finished removing a script.
+        /// </summary>
         public event ScriptRemoved OnScriptRemoved;
+
+        /// <summary>
+        /// Event fired after the script engine has finished removing a script from an object.
+        /// </summary>
         public event ObjectRemoved OnObjectRemoved;
 
-        //
-        // IRegionModule functions
-        //
         public void Initialise(IConfigSource configSource)
         {
             if (configSource.Configs["XEngine"] == null)
@@ -1199,7 +1203,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_Scripts.Remove(itemID);
             lockScriptsForWrite(false);
             instance.ClearQueue();
-            instance.Stop(0);
+
+            // Give the script some time to finish processing its last event.  Simply aborting the script thread can
+            // cause issues on mono 2.6, 2.10 and possibly later where locks are not released properly on abort.
+            instance.Stop(1000);
 
 //                bool objectRemoved = false;
 
@@ -1230,8 +1237,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_DomainScripts.Remove(instance.AppDomain);
                 UnloadAppDomain(instance.AppDomain);
             }
-
-            instance = null;
 
             ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
             if (handlerObjectRemoved != null)
