@@ -97,14 +97,18 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // Hack to get around the fact that ll V3 now drops the port from the
             // map name. See https://jira.secondlife.com/browse/VWR-28570
             //
-            // Caller, use this form instead:
-            // secondlife://mygrid.com|8002|Region+Name/128/128
+            // Caller, use this magic form instead:
+            // secondlife://http|!!mygrid.com|8002|Region+Name/128/128
+            // or url encode if possible.
             // the hacks we do with this viewer...
             //
+            string mapNameOrig = mapName;
             if (mapName.Contains("|"))
                 mapName = mapName.Replace('|', ':');
             if (mapName.Contains("+"))
                 mapName = mapName.Replace('+', ' ');
+            if (mapName.Contains("!"))
+                mapName = mapName.Replace('!', '/');
             
             // try to fetch from GridServer
             List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
@@ -126,7 +130,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         data.MapImageId = UUID.Zero; 
                     else
                         data.MapImageId = info.TerrainImage;
-                    data.Name = info.RegionName;
+                    // ugh! V2-3 is very sensitive about the result being
+                    // exactly the same as the requested name
+                    if (regionInfos.Count == 1)
+                        data.Name = mapNameOrig;
+                    else
+                        data.Name = info.RegionName;
                     data.RegionFlags = 0; // TODO not used?
                     data.WaterHeight = 0; // not used
                     data.X = (ushort)(info.RegionLocX / Constants.RegionSize);
