@@ -363,15 +363,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             part.SetScriptEvents(m_ItemID,
                                     (int)m_Script.GetStateEventFlags(State));
 
-                            if (Running && (!m_ShuttingDown))
-                            {
-                                Running = false;
-                            } 
-                            else 
-                            {
-                                Running = false;
+                            Running = false;
+
+                            if (m_ShuttingDown)
                                 m_startOnInit = false;
-                            }
 
                             // we get new rez events on sim restart, too
                             // but if there is state, then we fire the change
@@ -380,7 +375,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             // We loaded state, don't force a re-save
                             m_SaveState = false;
                             m_startedFromSavedState = true;
-
                         }
                     }
                     else
