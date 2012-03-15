@@ -116,6 +116,115 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             wComm.DeliverMessage(ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.Name, m_host.UUID, message);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fname">The name of the function to invoke</param>
+        /// <param name="fname">List of parameters</param>
+        /// <returns>string result of the invocation</returns>
+        public string modInvokeS(string fname, params object[] parms)
+        {
+            Type returntype = m_comms.LookupReturnType(fname);
+            if (returntype != typeof(string))
+                MODError(String.Format("return type mismatch for {0}",fname));
+
+            return (string)modInvoke(fname,parms);
+        }
+
+        public int modInvokeI(string fname, params object[] parms)
+        {
+            Type returntype = m_comms.LookupReturnType(fname);
+            if (returntype != typeof(int))
+                MODError(String.Format("return type mismatch for {0}",fname));
+
+            return (int)modInvoke(fname,parms);
+        }
+        
+        public float modInvokeF(string fname, params object[] parms)
+        {
+            Type returntype = m_comms.LookupReturnType(fname);
+            if (returntype != typeof(float))
+                MODError(String.Format("return type mismatch for {0}",fname));
+
+            return (float)modInvoke(fname,parms);
+        }
+
+        /// <summary>
+        /// Invokes a preregistered function through the ScriptModuleComms class
+        /// </summary>
+        /// <param name="fname">The name of the function to invoke</param>
+        /// <param name="fname">List of parameters</param>
+        /// <returns>string result of the invocation</returns>
+        protected object modInvoke(string fname, params object[] parms)
+        {
+            if (!m_MODFunctionsEnabled)
+            {
+                MODShoutError("Module command functions not enabled");
+                return "";
+            }
+
+            Type[] signature = m_comms.LookupTypeSignature(fname);
+            if (signature.Length != parms.Length)
+                MODError(String.Format("wrong number of parameters to function {0}",fname));
+            
+            object[] convertedParms = new object[parms.Length];
+
+            for (int i = 0; i < parms.Length; i++)
+            {
+                if (parms[i] is LSL_String)
+                {
+                    if (signature[i] != typeof(string))
+                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
+
+                    convertedParms[i] = (string)(LSL_String)parms[i];
+                }
+                else if (parms[i] is LSL_Integer)
+                {
+                    if (signature[i] != typeof(int))
+                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
+
+                    convertedParms[i] = (int)(LSL_Integer)parms[i];
+                }
+                else if (parms[i] is LSL_Float)
+                {
+                    if (signature[i] != typeof(float))
+                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
+
+                    convertedParms[i] = (float)(LSL_Float)parms[i];
+                }
+                else if (parms[i] is LSL_Key)
+                {
+                    if (signature[i] != typeof(string))
+                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
+
+                    convertedParms[i] =  (string)(LSL_Key)parms[i];
+                }
+                else if (parms[i] is LSL_Rotation)
+                {
+                    if (signature[i] != typeof(string))
+                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
+
+                    convertedParms[i] =  (string)(LSL_Rotation)parms[i];
+                }
+                else if (parms[i] is LSL_Vector)
+                {
+                    if (signature[i] != typeof(string))
+                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
+
+                    convertedParms[i] =  (string)(LSL_Vector)parms[i];
+                }
+                else
+                {
+                    if (signature[i] != parms[i].GetType())
+                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
+
+                    convertedParms[i] = parms[i];
+                }
+            }
+
+            return m_comms.InvokeOperation(m_itemID,fname,convertedParms);
+        }
+        
         public string modSendCommand(string module, string command, string k)
         {
             if (!m_MODFunctionsEnabled)
