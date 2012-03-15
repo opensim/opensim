@@ -4730,7 +4730,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ParentGroup.HasGroupChanged = true;
                 ScheduleFullUpdate();
             }
-
+            
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Updated PrimFlags on {0} {1} to {2}", Name, LocalId, Flags);
         }
 

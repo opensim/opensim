@@ -59,5 +59,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void GroupMembership(AgentGroupDataUpdatePacket groupUpdate, UUID avatarID);
         OSD ScriptRunningEvent(UUID objectID, UUID itemID, bool running, bool mono);
         OSD BuildEvent(string eventName, OSD eventBody);
+        void partPhysicsProperties(uint localID, byte physhapetype, float density, float friction, float bounce, float gravmod, UUID avatarID);
+
     }
 }

@@ -2609,6 +2609,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        public void SendPartPhysicsProprieties(ISceneEntity entity)
+        {
+            SceneObjectPart part = (SceneObjectPart)entity;
+            if (part != null && AgentId != UUID.Zero)
+            {
+                try
+                {
+                    IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+                    if (eq != null)
+                    {
+                        uint localid = part.LocalId;
+                        byte physshapetype = part.PhysicsShapeType;
+                        float density = part.Density;
+                        float friction = part.Friction;
+                        float bounce = part.Bounciness;
+                        float gravmod = part.GravityModifier;
+
+                        eq.partPhysicsProperties(localid, physshapetype, density, friction, bounce, gravmod,AgentId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("Unable to send part Physics Proprieties - exception: " + ex.ToString());
+                }
+            }
+        }
+
+
 
         public void SendGroupNameReply(UUID groupLLUID, string GroupName)
         {

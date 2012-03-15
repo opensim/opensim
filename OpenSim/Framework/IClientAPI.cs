@@ -1320,6 +1320,8 @@ namespace OpenSim.Framework
 
         void SendObjectPropertiesReply(ISceneEntity Entity);
 
+        void SendPartPhysicsProprieties(ISceneEntity Entity);
+
         void SendAgentOffline(UUID[] agentIDs);
 
         void SendAgentOnline(UUID[] agentIDs);
