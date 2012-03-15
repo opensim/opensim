@@ -876,7 +876,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
             string retstr = String.Empty;
 
-            string modinvoke = m_comms.LookupModInvocation(fc.Id);
+            string modinvoke = null;
+            if (m_comms != null)
+                modinvoke = m_comms.LookupModInvocation(fc.Id);
+            
             if (modinvoke != null)
             {
                 if (fc.kids[0] is ArgumentList)
