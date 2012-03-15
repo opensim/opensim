@@ -219,8 +219,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private int m_lastUpdate;
         private bool m_firstHeartbeat = true;
-
-        private object m_deleting_scene_object = new object();
         
         private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
         private bool m_reprioritizationEnabled = true;
@@ -2006,15 +2004,8 @@ namespace OpenSim.Region.Framework.Scenes
         public void DeleteSceneObject(SceneObjectGroup group, bool silent)
         {            
 //            m_log.DebugFormat("[SCENE]: Deleting scene object {0} {1}", group.Name, group.UUID);
-            
-            //SceneObjectPart rootPart = group.GetChildPart(group.UUID);
 
-            // Serialise calls to RemoveScriptInstances to avoid
-            // deadlocking on m_parts inside SceneObjectGroup
-            lock (m_deleting_scene_object)
-            {
-                group.RemoveScriptInstances(true);
-            }
+            group.RemoveScriptInstances(true);
 
             SceneObjectPart[] partList = group.Parts;
 
