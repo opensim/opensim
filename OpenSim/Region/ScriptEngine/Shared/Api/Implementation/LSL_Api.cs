@@ -4678,7 +4678,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence != null && presence.PresenceType != PresenceType.Npc)
                 {
                     // agent must not be a god
-                    if (presence.UserLevel >= 200) return;
+                    if (presence.GodLevel >= 200) return;
 
                     // agent must be over the owners land
                     if (m_host.OwnerID == World.LandChannel.GetLandObject(
