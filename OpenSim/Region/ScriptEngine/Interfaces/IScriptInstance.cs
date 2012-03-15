@@ -68,8 +68,16 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// </summary>
         bool Suspended { get; set; }
 
+        /// <summary>
+        /// Is the script shutting down?
+        /// </summary>
         bool ShuttingDown { get; set; }
+
+        /// <summary>
+        /// Script state
+        /// </summary>
         string State { get; set; }
+
         IScriptEngine Engine { get; }
         UUID AppDomain { get; set; }
         string PrimName { get; }
