@@ -32,6 +32,8 @@ using System.Reflection;
 using log4net;
 using Tools;
 
+using OpenSim.Region.Framework.Interfaces;
+
 namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 {
     public class CSCodeGenerator : ICodeConverter
@@ -45,12 +47,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private int m_CSharpLine;       // the current line of generated C# code
         private int m_CSharpCol;        // the current column of generated C# code
         private List<string> m_warnings = new List<string>();
+        private IScriptModuleComms m_comms = null;
 
         /// <summary>
         /// Creates an 'empty' CSCodeGenerator instance.
         /// </summary>
         public CSCodeGenerator()
         {
+            m_comms = null;
+            ResetCounters();
+        }
+
+        public CSCodeGenerator(IScriptModuleComms comms)
+        {
+            m_comms = comms;
             ResetCounters();
         }
 
@@ -866,8 +876,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
             string retstr = String.Empty;
 
-            retstr += Generate(String.Format("{0}(", CheckName(fc.Id)), fc);
-
+            string modinvoke = m_comms.LookupModInvocation(fc.Id);
+            if (modinvoke != null)
+            {
+                if (fc.kids[0] is ArgumentList)
+                {
+                    if ((fc.kids[0] as ArgumentList).kids.Count == 0)
+                        retstr += Generate(String.Format("{0}(\"{1}\"",modinvoke,fc.Id), fc);
+                    else
+                        retstr += Generate(String.Format("{0}(\"{1}\",",modinvoke,fc.Id), fc);
+                }
+            }
+            else
+            {
+                retstr += Generate(String.Format("{0}(", CheckName(fc.Id)), fc);
+            }
+            
             foreach (SYMBOL kid in fc.kids)
                 retstr += GenerateNode(kid);
 

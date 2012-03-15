@@ -27,6 +27,7 @@
 
 using System;
 using System.Reflection;
+using System.Collections.Generic;
 using Nini.Config;
 using log4net;
 using OpenSim.Framework;
@@ -35,7 +36,7 @@ using OpenSim.Region.Framework.Scenes;
 using Mono.Addins;
 using OpenMetaverse;
 
-namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
+namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ScriptModuleCommsModule")]
     class ScriptModuleCommsModule : INonSharedRegionModule, IScriptModuleComms
@@ -43,10 +44,30 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IScriptModule m_scriptModule = null;
+#region ScriptInvocation
+        protected class ScriptInvocationData
+        {
+            public ScriptInvocation ScriptInvocationFn { get; private set; }
+            public string FunctionName { get; private set; }
+            public Type[] TypeSignature { get; private set; }
+            public Type ReturnType { get; private set; }
 
+            public ScriptInvocationData(string fname, ScriptInvocation fn, Type[] callsig, Type returnsig)
+            {
+                FunctionName = fname;
+                ScriptInvocationFn = fn;
+                TypeSignature = callsig;
+                ReturnType = returnsig;
+            }
+        }
+
+        private Dictionary<string,ScriptInvocationData> m_scriptInvocation = new Dictionary<string,ScriptInvocationData>();
+#endregion
+
+        private IScriptModule m_scriptModule = null;
         public event ScriptCommand OnScriptCommand;
 
+#region RegionModuleInterface
         public void Initialise(IConfigSource config)
         {
         }
@@ -81,6 +102,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
         public void Close()
         {
         }
+#endregion
+
+#region ScriptModuleComms
 
         public void RaiseEvent(UUID script, string id, string module, string command, string k)
         {
@@ -101,5 +125,76 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
 
             m_scriptModule.PostScriptEvent(script, "link_message", args);
         }
+
+        public void RegisterScriptInvocation(string fname, ScriptInvocation fcall, Type[] csig, Type rsig)
+        {
+            lock (m_scriptInvocation)
+            {
+                m_scriptInvocation[fname] = new ScriptInvocationData(fname,fcall,csig,rsig);
+            }
+        }
+        
+        public string LookupModInvocation(string fname)
+        {
+            lock (m_scriptInvocation)
+            {
+                ScriptInvocationData sid;
+                if (m_scriptInvocation.TryGetValue(fname,out sid))
+                {
+                    if (sid.ReturnType == typeof(string))
+                        return "modInvokeS";
+                    else if (sid.ReturnType == typeof(int))
+                        return "modInvokeI";
+                    else if (sid.ReturnType == typeof(float))
+                        return "modInvokeF";
+                }
+            }
+
+            return null;
+        }
+
+        public ScriptInvocation LookupScriptInvocation(string fname)
+        {
+            lock (m_scriptInvocation)
+            {
+                ScriptInvocationData sid;
+                if (m_scriptInvocation.TryGetValue(fname,out sid))
+                    return sid.ScriptInvocationFn;
+            }
+
+            return null;
+        }
+
+        public Type[] LookupTypeSignature(string fname)
+        {
+            lock (m_scriptInvocation)
+            {
+                ScriptInvocationData sid;
+                if (m_scriptInvocation.TryGetValue(fname,out sid))
+                    return sid.TypeSignature;
+            }
+
+            return null;
+        }
+
+        public Type LookupReturnType(string fname)
+        {
+            lock (m_scriptInvocation)
+            {
+                ScriptInvocationData sid;
+                if (m_scriptInvocation.TryGetValue(fname,out sid))
+                    return sid.ReturnType;
+            }
+
+            return null;
+        }
+
+        public object InvokeOperation(UUID scriptid, string fname, params object[] parms)
+        {
+            ScriptInvocation fn = LookupScriptInvocation(fname);
+            return fn(scriptid,parms);
+        }
+#endregion
+
     }
 }
