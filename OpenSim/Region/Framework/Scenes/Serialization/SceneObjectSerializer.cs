@@ -597,22 +597,22 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessDensity(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.Density = (byte)reader.ReadElementContentAsInt("Density", String.Empty);
+            obj.Density = reader.ReadElementContentAsFloat("Density", String.Empty);
         }
 
         private static void ProcessFriction(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.Friction = (byte)reader.ReadElementContentAsInt("Friction", String.Empty);
+            obj.Friction = reader.ReadElementContentAsFloat("Friction", String.Empty);
         }
 
         private static void ProcessBounce(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.Bounciness = (byte)reader.ReadElementContentAsInt("Bounce", String.Empty);
+            obj.Bounciness = reader.ReadElementContentAsFloat("Bounce", String.Empty);
         }
 
         private static void ProcessGravityModifier(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.GravityModifier = (byte)reader.ReadElementContentAsInt("GravityModifier", String.Empty);
+            obj.GravityModifier = reader.ReadElementContentAsFloat("GravityModifier", String.Empty);
         }
 
         private static void ProcessVehicle(SceneObjectPart obj, XmlTextReader reader)
@@ -1321,7 +1321,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             if (sop.sopVehicle != null)
                 sop.sopVehicle.ToXml2(writer);
 
-            if(sop.PhysicsShapeType != (byte)PhysShapeType.prim)
+            if(sop.PhysicsShapeType != sop.DefaultPhysicsShapeType())
                 writer.WriteElementString("PhysicsShapeType", sop.PhysicsShapeType.ToString().ToLower());
             if (sop.Density != 1000.0f)
                 writer.WriteElementString("Density", sop.Density.ToString().ToLower());

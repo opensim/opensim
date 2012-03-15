@@ -1695,6 +1695,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         part.Material = Convert.ToByte(material);
                         group.HasGroupChanged = true;
+                        remoteClient.SendPartPhysicsProprieties(part);
                     }
                 }
             }

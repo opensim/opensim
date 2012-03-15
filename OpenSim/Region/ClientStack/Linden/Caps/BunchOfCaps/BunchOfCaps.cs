@@ -97,7 +97,9 @@ namespace OpenSim.Region.ClientStack.Linden
         private static readonly string m_copyFromNotecardPath = "0007/";
         // private static readonly string m_remoteParcelRequestPath = "0009/";// This is in the LandManagementModule.
         private static readonly string m_getObjectPhysicsDataPath = "0101/";
-
+        private static readonly string m_getObjectCostPath = "0102/";
+        private static readonly string m_ResourceCostSelectedPath = "0103/";
+        
 
         // These are callbacks which will be setup by the scene so that we can update scene data when we
         // receive capability calls
@@ -185,7 +187,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterHandler("CopyInventoryFromNotecard", new RestStreamHandler("POST", capsBase + m_copyFromNotecardPath, CopyInventoryFromNotecard));
                 IRequestHandler getObjectPhysicsDataHandler = new RestStreamHandler("POST", capsBase + m_getObjectPhysicsDataPath, GetObjectPhysicsData);
                 m_HostCapsObj.RegisterHandler("GetObjectPhysicsData", getObjectPhysicsDataHandler);
-             
+                IRequestHandler getObjectCostHandler = new RestStreamHandler("POST", capsBase + m_getObjectCostPath, GetObjectCost);
+                m_HostCapsObj.RegisterHandler("GetObjectCost", getObjectCostHandler);
+                IRequestHandler ResourceCostSelectedHandler = new RestStreamHandler("POST", capsBase + m_ResourceCostSelectedPath, ResourceCostSelected);
+                m_HostCapsObj.RegisterHandler("ResourceCostSelected", ResourceCostSelectedHandler);
+           
+
                 // As of RC 1.22.9 of the Linden client this is
                 // supported
 
@@ -834,6 +841,115 @@ namespace OpenSim.Region.ClientStack.Linden
             Console.WriteLine(response);
             return response;
         }
+
+        public string GetObjectCost(string request, string path,
+                string param, IOSHttpRequest httpRequest,
+                IOSHttpResponse httpResponse)
+        {
+            // see being triggered but see no efect .. have something wrong ??
+            // 
+            OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+            OSDMap resp = new OSDMap();
+
+            OSDArray object_ids = (OSDArray)req["object_ids"];
+
+            for (int i = 0; i < object_ids.Count; i++)
+            {
+                UUID uuid = object_ids[i].AsUUID();
+
+                // only see root parts .. so guess should go by SOG only
+                SceneObjectPart obj = m_Scene.GetSceneObjectPart(uuid);
+                if (obj != null)
+                {
+                    OSDMap object_data = new OSDMap();
+
+                    object_data["linked_set_resource_cost"] = 1.0f;
+                    object_data["resource_cost"] = 1.0f;
+                    object_data["physics_cost"] = 1.0f;
+                    object_data["linked_set_physics_cost"] = 1.0f;
+
+                    resp[uuid.ToString()] = object_data;
+                }
+            }
+
+            string response = OSDParser.SerializeLLSDXmlString(resp);
+            Console.WriteLine(response);
+            return response; 
+        }
+
+        public string ResourceCostSelected(string request, string path,
+                string param, IOSHttpRequest httpRequest,
+                IOSHttpResponse httpResponse)
+        {
+            OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+            OSDMap resp = new OSDMap();
+
+
+            float phys=0;
+            float stream=0;
+            float simul=0;
+
+            if (req.ContainsKey("selected_roots"))
+            {
+                OSDArray object_ids = (OSDArray)req["selected_roots"];
+
+                // should go by SOG suming costs for all parts
+                // ll v3 works ok with several objects select we get the list and adds ok
+                // FS calls per object so results are wrong guess fs bug
+                for (int i = 0; i < object_ids.Count; i++)
+                {
+                    UUID uuid = object_ids[i].AsUUID();
+
+                    SceneObjectPart obj = m_Scene.GetSceneObjectPart(uuid);
+                    if (obj != null)
+                    {
+                        phys += 0.1f; // just to see...
+                        stream += 0.2f;
+                        simul += 0.5f;
+                    }
+                }
+            }
+            else if (req.ContainsKey("selected_prims"))
+            {
+                OSDArray object_ids = (OSDArray)req["selected_prims"];
+
+                // don't see in use in any of the 2 viewers
+                // guess it should be for edit linked but... nothing
+                // should go to SOP per part
+                for (int i = 0; i < object_ids.Count; i++)
+                {
+                    UUID uuid = object_ids[i].AsUUID();
+
+                    SceneObjectPart obj = m_Scene.GetSceneObjectPart(uuid);
+                    if (obj != null)
+                    {
+                        phys += 0.1f;
+                        stream += 0.2f;
+                        simul += 0.5f;
+                    }
+                }
+            }
+
+            if (simul != 0)
+            {
+                OSDMap object_data = new OSDMap();
+
+                object_data["physics"] = phys;
+                object_data["streaming"] = stream;
+                object_data["simulation"] = simul;
+
+                resp["selected"] = object_data;
+            }
+
+            string response = OSDParser.SerializeLLSDXmlString(resp);
+            Console.WriteLine(response);
+            return response; 
+        }
+        
+
+
+
+
     }
 
     public class AssetUploader

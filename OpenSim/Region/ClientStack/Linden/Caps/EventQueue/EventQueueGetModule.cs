@@ -805,5 +805,13 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             return EventQueueHelper.BuildEvent(eventName, eventBody);
         }
+
+        public void partPhysicsProperties(uint localID, byte physhapetype,
+                        float density, float friction, float bounce, float gravmod,UUID avatarID)
+        {
+            OSD item = EventQueueHelper.partPhysicsProperties(localID, physhapetype,
+                        density, friction, bounce, gravmod);
+            Enqueue(item, avatarID);
+        }
     }
 }

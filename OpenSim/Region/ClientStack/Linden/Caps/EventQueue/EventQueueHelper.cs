@@ -395,5 +395,25 @@ namespace OpenSim.Region.ClientStack.Linden
             return message;
         }
 
+        public static OSD partPhysicsProperties(uint localID, byte physhapetype,
+                        float density, float friction, float bounce, float gravmod)
+        {
+            
+            OSDMap physinfo = new OSDMap(6);
+            physinfo["LocalID"] = localID;
+            physinfo["Density"] = density;
+            physinfo["Friction"] = friction;
+            physinfo["GravityMultiplier"] = gravmod;
+            physinfo["Restitution"] = bounce;
+            physinfo["PhysicsShapeType"] = (int)physhapetype;
+
+            OSDArray array = new OSDArray(1);
+            array.Add(physinfo);
+
+            OSDMap llsdBody = new OSDMap(1);
+            llsdBody.Add("ObjectData", array);
+
+            return BuildEvent("ObjectPhysicsProperties", llsdBody);
+        }
     }
 }
