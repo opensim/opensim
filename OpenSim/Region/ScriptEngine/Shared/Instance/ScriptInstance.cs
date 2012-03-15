@@ -68,7 +68,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private IScriptWorkItem m_CurrentWorkItem;
 
         private Queue m_EventQueue = new Queue(32);
-        private bool m_RunEvents = false;
         private UUID m_ItemID;
         private uint m_LocalID;
         private UUID m_ObjectID;
@@ -141,11 +140,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
         }
 
-        public bool Running
-        {
-            get { return m_RunEvents; }
-            set { m_RunEvents = value; }
-        }
+        public bool Running { get; set; }
 
         public bool Suspended
         {
@@ -164,7 +159,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         lock (m_EventQueue)
                         {
                             // Need to place ourselves back in a work item if there are events to process
-                            if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
+                            if ((m_EventQueue.Count > 0) && Running && (!m_ShuttingDown))
                                 m_CurrentWorkItem = m_Engine.QueueEventHandler(this);
                         }
                     }
@@ -369,13 +364,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             part.SetScriptEvents(m_ItemID,
                                     (int)m_Script.GetStateEventFlags(State));
 
-                            if (m_RunEvents && (!m_ShuttingDown))
+                            if (Running && (!m_ShuttingDown))
                             {
-                                m_RunEvents = false;
+                                Running = false;
                             } 
                             else 
                             {
-                                m_RunEvents = false;
+                                Running = false;
                                 m_startOnInit = false;
                             }
 
@@ -531,7 +526,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 if (Running)
                     return;
 
-                m_RunEvents = true;
+                Running = true;
 
                 if (m_EventQueue.Count > 0)
                 {
@@ -559,7 +554,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 // If we're not running or waiting to run an event then we can safely stop.
                 if (m_CurrentWorkItem == null)
                 {
-                    m_RunEvents = false;
+                    Running = false;
                     return true;
                 }
 
@@ -567,12 +562,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 if (m_CurrentWorkItem.Cancel())
                 {
                     m_CurrentWorkItem = null;
-                    m_RunEvents = false;
+                    Running = false;
                     return true;
                 }
 
                 workItem = m_CurrentWorkItem;
-                m_RunEvents = false;
+                Running = false;
             }
 
             // Wait for the current event to complete.
@@ -727,7 +722,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     data = (EventParams) m_EventQueue.Dequeue();
                     if (data == null) // Shouldn't happen
                     {
-                        if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
+                        if (m_EventQueue.Count > 0 && Running && !m_ShuttingDown)
                         {
                             m_CurrentWorkItem = m_Engine.QueueEventHandler(this);
                         }
@@ -853,12 +848,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     }
                 }
 
-
                 // If there are more events and we are currently running and not shutting down, then ask the
                 // script engine to run the next event.
                 lock (m_EventQueue)
                 {
-                    if ((m_EventQueue.Count > 0) && m_RunEvents && (!m_ShuttingDown))
+                    if (m_EventQueue.Count > 0 && Running && (!m_ShuttingDown))
                     {
                         m_CurrentWorkItem = m_Engine.QueueEventHandler(this);
                     }
