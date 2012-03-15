@@ -1118,7 +1118,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             instance.ClearQueue();
-            instance.Stop(0);
+
+            // Give the script some time to finish processing its last event.  Simply aborting the script thread can
+            // cause issues on mono 2.6, 2.10 and possibly later where locks are not released properly on abort.
+            instance.Stop(1000);
+            
 //                bool objectRemoved = false;
 
             lock (m_PrimObjects)

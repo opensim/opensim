@@ -546,7 +546,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public bool Stop(int timeout)
         {
 //            m_log.DebugFormat(
-//                "[SCRIPT INSTANCE]: Stopping script {0} {1} with timeout {2}", ScriptName, ItemID, timeout);
+//                "[SCRIPT INSTANCE]: Stopping script {0} {1} in {2} {3} with timeout {4} {5} {6}",
+//                ScriptName, ItemID, PrimName, ObjectID, timeout, m_InSelfDelete, DateTime.Now.Ticks);
 
             IScriptWorkItem workItem;
 
@@ -575,7 +576,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
 
             // Wait for the current event to complete.
-            if (workItem.Wait(new TimeSpan((long)timeout * 100000)))
+            if (!m_InSelfDelete && workItem.Wait(new TimeSpan((long)timeout * 100000)))
             {
                 return true;
             }
@@ -592,7 +593,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             // forcibly abort the work item (this aborts the underlying thread).
             if (!m_InSelfDelete)
             {
-//                m_log.ErrorFormat("[SCRIPT INSTANCE]: Aborting script {0} {1}", ScriptName, ItemID);
+//                m_log.ErrorFormat(
+//                    "[SCRIPT INSTANCE]: Aborting script {0} {1} in prim {2} {3} {4} {5}",
+//                    ScriptName, ItemID, PrimName, ObjectID, m_InSelfDelete, DateTime.Now.Ticks);
 
                 workItem.Abort();
             }
@@ -706,6 +709,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         /// <returns></returns>
         public object EventProcessor()
         {
+            // We check here as the thread stopping this instance from running may itself hold the m_Script lock.
+            if (!Running)
+                return 0;
+
             lock (m_Script)
             {
 //                m_log.DebugFormat("[XEngine]: EventProcessor() invoked for {0}.{1}", PrimName, ScriptName);
