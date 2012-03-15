@@ -92,7 +92,19 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 return;
             }
 
-//m_log.DebugFormat("MAP NAME=({0})", mapName);
+            //m_log.DebugFormat("MAP NAME=({0})", mapName);
+
+            // Hack to get around the fact that ll V3 now drops the port from the
+            // map name. See https://jira.secondlife.com/browse/VWR-28570
+            //
+            // Caller, use this form instead:
+            // secondlife://mygrid.com|8002+Region+Name/128/128
+            // the hacks we do with this viewer...
+            //
+            if (mapName.Contains("|"))
+                mapName = mapName.Replace('|', ':');
+            if (mapName.Contains("+"))
+                mapName = mapName.Replace('+', ' ');
             
             // try to fetch from GridServer
             List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
