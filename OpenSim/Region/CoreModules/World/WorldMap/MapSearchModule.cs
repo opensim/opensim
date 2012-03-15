@@ -98,7 +98,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // map name. See https://jira.secondlife.com/browse/VWR-28570
             //
             // Caller, use this form instead:
-            // secondlife://mygrid.com|8002|Region+Name/128/128
+            // secondlife://mygrid.com|8002+Region+Name/128/128
             // the hacks we do with this viewer...
             //
             if (mapName.Contains("|"))
