@@ -1,1 +1,2 @@
-backup
+; You can place simulator console commands here to execute when the simulator is shut down
+; e.g. show stats
