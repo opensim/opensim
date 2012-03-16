@@ -380,6 +380,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_Scene))
                 return;
 
+            MainConsole.Instance.OutputFormat(GetStatusReport());
+        }
+
+        public string GetStatusReport()
+        {
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat("Status of XEngine instance for {0}\n", m_Scene.RegionInfo.RegionName);
 
@@ -407,7 +412,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             Listener l = AsyncCommandManager.GetListenerPlugin(this);
             sb.AppendFormat("Listeners                  : {0}\n", l.ListenerCount);
 
-            MainConsole.Instance.OutputFormat(sb.ToString());
+            return sb.ToString();
         }
 
         public void HandleShowScripts(string module, string[] cmdparams)
