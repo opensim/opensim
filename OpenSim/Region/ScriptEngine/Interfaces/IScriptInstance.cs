@@ -99,6 +99,17 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         string ScriptName { get; }
         UUID ItemID { get; }
         UUID ObjectID { get; }
+
+        /// <summary>
+        /// UUID of the root object for the linkset that the script is in.
+        /// </summary>
+        UUID RootObjectID { get; }
+
+        /// <summary>
+        /// Local id of the root object for the linkset that the script is in.
+        /// </summary>
+        uint RootLocalID { get; }
+
         uint LocalID { get; }
         UUID AssetID { get; }
         Queue EventQueue { get; }

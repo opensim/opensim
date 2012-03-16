@@ -164,6 +164,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public uint LocalID { get; private set; }
 
+        public UUID RootObjectID { get; private set; }
+
+        public uint RootLocalID { get; private set; }
+
         public UUID AssetID { get; private set; }
 
         public Queue EventQueue { get; private set; }
@@ -198,6 +202,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             Engine = engine;
             LocalID = part.LocalId;
             ObjectID = part.UUID;
+            RootLocalID = part.ParentGroup.LocalId;
+            RootObjectID = part.ParentGroup.UUID;
             ItemID = itemID;
             AssetID = assetID;
             PrimName = primName;

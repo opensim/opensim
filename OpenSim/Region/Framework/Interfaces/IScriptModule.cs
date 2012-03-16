@@ -79,7 +79,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Get the execution times of all scripts in each object.
         /// </summary>
-        /// <returns>A dictionary where the key is a local object ID and the value is an execution time in milliseconds.</returns>
+        /// <returns>
+        /// A dictionary where the key is the root object ID of a linkset
+        /// and the value is a representative execution time in milliseconds of all scripts in that linkset.
+        /// </returns>
         Dictionary<uint, float> GetObjectScriptsExecutionTimes();
     }
 }
