@@ -229,8 +229,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return RootPart.VolumeDetectActive; }
         }
 
-        public float scriptScore;
-
         private Vector3 lastPhysGroupPos;
         private Quaternion lastPhysGroupRot;
 
@@ -1184,12 +1182,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddScriptLPS(int count)
         {
-            if (scriptScore + count >= float.MaxValue - count)
-                scriptScore = 0;
-
-            scriptScore += (float)count;
-            SceneGraph d = m_scene.SceneGraph;
-            d.AddToScriptLPS(count);
+            m_scene.SceneGraph.AddToScriptLPS(count);
         }
 
         public void AddActiveScriptCount(int count)

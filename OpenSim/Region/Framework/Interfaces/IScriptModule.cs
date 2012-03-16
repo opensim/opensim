@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -74,5 +75,14 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Starts the processing threads.
         /// </summary>
         void StartProcessing();
+
+        /// <summary>
+        /// Get the execution times of all scripts in each object.
+        /// </summary>
+        /// <returns>
+        /// A dictionary where the key is the root object ID of a linkset
+        /// and the value is a representative execution time in milliseconds of all scripts in that linkset.
+        /// </returns>
+        Dictionary<uint, float> GetObjectScriptsExecutionTimes();
     }
 }

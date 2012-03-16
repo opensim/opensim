@@ -164,6 +164,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public uint LocalID { get; private set; }
 
+        public UUID RootObjectID { get; private set; }
+
+        public uint RootLocalID { get; private set; }
+
         public UUID AssetID { get; private set; }
 
         public Queue EventQueue { get; private set; }
@@ -171,6 +175,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public int StartParam { get; set; }
 
         public TaskInventoryItem ScriptTask { get; private set; }
+
+        public DateTime TimeStarted { get; private set; }
+
+        public long MeasurementPeriodTickStart { get; private set; }
+
+        public long MeasurementPeriodExecutionTime { get; private set; }
+
+        public static readonly long MaxMeasurementPeriod = 30 * TimeSpan.TicksPerMinute;
 
         public void ClearQueue()
         {
@@ -190,6 +202,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             Engine = engine;
             LocalID = part.LocalId;
             ObjectID = part.UUID;
+            RootLocalID = part.ParentGroup.LocalId;
+            RootObjectID = part.ParentGroup.UUID;
             ItemID = itemID;
             AssetID = assetID;
             PrimName = primName;
@@ -458,6 +472,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                 Running = true;
 
+                TimeStarted = DateTime.Now;
+                MeasurementPeriodTickStart = Util.EnvironmentTickCount();
+                MeasurementPeriodExecutionTime = 0;
+
                 if (EventQueue.Count > 0)
                 {
                     if (m_CurrentWorkItem == null)
@@ -710,7 +728,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             m_EventStart = DateTime.Now;
                             m_InEvent = true;
 
+                            int start = Util.EnvironmentTickCount();
+
+                            // Reset the measurement period when we reach the end of the current one.
+                            if (start - MeasurementPeriodTickStart > MaxMeasurementPeriod)
+                                MeasurementPeriodTickStart = start;
+
                             m_Script.ExecuteEvent(State, data.EventName, data.Params);
+
+                            MeasurementPeriodExecutionTime += Util.EnvironmentTickCount() - start;
 
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
@@ -720,7 +746,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                 // This will be the very first event we deliver
                                 // (state_entry) in default state
                                 //
-
                                 SaveState(m_Assembly);
 
                                 m_SaveState = false;

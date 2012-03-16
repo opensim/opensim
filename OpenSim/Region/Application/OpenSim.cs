@@ -503,7 +503,11 @@ namespace OpenSim
                     string currentCommand;
                     while ((currentCommand = readFile.ReadLine()) != null)
                     {
-                        if (currentCommand != String.Empty)
+                        currentCommand = currentCommand.Trim();
+                        if (!(currentCommand == ""
+                            || currentCommand.StartsWith(";")
+                            || currentCommand.StartsWith("//")
+                            || currentCommand.StartsWith("#")))
                         {
                             m_log.Info("[COMMANDFILE]: Running '" + currentCommand + "'");
                             m_console.RunCommand(currentCommand);
