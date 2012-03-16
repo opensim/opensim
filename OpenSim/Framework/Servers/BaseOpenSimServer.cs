@@ -272,12 +272,8 @@ namespace OpenSim.Framework.Servers
                 sb.Append(Environment.NewLine);
             }
 
-            int workers = 0, ports = 0, maxWorkers = 0, maxPorts = 0;
-            ThreadPool.GetAvailableThreads(out workers, out ports);
-            ThreadPool.GetMaxThreads(out maxWorkers, out maxPorts);
-
-            sb.Append(Environment.NewLine + "*** ThreadPool threads ***"  + Environment.NewLine);
-            sb.Append("workers: " + (maxWorkers - workers) + " (" + maxWorkers + "); ports: " + (maxPorts - ports) + " (" + maxPorts + ")" + Environment.NewLine);
+            sb.Append("\n*** Main threadpool (excluding script engine)***\n");
+            sb.Append(Util.GetThreadPoolReport());
 
             return sb.ToString();
         }
