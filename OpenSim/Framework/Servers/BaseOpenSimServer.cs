@@ -278,7 +278,7 @@ namespace OpenSim.Framework.Servers
             // zero active threads.
             int totalThreads = Process.GetCurrentProcess().Threads.Count;
             if (totalThreads > 0)
-                sb.AppendFormat("Total threads active: {0}\n\n", Process.GetCurrentProcess().Threads.Count);
+                sb.AppendFormat("Total threads active: {0}\n\n", totalThreads);
 
             sb.Append("Main threadpool (excluding script engine pools)\n");
             sb.Append(Util.GetThreadPoolReport());
