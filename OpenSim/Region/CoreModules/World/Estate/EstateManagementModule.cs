@@ -904,7 +904,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                 foreach (var entry in sortedSceneData)
                 {
+                    // The object may have been deleted since we received the data.
                     if (entry.Part == null)
+                        continue;
+
+                    // Don't show scripts that haven't executed or where execution time is below one microsecond in
+                    // order to produce a more readable report.
+                    if (entry.Measurement < 0.001)
                         continue;
 
                     items++;
