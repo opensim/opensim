@@ -47,8 +47,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private delegate void LookupUUIDS(List<UUID> uuidLst);
-
         public Scene Scene { get; private set; }
         public IUserManagement UserManager { get; private set; }
         
@@ -920,9 +918,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     lsri.TaskID = so.UUID;
                     lsri.TaskLocalID = so.LocalId;
                     lsri.TaskName = entry.Part.Name;
-                    lsri.OwnerName = "waiting";
-                    lock (uuidNameLookupList)
-                        uuidNameLookupList.Add(so.OwnerID);
+                    lsri.OwnerName = UserManager.GetUserName(so.OwnerID);
 
                     if (filter.Length != 0)
                     {
@@ -943,48 +939,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
 
             remoteClient.SendLandStatReply(reportType, requestFlags, (uint)SceneReport.Count,SceneReport.ToArray());
-
-            if (uuidNameLookupList.Count > 0)
-                LookupUUID(uuidNameLookupList);
         }
 
-        private static void LookupUUIDSCompleted(IAsyncResult iar)
-        {
-            LookupUUIDS icon = (LookupUUIDS)iar.AsyncState;
-            icon.EndInvoke(iar);
-        }
-        
-        private void LookupUUID(List<UUID> uuidLst)
-        {
-            LookupUUIDS d = LookupUUIDsAsync;
-
-            d.BeginInvoke(uuidLst,
-                          LookupUUIDSCompleted,
-                          d);
-        }
-        
-        private void LookupUUIDsAsync(List<UUID> uuidLst)
-        {
-            UUID[] uuidarr;
-
-            lock (uuidLst)
-            {
-                uuidarr = uuidLst.ToArray();
-            }
-
-            for (int i = 0; i < uuidarr.Length; i++)
-            {
-                // string lookupname = m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
-
-                IUserManagement userManager = Scene.RequestModuleInterface<IUserManagement>();
-                if (userManager != null)
-                    userManager.GetUserName(uuidarr[i]);
-                
-                // we drop it.  It gets cached though...  so we're ready for the next request.
-                // diva commnent 11/21/2010: uh?!? wft?
-                // justincc comment 21/01/2011: A side effect of userManager.GetUserName() I presume.
-            }
-        }
         #endregion
 
         #region Outgoing Packets
