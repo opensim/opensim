@@ -159,6 +159,17 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // flags are agent flags sent from the viewer.
             // they have different values depending on different viewers, apparently
             remoteClient.SendMapBlock(blocks, flags);
+
+            // send extra user messages for V3
+            // because the UI is very confusing
+            // while we don't fix the hard-coded urls
+            if (flags == 2) 
+            {
+                if (regionInfos.Count == 0)
+                    remoteClient.SendAgentAlertMessage("No regions found with that name.", true);
+                else if (regionInfos.Count == 1)
+                    remoteClient.SendAgentAlertMessage("Region found!", false);
+            }
         }
 
 //        private Scene GetClientScene(IClientAPI client)
