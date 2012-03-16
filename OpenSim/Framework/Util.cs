@@ -81,12 +81,15 @@ namespace OpenSim.Framework
 
         private static uint nextXferID = 5000;
         private static Random randomClass = new Random();
+
         // Get a list of invalid file characters (OS dependent)
         private static string regexInvalidFileChars = "[" + new String(Path.GetInvalidFileNameChars()) + "]";
         private static string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
         private static object XferLock = new object();
-        /// <summary>Thread pool used for Util.FireAndForget if
-        /// FireAndForgetMethod.SmartThreadPool is used</summary>
+
+        /// <summary>
+        /// Thread pool used for Util.FireAndForget if FireAndForgetMethod.SmartThreadPool is used
+        /// </summary>
         private static SmartThreadPool m_ThreadPool;
 
         // Unix-epoch starts at January 1st 1970, 00:00:00 UTC. And all our times in the server are (or at least should be) in UTC.
