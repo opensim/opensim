@@ -177,6 +177,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         if (m_log.IsDebugEnabled)
         {
             m_log.DebugFormat("{0}: Initialize: Setting debug callback for unmanaged code", LogHeader);
+            // the handle is saved to it doesn't get freed after this call
             m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLogger);
             BulletSimAPI.SetDebugLogCallback(m_DebugLogCallbackHandle);
         }
@@ -185,7 +186,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         mesher = meshmerizer;
         // The bounding box for the simulated world
-        Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, 4096f);
+        Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, 8192f);
 
         // m_log.DebugFormat("{0}: Initialize: Calling BulletSimAPI.Initialize.", LogHeader);
         m_worldID = BulletSimAPI.Initialize(worldExtent, m_paramsHandle.AddrOfPinnedObject(),
@@ -233,7 +234,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         parms.terrainFriction = 0.5f;
         parms.terrainHitFraction = 0.8f;
         parms.terrainRestitution = 0f;
-        parms.avatarFriction = 0.0f;
+        parms.avatarFriction = 0.5f;
         parms.avatarDensity = 60f;
         parms.avatarCapsuleRadius = 0.37f;
         parms.avatarCapsuleHeight = 1.5f; // 2.140599f
@@ -716,6 +717,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // new PhysParameterEntry("CcdSweptSphereRadius", "" ),
         new PhysParameterEntry("ContactProcessingThreshold", "Distance between contacts before doing collision check" ),
 
+        new PhysParameterEntry("Friction", "Set friction parameter for a specific object" ),
+        new PhysParameterEntry("Restitution", "Set restitution parameter for a specific object" ),
+
         new PhysParameterEntry("TerrainFriction", "Factor to reduce movement against terrain surface" ),
         new PhysParameterEntry("TerrainHitFraction", "Distance to measure hit collisions" ),
         new PhysParameterEntry("TerrainRestitution", "Bouncyness" ),
@@ -756,7 +760,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "defaultdensity": m_params[0].defaultDensity = val; break;
             case "defaultrestitution": m_params[0].defaultRestitution = val; break;
             case "collisionmargin": m_params[0].collisionMargin = val; break;
-            case "gravity": m_params[0].gravity = val; TaintedUpdateParameter(lparm, PhysParameterEntry.APPLY_TO_NONE, val); break;
+            case "gravity": m_params[0].gravity = val; TaintedUpdateParameter(lparm, localID, val); break;
 
             case "lineardamping": UpdateParameterPrims(ref m_params[0].linearDamping, lparm, localID, val); break;
             case "angulardamping": UpdateParameterPrims(ref m_params[0].angularDamping, lparm, localID, val); break;
@@ -766,6 +770,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "ccdmotionthreshold": UpdateParameterPrims(ref m_params[0].ccdMotionThreshold, lparm, localID, val); break;
             case "ccdsweptsphereradius": UpdateParameterPrims(ref m_params[0].ccdSweptSphereRadius, lparm, localID, val); break;
             case "contactprocessingthreshold": UpdateParameterPrims(ref m_params[0].contactProcessingThreshold, lparm, localID, val); break;
+
+            case "friction": TaintedUpdateParameter(lparm, localID, val); break;
+            case "restitution": TaintedUpdateParameter(lparm, localID, val); break;
 
             // set a terrain physical feature and cause terrain to be recalculated
             case "terrainfriction": m_params[0].terrainFriction = val; TaintedUpdateParameter("terrain", 0, val); break;
