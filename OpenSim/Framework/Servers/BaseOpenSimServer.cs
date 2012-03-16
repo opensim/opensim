@@ -269,10 +269,18 @@ namespace OpenSim.Framework.Servers
                     t.Priority,
                     t.ThreadState);
 
-                sb.Append(Environment.NewLine);
+                sb.Append("\n");
             }
 
-            sb.Append("\n*** Main threadpool (excluding script engine)***\n");
+            sb.Append("\n");
+
+            // For some reason mono 2.6.7 returns an empty threads set!  Not going to confuse people by reporting
+            // zero active threads.
+            int totalThreads = Process.GetCurrentProcess().Threads.Count;
+            if (totalThreads > 0)
+                sb.AppendFormat("Total threads active: {0}\n\n", Process.GetCurrentProcess().Threads.Count);
+
+            sb.Append("Main threadpool (excluding script engine pools)\n");
             sb.Append(Util.GetThreadPoolReport());
 
             return sb.ToString();
