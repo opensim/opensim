@@ -52,6 +52,19 @@ using OpenSim.Region.Framework;
 // Implement LockAngularMotion
 // Decide if clearing forces is the right thing to do when setting position (BulletSim::SetObjectTranslation)
 // Does NeedsMeshing() really need to exclude all the different shapes?
+// Remove mesh and Hull stuff. Use mesh passed to bullet and use convexdecom from bullet.
+// Add PID movement operations 
+// Debug linkset 
+// Ccd  threshold to defaults (0.0)
+// Command line get and set is broken
+// Check terrain size. 128 or 127?
+// Test with multiple regions in one simulator 
+// Multiple contact points on collision?
+//    See code in ode::near... calls to collision_accounting_events()
+// Use collision masks for collision with terrain and phantom objects 
+// Check out llVolumeDetect. Must do something for that.
+// Physical phantom objects and related typing (collision options )
+// Raycast
 // 
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
