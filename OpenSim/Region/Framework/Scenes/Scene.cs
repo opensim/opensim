@@ -1583,8 +1583,15 @@ namespace OpenSim.Region.Framework.Scenes
                 double[,] map = SimulationDataService.LoadTerrain(RegionInfo.RegionID);
                 if (map == null)
                 {
-                    m_log.Info("[TERRAIN]: No default terrain. Generating a new terrain.");
-                    Heightmap = new TerrainChannel();
+                    // This should be in the Terrain module, but it isn't because
+                    // the heightmap is needed _way_ before the modules are initialized...
+                    IConfig terrainConfig = m_config.Configs["Terrain"];
+                    String m_InitialTerrain = "pinhead-island";
+                    if (terrainConfig != null)
+                        m_InitialTerrain = terrainConfig.GetString("InitialTerrain", m_InitialTerrain);
+
+                    m_log.InfoFormat("[TERRAIN]: No default terrain. Generating a new terrain {0}.", m_InitialTerrain);
+                    Heightmap = new TerrainChannel(m_InitialTerrain);
 
                     SimulationDataService.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
                 }

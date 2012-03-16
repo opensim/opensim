@@ -86,6 +86,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private volatile bool m_tainted;
         private readonly Stack<LandUndoState> m_undo = new Stack<LandUndoState>(5);
 
+        private String m_InitialTerrain = "pinhead-island";
+
         /// <summary>
         /// Human readable list of terrain file extensions that are supported.
         /// </summary>
@@ -109,6 +111,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="config">Config for the region</param>
         public void Initialise(IConfigSource config)
         {
+            IConfig terrainConfig = config.Configs["Terrain"];
+            if (terrainConfig != null)
+                m_InitialTerrain = terrainConfig.GetString("InitialTerrain", m_InitialTerrain);
         }
 
         public void AddRegion(Scene scene)
@@ -120,7 +125,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 if (m_scene.Heightmap == null)
                 {
-                    m_channel = new TerrainChannel();
+                    m_channel = new TerrainChannel(m_InitialTerrain);
                     m_scene.Heightmap = m_channel;
                     m_revert = new TerrainChannel();
                     UpdateRevertMap();

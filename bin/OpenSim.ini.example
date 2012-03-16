@@ -36,7 +36,6 @@
 
 
 [Startup]
-
     ;# {ConsolePrompt} {} {ConsolePrompt} {} "Region (\R) "
     ;; Console prompt
     ;; Certain special characters can be used to customize the prompt
@@ -773,6 +772,9 @@
     ;# {Enabled} {} {Enable Non Player Character (NPC) facilities} {true false} false
     ; Enabled = false
 
+[Terrain]
+    ;# {InitialTerrain} {} {Initial terrain type} {pinhead-island flat} pinhead-island
+    ; InitialTerrain = "pinhead-island"
 
 [PrimLimitsModule]
     ;# {EnforcePrimLimits} {} {Enforce parcel prim limits} {true false} false
