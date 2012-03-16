@@ -1416,6 +1416,14 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         // not a propriety to move to methods place later
+        private bool HasMesh()
+        {
+            if (Shape != null && (Shape.SculptType == (byte)SculptType.Mesh))
+                return true;
+            return false;
+        }
+
+        // not a propriety to move to methods place later
         public byte DefaultPhysicsShapeType()
         {
             byte type;
@@ -1426,6 +1434,60 @@ namespace OpenSim.Region.Framework.Scenes
                 type = (byte)PhysShapeType.prim;
 
             return type;
+        }
+
+        [XmlIgnore]
+        public bool UsesComplexCost
+        {
+            get
+            {
+                byte pst = PhysicsShapeType;
+                if(pst == (byte) PhysShapeType.none || pst == (byte) PhysShapeType.convex || HasMesh())
+                    return true;
+                return false;
+            }
+        }
+
+        [XmlIgnore]
+        public float PhysicsCost
+        {
+            get
+            {
+                if(PhysicsShapeType == (byte)PhysShapeType.none)
+                    return 0;
+
+                float cost = 0.1f;
+                if (PhysActor != null)
+//                    cost += PhysActor.Cost;
+
+                if ((Flags & PrimFlags.Physics) != 0)
+                    cost *= (1.0f + 0.01333f * Scale.LengthSquared()); // 0.01333 == 0.04/3
+                return cost;
+            }
+        }
+
+        [XmlIgnore]
+        public float StreamingCost
+        {
+            get
+            {
+
+
+                return 0.1f;
+            }
+        }
+
+        [XmlIgnore]
+        public float SimulationCost
+        {
+            get
+            {
+                // ignoring scripts. Don't like considering them for this
+                if((Flags & PrimFlags.Physics) != 0)
+                    return 1.0f;
+
+                return 0.5f;
+            }
         }
 
         public byte PhysicsShapeType

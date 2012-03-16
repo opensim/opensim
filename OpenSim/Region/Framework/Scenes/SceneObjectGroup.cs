@@ -1231,6 +1231,102 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
+        public void GetResourcesCosts(SceneObjectPart apart,
+            out float linksetResCost, out float linksetPhysCost, out float partCost, out float partPhysCost)
+        {
+            // this information may need to be cached
+
+            float cost;
+            float tmpcost;
+
+            bool ComplexCost = false;
+
+            SceneObjectPart p;
+            SceneObjectPart[] parts;
+
+            lock (m_parts)
+            {
+                parts = m_parts.GetArray();
+            }
+
+            int nparts = parts.Length;
+          
+
+            for (int i = 0; i < nparts; i++)
+            {
+                p = parts[i];
+
+                if (p.UsesComplexCost)
+                {
+                    ComplexCost = true;
+                    break;
+                }
+            }
+
+            if (ComplexCost)
+            {
+                linksetResCost = 0;
+                linksetPhysCost = 0;
+                partCost = 0; 
+                partPhysCost = 0;
+
+                for (int i = 0; i < nparts; i++)
+                {
+                    p = parts[i];
+
+                    cost = p.StreamingCost;
+                    tmpcost = p.SimulationCost;
+                    if (tmpcost > cost)
+                        cost = tmpcost;
+                    tmpcost = p.PhysicsCost;
+                    if (tmpcost > cost)
+                        cost = tmpcost;
+
+                    linksetPhysCost += tmpcost;
+                    linksetResCost += cost;
+
+                    if (p == apart)
+                    {
+                        partCost = cost;
+                        partPhysCost = tmpcost;
+                    }
+                }
+            }
+            else
+            {
+                partPhysCost = 1.0f;
+                partCost = 1.0f;
+                linksetResCost = (float)nparts;
+                linksetPhysCost = linksetResCost;
+            }
+        }
+
+        public void GetSelectedCosts(out float PhysCost, out float StreamCost, out float SimulCost)
+        {
+            SceneObjectPart p;
+            SceneObjectPart[] parts;
+
+            lock (m_parts)
+            {
+                parts = m_parts.GetArray();
+            }
+
+            int nparts = parts.Length;
+
+            PhysCost = 0;
+            StreamCost = 0;
+            SimulCost = 0;
+
+            for (int i = 0; i < nparts; i++)
+            {
+                p = parts[i];
+
+                StreamCost += p.StreamingCost;
+                SimulCost += p.SimulationCost;
+                PhysCost += p.PhysicsCost;
+            }
+        }
+
         public void SaveScriptedState(XmlTextWriter writer)
         {
             SaveScriptedState(writer, false);
