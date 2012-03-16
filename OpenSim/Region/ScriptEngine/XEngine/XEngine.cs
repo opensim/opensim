@@ -1083,7 +1083,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 if (!m_PrimObjects[localID].Contains(itemID))
                     m_PrimObjects[localID].Add(itemID);
-
             }
 
             if (!m_Assemblies.ContainsKey(assetID))
@@ -1901,7 +1900,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 foreach (IScriptInstance si in m_Scripts.Values)
                 {
                     if (!topScripts.ContainsKey(si.LocalID))
-                        topScripts[si.LocalID] = 0;
+                        topScripts[si.RootLocalID] = 0;
 
 //                    long ticksElapsed = tickNow - si.MeasurementPeriodTickStart;
 //                    float framesElapsed = ticksElapsed / (18.1818 * TimeSpan.TicksPerMillisecond);
@@ -1937,7 +1936,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     float adjustedExecutionTime
                         = ((float)si.MeasurementPeriodExecutionTime / ticksElapsed) * 18.1818f;
 
-                    topScripts[si.LocalID] += adjustedExecutionTime;
+                    topScripts[si.RootLocalID] += adjustedExecutionTime;
                 }
             }
 
