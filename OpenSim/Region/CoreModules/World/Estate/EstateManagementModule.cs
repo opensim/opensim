@@ -26,8 +26,10 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security;
 using log4net;
@@ -876,52 +878,67 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (!Scene.Permissions.CanIssueEstateCommand(remoteClient.AgentId, false))
                 return;
 
-            Dictionary<uint, float> SceneData = new Dictionary<uint,float>();
+            Dictionary<uint, float> sceneData = null;
             List<UUID> uuidNameLookupList = new List<UUID>();
 
             if (reportType == 1)
             {
-                SceneData = Scene.PhysicsScene.GetTopColliders();
+                sceneData = Scene.PhysicsScene.GetTopColliders();
             }
             else if (reportType == 0)
             {
-                SceneData = Scene.SceneGraph.GetTopScripts();
+                IScriptModule scriptModule = Scene.RequestModuleInterface<IScriptModule>();
+
+                if (scriptModule != null)
+                    sceneData = scriptModule.GetObjectScriptsExecutionTimes();
             }
 
             List<LandStatReportItem> SceneReport = new List<LandStatReportItem>();
-            lock (SceneData)
+            if (sceneData != null)
             {
-                foreach (uint obj in SceneData.Keys)
+                var sortedSceneData
+                    = sceneData.Select(
+                        item => new { Measurement = item.Value, Part = Scene.GetSceneObjectPart(item.Key) });
+
+                sortedSceneData.OrderBy(item => item.Measurement);
+
+                int items = 0;
+
+                foreach (var entry in sortedSceneData)
                 {
-                    SceneObjectPart prt = Scene.GetSceneObjectPart(obj);
-                    if (prt != null)
+                    if (entry.Part == null)
+                        continue;
+
+                    items++;
+                    SceneObjectGroup so = entry.Part.ParentGroup;
+
+                    LandStatReportItem lsri = new LandStatReportItem();
+                    lsri.LocationX = so.AbsolutePosition.X;
+                    lsri.LocationY = so.AbsolutePosition.Y;
+                    lsri.LocationZ = so.AbsolutePosition.Z;
+                    lsri.Score = entry.Measurement;
+                    lsri.TaskID = so.UUID;
+                    lsri.TaskLocalID = so.LocalId;
+                    lsri.TaskName = entry.Part.Name;
+                    lsri.OwnerName = "waiting";
+                    lock (uuidNameLookupList)
+                        uuidNameLookupList.Add(so.OwnerID);
+
+                    if (filter.Length != 0)
                     {
-                        SceneObjectGroup sog = prt.ParentGroup;
-                        LandStatReportItem lsri = new LandStatReportItem();
-                        lsri.LocationX = sog.AbsolutePosition.X;
-                        lsri.LocationY = sog.AbsolutePosition.Y;
-                        lsri.LocationZ = sog.AbsolutePosition.Z;
-                        lsri.Score = SceneData[obj];
-                        lsri.TaskID = sog.UUID;
-                        lsri.TaskLocalID = sog.LocalId;
-                        lsri.TaskName = sog.GetPartName(obj);
-                        lsri.OwnerName = "waiting";
-                        lock (uuidNameLookupList)
-                            uuidNameLookupList.Add(sog.OwnerID);
-
-                        if (filter.Length != 0)
+                        if ((lsri.OwnerName.Contains(filter) || lsri.TaskName.Contains(filter)))
                         {
-                            if ((lsri.OwnerName.Contains(filter) || lsri.TaskName.Contains(filter)))
-                            {
-                            }
-                            else
-                            {
-                                continue;
-                            }
                         }
-
-                        SceneReport.Add(lsri);
+                        else
+                        {
+                            continue;
+                        }
                     }
+
+                    SceneReport.Add(lsri);
+
+                    if (items >= 100)
+                        break;
                 }
             }
 

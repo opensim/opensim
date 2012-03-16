@@ -78,6 +78,21 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// </summary>
         string State { get; set; }
 
+        /// <summary>
+        /// Time the script was last started
+        /// </summary>
+        DateTime TimeStarted { get; }
+
+        /// <summary>
+        /// Tick the last measurement period was started.
+        /// </summary>
+        long MeasurementPeriodTickStart { get; }
+
+        /// <summary>
+        /// Ticks spent executing in the last measurement period.
+        /// </summary>
+        long MeasurementPeriodExecutionTime { get; }
+
         IScriptEngine Engine { get; }
         UUID AppDomain { get; set; }
         string PrimName { get; }

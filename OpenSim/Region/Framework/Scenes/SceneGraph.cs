@@ -751,6 +751,7 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Get Methods
+        
         /// <summary>
         /// Get the controlling client for the given avatar, if there is one.
         ///
@@ -1090,36 +1091,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal EntityBase[] GetEntities()
         {
             return Entities.GetEntities();
-        }
-
-        public Dictionary<uint, float> GetTopScripts()
-        {
-            Dictionary<uint, float> topScripts = new Dictionary<uint, float>();
-
-            EntityBase[] EntityList = GetEntities();
-            int limit = 0;
-            foreach (EntityBase ent in EntityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    SceneObjectGroup grp = (SceneObjectGroup)ent;
-                    if ((grp.RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.Scripted) != 0)
-                    {
-                        if (grp.scriptScore >= 0.01)
-                        {
-                            topScripts.Add(grp.LocalId, grp.scriptScore);
-                            limit++;
-                            if (limit >= 100)
-                            {
-                                break;
-                            }
-                        }
-                        grp.scriptScore = 0;
-                    }
-                }
-            }
-
-            return topScripts;
         }
 
         #endregion
