@@ -260,11 +260,8 @@ public class BSCharacter : PhysicsActor
         get { return _flying; } 
         set {
             _flying = value;
-            _scene.TaintedObject(delegate()
-            {
-                // simulate flying by changing the effect of gravity
-                BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, LocalID, _flying ? 1f : 0f);
-            });
+            // simulate flying by changing the effect of gravity
+            this.Buoyancy(_flying ? 1f : 0f);
         } 
     }
     public override bool 
@@ -299,6 +296,7 @@ public class BSCharacter : PhysicsActor
         get { return _kinematic; } 
         set { _kinematic = value; } 
     }
+    // neg=fall quickly, 0=1g, 1=0g, pos=float up
     public override float Buoyancy { 
         get { return _buoyancy; } 
         set { _buoyancy = value; 
