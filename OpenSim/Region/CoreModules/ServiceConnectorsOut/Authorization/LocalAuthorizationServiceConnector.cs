@@ -39,13 +39,15 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 {
-    public class LocalAuthorizationServicesConnector : ISharedRegionModule, IAuthorizationService
+    public class LocalAuthorizationServicesConnector : INonSharedRegionModule, IAuthorizationService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAuthorizationService m_AuthorizationService;
+        private Scene m_Scene;
+        private IConfig m_AuthorizationConfig;
 
         private bool m_Enabled = false;
 
@@ -69,33 +71,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                 string name = moduleConfig.GetString("AuthorizationServices", string.Empty);
                 if (name == Name)
                 {
-                    IConfig authorizationConfig = source.Configs["AuthorizationService"];
-                    if (authorizationConfig == null)
-                    {
-                        m_log.Error("[AUTHORIZATION CONNECTOR]: AuthorizationService missing from OpenSim.ini");
-                        return;
-                    }
-
-                    string serviceDll = authorizationConfig.GetString("LocalServiceModule",
-                            String.Empty);
-
-                    if (serviceDll == String.Empty)
-                    {
-                        m_log.Error("[AUTHORIZATION CONNECTOR]: No LocalServiceModule named in section AuthorizationService");
-                        return;
-                    }
-
-                    Object[] args = new Object[] { source };
-                    m_AuthorizationService =
-                            ServerUtils.LoadPlugin<IAuthorizationService>(serviceDll,
-                            args);
-
-                    if (m_AuthorizationService == null)
-                    {
-                        m_log.Error("[AUTHORIZATION CONNECTOR]: Can't load authorization service");
-                        return;
-                    }
                     m_Enabled = true;
+                    m_AuthorizationConfig = source.Configs["AuthorizationService"];
                     m_log.Info("[AUTHORIZATION CONNECTOR]: Local authorization connector enabled");
                 }
             }
@@ -115,6 +92,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                 return;
 
             scene.RegisterModuleInterface<IAuthorizationService>(this);
+            m_Scene = scene;
+
+            scene.EventManager.OnLoginsEnabled += new EventManager.LoginsEnabled(OnLoginsEnabled);
         }
 
         public void RemoveRegion(Scene scene)
@@ -131,9 +111,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                 scene.RegionInfo.RegionName);
         }
 
+        private void OnLoginsEnabled(string regionName)
+        {
+            m_AuthorizationService = new AuthorizationService(m_AuthorizationConfig, m_Scene);
+        }
+
         public bool IsAuthorizedForRegion(
             string userID, string firstName, string lastName, string regionID, out string message)
         {
+            message = "";
+            if (!m_Enabled)
+                return true;
+
             return m_AuthorizationService.IsAuthorizedForRegion(userID, firstName, lastName, regionID, out message);
         }
     }
