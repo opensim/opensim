@@ -44,7 +44,7 @@ using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.Framework.UserManagement
 {
-    class UserData
+    public class UserData
     {
         public UUID Id { get; set; }
         public string FirstName { get; set; }
@@ -57,36 +57,23 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private List<Scene> m_Scenes = new List<Scene>();
+        protected bool m_Enabled;
+        protected List<Scene> m_Scenes = new List<Scene>();
 
         // The cache
-        Dictionary<UUID, UserData> m_UserCache = new Dictionary<UUID, UserData>();
+        protected Dictionary<UUID, UserData> m_UserCache = new Dictionary<UUID, UserData>();
 
         #region ISharedRegionModule
 
         public void Initialise(IConfigSource config)
         {
-            //m_Enabled = config.Configs["Modules"].GetBoolean("LibraryModule", m_Enabled);
-            //if (m_Enabled)
-            //{
-            //    IConfig libConfig = config.Configs["LibraryService"];
-            //    if (libConfig != null)
-            //    {
-            //        string dllName = libConfig.GetString("LocalServiceModule", string.Empty);
-            //        m_log.Debug("[LIBRARY MODULE]: Library service dll is " + dllName);
-            //        if (dllName != string.Empty)
-            //        {
-            //            Object[] args = new Object[] { config };
-            //            m_Library = ServerUtils.LoadPlugin<ILibraryService>(dllName, args);
-            //        }
-            //    }
-            //}
-            MainConsole.Instance.Commands.AddCommand("Users", true,
-                "show names",
-                "show names",
-                "Show the bindings between user UUIDs and user names",
-                String.Empty,
-                HandleShowUsers);
+            string umanmod = config.Configs["Modules"].GetString("UserManagementModule", Name);
+            if (umanmod == Name)
+            {
+                m_Enabled = true;
+                RegisterConsoleCmds();
+                m_log.DebugFormat("[USER MANAGEMENT MODULE]: {0} is enabled", Name);
+            }
         }
 
         public bool IsSharedModule
@@ -94,9 +81,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             get { return true; }
         }
 
-        public string Name
+        public virtual string Name
         {
-            get { return "UserManagement Module"; }
+            get { return "BasicUserManagementModule"; }
         }
 
         public Type ReplaceableInterface
@@ -106,17 +93,23 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public void AddRegion(Scene scene)
         {
-            m_Scenes.Add(scene);
+            if (m_Enabled)
+            {
+                m_Scenes.Add(scene);
 
-            scene.RegisterModuleInterface<IUserManagement>(this);
-            scene.EventManager.OnNewClient += new EventManager.OnNewClientDelegate(EventManager_OnNewClient);
-            scene.EventManager.OnPrimsLoaded += new EventManager.PrimsLoaded(EventManager_OnPrimsLoaded);
+                scene.RegisterModuleInterface<IUserManagement>(this);
+                scene.EventManager.OnNewClient += new EventManager.OnNewClientDelegate(EventManager_OnNewClient);
+                scene.EventManager.OnPrimsLoaded += new EventManager.PrimsLoaded(EventManager_OnPrimsLoaded);
+            }
         }
 
         public void RemoveRegion(Scene scene)
         {
-            scene.UnregisterModuleInterface<IUserManagement>(this);
-            m_Scenes.Remove(scene);
+            if (m_Enabled)
+            {
+                scene.UnregisterModuleInterface<IUserManagement>(this);
+                m_Scenes.Remove(scene);
+            }
         }
 
         public void RegionLoaded(Scene s)
@@ -183,16 +176,31 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         {
             //EventManager.TriggerAvatarPickerRequest();
 
-            List<UserAccount> accounts = m_Scenes[0].UserAccountService.GetUserAccounts(m_Scenes[0].RegionInfo.ScopeID, query);
+            m_log.DebugFormat("[USER MANAGEMENT MODULE]: HandleAvatarPickerRequest for {0}", query);
 
-            if (accounts == null)
-                return;
+            List<UserAccount> accs = m_Scenes[0].UserAccountService.GetUserAccounts(m_Scenes[0].RegionInfo.ScopeID, query);
+
+            List<UserData> users = new List<UserData>();
+            if (accs != null)
+            {
+                m_log.DebugFormat("[USER MANAGEMENT MODULE]: Found {0} users", accs.Count);
+                foreach (UserAccount acc in accs)
+                {
+                    UserData ud = new UserData();
+                    ud.FirstName = acc.FirstName;
+                    ud.LastName = acc.LastName;
+                    ud.Id = acc.PrincipalID;
+                    users.Add(ud);
+                }
+            }
+
+            AddAdditionalUsers(avatarID, query, users);
 
             AvatarPickerReplyPacket replyPacket = (AvatarPickerReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarPickerReply);
             // TODO: don't create new blocks if recycling an old packet
 
             AvatarPickerReplyPacket.DataBlock[] searchData =
-                new AvatarPickerReplyPacket.DataBlock[accounts.Count];
+                new AvatarPickerReplyPacket.DataBlock[users.Count];
             AvatarPickerReplyPacket.AgentDataBlock agentData = new AvatarPickerReplyPacket.AgentDataBlock();
 
             agentData.AgentID = avatarID;
@@ -201,16 +209,16 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             //byte[] bytes = new byte[AvatarResponses.Count*32];
 
             int i = 0;
-            foreach (UserAccount item in accounts)
+            foreach (UserData item in users)
             {
-                UUID translatedIDtem = item.PrincipalID;
+                UUID translatedIDtem = item.Id;
                 searchData[i] = new AvatarPickerReplyPacket.DataBlock();
                 searchData[i].AvatarID = translatedIDtem;
                 searchData[i].FirstName = Utils.StringToBytes((string)item.FirstName);
                 searchData[i].LastName = Utils.StringToBytes((string)item.LastName);
                 i++;
             }
-            if (accounts.Count == 0)
+            if (users.Count == 0)
             {
                 searchData = new AvatarPickerReplyPacket.DataBlock[0];
             }
@@ -230,6 +238,10 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 data_args.Add(data_arg);
             }
             client.SendAvatarPickerReply(agent_data, data_args);
+        }
+
+        protected virtual void AddAdditionalUsers(UUID avatarID, string query, List<UserData> users)
+        {
         }
 
         #endregion Event Handlers
@@ -487,13 +499,23 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         #endregion IUserManagement
 
+        protected void RegisterConsoleCmds()
+        {
+            MainConsole.Instance.Commands.AddCommand("Users", true,
+                "show names",
+                "show names",
+                "Show the bindings between user UUIDs and user names",
+                String.Empty,
+                HandleShowUsers);
+        }
+
         private void HandleShowUsers(string module, string[] cmd)
         {
             lock (m_UserCache)
             {
                 if (m_UserCache.Count == 0)
                 {
-                    MainConsole.Instance.Output("No users not found");
+                    MainConsole.Instance.Output("No users found");
                     return;
                 }
     
