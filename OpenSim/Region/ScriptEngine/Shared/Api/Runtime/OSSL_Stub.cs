@@ -863,5 +863,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osUnixTimeToTimestamp(time);
         }
+
+        public LSL_String osGetInventoryDesc(string item)
+        {
+            return m_OSSL_Functions.osGetInventoryDesc(item);
+        }
     }
 }

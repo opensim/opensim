@@ -107,6 +107,7 @@ what it is today.
 * M.Igarashi
 * maimedleech
 * Mana Janus
+* MarcelEdward
 * Mic Bowman
 * Michelle Argus
 * Michael Cortez (The Flotsam Project, http://osflotsam.org/)
