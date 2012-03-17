@@ -38,6 +38,7 @@ using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors.Hypergrid;
 
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using log4net;
 using Nini.Config;
 
@@ -149,7 +150,15 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         void EventManager_OnNewClient(IClientAPI client)
         {
+            client.OnConnectionClosed += new Action<IClientAPI>(HandleConnectionClosed);
             client.OnNameFromUUIDRequest += new UUIDNameRequest(HandleUUIDNameRequest);
+            client.OnAvatarPickerRequest += new AvatarPickerRequest(HandleAvatarPickerRequest);
+        }
+
+        void HandleConnectionClosed(IClientAPI client)
+        {
+            client.OnNameFromUUIDRequest -= new UUIDNameRequest(HandleUUIDNameRequest);
+            client.OnAvatarPickerRequest -= new AvatarPickerRequest(HandleAvatarPickerRequest);
         }
 
         void HandleUUIDNameRequest(UUID uuid, IClientAPI remote_client)
@@ -168,6 +177,59 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 }
 
             }
+        }
+
+        public void HandleAvatarPickerRequest(IClientAPI client, UUID avatarID, UUID RequestID, string query)
+        {
+            //EventManager.TriggerAvatarPickerRequest();
+
+            List<UserAccount> accounts = m_Scenes[0].UserAccountService.GetUserAccounts(m_Scenes[0].RegionInfo.ScopeID, query);
+
+            if (accounts == null)
+                return;
+
+            AvatarPickerReplyPacket replyPacket = (AvatarPickerReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarPickerReply);
+            // TODO: don't create new blocks if recycling an old packet
+
+            AvatarPickerReplyPacket.DataBlock[] searchData =
+                new AvatarPickerReplyPacket.DataBlock[accounts.Count];
+            AvatarPickerReplyPacket.AgentDataBlock agentData = new AvatarPickerReplyPacket.AgentDataBlock();
+
+            agentData.AgentID = avatarID;
+            agentData.QueryID = RequestID;
+            replyPacket.AgentData = agentData;
+            //byte[] bytes = new byte[AvatarResponses.Count*32];
+
+            int i = 0;
+            foreach (UserAccount item in accounts)
+            {
+                UUID translatedIDtem = item.PrincipalID;
+                searchData[i] = new AvatarPickerReplyPacket.DataBlock();
+                searchData[i].AvatarID = translatedIDtem;
+                searchData[i].FirstName = Utils.StringToBytes((string)item.FirstName);
+                searchData[i].LastName = Utils.StringToBytes((string)item.LastName);
+                i++;
+            }
+            if (accounts.Count == 0)
+            {
+                searchData = new AvatarPickerReplyPacket.DataBlock[0];
+            }
+            replyPacket.Data = searchData;
+
+            AvatarPickerReplyAgentDataArgs agent_data = new AvatarPickerReplyAgentDataArgs();
+            agent_data.AgentID = replyPacket.AgentData.AgentID;
+            agent_data.QueryID = replyPacket.AgentData.QueryID;
+
+            List<AvatarPickerReplyDataArgs> data_args = new List<AvatarPickerReplyDataArgs>();
+            for (i = 0; i < replyPacket.Data.Length; i++)
+            {
+                AvatarPickerReplyDataArgs data_arg = new AvatarPickerReplyDataArgs();
+                data_arg.AvatarID = replyPacket.Data[i].AvatarID;
+                data_arg.FirstName = replyPacket.Data[i].FirstName;
+                data_arg.LastName = replyPacket.Data[i].LastName;
+                data_args.Add(data_arg);
+            }
+            client.SendAvatarPickerReply(agent_data, data_args);
         }
 
         #endregion Event Handlers
