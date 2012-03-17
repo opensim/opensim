@@ -229,5 +229,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_List osGetAvatarList();
 
         LSL_String osUnixTimeToTimestamp(long time);
+
+        LSL_String osGetInventoryDesc(string item);
     }
 }
