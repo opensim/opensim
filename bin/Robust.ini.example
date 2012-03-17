@@ -58,6 +58,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ; * in turn, reads the asset loader and database connection information
 ; *
 [AssetService]
+    StorageProvider = "OpenSim.Data.MySQL.dll:MySQLAssetData"
     LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "./assets/AssetSets.xml"
