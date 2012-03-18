@@ -91,7 +91,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 bool found = false;
                 foreach (UserData d in m_UserCache.Values)
                 {
-                    if (d.LastName.StartsWith("@") && (d.FirstName.Equals(words[0]) || d.LastName.Equals(words[1])))
+                    if (d.LastName.StartsWith("@") && 
+                        (d.FirstName.ToLower().Equals(words[0].ToLower()) ||
+                         d.LastName.ToLower().Equals(words[1].ToLower())))
                     {
                         users.Add(d);
                         found = true;
@@ -109,7 +111,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             {
                 foreach (UserData d in m_UserCache.Values)
                 {
-                    if (d.LastName.StartsWith("@") && (d.FirstName.StartsWith(query) || d.LastName.StartsWith(query)))
+                    if (d.LastName.StartsWith("@") && 
+                        (d.FirstName.ToLower().StartsWith(query.ToLower()) || 
+                         d.LastName.ToLower().StartsWith(query.ToLower())))
                         users.Add(d);
                 }
             }
