@@ -183,7 +183,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             List<UserData> users = new List<UserData>();
             if (accs != null)
             {
-                m_log.DebugFormat("[USER MANAGEMENT MODULE]: Found {0} users", accs.Count);
                 foreach (UserAccount acc in accs)
                 {
                     UserData ud = new UserData();

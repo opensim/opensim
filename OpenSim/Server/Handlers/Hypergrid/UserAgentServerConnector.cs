@@ -96,6 +96,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             server.AddXmlRPCHandler("locate_user", LocateUser, false);
             server.AddXmlRPCHandler("get_uui", GetUUI, false);
+            server.AddXmlRPCHandler("get_uuid", GetUUID, false);
 
             server.AddHTTPHandler("/homeagent/", new HomeAgentHandler(m_HomeUsersService, loginServerIP, proxy).Handler);
         }
@@ -410,8 +411,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
         }
 
         /// <summary>
-        /// Locates the user.
-        /// This is a sensitive operation, only authorized IP addresses can perform it.
+        /// Returns the UUI of a user given a UUID.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="remoteClient"></param>
@@ -445,5 +445,33 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         }
 
+        /// <summary>
+        /// Gets the UUID of a user given First name, Last name.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="remoteClient"></param>
+        /// <returns></returns>
+        public XmlRpcResponse GetUUID(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            Hashtable hash = new Hashtable();
+
+            Hashtable requestData = (Hashtable)request.Params[0];
+            //string host = (string)requestData["host"];
+            //string portstr = (string)requestData["port"];
+            if (requestData.ContainsKey("first") && requestData.ContainsKey("last"))
+            {
+                UUID userID = UUID.Zero;
+                string first = (string)requestData["first"];
+
+                string last = (string)requestData["last"];
+                UUID uuid = m_HomeUsersService.GetUUID(first, last);
+                hash["UUID"] = uuid.ToString();
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = hash;
+            return response;
+
+        }
     }
 }

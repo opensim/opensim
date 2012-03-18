@@ -92,19 +92,47 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 foreach (UserData d in m_UserCache.Values)
                 {
                     if (d.LastName.StartsWith("@") && 
-                        (d.FirstName.ToLower().Equals(words[0].ToLower()) ||
-                         d.LastName.ToLower().Equals(words[1].ToLower())))
+                        d.FirstName.ToLower().Equals(words[0].ToLower()) &&
+                        d.LastName.ToLower().Equals(words[1].ToLower()))
                     {
                         users.Add(d);
                         found = true;
                         break;
                     }
                 }
-                if (!found) // This is it! Let's ask the other world
+
+                if (!found && words[1].StartsWith("@") && words[0].Contains(".")) // This is it! Let's ask the other world
                 {
-                    // TODO
-                    //UserAgentServiceConnector uasConn = new UserAgentServiceConnector(words[0]);
-                    //uasConn.GetUserInfo(...);
+                    string[] names = words[0].Split(new char[] { '.' });
+                    if (names.Length >= 2)
+                    {
+
+                        string uriStr = "http://" + words[1].Substring(1); // remove the @
+                        // Let's check that the last name is a valid address
+                        try
+                        {
+                            new Uri(uriStr);
+                        }
+                        catch (UriFormatException)
+                        {
+                            return;
+                        }
+
+                        UserAgentServiceConnector uasConn = new UserAgentServiceConnector(uriStr);
+                        UUID userID = uasConn.GetUUID(names[0], names[1]);
+                        if (!userID.Equals(UUID.Zero))
+                        {
+                            UserData ud = new UserData();
+                            ud.Id = userID;
+                            ud.FirstName = words[0];
+                            ud.LastName = words[1];
+                            users.Add(ud);
+                            AddUser(userID, ud.FirstName, ud.LastName, uriStr);
+                            m_log.DebugFormat("[USER MANAGEMENT MODULE]: User {0} {1} found", words[0], words[1]);
+                        }
+                        else
+                            m_log.DebugFormat("[USER MANAGEMENT MODULE]: User {0} {1} not found", words[0], words[1]);
+                    }
                 }
             }
             else
