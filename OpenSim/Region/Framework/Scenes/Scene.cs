@@ -1632,8 +1632,15 @@ namespace OpenSim.Region.Framework.Scenes
                 double[,] map = SimulationDataService.LoadTerrain(RegionInfo.RegionID);
                 if (map == null)
                 {
-                    m_log.Info("[TERRAIN]: No default terrain. Generating a new terrain.");
-                    Heightmap = new TerrainChannel();
+                    // This should be in the Terrain module, but it isn't because
+                    // the heightmap is needed _way_ before the modules are initialized...
+                    IConfig terrainConfig = m_config.Configs["Terrain"];
+                    String m_InitialTerrain = "pinhead-island";
+                    if (terrainConfig != null)
+                        m_InitialTerrain = terrainConfig.GetString("InitialTerrain", m_InitialTerrain);
+
+                    m_log.InfoFormat("[TERRAIN]: No default terrain. Generating a new terrain {0}.", m_InitialTerrain);
+                    Heightmap = new TerrainChannel(m_InitialTerrain);
 
                     SimulationDataService.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
                 }
@@ -2894,7 +2901,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //client.OnNameFromUUIDRequest += HandleUUIDNameRequest;
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
-            client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
             client.OnSetStartLocationRequest += SetHomeRezPoint;
             client.OnRegionHandleRequest += RegionHandleRequest;
         }
@@ -3022,7 +3028,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //client.OnNameFromUUIDRequest -= HandleUUIDNameRequest;
             client.OnMoneyTransferRequest -= ProcessMoneyTransferRequest;
-            client.OnAvatarPickerRequest -= ProcessAvatarPickerRequest;
             client.OnSetStartLocationRequest -= SetHomeRezPoint;
             client.OnRegionHandleRequest -= RegionHandleRequest;
         }
@@ -3693,9 +3698,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!AuthorizationService.IsAuthorizedForRegion(
                     agent.AgentID.ToString(), agent.firstname, agent.lastname, RegionInfo.RegionID.ToString(), out reason))
                 {
-                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the region",
-                                     agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-
+                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because {4}",
+                                     agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName, reason);
+                    
                     return false;
                 }
             }

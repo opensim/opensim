@@ -790,7 +790,9 @@
     ;# {Enabled} {} {Enable Non Player Character (NPC) facilities} {true false} false
     ; Enabled = false
 
-
+[Terrain]
+    ;# {InitialTerrain} {} {Initial terrain type} {pinhead-island flat} pinhead-island
+    ; InitialTerrain = "pinhead-island"
 
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini

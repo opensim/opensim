@@ -35,6 +35,7 @@ using Microsoft.CSharp;
 //using Microsoft.JScript;
 using Microsoft.VisualBasic;
 using log4net;
+
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenMetaverse;
@@ -293,6 +294,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
 //            m_log.DebugFormat("[Compiler]: Compiling script\n{0}", Script);
 
+            IScriptModuleComms comms = m_scriptEngine.World.RequestModuleInterface<IScriptModuleComms>();
+
             linemap = null;
             m_warnings.Clear();
 
@@ -382,7 +385,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (language == enumCompileType.lsl)
             {
                 // Its LSL, convert it to C#
-                LSL_Converter = (ICodeConverter)new CSCodeGenerator();
+                LSL_Converter = (ICodeConverter)new CSCodeGenerator(comms);
                 compileScript = LSL_Converter.Convert(Script);
 
                 // copy converter warnings into our warnings.

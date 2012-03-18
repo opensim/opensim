@@ -1664,7 +1664,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (e.OwnerID == targetID)
                         {
-                            if (e.scriptScore >= 0.01)
+                            if (e.ContainsScripts())
                             {
                                 returns.Add(e);
                             }
@@ -1681,7 +1681,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                             ILandObject landobject = ((Scene)client.Scene).LandChannel.GetLandObject(e.AbsolutePosition.X, e.AbsolutePosition.Y);
                             if (landobject.LandData.OwnerID != e.OwnerID)
                             {
-                                if (e.scriptScore >= 0.01)
+                                if (e.ContainsScripts())
                                 {
                                     returns.Add(e);
                                 }

@@ -40,6 +40,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
     public interface IMOD_Api
     {
+        // Invocation functions
+        string modInvokeS(string fname, params object[] parms);
+        int modInvokeI(string fname, params object[] parms);
+        float modInvokeF(string fname, params object[] parms);
+        // vector modInvokeV(string fname, params object[] parms);
+        // rotation modInvokeV(string fname, params object[] parms);
+        // key modInvokeK(string fname, params object[] parms);
+        // list modInvokeL(string fname, params object[] parms);
+        
         //Module functions
         string modSendCommand(string modules, string command, string k);
     }

@@ -81,12 +81,15 @@ namespace OpenSim.Framework
 
         private static uint nextXferID = 5000;
         private static Random randomClass = new Random();
+
         // Get a list of invalid file characters (OS dependent)
         private static string regexInvalidFileChars = "[" + new String(Path.GetInvalidFileNameChars()) + "]";
         private static string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
         private static object XferLock = new object();
-        /// <summary>Thread pool used for Util.FireAndForget if
-        /// FireAndForgetMethod.SmartThreadPool is used</summary>
+
+        /// <summary>
+        /// Thread pool used for Util.FireAndForget if FireAndForgetMethod.SmartThreadPool is used
+        /// </summary>
         private static SmartThreadPool m_ThreadPool;
 
         // Unix-epoch starts at January 1st 1970, 00:00:00 UTC. And all our times in the server are (or at least should be) in UTC.
@@ -143,7 +146,6 @@ namespace OpenSim.Framework
         {
             return lerp(y, lerp(x, a, b), lerp(x, c, d));
         }
-
 
         public static Encoding UTF8 = Encoding.UTF8;
 
@@ -1681,6 +1683,61 @@ namespace OpenSim.Framework
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        /// <summary>
+        /// Get a thread pool report.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetThreadPoolReport()
+        {
+            string threadPoolUsed = null;
+            int maxThreads = 0;
+            int minThreads = 0;
+            int allocatedThreads = 0;
+            int inUseThreads = 0;
+            int waitingCallbacks = 0;
+            int completionPortThreads = 0;
+
+            StringBuilder sb = new StringBuilder();
+            if (FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
+            {
+                threadPoolUsed = "SmartThreadPool";
+                maxThreads = m_ThreadPool.MaxThreads;
+                minThreads = m_ThreadPool.MinThreads;
+                inUseThreads = m_ThreadPool.InUseThreads;
+                allocatedThreads = m_ThreadPool.ActiveThreads;
+                waitingCallbacks = m_ThreadPool.WaitingCallbacks;
+            }
+            else if (
+                FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem
+                    || FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem)
+            {
+                threadPoolUsed = "BuiltInThreadPool";
+                ThreadPool.GetMaxThreads(out maxThreads, out completionPortThreads);
+                ThreadPool.GetMinThreads(out minThreads, out completionPortThreads);
+                int availableThreads;
+                ThreadPool.GetAvailableThreads(out availableThreads, out completionPortThreads);
+                inUseThreads = maxThreads - availableThreads;
+                allocatedThreads = -1;
+                waitingCallbacks = -1;
+            }
+
+            if (threadPoolUsed != null)
+            {
+                sb.AppendFormat("Thread pool used           : {0}\n", threadPoolUsed);
+                sb.AppendFormat("Max threads                : {0}\n", maxThreads);
+                sb.AppendFormat("Min threads                : {0}\n", minThreads);
+                sb.AppendFormat("Allocated threads          : {0}\n", allocatedThreads < 0 ? "not applicable" : allocatedThreads.ToString());
+                sb.AppendFormat("In use threads             : {0}\n", inUseThreads);
+                sb.AppendFormat("Work items waiting         : {0}\n", waitingCallbacks < 0 ? "not available" : waitingCallbacks.ToString());
+            }
+            else
+            {
+                sb.AppendFormat("Thread pool not used\n");
+            }
+
+            return sb.ToString();
         }
 
         private static object SmartThreadPoolCallback(object o)

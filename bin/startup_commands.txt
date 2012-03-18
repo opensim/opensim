@@ -1,0 +1,3 @@
+; You can place region console commands here to execute once the simulator has finished starting up 
+; e.g. show stats
+; Lines start with ; are comments.

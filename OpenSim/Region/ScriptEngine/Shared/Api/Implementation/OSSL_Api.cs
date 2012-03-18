@@ -3003,5 +3003,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return date.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
         }
+
+        /// <summary>
+        /// Get the description from an inventory item
+        /// </summary>
+        /// <param name="inventoryName"></param>
+        /// <returns>Item description</returns>  
+        public LSL_String osGetInventoryDesc(string item)
+        {
+            m_host.AddScriptLPS(1);
+
+            lock (m_host.TaskInventory)
+            {
+                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                {
+                    if (inv.Value.Name == item)
+                    {
+                        return inv.Value.Description.ToString();
+                    }
+                }
+            }
+
+            return String.Empty;
+        }
     }
 }
