@@ -235,6 +235,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         parms.terrainHitFraction = 0.8f;
         parms.terrainRestitution = 0f;
         parms.avatarFriction = 0.5f;
+        parms.avatarRestitution = 0.0f;
         parms.avatarDensity = 60f;
         parms.avatarCapsuleRadius = 0.37f;
         parms.avatarCapsuleHeight = 1.5f; // 2.140599f
@@ -279,7 +280,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 parms.terrainHitFraction = pConfig.GetFloat("TerrainHitFraction", parms.terrainHitFraction);
                 parms.terrainRestitution = pConfig.GetFloat("TerrainRestitution", parms.terrainRestitution);
                 parms.avatarFriction = pConfig.GetFloat("AvatarFriction", parms.avatarFriction);
+                parms.avatarRestitution = pConfig.GetFloat("AvatarRestitution", parms.avatarRestitution);
                 parms.avatarDensity = pConfig.GetFloat("AvatarDensity", parms.avatarDensity);
+                parms.avatarRestitution = pConfig.GetFloat("AvatarRestitution", parms.avatarRestitution);
                 parms.avatarCapsuleRadius = pConfig.GetFloat("AvatarCapsuleRadius", parms.avatarCapsuleRadius);
                 parms.avatarCapsuleHeight = pConfig.GetFloat("AvatarCapsuleHeight", parms.avatarCapsuleHeight);
             }
