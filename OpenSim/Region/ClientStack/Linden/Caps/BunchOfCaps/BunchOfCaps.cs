@@ -845,9 +845,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public string GetObjectCost(string request, string path,
                 string param, IOSHttpRequest httpRequest,
                 IOSHttpResponse httpResponse)
-        {
-            // see being triggered but see no efect .. have something wrong ??
-            // 
+        {          
             OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
             OSDMap resp = new OSDMap();
 
@@ -856,19 +854,29 @@ namespace OpenSim.Region.ClientStack.Linden
             for (int i = 0; i < object_ids.Count; i++)
             {
                 UUID uuid = object_ids[i].AsUUID();
+                                
+                SceneObjectPart part = m_Scene.GetSceneObjectPart(uuid);
 
-                // only see root parts .. so guess should go by SOG only
-                SceneObjectPart obj = m_Scene.GetSceneObjectPart(uuid);
-                if (obj != null)
+                if (part != null)
                 {
-                    OSDMap object_data = new OSDMap();
+                    SceneObjectGroup grp = part.ParentGroup;
+                    if (grp != null)
+                    {
+                        float linksetCost;
+                        float linksetPhysCost;
+                        float partCost;
+                        float partPhysCost;
 
-                    object_data["linked_set_resource_cost"] = 1.0f;
-                    object_data["resource_cost"] = 1.0f;
-                    object_data["physics_cost"] = 1.0f;
-                    object_data["linked_set_physics_cost"] = 1.0f;
+                        grp.GetResourcesCosts(part, out linksetCost, out linksetPhysCost, out partCost, out  partPhysCost);
 
-                    resp[uuid.ToString()] = object_data;
+                        OSDMap object_data = new OSDMap();
+                        object_data["linked_set_resource_cost"] = linksetCost;
+                        object_data["resource_cost"] = partCost;
+                        object_data["physics_cost"] = partPhysCost;
+                        object_data["linked_set_physics_cost"] = linksetPhysCost;
+
+                        resp[uuid.ToString()] = object_data;
+                    }
                 }
             }
 
@@ -899,13 +907,17 @@ namespace OpenSim.Region.ClientStack.Linden
                 for (int i = 0; i < object_ids.Count; i++)
                 {
                     UUID uuid = object_ids[i].AsUUID();
+                    float Physc;
+                    float simulc;
+                    float streamc;
 
-                    SceneObjectPart obj = m_Scene.GetSceneObjectPart(uuid);
-                    if (obj != null)
+                    SceneObjectGroup grp = m_Scene.GetGroupByPrim(uuid);
+                    if (grp != null)
                     {
-                        phys += 0.1f; // just to see...
-                        stream += 0.2f;
-                        simul += 0.5f;
+                        grp.GetSelectedCosts(out Physc, out streamc, out simulc);
+                        phys += Physc;
+                        stream += streamc;
+                        simul += simulc;
                     }
                 }
             }
@@ -920,12 +932,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     UUID uuid = object_ids[i].AsUUID();
 
-                    SceneObjectPart obj = m_Scene.GetSceneObjectPart(uuid);
-                    if (obj != null)
+                    SceneObjectPart part = m_Scene.GetSceneObjectPart(uuid);
+                    if (part != null)
                     {
-                        phys += 0.1f;
-                        stream += 0.2f;
-                        simul += 0.5f;
+                        phys += part.PhysicsCost;
+                        stream += part.StreamingCost;
+                        simul += part.SimulationCost;
                     }
                 }
             }
