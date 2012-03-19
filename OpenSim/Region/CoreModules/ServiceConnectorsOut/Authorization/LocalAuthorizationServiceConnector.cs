@@ -93,8 +93,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 
             scene.RegisterModuleInterface<IAuthorizationService>(this);
             m_Scene = scene;
-
-            scene.EventManager.OnLoginsEnabled += new EventManager.LoginsEnabled(OnLoginsEnabled);
         }
 
         public void RemoveRegion(Scene scene)
@@ -106,14 +104,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             if (!m_Enabled)
                 return;
 
+            m_AuthorizationService = new AuthorizationService(m_AuthorizationConfig, m_Scene);
+
             m_log.InfoFormat(
                 "[AUTHORIZATION CONNECTOR]: Enabled local authorization for region {0}",
                 scene.RegionInfo.RegionName);
-        }
-
-        private void OnLoginsEnabled(string regionName)
-        {
-            m_AuthorizationService = new AuthorizationService(m_AuthorizationConfig, m_Scene);
         }
 
         public bool IsAuthorizedForRegion(
