@@ -42,7 +42,7 @@ namespace OpenSim.Services.AssetService
     /// This will be developed into a de-duplicating asset service.
     /// XXX: Currently it's a just a copy of the existing AssetService. so please don't attempt to use it.
     /// </summary>
-    public class XAssetService : AssetServiceBase, IAssetService
+    public class XAssetService : XAssetServiceBase, IAssetService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
