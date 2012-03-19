@@ -838,7 +838,6 @@ namespace OpenSim.Region.ClientStack.Linden
             }
 
             string response = OSDParser.SerializeLLSDXmlString(resp);
-            Console.WriteLine(response);
             return response;
         }
 
@@ -881,7 +880,6 @@ namespace OpenSim.Region.ClientStack.Linden
             }
 
             string response = OSDParser.SerializeLLSDXmlString(resp);
-            Console.WriteLine(response);
             return response; 
         }
 
@@ -954,14 +952,8 @@ namespace OpenSim.Region.ClientStack.Linden
             }
 
             string response = OSDParser.SerializeLLSDXmlString(resp);
-            Console.WriteLine(response);
             return response; 
         }
-        
-
-
-
-
     }
 
     public class AssetUploader
