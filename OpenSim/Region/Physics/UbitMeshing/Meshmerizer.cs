@@ -41,6 +41,7 @@ using Nini.Config;
 using System.Reflection;
 using System.IO;
 using ComponentAce.Compression.Libs.zlib;
+using OpenSim.Region.Physics.ConvexDecompositionDotNet;
 
 namespace OpenSim.Region.Physics.Meshing
 {
@@ -256,7 +257,7 @@ namespace OpenSim.Region.Physics.Meshing
         /// <param name="size"></param>
         /// <param name="lod"></param>
         /// <returns></returns>
-        private Mesh CreateMeshFromPrimMesher(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
+        private Mesh CreateMeshFromPrimMesher(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool convex)
         {
 //            m_log.DebugFormat(
 //                "[MESH]: Creating physics proxy for {0}, shape {1}",
@@ -272,7 +273,7 @@ namespace OpenSim.Region.Physics.Meshing
                     if (!useMeshiesPhysicsMesh)
                         return null;
 
-                    if (!GenerateCoordsAndFacesFromPrimMeshData(primName, primShape, size, out coords, out faces))
+                    if (!GenerateCoordsAndFacesFromPrimMeshData(primName, primShape, size, out coords, out faces, convex))
                         return null;
                 }
                 else
@@ -296,21 +297,19 @@ namespace OpenSim.Region.Physics.Meshing
             int numCoords = coords.Count;
             int numFaces = faces.Count;
 
-            // Create the list of vertices
-            List<Vertex> vertices = new List<Vertex>();
-            for (int i = 0; i < numCoords; i++)
-            {
-                Coord c = coords[i];
-                vertices.Add(new Vertex(c.X, c.Y, c.Z));
-            }
-
             Mesh mesh = new Mesh();
             // Add the corresponding triangles to the mesh
             for (int i = 0; i < numFaces; i++)
             {
                 Face f = faces[i];
-                mesh.Add(new Triangle(vertices[f.v1], vertices[f.v2], vertices[f.v3]));
+                mesh.Add(new Triangle(coords[f.v1].X, coords[f.v1].Y, coords[f.v1].Z,
+                                        coords[f.v2].X, coords[f.v2].Y, coords[f.v2].Z,
+                                        coords[f.v3].X, coords[f.v3].Y, coords[f.v3].Z));
             }
+
+
+//            mesh.DumpRaw("c:\\lixo", "lixo", "lixo");
+            mesh.DumpRaw(".", "lixo", "lixo");
 
             return mesh;
         }
@@ -325,9 +324,11 @@ namespace OpenSim.Region.Physics.Meshing
         /// <param name="faces">Faces are added to this list by the method.</param>
         /// <returns>true if coords and faces were successfully generated, false if not</returns>
         private bool GenerateCoordsAndFacesFromPrimMeshData(
-            string primName, PrimitiveBaseShape primShape, Vector3 size, out List<Coord> coords, out List<Face> faces)
+            string primName, PrimitiveBaseShape primShape, Vector3 size, out List<Coord> coords, out List<Face> faces, bool convex)
         {
 //            m_log.DebugFormat("[MESH]: experimental mesh proxy generation for {0}", primName);
+
+            bool usemesh = false;
 
             coords = new List<Coord>();
             faces = new List<Face>();
@@ -365,14 +366,25 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 OSDMap physicsParms = null;
                 OSDMap map = (OSDMap)meshOsd;
-                if (map.ContainsKey("physics_shape"))
-                    physicsParms = (OSDMap)map["physics_shape"]; // old asset format
-                else if (map.ContainsKey("physics_mesh"))
-                    physicsParms = (OSDMap)map["physics_mesh"]; // new asset format
+
+                if (!convex)
+                {
+                    if (map.ContainsKey("physics_shape"))
+                        physicsParms = (OSDMap)map["physics_shape"]; // old asset format
+                    else if (map.ContainsKey("physics_mesh"))
+                        physicsParms = (OSDMap)map["physics_mesh"]; // new asset format
+
+                    if (physicsParms != null)
+                        usemesh = true;
+                }
+                
+                if(!usemesh && (map.ContainsKey("physics_convex")))
+                        physicsParms = (OSDMap)map["physics_convex"];
+              
 
                 if (physicsParms == null)
                 {
-                    m_log.Warn("[MESH]: no recognized physics mesh found in mesh asset");
+                    m_log.Warn("[MESH]: unknown mesh type");
                     return false;
                 }
 
@@ -416,19 +428,269 @@ namespace OpenSim.Region.Physics.Meshing
                     return false;
                 }
 
-                OSDArray decodedMeshOsdArray = null;
-
-                // physics_shape is an array of OSDMaps, one for each submesh
-                if (decodedMeshOsd is OSDArray)
+                if (usemesh)
                 {
-//                            Console.WriteLine("decodedMeshOsd for {0} - {1}", primName, Util.GetFormattedXml(decodedMeshOsd));
+                    OSDArray decodedMeshOsdArray = null;
 
-                    decodedMeshOsdArray = (OSDArray)decodedMeshOsd;
-                    foreach (OSD subMeshOsd in decodedMeshOsdArray)
+                    // physics_shape is an array of OSDMaps, one for each submesh
+                    if (decodedMeshOsd is OSDArray)
                     {
-                        if (subMeshOsd is OSDMap)
-                            AddSubMesh(subMeshOsd as OSDMap, size, coords, faces);
+                        //                            Console.WriteLine("decodedMeshOsd for {0} - {1}", primName, Util.GetFormattedXml(decodedMeshOsd));
+
+                        decodedMeshOsdArray = (OSDArray)decodedMeshOsd;
+                        foreach (OSD subMeshOsd in decodedMeshOsdArray)
+                        {
+                            if (subMeshOsd is OSDMap)
+                                AddSubMesh(subMeshOsd as OSDMap, size, coords, faces);
+                        }
                     }
+                }
+                else
+                {
+                    OSDMap cmap = (OSDMap)decodedMeshOsd;
+                    if (cmap == null)
+                        return false;
+
+                    byte[] data;
+                    const float invMaxU16 = 1.0f / 65535f;
+                    int t1;
+                    int t2;
+                    int t3;
+                    int i;
+
+                    List<float3> vs = new List<float3>();
+
+                    float3 f3;
+                    PHullResult hullr = new PHullResult();
+
+                    Coord c;
+                    Face f;
+
+                    Vector3 range;
+                    Vector3 min;
+                    int nverts;
+                    int nindexs;
+
+                    if (cmap.ContainsKey("Max"))
+                        range = cmap["Max"].AsVector3();
+                    else
+                        range = new Vector3(0.5f, 0.5f, 0.5f);
+
+                    if (cmap.ContainsKey("Min"))
+                        min = cmap["Min"].AsVector3();
+                    else
+                        min = new Vector3(-0.5f, -0.5f, -0.5f);
+
+                    range = range - min;
+                    range *= invMaxU16;
+
+                    if (!convex && cmap.ContainsKey("HullList") && cmap.ContainsKey("Positions"))
+                    {
+                        List<int> hsizes = new List<int>();
+                        int totalpoints = 0;
+                        data = cmap["HullList"].AsBinary();
+                        for (i = 0; i < data.Length; i++)
+                        {
+                            t1 = data[i];
+                            if (t1 == 0)
+                                t1 = 256;
+                            totalpoints += t1;
+                            hsizes.Add(t1);
+                        }
+
+                        data = cmap["Positions"].AsBinary();
+                        int ptr = 0;
+                        int vertsoffset = 0;
+
+                        if (totalpoints == data.Length / 6) // 2 bytes per coord, 3 coords per point
+                        {
+                            foreach (int hullsize in hsizes)
+                            {
+                                for (i = 0; i < hullsize; i++ )
+                                {
+                                    t1 = data[ptr++];
+                                    t1 += data[ptr++] << 8;
+                                    t2 = data[ptr++];
+                                    t2 += data[ptr++] << 8;
+                                    t3 = data[ptr++];
+                                    t3 += data[ptr++] << 8;
+
+                                    f3 = new float3((t1 * range.X + min.X) * size.X,
+                                              (t2 * range.Y + min.Y) * size.Y,
+                                              (t3 * range.Z + min.Z) * size.Z);
+                                    vs.Add(f3);
+                                }
+
+                                if(hullsize <3)
+                                {
+                                    vs.Clear();
+                                    continue;
+                                }
+
+                                if (hullsize <5)
+                                {
+                                    foreach (float3 point in vs)
+                                    {
+                                        c.X = point.x;
+                                        c.Y = point.y;
+                                        c.Z = point.z;
+                                        coords.Add(c);
+                                    }
+                                    f = new Face(vertsoffset, vertsoffset + 1, vertsoffset + 2);
+                                    faces.Add(f);
+
+                                    if (hullsize == 4)
+                                    {
+                                        // not sure about orientation..
+                                        f = new Face(vertsoffset, vertsoffset + 2, vertsoffset + 3);
+                                        faces.Add(f);
+                                        f = new Face(vertsoffset, vertsoffset + 3, vertsoffset + 1);
+                                        faces.Add(f);
+                                        f = new Face(vertsoffset + 3, vertsoffset + 2, vertsoffset + 1);
+                                        faces.Add(f);
+                                    }
+                                    vertsoffset += vs.Count;
+                                    vs.Clear(); 
+                                    continue;
+                                }
+
+                                if (!HullUtils.ComputeHull(vs, ref hullr, 0, 0.0f))
+                                {
+                                    vs.Clear();
+                                    continue;
+                                }
+
+                                nverts = hullr.Vertices.Count;
+                                nindexs = hullr.Indices.Count;
+
+                                if (nindexs % 3 != 0)
+                                {
+                                    vs.Clear();
+                                    continue;
+                                }
+
+                                for (i = 0; i < nverts; i++)
+                                {
+                                    c.X = hullr.Vertices[i].x;
+                                    c.Y = hullr.Vertices[i].y;
+                                    c.Z = hullr.Vertices[i].z;
+                                    coords.Add(c);
+                                }
+                                
+
+                                for (i = 0; i < nindexs; i += 3)
+                                {
+                                    t1 = hullr.Indices[i];
+                                    if (t1 > nverts)
+                                        break;
+                                    t2 = hullr.Indices[i + 1];
+                                    if (t2 > nverts)
+                                        break;
+                                    t3 = hullr.Indices[i + 2];
+                                    if (t3 > nverts)
+                                        break;
+                                    f = new Face(vertsoffset + t1, vertsoffset + t2, vertsoffset + t3);
+                                    faces.Add(f);
+                                }
+                                vertsoffset += nverts;
+                                vs.Clear();
+                            }
+                        }
+                        if (coords.Count > 0 && faces.Count > 0)
+                            return true;
+                       
+                    }
+
+                    vs.Clear();
+
+                    if (cmap.ContainsKey("BoundingVerts"))
+                    {
+                        data = cmap["BoundingVerts"].AsBinary();
+
+                        for (i = 0; i < data.Length; )
+                        {
+                            t1 = data[i++];
+                            t1 += data[i++] << 8;
+                            t2 = data[i++];
+                            t2 += data[i++] << 8;
+                            t3 = data[i++];
+                            t3 += data[i++] << 8;
+
+                            f3 = new float3((t1 * range.X + min.X) * size.X,
+                                      (t2 * range.Y + min.Y) * size.Y,
+                                      (t3 * range.Z + min.Z) * size.Z);
+                            vs.Add(f3);
+                        }
+
+                        if (vs.Count < 3)
+                        {
+                            vs.Clear();
+                            return false;
+                        }
+
+                        if (vs.Count < 5)
+                        {
+                            foreach (float3 point in vs)
+                            {
+                                c.X = point.x;
+                                c.Y = point.y;
+                                c.Z = point.z;
+                                coords.Add(c);
+                            }
+                            f = new Face(0, 1, 2);
+                            faces.Add(f);
+
+                            if (vs.Count == 4)
+                            {
+                                // not sure about orientation..
+                                f = new Face(0, 2, 3);
+                                faces.Add(f);
+                                f = new Face(0, 3, 1);
+                                faces.Add(f);
+                                f = new Face( 3, 2, 1);
+                                faces.Add(f);
+                            }
+                            vs.Clear();
+                            return true;
+                        }
+
+                        if (!HullUtils.ComputeHull(vs, ref hullr, 0, 0.0f))
+                            return false;
+
+                        nverts = hullr.Vertices.Count;
+                        nindexs = hullr.Indices.Count;
+
+                        if (nindexs % 3 != 0)
+                            return false;
+
+                        for (i = 0; i < nverts; i++)
+                        {
+                            c.X = hullr.Vertices[i].x;
+                            c.Y = hullr.Vertices[i].y;
+                            c.Z = hullr.Vertices[i].z;
+                            coords.Add(c);
+                        }
+                        for (i = 0; i < nindexs; i += 3)
+                        {
+                            t1 = hullr.Indices[i];
+                            if (t1 > nverts)
+                                break;
+                            t2 = hullr.Indices[i + 1];
+                            if (t2 > nverts)
+                                break;
+                            t3 = hullr.Indices[i + 2];
+                            if (t3 > nverts)
+                                break;
+                            f = new Face(t1, t2, t3);
+                            faces.Add(f);
+                        }
+
+                        if (coords.Count > 0 && faces.Count > 0)
+                            return true;
+                    }
+                    else
+                        return false;
+
                 }
             }
 
@@ -714,10 +976,15 @@ namespace OpenSim.Region.Physics.Meshing
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
-            return CreateMesh(primName, primShape, size, lod, false);
+            return CreateMesh(primName, primShape, size, lod, false,false);
         }
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
+        {
+            return CreateMesh(primName, primShape, size, lod, false,false);
+        }
+
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
         {
 #if SPAM
             m_log.DebugFormat("[MESH]: Creating mesh for {0}", primName);
@@ -736,7 +1003,7 @@ namespace OpenSim.Region.Physics.Meshing
             if (size.Y < 0.01f) size.Y = 0.01f;
             if (size.Z < 0.01f) size.Z = 0.01f;
 
-            mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
+            mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod,convex);
 
             if (mesh != null)
             {

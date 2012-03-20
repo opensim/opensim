@@ -270,116 +270,20 @@ public class Triangle
     public Vertex v2;
     public Vertex v3;
 
-    private float radius_square;
-    private float cx;
-    private float cy;
-
     public Triangle(Vertex _v1, Vertex _v2, Vertex _v3)
     {
         v1 = _v1;
         v2 = _v2;
         v3 = _v3;
-
-        CalcCircle();
     }
 
-    public bool isInCircle(float x, float y)
+    public Triangle(float _v1x,float _v1y,float _v1z,
+                    float _v2x,float _v2y,float _v2z,
+                    float _v3x,float _v3y,float _v3z)
     {
-        float dx, dy;
-        float dd;
-
-        dx = x - cx;
-        dy = y - cy;
-
-        dd = dx*dx + dy*dy;
-        if (dd < radius_square)
-            return true;
-        else
-            return false;
-    }
-
-    public bool isDegraded()
-    {
-        // This means, the vertices of this triangle are somewhat strange.
-        // They either line up or at least two of them are identical
-        return (radius_square == 0.0);
-    }
-
-    private void CalcCircle()
-    {
-        // Calculate the center and the radius of a circle given by three points p1, p2, p3
-        // It is assumed, that the triangles vertices are already set correctly
-        double p1x, p2x, p1y, p2y, p3x, p3y;
-
-        // Deviation of this routine:
-        // A circle has the general equation (M-p)^2=r^2, where M and p are vectors
-        // this gives us three equations f(p)=r^2, each for one point p1, p2, p3
-        // putting respectively two equations together gives two equations
-        // f(p1)=f(p2) and f(p1)=f(p3)
-        // bringing all constant terms to one side brings them to the form
-        // M*v1=c1 resp.M*v2=c2 where v1=(p1-p2) and v2=(p1-p3) (still vectors)
-        // and c1, c2 are scalars (Naming conventions like the variables below)
-        // Now using the equations that are formed by the components of the vectors
-        // and isolate Mx lets you make one equation that only holds My
-        // The rest is straight forward and eaasy :-)
-        //
-
-        /* helping variables for temporary results */
-        double c1, c2;
-        double v1x, v1y, v2x, v2y;
-
-        double z, n;
-
-        double rx, ry;
-
-        // Readout the three points, the triangle consists of
-        p1x = v1.X;
-        p1y = v1.Y;
-
-        p2x = v2.X;
-        p2y = v2.Y;
-
-        p3x = v3.X;
-        p3y = v3.Y;
-
-        /* calc helping values first */
-        c1 = (p1x*p1x + p1y*p1y - p2x*p2x - p2y*p2y)/2;
-        c2 = (p1x*p1x + p1y*p1y - p3x*p3x - p3y*p3y)/2;
-
-        v1x = p1x - p2x;
-        v1y = p1y - p2y;
-
-        v2x = p1x - p3x;
-        v2y = p1y - p3y;
-
-        z = (c1*v2x - c2*v1x);
-        n = (v1y*v2x - v2y*v1x);
-
-        if (n == 0.0) // This is no triangle, i.e there are (at least) two points at the same location
-        {
-            radius_square = 0.0f;
-            return;
-        }
-
-        cy = (float) (z/n);
-
-        if (v2x != 0.0)
-        {
-            cx = (float) ((c2 - v2y*cy)/v2x);
-        }
-        else if (v1x != 0.0)
-        {
-            cx = (float) ((c1 - v1y*cy)/v1x);
-        }
-        else
-        {
-            Debug.Assert(false, "Malformed triangle"); /* Both terms zero means nothing good */
-        }
-
-        rx = (p1x - cx);
-        ry = (p1y - cy);
-
-        radius_square = (float) (rx*rx + ry*ry);
+        v1 = new Vertex(_v1x, _v1y, _v1z);
+        v2 = new Vertex(_v2x, _v2y, _v2z);
+        v3 = new Vertex(_v3x, _v3y, _v3z);
     }
 
     public override String ToString()
