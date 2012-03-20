@@ -1249,7 +1249,7 @@ namespace OpenSim.Data.MySQL
                 prim.KeyframeMotion = null;
             }
 
-            prim.PhysicsShapeType = (byte)row["PhysicsShapeType"];
+            prim.PhysicsShapeType = (byte)Convert.ToInt32(row["PhysicsShapeType"].ToString());
             prim.Density = (float)(double)row["Density"];
             prim.GravityModifier = (float)(double)row["GravityModifier"];
             prim.Friction = (float)(double)row["Friction"];
