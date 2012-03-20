@@ -1184,9 +1184,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_lastUpdate = Util.EnvironmentTickCount();
                 m_firstHeartbeat = false;
             }
-            catch (ThreadAbortException)
-            {
-            }
             finally
             {
                 Monitor.Pulse(m_heartbeatLock);
@@ -1356,10 +1353,6 @@ namespace OpenSim.Region.Framework.Scenes
                         LoginsDisabled = true;
                     }
                 }
-            }
-            catch (NotImplementedException)
-            {
-                throw;
             }
             catch (Exception e)
             {
