@@ -308,7 +308,7 @@ namespace OpenSim.Region.Physics.Meshing
             }
 
 
-            //            mesh.DumpRaw("c:\\lixo", "lixo", "lixo");
+//            mesh.DumpRaw("c:\\lixo", "lixo", "lixo");
             mesh.DumpRaw(".", "lixo", "lixo");
 
             return mesh;
@@ -329,7 +329,7 @@ namespace OpenSim.Region.Physics.Meshing
 //            m_log.DebugFormat("[MESH]: experimental mesh proxy generation for {0}", primName);
 
 
-            bool convex = true; // this will be a input
+            bool convex = false; // this will be a input
             bool usemesh = false;
 
             coords = new List<Coord>();
@@ -430,7 +430,6 @@ namespace OpenSim.Region.Physics.Meshing
                     return false;
                 }
 
-
                 if (usemesh)
                 {
                     OSDArray decodedMeshOsdArray = null;
@@ -465,10 +464,14 @@ namespace OpenSim.Region.Physics.Meshing
 
                     float3 f3;
                     PHullResult hullr = new PHullResult();
-                    Mesh m = new Mesh();
-                    
+
+                    Coord c;
+                    Face f;
+
                     Vector3 range;
                     Vector3 min;
+                    int nverts;
+                    int nindexs;
 
                     if (cmap.ContainsKey("Max"))
                         range = cmap["Max"].AsVector3();
@@ -482,27 +485,125 @@ namespace OpenSim.Region.Physics.Meshing
 
                     range = range - min;
                     range *= invMaxU16;
-/*
-                    //                    if (!convex && cmap.ContainsKey("HullList"))
-                    if (cmap.ContainsKey("HullList"))
+
+                    if (!convex && cmap.ContainsKey("HullList") && cmap.ContainsKey("Positions"))
                     {
                         List<int> hsizes = new List<int>();
-
+                        int totalpoints = 0;
                         data = cmap["HullList"].AsBinary();
                         for (i = 0; i < data.Length; i++)
                         {
                             t1 = data[i];
                             if (t1 == 0)
                                 t1 = 256;
+                            totalpoints += t1;
                             hsizes.Add(t1);
                         }
 
-bla bla
+                        data = cmap["Positions"].AsBinary();
+                        int ptr = 0;
+                        int vertsoffset = 0;
 
+                        if (totalpoints == data.Length / 6) // 2 bytes per coord, 3 coords per point
+                        {
+                            foreach (int hullsize in hsizes)
+                            {
+                                for (i = 0; i < hullsize; i++ )
+                                {
+                                    t1 = data[ptr++];
+                                    t1 += data[ptr++] << 8;
+                                    t2 = data[ptr++];
+                                    t2 += data[ptr++] << 8;
+                                    t3 = data[ptr++];
+                                    t3 += data[ptr++] << 8;
 
+                                    f3 = new float3((t1 * range.X + min.X) * size.X,
+                                              (t2 * range.Y + min.Y) * size.Y,
+                                              (t3 * range.Z + min.Z) * size.Z);
+                                    vs.Add(f3);
+                                }
 
+                                if(hullsize <3)
+                                {
+                                    vs.Clear();
+                                    continue;
+                                }
+
+                                if (hullsize <5)
+                                {
+                                    foreach (float3 point in vs)
+                                    {
+                                        c.X = point.x;
+                                        c.Y = point.y;
+                                        c.Z = point.z;
+                                        coords.Add(c);
+                                    }
+                                    f = new Face(vertsoffset, vertsoffset + 1, vertsoffset + 2);
+                                    faces.Add(f);
+
+                                    if (hullsize == 4)
+                                    {
+                                        // not sure about orientation..
+                                        f = new Face(vertsoffset, vertsoffset + 2, vertsoffset + 3);
+                                        faces.Add(f);
+                                        f = new Face(vertsoffset, vertsoffset + 3, vertsoffset + 1);
+                                        faces.Add(f);
+                                        f = new Face(vertsoffset + 3, vertsoffset + 2, vertsoffset + 1);
+                                        faces.Add(f);
+                                    }
+                                    vertsoffset += vs.Count;
+                                    vs.Clear(); 
+                                    continue;
+                                }
+
+                                if (!HullUtils.ComputeHull(vs, ref hullr, 0, 0.0f))
+                                {
+                                    vs.Clear();
+                                    continue;
+                                }
+
+                                nverts = hullr.Vertices.Count;
+                                nindexs = hullr.Indices.Count;
+
+                                if (nindexs % 3 != 0)
+                                {
+                                    vs.Clear();
+                                    continue;
+                                }
+
+                                for (i = 0; i < nverts; i++)
+                                {
+                                    c.X = hullr.Vertices[i].x;
+                                    c.Y = hullr.Vertices[i].y;
+                                    c.Z = hullr.Vertices[i].z;
+                                    coords.Add(c);
+                                }
+                                
+
+                                for (i = 0; i < nindexs; i += 3)
+                                {
+                                    t1 = hullr.Indices[i];
+                                    if (t1 > nverts)
+                                        break;
+                                    t2 = hullr.Indices[i + 1];
+                                    if (t2 > nverts)
+                                        break;
+                                    t3 = hullr.Indices[i + 2];
+                                    if (t3 > nverts)
+                                        break;
+                                    f = new Face(vertsoffset + t1, vertsoffset + t2, vertsoffset + t3);
+                                    faces.Add(f);
+                                }
+                                vertsoffset += nverts;
+                                vs.Clear();
+                            }
+                        }
+                        if (coords.Count > 0 && faces.Count > 0)
+                            return true;
+                       
                     }
- */
+
+                    vs.Clear();
 
                     if (cmap.ContainsKey("BoundingVerts"))
                     {
@@ -523,17 +624,47 @@ bla bla
                             vs.Add(f3);
                         }
 
+                        if (vs.Count < 3)
+                        {
+                            vs.Clear();
+                            return false;
+                        }
 
-                        if (!HullUtils.ComputeHull(vs, ref hullr, 300, 0.0f))
+                        if (vs.Count < 5)
+                        {
+                            foreach (float3 point in vs)
+                            {
+                                c.X = point.x;
+                                c.Y = point.y;
+                                c.Z = point.z;
+                                coords.Add(c);
+                            }
+                            f = new Face(0, 1, 2);
+                            faces.Add(f);
+
+                            if (vs.Count == 4)
+                            {
+                                // not sure about orientation..
+                                f = new Face(0, 2, 3);
+                                faces.Add(f);
+                                f = new Face(0, 3, 1);
+                                faces.Add(f);
+                                f = new Face( 3, 2, 1);
+                                faces.Add(f);
+                            }
+                            vs.Clear();
+                            return true;
+                        }
+
+                        if (!HullUtils.ComputeHull(vs, ref hullr, 0, 0.0f))
                             return false;
 
-                        int nverts = hullr.Vertices.Count;
-                        int nindexs = hullr.Indices.Count;
+                        nverts = hullr.Vertices.Count;
+                        nindexs = hullr.Indices.Count;
 
                         if (nindexs % 3 != 0)
                             return false;
 
-                        Coord c;
                         for (i = 0; i < nverts; i++)
                         {
                             c.X = hullr.Vertices[i].x;
@@ -541,9 +672,6 @@ bla bla
                             c.Z = hullr.Vertices[i].z;
                             coords.Add(c);
                         }
-
-                        Face f;
-
                         for (i = 0; i < nindexs; i += 3)
                         {
                             t1 = hullr.Indices[i];
