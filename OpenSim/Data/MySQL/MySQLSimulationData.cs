@@ -170,7 +170,9 @@ namespace OpenSim.Data.MySQL
                                 "ParticleSystem, ClickAction, Material, " +
                                 "CollisionSound, CollisionSoundVolume, " +
                                 "PassTouches, " +
-                                "LinkNumber, MediaURL, KeyframeMotion) values (" + "?UUID, " +
+                                "LinkNumber, MediaURL, KeyframeMotion, " +
+                                "PhysicsShapeType, Density, GravityModifier, " +
+                                "Friction, Restitution) values (" + "?UUID, " +
                                 "?CreationDate, ?Name, ?Text, " +
                                 "?Description, ?SitName, ?TouchName, " +
                                 "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, " +
@@ -201,7 +203,10 @@ namespace OpenSim.Data.MySQL
                                 "?SaleType, ?ColorR, ?ColorG, " +
                                 "?ColorB, ?ColorA, ?ParticleSystem, " +
                                 "?ClickAction, ?Material, ?CollisionSound, " +
-                                "?CollisionSoundVolume, ?PassTouches, ?LinkNumber, ?MediaURL, ?KeyframeMotion)";
+                                "?CollisionSoundVolume, ?PassTouches, " +
+                                "?LinkNumber, ?MediaURL, ?KeyframeMotion, " +
+                                "?PhysicsShapeType, ?Density, ?GravityModifier, " +
+                                "?Friction, ?Restitution)";
 
                         FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -1243,6 +1248,13 @@ namespace OpenSim.Data.MySQL
             {
                 prim.KeyframeMotion = null;
             }
+
+            prim.PhysicsShapeType = (byte)row["PhysicsShapeType"];
+            prim.Density = (float)(double)row["Density"];
+            prim.GravityModifier = (float)(double)row["GravityModifier"];
+            prim.Friction = (float)(double)row["Friction"];
+            prim.Bounciness = (float)(double)row["Restitution"];
+
             return prim;
         }
 
@@ -1600,6 +1612,12 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("KeyframeMotion", prim.KeyframeMotion.Serialize());
             else
                 cmd.Parameters.AddWithValue("KeyframeMotion", new Byte[0]);
+
+            cmd.Parameters.AddWithValue("PhysicsShapeType", prim.PhysicsShapeType);
+            cmd.Parameters.AddWithValue("Density", (double)prim.Density);
+            cmd.Parameters.AddWithValue("GravityModifier", (double)prim.GravityModifier);
+            cmd.Parameters.AddWithValue("Friction", (double)prim.Friction);
+            cmd.Parameters.AddWithValue("Restitution", (double)prim.Bounciness);
         }
 
         /// <summary>
