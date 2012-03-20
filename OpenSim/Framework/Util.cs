@@ -1770,11 +1770,24 @@ namespace OpenSim.Framework
         /// and negative every 24.9 days. Subtracts the passed value (previously fetched by
         /// 'EnvironmentTickCount()') and accounts for any wrapping.
         /// </summary>
+        /// <param name="newValue"></param>
+        /// <param name="prevValue"></param>
+        /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
+        public static Int32 EnvironmentTickCountSubtract(Int32 newValue, Int32 prevValue)
+        {
+            Int32 diff = newValue - prevValue;
+            return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
+        }
+
+        /// <summary>
+        /// Environment.TickCount is an int but it counts all 32 bits so it goes positive
+        /// and negative every 24.9 days. Subtracts the passed value (previously fetched by
+        /// 'EnvironmentTickCount()') and accounts for any wrapping.
+        /// </summary>
         /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
         public static Int32 EnvironmentTickCountSubtract(Int32 prevValue)
         {
-            Int32 diff = EnvironmentTickCount() - prevValue;
-            return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
+            return EnvironmentTickCountSubtract(EnvironmentTickCount(), prevValue);
         }
 
         // Returns value of Tick Count A - TickCount B accounting for wrapping of TickCount

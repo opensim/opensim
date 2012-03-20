@@ -120,7 +120,7 @@ namespace OpenSim.Data.Null
     /// </summary>
     public class NullDataStore : ISimulationDataStore
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Dictionary<UUID, RegionSettings> m_regionSettings = new Dictionary<UUID, RegionSettings>();
         protected Dictionary<UUID, SceneObjectPart> m_sceneObjectParts = new Dictionary<UUID, SceneObjectPart>();

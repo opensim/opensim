@@ -625,7 +625,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void handleOnEstateManageTelehub (IClientAPI client, UUID invoice, UUID senderID, string cmd, uint param1)
         {
-            uint ObjectLocalID;
             SceneObjectPart part;
 
             switch (cmd)
@@ -908,7 +907,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 return;
 
             Dictionary<uint, float> sceneData = null;
-            List<UUID> uuidNameLookupList = new List<UUID>();
 
             if (reportType == 1)
             {

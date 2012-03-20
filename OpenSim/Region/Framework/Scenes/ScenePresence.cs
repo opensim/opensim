@@ -2374,7 +2374,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (direc.Z > 2.0f)
                     {
-                        direc.Z *= 2.5f;
+                        direc.Z *= 2.6f;
 
                         // TODO: PreJump and jump happen too quickly.  Many times prejump gets ignored.
                         Animator.TrySetMovementAnimation("PREJUMP");
