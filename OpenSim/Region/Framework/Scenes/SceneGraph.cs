@@ -1521,7 +1521,11 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         SceneObjectPart part = GetSceneObjectPart(localID);
                         if (part != null)
+                        {
                             part.UpdateExtraPhysics(PhysData);
+                            if (part.UpdatePhysRequired)
+                                remoteClient.SendPartPhysicsProprieties(part);
+                        }
                     }
                 }
             }
