@@ -1505,7 +1505,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                     m_physicsShapeType = DefaultPhysicsShapeType();
-                ParentGroup.HasGroupChanged = true;
+                if (ParentGroup != null)
+                    ParentGroup.HasGroupChanged = true;
             }
         }
 
@@ -1519,7 +1520,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_density = value;
                     ScheduleFullUpdateIfNone();
                 }
-                ParentGroup.HasGroupChanged = true;
+                if (ParentGroup != null)
+                    ParentGroup.HasGroupChanged = true;
             }
         }
 
@@ -1530,7 +1532,8 @@ namespace OpenSim.Region.Framework.Scenes
             {   if( value >= -1 && value <=28.0f)
                 m_gravitymod = value;
                 ScheduleFullUpdateIfNone();
-                ParentGroup.HasGroupChanged = true;
+                if (ParentGroup != null)
+                    ParentGroup.HasGroupChanged = true;
             }
         }
 
@@ -1544,7 +1547,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_friction = value;
                     ScheduleFullUpdateIfNone();
                 }
-                ParentGroup.HasGroupChanged = true;
+                if (ParentGroup != null)
+                    ParentGroup.HasGroupChanged = true;
             }
         }
 
@@ -1558,7 +1562,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_bounce = value;
                     ScheduleFullUpdateIfNone();
                 }
-                ParentGroup.HasGroupChanged = true;
+                if (ParentGroup != null)
+                    ParentGroup.HasGroupChanged = true;
             }
         }
 
