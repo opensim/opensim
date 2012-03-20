@@ -44,7 +44,6 @@
     ;AuthorizationServices = "LocalAuthorizationServicesConnector"
 
 [AssetService]
-    StorageProvider = "OpenSim.Data.MySQL.dll:MySQLAssetData"
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
 

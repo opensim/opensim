@@ -842,17 +842,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             mesh.getIndexListAsPtrToIntArray(out indices, out triStride, out indexCount); // Also fixed, needs release after usage
 
             mesh.releaseSourceMeshData(); // free up the original mesh data to save memory
-            if (m_MeshToTriMeshMap.ContainsKey(mesh))
-            {
-                _triMeshData = m_MeshToTriMeshMap[mesh];
-            }
-            else
-            {
-                _triMeshData = d.GeomTriMeshDataCreate();
 
-                d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
-                d.GeomTriMeshDataPreprocess(_triMeshData);
-                m_MeshToTriMeshMap[mesh] = _triMeshData;
+            // We must lock here since m_MeshToTriMeshMap is static and multiple scene threads may call this method at
+            // the same time.
+            lock (m_MeshToTriMeshMap)
+            {
+                if (m_MeshToTriMeshMap.ContainsKey(mesh))
+                {
+                    _triMeshData = m_MeshToTriMeshMap[mesh];
+                }
+                else
+                {
+                    _triMeshData = d.GeomTriMeshDataCreate();
+    
+                    d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
+                    d.GeomTriMeshDataPreprocess(_triMeshData);
+                    m_MeshToTriMeshMap[mesh] = _triMeshData;
+                }
             }
 
 //            _parent_scene.waitForSpaceUnlock(m_targetSpace);

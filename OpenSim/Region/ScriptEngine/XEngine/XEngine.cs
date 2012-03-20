@@ -469,16 +469,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 //            sb.AppendFormat("Assemblies loaded          : {0}\n", m_Assemblies.Count);
 
             SensorRepeat sr = AsyncCommandManager.GetSensorRepeatPlugin(this);
-            sb.AppendFormat("Sensors                    : {0}\n", sr.SensorsCount);
+            sb.AppendFormat("Sensors                    : {0}\n", sr != null ? sr.SensorsCount : 0);
 
             Dataserver ds = AsyncCommandManager.GetDataserverPlugin(this);
-            sb.AppendFormat("Dataserver requests        : {0}\n", ds.DataserverRequestsCount);
+            sb.AppendFormat("Dataserver requests        : {0}\n", ds != null ? ds.DataserverRequestsCount : 0);
 
             Timer t = AsyncCommandManager.GetTimerPlugin(this);
-            sb.AppendFormat("Timers                     : {0}\n", t.TimersCount);
+            sb.AppendFormat("Timers                     : {0}\n", t != null ? t.TimersCount : 0);
 
             Listener l = AsyncCommandManager.GetListenerPlugin(this);
-            sb.AppendFormat("Listeners                  : {0}\n", l.ListenerCount);
+            sb.AppendFormat("Listeners                  : {0}\n", l != null ? l.ListenerCount : 0);
 
             return sb.ToString();
         }

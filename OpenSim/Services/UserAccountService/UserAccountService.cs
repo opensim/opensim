@@ -540,7 +540,7 @@ namespace OpenSim.Services.UserAccountService
                         else
                         {
                             m_log.DebugFormat(
-                                "[USER ACCOUNT SERVICE]; Created user inventory for {0} {1}", firstName, lastName);
+                                "[USER ACCOUNT SERVICE]: Created user inventory for {0} {1}", firstName, lastName);
                         }
 
                         if (m_CreateDefaultAvatarEntries)

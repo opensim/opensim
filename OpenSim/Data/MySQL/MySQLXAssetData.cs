@@ -41,7 +41,7 @@ using OpenSim.Data;
 
 namespace OpenSim.Data.MySQL
 {
-    public class MySQLXAssetData : AssetDataBase
+    public class MySQLXAssetData : IXAssetDataPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -61,7 +61,7 @@ namespace OpenSim.Data.MySQL
 
         #region IPlugin Members
 
-        public override string Version { get { return "1.0.0.0"; } }
+        public string Version { get { return "1.0.0.0"; } }
 
         /// <summary>
         /// <para>Initialises Asset interface</para>
@@ -74,7 +74,7 @@ namespace OpenSim.Data.MySQL
         /// </para>
         /// </summary>
         /// <param name="connect">connect string</param>
-        public override void Initialise(string connect)
+        public void Initialise(string connect)
         {
             m_log.ErrorFormat("[MYSQL XASSETDATA]: ***********************************************************");
             m_log.ErrorFormat("[MYSQL XASSETDATA]: ***********************************************************");
@@ -96,17 +96,17 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public override void Initialise()
+        public void Initialise()
         {
             throw new NotImplementedException();
         }
 
-        public override void Dispose() { }
+        public void Dispose() { }
 
         /// <summary>
         /// The name of this DB provider
         /// </summary>
-        override public string Name
+        public string Name
         {
             get { return "MySQL XAsset storage engine"; }
         }
@@ -121,7 +121,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="assetID">Asset UUID to fetch</param>
         /// <returns>Return the asset</returns>
         /// <remarks>On failure : throw an exception and attempt to reconnect to database</remarks>
-        override public AssetBase GetAsset(UUID assetID)
+        public AssetBase GetAsset(UUID assetID)
         {
 //            m_log.DebugFormat("[MYSQL XASSET DATA]: Looking for asset {0}", assetID);
 
@@ -190,7 +190,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="asset">Asset UUID to create</param>
         /// <remarks>On failure : Throw an exception and attempt to reconnect to database</remarks>
-        override public bool StoreAsset(AssetBase asset)
+        public void StoreAsset(AssetBase asset)
         {
             lock (m_dbLock)
             {
@@ -265,7 +265,7 @@ namespace OpenSim.Data.MySQL
 
                             transaction.Rollback();
 
-                            return false;
+                            return;
                         }
 
                         if (!ExistsData(dbcon, transaction, hash))
@@ -289,7 +289,7 @@ namespace OpenSim.Data.MySQL
     
                                 transaction.Rollback();
     
-                                return false;
+                                return;
                             }
                         }
     
@@ -297,7 +297,6 @@ namespace OpenSim.Data.MySQL
                     }
                 }
             }
-            return true;
         }
 
 //        private void UpdateAccessTime(AssetBase asset)
@@ -381,7 +380,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="uuid">The asset UUID</param>
         /// <returns>true if it exists, false otherwise.</returns>
-        override public bool ExistsAsset(UUID uuid)
+        public bool ExistsAsset(UUID uuid)
         {
 //            m_log.DebugFormat("[ASSETS DB]: Checking for asset {0}", uuid);
 
@@ -427,7 +426,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="start">The number of results to discard from the total data set.</param>
         /// <param name="count">The number of rows the returned list should contain.</param>
         /// <returns>A list of AssetMetadata objects.</returns>
-        public override List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
+        public List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
         {
             List<AssetMetadata> retList = new List<AssetMetadata>(count);
 
@@ -472,7 +471,7 @@ namespace OpenSim.Data.MySQL
             return retList;
         }
 
-        public override bool Delete(string id)
+        public bool Delete(string id)
         {
 //            m_log.DebugFormat("[XASSETS DB]: Deleting asset {0}", id);
 
