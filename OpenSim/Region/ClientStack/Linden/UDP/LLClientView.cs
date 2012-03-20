@@ -2633,6 +2633,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     m_log.Error("Unable to send part Physics Proprieties - exception: " + ex.ToString());
                 }
+                part.UpdatePhysRequired = false;
             }
         }
 

@@ -1030,6 +1030,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public UpdateRequired UpdateFlag { get; set; }
+        public bool UpdatePhysRequired { get; set; }
         
         /// <summary>
         /// Used for media on a prim.
@@ -1410,6 +1411,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if(ParentGroup != null)
                             ParentGroup.HasGroupChanged = true;
                         ScheduleFullUpdateIfNone();
+                        UpdatePhysRequired = true;
                     }
                 }
             }
@@ -1501,11 +1503,12 @@ namespace OpenSim.Region.Framework.Scenes
                         m_physicsShapeType = DefaultPhysicsShapeType();
                     else
                         m_physicsShapeType = value;
-                    ScheduleFullUpdateIfNone();
                 }
                 else
                     m_physicsShapeType = DefaultPhysicsShapeType();
-                ParentGroup.HasGroupChanged = true;
+
+                if(m_physicsShapeType != value)
+                    UpdatePhysRequired = true;
             }
         }
 
@@ -1517,9 +1520,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (value >=1 && value <= 22587.0)
                 {
                     m_density = value;
-                    ScheduleFullUpdateIfNone();
+                    UpdatePhysRequired = true;
                 }
-                ParentGroup.HasGroupChanged = true;
             }
         }
 
@@ -1529,8 +1531,7 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {   if( value >= -1 && value <=28.0f)
                 m_gravitymod = value;
-                ScheduleFullUpdateIfNone();
-                ParentGroup.HasGroupChanged = true;
+            UpdatePhysRequired = true;
             }
         }
 
@@ -1542,9 +1543,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (value >= 0 && value <= 255.0f)
                 {
                     m_friction = value;
-                    ScheduleFullUpdateIfNone();
+                    UpdatePhysRequired = true;
                 }
-                ParentGroup.HasGroupChanged = true;
             }
         }
 
@@ -1556,9 +1556,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (value >= 0 && value <= 1.0f)
                 {
                     m_bounce = value;
-                    ScheduleFullUpdateIfNone();
+                    UpdatePhysRequired = true;
                 }
-                ParentGroup.HasGroupChanged = true;
             }
         }
 
