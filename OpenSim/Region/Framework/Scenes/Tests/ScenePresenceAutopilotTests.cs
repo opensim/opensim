@@ -81,7 +81,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // For now, we'll make the scene presence fly to simplify this test, but this needs to change.
             sp.Flying = true;
 
-            m_scene.Update();
+            m_scene.Update(1);
             Assert.That(sp.AbsolutePosition, Is.EqualTo(startPos));
 
             Vector3 targetPos = startPos + new Vector3(0, 10, 0);
@@ -91,7 +91,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(
                 sp.Rotation, new QuaternionToleranceConstraint(new Quaternion(0, 0, 0.7071068f, 0.7071068f), 0.000001));
 
-            m_scene.Update();
+            m_scene.Update(1);
 
             // We should really check the exact figure.
             Assert.That(sp.AbsolutePosition.X, Is.EqualTo(startPos.X));
@@ -99,8 +99,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(sp.AbsolutePosition.Z, Is.EqualTo(startPos.Z));
             Assert.That(sp.AbsolutePosition.Z, Is.LessThan(targetPos.X));
 
-            for (int i = 0; i < 10; i++)
-                m_scene.Update();
+            m_scene.Update(10);
 
             double distanceToTarget = Util.GetDistanceTo(sp.AbsolutePosition, targetPos);
             Assert.That(distanceToTarget, Is.LessThan(1), "Avatar not within 1 unit of target position on first move");
@@ -116,7 +115,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(
                 sp.Rotation, new QuaternionToleranceConstraint(new Quaternion(0, 0, 0, 1), 0.000001));
 
-            m_scene.Update();
+            m_scene.Update(1);
 
             // We should really check the exact figure.
             Assert.That(sp.AbsolutePosition.X, Is.GreaterThan(startPos.X));
@@ -124,8 +123,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(sp.AbsolutePosition.Y, Is.EqualTo(startPos.Y));
             Assert.That(sp.AbsolutePosition.Z, Is.EqualTo(startPos.Z));
 
-            for (int i = 0; i < 10; i++)
-                m_scene.Update();
+            m_scene.Update(10);
 
             distanceToTarget = Util.GetDistanceTo(sp.AbsolutePosition, targetPos);
             Assert.That(distanceToTarget, Is.LessThan(1), "Avatar not within 1 unit of target position on second move");
