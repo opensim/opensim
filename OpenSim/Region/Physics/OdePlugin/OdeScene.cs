@@ -185,6 +185,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// true = old compatibility mode with leaning capsule; false = new corrected mode
         /// </summary>
+        /// <remarks>
+        /// Even when set to false, the capsule still tilts but this is done in a different way.
+        /// </remarks>
         public bool IsAvCapsuleTilted { get; private set; }
 
         private float avDensity = 80f;
