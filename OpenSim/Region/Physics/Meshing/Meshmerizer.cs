@@ -358,7 +358,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                 if (physicsParms == null)
                 {
-                    m_log.Warn("[MESH]: no recognized physics mesh found in mesh asset");
+                    m_log.WarnFormat("[MESH]: No recognized physics mesh found in mesh asset for {0}", primName);
                     return false;
                 }
 
