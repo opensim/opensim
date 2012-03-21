@@ -2004,26 +2004,14 @@ namespace OpenSim.Framework
             // in the agent circuit data for foreigners
             if (lastName.Contains("@"))
             {
-                string agentsURI = acircuit.ServiceURLs["HomeURI"].ToString();
-                if (!agentsURI.EndsWith("/"))
-                    agentsURI += "/";
                 string[] parts = firstName.Split(new char[] { '.' });
                 if (parts.Length == 2)
                     return id.ToString() + ";" + agentsURI + ";" + parts[0] + " " + parts[1];
             }
             return id.ToString() + ";" + agentsURI + ";" + firstName + " " + lastName;
- 
+
         }
 
-                // This is ugly, but there's no other way, given that the name is changed
-                // in the agent circuit data for foreigners
-                if (acircuit.lastname.Contains("@"))
-                {
-                    string[] parts = acircuit.firstname.Split(new char[] { '.' });
-                    if (parts.Length == 2)
-                        return acircuit.AgentID.ToString() + ";" + agentsURI + ";" + parts[0] + " " + parts[1];
-                }
-                return acircuit.AgentID.ToString() + ";" + agentsURI + ";" + acircuit.firstname + " " + acircuit.lastname;
         /// <summary>
         /// Produces a universal (HG) user-facing name given the information
         /// </summary>
@@ -2038,9 +2026,6 @@ namespace OpenSim.Framework
             {
                 uri = new Uri(homeURI);
             }
-            else
-                return acircuit.AgentID.ToString();
-        }        
             catch (UriFormatException)
             {
                 return firstName + " " + lastName;
