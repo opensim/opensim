@@ -582,10 +582,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             // Try the local sim            
             if (LocalFriendshipOffered(friendID, im))
-            {
-                m_log.DebugFormat("[XXX]: LocalFriendshipOffered successes");
                 return true;
-            }
 
             // The prospective friend is not here [as root]. Let's forward.
             PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
