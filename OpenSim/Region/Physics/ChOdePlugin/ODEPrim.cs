@@ -2137,13 +2137,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_targetSpace = targetspace;
 
-            if (_mesh == null && m_meshfailed == false)
+            if (_mesh == null) // && m_meshfailed == false)
             {
                 if (_parent_scene.needsMeshing(_pbs))
                 {
+                    bool convex;
+                    if (m_shapetype == 2)
+                        convex = true;
+                    else
+                        convex = false;
                     try
                     {
-                        _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, (int)LevelOfDetail.High, true);
+                        _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, (int)LevelOfDetail.High, true,convex);
                     }
                     catch
                     {
@@ -2382,7 +2387,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // we don't need to do space calculation because the client sends a position update also.
 
             // Construction of new prim
-            if (_parent_scene.needsMeshing(_pbs) && m_meshfailed == false)
+            if (_parent_scene.needsMeshing(_pbs))// && m_meshfailed == false)
             {
                 float meshlod = _parent_scene.meshSculptLOD;
 
@@ -2493,7 +2498,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (_size.Z <= 0) _size.Z = 0.01f;
             // Construction of new prim
 
-            if (_parent_scene.needsMeshing(_pbs) && m_meshfailed == false)
+            if (_parent_scene.needsMeshing(_pbs))// && m_meshfailed == false)
             {
                 // Don't need to re-enable body..   it's done in SetMesh
                 float meshlod = _parent_scene.meshSculptLOD;
