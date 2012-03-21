@@ -261,25 +261,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             // fid is not a UUID...
             string url = string.Empty, tmp = string.Empty, f = string.Empty, l = string.Empty;
-            m_log.DebugFormat("[YYY]: FID {0}", fid);
             if (Util.ParseUniversalUserIdentifier(fid, out agentID, out url, out f, out l, out tmp))
             {
-                m_log.DebugFormat("[YYY]: Adding user {0} {1} {2}", f, l, url);
-                m_uMan.AddUser(agentID, f, l, url);
+                if (!agentID.Equals(UUID.Zero))
+                {
+                    m_uMan.AddUser(agentID, f, l, url);
 
-                string name = m_uMan.GetUserName(agentID);
-                string[] parts = name.Trim().Split(new char[] {' '});
-                if (parts.Length == 2)
-                {
-                    first = parts[0];
-                    last = parts[1];
+                    string name = m_uMan.GetUserName(agentID);
+                    string[] parts = name.Trim().Split(new char[] { ' ' });
+                    if (parts.Length == 2)
+                    {
+                        first = parts[0];
+                        last = parts[1];
+                    }
+                    else
+                    {
+                        first = f;
+                        last = l;
+                    }
+                    return true;
                 }
-                else
-                {
-                    first = f;
-                    last = l;
-                }
-                return true;
             }
             return false;
         }
@@ -744,7 +745,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 {
                     string[] parts = im.fromAgentName.Split(new char[] { '@' });
                     if (parts.Length == 2)
-                        m_uMan.AddUser(new UUID(im.fromAgentID), parts[0], "http://" + parts[1]);
+                    {
+                        string[] fl = parts[0].Trim().Split(new char[] { '.' });
+                        if (fl.Length == 2)
+                            m_uMan.AddUser(new UUID(im.fromAgentID), fl[0], fl[1], "http://" + parts[1]);
+                        else
+                            m_uMan.AddUser(new UUID(im.fromAgentID), fl[0], "", "http://" + parts[1]);
+                    }
                 }
                 return true;
             }
