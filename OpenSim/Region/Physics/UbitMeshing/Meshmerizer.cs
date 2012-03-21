@@ -218,9 +218,20 @@ namespace OpenSim.Region.Physics.Meshing
             // geometry for this submesh.
             if (subMeshData.ContainsKey("NoGeometry") && ((OSDBoolean)subMeshData["NoGeometry"]))
                 return;
-    
-            OpenMetaverse.Vector3 posMax = ((OSDMap)subMeshData["PositionDomain"])["Max"].AsVector3();
-            OpenMetaverse.Vector3 posMin = ((OSDMap)subMeshData["PositionDomain"])["Min"].AsVector3();
+
+            OpenMetaverse.Vector3 posMax;
+            OpenMetaverse.Vector3 posMin;
+            if (subMeshData.ContainsKey("PositionDomain"))
+            {
+                posMax = ((OSDMap)subMeshData["PositionDomain"])["Max"].AsVector3();
+                posMin = ((OSDMap)subMeshData["PositionDomain"])["Min"].AsVector3();
+            }
+            else
+            {
+                posMax = new Vector3(0.5f, 0.5f, 0.5f);
+                posMin = new Vector3(-0.5f, -0.5f, -0.5f);
+            }
+
             ushort faceIndexOffset = (ushort)coords.Count;
 
             byte[] posBytes = subMeshData["Position"].AsBinary();
@@ -280,18 +291,14 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     if (!GenerateCoordsAndFacesFromPrimSculptData(primName, primShape, size, lod, out coords, out faces))
                         return null;
-                    // Remove the reference to any JPEG2000 sculpt data so it can be GCed
-                    // don't loose it
-                    //            primShape.SculptData = Utils.EmptyBytes;
                 }
-//                primShape.SculptDataLoaded = true;
             }
             else
             {
                 if (!GenerateCoordsAndFacesFromPrimShapeData(primName, primShape, size, lod, out coords, out faces))
                     return null;
             }
-            // keep compatible
+
             primShape.SculptData = Utils.EmptyBytes;
 
             int numCoords = coords.Count;
@@ -306,10 +313,6 @@ namespace OpenSim.Region.Physics.Meshing
                                         coords[f.v2].X, coords[f.v2].Y, coords[f.v2].Z,
                                         coords[f.v3].X, coords[f.v3].Y, coords[f.v3].Z));
             }
-
-
-//            mesh.DumpRaw("c:\\lixo", "lixo", "lixo");
-            mesh.DumpRaw(".", "lixo", "lixo");
 
             return mesh;
         }
@@ -452,22 +455,20 @@ namespace OpenSim.Region.Physics.Meshing
                         return false;
 
                     byte[] data;
+
+                    List<float3> vs = new List<float3>();
+                    PHullResult hullr = new PHullResult();
+                    float3 f3;
+                    Coord c;
+                    Face f;
+                    Vector3 range;
+                    Vector3 min;
+
                     const float invMaxU16 = 1.0f / 65535f;
                     int t1;
                     int t2;
                     int t3;
                     int i;
-
-                    List<float3> vs = new List<float3>();
-
-                    float3 f3;
-                    PHullResult hullr = new PHullResult();
-
-                    Coord c;
-                    Face f;
-
-                    Vector3 range;
-                    Vector3 min;
                     int nverts;
                     int nindexs;
 
@@ -576,8 +577,7 @@ namespace OpenSim.Region.Physics.Meshing
                                     c.Z = hullr.Vertices[i].z;
                                     coords.Add(c);
                                 }
-                                
-
+                               
                                 for (i = 0; i < nindexs; i += 3)
                                 {
                                     t1 = hullr.Indices[i];
@@ -597,8 +597,7 @@ namespace OpenSim.Region.Physics.Meshing
                             }
                         }
                         if (coords.Count > 0 && faces.Count > 0)
-                            return true;
-                       
+                            return true;                      
                     }
 
                     vs.Clear();
@@ -642,7 +641,6 @@ namespace OpenSim.Region.Physics.Meshing
 
                             if (vs.Count == 4)
                             {
-                                // not sure about orientation..
                                 f = new Face(0, 2, 3);
                                 faces.Add(f);
                                 f = new Face(0, 3, 1);
@@ -690,7 +688,6 @@ namespace OpenSim.Region.Physics.Meshing
                     }
                     else
                         return false;
-
                 }
             }
 
