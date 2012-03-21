@@ -257,7 +257,7 @@ namespace OpenSim.Region.Physics.Meshing
         /// <param name="size"></param>
         /// <param name="lod"></param>
         /// <returns></returns>
-        private Mesh CreateMeshFromPrimMesher(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
+        private Mesh CreateMeshFromPrimMesher(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool convex)
         {
 //            m_log.DebugFormat(
 //                "[MESH]: Creating physics proxy for {0}, shape {1}",
@@ -273,7 +273,7 @@ namespace OpenSim.Region.Physics.Meshing
                     if (!useMeshiesPhysicsMesh)
                         return null;
 
-                    if (!GenerateCoordsAndFacesFromPrimMeshData(primName, primShape, size, out coords, out faces))
+                    if (!GenerateCoordsAndFacesFromPrimMeshData(primName, primShape, size, out coords, out faces, convex))
                         return null;
                 }
                 else
@@ -324,12 +324,10 @@ namespace OpenSim.Region.Physics.Meshing
         /// <param name="faces">Faces are added to this list by the method.</param>
         /// <returns>true if coords and faces were successfully generated, false if not</returns>
         private bool GenerateCoordsAndFacesFromPrimMeshData(
-            string primName, PrimitiveBaseShape primShape, Vector3 size, out List<Coord> coords, out List<Face> faces)
+            string primName, PrimitiveBaseShape primShape, Vector3 size, out List<Coord> coords, out List<Face> faces, bool convex)
         {
 //            m_log.DebugFormat("[MESH]: experimental mesh proxy generation for {0}", primName);
 
-
-            bool convex = false; // this will be a input
             bool usemesh = false;
 
             coords = new List<Coord>();
@@ -978,10 +976,15 @@ namespace OpenSim.Region.Physics.Meshing
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
-            return CreateMesh(primName, primShape, size, lod, false);
+            return CreateMesh(primName, primShape, size, lod, false,false);
         }
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
+        {
+            return CreateMesh(primName, primShape, size, lod, false,false);
+        }
+
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
         {
 #if SPAM
             m_log.DebugFormat("[MESH]: Creating mesh for {0}", primName);
@@ -1000,7 +1003,7 @@ namespace OpenSim.Region.Physics.Meshing
             if (size.Y < 0.01f) size.Y = 0.01f;
             if (size.Z < 0.01f) size.Z = 0.01f;
 
-            mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod);
+            mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod,convex);
 
             if (mesh != null)
             {

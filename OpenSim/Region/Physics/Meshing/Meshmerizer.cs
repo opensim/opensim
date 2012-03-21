@@ -717,6 +717,11 @@ namespace OpenSim.Region.Physics.Meshing
             return CreateMesh(primName, primShape, size, lod, false);
         }
 
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
+        {
+            return CreateMesh(primName, primShape, size, lod, false);
+        }
+
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
         {
 #if SPAM
