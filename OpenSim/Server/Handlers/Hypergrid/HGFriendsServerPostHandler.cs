@@ -197,7 +197,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
             string message = string.Empty;
             string name = string.Empty;
 
-            m_log.DebugFormat("[HGFRIENDS HANDLER]: Friendship offered");
             if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
                 return BoolResult(false);
 
