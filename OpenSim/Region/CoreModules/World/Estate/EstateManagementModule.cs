@@ -691,7 +691,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
 
-            Scene.SetSceneCoreDebug(scriptsOn, collisionsOn, physicsOn);
+            Scene.SetSceneCoreDebug(disableScripts, disableCollisions, disablePhysics);
         }
 
         private void handleEstateTeleportOneUserHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID, UUID prey)
