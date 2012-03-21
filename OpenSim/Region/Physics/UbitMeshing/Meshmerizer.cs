@@ -995,7 +995,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             // If this mesh has been created already, return it instead of creating another copy
             // For large regions with 100k+ prims and hundreds of copies of each, this can save a GB or more of memory
-            key = primShape.GetMeshKey(size, lod);
+            key = primShape.GetMeshKey(size, lod, convex);
             if (m_uniqueMeshes.TryGetValue(key, out mesh))
                 return mesh;
 

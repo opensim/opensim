@@ -881,6 +881,11 @@ namespace OpenSim.Framework
 
         public ulong GetMeshKey(Vector3 size, float lod)
         {
+            return GetMeshKey(size, lod, false);
+        }
+
+        public ulong GetMeshKey(Vector3 size, float lod, bool convex)
+        {
             ulong hash = 5381;
 
             hash = djb2(hash, this.PathCurve);
@@ -925,6 +930,9 @@ namespace OpenSim.Framework
                 for (int i = 0; i < scaleBytes.Length; i++)
                     hash = djb2(hash, scaleBytes[i]);
             }
+
+            if(convex)
+                hash = djb2(hash, 0xa5);
 
             return hash;
         }
