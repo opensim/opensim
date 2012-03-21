@@ -989,7 +989,6 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 m_shape = value;
-                m_physicsShapeType = DefaultPhysicsShapeType();
             }
         }
 
@@ -1003,7 +1002,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_shape != null)
                 {
-//                    StoreUndoState();
 
                     m_shape.Scale = value;
 
@@ -1498,6 +1496,7 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 byte oldv = m_physicsShapeType;
+
                 if (value >= 0 && value <= (byte)PhysShapeType.convex)
                 {
                     if (value == (byte)PhysShapeType.none && ParentGroup != null && ParentGroup.RootPart == this)
@@ -1507,7 +1506,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                     m_physicsShapeType = DefaultPhysicsShapeType();
-
 
                 if (m_physicsShapeType != oldv && ParentGroup != null)
                 {
@@ -1526,13 +1524,18 @@ namespace OpenSim.Region.Framework.Scenes
                     else if (PhysActor == null)
                         ApplyPhysics((uint)Flags, VolumeDetectActive, false);
                     else
-                        PhysActor.PhysicsShapeType = m_physicsShapeType;                   
-                }
-                if (m_physicsShapeType != value)
-                {
+                    {
+                        PhysActor.PhysicsShapeType = m_physicsShapeType;
+                        if (Shape.SculptEntry)
+                            CheckSculptAndLoad();
+                    }
+
                     if (ParentGroup != null)
                         ParentGroup.HasGroupChanged = true;
+                }
 
+                if (m_physicsShapeType != value)
+                {
                     UpdatePhysRequired = true;
                 }
             }
