@@ -132,7 +132,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         data.MapImageId = info.TerrainImage;
                     // ugh! V2-3 is very sensitive about the result being
                     // exactly the same as the requested name
-                    if (regionInfos.Count == 1)
+                    if (regionInfos.Count == 1 && mapNameOrig.Contains("|") || mapNameOrig.Contains("+"))
                         data.Name = mapNameOrig;
                     else
                         data.Name = info.RegionName;
