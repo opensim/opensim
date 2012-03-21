@@ -1497,6 +1497,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_physicsShapeType; }
             set
             {
+                byte oldv = m_physicsShapeType;
                 if (value >= 0 && value <= (byte)PhysShapeType.convex)
                 {
                     if (value == (byte)PhysShapeType.none && ParentGroup != null && ParentGroup.RootPart == this)
@@ -1507,11 +1508,33 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     m_physicsShapeType = DefaultPhysicsShapeType();
 
-                if (ParentGroup != null)
-                    ParentGroup.HasGroupChanged = true;
 
-                if(m_physicsShapeType != value)
+                if (m_physicsShapeType != oldv && ParentGroup != null)
+                {
+                    if (m_physicsShapeType == (byte)PhysShapeType.none)
+                    {
+                        if (PhysActor != null)
+                        {
+                            Velocity = new Vector3(0, 0, 0);
+                            Acceleration = new Vector3(0, 0, 0);
+                            if (ParentGroup.RootPart == this)
+                                AngularVelocity = new Vector3(0, 0, 0);
+                            ParentGroup.Scene.RemovePhysicalPrim(1);
+                            RemoveFromPhysics();
+                        }
+                    }
+                    else if (PhysActor == null)
+                        ApplyPhysics((uint)Flags, VolumeDetectActive, false);
+                    else
+                        PhysActor.PhysicsShapeType = m_physicsShapeType;                   
+                }
+                if (m_physicsShapeType != value)
+                {
+                    if (ParentGroup != null)
+                        ParentGroup.HasGroupChanged = true;
+
                     UpdatePhysRequired = true;
+                }
             }
         }
 
@@ -4575,20 +4598,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 PhysicsShapeType = (byte)physdata.PhysShapeType;
 
-                if (PhysicsShapeType == (byte)PhysShapeType.none)
-                {
-                    if (PhysActor != null)
-                    {
-                        Velocity = new Vector3(0, 0, 0);
-                        Acceleration = new Vector3(0, 0, 0);
-                        if (ParentGroup.RootPart == this)
-                            AngularVelocity = new Vector3(0, 0, 0);
-                        ParentGroup.Scene.RemovePhysicalPrim(1);
-                        RemoveFromPhysics();
-                    }
-                }
-                else if (PhysActor == null)
-                    ApplyPhysics((uint)Flags, VolumeDetectActive, false);
             }
 
             if(Density != physdata.Density)

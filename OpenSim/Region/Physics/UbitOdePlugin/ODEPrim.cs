@@ -486,6 +486,19 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        public override byte PhysicsShapeType
+        {
+            get
+            {
+                return m_shapetype;
+            }
+            set
+            {
+                m_shapetype = value;
+                AddChange(changes.Shape, null);
+            }
+        }
+
         public override Vector3 Velocity
         {
             get
@@ -2844,7 +2857,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changeShape(PrimitiveBaseShape newShape)
         {
-            _pbs = newShape;
+            if(newShape != null)
+                _pbs = newShape;
             changeprimsizeshape();
         }
 
