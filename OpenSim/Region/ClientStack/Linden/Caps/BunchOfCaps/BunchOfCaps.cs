@@ -761,7 +761,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     SceneObjectPart part = m_Scene.GetSceneObjectPart(objectID);
                     if (part != null)
                     {
-                        TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(notecardID);
+//                        TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(notecardID);
                         if (!m_Scene.Permissions.CanCopyObjectInventory(notecardID, objectID, m_HostCapsObj.AgentID))
                         {
                             return LLSDHelpers.SerialiseLLSDReply(response);

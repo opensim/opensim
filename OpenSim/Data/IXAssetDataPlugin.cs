@@ -25,45 +25,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Timers;
-using Timer=System.Timers.Timer;
-using Nini.Config;
-using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.CoreModules.World.Serialiser;
-using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
-using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Region.Framework.Scenes.Tests
+namespace OpenSim.Data
 {
     /// <summary>
-    /// Scene presence tests
+    /// This interface exists to distinguish between the normal IAssetDataPlugin and the one used by XAssetService
+    /// for now.
     /// </summary>
-    [TestFixture]
-    public class SceneTests
+    public interface IXAssetDataPlugin : IPlugin
     {
-        /// <summary>
-        /// Very basic scene update test.  Should become more elaborate with time.
-        /// </summary>
-        [Test]
-        public void TestUpdateScene()
-        {
-            TestHelpers.InMethod();
-
-            Scene scene = SceneHelpers.SetupScene();
-            scene.Update(1);
-            
-            Assert.That(scene.Frame, Is.EqualTo(1));
-        }
+        AssetBase GetAsset(UUID uuid);
+        void StoreAsset(AssetBase asset);
+        bool ExistsAsset(UUID uuid);
+        List<AssetMetadata> FetchAssetMetadataSet(int start, int count);
+        void Initialise(string connect);
+        bool Delete(string id);
     }
 }

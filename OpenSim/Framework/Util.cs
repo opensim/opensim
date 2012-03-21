@@ -1758,11 +1758,24 @@ namespace OpenSim.Framework
         /// and negative every 24.9 days. Subtracts the passed value (previously fetched by
         /// 'EnvironmentTickCount()') and accounts for any wrapping.
         /// </summary>
+        /// <param name="newValue"></param>
+        /// <param name="prevValue"></param>
+        /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
+        public static Int32 EnvironmentTickCountSubtract(Int32 newValue, Int32 prevValue)
+        {
+            Int32 diff = newValue - prevValue;
+            return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
+        }
+
+        /// <summary>
+        /// Environment.TickCount is an int but it counts all 32 bits so it goes positive
+        /// and negative every 24.9 days. Subtracts the passed value (previously fetched by
+        /// 'EnvironmentTickCount()') and accounts for any wrapping.
+        /// </summary>
         /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
         public static Int32 EnvironmentTickCountSubtract(Int32 prevValue)
         {
-            Int32 diff = EnvironmentTickCount() - prevValue;
-            return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
+            return EnvironmentTickCountSubtract(EnvironmentTickCount(), prevValue);
         }
 
         // Returns value of Tick Count A - TickCount B accounting for wrapping of TickCount
@@ -1991,6 +2004,9 @@ namespace OpenSim.Framework
             // in the agent circuit data for foreigners
             if (lastName.Contains("@"))
             {
+                string agentsURI = acircuit.ServiceURLs["HomeURI"].ToString();
+                if (!agentsURI.EndsWith("/"))
+                    agentsURI += "/";
                 string[] parts = firstName.Split(new char[] { '.' });
                 if (parts.Length == 2)
                     return id.ToString() + ";" + agentsURI + ";" + parts[0] + " " + parts[1];
@@ -1999,6 +2015,15 @@ namespace OpenSim.Framework
  
         }
 
+                // This is ugly, but there's no other way, given that the name is changed
+                // in the agent circuit data for foreigners
+                if (acircuit.lastname.Contains("@"))
+                {
+                    string[] parts = acircuit.firstname.Split(new char[] { '.' });
+                    if (parts.Length == 2)
+                        return acircuit.AgentID.ToString() + ";" + agentsURI + ";" + parts[0] + " " + parts[1];
+                }
+                return acircuit.AgentID.ToString() + ";" + agentsURI + ";" + acircuit.firstname + " " + acircuit.lastname;
         /// <summary>
         /// Produces a universal (HG) user-facing name given the information
         /// </summary>
@@ -2013,6 +2038,9 @@ namespace OpenSim.Framework
             {
                 uri = new Uri(homeURI);
             }
+            else
+                return acircuit.AgentID.ToString();
+        }        
             catch (UriFormatException)
             {
                 return firstName + " " + lastName;

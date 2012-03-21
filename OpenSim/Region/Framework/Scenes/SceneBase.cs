@@ -149,9 +149,13 @@ namespace OpenSim.Region.Framework.Scenes
         #region Update Methods
 
         /// <summary>
-        /// Normally called once every frame/tick to let the world preform anything required (like running the physics simulation)
+        /// Called to update the scene loop by a number of frames and until shutdown.
         /// </summary>
-        public abstract void Update();
+        /// <param name="frames">
+        /// Number of frames to update.  Exits on shutdown even if there are frames remaining.
+        /// If -1 then updates until shutdown.
+        /// </param>
+        public abstract void Update(int frames);
 
         #endregion
 

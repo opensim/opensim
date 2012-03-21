@@ -157,7 +157,7 @@ namespace OpenSim.Tests.Torture
             //
             // However, that means that we need to manually run an update here to clear out that list so that deleted
             // objects will be clean up by the garbage collector before the next stress test is run.
-            scene.Update();
+            scene.Update(1);
 
             Console.WriteLine(
                 "Took {0}ms, {1}MB ({2} - {3}) to create {4} objects each containing {5} prim(s)",

@@ -63,17 +63,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Thread testThread = new Thread(testClass.run);
 
-            try
-            {
-                // Seems kind of redundant to start a thread and then join it, however..   We need to protect against
-                // A thread abort exception in the simulator code.
-                testThread.Start();
-                testThread.Join();
-            } 
-            catch (ThreadAbortException)
-            {
-                
-            }
+            // Seems kind of redundant to start a thread and then join it, however..   We need to protect against
+            // A thread abort exception in the simulator code.
+            testThread.Start();
+            testThread.Join();
+
             Assert.That(testClass.results.Result, Is.EqualTo(true), testClass.results.Message);
             // Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
         }
