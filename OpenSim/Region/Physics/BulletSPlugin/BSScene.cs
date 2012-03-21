@@ -37,14 +37,18 @@ using OpenMetaverse;
 using OpenSim.Region.Framework;
 
 // TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
+// Debug linkset 
+// Test with multiple regions in one simulator 
 // Adjust character capsule size when height is adjusted (ScenePresence.SetHeight)
 // Test sculpties
 // Compute physics FPS reasonably
 // Based on material, set density and friction
-// More efficient memory usage in passing hull information from BSPrim to BulletSim
+// More efficient memory usage when passing hull information from BSPrim to BulletSim
 // Four states of prim: Physical, regular, phantom and selected. Are we modeling these correctly?
 //     In SL one can set both physical and phantom (gravity, does not effect others, makes collisions with ground)
 //     At the moment, physical and phantom causes object to drop through the terrain
+// Physical phantom objects and related typing (collision options )
+// Check out llVolumeDetect. Must do something for that.
 // Should prim.link() and prim.delink() membership checking happen at taint time?
 // Mesh sharing. Use meshHash to tell if we already have a hull of that shape and only create once
 // Do attachments need to be handled separately? Need collision events. Do not collide with VolumeDetect
@@ -53,17 +57,14 @@ using OpenSim.Region.Framework;
 // Decide if clearing forces is the right thing to do when setting position (BulletSim::SetObjectTranslation)
 // Does NeedsMeshing() really need to exclude all the different shapes?
 // Remove mesh and Hull stuff. Use mesh passed to bullet and use convexdecom from bullet.
-// Add PID movement operations 
-// Debug linkset 
-// Ccd  threshold to defaults (0.0)
-// Command line get and set is broken
+// Add PID movement operations. What does ScenePresence.MoveToTarget do?
 // Check terrain size. 128 or 127?
-// Test with multiple regions in one simulator 
 // Multiple contact points on collision?
 //    See code in ode::near... calls to collision_accounting_events()
+//    (This might not be a problem. ODE collects all the collisions with one object in one tick.)
 // Use collision masks for collision with terrain and phantom objects 
-// Check out llVolumeDetect. Must do something for that.
-// Physical phantom objects and related typing (collision options )
+// Figure out how to not allocate a new Dictionary and List for every collision
+//    in BSPrim.Collide() and BSCharacter.Collide(). Can the same ones be reused?
 // Raycast
 // 
 namespace OpenSim.Region.Physics.BulletSPlugin
@@ -282,7 +283,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 parms.avatarFriction = pConfig.GetFloat("AvatarFriction", parms.avatarFriction);
                 parms.avatarRestitution = pConfig.GetFloat("AvatarRestitution", parms.avatarRestitution);
                 parms.avatarDensity = pConfig.GetFloat("AvatarDensity", parms.avatarDensity);
-                parms.avatarRestitution = pConfig.GetFloat("AvatarRestitution", parms.avatarRestitution);
                 parms.avatarCapsuleRadius = pConfig.GetFloat("AvatarCapsuleRadius", parms.avatarCapsuleRadius);
                 parms.avatarCapsuleHeight = pConfig.GetFloat("AvatarCapsuleHeight", parms.avatarCapsuleHeight);
             }
@@ -408,16 +408,16 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             {
                 EntityProperties entprop = m_updateArray[ii];
                 // m_log.DebugFormat("{0}: entprop[{1}]: id={2}, pos={3}", LogHeader, ii, entprop.ID, entprop.Position);
-                BSCharacter actor;
-                if (m_avatars.TryGetValue(entprop.ID, out actor))
-                {
-                    actor.UpdateProperties(entprop);
-                    continue;
-                }
                 BSPrim prim;
                 if (m_prims.TryGetValue(entprop.ID, out prim))
                 {
                     prim.UpdateProperties(entprop);
+                    continue;
+                }
+                BSCharacter actor;
+                if (m_avatars.TryGetValue(entprop.ID, out actor))
+                {
+                    actor.UpdateProperties(entprop);
                 }
             }
         }

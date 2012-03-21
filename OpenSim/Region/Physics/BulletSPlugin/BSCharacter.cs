@@ -261,7 +261,7 @@ public class BSCharacter : PhysicsActor
         set {
             _flying = value;
             // simulate flying by changing the effect of gravity
-            this.Buoyancy(ComputeBuoyancyFromFlying(_flying));
+            this.Buoyancy = ComputeBuoyancyFromFlying(_flying);
         } 
     }
     private float ComputeBuoyancyFromFlying(bool ifFlying) {
@@ -356,7 +356,7 @@ public class BSCharacter : PhysicsActor
         }
         else
         {
-            m_log.WarnFormat("{0}: Got a NaN force applied to a Character", LogHeader);
+            m_log.ErrorFormat("{0}: Got a NaN force applied to a Character", LogHeader);
         }
         //m_lastUpdateSent = false;
     }
