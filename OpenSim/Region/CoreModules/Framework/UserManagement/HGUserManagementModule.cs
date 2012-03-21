@@ -71,52 +71,90 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         protected override void AddAdditionalUsers(UUID avatarID, string query, List<UserData> users)
         {
-            string[] words = query.Split(new char[] { ' ' });
-
-            for (int i = 0; i < words.Length; i++)
+            if (query.Contains("@"))  // First.Last@foo.com, maybe?
             {
-                if (words[i].Length < 3)
+                string[] words = query.Split(new char[] { '@' });
+                if (words.Length != 2)
                 {
-                    if (i != words.Length - 1)
-                        Array.Copy(words, i + 1, words, i, words.Length - i - 1);
-                    Array.Resize(ref words, words.Length - 1);
+                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: Malformed address {0}", query);
+                    return;
                 }
-            }
 
-            if (words.Length == 0 || words.Length > 2)
-                return;
+                words[0] = words[0].Trim(); // it has at least 1
+                words[1] = words[1].Trim();
 
-            if (words.Length == 2)  // First.Last @foo.com, maybe?
-            {
-                bool found = false;
+                if (words[0] == String.Empty) // query was @foo.com?
+                {
+                    foreach (UserData d in m_UserCache.Values)
+                    {
+                        if (d.LastName.ToLower().StartsWith("@" + words[1].ToLower()))
+                            users.Add(d);
+                    }
+
+                    // We're done
+                    return;
+                }
+
+                // words.Length == 2 and words[0] != string.empty
+                // first.last@foo.com ?
                 foreach (UserData d in m_UserCache.Values)
                 {
-                    if (d.LastName.StartsWith("@") && 
-                        (d.FirstName.ToLower().Equals(words[0].ToLower()) ||
-                         d.LastName.ToLower().Equals(words[1].ToLower())))
+                    if (d.LastName.StartsWith("@") &&
+                        d.FirstName.ToLower().Equals(words[0].ToLower()) &&
+                        d.LastName.ToLower().Equals("@" + words[1].ToLower()))
                     {
                         users.Add(d);
-                        found = true;
-                        break;
+                        // It's cached. We're done
+                        return;
                     }
                 }
-                if (!found) // This is it! Let's ask the other world
+
+                // This is it! Let's ask the other world
+                if (words[0].Contains(".")) 
                 {
-                    // TODO
-                    //UserAgentServiceConnector uasConn = new UserAgentServiceConnector(words[0]);
-                    //uasConn.GetUserInfo(...);
+                    string[] names = words[0].Split(new char[] { '.' });
+                    if (names.Length >= 2)
+                    {
+
+                        string uriStr = "http://" + words[1];
+                        // Let's check that the last name is a valid address
+                        try
+                        {
+                            new Uri(uriStr);
+                        }
+                        catch (UriFormatException)
+                        {
+                            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Malformed address {0}", uriStr);
+                            return;
+                        }
+
+                        UserAgentServiceConnector uasConn = new UserAgentServiceConnector(uriStr);
+                        UUID userID = uasConn.GetUUID(names[0], names[1]);
+                        if (!userID.Equals(UUID.Zero))
+                        {
+                            UserData ud = new UserData();
+                            ud.Id = userID;
+                            ud.FirstName = words[0];
+                            ud.LastName = "@" + words[1];
+                            users.Add(ud);
+                            AddUser(userID, names[0], names[1], uriStr);
+                            m_log.DebugFormat("[USER MANAGEMENT MODULE]: User {0}@{1} found", words[0], words[1]);
+                        }
+                        else
+                            m_log.DebugFormat("[USER MANAGEMENT MODULE]: User {0}@{1} not found", words[0], words[1]);
+                    }
                 }
             }
-            else
-            {
-                foreach (UserData d in m_UserCache.Values)
-                {
-                    if (d.LastName.StartsWith("@") && 
-                        (d.FirstName.ToLower().StartsWith(query.ToLower()) || 
-                         d.LastName.ToLower().StartsWith(query.ToLower())))
-                        users.Add(d);
-                }
-            }
+            //else
+            //{
+            //    foreach (UserData d in m_UserCache.Values)
+            //    {
+            //        if (d.LastName.StartsWith("@") && 
+            //            (d.FirstName.ToLower().StartsWith(query.ToLower()) || 
+            //             d.LastName.ToLower().StartsWith(query.ToLower())))
+            //            users.Add(d);
+            //    }
+            //}
         }
 
     }
