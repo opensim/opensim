@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         IUserManagement m_uMan;
-        IUserManagement UserManagementModule
+        public IUserManagement UserManagementModule
         {
             get
             {

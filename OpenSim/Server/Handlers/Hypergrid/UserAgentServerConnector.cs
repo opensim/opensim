@@ -222,6 +222,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         }
 
+        [Obsolete]
         public XmlRpcResponse StatusNotification(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable hash = new Hashtable();
