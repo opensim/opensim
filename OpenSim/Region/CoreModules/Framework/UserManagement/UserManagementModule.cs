@@ -183,7 +183,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             List<UserData> users = new List<UserData>();
             if (accs != null)
             {
-                m_log.DebugFormat("[USER MANAGEMENT MODULE]: Found {0} users", accs.Count);
                 foreach (UserAccount acc in accs)
                 {
                     UserData ud = new UserData();
@@ -300,7 +299,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public string GetUserName(UUID uuid)
         {
-            //m_log.DebugFormat("[XXX] GetUserName {0}", uuid);
             string[] names = GetUserNames(uuid);
             if (names.Length == 2)
             {
@@ -341,9 +339,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
                 if (userdata.HomeURL != null && userdata.HomeURL != string.Empty)
                 {
-                    m_log.DebugFormat(
-                        "[USER MANAGEMENT MODULE]: Did not find url type {0} so requesting urls from '{1}' for {2}",
-                        serverType, userdata.HomeURL, userID);
+                    //m_log.DebugFormat(
+                    //    "[USER MANAGEMENT MODULE]: Did not find url type {0} so requesting urls from '{1}' for {2}",
+                    //    serverType, userdata.HomeURL, userID);
 
                     UserAgentServiceConnector uConn = new UserAgentServiceConnector(userdata.HomeURL);
                     userdata.ServerURLs = uConn.GetServerURLs(userID);
@@ -402,11 +400,15 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public void AddUser(UUID uuid, string first, string last, string homeURL)
         {
+            // m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, first {1}, last {2}, url {3}", uuid, first, last, homeURL);
+
             AddUser(uuid, homeURL + ";" + first + " " + last);
         }
 
         public void AddUser (UUID id, string creatorData)
         {
+            //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, creatorData {1}", id, creatorData);
+
             UserData oldUser;
             //lock the whole block - prevent concurrent update
             lock (m_UserCache)
@@ -432,9 +434,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         return;
                     }
                 }
-//              m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, creatorData {1}", id, creatorData);
 
-                UserAccount account = m_Scenes [0].UserAccountService.GetUserAccount (m_Scenes [0].RegionInfo.ScopeID, id);
+                UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount (m_Scenes [0].RegionInfo.ScopeID, id);
 
                 if (account != null)
                 {
@@ -483,9 +484,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             lock (m_UserCache)
                 m_UserCache[user.Id] = user;
 
-//            m_log.DebugFormat(
-//                "[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}",
-//                user.Id, user.FirstName, user.LastName, user.HomeURL);
+            //m_log.DebugFormat(
+            //    "[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}",
+            //    user.Id, user.FirstName, user.LastName, user.HomeURL);
         }
 
         public bool IsLocalGridUser(UUID uuid)

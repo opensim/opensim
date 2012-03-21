@@ -550,7 +550,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 UUID principalID = new UUID(im.fromAgentID);
                 UUID friendID = new UUID(im.toAgentID);
 
-                m_log.DebugFormat("[FRIENDS]: {0} ({1}) offered friendship to {2}", principalID, im.fromAgentName, friendID);
+                m_log.DebugFormat("[FRIENDS]: {0} ({1}) offered friendship to {2} ({3})", principalID, client.FirstName + client.LastName, friendID, im.fromAgentName);
+
+                // Check that the friendship doesn't exist yet
+                FriendInfo[] finfos = GetFriends(principalID);
+                if (finfos != null)
+                {
+                    FriendInfo f = GetFriend(finfos, friendID);
+                    if (f != null)
+                    {
+                        client.SendAgentAlertMessage("This person is already your friend. Please delete it first if you want to reestablish the friendship.", false);
+                        return;
+                    }
+                }
 
                 // This user wants to be friends with the other user.
                 // Let's add the relation backwards, in case the other is not online
@@ -561,7 +573,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
         }
 
-        private void ForwardFriendshipOffer(UUID agentID, UUID friendID, GridInstantMessage im)
+        protected virtual bool ForwardFriendshipOffer(UUID agentID, UUID friendID, GridInstantMessage im)
         {
             // !!!!!!!! This is a hack so that we don't have to keep state (transactionID/imSessionID)
             // We stick this agent's ID as imSession, so that it's directly available on the receiving end
@@ -570,7 +582,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             // Try the local sim            
             if (LocalFriendshipOffered(friendID, im))
-                return;
+            {
+                m_log.DebugFormat("[XXX]: LocalFriendshipOffered successes");
+                return true;
+            }
 
             // The prospective friend is not here [as root]. Let's forward.
             PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
@@ -581,9 +596,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 {
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
                     m_FriendsSimConnector.FriendshipOffered(region, agentID, friendID, im.message);
+                    return true;
                 }
             }
             // If the prospective friend is not online, he'll get the message upon login.
+            return false;
         }
 
         protected virtual string GetFriendshipRequesterName(UUID agentID)
@@ -592,7 +609,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return (account == null) ? "Unknown" : account.FirstName + " " + account.LastName;
         }
 
-        private void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
+        protected virtual void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
         {
             m_log.DebugFormat("[FRIENDS]: {0} accepted friendship from {1}", client.AgentId, friendID);
 
@@ -762,7 +779,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         #region Local
 
-        public bool LocalFriendshipOffered(UUID toID, GridInstantMessage im)
+        public virtual bool LocalFriendshipOffered(UUID toID, GridInstantMessage im)
         {
             IClientAPI friendClient = LocateClientObject(toID);
             if (friendClient != null)
@@ -925,7 +942,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return FriendsService.GetFriends(client.AgentId);
         }
 
-        private void RecacheFriends(IClientAPI client)
+        protected void RecacheFriends(IClientAPI client)
         {
             // FIXME: Ideally, we want to avoid doing this here since it sits the EventManager.OnMakeRootAgent event
             // is on the critical path for transferring an avatar from one region to another.

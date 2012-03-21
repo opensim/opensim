@@ -787,11 +787,70 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch
             {
-                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on LocateUser response.");
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on GetUUI response.");
 //                reason = "Exception: " + e.Message;
             }
 
             return uui;
+        }
+
+        public UUID GetUUID(String first, String last)
+        {
+            Hashtable hash = new Hashtable();
+            hash["first"] = first;
+            hash["last"] = last;
+
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
+
+            XmlRpcRequest request = new XmlRpcRequest("get_uuid", paramList);
+            //            string reason = string.Empty;
+
+            // Send and get reply
+            UUID uuid = UUID.Zero;
+            XmlRpcResponse response = null;
+            try
+            {
+                response = request.Send(m_ServerURL, 10000);
+            }
+            catch
+            {
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0} for GetUUID", m_ServerURL);
+                //                reason = "Exception: " + e.Message;
+                return uuid;
+            }
+
+            if (response.IsFault)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} for GetUUID returned an error: {1}", m_ServerURL, response.FaultString);
+                //                reason = "XMLRPC Fault";
+                return uuid;
+            }
+
+            hash = (Hashtable)response.Value;
+            //foreach (Object o in hash)
+            //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+            try
+            {
+                if (hash == null)
+                {
+                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: GetUUDI Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
+                    //                    reason = "Internal error 1";
+                    return uuid;
+                }
+
+                // Here's the actual response
+                if (hash.ContainsKey("UUID"))
+                    UUID.TryParse(hash["UUID"].ToString(), out uuid);
+
+            }
+            catch
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on UUID response.");
+                //                reason = "Exception: " + e.Message;
+            }
+
+            return uuid;
         }
 
         private bool GetBoolResponse(XmlRpcRequest request, out string reason)

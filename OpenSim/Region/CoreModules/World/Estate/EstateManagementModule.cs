@@ -681,28 +681,17 @@ namespace OpenSim.Region.CoreModules.World.Estate
             TriggerEstateMessage(senderID, senderName, message);
         }
 
-        private void handleEstateDebugRegionRequest(IClientAPI remote_client, UUID invoice, UUID senderID, bool scripted, bool collisionEvents, bool physics)
+        private void handleEstateDebugRegionRequest(
+            IClientAPI remote_client, UUID invoice, UUID senderID,
+            bool disableScripts, bool disableCollisions, bool disablePhysics)
         {
-            if (physics)
-                Scene.RegionInfo.RegionSettings.DisablePhysics = true;
-            else
-                Scene.RegionInfo.RegionSettings.DisablePhysics = false;
-
-            if (scripted)
-                Scene.RegionInfo.RegionSettings.DisableScripts = true;
-            else
-                Scene.RegionInfo.RegionSettings.DisableScripts = false;
-
-            if (collisionEvents)
-                Scene.RegionInfo.RegionSettings.DisableCollisions = true;
-            else
-                Scene.RegionInfo.RegionSettings.DisableCollisions = false;
-
-
+            Scene.RegionInfo.RegionSettings.DisablePhysics = disablePhysics;
+            Scene.RegionInfo.RegionSettings.DisableScripts = disableScripts;
+            Scene.RegionInfo.RegionSettings.DisableCollisions = disableCollisions;
             Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
 
-            Scene.SetSceneCoreDebug(scripted, collisionEvents, physics);
+            Scene.SetSceneCoreDebug(disableScripts, disableCollisions, disablePhysics);
         }
 
         private void handleEstateTeleportOneUserHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID, UUID prey)
