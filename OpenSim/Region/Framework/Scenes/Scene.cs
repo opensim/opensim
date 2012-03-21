@@ -1232,9 +1232,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 while (!shuttingdown)
                     Update(-1);
-
-                m_lastUpdate = Util.EnvironmentTickCount();
-                m_firstHeartbeat = false;
             }
             finally
             {
@@ -1440,6 +1437,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (maintc > 0)
                     Thread.Sleep(maintc);
+
+                m_lastUpdate = Util.EnvironmentTickCount();
+                m_firstHeartbeat = false;
 
                 // Optionally warn if a frame takes double the amount of time that it should.
 //                if (Util.EnvironmentTickCountSubtract(m_lastFrameTick, previousFrameTick) > (int)(MinFrameTime * 1000 * 2))
