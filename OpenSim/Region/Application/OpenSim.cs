@@ -937,24 +937,9 @@ namespace OpenSim
                     }
                     else
                     {
-                        MainConsole.Instance.Output("Usage: debug scene scripting|collisions|physics true|false");
+                        MainConsole.Instance.Output("Usage: debug scene scripting|collisions|physics|teleport true|false");
                     }
 
-                    break;
-
-                case "teleport":
-                    foreach(Scene s in m_sceneManager.Scenes)
-                    {
-                        if (s.DEBUG)
-                        {
-                            s.DEBUG = false;
-                            MainConsole.Instance.Output("Teleport debugging is disabled!");
-                        }
-                        else{
-                            s.DEBUG = true;
-                            MainConsole.Instance.Output("Teleport debugging is enabled!");
-                        }
-                    }
                     break;
 
                 default:

@@ -65,7 +65,7 @@ namespace OpenSim.Region.Framework.Scenes
         #region Fields
 
         public bool EmergencyMonitoring = false;
-        public bool DEBUG = false;
+        public bool DebugTeleporting { get; private set; }
 
         public SynchronizeSceneHandler SynchronizeScene;
         public SimStatsReporter StatsReporter;
@@ -1064,6 +1064,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (bool.TryParse(options["physics"], out enablePhysics) && m_physics_enabled != enablePhysics)
                     m_physics_enabled = enablePhysics;
             }
+
+            if (options.ContainsKey("teleport"))
+                DebugTeleporting = true;
         }
 
         public int GetInaccurateNeighborCount()
