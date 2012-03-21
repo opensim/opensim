@@ -139,12 +139,7 @@ namespace OpenSim.Framework
         {
             // If there is anything in priority queue 0, return it first no
             // matter what else. Breaks fairness. But very useful.
-//            for (int iq = 0; iq < NumberOfImmediateQueues; iq++)
-            
-
-            // keep original order 
-            
-            for (int iq = 0; iq < NumberOfQueues; iq++)
+            for (int iq = 0; iq < NumberOfImmediateQueues; iq++)
             {
                 if (m_heaps[iq].Count > 0)
                 {
@@ -156,7 +151,7 @@ namespace OpenSim.Framework
                     return true;
                 }
             }
-/*            
+
             // To get the fair queing, we cycle through each of the
             // queues when finding an element to dequeue. 
             // We pull (NumberOfQueues - QueueIndex) items from each queue in order
@@ -198,7 +193,7 @@ namespace OpenSim.Framework
                     return true;
                 }
             }
-*/
+
             timeinqueue = 0;
             value = default(IEntityUpdate);
             return false;
