@@ -81,6 +81,17 @@ namespace OpenSim.Services.Interfaces
     public interface IFriendsSimConnector
     {
         bool StatusNotify(UUID userID, UUID friendID, bool online);
+        bool LocalFriendshipOffered(UUID toID, GridInstantMessage im);
+        bool LocalFriendshipApproved(UUID userID, string userName, UUID friendID);
+    }
+
+    public interface IHGFriendsService
+    {
+        int GetFriendPerms(UUID userID, UUID friendID);
+        bool NewFriendship(FriendInfo finfo, bool verified);
+        bool DeleteFriendship(FriendInfo finfo, string secret);
+        bool FriendshipOffered(UUID from, string fromName, UUID to, string message);
+        bool ValidateFriendshipOffered(UUID fromID, UUID toID);
     }
 
     public interface IInstantMessageSimConnector

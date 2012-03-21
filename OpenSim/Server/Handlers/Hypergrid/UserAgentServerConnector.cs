@@ -52,6 +52,11 @@ namespace OpenSim.Server.Handlers.Hypergrid
 //                MethodBase.GetCurrentMethod().DeclaringType);
 
         private IUserAgentService m_HomeUsersService;
+        public IUserAgentService HomeUsersService
+        {
+            get { return m_HomeUsersService; }
+        }
+
         private string[] m_AuthorizedCallers;
 
         private bool m_VerifyCallers = false;
