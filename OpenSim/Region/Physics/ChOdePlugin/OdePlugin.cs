@@ -1720,7 +1720,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
-                                     IMesh mesh, PrimitiveBaseShape pbs, bool isphysical, uint localid)
+                             IMesh mesh, PrimitiveBaseShape pbs, bool isphysical, bool isphantom, byte shapetype, uint localid)
         {
 
             Vector3 pos = position;
@@ -1730,27 +1730,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             OdePrim newPrim;
             lock (OdeLock)
             {
-                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical,false, ode, localid);
-
-                lock (_prims)
-                    _prims.Add(newPrim);
-            }
-
-            return newPrim;
-        }
-
-        private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
-                             IMesh mesh, PrimitiveBaseShape pbs, bool isphysical, bool isphantom, uint localid)
-        {
-
-            Vector3 pos = position;
-            Vector3 siz = size;
-            Quaternion rot = rotation;
-
-            OdePrim newPrim;
-            lock (OdeLock)
-            {
-                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical, isphantom, ode, localid);
+                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical, isphantom, shapetype, ode, localid);
 
                 lock (_prims)
                     _prims.Add(newPrim);
@@ -1781,7 +1761,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (needsMeshing(pbs))
                 mesh = mesher.CreateMesh(primName, pbs, size, (int)LevelOfDetail.High, true);
 
-            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical, localid);
+            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical,false,0, localid);
 
             return result;
         }
@@ -1795,25 +1775,25 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (needsMeshing(pbs))
                 mesh = mesher.CreateMesh(primName, pbs, size, (int)LevelOfDetail.High, true);
 
-            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical, isPhantom, localid);
+            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical, isPhantom,0, localid);
 
             return result;
         }
 
-
-
-/*
-        public override PhysicsActor AddPrimShape(string primName, PhysicsActor parent, PrimitiveBaseShape pbs, Vector3 position,
-                                                  uint localid, byte[] sdata)
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
+                                                  Vector3 size, Quaternion rotation, bool isPhysical, bool isPhantom, byte shapetype, uint localid)
         {
             PhysicsActor result;
+            IMesh mesh = null;
 
-            result = AddPrim(primName, position, parent,
-                                     pbs, localid, sdata);
+            if (needsMeshing(pbs))
+                mesh = mesher.CreateMesh(primName, pbs, size, (int)LevelOfDetail.High, true);
+
+            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical, isPhantom, shapetype, localid);
 
             return result;
         }
-*/
+
         public override float TimeDilation
         {
             get { return m_timeDilation; }

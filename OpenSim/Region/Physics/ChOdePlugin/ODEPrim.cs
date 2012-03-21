@@ -179,6 +179,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public bool m_outofBounds;
         private float m_density = 10.000006836f; // Aluminum g/cm3;
 
+        private byte m_shapetype;
+        private byte m_taintshapetype;
+
         public bool _zeroFlag;					 // if body has been stopped
         private bool m_lastUpdateSent;
 
@@ -315,7 +318,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
-                       Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical,bool pisPhantom, CollisionLocker dode, uint localid)
+                       Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical,
+                       bool pisPhantom,byte shapetype, CollisionLocker dode, uint localid)
         {
             m_localID = localid;
             ode = dode;
@@ -360,6 +364,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintrot = _orientation;
             _mesh = mesh;
             _pbs = pbs;
+            m_shapetype = shapetype;
+            m_taintshapetype = shapetype;
 
             _parent_scene = parent_scene;
             m_targetSpace = (IntPtr)0;
@@ -602,6 +608,19 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 _pbs = value;
                 m_taintshape = true;
+            }
+        }
+
+        public override byte PhysicsShapeType
+        {
+            get
+            {
+                return m_shapetype;
+            }
+            set
+            {
+                m_taintshapetype = value;
+                _parent_scene.AddPhysicsActorTaint(this);
             }
         }
 
@@ -1534,6 +1553,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!_size.ApproxEquals(m_taintsize, 0f))
                     changesize(timestep);
                 //
+
+                if(m_taintshapetype != m_shapetype)
+                {
+                    m_shapetype = m_taintshapetype;
+                    changeshape(timestep);
+                }
 
                 if (m_taintshape)
                     changeshape(timestep);
@@ -2476,9 +2501,16 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (IsPhysical)
                     meshlod = _parent_scene.MeshSculptphysicalLOD;
+
+                bool convex;
+                if (m_shapetype == 2)
+                    convex = true;
+                else
+                    convex = false;
+
                 try
                 {
-                    mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, (int)LevelOfDetail.High, true);
+                    mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, (int)LevelOfDetail.High, true, convex);
                 }
                 catch
                 {
