@@ -1020,44 +1020,49 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void SetSceneCoreDebug(bool ScriptEngine, bool CollisionEvents, bool PhysicsEngine)
+        public void SetSceneCoreDebug(Dictionary<string, string> options)
         {
-            if (m_scripts_enabled != !ScriptEngine)
+            if (options.ContainsKey("scripting"))
             {
-                if (ScriptEngine)
+                bool enableScripts = true;
+                if (bool.TryParse(options["scripting"], out enableScripts) && m_scripts_enabled != enableScripts)
                 {
-                    m_log.Info("Stopping all Scripts in Scene");
-                    
-                    EntityBase[] entities = Entities.GetEntities();
-                    foreach (EntityBase ent in entities)
+                    if (!enableScripts)
                     {
-                        if (ent is SceneObjectGroup)
-                            ((SceneObjectGroup)ent).RemoveScriptInstances(false);
-                    }
-                }
-                else
-                {
-                    m_log.Info("Starting all Scripts in Scene");
-
-                    EntityBase[] entities = Entities.GetEntities();
-                    foreach (EntityBase ent in entities)
-                    {
-                        if (ent is SceneObjectGroup)
+                        m_log.Info("Stopping all Scripts in Scene");
+                        
+                        EntityBase[] entities = Entities.GetEntities();
+                        foreach (EntityBase ent in entities)
                         {
-                            SceneObjectGroup sog = (SceneObjectGroup)ent;
-                            sog.CreateScriptInstances(0, false, DefaultScriptEngine, 0);
-                            sog.ResumeScripts();
+                            if (ent is SceneObjectGroup)
+                                ((SceneObjectGroup)ent).RemoveScriptInstances(false);
                         }
                     }
-                }
+                    else
+                    {
+                        m_log.Info("Starting all Scripts in Scene");
+    
+                        EntityBase[] entities = Entities.GetEntities();
+                        foreach (EntityBase ent in entities)
+                        {
+                            if (ent is SceneObjectGroup)
+                            {
+                                SceneObjectGroup sog = (SceneObjectGroup)ent;
+                                sog.CreateScriptInstances(0, false, DefaultScriptEngine, 0);
+                                sog.ResumeScripts();
+                            }
+                        }
+                    }
 
-                m_scripts_enabled = !ScriptEngine;
-                m_log.Info("[TOTEDD]: Here is the method to trigger disabling of the scripting engine");
+                    m_scripts_enabled = enableScripts;
+                }
             }
 
-            if (m_physics_enabled != !PhysicsEngine)
+            if (options.ContainsKey("physics"))
             {
-                m_physics_enabled = !PhysicsEngine;
+                bool enablePhysics = false;
+                if (bool.TryParse(options["physics"], out enablePhysics) && m_physics_enabled != enablePhysics)
+                    m_physics_enabled = enablePhysics;
             }
         }
 
