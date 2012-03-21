@@ -212,7 +212,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             scene.EventManager.OnClientLogin += OnClientLogin;
         }
 
-        public void RegionLoaded(Scene scene)
+        public virtual void RegionLoaded(Scene scene)
         {
         }
 

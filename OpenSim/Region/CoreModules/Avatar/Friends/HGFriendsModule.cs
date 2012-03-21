@@ -62,6 +62,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         }
 
         protected HGFriendsServicesConnector m_HGFriendsConnector = new HGFriendsServicesConnector();
+        protected HGStatusNotifier m_StatusNotifier;
 
         #region ISharedRegionModule
         public override string Name
@@ -76,6 +77,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             base.AddRegion(scene);
             scene.RegisterModuleInterface<IFriendsSimConnector>(this);
+        }
+
+        public override void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+            if (m_StatusNotifier == null)
+                m_StatusNotifier = new HGStatusNotifier(this);
         }
 
         #endregion
@@ -230,25 +239,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (friendsPerDomain.ContainsKey("local"))
                 base.StatusNotify(friendsPerDomain["local"], userID, online);
 
-            foreach (KeyValuePair<string, List<FriendInfo>> kvp in friendsPerDomain)
-            {
-                if (kvp.Key != "local")
-                {
-                    // For the others, call the user agent service 
-                    List<string> ids = new List<string>();
-                    foreach (FriendInfo f in kvp.Value)
-                        ids.Add(f.Friend);
-                    UserAgentServiceConnector uConn = new UserAgentServiceConnector(kvp.Key);
-                    List<UUID> friendsOnline = uConn.StatusNotification(ids, userID, online);
-
-                    if (online && friendsOnline.Count > 0)
-                    {
-                        IClientAPI client = LocateClientObject(userID);
-                        if (client != null)
-                            client.SendAgentOnline(friendsOnline.ToArray());
-                    }
-                }
-            }
+            m_StatusNotifier.Notify(userID, friendsPerDomain, online);
 
 //            m_log.DebugFormat("[HGFRIENDS MODULE]: Exiting StatusNotify for {0}", userID);
         }
