@@ -65,7 +65,16 @@ namespace OpenSim.Region.Framework.Scenes
         #region Fields
 
         public bool EmergencyMonitoring = false;
+
+        /// <summary>
+        /// Show debug information about teleports.
+        /// </summary>
         public bool DebugTeleporting { get; private set; }
+
+        /// <summary>
+        /// Show debug information about the scene loop.
+        /// </summary>
+        public bool DebugUpdates { get; private set; }
 
         public SynchronizeSceneHandler SynchronizeScene;
         public SimStatsReporter StatsReporter;
@@ -1060,13 +1069,24 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (options.ContainsKey("physics"))
             {
-                bool enablePhysics = false;
-                if (bool.TryParse(options["physics"], out enablePhysics) && m_physics_enabled != enablePhysics)
+                bool enablePhysics;
+                if (bool.TryParse(options["physics"], out enablePhysics))
                     m_physics_enabled = enablePhysics;
             }
 
             if (options.ContainsKey("teleport"))
-                DebugTeleporting = true;
+            {
+                bool enableTeleportDebugging;
+                if (bool.TryParse(options["teleport"], out enableTeleportDebugging))
+                    DebugTeleporting = enableTeleportDebugging;
+            }
+
+            if (options.ContainsKey("updates"))
+            {
+                bool enableUpdateDebugging;
+                if (bool.TryParse(options["updates"], out enableUpdateDebugging))
+                    DebugUpdates = enableUpdateDebugging;
+            }
         }
 
         public int GetInaccurateNeighborCount()
@@ -1390,7 +1410,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Tell the watchdog that this thread is still alive
                 Watchdog.UpdateThread();
 
-//                previousFrameTick = m_lastFrameTick;
+                previousFrameTick = m_lastFrameTick;
                 m_lastFrameTick = Util.EnvironmentTickCount();
                 maintc = Util.EnvironmentTickCountSubtract(m_lastFrameTick, maintc);
                 maintc = (int)(MinFrameTime * 1000) - maintc;
@@ -1399,12 +1419,14 @@ namespace OpenSim.Region.Framework.Scenes
                     Thread.Sleep(maintc);
 
                 // Optionally warn if a frame takes double the amount of time that it should.
-//                if (Util.EnvironmentTickCountSubtract(m_lastFrameTick, previousFrameTick) > (int)(MinFrameTime * 1000 * 2))
-//                    m_log.WarnFormat(
-//                        "[SCENE]: Frame took {0} ms (desired max {1} ms) in {2}",
-//                        Util.EnvironmentTickCountSubtract(m_lastFrameTick, previousFrameTick),
-//                        MinFrameTime * 1000,
-//                        RegionInfo.RegionName);
+                if (DebugUpdates
+                    && Util.EnvironmentTickCountSubtract(
+                        m_lastFrameTick, previousFrameTick) > (int)(MinFrameTime * 1000 * 2))
+                    m_log.WarnFormat(
+                        "[SCENE]: Frame took {0} ms (desired max {1} ms) in {2}",
+                        Util.EnvironmentTickCountSubtract(m_lastFrameTick, previousFrameTick),
+                        MinFrameTime * 1000,
+                        RegionInfo.RegionName);
             }
         }        
 
