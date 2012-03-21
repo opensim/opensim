@@ -65,7 +65,16 @@ namespace OpenSim.Region.Framework.Scenes
         #region Fields
 
         public bool EmergencyMonitoring = false;
-        public bool DEBUG = false;
+
+        /// <summary>
+        /// Show debug information about teleports.
+        /// </summary>
+        public bool DebugTeleporting { get; private set; }
+
+        /// <summary>
+        /// Show debug information about the scene loop.
+        /// </summary>
+        public bool DebugUpdates { get; private set; }
 
         public SynchronizeSceneHandler SynchronizeScene;
         public SimStatsReporter StatsReporter;
@@ -1020,44 +1029,66 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void SetSceneCoreDebug(bool ScriptEngine, bool CollisionEvents, bool PhysicsEngine)
+        public void SetSceneCoreDebug(Dictionary<string, string> options)
         {
-            if (m_scripts_enabled != !ScriptEngine)
+            if (options.ContainsKey("scripting"))
             {
-                if (ScriptEngine)
+                bool enableScripts = true;
+                if (bool.TryParse(options["scripting"], out enableScripts) && m_scripts_enabled != enableScripts)
                 {
-                    m_log.Info("Stopping all Scripts in Scene");
-                    
-                    EntityBase[] entities = Entities.GetEntities();
-                    foreach (EntityBase ent in entities)
+                    if (!enableScripts)
                     {
-                        if (ent is SceneObjectGroup)
-                            ((SceneObjectGroup)ent).RemoveScriptInstances(false);
-                    }
-                }
-                else
-                {
-                    m_log.Info("Starting all Scripts in Scene");
-
-                    EntityBase[] entities = Entities.GetEntities();
-                    foreach (EntityBase ent in entities)
-                    {
-                        if (ent is SceneObjectGroup)
+                        m_log.Info("Stopping all Scripts in Scene");
+                        
+                        EntityBase[] entities = Entities.GetEntities();
+                        foreach (EntityBase ent in entities)
                         {
-                            SceneObjectGroup sog = (SceneObjectGroup)ent;
-                            sog.CreateScriptInstances(0, false, DefaultScriptEngine, 0);
-                            sog.ResumeScripts();
+                            if (ent is SceneObjectGroup)
+                                ((SceneObjectGroup)ent).RemoveScriptInstances(false);
                         }
                     }
-                }
+                    else
+                    {
+                        m_log.Info("Starting all Scripts in Scene");
+    
+                        EntityBase[] entities = Entities.GetEntities();
+                        foreach (EntityBase ent in entities)
+                        {
+                            if (ent is SceneObjectGroup)
+                            {
+                                SceneObjectGroup sog = (SceneObjectGroup)ent;
+                                sog.CreateScriptInstances(0, false, DefaultScriptEngine, 0);
+                                sog.ResumeScripts();
+                            }
+                        }
+                    }
 
-                m_scripts_enabled = !ScriptEngine;
-                m_log.Info("[TOTEDD]: Here is the method to trigger disabling of the scripting engine");
+                    m_scripts_enabled = enableScripts;
+                }
             }
 
-            if (m_physics_enabled != !PhysicsEngine)
+            if (options.ContainsKey("physics"))
             {
-                m_physics_enabled = !PhysicsEngine;
+                bool enablePhysics;
+                if (bool.TryParse(options["physics"], out enablePhysics))
+                    m_physics_enabled = enablePhysics;
+            }
+
+            if (options.ContainsKey("teleport"))
+            {
+                bool enableTeleportDebugging;
+                if (bool.TryParse(options["teleport"], out enableTeleportDebugging))
+                    DebugTeleporting = enableTeleportDebugging;
+            }
+
+            if (options.ContainsKey("updates"))
+            {
+                bool enableUpdateDebugging;
+                if (bool.TryParse(options["updates"], out enableUpdateDebugging))
+                {
+                    DebugUpdates = enableUpdateDebugging;
+                    GcNotify.Enabled = DebugUpdates;
+                }
             }
         }
 
@@ -1382,7 +1413,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Tell the watchdog that this thread is still alive
                 Watchdog.UpdateThread();
 
-//                previousFrameTick = m_lastFrameTick;
+                previousFrameTick = m_lastFrameTick;
                 m_lastFrameTick = Util.EnvironmentTickCount();
                 maintc = Util.EnvironmentTickCountSubtract(m_lastFrameTick, maintc);
                 maintc = (int)(MinFrameTime * 1000) - maintc;
@@ -1391,12 +1422,14 @@ namespace OpenSim.Region.Framework.Scenes
                     Thread.Sleep(maintc);
 
                 // Optionally warn if a frame takes double the amount of time that it should.
-//                if (Util.EnvironmentTickCountSubtract(m_lastFrameTick, previousFrameTick) > (int)(MinFrameTime * 1000 * 2))
-//                    m_log.WarnFormat(
-//                        "[SCENE]: Frame took {0} ms (desired max {1} ms) in {2}",
-//                        Util.EnvironmentTickCountSubtract(m_lastFrameTick, previousFrameTick),
-//                        MinFrameTime * 1000,
-//                        RegionInfo.RegionName);
+                if (DebugUpdates
+                    && Util.EnvironmentTickCountSubtract(
+                        m_lastFrameTick, previousFrameTick) > (int)(MinFrameTime * 1000 * 2))
+                    m_log.WarnFormat(
+                        "[SCENE]: Frame took {0} ms (desired max {1} ms) in {2}",
+                        Util.EnvironmentTickCountSubtract(m_lastFrameTick, previousFrameTick),
+                        MinFrameTime * 1000,
+                        RegionInfo.RegionName);
             }
         }        
 
