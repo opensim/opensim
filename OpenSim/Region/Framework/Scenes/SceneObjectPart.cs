@@ -1832,6 +1832,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 GetWorldRotation(),
                                 isPhysical,
                                 isPhantom,
+                                PhysicsShapeType,
                                 m_localId);
                     }
                     catch
@@ -4732,6 +4733,7 @@ namespace OpenSim.Region.Framework.Scenes
                             GetWorldRotation(), //physics wants world rotation like all other functions send
                             UsePhysics,
                             SetPhantom,
+                            PhysicsShapeType,
                             m_localId);
 
                         PhysActor.SetMaterial(Material);

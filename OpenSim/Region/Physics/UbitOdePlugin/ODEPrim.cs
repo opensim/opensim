@@ -163,7 +163,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr collide_geom; // for objects: geom if single prim space it linkset
 
         private float m_density = 10.000006836f; // Aluminum g/cm3;
-
+        private byte m_shapetype;
         public bool _zeroFlag;
         private bool m_lastUpdateSent;
 
@@ -846,7 +846,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
-                       Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical,bool pisPhantom,uint plocalID)
+                       Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical,bool pisPhantom,byte _shapeType,uint plocalID)
         {
             Name = primName;
             LocalID = plocalID;
@@ -919,6 +919,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             hasOOBoffsetFromMesh = false;
             _triMeshData = IntPtr.Zero;
+
+            m_shapetype = _shapeType;
 
             m_lastdoneSelected = false;
             m_isSelected = false;
@@ -1050,7 +1052,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            IMesh mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, (int)LevelOfDetail.High, true);
+            bool convex;
+            if (m_shapetype == 0)
+                convex = false;
+            else
+                convex = true;
+
+            IMesh mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, (int)LevelOfDetail.High, true,convex);
             if (mesh == null)
             {
                 m_log.WarnFormat("[PHYSICS]: CreateMesh Failed on prim {0} at <{1},{2},{3}>.", Name, _position.X, _position.Y, _position.Z);
