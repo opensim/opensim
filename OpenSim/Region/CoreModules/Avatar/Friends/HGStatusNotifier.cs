@@ -48,15 +48,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     if (Util.ParseUniversalUserIdentifier(ids[0], out friendID, out tmp, out tmp, out tmp, out tmp))
                     {
                         string friendsServerURI = m_FriendsModule.UserManagementModule.GetUserServerURL(friendID, "FriendsServerURI");
-                        HGFriendsServicesConnector fConn = new HGFriendsServicesConnector(friendsServerURI);
-
-                        List<UUID> friendsOnline = fConn.StatusNotification(ids, userID, online);
-
-                        if (online && friendsOnline.Count > 0)
+                        if (friendsServerURI != string.Empty)
                         {
-                            IClientAPI client = m_FriendsModule.LocateClientObject(userID);
-                            if (client != null)
-                                client.SendAgentOnline(friendsOnline.ToArray());
+                            HGFriendsServicesConnector fConn = new HGFriendsServicesConnector(friendsServerURI);
+
+                            List<UUID> friendsOnline = fConn.StatusNotification(ids, userID, online);
+
+                            if (online && friendsOnline.Count > 0)
+                            {
+                                IClientAPI client = m_FriendsModule.LocateClientObject(userID);
+                                if (client != null)
+                                    client.SendAgentOnline(friendsOnline.ToArray());
+                            }
                         }
                     }
                 }
