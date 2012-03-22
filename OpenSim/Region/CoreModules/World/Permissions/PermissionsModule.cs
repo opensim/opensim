@@ -94,7 +94,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         private bool m_RegionOwnerIsGod = false;
         private bool m_RegionManagerIsGod = false;
         private bool m_ParcelOwnerIsGod = false;
-        
+
+        private bool m_SimpleBuildPermissions = false;
+
         /// <value>
         /// The set of users that are allowed to create scripts.  This is only active if permissions are not being
         /// bypassed.  This overrides normal permissions.
@@ -139,7 +141,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_RegionOwnerIsGod = myConfig.GetBoolean("region_owner_is_god", true);
             m_RegionManagerIsGod = myConfig.GetBoolean("region_manager_is_god", false);
             m_ParcelOwnerIsGod = myConfig.GetBoolean("parcel_owner_is_god", true);
-            
+
+            m_SimpleBuildPermissions = myConfig.GetBoolean("simple_build_permissions", false);
+
             m_allowedScriptCreators 
                 = ParseUserSetConfigSetting(myConfig, "allowed_script_creators", m_allowedScriptCreators);
             m_allowedScriptEditors
@@ -823,6 +827,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             {
                 permission = true;
             }
+
+            if (m_SimpleBuildPermissions &&
+                (parcel.LandData.Flags & (uint)ParcelFlags.UseAccessList) == 0 && parcel.IsInLandAccessList(user))
+                permission = true;
 
             return permission;
         }
