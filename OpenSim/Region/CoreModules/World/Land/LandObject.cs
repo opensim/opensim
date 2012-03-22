@@ -458,7 +458,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return false;
 
             if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) == 0)
-                return true;
+                return false;
 
             return (!IsInLandAccessList(avatar));
         }
