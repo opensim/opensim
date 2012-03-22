@@ -415,6 +415,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             GetBoolResponse(request, out reason);
         }
 
+        [Obsolete]
         public List<UUID> StatusNotification(List<string> friends, UUID userID, bool online)
         {
             Hashtable hash = new Hashtable();

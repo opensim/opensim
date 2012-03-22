@@ -65,8 +65,8 @@ namespace OpenSim.Services.Interfaces
         UUID GetUUID(String first, String last);
 
         // Returns the local friends online
+        [Obsolete]
         List<UUID> StatusNotification(List<string> friends, UUID userID, bool online);
-        //List<UUID> GetOnlineFriends(UUID userID, List<string> friends);
 
         bool IsAgentComingHome(UUID sessionID, string thisGridExternalName);
         bool VerifyAgent(UUID sessionID, string token);
@@ -92,6 +92,8 @@ namespace OpenSim.Services.Interfaces
         bool DeleteFriendship(FriendInfo finfo, string secret);
         bool FriendshipOffered(UUID from, string fromName, UUID to, string message);
         bool ValidateFriendshipOffered(UUID fromID, UUID toID);
+        // Returns the local friends online
+        List<UUID> StatusNotification(List<string> friends, UUID userID, bool online);
     }
 
     public interface IInstantMessageSimConnector

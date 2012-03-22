@@ -1211,11 +1211,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public UUID GetDefaultAnimation(string name)
-        {
-            return UUID.Zero;
-        }
-
         public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, byte[] charterMember, string flAbout, uint flags, UUID flImageID, UUID imageID, string profileURL, UUID partnerID)
         {
             

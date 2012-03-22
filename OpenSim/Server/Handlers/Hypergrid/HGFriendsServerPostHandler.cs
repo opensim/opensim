@@ -105,6 +105,9 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
                     case "validate_friendship_offered":
                         return ValidateFriendshipOffered(request);
+                        
+                    case "statusnotification":
+                        return StatusNotification(request);
                     /*
                     case "friendship_approved":
                         return FriendshipApproved(request);
@@ -197,7 +200,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
             string message = string.Empty;
             string name = string.Empty;
 
-            m_log.DebugFormat("[HGFRIENDS HANDLER]: Friendship offered");
             if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
                 return BoolResult(false);
 
@@ -227,6 +229,59 @@ namespace OpenSim.Server.Handlers.Hypergrid
             bool success = m_TheService.ValidateFriendshipOffered(friend.PrincipalID, friendID);
 
             return BoolResult(success);
+        }
+
+        byte[] StatusNotification(Dictionary<string, object> request)
+        {
+            UUID principalID = UUID.Zero;
+            if (request.ContainsKey("userID"))
+                UUID.TryParse(request["userID"].ToString(), out principalID);
+            else
+            {
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no userID in request to notify");
+                return FailureResult();
+            }
+
+            bool online = true;
+            if (request.ContainsKey("online"))
+                Boolean.TryParse(request["online"].ToString(), out online);
+            else
+            {
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no online in request to notify");
+                return FailureResult();
+            }
+
+            List<string> friends = new List<string>();
+            int i = 0;
+            foreach (KeyValuePair<string, object> kvp in request)
+            {
+                if (kvp.Key.Equals("friend_" + i.ToString()))
+                {
+                    friends.Add(kvp.Value.ToString());
+                    i++;
+                }
+            }
+
+            List<UUID> onlineFriends = m_TheService.StatusNotification(friends, principalID, online);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if ((onlineFriends == null) || ((onlineFriends != null) && (onlineFriends.Count == 0)))
+                result["RESULT"] = "NULL";
+            else
+            {
+                i = 0;
+                foreach (UUID f in onlineFriends)
+                {
+                    result["friend_" + i] = f.ToString();
+                    i++;
+                }
+            }
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+
         }
 
 
