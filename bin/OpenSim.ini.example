@@ -194,6 +194,14 @@
     ; region_manager_is_god = false
     ; parcel_owner_is_god = true
 
+    ;; More control over permissions
+    ;; This is definitely not SL!
+    ; Provides a simple control for land owners to give build rights to specific avatars
+    ; in publicly accessible parcels that disallow object creation in general. 
+    ; Owners specific avatars by adding them to the Access List of the parcel
+    ; without having to use the Groups feature
+    ; simple_build_permissions = false
+
     ;; Default script engine to use. Currently, we only have XEngine
     ; DefaultScriptEngine = "XEngine"
 
