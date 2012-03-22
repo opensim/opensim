@@ -73,6 +73,18 @@ namespace OpenSim.Server.Handlers.Login
 
             if (requestData != null)
             {
+                foreach (string key in requestData.Keys)
+                {
+                    object value = requestData[key];
+                    Console.WriteLine("{0}:{1}", key, value);
+                    if (value is ArrayList)
+                    {
+                        ICollection col = value as ICollection;
+                        foreach (object item in col)
+                            Console.WriteLine("  {0}", item);
+                    }
+                }
+
                 if (requestData.ContainsKey("first") && requestData["first"] != null &&
                     requestData.ContainsKey("last") && requestData["last"] != null && (
                         (requestData.ContainsKey("passwd") && requestData["passwd"] != null) ||

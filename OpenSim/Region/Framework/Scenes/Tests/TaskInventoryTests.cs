@@ -113,7 +113,7 @@ namespace OpenSim.Region.Framework.Tests
         }
 
         /// <summary>
-        /// Test MoveTaskInventoryItem where the item has no parent folder assigned.
+        /// Test MoveTaskInventoryItem from a part inventory to a user inventory where the item has no parent folder assigned.
         /// </summary>
         /// <remarks>
         /// This should place it in the most suitable user folder.
@@ -142,9 +142,11 @@ namespace OpenSim.Region.Framework.Tests
         }
         
         /// <summary>
-        /// Test MoveTaskInventoryItem where the item has no parent folder assigned.
+        /// Test MoveTaskInventoryItem from a part inventory to a user inventory where the item has no parent folder assigned.
         /// </summary>
+        /// <remarks>
         /// This should place it in the most suitable user folder.
+        /// </remarks>
         [Test]
         public void TestMoveTaskInventoryItemNoParent()
         {
