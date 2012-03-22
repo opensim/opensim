@@ -27,8 +27,10 @@
 
 using System;
 using System.Collections.Generic;
-using OpenSim.Framework;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
+using OpenSim.Framework;
 
 using Animation = OpenSim.Framework.Animation;
 
@@ -37,7 +39,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
     [Serializable]
     public class AnimationSet
     {
-        public static AvatarAnimations Animations = new AvatarAnimations();
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private OpenSim.Framework.Animation m_defaultAnimation = new OpenSim.Framework.Animation();
         private List<OpenSim.Framework.Animation> m_animations = new List<OpenSim.Framework.Animation>();
@@ -132,9 +134,13 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         public bool TrySetDefaultAnimation(string anim, int sequenceNum, UUID objectID)
         {
-            if (Animations.AnimsUUID.ContainsKey(anim))
+//            m_log.DebugFormat(
+//                "[ANIMATION SET]: Setting default animation {0}, sequence number {1}, object id {2}",
+//                anim, sequenceNum, objectID);
+
+            if (AvatarAnimations.AnimsUUID.ContainsKey(anim))
             {
-                return SetDefaultAnimation(Animations.AnimsUUID[anim], sequenceNum, objectID);
+                return SetDefaultAnimation(AvatarAnimations.AnimsUUID[anim], sequenceNum, objectID);
             }
             return false;
         }

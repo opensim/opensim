@@ -26,38 +26,83 @@
  */
 
 using System.Collections.Generic;
+using System.Reflection;
 using System.Xml;
+using log4net;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Scenes.Animation
 {
     public class AvatarAnimations
     {
-        public Dictionary<string, UUID> AnimsUUID = new Dictionary<string, UUID>();
-        public Dictionary<UUID, string> AnimsNames = new Dictionary<UUID, string>();
-        public Dictionary<UUID, string> AnimStateNames = new Dictionary<UUID, string>();
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public AvatarAnimations()
+        public static readonly string DefaultAnimationsPath = "data/avataranimations.xml";
+
+        public static Dictionary<string, UUID> AnimsUUID = new Dictionary<string, UUID>();
+        public static Dictionary<UUID, string> AnimsNames = new Dictionary<UUID, string>();
+        public static Dictionary<UUID, string> AnimStateNames = new Dictionary<UUID, string>();
+
+        static AvatarAnimations()
         {
-            using (XmlTextReader reader = new XmlTextReader("data/avataranimations.xml"))
+            LoadAnimations(DefaultAnimationsPath);
+        }
+
+        /// <summary>
+        /// Load the default SL avatar animations.
+        /// </summary>
+        /// <returns></returns>
+        private static void LoadAnimations(string path)
+        {
+//            Dictionary<string, UUID> animations = new Dictionary<string, UUID>();
+            
+            using (XmlTextReader reader = new XmlTextReader(path))
             {
                 XmlDocument doc = new XmlDocument();
                 doc.Load(reader);
-                foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
-                {
-                    if (nod.Attributes["name"] != null)
+//                if (doc.DocumentElement != null)
+//                {
+                    foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
                     {
-                        string name = (string)nod.Attributes["name"].Value;
-                        UUID id = (UUID)nod.InnerText;
-                        string animState = (string)nod.Attributes["state"].Value;
+                        if (nod.Attributes["name"] != null)
+                        {
+                            string name = nod.Attributes["name"].Value;
+                            UUID id = (UUID)nod.InnerText;
+                            string animState = (string)nod.Attributes["state"].Value;
 
-                        AnimsUUID.Add(name, id);
-                        AnimsNames.Add(id, name);
-                        if (animState != "")
-                            AnimStateNames.Add(id, animState);
+                            AnimsUUID.Add(name, id);
+                            AnimsNames.Add(id, name);
+                            if (animState != "")
+                                AnimStateNames.Add(id, animState);
+
+//                            m_log.DebugFormat("[AVATAR ANIMATIONS]: Loaded {0} {1} {2}", id, name, animState);
+                        }
                     }
-                }
+//                }
             }
+
+//            return animations;
+        }
+
+        /// <summary>
+        /// Get the default avatar animation with the given name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static UUID GetDefaultAnimation(string name)
+        {
+//            m_log.DebugFormat(
+//                "[AVATAR ANIMATIONS]: Looking for default avatar animation with name {0}", name);
+
+            if (AnimsUUID.ContainsKey(name))
+            {
+//                m_log.DebugFormat(
+//                    "[AVATAR ANIMATIONS]: Found {0} {1} in GetDefaultAvatarAnimation()", AnimsUUID[name], name);
+
+                return AnimsUUID[name];
+            }
+
+            return UUID.Zero;
         }
     }
 }
