@@ -169,11 +169,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             return newLand;
         }
 
-        public ILandObject MemberwiseCopy()
-        {
-            return (ILandObject)this.MemberwiseClone();
-        }
-
         static overrideParcelMaxPrimCountDelegate overrideParcelMaxPrimCount;
         static overrideSimulatorMaxPrimCountDelegate overrideSimulatorMaxPrimCount;
 
@@ -247,13 +242,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_lastSeqId = seq_id;
             }
 
-            ILandObject landToSend = this;
-            m_scene.Permissions.LandObjectForClient(remote_client.AgentId, (ILandObject)this, out landToSend);
             remote_client.SendLandProperties(seq_id,
-                        snap_selection, request_result, landToSend,
-                        (float)m_scene.RegionInfo.RegionSettings.ObjectBonus,
-                        GetParcelMaxPrimCount(),
-                        GetSimulatorMaxPrimCount(), regionFlags);
+                    snap_selection, request_result, this,
+                    (float)m_scene.RegionInfo.RegionSettings.ObjectBonus,
+                    GetParcelMaxPrimCount(),
+                    GetSimulatorMaxPrimCount(), regionFlags);
         }
 
         public void UpdateLandProperties(LandUpdateArgs args, IClientAPI remote_client)
@@ -479,32 +472,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                     return true;
                 }
             }
-            return false;
-        }
-
-        public bool IsAllowedInLand(UUID avatar)
-        {
-            ExpireAccessList();
-
-            if (m_scene.Permissions.IsAdministrator(avatar))
-                return true;
-
-            if (m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar))
-                return true;
-
-            if (avatar == LandData.OwnerID)
-                return true;
-
-            if (LandData.ParcelAccessList.FindIndex(
-                        delegate(LandAccessEntry e)
-                        {
-                            if (e.AgentID == avatar && e.Flags == AccessList.Access)
-                                return true;
-                            return false;
-                        }) != -1)
-                {
-                    return true;
-                }
             return false;
         }
 

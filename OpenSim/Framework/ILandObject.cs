@@ -63,7 +63,6 @@ namespace OpenSim.Framework
         bool ContainsPoint(int x, int y);
         
         ILandObject Copy();
-        ILandObject MemberwiseCopy();
 
         void SendLandUpdateToAvatarsOverMe();
 
@@ -71,7 +70,6 @@ namespace OpenSim.Framework
         void UpdateLandProperties(LandUpdateArgs args, IClientAPI remote_client);
         bool IsEitherBannedOrRestricted(UUID avatar);
         bool IsBannedFromLand(UUID avatar);
-        bool IsAllowedInLand(UUID avatar);
         bool IsRestrictedFromLand(UUID avatar);
         void SendLandUpdateToClient(IClientAPI remote_client);
         void SendLandUpdateToClient(bool snap_selection, IClientAPI remote_client);

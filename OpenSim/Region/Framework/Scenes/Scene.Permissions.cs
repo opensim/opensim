@@ -90,7 +90,6 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool TeleportHandler(UUID userID, Scene scene);
     public delegate bool ControlPrimMediaHandler(UUID userID, UUID primID, int face);
     public delegate bool InteractWithPrimMediaHandler(UUID userID, UUID primID, int face);
-    public delegate void SendLandPropertiesHandler(UUID userID, ILandObject realLand, out ILandObject landToSend);
     #endregion
 
     public class ScenePermissions
@@ -158,7 +157,6 @@ namespace OpenSim.Region.Framework.Scenes
         public event TeleportHandler OnTeleport;
         public event ControlPrimMediaHandler OnControlPrimMedia;
         public event InteractWithPrimMediaHandler OnInteractWithPrimMedia;
-        public event SendLandPropertiesHandler OnSendLandProperties;
         #endregion
 
         #region Object Permission Checks
@@ -1100,20 +1098,5 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return true;
         }
-
-        public void LandObjectForClient(UUID userID, ILandObject realLand, out ILandObject landToSend)
-        {
-            landToSend = realLand;
-            SendLandPropertiesHandler handler = OnSendLandProperties;
-            if (handler != null)
-            {
-                Delegate[] list = handler.GetInvocationList();
-                foreach (SendLandPropertiesHandler h in list)
-                {
-                    h(userID, realLand, out landToSend);
-                }
-            }
-        }
-
     }
 }
