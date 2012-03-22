@@ -75,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         /// Test giving inventory from an object to an object where both are owned by the same user.
         /// </summary>
         [Test]
-        public void TestLlGiveInventorySameOwner()
+        public void TestLlGiveInventoryO2OSameOwner()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -106,6 +106,63 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             List<TaskInventoryItem> copiedItems = so2.RootPart.Inventory.GetInventoryItems(inventoryItemName);
             Assert.That(copiedItems.Count, Is.EqualTo(1));
             Assert.That(copiedItems[0].Name, Is.EqualTo(inventoryItemName));
+        }
+
+        /// <summary>
+        /// Test giving inventory from an object to an object where they have different owners
+        /// </summary>
+        [Test]
+        public void TestLlGiveInventoryO2ODifferentOwners()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID user1Id = TestHelpers.ParseTail(0x1);
+            UUID user2Id = TestHelpers.ParseTail(0x2);
+            string inventoryItemName = "item1";
+
+            SceneObjectGroup so1 = SceneHelpers.CreateSceneObject(1, user1Id, "so1", 0x10);
+            m_scene.AddSceneObject(so1);
+            LSL_Api api = new LSL_Api();
+            api.Initialize(m_engine, so1.RootPart, so1.RootPart.LocalId, so1.RootPart.UUID);
+
+            // Create an object embedded inside the first
+            UUID itemId = TestHelpers.ParseTail(0x20);
+            TaskInventoryHelpers.AddSceneObject(m_scene, so1.RootPart, inventoryItemName, itemId, user1Id);
+
+            // Create a second object
+            SceneObjectGroup so2 = SceneHelpers.CreateSceneObject(1, user2Id, "so2", 0x100);
+            m_scene.AddSceneObject(so2);
+            LSL_Api api2 = new LSL_Api();
+            api2.Initialize(m_engine, so2.RootPart, so2.RootPart.LocalId, so2.RootPart.UUID);
+
+            // *** Firstly, we test where llAllowInventoryDrop() has not been called. ***
+            api.llGiveInventory(so2.UUID.ToString(), inventoryItemName);
+
+            {
+                // Item has copy permissions so original should stay intact.
+                List<TaskInventoryItem> originalItems = so1.RootPart.Inventory.GetInventoryItems();
+                Assert.That(originalItems.Count, Is.EqualTo(1));
+
+                // Should have not copied
+                List<TaskInventoryItem> copiedItems = so2.RootPart.Inventory.GetInventoryItems(inventoryItemName);
+                Assert.That(copiedItems.Count, Is.EqualTo(0));
+            }
+
+            // *** Secondly, we turn on allow inventory drop in the target and retest. ***
+            api2.llAllowInventoryDrop(1);
+            api.llGiveInventory(so2.UUID.ToString(), inventoryItemName);
+
+            {
+                // Item has copy permissions so original should stay intact.
+                List<TaskInventoryItem> originalItems = so1.RootPart.Inventory.GetInventoryItems();
+                Assert.That(originalItems.Count, Is.EqualTo(1));
+    
+                // Should now have copied.
+                List<TaskInventoryItem> copiedItems = so2.RootPart.Inventory.GetInventoryItems(inventoryItemName);
+                Assert.That(copiedItems.Count, Is.EqualTo(1));
+                Assert.That(copiedItems[0].Name, Is.EqualTo(inventoryItemName));
+            }
         }
     }
 }
