@@ -85,7 +85,6 @@ public sealed class BSPrim : PhysicsActor
     private OMV.Vector3 _rotationalVelocity;
     private bool _kinematic;
     private float _buoyancy;
-    private OMV.Vector3 _angularVelocity;
 
     private List<BSPrim> _childrenPrims;
     private BSPrim _parentPrim;
@@ -119,7 +118,6 @@ public sealed class BSPrim : PhysicsActor
         _buoyancy = 1f;
         _velocity = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
-        _angularVelocity = OMV.Vector3.Zero;
         _hullKey = 0;
         _meshKey = 0;
         _pbs = pbs;
@@ -146,7 +144,7 @@ public sealed class BSPrim : PhysicsActor
     // called when this prim is being destroyed and we should free all the resources
     public void Destroy()
     {
-        // m_log.DebugFormat("{0}: Destroy", LogHeader);
+        // m_log.DebugFormat("{0}: Destroy, id={1}", LogHeader, LocalID);
         // Undo any vehicle properties
         _vehicle.ProcessTypeChange(Vehicle.TYPE_NONE);
         _scene.RemoveVehiclePrim(this);     // just to make sure
@@ -203,7 +201,7 @@ public sealed class BSPrim : PhysicsActor
 
     // link me to the specified parent
     public override void link(PhysicsActor obj) {
-        BSPrim parent = (BSPrim)obj;
+        BSPrim parent = obj as BSPrim;
         // m_log.DebugFormat("{0}: link {1}/{2} to {3}", LogHeader, _avName, _localID, obj.LocalID);
         // TODO: decide if this parent checking needs to happen at taint time
         if (_parentPrim == null)
@@ -526,10 +524,6 @@ public sealed class BSPrim : PhysicsActor
                 BulletSimAPI.SetObjectAngularVelocity(_scene.WorldID, LocalID, _rotationalVelocity);
             });
         } 
-    }
-    public OMV.Vector3 AngularVelocity { 
-        get { return _angularVelocity; } 
-        set { _angularVelocity = value; } 
     }
     public override bool Kinematic { 
         get { return _kinematic; } 
@@ -993,7 +987,7 @@ public sealed class BSPrim : PhysicsActor
         }
 
         // m_log.DebugFormat("{0}: CreateGeomMesh: calling CreateMesh. lid={1}, key={2}, indices={3}, vertices={4}", 
-        //                   LogHeader, _localID, _meshKey, indices.Length, vertices.Count);
+        //                  LogHeader, _localID, _meshKey, indices.Length, vertices.Count);
         BulletSimAPI.CreateMesh(_scene.WorldID, _meshKey, indices.GetLength(0), indices, 
                                                         vertices.Count, verticesAsFloats);
 
@@ -1127,7 +1121,7 @@ public sealed class BSPrim : PhysicsActor
         return;
     }
 
-    // Create an object in Bullet
+    // Create an object in Bullet if it has not already been created
     // No locking here because this is done when the physics engine is not simulating
     private void CreateObject()
     {
@@ -1324,7 +1318,8 @@ public sealed class BSPrim : PhysicsActor
                 _velocity = entprop.Velocity;
                 _acceleration = entprop.Acceleration;
                 _rotationalVelocity = entprop.RotationalVelocity;
-                // m_log.DebugFormat("{0}: RequestTerseUpdate. id={1}, ch={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
+                // m_log.DebugFormat("{0}: RequestTerseUpdate. id={1}, ch={2}, pos={3}, rot={4}, vel={5}, acc={6}, rvel={7}", 
+                //         LogHeader, LocalID, changed, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
                 base.RequestPhysicsterseUpdate();
             }
         }

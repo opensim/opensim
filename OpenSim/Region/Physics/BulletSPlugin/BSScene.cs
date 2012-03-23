@@ -487,12 +487,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public override void DeleteTerrain() 
     {
-        m_log.DebugFormat("{0}: DeleteTerrain()", LogHeader);
+        // m_log.DebugFormat("{0}: DeleteTerrain()", LogHeader);
     }
 
     public override void Dispose()
     {
-        m_log.DebugFormat("{0}: Dispose()", LogHeader);
+        // m_log.DebugFormat("{0}: Dispose()", LogHeader);
     }
 
     public override Dictionary<uint, float> GetTopColliders()
@@ -753,6 +753,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         switch (lparm)
         {
             case "detailedstats": m_detailedStatsStep = (int)val; break;
+
             case "meshlod": m_meshLOD = (int)val; break;
             case "sculptlod": m_sculptLOD = (int)val; break;
             case "maxsubstep": m_maxSubSteps = (int)val; break;
