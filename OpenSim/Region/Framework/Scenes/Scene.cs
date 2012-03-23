@@ -104,6 +104,11 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_allowScriptCrossings;
         public bool m_useFlySlow;
 
+        /// <summary>
+        /// Temporarily setting to trigger appearance resends at 60 second intervals.
+        /// </summary>
+        public bool SendPeriodicAppearanceUpdates { get; set; }
+
         protected float m_defaultDrawDistance = 255.0f;
         public float DefaultDrawDistance 
         {
@@ -790,6 +795,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_update_presences        = startupConfig.GetInt(   "UpdateAgentsEveryNFrames",          m_update_presences);
                     m_update_terrain          = startupConfig.GetInt(   "UpdateTerrainEveryNFrames",         m_update_terrain);
                     m_update_temp_cleaning    = startupConfig.GetInt(   "UpdateTempCleaningEveryNFrames",    m_update_temp_cleaning);
+                    SendPeriodicAppearanceUpdates = startupConfig.GetBoolean("SendPeriodicAppearanceUpdates", SendPeriodicAppearanceUpdates);
                 }
             }
             catch (Exception e)
@@ -1343,6 +1349,16 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
                     });
+                }
+
+                if (SendPeriodicAppearanceUpdates && MaintenanceRun % 60 == 0)
+                {
+//                    m_log.DebugFormat("[SCENE]: Sending periodic appearance updates");
+
+                    if (AvatarFactory != null)
+                    {
+                        ForEachRootScenePresence(sp => AvatarFactory.SendAppearance(sp.UUID));
+                    }
                 }
 
                 Watchdog.UpdateThread();
