@@ -1159,9 +1159,9 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Start the timer which triggers regular scene updates
+        /// Start the scene loop
         /// </summary>
-        public void StartTimer()
+        public void Start()
         {
 //            m_log.DebugFormat("[SCENE]: Starting Heartbeat timer for {0}", RegionInfo.RegionName);
 

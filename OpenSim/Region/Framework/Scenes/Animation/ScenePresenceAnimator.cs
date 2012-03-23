@@ -125,7 +125,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             // XXX: For some reason, we store all animations and use them with upper case names, but in LSL animations
             // are referenced with lower case names!
-            UUID animID = DefaultAvatarAnimations.GetDefaultAnimation(name);
+            UUID animID = DefaultAvatarAnimations.GetDefaultAnimation(name.ToUpper());
             if (animID == UUID.Zero)
                 return;
 
