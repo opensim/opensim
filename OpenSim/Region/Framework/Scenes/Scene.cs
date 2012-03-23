@@ -1305,8 +1305,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (SendPeriodicAppearanceUpdates && MaintenanceRun % 60 == 0)
                 {
-                    m_log.DebugFormat("[SCENE]: Sending periodic appearance updates");
-                    
+//                    m_log.DebugFormat("[SCENE]: Sending periodic appearance updates");
+
                     if (AvatarFactory != null)
                     {
                         ForEachRootScenePresence(sp => AvatarFactory.SendAppearance(sp.UUID));
