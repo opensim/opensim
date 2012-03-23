@@ -598,6 +598,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     "[TERRAIN]: Could not save terrain from {0} to {1}.  Valid file extensions are {2}",
                     m_scene.RegionInfo.RegionName, filename, m_supportedFileExtensions);
             }
+//            else
+//            {
+//                m_log.ErrorFormat(
+//                    "[TERRAIN]: Could not save terrain from {0} to {1}.  {2} {3} {4} {5} {6} {7}",
+//                    m_scene.RegionInfo.RegionName, filename, fileWidth, fileHeight, fileStartX, fileStartY, offsetX, offsetY);
+//            }
         }
 
         /// <summary>

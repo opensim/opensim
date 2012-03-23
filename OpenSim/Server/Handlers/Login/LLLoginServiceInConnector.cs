@@ -94,6 +94,5 @@ namespace OpenSim.Server.Handlers.Login
             server.AddXmlRPCHandler("set_login_level", loginHandlers.HandleXMLRPCSetLoginLevel, false);
             server.SetDefaultLLSDHandler(loginHandlers.HandleLLSDLogin);
         }
-
     }
 }

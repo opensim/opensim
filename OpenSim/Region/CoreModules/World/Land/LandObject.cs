@@ -448,8 +448,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsRestrictedFromLand(UUID avatar)
         {
-            ExpireAccessList();
-
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
 
@@ -459,20 +457,27 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (avatar == LandData.OwnerID)
                 return false;
 
-            if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) > 0)
+            if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) == 0)
+                return false;
+
+            return (!IsInLandAccessList(avatar));
+        }
+
+        public bool IsInLandAccessList(UUID avatar)
+        {
+            ExpireAccessList();
+
+            if (LandData.ParcelAccessList.FindIndex(
+                    delegate(LandAccessEntry e)
+                    {
+                        if (e.AgentID == avatar && e.Flags == AccessList.Access)
+                            return true;
+                        return false;
+                    }) == -1)
             {
-                if (LandData.ParcelAccessList.FindIndex(
-                        delegate(LandAccessEntry e)
-                        {
-                            if (e.AgentID == avatar && e.Flags == AccessList.Access)
-                                return true;
-                            return false;
-                        }) == -1)
-                {
-                    return true;
-                }
+                return false;
             }
-            return false;
+            return true;
         }
 
         public void SendLandUpdateToClient(IClientAPI remote_client)

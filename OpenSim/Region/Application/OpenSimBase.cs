@@ -430,7 +430,7 @@ namespace OpenSim
 
             mscene = scene;
 
-            scene.StartTimer();
+            scene.Start();
 
             scene.StartScripts();
 

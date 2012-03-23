@@ -211,14 +211,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private bool m_cleaningTemps = false;
 
-        private Object m_heartbeatLock = new Object();
+//        private Object m_heartbeatLock = new Object();
 
         // TODO: Possibly stop other classes being able to manipulate this directly.
         private SceneGraph m_sceneGraph;
         private volatile int m_bordersLocked;
-//        private int m_RestartTimerCounter;
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
-//        private int m_incrementsof15seconds;
         private volatile bool m_backingup;
         private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
         private Dictionary<UUID, SceneObjectGroup> m_groupsWithTargets = new Dictionary<UUID, SceneObjectGroup>();
@@ -226,12 +224,17 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_physics_enabled = true;
         private bool m_scripts_enabled = true;
         private string m_defaultScriptEngine;
+
+        /// <summary>
+        /// Tick at which the last login occurred.
+        /// </summary>
         private int m_LastLogin;
+
         private Thread HeartbeatThread;
         private volatile bool shuttingdown;
 
-        private int m_lastUpdate;
-        private bool m_firstHeartbeat = true;
+//        private int m_lastUpdate;
+//        private bool m_firstHeartbeat = true;
         
         private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
         private bool m_reprioritizationEnabled = true;
@@ -801,7 +804,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_permissions = new ScenePermissions(this);
 
-            m_lastUpdate = Util.EnvironmentTickCount();
+//            m_lastUpdate = Util.EnvironmentTickCount();
         }
 
         #endregion
@@ -1074,6 +1077,12 @@ namespace OpenSim.Region.Framework.Scenes
                     m_physics_enabled = enablePhysics;
             }
 
+//            if (options.ContainsKey("collisions"))
+//            {
+//                // TODO: Implement.  If false, should stop objects colliding, though possibly should still allow
+//                // the avatar themselves to collide with the ground.
+//            }
+
             if (options.ContainsKey("teleport"))
             {
                 bool enableTeleportDebugging;
@@ -1150,9 +1159,9 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Start the timer which triggers regular scene updates
+        /// Start the scene
         /// </summary>
-        public void StartTimer()
+        public void Start()
         {
 //            m_log.DebugFormat("[SCENE]: Starting Heartbeat timer for {0}", RegionInfo.RegionName);
 
@@ -1164,7 +1173,7 @@ namespace OpenSim.Region.Framework.Scenes
                 HeartbeatThread.Abort();
                 HeartbeatThread = null;
             }
-            m_lastUpdate = Util.EnvironmentTickCount();
+//            m_lastUpdate = Util.EnvironmentTickCount();
 
             HeartbeatThread
                 = Watchdog.StartThread(
@@ -1197,33 +1206,34 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private void Heartbeat()
         {
-            if (!Monitor.TryEnter(m_heartbeatLock))
-            {
-                Watchdog.RemoveThread();
-                return;
-            }
+//            if (!Monitor.TryEnter(m_heartbeatLock))
+//            {
+//                Watchdog.RemoveThread();
+//                return;
+//            }
 
-            try
-            {
-                m_eventManager.TriggerOnRegionStarted(this);
+//            try
+//            {
 
-                // The first frame can take a very long time due to physics actors being added on startup.  Therefore,
-                // don't turn on the watchdog alarm for this thread until the second frame, in order to prevent false
-                // alarms for scenes with many objects.
-                Update(1);
-                Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
+            m_eventManager.TriggerOnRegionStarted(this);
 
-                while (!shuttingdown)
-                    Update(-1);
+            // The first frame can take a very long time due to physics actors being added on startup.  Therefore,
+            // don't turn on the watchdog alarm for this thread until the second frame, in order to prevent false
+            // alarms for scenes with many objects.
+            Update(1);
+            Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
 
-                m_lastUpdate = Util.EnvironmentTickCount();
-                m_firstHeartbeat = false;
-            }
-            finally
-            {
-                Monitor.Pulse(m_heartbeatLock);
-                Monitor.Exit(m_heartbeatLock);
-            }
+            while (!shuttingdown)
+                Update(-1);
+
+//                m_lastUpdate = Util.EnvironmentTickCount();
+//                m_firstHeartbeat = false;
+//            }
+//            finally
+//            {
+//                Monitor.Pulse(m_heartbeatLock);
+//                Monitor.Exit(m_heartbeatLock);
+//            }
 
             Watchdog.RemoveThread();
         }
@@ -2535,7 +2545,7 @@ namespace OpenSim.Region.Framework.Scenes
                 = (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0
                     || (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0;
 
-            CheckHeartbeat();
+//            CheckHeartbeat();
 
             ScenePresence sp = GetScenePresence(client.AgentId);
 
@@ -3111,7 +3121,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override void RemoveClient(UUID agentID, bool closeChildAgents)
         {
-            CheckHeartbeat();
+//            CheckHeartbeat();
             bool isChildAgent = false;
             ScenePresence avatar = GetScenePresence(agentID);
             if (avatar != null)
@@ -4498,8 +4508,8 @@ namespace OpenSim.Region.Framework.Scenes
             //
             int health=1; // Start at 1, means we're up
 
-            if ((Util.EnvironmentTickCountSubtract(m_lastUpdate)) < 1000)
-                health+=1;
+            if ((Util.EnvironmentTickCountSubtract(m_lastFrameTick)) < 1000)
+                health += 1;
             else
                 return health;
 
@@ -4510,7 +4520,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 return health;
 
-            CheckHeartbeat();
+//            CheckHeartbeat();
 
             return health;
         }
@@ -4698,14 +4708,14 @@ namespace OpenSim.Region.Framework.Scenes
             return (((vsn.X * xdiff) + (vsn.Y * ydiff)) / (-1 * vsn.Z)) + p0.Z;
         }
 
-        private void CheckHeartbeat()
-        {
-            if (m_firstHeartbeat)
-                return;
-
-            if (Util.EnvironmentTickCountSubtract(m_lastUpdate) > 2000)
-                StartTimer();
-        }
+//        private void CheckHeartbeat()
+//        {
+//            if (m_firstHeartbeat)
+//                return;
+//
+//            if (Util.EnvironmentTickCountSubtract(m_lastFrameTick) > 2000)
+//                StartTimer();
+//        }
 
         public override ISceneObject DeserializeObject(string representation)
         {

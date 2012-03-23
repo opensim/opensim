@@ -33,7 +33,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Scenes.Animation
 {
-    public class AvatarAnimations
+    public class DefaultAvatarAnimations
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -43,7 +43,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public static Dictionary<UUID, string> AnimsNames = new Dictionary<UUID, string>();
         public static Dictionary<UUID, string> AnimStateNames = new Dictionary<UUID, string>();
 
-        static AvatarAnimations()
+        static DefaultAvatarAnimations()
         {
             LoadAnimations(DefaultAnimationsPath);
         }

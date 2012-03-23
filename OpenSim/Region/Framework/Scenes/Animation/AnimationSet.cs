@@ -138,9 +138,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 //                "[ANIMATION SET]: Setting default animation {0}, sequence number {1}, object id {2}",
 //                anim, sequenceNum, objectID);
 
-            if (AvatarAnimations.AnimsUUID.ContainsKey(anim))
+            if (DefaultAvatarAnimations.AnimsUUID.ContainsKey(anim))
             {
-                return SetDefaultAnimation(AvatarAnimations.AnimsUUID[anim], sequenceNum, objectID);
+                return SetDefaultAnimation(DefaultAvatarAnimations.AnimsUUID[anim], sequenceNum, objectID);
             }
             return false;
         }

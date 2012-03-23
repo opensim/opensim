@@ -73,6 +73,20 @@ namespace OpenSim.Server.Handlers.Login
 
             if (requestData != null)
             {
+                // Debug code to show exactly what login parameters the viewer is sending us.
+                // TODO: Extract into a method that can be generally applied if one doesn't already exist.
+//                foreach (string key in requestData.Keys)
+//                {
+//                    object value = requestData[key];
+//                    Console.WriteLine("{0}:{1}", key, value);
+//                    if (value is ArrayList)
+//                    {
+//                        ICollection col = value as ICollection;
+//                        foreach (object item in col)
+//                            Console.WriteLine("  {0}", item);
+//                    }
+//                }
+
                 if (requestData.ContainsKey("first") && requestData["first"] != null &&
                     requestData.ContainsKey("last") && requestData["last"] != null && (
                         (requestData.ContainsKey("passwd") && requestData["passwd"] != null) ||

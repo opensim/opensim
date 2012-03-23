@@ -590,9 +590,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// A list of inventory items with that name.
         /// If no inventory item has that name then an empty list is returned.
         /// </returns>
-        public IList<TaskInventoryItem> GetInventoryItems(string name)
+        public List<TaskInventoryItem> GetInventoryItems(string name)
         {
-            IList<TaskInventoryItem> items = new List<TaskInventoryItem>();
+            List<TaskInventoryItem> items = new List<TaskInventoryItem>();
 
             lock (m_items)
             {
@@ -1100,7 +1100,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public List<TaskInventoryItem> GetInventoryItems()
         {
-           List<TaskInventoryItem> ret = new List<TaskInventoryItem>();
+            List<TaskInventoryItem> ret = new List<TaskInventoryItem>();
 
             lock (m_items)
                 ret = new List<TaskInventoryItem>(m_items.Values);
