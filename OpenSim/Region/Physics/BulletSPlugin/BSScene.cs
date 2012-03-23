@@ -750,9 +750,17 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         new PhysParameterEntry("DeactivationTime", "Seconds before considering an object potentially static" ),
         new PhysParameterEntry("LinearSleepingThreshold", "Seconds to measure linear movement before considering static" ),
         new PhysParameterEntry("AngularSleepingThreshold", "Seconds to measure angular movement before considering static" ),
-        // new PhysParameterEntry("CcdMotionThreshold", "" ),
-        // new PhysParameterEntry("CcdSweptSphereRadius", "" ),
+        new PhysParameterEntry("CcdMotionThreshold", "Continuious collision detection threshold (0 means no CCD)" ),
+        new PhysParameterEntry("CcdSweptSphereRadius", "Continuious collision detection test radius" ),
         new PhysParameterEntry("ContactProcessingThreshold", "Distance between contacts before doing collision check" ),
+        // Can only change the following at initialization time. Change the INI file and reboot.
+	    new PhysParameterEntry("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default)"),
+	    new PhysParameterEntry("ShouldDisableContactPoolDynamicAllocation", "Enable to allow large changes in object count"),
+	    new PhysParameterEntry("ShouldForceUpdateAllAabbs", "Enable to recomputer AABBs every simulator step"),
+	    new PhysParameterEntry("ShouldRandomizeSolverOrder", "Enable for slightly better stacking interaction"),
+	    new PhysParameterEntry("ShouldSplitSimulationIslands", "Enable splitting active object scanning islands"),
+	    new PhysParameterEntry("ShouldEnableFrictionCaching", "Enable friction computation caching"),
+	    new PhysParameterEntry("NumberOfSolverIterations", "Number of internal iterations (0 means default)"),
 
         new PhysParameterEntry("Friction", "Set friction parameter for a specific object" ),
         new PhysParameterEntry("Restitution", "Set restitution parameter for a specific object" ),
@@ -764,7 +772,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         new PhysParameterEntry("AvatarDensity", "Density of an avatar. Changed on avatar recreation." ),
         new PhysParameterEntry("AvatarRestitution", "Bouncyness. Changed on avatar recreation." ),
         new PhysParameterEntry("AvatarCapsuleRadius", "Radius of space around an avatar" ),
-        new PhysParameterEntry("AvatarCapsuleHeight", "Default height of space around avatar" )
+        new PhysParameterEntry("AvatarCapsuleHeight", "Default height of space around avatar" ),
+	    new PhysParameterEntry("AvatarContactProcessingThreshold", "Distance from capsule to check for collisions")
+
     };
 
     #region IPhysicsParameters
@@ -798,6 +808,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "defaultdensity": m_params[0].defaultDensity = val; break;
             case "defaultrestitution": m_params[0].defaultRestitution = val; break;
             case "collisionmargin": m_params[0].collisionMargin = val; break;
+
             case "gravity": m_params[0].gravity = val; TaintedUpdateParameter(lparm, localID, val); break;
 
             case "lineardamping": UpdateParameterPrims(ref m_params[0].linearDamping, lparm, localID, val); break;
@@ -808,6 +819,14 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "ccdmotionthreshold": UpdateParameterPrims(ref m_params[0].ccdMotionThreshold, lparm, localID, val); break;
             case "ccdsweptsphereradius": UpdateParameterPrims(ref m_params[0].ccdSweptSphereRadius, lparm, localID, val); break;
             case "contactprocessingthreshold": UpdateParameterPrims(ref m_params[0].contactProcessingThreshold, lparm, localID, val); break;
+            // the following are used only at initialization time so setting them makes no sense
+	        // case "maxPersistantmanifoldpoolSize": m_params[0].maxPersistantManifoldPoolSize = val; break;
+	        // case "shoulddisablecontactpooldynamicallocation": m_params[0].shouldDisableContactPoolDynamicAllocation = val; break;
+	        // case "shouldforceupdateallaabbs": m_params[0].shouldForceUpdateAllAabbs = val; break;
+	        // case "shouldrandomizesolverorder": m_params[0].shouldRandomizeSolverOrder = val; break;
+	        // case "shouldsplitsimulationislands": m_params[0].shouldSplitSimulationIslands = val; break;
+	        // case "shouldenablefrictioncaching": m_params[0].shouldEnableFrictionCaching = val; break;
+	        // case "numberofsolveriterations": m_params[0].numberOfSolverIterations = val; break;
 
             case "friction": TaintedUpdateParameter(lparm, localID, val); break;
             case "restitution": TaintedUpdateParameter(lparm, localID, val); break;
@@ -822,6 +841,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "avatarrestitution": UpdateParameterAvatars(ref m_params[0].avatarRestitution, "avatar", localID, val); break;
             case "avatarcapsuleradius": UpdateParameterAvatars(ref m_params[0].avatarCapsuleRadius, "avatar", localID, val); break;
             case "avatarcapsuleheight": UpdateParameterAvatars(ref m_params[0].avatarCapsuleHeight, "avatar", localID, val); break;
+            case "avatarcontactprocessingthreshold": UpdateParameterAvatars(ref m_params[0].avatarContactProcessingThreshold, "avatar", localID, val); break;
 
             default: ret = false; break;
         }
@@ -914,6 +934,13 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "ccdmotionthreshold": val = m_params[0].ccdMotionThreshold; break;
             case "ccdsweptsphereradius": val = m_params[0].ccdSweptSphereRadius; break;
             case "contactprocessingthreshold": val = m_params[0].contactProcessingThreshold; break;
+	        case "maxPersistantmanifoldpoolSize": val = m_params[0].maxPersistantManifoldPoolSize; break;
+	        case "shoulddisablecontactpooldynamicallocation": val = m_params[0].shouldDisableContactPoolDynamicAllocation; break;
+	        case "shouldforceupdateallaabbs": val = m_params[0].shouldForceUpdateAllAabbs; break;
+	        case "shouldrandomizesolverorder": val = m_params[0].shouldRandomizeSolverOrder; break;
+	        case "shouldsplitsimulationislands": val = m_params[0].shouldSplitSimulationIslands; break;
+	        case "shouldenablefrictioncaching": val = m_params[0].shouldEnableFrictionCaching; break;
+	        case "numberofsolveriterations": val = m_params[0].numberOfSolverIterations; break;
 
             case "terrainfriction": val = m_params[0].terrainFriction; break;
             case "terrainhitfraction": val = m_params[0].terrainHitFraction; break;
@@ -924,6 +951,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "avatarrestitution": val = m_params[0].avatarRestitution; break;
             case "avatarcapsuleradius": val = m_params[0].avatarCapsuleRadius; break;
             case "avatarcapsuleheight": val = m_params[0].avatarCapsuleHeight; break;
+            case "avatarcontactprocessingthreshold": val = m_params[0].avatarContactProcessingThreshold; break;
             default: ret = false; break;
 
         }
