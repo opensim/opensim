@@ -765,6 +765,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         new PhysParameterEntry("Friction", "Set friction parameter for a specific object" ),
         new PhysParameterEntry("Restitution", "Set restitution parameter for a specific object" ),
 
+        new PhysParameterEntry("Friction", "Set friction parameter for a specific object" ),
+        new PhysParameterEntry("Restitution", "Set restitution parameter for a specific object" ),
+
         new PhysParameterEntry("TerrainFriction", "Factor to reduce movement against terrain surface" ),
         new PhysParameterEntry("TerrainHitFraction", "Distance to measure hit collisions" ),
         new PhysParameterEntry("TerrainRestitution", "Bouncyness" ),
@@ -808,7 +811,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "defaultdensity": m_params[0].defaultDensity = val; break;
             case "defaultrestitution": m_params[0].defaultRestitution = val; break;
             case "collisionmargin": m_params[0].collisionMargin = val; break;
-
             case "gravity": m_params[0].gravity = val; TaintedUpdateParameter(lparm, localID, val); break;
 
             case "lineardamping": UpdateParameterPrims(ref m_params[0].linearDamping, lparm, localID, val); break;
@@ -827,6 +829,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 	        // case "shouldsplitsimulationislands": m_params[0].shouldSplitSimulationIslands = val; break;
 	        // case "shouldenablefrictioncaching": m_params[0].shouldEnableFrictionCaching = val; break;
 	        // case "numberofsolveriterations": m_params[0].numberOfSolverIterations = val; break;
+
+            case "friction": TaintedUpdateParameter(lparm, localID, val); break;
+            case "restitution": TaintedUpdateParameter(lparm, localID, val); break;
 
             case "friction": TaintedUpdateParameter(lparm, localID, val); break;
             case "restitution": TaintedUpdateParameter(lparm, localID, val); break;
