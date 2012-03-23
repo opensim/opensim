@@ -240,6 +240,15 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         parms.avatarDensity = 60f;
         parms.avatarCapsuleRadius = 0.37f;
         parms.avatarCapsuleHeight = 1.5f; // 2.140599f
+    	parms.avatarContactProcessingThreshold = 0.1f;
+
+    	parms.maxPersistantManifoldPoolSize = 0f;
+    	parms.shouldDisableContactPoolDynamicAllocation = ConfigurationParameters.numericFalse;
+    	parms.shouldForceUpdateAllAabbs = ConfigurationParameters.numericFalse;
+    	parms.shouldRandomizeSolverOrder = ConfigurationParameters.numericFalse;
+    	parms.shouldSplitSimulationIslands = ConfigurationParameters.numericFalse;
+    	parms.shouldEnableFrictionCaching = ConfigurationParameters.numericFalse;
+    	parms.numberOfSolverIterations = 0f;    // means use default
 
         if (config != null)
         {
@@ -285,10 +294,35 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 parms.avatarDensity = pConfig.GetFloat("AvatarDensity", parms.avatarDensity);
                 parms.avatarCapsuleRadius = pConfig.GetFloat("AvatarCapsuleRadius", parms.avatarCapsuleRadius);
                 parms.avatarCapsuleHeight = pConfig.GetFloat("AvatarCapsuleHeight", parms.avatarCapsuleHeight);
+                parms.avatarContactProcessingThreshold = pConfig.GetFloat("AvatarContactProcessingThreshold", parms.avatarContactProcessingThreshold);
+
+                parms.maxPersistantManifoldPoolSize = pConfig.GetFloat("MaxPersistantManifoldPoolSize", parms.maxPersistantManifoldPoolSize);
+                parms.shouldDisableContactPoolDynamicAllocation = ParamBoolean(pConfig, "ShouldDisableContactPoolDynamicAllocation", parms.shouldDisableContactPoolDynamicAllocation);
+	            parms.shouldForceUpdateAllAabbs = ParamBoolean(pConfig, "ShouldForceUpdateAllAabbs", parms.shouldForceUpdateAllAabbs);
+	            parms.shouldRandomizeSolverOrder = ParamBoolean(pConfig, "ShouldRandomizeSolverOrder", parms.shouldRandomizeSolverOrder);
+	            parms.shouldSplitSimulationIslands = ParamBoolean(pConfig, "ShouldSplitSimulationIslands", parms.shouldSplitSimulationIslands);
+	            parms.shouldEnableFrictionCaching = ParamBoolean(pConfig, "ShouldEnableFrictionCaching", parms.shouldEnableFrictionCaching);
+	            parms.numberOfSolverIterations = pConfig.GetFloat("NumberOfSolverIterations", parms.numberOfSolverIterations);
             }
         }
         m_params[0] = parms;
     }
+
+    // A helper function that handles a true/false parameter and returns the proper float number encoding
+    float ParamBoolean(IConfig config, string parmName, float deflt)
+    {
+        float ret = deflt;
+        if (config.Contains(parmName))
+        {
+            ret = ConfigurationParameters.numericFalse;
+            if (config.GetBoolean(parmName, false))
+            {
+                ret = ConfigurationParameters.numericTrue;
+            }
+        }
+        return ret;
+    }
+
 
     // Called directly from unmanaged code so don't do much
     private void BulletLogger(string msg)

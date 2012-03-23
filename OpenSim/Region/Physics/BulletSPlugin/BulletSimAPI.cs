@@ -132,6 +132,15 @@ public struct ConfigurationParameters
     public float avatarRestitution;
     public float avatarCapsuleRadius;
     public float avatarCapsuleHeight;
+	public float avatarContactProcessingThreshold;
+
+	public float maxPersistantManifoldPoolSize;
+	public float shouldDisableContactPoolDynamicAllocation;
+	public float shouldForceUpdateAllAabbs;
+	public float shouldRandomizeSolverOrder;
+	public float shouldSplitSimulationIslands;
+	public float shouldEnableFrictionCaching;
+	public float numberOfSolverIterations;
 
     public const float numericTrue = 1f;
     public const float numericFalse = 0f;
