@@ -508,8 +508,7 @@ namespace OpenSim
                 scene.SnmpService.LinkUp(scene);
             }
 
-            scene.StartTimer();
-            scene.StartTimerWatchdog();
+            scene.Start();
 
             scene.StartScripts();
 

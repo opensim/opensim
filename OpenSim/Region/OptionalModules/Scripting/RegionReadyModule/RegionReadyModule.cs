@@ -70,8 +70,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             
         public void Initialise(IConfigSource config)
         {
-            //m_log.Info("[RegionReady] Initialising");
-
             m_config = config.Configs["RegionReady"];
             if (m_config != null) 
             {
@@ -84,9 +82,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                     m_uri = m_config.GetString("alert_uri",string.Empty);
                 }
             }
-
-//            if (!m_enabled)
-//                m_log.Info("[RegionReady] disabled.");
         }
 
         public void AddRegion(Scene scene)
@@ -113,7 +108,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             {
                 scene.LoginLock = true;
                 scene.LoginsDisabled = true;
-                m_log.InfoFormat("[RegionReady]: Logins disabled for {0}",m_scene.RegionInfo.RegionName);
+                m_log.InfoFormat("[RegionReady]: Region {0} - logins disabled during initialization.",m_scene.RegionInfo.RegionName);
 
                 if(m_uri != string.Empty)
                 {
@@ -167,7 +162,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 
         void OnEmptyScriptCompileQueue(int numScriptsFailed, string message)
         {
-            m_log.InfoFormat("[RegionReady]: Script compile queue empty!");
+            m_log.DebugFormat("[RegionReady]: Script compile queue empty!");
 
             if (m_firstEmptyCompileQueue || m_oarFileLoading) 
             {
@@ -194,7 +189,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 c.SenderUUID = UUID.Zero;
                 c.Scene = m_scene;
 
-                m_log.InfoFormat("[RegionReady]: Region \"{0}\" is ready: \"{1}\" on channel {2}",
+                m_log.DebugFormat("[RegionReady]: Region \"{0}\" is ready: \"{1}\" on channel {2}",
                                  m_scene.RegionInfo.RegionName, c.Message, m_channelNotify);
 
                 m_scene.EventManager.TriggerOnChatBroadcast(this, c);
@@ -210,7 +205,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             {
                 m_lastOarLoadedOk = true;
             } else {
-                m_log.InfoFormat("[RegionReady]: Oar file load errors: {0}", message);
+                m_log.WarnFormat("[RegionReady]: Oar file load errors: {0}", message);
                 m_lastOarLoadedOk = false;
             }
         }
@@ -233,7 +228,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                     // m_log.InfoFormat("[RegionReady]: Logins enabled for {0}, Oar {1}",
                     //                 m_scene.RegionInfo.RegionName, m_oarFileLoading.ToString());
 
-                    m_log.InfoFormat("[RegionReady]: Logins enabled for {0}", m_scene.RegionInfo.RegionName);
+                    m_log.InfoFormat("[RegionReady]: Initialization complete - logins enabled for {0}", m_scene.RegionInfo.RegionName);
 
                     if ( m_uri != string.Empty )
                     {
