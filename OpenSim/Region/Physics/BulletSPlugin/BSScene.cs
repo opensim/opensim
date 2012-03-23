@@ -243,7 +243,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     	parms.avatarContactProcessingThreshold = 0.1f;
 
     	parms.maxPersistantManifoldPoolSize = 0f;
-    	parms.shouldDisableContactPoolDynamicAllocation = ConfigurationParameters.numericFalse;
+    	parms.shouldDisableContactPoolDynamicAllocation = ConfigurationParameters.numericTrue;
     	parms.shouldForceUpdateAllAabbs = ConfigurationParameters.numericFalse;
     	parms.shouldRandomizeSolverOrder = ConfigurationParameters.numericFalse;
     	parms.shouldSplitSimulationIslands = ConfigurationParameters.numericFalse;
