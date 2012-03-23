@@ -1210,9 +1210,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Copy a task (prim) inventory item to another task (prim)
         /// </summary>
-        /// <param name="destId"></param>
-        /// <param name="part"></param>
-        /// <param name="itemId"></param>
+        /// <param name="destId">ID of destination part</param>
+        /// <param name="part">Source part</param>
+        /// <param name="itemId">Source item id to transfer</param>
         public void MoveTaskInventoryItem(UUID destId, SceneObjectPart part, UUID itemId)
         {
             TaskInventoryItem srcTaskItem = part.Inventory.GetInventoryItem(itemId);
@@ -1238,24 +1238,21 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            // Can't transfer this
-            //
-            if ((part.OwnerID != destPart.OwnerID) && ((srcTaskItem.CurrentPermissions & (uint)PermissionMask.Transfer) == 0))
-                return;
-
-            if (part.OwnerID != destPart.OwnerID && (part.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) == 0)
+            if (part.OwnerID != destPart.OwnerID)
             {
-                // object cannot copy items to an object owned by a different owner
-                // unless llAllowInventoryDrop has been called
+                // Source must have transfer permissions
+                if ((srcTaskItem.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
+                    return;
 
-                return;
+                // Object cannot copy items to an object owned by a different owner
+                // unless llAllowInventoryDrop has been called on the destination
+                if ((destPart.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) == 0)
+                    return;
             }
 
             // must have both move and modify permission to put an item in an object
             if ((part.OwnerMask & ((uint)PermissionMask.Move | (uint)PermissionMask.Modify)) == 0)
-            {
                 return;
-            }
 
             TaskInventoryItem destTaskItem = new TaskInventoryItem();
 
