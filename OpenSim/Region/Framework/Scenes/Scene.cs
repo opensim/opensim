@@ -4504,8 +4504,8 @@ namespace OpenSim.Region.Framework.Scenes
             //
             int health=1; // Start at 1, means we're up
 
-            if ((Util.EnvironmentTickCountSubtract(m_lastUpdate)) < 1000)
-                health+=1;
+            if ((Util.EnvironmentTickCountSubtract(m_lastFrameTick)) < 1000)
+                health += 1;
             else
                 return health;
 
