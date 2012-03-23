@@ -172,6 +172,11 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Current maintenance run number
+        /// </summary>
+        public uint MaintenanceRun { get; private set; }
+
+        /// <summary>
         /// The minimum length of time in seconds that will be taken for a scene frame.  If the frame takes less time then we
         /// will sleep for the remaining period.
         /// </summary>
@@ -180,6 +185,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// occur too quickly (viewer 1) or with even more slide (viewer 2).
         /// </remarks>
         public float MinFrameTime { get; private set; }
+
+        /// <summary>
+        /// The minimum length of time in seconds that will be taken for a maintenance run.
+        /// </summary>
+        public float MinMaintenanceTime { get; private set; }
 
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
@@ -209,6 +219,11 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_lastFrameTick;
 
         public bool CombineRegions = false;
+        /// <summary>
+        /// Tick at which the last maintenance run occurred.
+        /// </summary>
+        private int m_lastMaintenanceTick;
+
         /// <summary>
         /// Signals whether temporary objects are currently being cleaned up.  Needed because this is launched
         /// asynchronously from the update loop.
@@ -582,6 +597,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_config = config;
             MinFrameTime = 0.089f;
+            MinMaintenanceTime = 1;
 
             Random random = new Random();
 
@@ -1275,6 +1291,10 @@ namespace OpenSim.Region.Framework.Scenes
             // don't turn on the watchdog alarm for this thread until the second frame, in order to prevent false
             // alarms for scenes with many objects.
             Update(1);
+
+            Watchdog.StartThread(
+                    Maintenance, string.Format("Maintenance ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, true);
+
             Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
             Update(-1);
 
@@ -1290,6 +1310,63 @@ namespace OpenSim.Region.Framework.Scenes
             Watchdog.RemoveThread();
         }
 
+        private void Maintenance()
+        {
+            DoMaintenance(-1);
+
+            Watchdog.RemoveThread();
+        }
+
+        public void DoMaintenance(int runs)
+        {
+            long? endRun = null;
+            int runtc;
+            int previousMaintenanceTick;
+
+            if (runs >= 0)
+                endRun = MaintenanceRun + runs;
+
+            List<Vector3> coarseLocations;
+            List<UUID> avatarUUIDs;
+
+            while (!m_shuttingDown && (endRun == null || MaintenanceRun < endRun))
+            {
+                runtc = Util.EnvironmentTickCount();
+                ++MaintenanceRun;
+
+                // Coarse locations relate to positions of green dots on the mini-map (on a SecondLife client)
+                if (MaintenanceRun % (m_update_coarse_locations / 10) == 0)
+                {
+                    SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
+                    // Send coarse locations to clients
+                    ForEachScenePresence(delegate(ScenePresence presence)
+                    {
+                        presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
+                    });
+                }
+
+                Watchdog.UpdateThread();
+
+                previousMaintenanceTick = m_lastMaintenanceTick;
+                m_lastMaintenanceTick = Util.EnvironmentTickCount();
+                runtc = Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, runtc);
+                runtc = (int)(MinMaintenanceTime * 1000) - runtc;
+    
+                if (runtc > 0)
+                    Thread.Sleep(runtc);
+    
+                // Optionally warn if a frame takes double the amount of time that it should.
+                if (DebugUpdates
+                    && Util.EnvironmentTickCountSubtract(
+                        m_lastMaintenanceTick, previousMaintenanceTick) > (int)(MinMaintenanceTime * 1000 * 2))
+                    m_log.WarnFormat(
+                        "[SCENE]: Maintenance took {0} ms (desired max {1} ms) in {2}",
+                        Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, previousMaintenanceTick),
+                        MinMaintenanceTime * 1000,
+                        RegionInfo.RegionName);
+            }
+        }
+
         public override void Update(int frames)
         {
             long? endFrame = null;
@@ -1301,8 +1378,6 @@ namespace OpenSim.Region.Framework.Scenes
             int tmpPhysicsMS, tmpPhysicsMS2, tmpAgentMS, tmpTempOnRezMS, evMS, backMS, terMS;
             int previousFrameTick;
             int maintc;
-            List<Vector3> coarseLocations;
-            List<UUID> avatarUUIDs;
 
             while (!m_shuttingDown && (endFrame == null || Frame < endFrame))
             {
@@ -1353,17 +1428,6 @@ namespace OpenSim.Region.Framework.Scenes
                     // Presence updates and queued object updates for each presence are sent to clients
                     if (Frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
-    
-                    // Coarse locations relate to positions of green dots on the mini-map (on a SecondLife client)
-                    if (Frame % m_update_coarse_locations == 0)
-                    {
-                        SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
-                        // Send coarse locations to clients 
-                        ForEachScenePresence(delegate(ScenePresence presence)
-                        {
-                            presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
-                        });
-                    }
     
                     agentMS += Util.EnvironmentTickCountSubtract(tmpAgentMS);
     
@@ -1472,7 +1536,6 @@ namespace OpenSim.Region.Framework.Scenes
     
                 EventManager.TriggerRegionHeartbeatEnd(this);
 
-                // Tell the watchdog that this thread is still alive
                 Watchdog.UpdateThread();
 
                 previousFrameTick = m_lastFrameTick;
