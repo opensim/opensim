@@ -255,6 +255,58 @@ namespace OpenSim.Services.Connectors.Hypergrid
             return false;
 
         }
+
+        public List<UUID> StatusNotification(List<string> friends, UUID userID, bool online)
+        {
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            List<UUID> friendsOnline = new List<UUID>();
+
+            sendData["METHOD"] = "statusnotification";
+            sendData["userID"] = userID.ToString();
+            sendData["online"] = online.ToString();
+            int i = 0;
+            foreach (string s in friends)
+            {
+                sendData["friend_" + i.ToString()] = s;
+                i++;
+            }
+
+            string reply = string.Empty;
+            string uri = m_ServerURI + "/hgfriends";
+            try
+            {
+                reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                        uri,
+                        ServerUtils.BuildQueryString(sendData));
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Exception when contacting friends server at {0}: {1}", uri, e.Message);
+                return friendsOnline;
+            }
+
+            if (reply != string.Empty)
+            {
+                Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+
+                // Here is the actual response
+                foreach (string key in replyData.Keys)
+                {
+                    if (key.StartsWith("friend_") && replyData[key] != null)
+                    {
+                        UUID uuid;
+                        if (UUID.TryParse(replyData[key].ToString(), out uuid))
+                            friendsOnline.Add(uuid);
+                    }
+                }
+            }
+            else
+                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Received empty reply from remote StatusNotify");
+
+            return friendsOnline;
+
+        }
+
         #endregion
     }
 }

@@ -919,7 +919,7 @@ namespace OpenSim
                     break;
 
                 case "scene":
-                    if (args.Length == 5)
+                    if (args.Length == 4)
                     {
                         if (m_sceneManager.CurrentScene == null)
                         {
@@ -927,37 +927,19 @@ namespace OpenSim
                         }
                         else
                         {
-                            bool scriptingOn = !Convert.ToBoolean(args[2]);
-                            bool collisionsOn = !Convert.ToBoolean(args[3]);
-                            bool physicsOn = !Convert.ToBoolean(args[4]);
-                            m_sceneManager.CurrentScene.SetSceneCoreDebug(scriptingOn, collisionsOn, physicsOn);
+                            string key = args[2];
+                            string value = args[3];
+                            m_sceneManager.CurrentScene.SetSceneCoreDebug(
+                                new Dictionary<string, string>() { { key, value } });
 
-                            MainConsole.Instance.Output(
-                                String.Format(
-                                    "Set debug scene scripting = {0}, collisions = {1}, physics = {2}",
-                                    !scriptingOn, !collisionsOn, !physicsOn));
+                            MainConsole.Instance.OutputFormat("Set debug scene {0} = {1}", key, value);
                         }
                     }
                     else
                     {
-                        MainConsole.Instance.Output("Usage: debug scene <scripting> <collisions> <physics> (where inside <> is true/false)");
+                        MainConsole.Instance.Output("Usage: debug scene scripting|collisions|physics|teleport true|false");
                     }
 
-                    break;
-
-                case "teleport":
-                    foreach(Scene s in m_sceneManager.Scenes)
-                    {
-                        if (s.DEBUG)
-                        {
-                            s.DEBUG = false;
-                            MainConsole.Instance.Output("Teleport debugging is disabled!");
-                        }
-                        else{
-                            s.DEBUG = true;
-                            MainConsole.Instance.Output("Teleport debugging is enabled!");
-                        }
-                    }
                     break;
 
                 default:

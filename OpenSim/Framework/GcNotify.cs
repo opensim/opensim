@@ -25,39 +25,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Collections.Generic;
-using System.Xml;
-using OpenMetaverse;
+using System;
+using System.Reflection;
+using log4net;
 
-namespace OpenSim.Region.Framework.Scenes.Animation
+public class GcNotify
 {
-    public class AvatarAnimations
+    private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+    public static bool Enabled
     {
-        public Dictionary<string, UUID> AnimsUUID = new Dictionary<string, UUID>();
-        public Dictionary<UUID, string> AnimsNames = new Dictionary<UUID, string>();
-        public Dictionary<UUID, string> AnimStateNames = new Dictionary<UUID, string>();
-
-        public AvatarAnimations()
+        get { return s_initialized; }
+        set
         {
-            using (XmlTextReader reader = new XmlTextReader("data/avataranimations.xml"))
-            {
-                XmlDocument doc = new XmlDocument();
-                doc.Load(reader);
-                foreach (XmlNode nod in doc.DocumentElement.ChildNodes)
-                {
-                    if (nod.Attributes["name"] != null)
-                    {
-                        string name = (string)nod.Attributes["name"].Value;
-                        UUID id = (UUID)nod.InnerText;
-                        string animState = (string)nod.Attributes["state"].Value;
+            if (!s_initialized && value)
+                new GcNotify();
 
-                        AnimsUUID.Add(name, id);
-                        AnimsNames.Add(id, name);
-                        if (animState != "")
-                            AnimStateNames.Add(id, animState);
-                    }
-                }
-            }
+            s_initialized = value;
+        }
+    }
+
+    private static bool s_initialized = false;
+
+    private GcNotify() {}
+
+    ~GcNotify()
+    {
+        if (!Environment.HasShutdownStarted && !AppDomain.CurrentDomain.IsFinalizingForUnload())
+        {
+            m_log.DebugFormat("[GC NOTIFY]: Garbage collection triggered.");
+
+            if (Enabled)
+                new GcNotify();
         }
     }
 }

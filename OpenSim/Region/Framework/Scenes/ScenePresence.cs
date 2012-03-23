@@ -3920,7 +3920,7 @@ namespace OpenSim.Region.Framework.Scenes
             ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
             if (land != null)
             {
-                if (Scene.DEBUG)
+                if (Scene.DebugTeleporting)
                     TeleportFlagsDebug();
 
                 // If we come in via login, landmark or map, we want to

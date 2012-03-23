@@ -157,6 +157,15 @@ namespace OpenSim.Region.Framework.Interfaces
         TaskInventoryItem GetInventoryItem(UUID itemId);
 
         /// <summary>
+        /// Get all inventory items.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>
+        /// If there are no inventory items then an empty list is returned.
+        /// </returns>
+        List<TaskInventoryItem> GetInventoryItems();
+
+        /// <summary>
         /// Get inventory items by name.
         /// </summary>
         /// <param name="name"></param>
@@ -164,7 +173,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// A list of inventory items with that name.
         /// If no inventory item has that name then an empty list is returned.
         /// </returns>
-        IList<TaskInventoryItem> GetInventoryItems(string name);
+        List<TaskInventoryItem> GetInventoryItems(string name);
         
         /// <summary>
         /// Get the scene object referenced by an inventory item.

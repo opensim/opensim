@@ -133,11 +133,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         }
 
-        public UUID GetDefaultAnimation(string name)
-        {
-            return SLUtil.GetDefaultAvatarAnimation(name);
-        }
-
         public Vector3 Position
         {
             get { return m_scene.Entities[m_uuid].AbsolutePosition; }

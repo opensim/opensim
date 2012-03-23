@@ -4764,7 +4764,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_host.RegionHandle == presence.RegionHandle)
             {
-                Dictionary<UUID, string> animationstateNames = AnimationSet.Animations.AnimStateNames;
+                Dictionary<UUID, string> animationstateNames = DefaultAvatarAnimations.AnimStateNames;
 
                 if (presence != null)
                 {
@@ -6064,7 +6064,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              }
 
              if (agent.Animator.Animations.DefaultAnimation.AnimID
-                == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+                == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
              {
                  flags |= ScriptBaseClass.AGENT_SITTING;
              }
@@ -8408,7 +8408,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSL_Vector lower;
                 LSL_Vector upper;
                 if (presence.Animator.Animations.DefaultAnimation.AnimID 
-                    == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+                    == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
                 {
                     // This is for ground sitting avatars
                     float height = presence.Appearance.AvatarHeight / 2.66666667f;

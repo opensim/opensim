@@ -395,8 +395,12 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     HomeURI = "http://127.0.0.1:8002"
 
 [HGFriendsService]
-    LocalServiceModule = "OpenSim.Services.FriendsService.dll:FriendsService"
-    UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
+	LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGFriendsService"
+	UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
+	FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
+	UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+	GridService = "OpenSim.Services.GridService.dll:GridService"
+	PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
 
 [HGInstantMessageService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGInstantMessageService"

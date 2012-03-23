@@ -11418,13 +11418,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             scriptQuestion.Data.Questions = question;
             scriptQuestion.Data.ObjectName = Util.StringToBytes256(taskName);
             scriptQuestion.Data.ObjectOwner = Util.StringToBytes256(ownerName);
-
+            
             OutPacket(scriptQuestion, ThrottleOutPacketType.Task);
-        }
-
-        public UUID GetDefaultAnimation(string name)
-        {
-            return SLUtil.GetDefaultAvatarAnimation(name);
         }
 
         /// <summary>
