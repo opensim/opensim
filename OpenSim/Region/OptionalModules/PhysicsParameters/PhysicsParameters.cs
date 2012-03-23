@@ -264,14 +264,14 @@ namespace OpenSim.Region.OptionalModules.PhysicsParameters
 
         private void WriteOut(string msg, params object[] args)
         {
-            m_log.InfoFormat(msg, args);
-            // MainConsole.Instance.OutputFormat(msg, args);
+            // m_log.InfoFormat(msg, args);
+            MainConsole.Instance.OutputFormat(msg, args);
         }
 
         private void WriteError(string msg, params object[] args)
         {
-            m_log.ErrorFormat(msg, args);
-            // MainConsole.Instance.OutputFormat(msg, args);
+            // m_log.ErrorFormat(msg, args);
+            MainConsole.Instance.OutputFormat(msg, args);
         }
     }
 }
