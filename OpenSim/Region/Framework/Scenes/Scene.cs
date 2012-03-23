@@ -230,8 +230,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private int m_LastLogin;
 
-        private Thread HeartbeatThread;
-        private volatile bool shuttingdown;
+        /// <summary>
+        /// Thread that runs the scene loop.
+        /// </summary>
+        private Thread m_heartbeatThread;
+
+        /// <summary>
+        /// True if these scene is in the process of shutting down or is shutdown.
+        /// </summary>
+        public bool ShuttingDown
+        {
+            get { return m_shuttingDown; }
+        }
+        private volatile bool m_shuttingDown;
 
 //        private int m_lastUpdate;
 //        private bool m_firstHeartbeat = true;
@@ -811,11 +822,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Startup / Close Methods
 
-        public bool ShuttingDown
-        {
-            get { return shuttingdown; }
-        }
-
         /// <value>
         /// The scene graph for this scene
         /// </value>
@@ -1134,8 +1140,7 @@ namespace OpenSim.Region.Framework.Scenes
             ForEachScenePresence(delegate(ScenePresence avatar) { avatar.ControllingClient.Close(); });
 
             // Stop updating the scene objects and agents.
-            //m_heartbeatTimer.Close();
-            shuttingdown = true;
+            m_shuttingDown = true;
 
             m_log.Debug("[SCENE]: Persisting changed objects");
             EventManager.TriggerSceneShuttingDown(this);
@@ -1168,14 +1173,14 @@ namespace OpenSim.Region.Framework.Scenes
             //m_heartbeatTimer.Enabled = true;
             //m_heartbeatTimer.Interval = (int)(m_timespan * 1000);
             //m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
-            if (HeartbeatThread != null)
+            if (m_heartbeatThread != null)
             {
-                HeartbeatThread.Abort();
-                HeartbeatThread = null;
+                m_heartbeatThread.Abort();
+                m_heartbeatThread = null;
             }
 //            m_lastUpdate = Util.EnvironmentTickCount();
 
-            HeartbeatThread
+            m_heartbeatThread
                 = Watchdog.StartThread(
                     Heartbeat, string.Format("Heartbeat ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, false);
         }
@@ -1222,9 +1227,7 @@ namespace OpenSim.Region.Framework.Scenes
             // alarms for scenes with many objects.
             Update(1);
             Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
-
-            while (!shuttingdown)
-                Update(-1);
+            Update(-1);
 
 //                m_lastUpdate = Util.EnvironmentTickCount();
 //                m_firstHeartbeat = false;
@@ -1252,7 +1255,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<Vector3> coarseLocations;
             List<UUID> avatarUUIDs;
 
-            while (!shuttingdown && (endFrame == null || Frame < endFrame))
+            while (!m_shuttingDown && (endFrame == null || Frame < endFrame))
             {
                 maintc = Util.EnvironmentTickCount();
                 ++Frame;
