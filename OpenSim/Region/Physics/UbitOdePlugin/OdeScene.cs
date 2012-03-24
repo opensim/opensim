@@ -169,7 +169,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         float TerrainBounce = 0.1f;
         float TerrainFriction = 0.3f;
 
-        public float AvatarBounce = 0.3f;
         public float AvatarFriction = 0;// 0.9f * 0.5f;
 
         private const uint m_regionWidth = Constants.RegionSize;
@@ -711,8 +710,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         case (int)ActorTypes.Agent:
                             p1.getContactData(ref contactdata1);
                             p2.getContactData(ref contactdata2);
-                            
-                            bounce = contactdata1.bounce * contactdata2.bounce;
+
+                            bounce = 0;
                             
                             mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
 
@@ -726,7 +725,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         case (int)ActorTypes.Prim:
                             p1.getContactData(ref contactdata1);
                             p2.getContactData(ref contactdata2);
-                            bounce = contactdata1.bounce * contactdata2.bounce;
+
+                            bounce = 0;
                             
                             mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
 
@@ -751,7 +751,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         case (int)ActorTypes.Agent:
                             p1.getContactData(ref contactdata1);
                             p2.getContactData(ref contactdata2);
-                            bounce = contactdata1.bounce * contactdata2.bounce;
+
+                            bounce = 0;
                             
                             mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
 

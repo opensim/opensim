@@ -70,6 +70,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_fakeisphantom;
 
         protected bool m_building;
+        protected bool m_forcePosOrRotation;
+
         private Quaternion m_lastorientation = new Quaternion();
         private Quaternion _orientation;
 
@@ -497,7 +499,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_shapetype = value;
                 AddChange(changes.Shape, null);
             }
-        }
+        }
+
 
         public override Vector3 Velocity
         {
@@ -1429,7 +1432,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.RfromQ(out mymat, ref myrot);
             d.MassRotate(ref objdmass, ref mymat);
 
-            // set the body rotation and position
+            // set the body rotation
             d.BodySetRotation(Body, ref mymat);
 
             // recompute full object inertia if needed
@@ -1724,6 +1727,215 @@ namespace OpenSim.Region.Physics.OdePlugin
             _mass = primMass;
             m_collisionscore = 0;
         }
+
+        private void FixInertia(Vector3 NewPos,Quaternion newrot)
+        {
+            d.Matrix3 mat = new d.Matrix3();
+            d.Quaternion quat = new d.Quaternion();
+
+            d.Mass tmpdmass = new d.Mass { };         
+            d.Mass objdmass = new d.Mass { };
+
+            d.BodyGetMass(Body, out tmpdmass);
+            objdmass = tmpdmass;
+
+            d.Vector3 dobjpos;
+            d.Vector3 thispos;
+
+            // get current object position and rotation
+            dobjpos = d.BodyGetPosition(Body);
+
+            // get prim own inertia in its local frame
+            tmpdmass = primdMass;
+
+            // transform to object frame
+            mat = d.GeomGetOffsetRotation(prim_geom);
+            d.MassRotate(ref tmpdmass, ref mat);
+
+            thispos = d.GeomGetOffsetPosition(prim_geom);
+            d.MassTranslate(ref tmpdmass,
+                            thispos.X,
+                            thispos.Y,
+                            thispos.Z);
+
+            // subtract current prim inertia from object
+            DMassSubPartFromObj(ref tmpdmass, ref objdmass);
+
+            // back prim own inertia 
+            tmpdmass = primdMass;
+
+            // update to new position and orientation
+            _position = NewPos;
+            d.GeomSetOffsetWorldPosition(prim_geom, NewPos.X, NewPos.Y, NewPos.Z);
+            _orientation = newrot;
+            quat.X = newrot.X;
+            quat.Y = newrot.Y;
+            quat.Z = newrot.Z;
+            quat.W = newrot.W;
+            d.GeomSetOffsetWorldQuaternion(prim_geom, ref quat);
+
+            mat = d.GeomGetOffsetRotation(prim_geom);
+            d.MassRotate(ref tmpdmass, ref mat);
+
+            thispos = d.GeomGetOffsetPosition(prim_geom);
+            d.MassTranslate(ref tmpdmass,
+                            thispos.X,
+                            thispos.Y,
+                            thispos.Z);
+
+            d.MassAdd(ref objdmass, ref tmpdmass);
+
+            // fix all positions
+            IntPtr g = d.BodyGetFirstGeom(Body);
+            while (g != IntPtr.Zero)
+            {
+                thispos = d.GeomGetOffsetPosition(g);
+                thispos.X -= objdmass.c.X;
+                thispos.Y -= objdmass.c.Y;
+                thispos.Z -= objdmass.c.Z;
+                d.GeomSetOffsetPosition(g, thispos.X, thispos.Y, thispos.Z);
+                g = d.dBodyGetNextGeom(g);
+            }
+            d.BodyVectorToWorld(Body,objdmass.c.X, objdmass.c.Y, objdmass.c.Z,out thispos);
+
+            d.BodySetPosition(Body, dobjpos.X + thispos.X, dobjpos.Y + thispos.Y, dobjpos.Z + thispos.Z);
+            d.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
+            d.BodySetMass(Body, ref objdmass);
+            _mass = objdmass.mass;
+        }
+
+
+
+        private void FixInertia(Vector3 NewPos)
+        {
+            d.Matrix3 primmat = new d.Matrix3();
+            d.Mass tmpdmass = new d.Mass { };
+            d.Mass objdmass = new d.Mass { };
+            d.Mass primmass = new d.Mass { };
+
+            d.Vector3 dobjpos;
+            d.Vector3 thispos;
+
+            d.BodyGetMass(Body, out objdmass);
+
+            // get prim own inertia in its local frame
+            primmass = primdMass;
+            // transform to object frame
+            primmat = d.GeomGetOffsetRotation(prim_geom);
+            d.MassRotate(ref primmass, ref primmat);
+
+            tmpdmass = primmass;
+
+            thispos = d.GeomGetOffsetPosition(prim_geom);
+            d.MassTranslate(ref tmpdmass,
+                            thispos.X,
+                            thispos.Y,
+                            thispos.Z);
+
+            // subtract current prim inertia from object
+            DMassSubPartFromObj(ref tmpdmass, ref objdmass);
+
+            // update to new position
+            _position = NewPos;
+            d.GeomSetOffsetWorldPosition(prim_geom, NewPos.X, NewPos.Y, NewPos.Z);
+
+            thispos = d.GeomGetOffsetPosition(prim_geom);
+            d.MassTranslate(ref primmass,
+                            thispos.X,
+                            thispos.Y,
+                            thispos.Z);
+
+            d.MassAdd(ref objdmass, ref primmass);
+
+            // fix all positions
+            IntPtr g = d.BodyGetFirstGeom(Body);
+            while (g != IntPtr.Zero)
+            {
+                thispos = d.GeomGetOffsetPosition(g);
+                thispos.X -= objdmass.c.X;
+                thispos.Y -= objdmass.c.Y;
+                thispos.Z -= objdmass.c.Z;
+                d.GeomSetOffsetPosition(g, thispos.X, thispos.Y, thispos.Z);
+                g = d.dBodyGetNextGeom(g);
+            }
+
+            d.BodyVectorToWorld(Body, objdmass.c.X, objdmass.c.Y, objdmass.c.Z, out thispos);
+
+            // get current object position and rotation
+            dobjpos = d.BodyGetPosition(Body);
+
+            d.BodySetPosition(Body, dobjpos.X + thispos.X, dobjpos.Y + thispos.Y, dobjpos.Z + thispos.Z);
+            d.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
+            d.BodySetMass(Body, ref objdmass);
+            _mass = objdmass.mass;
+        }
+
+        private void FixInertia(Quaternion newrot)
+        {
+            d.Matrix3 mat = new d.Matrix3();
+            d.Quaternion quat = new d.Quaternion();
+
+            d.Mass tmpdmass = new d.Mass { };
+            d.Mass objdmass = new d.Mass { };
+            d.Vector3 dobjpos;
+            d.Vector3 thispos;
+
+            d.BodyGetMass(Body, out objdmass);
+
+            // get prim own inertia in its local frame
+            tmpdmass = primdMass;
+            mat = d.GeomGetOffsetRotation(prim_geom);
+            d.MassRotate(ref tmpdmass, ref mat);
+            // transform to object frame
+            thispos = d.GeomGetOffsetPosition(prim_geom);
+            d.MassTranslate(ref tmpdmass,
+                            thispos.X,
+                            thispos.Y,
+                            thispos.Z);
+
+            // subtract current prim inertia from object
+            DMassSubPartFromObj(ref tmpdmass, ref objdmass);
+
+            // update to new orientation
+            _orientation = newrot;
+            quat.X = newrot.X;
+            quat.Y = newrot.Y;
+            quat.Z = newrot.Z;
+            quat.W = newrot.W;
+            d.GeomSetOffsetWorldQuaternion(prim_geom, ref quat);
+
+            tmpdmass = primdMass;
+            mat = d.GeomGetOffsetRotation(prim_geom);
+            d.MassRotate(ref tmpdmass, ref mat);
+            d.MassTranslate(ref tmpdmass,
+                            thispos.X,
+                            thispos.Y,
+                            thispos.Z);
+
+            d.MassAdd(ref objdmass, ref tmpdmass);
+
+            // fix all positions
+            IntPtr g = d.BodyGetFirstGeom(Body);
+            while (g != IntPtr.Zero)
+            {
+                thispos = d.GeomGetOffsetPosition(g);
+                thispos.X -= objdmass.c.X;
+                thispos.Y -= objdmass.c.Y;
+                thispos.Z -= objdmass.c.Z;
+                d.GeomSetOffsetPosition(g, thispos.X, thispos.Y, thispos.Z);
+                g = d.dBodyGetNextGeom(g);
+            }
+
+            d.BodyVectorToWorld(Body, objdmass.c.X, objdmass.c.Y, objdmass.c.Z, out thispos);
+            // get current object position and rotation
+            dobjpos = d.BodyGetPosition(Body);
+
+            d.BodySetPosition(Body, dobjpos.X + thispos.X, dobjpos.Y + thispos.Y, dobjpos.Z + thispos.Z);
+            d.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
+            d.BodySetMass(Body, ref objdmass);
+            _mass = objdmass.mass;
+        }
+
 
         #region Mass Calculation
 
@@ -2126,17 +2338,18 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (prim_geom != IntPtr.Zero)
             {
-                d.Vector3 lpos;
-                d.GeomCopyPosition(prim_geom, out lpos);
-                _position.X = lpos.X;
-                _position.Y = lpos.Y;
-                _position.Z = lpos.Z;
                 d.Quaternion qtmp = new d.Quaternion { };
                 d.GeomCopyQuaternion(prim_geom, out qtmp);
                 _orientation.W = qtmp.W;
                 _orientation.X = qtmp.X;
                 _orientation.Y = qtmp.Y;
                 _orientation.Z = qtmp.Z;
+
+                d.Vector3 lpos;
+                d.GeomCopyPosition(prim_geom, out lpos);
+                _position.X = lpos.X;
+                _position.Y = lpos.Y;
+                _position.Z = lpos.Z;
             }
         }
 
@@ -2593,6 +2806,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         _position = newPos;
                     }
+
+                    else if (m_forcePosOrRotation && _position != newPos && Body != IntPtr.Zero)
+                    {
+                        FixInertia(newPos);
+                        if (!d.BodyIsEnabled(Body))
+                            d.BodyEnable(Body);
+                    }
                 }
                 else
                 {
@@ -2637,6 +2857,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         _orientation = newOri;
                     }
+                    /*
+                                        else if (m_forcePosOrRotation && _orientation != newOri && Body != IntPtr.Zero)
+                                        {
+                                            FixInertia(_position, newOri);
+                                            if (!d.BodyIsEnabled(Body))
+                                                d.BodyEnable(Body);
+                                        }
+                    */
                 }
                 else
                 {
@@ -3510,6 +3738,29 @@ namespace OpenSim.Region.Physics.OdePlugin
             dst.I.M20 = src.I.M20;
             dst.I.M21 = src.I.M21;
             dst.I.M22 = src.I.M22;
+        }
+
+        internal static void DMassSubPartFromObj(ref d.Mass part, ref d.Mass theobj)
+        {
+            // assumes object center of mass is zero
+            float smass = part.mass;
+            theobj.mass -= smass;
+
+            smass *= 1.0f / (theobj.mass); ;
+
+            theobj.c.X -= part.c.X * smass;
+            theobj.c.Y -= part.c.Y * smass;
+            theobj.c.Z -= part.c.Z * smass;
+
+            theobj.I.M00 -= part.I.M00;
+            theobj.I.M01 -= part.I.M01;
+            theobj.I.M02 -= part.I.M02;
+            theobj.I.M10 -= part.I.M10;
+            theobj.I.M11 -= part.I.M11;
+            theobj.I.M12 -= part.I.M12;
+            theobj.I.M20 -= part.I.M20;
+            theobj.I.M21 -= part.I.M21;
+            theobj.I.M22 -= part.I.M22;
         }
 
         private static void DMassDup(ref d.Mass src, out d.Mass dst)
