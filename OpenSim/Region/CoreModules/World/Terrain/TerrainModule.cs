@@ -1199,6 +1199,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                                             "Integer");
             saveToTileCommand.AddArgument("minimum Y tile", "The Y region coordinate of the first section on the file",
                                             "Integer");
+            saveToTileCommand.AddArgument("minimum Y tile", "The Y region coordinate of the first tile on the file\n"
+                                          + "= Example =\n"
+                                          + "To save a PNG file for a set of map tiles 2 regions wide and 3 regions high from map co-ordinate (9910,10234)\n"
+                                          + "        # terrain save-tile ST06.png 2 3 9910 10234\n",
+                                          "Integer");
+
             // Terrain adjustments
             Command fillRegionCommand =
                 new Command("fill", CommandIntentions.COMMAND_HAZARDOUS, InterfaceFillTerrain, "Fills the current heightmap with a specified value.");
