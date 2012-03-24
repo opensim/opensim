@@ -160,8 +160,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Random fluidRandomizer = new Random(Environment.TickCount);
 
         const d.ContactFlags comumContactFlags = d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM |d.ContactFlags.Approx1 | d.ContactFlags.Bounce;
-        const float comumContactERP = 0.6f;
-        const float comumSoftContactERP = 0.1f;
+        const float MaxERP = 0.8f;
+        const float minERP = 0.1f;
         const float comumContactCFM = 0.0001f;
         
         float frictionMovementMult = 0.3f;
@@ -527,7 +527,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         // sets a global contact for a joint for contactgeom , and base contact description)
 
-        private IntPtr CreateContacJoint(ref d.ContactGeom contactGeom, float mu, float bounce, bool softerp)
+        private IntPtr CreateContacJoint(ref d.ContactGeom contactGeom, float mu, float bounce,float cfm,float erp)
         {
             if (GlobalContactsArray == IntPtr.Zero || m_global_contactcount >= maxContactsbeforedeath)
                 return IntPtr.Zero;
@@ -545,11 +545,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             newcontact.surface.mode = comumContactFlags;
             newcontact.surface.mu = mu;
             newcontact.surface.bounce = bounce;
-            newcontact.surface.soft_cfm = comumContactCFM;
-            if (softerp)
-                newcontact.surface.soft_erp = comumSoftContactERP;
-            else
-                newcontact.surface.soft_erp = comumContactERP;
+            newcontact.surface.soft_cfm = cfm;
+            newcontact.surface.soft_erp = erp;
 
             IntPtr contact = new IntPtr(GlobalContactsArray.ToInt64() + (Int64)(m_global_contactcount * d.Contact.unmanagedSizeOf));
             Marshal.StructureToPtr(newcontact, contact, true);
@@ -693,9 +690,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             // big messy collision analises
             float mu = 0;
             float bounce = 0;
+            float cfm = 0.0001f;
+            float erp = 0.1f;
+
             ContactData contactdata1 = new ContactData(0, 0, false);
             ContactData contactdata2 = new ContactData(0, 0, false);
-            bool erpSoft = false;
 
             String name = null;
             bool dop1foot = false;
@@ -705,61 +704,65 @@ namespace OpenSim.Region.Physics.OdePlugin
             switch (p1.PhysicsActorType)
             {
                 case (int)ActorTypes.Agent:
-                    switch (p2.PhysicsActorType)
                     {
-                        case (int)ActorTypes.Agent:
-                            p1.getContactData(ref contactdata1);
-                            p2.getContactData(ref contactdata2);
+                        bounce = 0;
+                        mu = 0;
+                        cfm = 0.0001f;
 
-                            bounce = 0;
-                            
-                            mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
+                        switch (p2.PhysicsActorType)
+                        {
+                            case (int)ActorTypes.Agent:
+/*
+                                p1.getContactData(ref contactdata1);
+                                p2.getContactData(ref contactdata2);
 
-                            if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
-                                mu *= frictionMovementMult;
+                                mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
 
-                            erpSoft = contactdata1.softcolide | contactdata2.softcolide;
-                            p1.CollidingObj = true;
-                            p2.CollidingObj = true;
-                            break;
-                        case (int)ActorTypes.Prim:
-                            p1.getContactData(ref contactdata1);
-                            p2.getContactData(ref contactdata2);
-
-                            bounce = 0;
-                            
-                            mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
-
-                            if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
-                                mu *= frictionMovementMult;
-                            if (p2.Velocity.LengthSquared() > 0.0f)
+                                if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
+                                    mu *= frictionMovementMult;
+*/
+                                p1.CollidingObj = true;
                                 p2.CollidingObj = true;
+                                break;
+                            case (int)ActorTypes.Prim:
+/*
+                                p1.getContactData(ref contactdata1);
+                                p2.getContactData(ref contactdata2);
 
-                            erpSoft = contactdata1.softcolide | contactdata2.softcolide;
 
-                            dop1foot = true;
-                            break;
-                        default:
-                            ignore=true; // avatar to terrain and water ignored
-                            break;
+                                mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
+
+                                if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
+                                    mu *= frictionMovementMult;
+ */
+                                if (p2.Velocity.LengthSquared() > 0.0f)
+                                    p2.CollidingObj = true;
+
+                                dop1foot = true;
+                                break;
+                            default:
+                                ignore = true; // avatar to terrain and water ignored
+                                break;
+                        }
+                        break;
                     }
-                    break;
 
                 case (int)ActorTypes.Prim:
                     switch (p2.PhysicsActorType)
                     {
                         case (int)ActorTypes.Agent:
-                            p1.getContactData(ref contactdata1);
-                            p2.getContactData(ref contactdata2);
+//                            p1.getContactData(ref contactdata1);
+//                            p2.getContactData(ref contactdata2);
 
                             bounce = 0;
-                            
+                            mu = 0;
+                            cfm = 0.0001f;
+/*
                             mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
 
                             if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
                                 mu *= frictionMovementMult;
-
-                            erpSoft = contactdata1.softcolide | contactdata2.softcolide;
+*/
                             dop2foot = true;
                             if (p1.Velocity.LengthSquared() > 0.0f)
                                 p1.CollidingObj = true;
@@ -773,8 +776,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                             p1.getContactData(ref contactdata1);
                             p2.getContactData(ref contactdata2);
                             bounce = contactdata1.bounce * contactdata2.bounce;
-                            erpSoft = contactdata1.softcolide | contactdata2.softcolide;
                             mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
+
+                            cfm = p1.Mass;
+                            if (cfm > p2.Mass)
+                                cfm = p2.Mass;
+                            cfm = (float)Math.Sqrt(cfm);
+                            cfm *= 0.0001f;
+                            if (cfm > 0.8f)
+                                cfm = 0.8f;
 
                             if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
                                 mu *= frictionMovementMult;
@@ -790,12 +800,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     mu = (float)Math.Sqrt(contactdata1.mu * TerrainFriction);
                                     if (Math.Abs(p1.Velocity.X) > 0.1f || Math.Abs(p1.Velocity.Y) > 0.1f)
                                         mu *= frictionMovementMult;
-                                    erpSoft = contactdata1.softcolide;
                                     p1.CollidingGround = true;
+                                    cfm = p1.Mass;
+                                    cfm = (float)Math.Sqrt(cfm);
+                                    cfm *= 0.0001f;
+                                    if (cfm > 0.8f)
+                                        cfm = 0.8f;
+
                                 }
                                 else if (name == "Water")
                                 {
-                                    erpSoft = true;
+                                    ignore = true;
                                 }
                             }
                             else
@@ -815,7 +830,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 p2.getContactData(ref contactdata2);
                                 bounce = contactdata2.bounce * TerrainBounce;
                                 mu = (float)Math.Sqrt(contactdata2.mu * TerrainFriction);
-                                erpSoft = contactdata2.softcolide;
+                                cfm = p2.Mass;
+                                cfm = (float)Math.Sqrt(cfm);
+                                cfm *= 0.0001f;
+                                if (cfm > 0.8f)
+                                    cfm = 0.8f;
 
                                 if (Math.Abs(p2.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y) > 0.1f)
                                     mu *= frictionMovementMult;
@@ -827,7 +846,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         else if (name == "Water" &&
                             (p2.PhysicsActorType == (int)ActorTypes.Prim || p2.PhysicsActorType == (int)ActorTypes.Agent))
                         {
-                            erpSoft = true;
+                            ignore = true;
                         }
                     }
                     else
@@ -848,7 +867,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (dop2foot && (p2.Position.Z - curContact.pos.Z) > (p2.Size.Z - avCapRadius) * 0.5f)
                     p2.IsColliding = true;
 
-                Joint = CreateContacJoint(ref curContact, mu, bounce, erpSoft);
+
+                erp = curContact.depth;
+                if (erp < minERP)
+                    erp = minERP;
+                else if (erp > MaxERP)
+                    erp = MaxERP;
+
+                Joint = CreateContacJoint(ref curContact, mu, bounce,cfm,erp);
                 d.JointAttach(Joint, b1, b2);
 
                 if (++m_global_contactcount >= maxContactsbeforedeath)

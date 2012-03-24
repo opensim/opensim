@@ -130,9 +130,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public bool m_disabled;
 
-
         public uint m_localID;
 
+        private IMesh m_mesh;
+        private object m_meshlock = new object();
         private PrimitiveBaseShape _pbs;
         public OdeScene _parent_scene;
 
@@ -484,6 +485,24 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             set
             {
+/*                
+                IMesh mesh = null;
+                if (_parent_scene.needsMeshing(value))
+                {
+                    bool convex;
+                    if (m_shapetype == 0)
+                        convex = false;
+                    else
+                        convex = true;
+                    mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, (int)LevelOfDetail.High, true, convex);
+                }
+
+                if (mesh != null)
+                {
+                    lock (m_meshlock)
+                        m_mesh = mesh;
+                }
+*/
                 AddChange(changes.Shape, value);
             }
         }
@@ -950,6 +969,19 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             CalcPrimBodyData();
 
+            m_mesh = null;
+            if (_parent_scene.needsMeshing(pbs))
+            {
+                bool convex;
+                if (m_shapetype == 0)
+                    convex = false;
+                else
+                    convex = true;
+
+                m_mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, (int)LevelOfDetail.High, true, convex);
+            }
+
+
             m_building = true; // control must set this to false when done
 
             AddChange(changes.Add, null);
@@ -1052,6 +1084,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private bool setMesh(OdeScene parent_scene)
         {
+            IntPtr vertices, indices;
+            int vertexCount, indexCount;
+            int vertexStride, triStride;
+
             if (Body != IntPtr.Zero)
             {
                 if (childPrim)
@@ -1068,38 +1104,50 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            bool convex;
-            if (m_shapetype == 0)
-                convex = false;
-            else
-                convex = true;
+            IMesh mesh = null;
 
-            IMesh mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, (int)LevelOfDetail.High, true,convex);
-            if (mesh == null)
+
+            lock (m_meshlock)
             {
-                m_log.WarnFormat("[PHYSICS]: CreateMesh Failed on prim {0} at <{1},{2},{3}>.", Name, _position.X, _position.Y, _position.Z);
-                return false;
-            }
+                if (m_mesh == null)
+                {
+                    bool convex;
+                    if (m_shapetype == 0)
+                        convex = false;
+                    else
+                        convex = true;
 
-            IntPtr vertices, indices;
-            int vertexCount, indexCount;
-            int vertexStride, triStride;
+                    mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, (int)LevelOfDetail.High, true, convex);
+                }
+                else
+                {
+                    mesh = m_mesh;
+                }
 
-            mesh.getVertexListAsPtrToFloatArray(out vertices, out vertexStride, out vertexCount); // Note, that vertices are fixed in unmanaged heap
-            mesh.getIndexListAsPtrToIntArray(out indices, out triStride, out indexCount); // Also fixed, needs release after usage
+                if (mesh == null)
+                {
+                    m_log.WarnFormat("[PHYSICS]: CreateMesh Failed on prim {0} at <{1},{2},{3}>.", Name, _position.X, _position.Y, _position.Z);
+                    return false;
+                }
 
-            if (vertexCount == 0 || indexCount == 0)
-            {
-                m_log.WarnFormat("[PHYSICS]: Got invalid mesh on prim {0} at <{1},{2},{3}>. mesh UUID {4}",
-                    Name, _position.X, _position.Y, _position.Z, _pbs.SculptTexture.ToString());
+
+                mesh.getVertexListAsPtrToFloatArray(out vertices, out vertexStride, out vertexCount); // Note, that vertices are fixed in unmanaged heap
+                mesh.getIndexListAsPtrToIntArray(out indices, out triStride, out indexCount); // Also fixed, needs release after usage
+
+                if (vertexCount == 0 || indexCount == 0)
+                {
+                    m_log.WarnFormat("[PHYSICS]: Got invalid mesh on prim {0} at <{1},{2},{3}>. mesh UUID {4}",
+                        Name, _position.X, _position.Y, _position.Z, _pbs.SculptTexture.ToString());
+                    mesh.releaseSourceMeshData();
+                    return false;
+                }
+
+                primOOBoffset = mesh.GetCentroid();
+                hasOOBoffsetFromMesh = true;
+
                 mesh.releaseSourceMeshData();
-                return false;
+                m_mesh = null;
             }
-
-            primOOBoffset = mesh.GetCentroid();
-            hasOOBoffsetFromMesh = true;
-
-            mesh.releaseSourceMeshData();
 
             IntPtr geo = IntPtr.Zero;
 
