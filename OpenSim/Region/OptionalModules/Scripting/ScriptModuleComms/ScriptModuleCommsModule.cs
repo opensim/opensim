@@ -147,6 +147,14 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
                         return "modInvokeI";
                     else if (sid.ReturnType == typeof(float))
                         return "modInvokeF";
+                    else if (sid.ReturnType == typeof(UUID))
+                        return "modInvokeK";
+                    else if (sid.ReturnType == typeof(OpenMetaverse.Vector3))
+                        return "modInvokeV";
+                    else if (sid.ReturnType == typeof(OpenMetaverse.Quaternion))
+                        return "modInvokeR";
+                    else if (sid.ReturnType == typeof(object[]))
+                        return "modInvokeL";
                 }
             }
 
