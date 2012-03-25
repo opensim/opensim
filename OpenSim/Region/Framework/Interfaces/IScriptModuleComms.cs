@@ -31,7 +31,6 @@ using OpenMetaverse;
 namespace OpenSim.Region.Framework.Interfaces
 {
     public delegate void ScriptCommand(UUID script, string id, string module, string command, string k);
-    public delegate object ScriptInvocation(UUID script, object[] parms);
 
     /// <summary>
     /// Interface for communication between OpenSim modules and in-world scripts
@@ -46,10 +45,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         event ScriptCommand OnScriptCommand;
 
-        void RegisterScriptInvocation(ScriptInvocation fn);
-        ScriptInvocation[] GetScriptInvocationList();
+        void RegisterScriptInvocation(Delegate fn);
+        Delegate[] GetScriptInvocationList();
 
-        ScriptInvocation LookupScriptInvocation(string fname);
+        Delegate LookupScriptInvocation(string fname);
         string LookupModInvocation(string fname);
         Type[] LookupTypeSignature(string fname);
         Type LookupReturnType(string fname);
