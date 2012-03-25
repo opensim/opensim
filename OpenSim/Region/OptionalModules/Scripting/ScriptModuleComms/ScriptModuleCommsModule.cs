@@ -126,14 +126,30 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
             m_scriptModule.PostScriptEvent(script, "link_message", args);
         }
 
-        public void RegisterScriptInvocation(string fname, ScriptInvocation fcall, Type[] csig, Type rsig)
+        public void RegisterScriptInvocation(ScriptInvocation fcall)
         {
             lock (m_scriptInvocation)
             {
-                m_scriptInvocation[fname] = new ScriptInvocationData(fname,fcall,csig,rsig);
+                ParameterInfo[] parameters = fcall.Method.GetParameters ();
+                Type[] parmTypes = new Type[parameters.Length];
+                for (int i = 0 ; i < parameters.Length ; i++)
+                    parmTypes[i] = parameters[i].ParameterType;
+                m_scriptInvocation[fcall.Method.Name] = new ScriptInvocationData(fcall.Method.Name, fcall, parmTypes, fcall.Method.ReturnType);
             }
         }
         
+        public ScriptInvocation[] GetScriptInvocationList()
+        {
+            List<ScriptInvocation> ret = new List<ScriptInvocation>();
+
+            lock (m_scriptInvocation)
+            {
+                foreach (ScriptInvocationData d in m_scriptInvocation.Values)
+                    ret.Add(d.ScriptInvocationFn);
+            }
+            return ret.ToArray();
+        }
+
         public string LookupModInvocation(string fname)
         {
             lock (m_scriptInvocation)
