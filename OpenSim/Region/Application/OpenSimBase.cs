@@ -263,15 +263,16 @@ namespace OpenSim
                 {
                     string capitalizedTopic = char.ToUpper(topic[0]) + topic.Substring(1);
 
+                    // This is a hack to allow the user to enter the help command in upper or lowercase.  This will go
+                    // away at some point.
+                    m_console.Commands.AddCommand(capitalizedTopic, false, "help " + topic,
+                                                  "help " + capitalizedTopic,
+                                                  "Get help on plugin command '" + topic + "'",
+                                                  HandleCommanderHelp);
                     m_console.Commands.AddCommand(capitalizedTopic, false, "help " + capitalizedTopic,
                                                   "help " + capitalizedTopic,
                                                   "Get help on plugin command '" + topic + "'",
                                                   HandleCommanderHelp);
-//
-//                    m_console.Commands.AddCommand("General", false, topic,
-//                                                  topic,
-//                                                  "Execute subcommand for plugin '" + topic + "'",
-//                                                  null);
 
                     ICommander commander = null;
 

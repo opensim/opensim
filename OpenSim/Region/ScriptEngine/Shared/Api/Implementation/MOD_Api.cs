@@ -120,33 +120,101 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// 
         /// </summary>
         /// <param name="fname">The name of the function to invoke</param>
-        /// <param name="fname">List of parameters</param>
+        /// <param name="parms">List of parameters</param>
         /// <returns>string result of the invocation</returns>
-        public string modInvokeS(string fname, params object[] parms)
+        public LSL_String modInvokeS(string fname, params object[] parms)
         {
             Type returntype = m_comms.LookupReturnType(fname);
             if (returntype != typeof(string))
                 MODError(String.Format("return type mismatch for {0}",fname));
 
-            return (string)modInvoke(fname,parms);
+            string result = (string)modInvoke(fname,parms);
+            return new LSL_String(result);
         }
 
-        public int modInvokeI(string fname, params object[] parms)
+        public LSL_Integer modInvokeI(string fname, params object[] parms)
         {
             Type returntype = m_comms.LookupReturnType(fname);
             if (returntype != typeof(int))
                 MODError(String.Format("return type mismatch for {0}",fname));
 
-            return (int)modInvoke(fname,parms);
+            int result = (int)modInvoke(fname,parms);
+            return new LSL_Integer(result);
         }
         
-        public float modInvokeF(string fname, params object[] parms)
+        public LSL_Float modInvokeF(string fname, params object[] parms)
         {
             Type returntype = m_comms.LookupReturnType(fname);
             if (returntype != typeof(float))
                 MODError(String.Format("return type mismatch for {0}",fname));
 
-            return (float)modInvoke(fname,parms);
+            float result = (float)modInvoke(fname,parms);
+            return new LSL_Float(result);
+        }
+
+        public LSL_Key modInvokeK(string fname, params object[] parms)
+        {
+            Type returntype = m_comms.LookupReturnType(fname);
+            if (returntype != typeof(UUID))
+                MODError(String.Format("return type mismatch for {0}",fname));
+
+            UUID result = (UUID)modInvoke(fname,parms);
+            return new LSL_Key(result.ToString());
+        }
+
+        public LSL_Vector modInvokeV(string fname, params object[] parms)
+        {
+            Type returntype = m_comms.LookupReturnType(fname);
+            if (returntype != typeof(OpenMetaverse.Vector3))
+                MODError(String.Format("return type mismatch for {0}",fname));
+
+            OpenMetaverse.Vector3 result = (OpenMetaverse.Vector3)modInvoke(fname,parms);
+            return new LSL_Vector(result.X,result.Y,result.Z);
+        }
+
+        public LSL_Rotation modInvokeR(string fname, params object[] parms)
+        {
+            Type returntype = m_comms.LookupReturnType(fname);
+            if (returntype != typeof(OpenMetaverse.Quaternion))
+                MODError(String.Format("return type mismatch for {0}",fname));
+
+            OpenMetaverse.Quaternion result = (OpenMetaverse.Quaternion)modInvoke(fname,parms);
+            return new LSL_Rotation(result.X,result.Y,result.Z,result.W);
+        }
+
+        public LSL_List modInvokeL(string fname, params object[] parms)
+        {
+            Type returntype = m_comms.LookupReturnType(fname);
+            if (returntype != typeof(object[]))
+                MODError(String.Format("return type mismatch for {0}",fname));
+
+            object[] result = (object[])modInvoke(fname,parms);
+            object[] llist = new object[result.Length];
+            for (int i = 0; i < result.Length; i++)
+            {
+                if (result[i] is string)
+                    llist[i] = new LSL_String((string)result[i]);
+                else if (result[i] is int)
+                    llist[i] = new LSL_Integer((int)result[i]);
+                else if (result[i] is float)
+                    llist[i] = new LSL_Float((float)result[i]);
+                else if (result[i] is OpenMetaverse.Vector3)
+                {
+                    OpenMetaverse.Vector3 vresult = (OpenMetaverse.Vector3)result[i];
+                    llist[i] = new LSL_Vector(vresult.X,vresult.Y,vresult.Z);
+                }
+                else if (result[i] is OpenMetaverse.Quaternion)
+                {
+                    OpenMetaverse.Quaternion qresult = (OpenMetaverse.Quaternion)result[i];
+                    llist[i] = new LSL_Rotation(qresult.X,qresult.Y,qresult.Z,qresult.W);
+                }
+                else
+                {
+                    MODError(String.Format("unknown list element returned by {0}",fname));
+                }
+            }
+
+            return new LSL_List(llist);
         }
 
         /// <summary>
@@ -168,63 +236,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 MODError(String.Format("wrong number of parameters to function {0}",fname));
             
             object[] convertedParms = new object[parms.Length];
-
             for (int i = 0; i < parms.Length; i++)
+                convertedParms[i] = ConvertFromLSL(parms[i],signature[i]);
+
+            // now call the function, the contract with the function is that it will always return
+            // non-null but don't trust it completely
+            try 
             {
-                if (parms[i] is LSL_String)
-                {
-                    if (signature[i] != typeof(string))
-                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
+                object result = m_comms.InvokeOperation(m_itemID,fname,convertedParms);
+                if (result != null)
+                    return result;
 
-                    convertedParms[i] = (string)(LSL_String)parms[i];
-                }
-                else if (parms[i] is LSL_Integer)
-                {
-                    if (signature[i] != typeof(int))
-                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
-
-                    convertedParms[i] = (int)(LSL_Integer)parms[i];
-                }
-                else if (parms[i] is LSL_Float)
-                {
-                    if (signature[i] != typeof(float))
-                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
-
-                    convertedParms[i] = (float)(LSL_Float)parms[i];
-                }
-                else if (parms[i] is LSL_Key)
-                {
-                    if (signature[i] != typeof(string))
-                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
-
-                    convertedParms[i] =  (string)(LSL_Key)parms[i];
-                }
-                else if (parms[i] is LSL_Rotation)
-                {
-                    if (signature[i] != typeof(string))
-                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
-
-                    convertedParms[i] =  (string)(LSL_Rotation)parms[i];
-                }
-                else if (parms[i] is LSL_Vector)
-                {
-                    if (signature[i] != typeof(string))
-                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
-
-                    convertedParms[i] =  (string)(LSL_Vector)parms[i];
-                }
-                else
-                {
-                    if (signature[i] != parms[i].GetType())
-                        MODError(String.Format("parameter type mismatch in {0}; expecting {1}",fname,signature[i].Name));
-
-                    convertedParms[i] = parms[i];
-                }
+                MODError(String.Format("Invocation of {0} failed; null return value",fname));
+            }
+            catch (Exception e)
+            {
+                MODError(String.Format("Invocation of {0} failed; {1}",fname,e.Message));
             }
 
-            return m_comms.InvokeOperation(m_itemID,fname,convertedParms);
+            return null;
         }
         
+        /// <summary>
+        /// Send a command to functions registered on an event
+        /// </summary>
         public string modSendCommand(string module, string command, string k)
         {
             if (!m_MODFunctionsEnabled)
@@ -239,5 +274,101 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return req.ToString();
         }
+
+        /// <summary>
+        /// </summary>
+        protected object ConvertFromLSL(object lslparm, Type type)
+        {
+            // ---------- String ----------
+            if (lslparm is LSL_String)
+            {
+                if (type == typeof(string))
+                    return (string)(LSL_String)lslparm;
+
+                // Need to check for UUID since keys are often treated as strings
+                if (type == typeof(UUID))
+                    return new UUID((string)(LSL_String)lslparm);
+            }
+
+            // ---------- Integer ----------
+            else if (lslparm is LSL_Integer)
+            {
+                if (type == typeof(int))
+                    return (int)(LSL_Integer)lslparm;
+            }
+
+            // ---------- Float ----------
+            else if (lslparm is LSL_Float)
+            {
+                if (type == typeof(float))
+                    return (float)(LSL_Float)lslparm;
+            }
+
+            // ---------- Key ----------
+            else if (lslparm is LSL_Key)
+            {
+                if (type == typeof(UUID))
+                    return new UUID((LSL_Key)lslparm);
+            }
+
+            // ---------- Rotation ----------
+            else if (lslparm is LSL_Rotation)
+            {
+                if (type == typeof(OpenMetaverse.Quaternion))
+                {
+                    LSL_Rotation rot = (LSL_Rotation)lslparm;
+                    return new OpenMetaverse.Quaternion((float)rot.x,(float)rot.y,(float)rot.z,(float)rot.s);
+                }
+            }
+
+            // ---------- Vector ----------
+            else if (lslparm is LSL_Vector)
+            {
+                if (type == typeof(OpenMetaverse.Vector3))
+                {
+                    LSL_Vector vect = (LSL_Vector)lslparm;
+                    return new OpenMetaverse.Vector3((float)vect.x,(float)vect.y,(float)vect.z);
+                }
+            }
+
+            // ---------- List ----------
+            else if (lslparm is LSL_List)
+            {
+                if (type == typeof(object[]))
+                {
+                    object[] plist = (lslparm as LSL_List).Data;
+                    object[] result = new object[plist.Length];
+                    for (int i = 0; i < plist.Length; i++)
+                    {
+                        if (plist[i] is LSL_String)
+                            result[i] = (string)(LSL_String)plist[i];                            
+                        else if (plist[i] is LSL_Integer)
+                            result[i] = (int)(LSL_Integer)plist[i];
+                        else if (plist[i] is LSL_Float)
+                            result[i] = (float)(LSL_Float)plist[i];
+                        else if (plist[i] is LSL_Key)
+                            result[i] = new UUID((LSL_Key)plist[i]);
+                        else if (plist[i] is LSL_Rotation)
+                        {
+                            LSL_Rotation rot = (LSL_Rotation)plist[i];
+                            result[i] = new OpenMetaverse.Quaternion((float)rot.x,(float)rot.y,(float)rot.z,(float)rot.s);
+                        }
+                        else if (plist[i] is LSL_Vector)
+                        {
+                            LSL_Vector vect = (LSL_Vector)plist[i];
+                            result[i] = new OpenMetaverse.Vector3((float)vect.x,(float)vect.y,(float)vect.z);
+                        }
+                        else
+                            MODError("unknown LSL list element type");
+                    }
+
+                    return result;
+                }
+            }
+            
+            MODError(String.Format("parameter type mismatch; expecting {0}",type.Name));
+            return null;
+        }
+
     }
 }

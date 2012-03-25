@@ -188,19 +188,21 @@ namespace OpenSim.Framework.Console
         {
             lock (m_modulesCommands)
             {
-                if (m_modulesCommands.ContainsKey(moduleName))
+                foreach (string key in m_modulesCommands.Keys)
                 {
-                    List<CommandInfo> commands = m_modulesCommands[moduleName];
-                    var ourHelpText = commands.ConvertAll(c => string.Format("{0} - {1}", c.help_text, c.long_help));
-                    ourHelpText.Sort();
-                    helpText.AddRange(ourHelpText);
+                    // Allow topic help requests to succeed whether they are upper or lowercase.
+                    if (moduleName.ToLower() == key.ToLower())
+                    {
+                        List<CommandInfo> commands = m_modulesCommands[key];
+                        var ourHelpText = commands.ConvertAll(c => string.Format("{0} - {1}", c.help_text, c.long_help));
+                        ourHelpText.Sort();
+                        helpText.AddRange(ourHelpText);
 
-                    return true;
+                        return true;
+                    }
                 }
-                else
-                {
-                    return false;
-                }
+
+                return false;
             }
         }
 

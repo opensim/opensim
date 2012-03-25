@@ -132,13 +132,13 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         {
             // We need to do this because:
             // "Saving the image to the same file it was constructed from is not allowed and throws an exception."
-            string tempName = offsetX + "_ " + offsetY + "_" + filename;
+            string tempName = Path.GetTempFileName();
 
             Bitmap entireBitmap = null;
             Bitmap thisBitmap = null;
             if (File.Exists(filename))
             {
-                File.Copy(filename, tempName);
+                File.Copy(filename, tempName, true);
                 entireBitmap = new Bitmap(tempName);
                 if (entireBitmap.Width != fileWidth * regionSizeX || entireBitmap.Height != fileHeight * regionSizeY)
                 {
@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             }
 
             thisBitmap = CreateGrayscaleBitmapFromMap(m_channel);
-            Console.WriteLine("offsetX=" + offsetX + " offsetY=" + offsetY);
+//            Console.WriteLine("offsetX=" + offsetX + " offsetY=" + offsetY);
             for (int x = 0; x < regionSizeX; x++)
                 for (int y = 0; y < regionSizeY; y++)
                     entireBitmap.SetPixel(x + offsetX * regionSizeX, y + (fileHeight - 1 - offsetY) * regionSizeY, thisBitmap.GetPixel(x, y));
