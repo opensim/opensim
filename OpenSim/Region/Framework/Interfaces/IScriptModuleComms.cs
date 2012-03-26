@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Reflection;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -45,7 +46,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         event ScriptCommand OnScriptCommand;
 
-        void RegisterScriptInvocation(Delegate fn);
+        void RegisterScriptInvocation(object target, MethodInfo mi);
         Delegate[] GetScriptInvocationList();
 
         Delegate LookupScriptInvocation(string fname);
