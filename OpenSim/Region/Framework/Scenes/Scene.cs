@@ -104,6 +104,11 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_allowScriptCrossings;
         public bool m_useFlySlow;
 
+        /// <summary>
+        /// Temporarily setting to trigger appearance resends at 60 second intervals.
+        /// </summary>
+        public bool SendPeriodicAppearanceUpdates { get; set; }
+
         protected float m_defaultDrawDistance = 255.0f;
         public float DefaultDrawDistance 
         {
@@ -172,6 +177,11 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Current maintenance run number
+        /// </summary>
+        public uint MaintenanceRun { get; private set; }
+
+        /// <summary>
         /// The minimum length of time in seconds that will be taken for a scene frame.  If the frame takes less time then we
         /// will sleep for the remaining period.
         /// </summary>
@@ -180,6 +190,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// occur too quickly (viewer 1) or with even more slide (viewer 2).
         /// </remarks>
         public float MinFrameTime { get; private set; }
+
+        /// <summary>
+        /// The minimum length of time in seconds that will be taken for a maintenance run.
+        /// </summary>
+        public float MinMaintenanceTime { get; private set; }
 
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
@@ -210,19 +225,22 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool CombineRegions = false;
         /// <summary>
+        /// Tick at which the last maintenance run occurred.
+        /// </summary>
+        private int m_lastMaintenanceTick;
+
+        /// <summary>
         /// Signals whether temporary objects are currently being cleaned up.  Needed because this is launched
         /// asynchronously from the update loop.
         /// </summary>
         private bool m_cleaningTemps = false;
 
-        private Object m_heartbeatLock = new Object();
+//        private Object m_heartbeatLock = new Object();
 
         // TODO: Possibly stop other classes being able to manipulate this directly.
         private SceneGraph m_sceneGraph;
         private volatile int m_bordersLocked;
-//        private int m_RestartTimerCounter;
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
-//        private int m_incrementsof15seconds;
         private volatile bool m_backingup;
         private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
         private Dictionary<UUID, SceneObjectGroup> m_groupsWithTargets = new Dictionary<UUID, SceneObjectGroup>();
@@ -230,16 +248,34 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_physics_enabled = true;
         private bool m_scripts_enabled = true;
         private string m_defaultScriptEngine;
-        private int m_LastLogin;
-        private Thread HeartbeatThread = null;
-        private volatile bool shuttingdown;
 
-        private int m_lastUpdate;
+        /// <summary>
+        /// Tick at which the last login occurred.
+        /// </summary>
+        private int m_LastLogin;
+
         private int m_lastIncoming;
         private int m_lastOutgoing;
-        private bool m_firstHeartbeat = true;
         private int m_hbRestarts = 0;
 
+
+        /// <summary>
+        /// Thread that runs the scene loop.
+        /// </summary>
+        private Thread m_heartbeatThread;
+
+        /// <summary>
+        /// True if these scene is in the process of shutting down or is shutdown.
+        /// </summary>
+        public bool ShuttingDown
+        {
+            get { return m_shuttingDown; }
+        }
+        private volatile bool m_shuttingDown;
+
+//        private int m_lastUpdate;
+        private bool m_firstHeartbeat = true;
+        
         private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
         private bool m_reprioritizationEnabled = true;
         private double m_reprioritizationInterval = 5000.0;
@@ -566,6 +602,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_config = config;
             MinFrameTime = 0.089f;
+            MinMaintenanceTime = 1;
 
             Random random = new Random();
 
@@ -577,7 +614,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_EstateDataService = estateDataService;
             m_regionHandle = m_regInfo.RegionHandle;
             m_regionName = m_regInfo.RegionName;
-            m_lastUpdate = Util.EnvironmentTickCount();
             m_lastIncoming = 0;
             m_lastOutgoing = 0;
 
@@ -759,6 +795,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_update_presences        = startupConfig.GetInt(   "UpdateAgentsEveryNFrames",          m_update_presences);
                     m_update_terrain          = startupConfig.GetInt(   "UpdateTerrainEveryNFrames",         m_update_terrain);
                     m_update_temp_cleaning    = startupConfig.GetInt(   "UpdateTempCleaningEveryNFrames",    m_update_temp_cleaning);
+                    SendPeriodicAppearanceUpdates = startupConfig.GetBoolean("SendPeriodicAppearanceUpdates", SendPeriodicAppearanceUpdates);
                 }
             }
             catch (Exception e)
@@ -834,17 +871,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_permissions = new ScenePermissions(this);
 
-            m_lastUpdate = Util.EnvironmentTickCount();
+//            m_lastUpdate = Util.EnvironmentTickCount();
         }
 
         #endregion
 
         #region Startup / Close Methods
-
-        public bool ShuttingDown
-        {
-            get { return shuttingdown; }
-        }
 
         /// <value>
         /// The scene graph for this scene
@@ -1107,6 +1139,12 @@ namespace OpenSim.Region.Framework.Scenes
                     m_physics_enabled = enablePhysics;
             }
 
+//            if (options.ContainsKey("collisions"))
+//            {
+//                // TODO: Implement.  If false, should stop objects colliding, though possibly should still allow
+//                // the avatar themselves to collide with the ground.
+//            }
+
             if (options.ContainsKey("teleport"))
             {
                 bool enableTeleportDebugging;
@@ -1158,8 +1196,7 @@ namespace OpenSim.Region.Framework.Scenes
             ForEachScenePresence(delegate(ScenePresence avatar) { avatar.ControllingClient.Close(); });
 
             // Stop updating the scene objects and agents.
-            //m_heartbeatTimer.Close();
-            shuttingdown = true;
+            m_shuttingDown = true;
 
             m_log.Debug("[SCENE]: Persisting changed objects");
             EventManager.TriggerSceneShuttingDown(this);
@@ -1183,16 +1220,16 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Start the timer which triggers regular scene updates
+        /// Start the scene
         /// </summary>
-        public void StartTimer()
+        public void Start()
         {
 //            m_log.DebugFormat("[SCENE]: Starting Heartbeat timer for {0}", RegionInfo.RegionName);
 
             //m_heartbeatTimer.Enabled = true;
             //m_heartbeatTimer.Interval = (int)(m_timespan * 1000);
             //m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
-            if (HeartbeatThread != null)
+            if (m_heartbeatThread != null)
             {
                 m_hbRestarts++;
                 if(m_hbRestarts > 10)
@@ -1208,13 +1245,13 @@ namespace OpenSim.Region.Framework.Scenes
 //proc.WaitForExit();
 //Thread.Sleep(1000);
 //Environment.Exit(1);
-                HeartbeatThread.Abort();
-                Watchdog.AbortThread(HeartbeatThread.ManagedThreadId);
-                HeartbeatThread = null;
+                m_heartbeatThread.Abort();
+                Watchdog.AbortThread(m_heartbeatThread.ManagedThreadId);
+                m_heartbeatThread = null;
             }
-            m_lastUpdate = Util.EnvironmentTickCount();
+//            m_lastUpdate = Util.EnvironmentTickCount();
 
-            HeartbeatThread
+            m_heartbeatThread
                 = Watchdog.StartThread(
                     Heartbeat, string.Format("Heartbeat ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, false);
         }
@@ -1245,32 +1282,105 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private void Heartbeat()
         {
-            if (!Monitor.TryEnter(m_heartbeatLock))
-            {
-                Watchdog.RemoveThread();
-                return;
-            }
+//            if (!Monitor.TryEnter(m_heartbeatLock))
+//            {
+//                Watchdog.RemoveThread();
+//                return;
+//            }
 
-            try
-            {
-                m_eventManager.TriggerOnRegionStarted(this);
+//            try
+//            {
 
-                // The first frame can take a very long time due to physics actors being added on startup.  Therefore,
-                // don't turn on the watchdog alarm for this thread until the second frame, in order to prevent false
-                // alarms for scenes with many objects.
-                Update(1);
-                Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
+            m_eventManager.TriggerOnRegionStarted(this);
 
-                while (!shuttingdown)
-                    Update(-1);
-            }
-            finally
-            {
-                Monitor.Pulse(m_heartbeatLock);
-                Monitor.Exit(m_heartbeatLock);
-            }
+            // The first frame can take a very long time due to physics actors being added on startup.  Therefore,
+            // don't turn on the watchdog alarm for this thread until the second frame, in order to prevent false
+            // alarms for scenes with many objects.
+            Update(1);
+
+            Watchdog.StartThread(
+                    Maintenance, string.Format("Maintenance ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, true);
+
+            Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
+            Update(-1);
+
+//                m_lastUpdate = Util.EnvironmentTickCount();
+//                m_firstHeartbeat = false;
+//            }
+//            finally
+//            {
+//                Monitor.Pulse(m_heartbeatLock);
+//                Monitor.Exit(m_heartbeatLock);
+//            }
 
             Watchdog.RemoveThread();
+        }
+
+        private void Maintenance()
+        {
+            DoMaintenance(-1);
+
+            Watchdog.RemoveThread();
+        }
+
+        public void DoMaintenance(int runs)
+        {
+            long? endRun = null;
+            int runtc;
+            int previousMaintenanceTick;
+
+            if (runs >= 0)
+                endRun = MaintenanceRun + runs;
+
+            List<Vector3> coarseLocations;
+            List<UUID> avatarUUIDs;
+
+            while (!m_shuttingDown && (endRun == null || MaintenanceRun < endRun))
+            {
+                runtc = Util.EnvironmentTickCount();
+                ++MaintenanceRun;
+
+                // Coarse locations relate to positions of green dots on the mini-map (on a SecondLife client)
+                if (MaintenanceRun % (m_update_coarse_locations / 10) == 0)
+                {
+                    SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
+                    // Send coarse locations to clients
+                    ForEachScenePresence(delegate(ScenePresence presence)
+                    {
+                        presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
+                    });
+                }
+
+                if (SendPeriodicAppearanceUpdates && MaintenanceRun % 60 == 0)
+                {
+//                    m_log.DebugFormat("[SCENE]: Sending periodic appearance updates");
+
+                    if (AvatarFactory != null)
+                    {
+                        ForEachRootScenePresence(sp => AvatarFactory.SendAppearance(sp.UUID));
+                    }
+                }
+
+                Watchdog.UpdateThread();
+
+                previousMaintenanceTick = m_lastMaintenanceTick;
+                m_lastMaintenanceTick = Util.EnvironmentTickCount();
+                runtc = Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, runtc);
+                runtc = (int)(MinMaintenanceTime * 1000) - runtc;
+    
+                if (runtc > 0)
+                    Thread.Sleep(runtc);
+    
+                // Optionally warn if a frame takes double the amount of time that it should.
+                if (DebugUpdates
+                    && Util.EnvironmentTickCountSubtract(
+                        m_lastMaintenanceTick, previousMaintenanceTick) > (int)(MinMaintenanceTime * 1000 * 2))
+                    m_log.WarnFormat(
+                        "[SCENE]: Maintenance took {0} ms (desired max {1} ms) in {2}",
+                        Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, previousMaintenanceTick),
+                        MinMaintenanceTime * 1000,
+                        RegionInfo.RegionName);
+            }
         }
 
         public override void Update(int frames)
@@ -1284,10 +1394,8 @@ namespace OpenSim.Region.Framework.Scenes
             int tmpPhysicsMS, tmpPhysicsMS2, tmpAgentMS, tmpTempOnRezMS, evMS, backMS, terMS;
             int previousFrameTick;
             int maintc;
-            List<Vector3> coarseLocations;
-            List<UUID> avatarUUIDs;
 
-            while (!shuttingdown && (endFrame == null || Frame < endFrame))
+            while (!m_shuttingDown && (endFrame == null || Frame < endFrame))
             {
                 maintc = Util.EnvironmentTickCount();
                 ++Frame;
@@ -1336,17 +1444,6 @@ namespace OpenSim.Region.Framework.Scenes
                     // Presence updates and queued object updates for each presence are sent to clients
                     if (Frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
-    
-                    // Coarse locations relate to positions of green dots on the mini-map (on a SecondLife client)
-                    if (Frame % m_update_coarse_locations == 0)
-                    {
-                        SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
-                        // Send coarse locations to clients 
-                        ForEachScenePresence(delegate(ScenePresence presence)
-                        {
-                            presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
-                        });
-                    }
     
                     agentMS += Util.EnvironmentTickCountSubtract(tmpAgentMS);
     
@@ -1455,7 +1552,6 @@ namespace OpenSim.Region.Framework.Scenes
     
                 EventManager.TriggerRegionHeartbeatEnd(this);
 
-                // Tell the watchdog that this thread is still alive
                 Watchdog.UpdateThread();
 
                 previousFrameTick = m_lastFrameTick;
@@ -1463,14 +1559,10 @@ namespace OpenSim.Region.Framework.Scenes
                 maintc = Util.EnvironmentTickCountSubtract(m_lastFrameTick, maintc);
                 maintc = (int)(MinFrameTime * 1000) - maintc;
 
-                m_lastUpdate = Util.EnvironmentTickCount();
                 m_firstHeartbeat = false;
 
                 if (maintc > 0)
                     Thread.Sleep(maintc);
-
-                m_lastUpdate = Util.EnvironmentTickCount();
-                m_firstHeartbeat = false;
 
                 // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
@@ -2662,7 +2754,6 @@ namespace OpenSim.Region.Framework.Scenes
                     || (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0;
 
             CheckHeartbeat();
-            ScenePresence presence;
 
             ScenePresence sp = GetScenePresence(client.AgentId);
 
@@ -3253,7 +3344,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override void RemoveClient(UUID agentID, bool closeChildAgents)
         {
-            CheckHeartbeat();
+//            CheckHeartbeat();
             bool isChildAgent = false;
             ScenePresence avatar = GetScenePresence(agentID);
             if (avatar != null)
@@ -4700,7 +4791,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             int health=1; // Start at 1, means we're up
 
-            if (Util.EnvironmentTickCountSubtract(m_lastUpdate) < 1000)
+            if ((Util.EnvironmentTickCountSubtract(m_lastFrameTick)) < 1000)
             {
                 health+=1;
                 flags |= 1;
@@ -4737,6 +4828,8 @@ Environment.Exit(1);
             //
             if (Util.EnvironmentTickCountSubtract(m_LastLogin) < 240000)
                 health++;
+            else
+                return health;
 
             return health;
         }
@@ -4929,8 +5022,8 @@ Environment.Exit(1);
             if (m_firstHeartbeat)
                 return;
 
-            if (Util.EnvironmentTickCountSubtract(m_lastUpdate) > 5000)
-                StartTimer();
+            if ((Util.EnvironmentTickCountSubtract(m_lastFrameTick)) > 5000)
+                Start();
         }
 
         public override ISceneObject DeserializeObject(string representation)

@@ -423,12 +423,18 @@ namespace OpenSim.Framework
             set { m_internalEndPoint = value; }
         }
 
+        /// <summary>
+        /// The x co-ordinate of this region in map tiles (e.g. 1000).
+        /// </summary>
         public uint RegionLocX
         {
             get { return m_regionLocX.Value; }
             set { m_regionLocX = value; }
         }
 
+        /// <summary>
+        /// The y co-ordinate of this region in map tiles (e.g. 1000).
+        /// </summary>
         public uint RegionLocY
         {
             get { return m_regionLocY.Value; }

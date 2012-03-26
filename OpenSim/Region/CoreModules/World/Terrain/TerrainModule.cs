@@ -561,49 +561,56 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         }
 
         /// <summary>
-        /// Saves the terrain to a larger terrain file.
+        /// Save a number of map tiles to a single big image file.
         /// </summary>
+        /// <remarks>
+        /// If the image file already exists then the tiles saved will replace those already in the file - other tiles
+        /// will be untouched.
+        /// </remarks>
         /// <param name="filename">The terrain file to save</param>
-        /// <param name="fileWidth">The width of the file in units</param>
-        /// <param name="fileHeight">The height of the file in units</param>
-        /// <param name="fileStartX">Where to begin our slice</param>
-        /// <param name="fileStartY">Where to begin our slice</param>
+        /// <param name="fileWidth">The number of tiles to save along the X axis.</param>
+        /// <param name="fileHeight">The number of tiles to save along the Y axis.</param>
+        /// <param name="fileStartX">The map x co-ordinate at which to begin the save.</param>
+        /// <param name="fileStartY">The may y co-ordinate at which to begin the save.</param>
         public void SaveToFile(string filename, int fileWidth, int fileHeight, int fileStartX, int fileStartY)
         {
             int offsetX = (int)m_scene.RegionInfo.RegionLocX - fileStartX;
             int offsetY = (int)m_scene.RegionInfo.RegionLocY - fileStartY;
 
-            if (offsetX >= 0 && offsetX < fileWidth && offsetY >= 0 && offsetY < fileHeight)
+            if (offsetX < 0 || offsetX >= fileWidth || offsetY < 0 || offsetY >= fileHeight)
             {
-                // this region is included in the tile request
-                foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
+                MainConsole.Instance.OutputFormat(
+                    "ERROR: file width + minimum X tile and file height + minimum Y tile must incorporate the current region at ({0},{1}).  File width {2} from {3} and file height {4} from {5} does not.",
+                    m_scene.RegionInfo.RegionLocX, m_scene.RegionInfo.RegionLocY, fileWidth, fileStartX, fileHeight, fileStartY);
+
+                return;
+            }
+
+            // this region is included in the tile request
+            foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
+            {
+                if (filename.EndsWith(loader.Key))
                 {
-                    if (filename.EndsWith(loader.Key))
+                    lock (m_scene)
                     {
-                        lock (m_scene)
-                        {
-                            loader.Value.SaveFile(m_channel, filename, offsetX, offsetY,
-                                                  fileWidth, fileHeight,
-                                                  (int)Constants.RegionSize,
-                                                  (int)Constants.RegionSize);
+                        loader.Value.SaveFile(m_channel, filename, offsetX, offsetY,
+                                              fileWidth, fileHeight,
+                                              (int)Constants.RegionSize,
+                                              (int)Constants.RegionSize);
 
-                            m_log.InfoFormat("[TERRAIN]: Saved terrain from {0} to {1}", m_scene.RegionInfo.RegionName, filename);
-                        }
-                        
-                        return;
+                        MainConsole.Instance.OutputFormat(
+                            "Saved terrain from ({0},{1}) to ({2},{3}) from {4} to {5}",
+                            fileStartX, fileStartY, fileStartX + fileWidth - 1, fileStartY + fileHeight - 1,
+                            m_scene.RegionInfo.RegionName, filename);
                     }
+                    
+                    return;
                 }
+            }
 
-                m_log.ErrorFormat(
-                    "[TERRAIN]: Could not save terrain from {0} to {1}.  Valid file extensions are {2}",
-                    m_scene.RegionInfo.RegionName, filename, m_supportedFileExtensions);
-            }
-            else
-            {
-                m_log.ErrorFormat(
-                    "[TERRAIN]: Could not save terrain from {0} to {1}.  {2} {3} {4} {5} {6} {7}",
-                    m_scene.RegionInfo.RegionName, filename, fileWidth, fileHeight, fileStartX, fileStartY, offsetX, offsetY);
-            }
+            MainConsole.Instance.OutputFormat(
+                "ERROR: Could not save terrain from {0} to {1}.  Valid file extensions are {2}",
+                m_scene.RegionInfo.RegionName, filename, m_supportedFileExtensions);
         }
 
         /// <summary>
@@ -1194,6 +1201,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                                             "Integer");
             saveToTileCommand.AddArgument("minimum Y tile", "The Y region coordinate of the first section on the file",
                                             "Integer");
+            saveToTileCommand.AddArgument("minimum Y tile", "The Y region coordinate of the first tile on the file\n"
+                                          + "= Example =\n"
+                                          + "To save a PNG file for a set of map tiles 2 regions wide and 3 regions high from map co-ordinate (9910,10234)\n"
+                                          + "        # terrain save-tile ST06.png 2 3 9910 10234\n",
+                                          "Integer");
+
             // Terrain adjustments
             Command fillRegionCommand =
                 new Command("fill", CommandIntentions.COMMAND_HAZARDOUS, InterfaceFillTerrain, "Fills the current heightmap with a specified value.");

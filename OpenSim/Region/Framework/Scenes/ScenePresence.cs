@@ -233,6 +233,8 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_collisionEventFlag = false;
         private object m_collisionEventLock = new Object();
 
+        private int m_movementAnimationUpdateCounter = 0;
+
         private Vector3 m_prevSitOffset;
 
         protected AvatarAppearance m_appearance;
@@ -741,6 +743,26 @@ namespace OpenSim.Region.Framework.Scenes
             Appearance = appearance;
         }
 
+        private void RegionHeartbeatEnd(Scene scene)
+        {
+            if (IsChildAgent)
+                return;
+
+            m_movementAnimationUpdateCounter ++;
+            if (m_movementAnimationUpdateCounter >= 2)
+            {
+                m_movementAnimationUpdateCounter = 0;
+                if (Animator != null)
+                {
+                    Animator.UpdateMovementAnimations();
+                }
+                else
+                {
+                    m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
+                }
+            }
+        }
+
         public void RegisterToEvents()
         {
             ControllingClient.OnCompleteMovementToRegion += CompleteMovement;
@@ -952,6 +974,8 @@ namespace OpenSim.Region.Framework.Scenes
             MovementFlag = 0;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
+
+            m_scene.EventManager.OnRegionHeartbeatEnd += RegionHeartbeatEnd;
         }
 
         public int GetStateSource()
@@ -979,6 +1003,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void MakeChildAgent()
         {
+            m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
+
             m_log.DebugFormat("[SCENE PRESENCE]: Making {0} a child agent in {1}", Name, Scene.RegionInfo.RegionName);
 
             // Reset these so that teleporting in and walking out isn't seen
@@ -2377,14 +2403,15 @@ namespace OpenSim.Region.Framework.Scenes
                         direc.Z *= 2.6f;
 
                         // TODO: PreJump and jump happen too quickly.  Many times prejump gets ignored.
-                        Animator.TrySetMovementAnimation("PREJUMP");
-                        Animator.TrySetMovementAnimation("JUMP");
+//                        Animator.TrySetMovementAnimation("PREJUMP");
+//                        Animator.TrySetMovementAnimation("JUMP");
                     }
                 }
             }
 
             // TODO: Add the force instead of only setting it to support multiple forces per frame?
             m_forceToApply = direc;
+            Animator.UpdateMovementAnimations();
         }
 
         #endregion
@@ -3334,18 +3361,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent)
                 return;
             
-            //if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))
-            // The Physics Scene will send updates every 500 ms grep: PhysicsActor.SubscribeEvents(
-            // as of this comment the interval is set in AddToPhysicalScene
-            if (Animator != null)
-            {
-//                if (m_updateCount > 0)
-//                {
-                    Animator.UpdateMovementAnimations();
-//                    m_updateCount--;
-//                }
-            }
-
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
 
