@@ -130,7 +130,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 
         public void RegisterScriptInvocation(object target, string meth)
         {
-            MethodInfo mi = target.GetType()..GetMethod(meth,
+            MethodInfo mi = target.GetType().GetMethod(meth,
                     BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
             Type delegateType;
 
