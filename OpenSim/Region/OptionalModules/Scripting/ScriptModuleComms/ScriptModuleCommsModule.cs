@@ -35,6 +35,8 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Mono.Addins;
 using OpenMetaverse;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 {
@@ -126,8 +128,26 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
             m_scriptModule.PostScriptEvent(script, "link_message", args);
         }
 
-        public void RegisterScriptInvocation(Delegate fcall)
+        public void RegisterScriptInvocation(object target, MethodInfo mi)
         {
+            Type delegateType;
+
+            var typeArgs = mi.GetParameters()
+                    .Select(p => p.ParameterType)
+                    .ToList();
+
+            if (mi.ReturnType == typeof(void))
+            {
+                    delegateType = Expression.GetActionType(typeArgs.ToArray());
+            }
+            else
+            {
+                    typeArgs.Add(mi.ReturnType);
+                    delegateType = Expression.GetFuncType(typeArgs.ToArray());
+            }
+
+            Delegate fcall = Delegate.CreateDelegate(delegateType, target, mi);
+
             lock (m_scriptInvocation)
             {
                 ParameterInfo[] parameters = fcall.Method.GetParameters ();
