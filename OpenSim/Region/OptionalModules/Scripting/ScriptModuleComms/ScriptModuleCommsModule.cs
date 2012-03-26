@@ -130,10 +130,18 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 
         public void RegisterScriptInvocation(object target, string meth)
         {
+            m_log.DebugFormat("[MODULE COMMANDS] Register method {0} from type {1}",meth,target.GetType().Name);
+            
+
             MethodInfo mi = target.GetType().GetMethod(meth,
                     BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            if (mi == null)
+            {
+                m_log.WarnFormat("[MODULE COMMANDS] Failed to register method {0}",meth);
+                return;
+            }
+            
             Type delegateType;
-
             var typeArgs = mi.GetParameters()
                     .Select(p => p.ParameterType)
                     .ToList();
@@ -153,13 +161,13 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
             lock (m_scriptInvocation)
             {
                 ParameterInfo[] parameters = fcall.Method.GetParameters ();
-                if (parameters.Length == 0) // Must have one UUID param
+                if (parameters.Length < 2) // Must have two UUID params
                     return;
 
-                // Hide the first parameter
-                Type[] parmTypes = new Type[parameters.Length - 1];
-                for (int i = 1 ; i < parameters.Length ; i++)
-                    parmTypes[i - 1] = parameters[i].ParameterType;
+                // Hide the first two parameters
+                Type[] parmTypes = new Type[parameters.Length - 2];
+                for (int i = 2 ; i < parameters.Length ; i++)
+                    parmTypes[i - 2] = parameters[i].ParameterType;
                 m_scriptInvocation[fcall.Method.Name] = new ScriptInvocationData(fcall.Method.Name, fcall, parmTypes, fcall.Method.ReturnType);
             }
         }
@@ -197,6 +205,8 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
                         return "modInvokeR";
                     else if (sid.ReturnType == typeof(object[]))
                         return "modInvokeL";
+
+                    m_log.WarnFormat("[MODULE COMMANDS] failed to find match for {0} with return type {1}",fname,sid.ReturnType.Name);
                 }
             }
 
@@ -239,9 +249,10 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
             return null;
         }
 
-        public object InvokeOperation(UUID scriptid, string fname, params object[] parms)
+        public object InvokeOperation(UUID hostid, UUID scriptid, string fname, params object[] parms)
         {
             List<object> olist = new List<object>();
+            olist.Add(hostid);
             olist.Add(scriptid);
             foreach (object o in parms)
                 olist.Add(o);

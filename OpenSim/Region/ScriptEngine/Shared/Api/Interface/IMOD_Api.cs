@@ -41,6 +41,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
     public interface IMOD_Api
     {
         // Invocation functions
+        void modInvokeN(string fname, params object[] parms);
         LSL_String modInvokeS(string fname, params object[] parms);
         LSL_Integer modInvokeI(string fname, params object[] parms);
         LSL_Float modInvokeF(string fname, params object[] parms);

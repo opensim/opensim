@@ -54,7 +54,7 @@ namespace OpenSim.Region.Framework.Interfaces
         Type[] LookupTypeSignature(string fname);
         Type LookupReturnType(string fname);
 
-        object InvokeOperation(UUID scriptId, string fname, params object[] parms);
+        object InvokeOperation(UUID hostId, UUID scriptId, string fname, params object[] parms);
 
         /// <summary>
         /// Send a link_message event to an in-world script

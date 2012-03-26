@@ -62,6 +62,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_MOD_Functions = (IMOD_Api)api;
         }
 
+        public void modInvokeN(string fname, params object[] parms)
+        {
+            m_MOD_Functions.modInvokeN(fname, parms);
+        }
+
         public LSL_String modInvokeS(string fname, params object[] parms)
         {
             return m_MOD_Functions.modInvokeS(fname, parms);
