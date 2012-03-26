@@ -132,6 +132,15 @@ public struct ConfigurationParameters
     public float avatarRestitution;
     public float avatarCapsuleRadius;
     public float avatarCapsuleHeight;
+	public float avatarContactProcessingThreshold;
+
+	public float maxPersistantManifoldPoolSize;
+	public float shouldDisableContactPoolDynamicAllocation;
+	public float shouldForceUpdateAllAabbs;
+	public float shouldRandomizeSolverOrder;
+	public float shouldSplitSimulationIslands;
+	public float shouldEnableFrictionCaching;
+	public float numberOfSolverIterations;
 
     public const float numericTrue = 1f;
     public const float numericFalse = 0f;
@@ -149,16 +158,16 @@ public static extern uint Initialize(Vector3 maxPosition, IntPtr parms,
                         int maxUpdates, IntPtr updateArray);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool UpdateParameter(uint worldID, uint localID,
-                        [MarshalAs(UnmanagedType.LPStr)]string paramCode, float value);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void SetHeightmap(uint worldID, [MarshalAs(UnmanagedType.LPArray)] float[] heightMap);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void Shutdown(uint worldID);
 
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool UpdateParameter(uint worldID, uint localID,
+                        [MarshalAs(UnmanagedType.LPStr)]string paramCode, float value);
 
+// ===============================================================================
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern int PhysicsStep(uint worldID, float timeStep, int maxSubSteps, float fixedTimeStep, 
                         out int updatedEntityCount, 
@@ -240,6 +249,7 @@ public static extern bool HasObject(uint worldID, uint id);
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool DestroyObject(uint worldID, uint id);
 
+// ===============================================================================
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern SweepHit ConvexSweepTest(uint worldID, uint id, Vector3 to, float extraMargin);
 
@@ -249,6 +259,7 @@ public static extern RaycastHit RayTest(uint worldID, uint id, Vector3 from, Vec
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern Vector3 RecoverFromPenetration(uint worldID, uint id);
 
+// ===============================================================================
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DumpBulletStatistics();
 

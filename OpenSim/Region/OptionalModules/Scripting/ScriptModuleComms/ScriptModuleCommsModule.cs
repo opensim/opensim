@@ -130,9 +130,6 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 
         public void RegisterScriptInvocation(object target, string meth)
         {
-            m_log.DebugFormat("[MODULE COMMANDS] Register method {0} from type {1}",meth,target.GetType().Name);
-            
-
             MethodInfo mi = target.GetType().GetMethod(meth,
                     BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
             if (mi == null)
@@ -140,7 +137,20 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
                 m_log.WarnFormat("[MODULE COMMANDS] Failed to register method {0}",meth);
                 return;
             }
-            
+
+            RegisterScriptInvocation(target, mi);
+        }
+
+        public void RegisterScriptInvocation(object target, string[] meth)
+        {
+            foreach (string m in meth)
+                RegisterScriptInvocation(target, m);
+        }
+
+        public void RegisterScriptInvocation(object target, MethodInfo mi)
+        {
+            m_log.DebugFormat("[MODULE COMMANDS] Register method {0} from type {1}", mi.Name, target.GetType().Name);
+
             Type delegateType;
             var typeArgs = mi.GetParameters()
                     .Select(p => p.ParameterType)
