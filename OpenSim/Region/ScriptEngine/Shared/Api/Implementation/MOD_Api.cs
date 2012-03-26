@@ -122,6 +122,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="fname">The name of the function to invoke</param>
         /// <param name="parms">List of parameters</param>
         /// <returns>string result of the invocation</returns>
+        public void modInvokeN(string fname, params object[] parms)
+        {
+            Type returntype = m_comms.LookupReturnType(fname);
+            if (returntype != typeof(string))
+                MODError(String.Format("return type mismatch for {0}",fname));
+
+            modInvoke(fname,parms);
+        }
+
         public LSL_String modInvokeS(string fname, params object[] parms)
         {
             Type returntype = m_comms.LookupReturnType(fname);
@@ -243,7 +252,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // non-null but don't trust it completely
             try 
             {
-                object result = m_comms.InvokeOperation(m_itemID,fname,convertedParms);
+                object result = m_comms.InvokeOperation(m_host.UUID, m_itemID, fname, convertedParms);
                 if (result != null)
                     return result;
 
