@@ -130,10 +130,18 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 
         public void RegisterScriptInvocation(object target, string meth)
         {
+            m_log.DebugFormat("[MODULE COMMANDS] Register method {0} from type {1}",meth,target.GetType().Name);
+            
+
             MethodInfo mi = target.GetType().GetMethod(meth,
                     BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            if (mi == null)
+            {
+                m_log.WarnFormat("[MODULE COMMANDS] Failed to register method {0}",meth);
+                return;
+            }
+            
             Type delegateType;
-
             var typeArgs = mi.GetParameters()
                     .Select(p => p.ParameterType)
                     .ToList();
@@ -197,6 +205,8 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
                         return "modInvokeR";
                     else if (sid.ReturnType == typeof(object[]))
                         return "modInvokeL";
+
+                    m_log.WarnFormat("[MODULE COMMANDS] failed to find match for {0} with return type {1}",fname,sid.ReturnType.Name);
                 }
             }
 
