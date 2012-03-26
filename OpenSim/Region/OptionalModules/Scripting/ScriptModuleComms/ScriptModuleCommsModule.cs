@@ -128,8 +128,10 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
             m_scriptModule.PostScriptEvent(script, "link_message", args);
         }
 
-        public void RegisterScriptInvocation(object target, MethodInfo mi)
+        public void RegisterScriptInvocation(object target, string meth)
         {
+            MethodInfo mi = target.GetType()..GetMethod(meth,
+                    BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
             Type delegateType;
 
             var typeArgs = mi.GetParameters()
