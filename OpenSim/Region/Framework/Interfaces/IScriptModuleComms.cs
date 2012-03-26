@@ -47,6 +47,8 @@ namespace OpenSim.Region.Framework.Interfaces
         event ScriptCommand OnScriptCommand;
 
         void RegisterScriptInvocation(object target, string method);
+        void RegisterScriptInvocation(object target, MethodInfo method);
+        void RegisterScriptInvocation(object target, string[] methods);
         Delegate[] GetScriptInvocationList();
 
         Delegate LookupScriptInvocation(string fname);
