@@ -833,9 +833,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             case "friction": TaintedUpdateParameter(lparm, localID, val); break;
             case "restitution": TaintedUpdateParameter(lparm, localID, val); break;
 
-            case "friction": TaintedUpdateParameter(lparm, localID, val); break;
-            case "restitution": TaintedUpdateParameter(lparm, localID, val); break;
-
             // set a terrain physical feature and cause terrain to be recalculated
             case "terrainfriction": m_params[0].terrainFriction = val; TaintedUpdateParameter("terrain", 0, val); break;
             case "terrainhitfraction": m_params[0].terrainHitFraction = val; TaintedUpdateParameter("terrain", 0, val); break;
