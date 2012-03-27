@@ -231,5 +231,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String osUnixTimeToTimestamp(long time);
 
         LSL_String osGetInventoryDesc(string item);
+
+        LSL_Integer osInviteToGroup(LSL_Key agentId);
+        LSL_Integer osEjectFromGroup(LSL_Key agentId);
     }
 }

@@ -2980,5 +2980,74 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return String.Empty;
         }
+
+        /// <summary>
+        /// Invite user to the group this object is set to
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <returns></returns>
+        public LSL_Integer osInviteToGroup(LSL_Key agentId)
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osInviteToGroup");
+            m_host.AddScriptLPS(1);
+
+            UUID agent = new UUID(agentId);
+
+            // groups module is required
+            IGroupsModule groupsModule = m_ScriptEngine.World.RequestModuleInterface<IGroupsModule>();
+            if (groupsModule == null) return ScriptBaseClass.FALSE;
+
+            // object has to be set to a group, but not group owned
+            if (m_host.GroupID == UUID.Zero || m_host.GroupID == m_host.OwnerID) return ScriptBaseClass.FALSE;
+
+            // object owner has to be in that group and required permissions
+            GroupMembershipData member = groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
+            if (member == null || (member.GroupPowers & (ulong)GroupPowers.Invite) == 0) return ScriptBaseClass.FALSE;
+
+            // check if agent is in that group already
+            //member = groupsModule.GetMembershipData(agent, m_host.GroupID, agent);
+            //if (member != null) return ScriptBaseClass.FALSE;
+
+            // invited agent has to be present in this scene
+            if (World.GetScenePresence(agent) == null) return ScriptBaseClass.FALSE;
+
+            groupsModule.InviteGroup(null, m_host.OwnerID, m_host.GroupID, agent, UUID.Zero);
+
+            return ScriptBaseClass.TRUE;
+        }
+
+        /// <summary>
+        /// Eject user from the group this object is set to
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <returns></returns>
+        public LSL_Integer osEjectFromGroup(LSL_Key agentId)
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osEjectFromGroup");
+            m_host.AddScriptLPS(1);
+
+            UUID agent = new UUID(agentId);
+
+            // groups module is required
+            IGroupsModule groupsModule = m_ScriptEngine.World.RequestModuleInterface<IGroupsModule>();
+            if (groupsModule == null) return ScriptBaseClass.FALSE;
+
+            // object has to be set to a group, but not group owned
+            if (m_host.GroupID == UUID.Zero || m_host.GroupID == m_host.OwnerID) return ScriptBaseClass.FALSE;
+
+            // object owner has to be in that group and required permissions
+            GroupMembershipData member = groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
+            if (member == null || (member.GroupPowers & (ulong)GroupPowers.Eject) == 0) return ScriptBaseClass.FALSE;
+
+            // agent has to be in that group
+            //member = groupsModule.GetMembershipData(agent, m_host.GroupID, agent);
+            //if (member == null) return ScriptBaseClass.FALSE;
+
+            // ejectee can be offline
+
+            groupsModule.EjectGroupMember(null, m_host.OwnerID, m_host.GroupID, agent);
+
+            return ScriptBaseClass.TRUE;
+        }
     }
 }

@@ -957,17 +957,55 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public void EjectGroupMemberRequest(IClientAPI remoteClient, UUID groupID, UUID ejecteeID)
         {
+            EjectGroupMember(remoteClient, GetRequestingAgentID(remoteClient), groupID, ejecteeID);
+        }
+
+        public void EjectGroupMember(IClientAPI remoteClient, UUID agentID, UUID groupID, UUID ejecteeID)
+        {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-
             // Todo: Security check?
-            m_groupData.RemoveAgentFromGroup(GetRequestingAgentID(remoteClient), ejecteeID, groupID);
+            m_groupData.RemoveAgentFromGroup(agentID, ejecteeID, groupID);
 
-            remoteClient.SendEjectGroupMemberReply(GetRequestingAgentID(remoteClient), groupID, true);
+            string agentName;
+            RegionInfo regionInfo;
 
-            GroupRecord groupInfo = m_groupData.GetGroupRecord(GetRequestingAgentID(remoteClient), groupID, null);
+            // remoteClient provided or just agentID?
+            if (remoteClient != null)
+            {
+                agentName = remoteClient.Name;
+                regionInfo = remoteClient.Scene.RegionInfo;
+                remoteClient.SendEjectGroupMemberReply(agentID, groupID, true);
+            }
+            else
+            {
+                IClientAPI client = GetActiveClient(agentID);
 
-            UserAccount account = m_sceneList[0].UserAccountService.GetUserAccount(remoteClient.Scene.RegionInfo.ScopeID, ejecteeID);
+                if (client != null)
+                {
+                    agentName = client.Name;
+                    regionInfo = client.Scene.RegionInfo;
+                    client.SendEjectGroupMemberReply(agentID, groupID, true);
+                }
+                else
+                {
+                    regionInfo = m_sceneList[0].RegionInfo;
+                    UserAccount acc = m_sceneList[0].UserAccountService.GetUserAccount(regionInfo.ScopeID, agentID);
+
+                    if (acc != null)
+                    {
+                        agentName = acc.FirstName + " " + acc.LastName;
+                    }
+                    else
+                    {
+                        agentName = "Unknown member";
+                    }
+                }
+            }
+
+            GroupRecord groupInfo = m_groupData.GetGroupRecord(agentID, groupID, null);
+
+            UserAccount account = m_sceneList[0].UserAccountService.GetUserAccount(regionInfo.ScopeID, ejecteeID);
             if ((groupInfo == null) || (account == null))
             {
                 return;
@@ -977,22 +1015,21 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             GridInstantMessage msg = new GridInstantMessage();
             
             msg.imSessionID = UUID.Zero.Guid;
-            msg.fromAgentID = GetRequestingAgentID(remoteClient).Guid;
+            msg.fromAgentID = agentID.Guid;
             // msg.fromAgentID = info.GroupID;
             msg.toAgentID = ejecteeID.Guid;
             //msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
             msg.timestamp = 0;
-            msg.fromAgentName = remoteClient.Name;
-            msg.message = string.Format("You have been ejected from '{1}' by {0}.", remoteClient.Name, groupInfo.GroupName);
+            msg.fromAgentName = agentName;
+            msg.message = string.Format("You have been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName);
             msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.MessageFromAgent;
             msg.fromGroup = false;
             msg.offline = (byte)0;
             msg.ParentEstateID = 0;
             msg.Position = Vector3.Zero;
-            msg.RegionID = remoteClient.Scene.RegionInfo.RegionID.Guid;
+            msg.RegionID = regionInfo.RegionID.Guid;
             msg.binaryBucket = new byte[0];
             OutgoingInstantMessage(msg, ejecteeID);
-
 
             // Message to ejector
             // Interop, received special 210 code for ejecting a group member
@@ -1003,26 +1040,26 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             msg = new GridInstantMessage();
             msg.imSessionID = UUID.Zero.Guid;
-            msg.fromAgentID = GetRequestingAgentID(remoteClient).Guid;
-            msg.toAgentID = GetRequestingAgentID(remoteClient).Guid;
+            msg.fromAgentID = agentID.Guid;
+            msg.toAgentID = agentID.Guid;
             msg.timestamp = 0;
-            msg.fromAgentName = remoteClient.Name;
+            msg.fromAgentName = agentName;
             if (account != null)
             {
-                msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", remoteClient.Name, groupInfo.GroupName, account.FirstName + " " + account.LastName);
+                msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName, account.FirstName + " " + account.LastName);
             }
             else
             {
-                msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", remoteClient.Name, groupInfo.GroupName, "Unknown member");
+                msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName, "Unknown member");
             }
             msg.dialog = (byte)210; //interop
             msg.fromGroup = false;
             msg.offline = (byte)0;
             msg.ParentEstateID = 0;
             msg.Position = Vector3.Zero;
-            msg.RegionID = remoteClient.Scene.RegionInfo.RegionID.Guid;
+            msg.RegionID = regionInfo.RegionID.Guid;
             msg.binaryBucket = new byte[0];
-            OutgoingInstantMessage(msg, GetRequestingAgentID(remoteClient));
+            OutgoingInstantMessage(msg, agentID);
 
 
             // SL sends out messages to everyone in the group
@@ -1032,16 +1069,55 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public void InviteGroupRequest(IClientAPI remoteClient, UUID groupID, UUID invitedAgentID, UUID roleID)
         {
+            InviteGroup(remoteClient, GetRequestingAgentID(remoteClient), groupID, invitedAgentID, roleID);
+        }
+
+        public void InviteGroup(IClientAPI remoteClient, UUID agentID, UUID groupID, UUID invitedAgentID, UUID roleID)
+        {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            string agentName;
+            RegionInfo regionInfo;
+
+            // remoteClient provided or just agentID?
+            if (remoteClient != null)
+            {
+                agentName = remoteClient.Name;
+                regionInfo = remoteClient.Scene.RegionInfo;
+            }
+            else
+            {
+                IClientAPI client = GetActiveClient(agentID);
+
+                if (client != null)
+                {
+                    agentName = client.Name;
+                    regionInfo = client.Scene.RegionInfo;
+                }
+                else
+                {
+                    regionInfo = m_sceneList[0].RegionInfo;
+                    UserAccount account = m_sceneList[0].UserAccountService.GetUserAccount(regionInfo.ScopeID, agentID);
+
+                    if (account != null)
+                    {
+                        agentName = account.FirstName + " " + account.LastName;
+                    }
+                    else
+                    {
+                        agentName = "Unknown member";
+                    }
+                }
+            }
 
             // Todo: Security check, probably also want to send some kind of notification
             UUID InviteID = UUID.Random();
 
-            m_groupData.AddAgentToGroupInvite(GetRequestingAgentID(remoteClient), InviteID, groupID, roleID, invitedAgentID);
+            m_groupData.AddAgentToGroupInvite(agentID, InviteID, groupID, roleID, invitedAgentID);
 
             // Check to see if the invite went through, if it did not then it's possible
             // the remoteClient did not validate or did not have permission to invite.
-            GroupInviteInfo inviteInfo = m_groupData.GetAgentToGroupInvite(GetRequestingAgentID(remoteClient), InviteID);
+            GroupInviteInfo inviteInfo = m_groupData.GetAgentToGroupInvite(agentID, InviteID);
 
             if (inviteInfo != null)
             {
@@ -1053,19 +1129,19 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                     msg.imSessionID = inviteUUID;
 
-                    // msg.fromAgentID = GetRequestingAgentID(remoteClient).Guid;
+                    // msg.fromAgentID = agentID.Guid;
                     msg.fromAgentID = groupID.Guid;
                     msg.toAgentID = invitedAgentID.Guid;
                     //msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
                     msg.timestamp = 0;
-                    msg.fromAgentName = remoteClient.Name;
-                    msg.message = string.Format("{0} has invited you to join a group. There is no cost to join this group.", remoteClient.Name);
+                    msg.fromAgentName = agentName;
+                    msg.message = string.Format("{0} has invited you to join a group. There is no cost to join this group.", agentName);
                     msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.GroupInvitation;
                     msg.fromGroup = true;
                     msg.offline = (byte)0;
                     msg.ParentEstateID = 0;
                     msg.Position = Vector3.Zero;
-                    msg.RegionID = remoteClient.Scene.RegionInfo.RegionID.Guid;
+                    msg.RegionID = regionInfo.RegionID.Guid;
                     msg.binaryBucket = new byte[20];
 
                     OutgoingInstantMessage(msg, invitedAgentID);
