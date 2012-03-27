@@ -78,6 +78,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     private Dictionary<uint, BSCharacter> m_avatars = new Dictionary<uint, BSCharacter>();
     private Dictionary<uint, BSPrim> m_prims = new Dictionary<uint, BSPrim>();
+    private HashSet<BSCharacter> m_avatarsWithCollisions = new HashSet<BSCharacter>();
+    private HashSet<BSPrim> m_primsWithCollisions = new HashSet<BSPrim>();
     private List<BSPrim> m_vehicles = new List<BSPrim>();
     private float[] m_heightMap;
     private float m_waterLevel;
@@ -435,6 +437,17 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
+        // The SendCollision's batch up the collisions on the objects. Now push the collisions into the simulator.
+        foreach (BSPrim bsp in m_primsWithCollisions)
+            bsp.SendCollisions();
+        m_primsWithCollisions.Clear();
+        // foreach (BSCharacter bsc in m_avatarsWithCollisions)
+        //     bsc.SendCollisions();
+        // This is a kludge to get avatar movement updated. ODE sends collisions even if there isn't any
+        foreach (KeyValuePair<uint, BSCharacter> kvp in m_avatars)
+            kvp.Value.SendCollisions();
+        m_avatarsWithCollisions.Clear();
+
         // If any of the objects had updated properties, tell the object it has been changed by the physics engine
         if (updatedEntityCount > 0)
         {
@@ -485,11 +498,13 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         BSPrim prim;
         if (m_prims.TryGetValue(localID, out prim)) {
             prim.Collide(collidingWith, type, collidePoint, collideNormal, penitration);
+            m_primsWithCollisions.Add(prim);
             return;
         }
         BSCharacter actor;
         if (m_avatars.TryGetValue(localID, out actor)) {
             actor.Collide(collidingWith, type, collidePoint, collideNormal, penitration);
+            m_avatarsWithCollisions.Add(actor);
             return;
         }
         return;

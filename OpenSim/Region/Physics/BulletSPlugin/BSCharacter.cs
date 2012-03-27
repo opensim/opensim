@@ -426,6 +426,8 @@ public class BSCharacter : PhysicsActor
         }
     }
 
+    // Called by the scene when a collision with this object is reported
+    CollisionEventUpdate collisionCollection = null;
     public void Collide(uint collidingWith, ActorTypes type, Vector3 contactPoint, Vector3 contactNormal, float pentrationDepth)
     {
         // m_log.DebugFormat("{0}: Collide: ms={1}, id={2}, with={3}", LogHeader, _subscribedEventsMs, LocalID, collidingWith);
@@ -443,10 +445,24 @@ public class BSCharacter : PhysicsActor
         if (nowTime < (_lastCollisionTime + _subscribedEventsMs)) return;
         _lastCollisionTime = nowTime;
 
-        Dictionary<uint, ContactPoint> contactPoints = new Dictionary<uint, ContactPoint>();
-        contactPoints.Add(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
-        CollisionEventUpdate args = new CollisionEventUpdate(contactPoints);
-        base.SendCollisionUpdate(args);
+        if (collisionCollection == null)
+            collisionCollection = new CollisionEventUpdate();
+        collisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
+    }
+
+    public void SendCollisions()
+    {
+        // if (collisionCollection != null)
+        // {
+        //     base.SendCollisionUpdate(collisionCollection);
+        //     collisionCollection = null;
+        // }
+        // Kludge to make a collision call even if there are no collisions.
+        // This causes the avatar animation to get updated.
+        if (collisionCollection == null)
+            collisionCollection = new CollisionEventUpdate();
+        base.SendCollisionUpdate(collisionCollection);
+        collisionCollection = null;
     }
 
 }
