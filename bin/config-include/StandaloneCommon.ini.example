@@ -147,6 +147,9 @@
     ;AllowedClients = ""
     ;DeniedClients = ""
 
+    ;; Are foreign visitors allowed
+    ;ForeignAgentsAllowed = true
+
 [FreeswitchService]
     ;; If FreeSWITCH is not being used then you don't need to set any of these parameters
     ;;
@@ -241,3 +244,7 @@
 	; DisallowResidents -- only Admins and Managers allowed
 	; Example:
 	; Region_Test_1 = "DisallowForeigners"
+
+[UserAgentService]
+    ; User level required to be contacted from other grids
+    ;LevelOutsideContacts = 0

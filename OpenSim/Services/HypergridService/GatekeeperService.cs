@@ -60,6 +60,7 @@ namespace OpenSim.Services.HypergridService
 
         protected string m_AllowedClients = string.Empty;
         protected string m_DeniedClients = string.Empty;
+        private static bool m_ForeignAgentsAllowed = true;
 
         private static UUID m_ScopeID;
         private static bool m_AllowTeleportsToAnyRegion;
@@ -110,6 +111,7 @@ namespace OpenSim.Services.HypergridService
 
                 m_AllowedClients = serverConfig.GetString("AllowedClients", string.Empty);
                 m_DeniedClients = serverConfig.GetString("DeniedClients", string.Empty);
+                m_ForeignAgentsAllowed = serverConfig.GetBoolean("ForeignAgentsAllowed", true);
 
                 if (m_GridService == null || m_PresenceService == null || m_SimulationService == null)
                     throw new Exception("Unable to load a required plugin, Gatekeeper Service cannot function.");
@@ -256,6 +258,17 @@ namespace OpenSim.Services.HypergridService
                 }
             }
             m_log.DebugFormat("[GATEKEEPER SERVICE]: User is ok");
+
+            //
+            // Foreign agents allowed
+            //
+            if (account == null && !m_ForeignAgentsAllowed)
+            {
+                reason = "Unauthorized";
+                m_log.InfoFormat("[GATEKEEPER SERVICE]: Foreign agents are not permitted {0} {1}. Refusing service.",
+                    aCircuit.firstname, aCircuit.lastname);
+                return false;
+            }
 
             // May want to authorize
 

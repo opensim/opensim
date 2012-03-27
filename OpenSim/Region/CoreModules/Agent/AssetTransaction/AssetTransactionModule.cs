@@ -47,6 +47,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         
         protected Scene m_Scene;
         private bool m_dumpAssetsToFile = false;
+        private int  m_levelUpload = 0;
 
         /// <summary>
         /// Each agent has its own singleton collection of transactions
@@ -56,8 +57,13 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         
         #region IRegionModule Members
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(IConfigSource source)
         {
+            IConfig sconfig = source.Configs["Startup"];
+            if (sconfig != null)
+            {
+                m_levelUpload = sconfig.GetInt("LevelUpload", 0);
+            }
         }
 
         public void AddRegion(Scene scene)
@@ -241,7 +247,21 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 (AssetType)type == AssetType.Animation) &&
                 tempFile == false)
             {
+                ScenePresence avatar = null;
                 Scene scene = (Scene)remoteClient.Scene;
+                scene.TryGetScenePresence(remoteClient.AgentId, out avatar);
+
+                // check user level
+                if (avatar != null)
+                {
+                    if (avatar.UserLevel < m_levelUpload)
+                    {
+                        remoteClient.SendAgentAlertMessage("Unable to upload asset. Insufficient permissions.", false);
+                        return;
+                    }
+                }
+
+                // check funds
                 IMoneyModule mm = scene.RequestModuleInterface<IMoneyModule>();
 
                 if (mm != null)

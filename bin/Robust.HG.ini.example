@@ -373,6 +373,9 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ;; the IP address of the machine where your LoginService is
     ;LoginServerIP = "127.0.0.1"
 
+    ; User level required to be contacted from other grids
+    ;LevelOutsideContacts = 0
+
 ; * The interface that local users get when they are in other grids.
 ; * This restricts the inventory operations while in other grids.
 ; * Still not completely safe, especially if users perform inventory operations 

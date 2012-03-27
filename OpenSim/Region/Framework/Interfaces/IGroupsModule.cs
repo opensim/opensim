@@ -93,7 +93,9 @@ namespace OpenSim.Region.Framework.Interfaces
         void JoinGroupRequest(IClientAPI remoteClient, UUID GroupID);
         void LeaveGroupRequest(IClientAPI remoteClient, UUID GroupID);
         void EjectGroupMemberRequest(IClientAPI remoteClient, UUID GroupID, UUID EjecteeID);
+        void EjectGroupMember(IClientAPI remoteClient, UUID agentID, UUID GroupID, UUID EjecteeID);
         void InviteGroupRequest(IClientAPI remoteClient, UUID GroupID, UUID InviteeID, UUID RoleID);
+        void InviteGroup(IClientAPI remoteClient, UUID agentID, UUID GroupID, UUID InviteeID, UUID RoleID);
         void NotifyChange(UUID GroupID);
     }
 }
