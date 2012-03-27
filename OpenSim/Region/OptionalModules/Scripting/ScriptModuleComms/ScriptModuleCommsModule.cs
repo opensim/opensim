@@ -35,6 +35,8 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Mono.Addins;
 using OpenMetaverse;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 {
@@ -47,15 +49,15 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 #region ScriptInvocation
         protected class ScriptInvocationData
         {
-            public ScriptInvocation ScriptInvocationFn { get; private set; }
+            public Delegate ScriptInvocationDelegate { get; private set; }
             public string FunctionName { get; private set; }
             public Type[] TypeSignature { get; private set; }
             public Type ReturnType { get; private set; }
 
-            public ScriptInvocationData(string fname, ScriptInvocation fn, Type[] callsig, Type returnsig)
+            public ScriptInvocationData(string fname, Delegate fn, Type[] callsig, Type returnsig)
             {
                 FunctionName = fname;
-                ScriptInvocationFn = fn;
+                ScriptInvocationDelegate = fn;
                 TypeSignature = callsig;
                 ReturnType = returnsig;
             }
@@ -126,14 +128,72 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
             m_scriptModule.PostScriptEvent(script, "link_message", args);
         }
 
-        public void RegisterScriptInvocation(string fname, ScriptInvocation fcall, Type[] csig, Type rsig)
+        public void RegisterScriptInvocation(object target, string meth)
         {
+            MethodInfo mi = target.GetType().GetMethod(meth,
+                    BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            if (mi == null)
+            {
+                m_log.WarnFormat("[MODULE COMMANDS] Failed to register method {0}",meth);
+                return;
+            }
+
+            RegisterScriptInvocation(target, mi);
+        }
+
+        public void RegisterScriptInvocation(object target, string[] meth)
+        {
+            foreach (string m in meth)
+                RegisterScriptInvocation(target, m);
+        }
+
+        public void RegisterScriptInvocation(object target, MethodInfo mi)
+        {
+            m_log.DebugFormat("[MODULE COMMANDS] Register method {0} from type {1}", mi.Name, target.GetType().Name);
+
+            Type delegateType;
+            var typeArgs = mi.GetParameters()
+                    .Select(p => p.ParameterType)
+                    .ToList();
+
+            if (mi.ReturnType == typeof(void))
+            {
+                    delegateType = Expression.GetActionType(typeArgs.ToArray());
+            }
+            else
+            {
+                    typeArgs.Add(mi.ReturnType);
+                    delegateType = Expression.GetFuncType(typeArgs.ToArray());
+            }
+
+            Delegate fcall = Delegate.CreateDelegate(delegateType, target, mi);
+
             lock (m_scriptInvocation)
             {
-                m_scriptInvocation[fname] = new ScriptInvocationData(fname,fcall,csig,rsig);
+                ParameterInfo[] parameters = fcall.Method.GetParameters ();
+                if (parameters.Length < 2) // Must have two UUID params
+                    return;
+
+                // Hide the first two parameters
+                Type[] parmTypes = new Type[parameters.Length - 2];
+                for (int i = 2 ; i < parameters.Length ; i++)
+                    parmTypes[i - 2] = parameters[i].ParameterType;
+                m_scriptInvocation[fcall.Method.Name] = new ScriptInvocationData(fcall.Method.Name, fcall, parmTypes, fcall.Method.ReturnType);
             }
         }
         
+        public Delegate[] GetScriptInvocationList()
+        {
+            List<Delegate> ret = new List<Delegate>();
+
+            lock (m_scriptInvocation)
+            {
+                foreach (ScriptInvocationData d in m_scriptInvocation.Values)
+                    ret.Add(d.ScriptInvocationDelegate);
+            }
+            return ret.ToArray();
+        }
+
         public string LookupModInvocation(string fname)
         {
             lock (m_scriptInvocation)
@@ -147,19 +207,29 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
                         return "modInvokeI";
                     else if (sid.ReturnType == typeof(float))
                         return "modInvokeF";
+                    else if (sid.ReturnType == typeof(UUID))
+                        return "modInvokeK";
+                    else if (sid.ReturnType == typeof(OpenMetaverse.Vector3))
+                        return "modInvokeV";
+                    else if (sid.ReturnType == typeof(OpenMetaverse.Quaternion))
+                        return "modInvokeR";
+                    else if (sid.ReturnType == typeof(object[]))
+                        return "modInvokeL";
+
+                    m_log.WarnFormat("[MODULE COMMANDS] failed to find match for {0} with return type {1}",fname,sid.ReturnType.Name);
                 }
             }
 
             return null;
         }
 
-        public ScriptInvocation LookupScriptInvocation(string fname)
+        public Delegate LookupScriptInvocation(string fname)
         {
             lock (m_scriptInvocation)
             {
                 ScriptInvocationData sid;
                 if (m_scriptInvocation.TryGetValue(fname,out sid))
-                    return sid.ScriptInvocationFn;
+                    return sid.ScriptInvocationDelegate;
             }
 
             return null;
@@ -189,10 +259,15 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
             return null;
         }
 
-        public object InvokeOperation(UUID scriptid, string fname, params object[] parms)
+        public object InvokeOperation(UUID hostid, UUID scriptid, string fname, params object[] parms)
         {
-            ScriptInvocation fn = LookupScriptInvocation(fname);
-            return fn(scriptid,parms);
+            List<object> olist = new List<object>();
+            olist.Add(hostid);
+            olist.Add(scriptid);
+            foreach (object o in parms)
+                olist.Add(o);
+            Delegate fn = LookupScriptInvocation(fname);
+            return fn.DynamicInvoke(olist.ToArray());
         }
 #endregion
 

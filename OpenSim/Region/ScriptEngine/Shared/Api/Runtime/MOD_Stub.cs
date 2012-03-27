@@ -39,10 +39,14 @@ using integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
-using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
-using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
+using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
+using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
+using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
@@ -58,19 +62,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_MOD_Functions = (IMOD_Api)api;
         }
 
-        public string modInvokeS(string fname, params object[] parms)
+        public void modInvokeN(string fname, params object[] parms)
+        {
+            m_MOD_Functions.modInvokeN(fname, parms);
+        }
+
+        public LSL_String modInvokeS(string fname, params object[] parms)
         {
             return m_MOD_Functions.modInvokeS(fname, parms);
         }
 
-        public int modInvokeI(string fname, params object[] parms)
+        public LSL_Integer modInvokeI(string fname, params object[] parms)
         {
             return m_MOD_Functions.modInvokeI(fname, parms);
         }
 
-        public float modInvokeF(string fname, params object[] parms)
+        public LSL_Float modInvokeF(string fname, params object[] parms)
         {
             return m_MOD_Functions.modInvokeF(fname, parms);
+        }
+
+        public LSL_Key modInvokeK(string fname, params object[] parms)
+        {
+            return m_MOD_Functions.modInvokeK(fname, parms);
+        }
+
+        public LSL_Vector modInvokeV(string fname, params object[] parms)
+        {
+            return m_MOD_Functions.modInvokeV(fname, parms);
+        }
+
+        public LSL_Rotation modInvokeR(string fname, params object[] parms)
+        {
+            return m_MOD_Functions.modInvokeR(fname, parms);
+        }
+
+        public LSL_List modInvokeL(string fname, params object[] parms)
+        {
+            return m_MOD_Functions.modInvokeL(fname, parms);
         }
 
         public string modSendCommand(string module, string command, string k)
