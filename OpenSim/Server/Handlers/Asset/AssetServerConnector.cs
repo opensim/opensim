@@ -59,7 +59,7 @@ namespace OpenSim.Server.Handlers.Asset
             if (assetService == String.Empty)
                 throw new Exception("No LocalServiceModule in config file");
 
-            Object[] args = new Object[] { config };
+            Object[] args = new Object[] { config, m_ConfigName };
             m_AssetService =
                     ServerUtils.LoadPlugin<IAssetService>(assetService, args);
 

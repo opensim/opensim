@@ -67,7 +67,7 @@ namespace OpenSim.Server.Handlers.Asset
             if (inventoryService == String.Empty)
                 throw new Exception("No InventoryService in config file");
 
-            Object[] args = new Object[] { config };
+            Object[] args = new Object[] { config, m_ConfigName };
             m_InventoryService =
                     ServerUtils.LoadPlugin<IInventoryService>(inventoryService, args);
 

@@ -39,16 +39,25 @@ namespace OpenSim.Services.AssetService
     {
         protected IAssetDataPlugin m_Database = null;
         protected IAssetLoader m_AssetLoader = null;
+        protected string m_ConfigName = "AssetService";
 
-        public AssetServiceBase(IConfigSource config) : base(config)
+        public AssetServiceBase(IConfigSource config)
+            : this(config, "AssetService")
         {
+        }
+
+        public AssetServiceBase(IConfigSource config, string configName) : base(config)
+        {
+            if (configName != string.Empty)
+                m_ConfigName = configName;
+
             string dllName = String.Empty;
             string connString = String.Empty;
 
             //
-            // Try reading the [AssetService] section first, if it exists
+            // Try reading the [AssetService] section, if it exists
             //
-            IConfig assetConfig = config.Configs["AssetService"];
+            IConfig assetConfig = config.Configs[m_ConfigName];
             if (assetConfig != null)
             {
                 dllName = assetConfig.GetString("StorageProvider", dllName);

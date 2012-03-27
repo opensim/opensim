@@ -46,9 +46,17 @@ namespace OpenSim.Services.InventoryService
 
         protected IXInventoryData m_Database;
         protected bool m_AllowDelete = true;
+        protected string m_ConfigName = "InventoryService";
 
-        public XInventoryService(IConfigSource config) : base(config)
+        public XInventoryService(IConfigSource config)
+            : this(config, "InventoryService")
         {
+        }
+        public XInventoryService(IConfigSource config, string configName) : base(config)
+        {
+            if (configName != string.Empty)
+                m_ConfigName = configName;
+
             string dllName = String.Empty;
             string connString = String.Empty;
             //string realm = "Inventory"; // OSG version doesn't use this
@@ -56,7 +64,7 @@ namespace OpenSim.Services.InventoryService
             //
             // Try reading the [InventoryService] section first, if it exists
             //
-            IConfig authConfig = config.Configs["InventoryService"];
+            IConfig authConfig = config.Configs[m_ConfigName];
             if (authConfig != null)
             {
                 dllName = authConfig.GetString("StorageProvider", dllName);
