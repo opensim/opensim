@@ -318,7 +318,7 @@ namespace OpenSim.Services.InventoryService
 
             if (check.Type != -1 || xFolder.type != -1)
             {
-                if (xFolder.version > check.Version)
+                if (xFolder.version < check.Version)
                     return false;
                 check.Version = (ushort)xFolder.version;
                 xFolder = ConvertFromOpenSim(check);

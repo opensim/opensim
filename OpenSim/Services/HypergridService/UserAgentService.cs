@@ -73,6 +73,8 @@ namespace OpenSim.Services.HypergridService
 
         protected static string m_GridName;
 
+        protected static int m_LevelOutsideContacts;
+
         protected static bool m_BypassClientVerification;
 
         public UserAgentService(IConfigSource config) : this(config, null)
@@ -127,6 +129,8 @@ namespace OpenSim.Services.HypergridService
                 }
                 if (!m_GridName.EndsWith("/"))
                     m_GridName = m_GridName + "/";
+
+                m_LevelOutsideContacts = serverConfig.GetInt("LevelOutsideContacts", 0);
             }
         }
 
@@ -569,10 +573,16 @@ namespace OpenSim.Services.HypergridService
 
         public UUID GetUUID(String first, String last)
         {
-                        // Let's see if it's a local user
+            // Let's see if it's a local user
             UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero, first, last);
             if (account != null)
-                return account.PrincipalID;
+            {
+                // check user level
+                if (account.UserLevel < m_LevelOutsideContacts)
+                    return UUID.Zero;
+                else
+                    return account.PrincipalID;
+            }
             else
                 return UUID.Zero;
         }
