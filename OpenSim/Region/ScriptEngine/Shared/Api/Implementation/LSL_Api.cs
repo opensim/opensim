@@ -4151,6 +4151,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             case 4: // DATA_RATING (0,0,0,0,0,0)
                 reply = "0,0,0,0,0,0";
                 break;
+            case 7: // DATA_USERLEVEL (integer)
+                reply = account.UserLevel.ToString();
+                break;
             case 8: // DATA_PAYINFO (0|1|2|3)
                 reply = "0";
                 break;

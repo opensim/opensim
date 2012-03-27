@@ -84,6 +84,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         private bool m_groupsEnabled = false;
         private bool m_groupNoticesEnabled = true;
         private bool m_debugEnabled = false;
+        private int  m_levelGroupCreate = 0;
 
         #region IRegionModuleBase Members
 
@@ -115,6 +116,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 m_groupNoticesEnabled   = groupsConfig.GetBoolean("NoticesEnabled", true);
                 m_debugEnabled          = groupsConfig.GetBoolean("DebugEnabled", false);
+                m_levelGroupCreate      = groupsConfig.GetInt("LevelGroupCreate", 0);
             }
         }
 
@@ -708,13 +710,29 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 remoteClient.SendCreateGroupReply(UUID.Zero, false, "A group with the same name already exists.");
                 return UUID.Zero;
             }
+
+            // check user level
+            ScenePresence avatar = null;
+            Scene scene = (Scene)remoteClient.Scene;
+            scene.TryGetScenePresence(remoteClient.AgentId, out avatar);
+
+            if (avatar != null)
+            {
+                if (avatar.UserLevel < m_levelGroupCreate)
+                {
+                    remoteClient.SendCreateGroupReply(UUID.Zero, false, "You have got insufficient permissions to create a group.");
+                    return UUID.Zero;
+                }
+            }
+
+            // check funds
             // is there is a money module present ?
-            IMoneyModule money = remoteClient.Scene.RequestModuleInterface<IMoneyModule>();
+            IMoneyModule money = scene.RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
                 // do the transaction, that is if the agent has got sufficient funds
                 if (!money.AmountCovered(remoteClient.AgentId, money.GroupCreationCharge)) {
-                    remoteClient.SendCreateGroupReply(UUID.Zero, false, "You have got issuficient funds to create a group.");
+                    remoteClient.SendCreateGroupReply(UUID.Zero, false, "You have got insufficient funds to create a group.");
                     return UUID.Zero;
                 }
                 money.ApplyCharge(GetRequestingAgentID(remoteClient), money.GroupCreationCharge, "Group Creation");
