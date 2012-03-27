@@ -448,7 +448,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1}.  Returning avatar to source region.", 
                         sp.Name, finalDestination.RegionName);
                     
-                    Fail(sp, finalDestination);
+                    Fail(sp, finalDestination, logout);
                     return;
                 }
 
@@ -480,7 +480,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} failed due to no callback from destination region.  Returning avatar to source region.", 
                         sp.Name, finalDestination.RegionName);
                     
-                    Fail(sp, finalDestination);                   
+                    Fail(sp, finalDestination, logout);                   
                     return;
                 }
 
@@ -531,7 +531,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
-        private void Fail(ScenePresence sp, GridRegion finalDestination)
+        protected virtual void Fail(ScenePresence sp, GridRegion finalDestination, bool logout)
         {
             // Client never contacted destination. Let's restore everything back
             sp.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
