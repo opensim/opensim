@@ -1197,8 +1197,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             saveToTileCommand.AddArgument("file height", "The height of the file in tiles", "Integer");
             saveToTileCommand.AddArgument("minimum X tile", "The X region coordinate of the first section on the file",
                                             "Integer");
-            saveToTileCommand.AddArgument("minimum Y tile", "The Y region coordinate of the first section on the file",
-                                            "Integer");
             saveToTileCommand.AddArgument("minimum Y tile", "The Y region coordinate of the first tile on the file\n"
                                           + "= Example =\n"
                                           + "To save a PNG file for a set of map tiles 2 regions wide and 3 regions high from map co-ordinate (9910,10234)\n"
