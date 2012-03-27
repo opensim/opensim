@@ -334,6 +334,7 @@ namespace OpenSim.Services.HypergridService
             return false;
         }
 
+        [Obsolete]
         public List<UUID> StatusNotification(List<string> friends, UUID foreignUserID, bool online)
         {
             if (m_FriendsService == null || m_PresenceService == null)
@@ -414,6 +415,7 @@ namespace OpenSim.Services.HypergridService
                 return new List<UUID>();
         }
 
+        [Obsolete]
         protected void ForwardStatusNotificationToSim(UUID regionID, UUID foreignUserID, string user, bool online)
         {
             UUID userID;
@@ -565,6 +567,16 @@ namespace OpenSim.Services.HypergridService
             }
 
             return string.Empty;
+        }
+
+        public UUID GetUUID(String first, String last)
+        {
+                        // Let's see if it's a local user
+            UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero, first, last);
+            if (account != null)
+                return account.PrincipalID;
+            else
+                return UUID.Zero;
         }
     }
 

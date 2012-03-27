@@ -81,12 +81,15 @@ namespace OpenSim.Framework
 
         private static uint nextXferID = 5000;
         private static Random randomClass = new Random();
+
         // Get a list of invalid file characters (OS dependent)
         private static string regexInvalidFileChars = "[" + new String(Path.GetInvalidFileNameChars()) + "]";
         private static string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
         private static object XferLock = new object();
-        /// <summary>Thread pool used for Util.FireAndForget if
-        /// FireAndForgetMethod.SmartThreadPool is used</summary>
+
+        /// <summary>
+        /// Thread pool used for Util.FireAndForget if FireAndForgetMethod.SmartThreadPool is used
+        /// </summary>
         private static SmartThreadPool m_ThreadPool;
 
         // Unix-epoch starts at January 1st 1970, 00:00:00 UTC. And all our times in the server are (or at least should be) in UTC.
@@ -143,7 +146,6 @@ namespace OpenSim.Framework
         {
             return lerp(y, lerp(x, a, b), lerp(x, c, d));
         }
-
 
         public static Encoding UTF8 = Encoding.UTF8;
 
@@ -1671,6 +1673,61 @@ namespace OpenSim.Framework
             }
         }
 
+        /// <summary>
+        /// Get a thread pool report.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetThreadPoolReport()
+        {
+            string threadPoolUsed = null;
+            int maxThreads = 0;
+            int minThreads = 0;
+            int allocatedThreads = 0;
+            int inUseThreads = 0;
+            int waitingCallbacks = 0;
+            int completionPortThreads = 0;
+
+            StringBuilder sb = new StringBuilder();
+            if (FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
+            {
+                threadPoolUsed = "SmartThreadPool";
+                maxThreads = m_ThreadPool.MaxThreads;
+                minThreads = m_ThreadPool.MinThreads;
+                inUseThreads = m_ThreadPool.InUseThreads;
+                allocatedThreads = m_ThreadPool.ActiveThreads;
+                waitingCallbacks = m_ThreadPool.WaitingCallbacks;
+            }
+            else if (
+                FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem
+                    || FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem)
+            {
+                threadPoolUsed = "BuiltInThreadPool";
+                ThreadPool.GetMaxThreads(out maxThreads, out completionPortThreads);
+                ThreadPool.GetMinThreads(out minThreads, out completionPortThreads);
+                int availableThreads;
+                ThreadPool.GetAvailableThreads(out availableThreads, out completionPortThreads);
+                inUseThreads = maxThreads - availableThreads;
+                allocatedThreads = -1;
+                waitingCallbacks = -1;
+            }
+
+            if (threadPoolUsed != null)
+            {
+                sb.AppendFormat("Thread pool used           : {0}\n", threadPoolUsed);
+                sb.AppendFormat("Max threads                : {0}\n", maxThreads);
+                sb.AppendFormat("Min threads                : {0}\n", minThreads);
+                sb.AppendFormat("Allocated threads          : {0}\n", allocatedThreads < 0 ? "not applicable" : allocatedThreads.ToString());
+                sb.AppendFormat("In use threads             : {0}\n", inUseThreads);
+                sb.AppendFormat("Work items waiting         : {0}\n", waitingCallbacks < 0 ? "not available" : waitingCallbacks.ToString());
+            }
+            else
+            {
+                sb.AppendFormat("Thread pool not used\n");
+            }
+
+            return sb.ToString();
+        }
+
         private static object SmartThreadPoolCallback(object o)
         {
             object[] array = (object[])o;
@@ -1701,11 +1758,24 @@ namespace OpenSim.Framework
         /// and negative every 24.9 days. Subtracts the passed value (previously fetched by
         /// 'EnvironmentTickCount()') and accounts for any wrapping.
         /// </summary>
+        /// <param name="newValue"></param>
+        /// <param name="prevValue"></param>
+        /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
+        public static Int32 EnvironmentTickCountSubtract(Int32 newValue, Int32 prevValue)
+        {
+            Int32 diff = newValue - prevValue;
+            return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
+        }
+
+        /// <summary>
+        /// Environment.TickCount is an int but it counts all 32 bits so it goes positive
+        /// and negative every 24.9 days. Subtracts the passed value (previously fetched by
+        /// 'EnvironmentTickCount()') and accounts for any wrapping.
+        /// </summary>
         /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
         public static Int32 EnvironmentTickCountSubtract(Int32 prevValue)
         {
-            Int32 diff = EnvironmentTickCount() - prevValue;
-            return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
+            return EnvironmentTickCountSubtract(EnvironmentTickCount(), prevValue);
         }
 
         // Returns value of Tick Count A - TickCount B accounting for wrapping of TickCount
@@ -1870,11 +1940,12 @@ namespace OpenSim.Framework
         #region Universal User Identifiers
        /// <summary>
         /// </summary>
-        /// <param name="value">uuid[;endpoint[;name]]</param>
-        /// <param name="uuid"></param>
-        /// <param name="url"></param>
-        /// <param name="firstname"></param>
-        /// <param name="lastname"></param>
+        /// <param name="value">uuid[;endpoint[;first last[;secret]]]</param>
+        /// <param name="uuid">the uuid part</param>
+        /// <param name="url">the endpoint part (e.g. http://foo.com)</param>
+        /// <param name="firstname">the first name part (e.g. Test)</param>
+        /// <param name="lastname">the last name part (e.g User)</param>
+        /// <param name="secret">the secret part</param>
         public static bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname, out string secret)
         {
             uuid = UUID.Zero; url = string.Empty; firstname = "Unknown"; lastname = "User"; secret = string.Empty;
@@ -1903,31 +1974,64 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// 
+        /// Produces a universal (HG) system-facing identifier given the information
         /// </summary>
         /// <param name="acircuit"></param>
-        /// <returns>uuid[;endpoint[;name]]</returns>
+        /// <returns>uuid[;homeURI[;first last]]</returns>
         public static string ProduceUserUniversalIdentifier(AgentCircuitData acircuit)
         {
             if (acircuit.ServiceURLs.ContainsKey("HomeURI"))
-            {
-                string agentsURI = acircuit.ServiceURLs["HomeURI"].ToString();
-                if (!agentsURI.EndsWith("/"))
-                    agentsURI += "/";
-
-                // This is ugly, but there's no other way, given that the name is changed
-                // in the agent circuit data for foreigners
-                if (acircuit.lastname.Contains("@"))
-                {
-                    string[] parts = acircuit.firstname.Split(new char[] { '.' });
-                    if (parts.Length == 2)
-                        return acircuit.AgentID.ToString() + ";" + agentsURI + ";" + parts[0] + " " + parts[1];
-                }
-                return acircuit.AgentID.ToString() + ";" + agentsURI + ";" + acircuit.firstname + " " + acircuit.lastname;
-            }
+                return UniversalIdentifier(acircuit.AgentID, acircuit.firstname, acircuit.lastname, acircuit.ServiceURLs["HomeURI"].ToString());
             else
                 return acircuit.AgentID.ToString();
-        }        
+        }
+
+        /// <summary>
+        /// Produces a universal (HG) system-facing identifier given the information
+        /// </summary>
+        /// <param name="id">UUID of the user</param>
+        /// <param name="firstName">first name (e.g Test)</param>
+        /// <param name="lastName">last name (e.g. User)</param>
+        /// <param name="homeURI">homeURI (e.g. http://foo.com)</param>
+        /// <returns>a string of the form uuid[;homeURI[;first last]]</returns>
+        public static string UniversalIdentifier(UUID id, String firstName, String lastName, String homeURI)
+        {
+            string agentsURI = homeURI;
+            if (!agentsURI.EndsWith("/"))
+                agentsURI += "/";
+
+            // This is ugly, but there's no other way, given that the name is changed
+            // in the agent circuit data for foreigners
+            if (lastName.Contains("@"))
+            {
+                string[] parts = firstName.Split(new char[] { '.' });
+                if (parts.Length == 2)
+                    return id.ToString() + ";" + agentsURI + ";" + parts[0] + " " + parts[1];
+            }
+            return id.ToString() + ";" + agentsURI + ";" + firstName + " " + lastName;
+
+        }
+
+        /// <summary>
+        /// Produces a universal (HG) user-facing name given the information
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="homeURI"></param>
+        /// <returns>string of the form first.last @foo.com or first last</returns>
+        public static string UniversalName(String firstName, String lastName, String homeURI)
+        {
+            Uri uri = null;
+            try
+            {
+                uri = new Uri(homeURI);
+            }
+            catch (UriFormatException)
+            {
+                return firstName + " " + lastName;
+            }
+            return firstName + "." + lastName + " " + "@" + uri.Authority;
+        }
         #endregion
     }
 }

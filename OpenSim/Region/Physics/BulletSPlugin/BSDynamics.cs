@@ -821,7 +821,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             */
 
             // Get what the body is doing, this includes 'external' influences
-            Vector3 angularVelocity = m_prim.AngularVelocity;
+            Vector3 angularVelocity = m_prim.RotationalVelocity;
    //         Vector3 angularVelocity = Vector3.Zero;
 
             if (m_angularMotorApply > 0)
@@ -910,7 +910,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_lastAngularVelocity -= m_lastAngularVelocity * decayamount;
 
             // Apply to the body
-            m_prim.AngularVelocity = m_lastAngularVelocity;
+            m_prim.RotationalVelocity = m_lastAngularVelocity;
 
         } //end MoveAngular
         internal void LimitRotation(float timestep)

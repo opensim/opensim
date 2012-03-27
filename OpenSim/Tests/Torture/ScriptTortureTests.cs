@@ -91,6 +91,15 @@ namespace OpenSim.Tests.Torture
             m_scene.StartScripts();
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            m_scene.Close();
+            m_scene = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
         [Test]
         public void TestCompileAndStart100Scripts()
         {

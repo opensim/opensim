@@ -168,6 +168,12 @@ namespace OpenSim.Services.LLLoginService
         // Web map
         private string mapTileURL;
 
+        // Web Profiles
+        private string profileURL;
+
+        // OpenID
+        private string openIDURL;
+
         private string searchURL;
 
         // Error Flags
@@ -220,7 +226,7 @@ namespace OpenSim.Services.LLLoginService
         public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, GridUserInfo pinfo,
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
-            GridRegion home, IPEndPoint clientIP, string mapTileURL, string searchURL, string currency)
+            GridRegion home, IPEndPoint clientIP, string mapTileURL, string profileURL, string openIDURL, string searchURL, string currency)
             : this()
         {
             FillOutInventoryData(invSkel, libService);
@@ -237,6 +243,9 @@ namespace OpenSim.Services.LLLoginService
             BuddList = ConvertFriendListItem(friendsList);
             StartLocation = where;
             MapTileURL = mapTileURL;
+            ProfileURL = profileURL;
+            OpenIDURL = openIDURL;
+
             SearchURL = searchURL;
             Currency = currency;
 
@@ -384,6 +393,8 @@ namespace OpenSim.Services.LLLoginService
             InitialOutfitHash["gender"] = "female";
             initialOutfit.Add(InitialOutfitHash);
             mapTileURL = String.Empty;
+            profileURL = String.Empty;
+            openIDURL = String.Empty;
             searchURL = String.Empty;
 
             currency = String.Empty;
@@ -455,6 +466,13 @@ namespace OpenSim.Services.LLLoginService
 
                 if (mapTileURL != String.Empty)
                     responseData["map-server-url"] = mapTileURL;
+
+                if (profileURL != String.Empty)
+                    responseData["profile-server-url"] = profileURL;
+
+                // We need to send an openid_token back in the response too
+                if (openIDURL != String.Empty)
+                    responseData["openid_url"] = openIDURL;
 
                 if (m_buddyList != null)
                 {
@@ -560,6 +578,12 @@ namespace OpenSim.Services.LLLoginService
 
                 if (mapTileURL != String.Empty)
                     map["map-server-url"] = OSD.FromString(mapTileURL);
+
+                if (profileURL != String.Empty)
+                    map["profile-server-url"] = OSD.FromString(profileURL);
+
+                if (openIDURL != String.Empty)
+                    map["openid_url"] = OSD.FromString(openIDURL);
 
                 if (searchURL != String.Empty)
                     map["search"] = OSD.FromString(searchURL);
@@ -931,6 +955,18 @@ namespace OpenSim.Services.LLLoginService
         {
             get { return mapTileURL; }
             set { mapTileURL = value; }
+        }
+
+        public string ProfileURL
+        {
+            get { return profileURL; }
+            set { profileURL = value; }
+        }
+
+        public string OpenIDURL
+        {
+            get { return openIDURL; }
+            set { openIDURL = value; }
         }
 
         public string SearchURL

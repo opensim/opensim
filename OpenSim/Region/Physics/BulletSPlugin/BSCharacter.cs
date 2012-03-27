@@ -94,7 +94,7 @@ public class BSCharacter : PhysicsActor
         _flying = isFlying;
         _orientation = Quaternion.Identity;
         _velocity = Vector3.Zero;
-        _buoyancy = isFlying ? 1f : 0f;
+        _buoyancy = ComputeBuoyancyFromFlying(isFlying);
         _scale = new Vector3(1f, 1f, 1f);
         _density = _scene.Params.avatarDensity;
         ComputeAvatarVolumeAndMass();   // set _avatarVolume and _mass based on capsule size, _density and _scale
@@ -110,7 +110,7 @@ public class BSCharacter : PhysicsActor
         shapeData.Buoyancy = _buoyancy;
         shapeData.Static = ShapeData.numericFalse;
         shapeData.Friction = _scene.Params.avatarFriction;
-        shapeData.Restitution = _scene.Params.defaultRestitution;
+        shapeData.Restitution = _scene.Params.avatarRestitution;
 
         // do actual create at taint time
         _scene.TaintedObject(delegate()
@@ -260,12 +260,12 @@ public class BSCharacter : PhysicsActor
         get { return _flying; } 
         set {
             _flying = value;
-            _scene.TaintedObject(delegate()
-            {
-                // simulate flying by changing the effect of gravity
-                BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, LocalID, _flying ? 1f : 0f);
-            });
+            // simulate flying by changing the effect of gravity
+            this.Buoyancy = ComputeBuoyancyFromFlying(_flying);
         } 
+    }
+    private float ComputeBuoyancyFromFlying(bool ifFlying) {
+        return ifFlying ? 1f : 0f;
     }
     public override bool 
         SetAlwaysRun { 
@@ -299,6 +299,7 @@ public class BSCharacter : PhysicsActor
         get { return _kinematic; } 
         set { _kinematic = value; } 
     }
+    // neg=fall quickly, 0=1g, 1=0g, pos=float up
     public override float Buoyancy { 
         get { return _buoyancy; } 
         set { _buoyancy = value; 
@@ -355,7 +356,7 @@ public class BSCharacter : PhysicsActor
         }
         else
         {
-            m_log.WarnFormat("{0}: Got a NaN force applied to a Character", LogHeader);
+            m_log.ErrorFormat("{0}: Got a NaN force applied to a Character", LogHeader);
         }
         //m_lastUpdateSent = false;
     }
@@ -425,6 +426,8 @@ public class BSCharacter : PhysicsActor
         }
     }
 
+    // Called by the scene when a collision with this object is reported
+    CollisionEventUpdate collisionCollection = null;
     public void Collide(uint collidingWith, ActorTypes type, Vector3 contactPoint, Vector3 contactNormal, float pentrationDepth)
     {
         // m_log.DebugFormat("{0}: Collide: ms={1}, id={2}, with={3}", LogHeader, _subscribedEventsMs, LocalID, collidingWith);
@@ -442,10 +445,24 @@ public class BSCharacter : PhysicsActor
         if (nowTime < (_lastCollisionTime + _subscribedEventsMs)) return;
         _lastCollisionTime = nowTime;
 
-        Dictionary<uint, ContactPoint> contactPoints = new Dictionary<uint, ContactPoint>();
-        contactPoints.Add(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
-        CollisionEventUpdate args = new CollisionEventUpdate(contactPoints);
-        base.SendCollisionUpdate(args);
+        if (collisionCollection == null)
+            collisionCollection = new CollisionEventUpdate();
+        collisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
+    }
+
+    public void SendCollisions()
+    {
+        // if (collisionCollection != null)
+        // {
+        //     base.SendCollisionUpdate(collisionCollection);
+        //     collisionCollection = null;
+        // }
+        // Kludge to make a collision call even if there are no collisions.
+        // This causes the avatar animation to get updated.
+        if (collisionCollection == null)
+            collisionCollection = new CollisionEventUpdate();
+        base.SendCollisionUpdate(collisionCollection);
+        collisionCollection = null;
     }
 
 }

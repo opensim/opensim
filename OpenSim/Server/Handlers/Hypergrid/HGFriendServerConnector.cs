@@ -36,15 +36,25 @@ namespace OpenSim.Server.Handlers.Hypergrid
 {
     public class HGFriendsServerConnector : ServiceConnector
     {
-        private IFriendsService m_FriendsService;
         private IUserAgentService m_UserAgentService;
+        private IHGFriendsService m_TheService;
         private string m_ConfigName = "HGFriendsService";
 
+        // Called from Robust
         public HGFriendsServerConnector(IConfigSource config, IHttpServer server, string configName) :
-                base(config, server, configName)
+                this(config, server, configName, null)
         {
-            if (configName != string.Empty) 
+
+        }
+
+        // Called from standalone configurations
+        public HGFriendsServerConnector(IConfigSource config, IHttpServer server, string configName, IFriendsSimConnector localConn) 
+            : base(config, server, configName)
+        {
+            if (configName != string.Empty)
                 m_ConfigName = configName;
+
+            Object[] args = new Object[] { config, m_ConfigName, localConn };
 
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
@@ -52,20 +62,16 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             string theService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
-
             if (theService == String.Empty)
                 throw new Exception("No LocalServiceModule in config file");
-
-            Object[] args = new Object[] { config };
-            m_FriendsService = ServerUtils.LoadPlugin<IFriendsService>(theService, args);
+            m_TheService = ServerUtils.LoadPlugin<IHGFriendsService>(theService, args);
 
             theService = serverConfig.GetString("UserAgentService", string.Empty);
             if (theService == String.Empty)
                 throw new Exception("No UserAgentService in " + m_ConfigName);
+            m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(theService, new Object[] { config, localConn });
 
-            m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(theService, args);
-
-            server.AddStreamHandler(new HGFriendsServerPostHandler(m_FriendsService, m_UserAgentService));
+            server.AddStreamHandler(new HGFriendsServerPostHandler(m_TheService, m_UserAgentService, localConn));
         }
     }
 }

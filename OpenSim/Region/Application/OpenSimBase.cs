@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
@@ -66,6 +67,9 @@ namespace OpenSim
 
         private const string PLUGIN_ASSET_CACHE = "/OpenSim/AssetCache";
         private const string PLUGIN_ASSET_SERVER_CLIENT = "/OpenSim/AssetClient";
+
+        // OpenSim.ini Section name for ESTATES Settings
+        public const string ESTATE_SECTION_NAME = "Estates";
 
         protected string proxyUrl;
         protected int proxyOffset = 0;
@@ -242,15 +246,18 @@ namespace OpenSim
 
                 foreach (string topic in topics)
                 {
-                    m_console.Commands.AddCommand("plugin", false, "help " + topic,
-                                                  "help " + topic,
+                    string capitalizedTopic = char.ToUpper(topic[0]) + topic.Substring(1);
+
+                    // This is a hack to allow the user to enter the help command in upper or lowercase.  This will go
+                    // away at some point.
+                    m_console.Commands.AddCommand(capitalizedTopic, false, "help " + topic,
+                                                  "help " + capitalizedTopic,
                                                   "Get help on plugin command '" + topic + "'",
                                                   HandleCommanderHelp);
-
-                    m_console.Commands.AddCommand("plugin", false, topic,
-                                                  topic,
-                                                  "Execute subcommand for plugin '" + topic + "'",
-                                                  null);
+                    m_console.Commands.AddCommand(capitalizedTopic, false, "help " + capitalizedTopic,
+                                                  "help " + capitalizedTopic,
+                                                  "Get help on plugin command '" + topic + "'",
+                                                  HandleCommanderHelp);
 
                     ICommander commander = null;
 
@@ -267,7 +274,7 @@ namespace OpenSim
 
                     foreach (string command in commander.Commands.Keys)
                     {
-                        m_console.Commands.AddCommand(topic, false,
+                        m_console.Commands.AddCommand(capitalizedTopic, false,
                                                       topic + " " + command,
                                                       topic + " " + commander.Commands[command].ShortHelp(),
                                                       String.Empty, HandleCommanderCommand);
@@ -286,7 +293,7 @@ namespace OpenSim
             // Only safe for the interactive console, since it won't
             // let us come here unless both scene and commander exist
             //
-            ICommander moduleCommander = SceneManager.CurrentOrFirstScene.GetCommander(cmd[1]);
+            ICommander moduleCommander = SceneManager.CurrentOrFirstScene.GetCommander(cmd[1].ToLower());
             if (moduleCommander != null)
                 m_console.Output(moduleCommander.Help);
         }
@@ -424,7 +431,7 @@ namespace OpenSim
 
             mscene = scene;
 
-            scene.StartTimer();
+            scene.Start();
 
             scene.StartScripts();
 
@@ -443,12 +450,42 @@ namespace OpenSim
         {
             RegionInfo regionInfo = scene.RegionInfo;
 
+            string estateOwnerFirstName = null;
+            string estateOwnerLastName = null;
+            string estateOwnerEMail = null;
+            string estateOwnerPassword = null;
+            string rawEstateOwnerUuid = null;
+
+            if (m_config.Source.Configs[ESTATE_SECTION_NAME] != null)
+            {
+                string defaultEstateOwnerName
+                    = m_config.Source.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerName", "").Trim();
+                string[] ownerNames = defaultEstateOwnerName.Split(' ');
+
+                if (ownerNames.Length >= 2)
+                {
+                    estateOwnerFirstName = ownerNames[0];
+                    estateOwnerLastName = ownerNames[1];
+                }
+
+                // Info to be used only on Standalone Mode
+                rawEstateOwnerUuid = m_config.Source.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerUUID", null);
+                estateOwnerEMail = m_config.Source.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerEMail", null);
+                estateOwnerPassword = m_config.Source.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerPassword", null);
+            }
+
             MainConsole.Instance.OutputFormat("Estate {0} has no owner set.", regionInfo.EstateSettings.EstateName);
             List<char> excluded = new List<char>(new char[1]{' '});
-            string first = MainConsole.Instance.CmdPrompt("Estate owner first name", "Test", excluded);
-            string last = MainConsole.Instance.CmdPrompt("Estate owner last name", "User", excluded);
 
-            UserAccount account = scene.UserAccountService.GetUserAccount(regionInfo.ScopeID, first, last);
+
+            if (estateOwnerFirstName == null || estateOwnerLastName == null)
+            {
+                estateOwnerFirstName = MainConsole.Instance.CmdPrompt("Estate owner first name", "Test", excluded);
+                estateOwnerLastName = MainConsole.Instance.CmdPrompt("Estate owner last name", "User", excluded);
+            }
+
+            UserAccount account
+                = scene.UserAccountService.GetUserAccount(regionInfo.ScopeID, estateOwnerFirstName, estateOwnerLastName);
 
             if (account == null)
             {
@@ -467,23 +504,35 @@ namespace OpenSim
 
                 if (scene.UserAccountService is UserAccountService)
                 {
-                    string password = MainConsole.Instance.PasswdPrompt("Password");
-                    string email = MainConsole.Instance.CmdPrompt("Email", "");
+                    if (estateOwnerPassword == null)
+                        estateOwnerPassword = MainConsole.Instance.PasswdPrompt("Password");
 
-                    string rawPrincipalId = MainConsole.Instance.CmdPrompt("User ID", UUID.Random().ToString());
+                    if (estateOwnerEMail == null)
+                        estateOwnerEMail = MainConsole.Instance.CmdPrompt("Email");
+
+                    if (rawEstateOwnerUuid == null)
+                        rawEstateOwnerUuid = MainConsole.Instance.CmdPrompt("User ID", UUID.Random().ToString());
         
-                    UUID principalId = UUID.Zero;
-                    if (!UUID.TryParse(rawPrincipalId, out principalId))
+                    UUID estateOwnerUuid = UUID.Zero;
+                    if (!UUID.TryParse(rawEstateOwnerUuid, out estateOwnerUuid))
                     {
-                        m_log.ErrorFormat("[OPENSIM]: ID {0} is not a valid UUID", rawPrincipalId);
+                        m_log.ErrorFormat("[OPENSIM]: ID {0} is not a valid UUID", rawEstateOwnerUuid);
                         return;
                     }
 
+                    // If we've been given a zero uuid then this signals that we should use a random user id
+                    if (estateOwnerUuid == UUID.Zero)
+                        estateOwnerUuid = UUID.Random();
+
                     account
                         = ((UserAccountService)scene.UserAccountService).CreateUser(
-                            regionInfo.ScopeID, principalId, first, last, password, email);
+                            regionInfo.ScopeID,
+                            estateOwnerUuid,
+                            estateOwnerFirstName,
+                            estateOwnerLastName,
+                            estateOwnerPassword,
+                            estateOwnerEMail);
                 }
-//                    }
             }
 
             if (account == null)
@@ -883,15 +932,21 @@ namespace OpenSim
         /// This method doesn't allow an estate to be created with the same name as existing estates.
         /// </remarks>
         /// <param name="regInfo"></param>
-        /// <param name="existingName">A list of estate names that already exist.</param>
+        /// <param name="estatesByName">A list of estate names that already exist.</param>
+        /// <param name="estateName">Estate name to create if already known</param>
         /// <returns>true if the estate was created, false otherwise</returns>
-        public bool CreateEstate(RegionInfo regInfo, List<string> existingNames)
+        public bool CreateEstate(RegionInfo regInfo, Dictionary<string, EstateSettings> estatesByName, string estateName)
         {
             // Create a new estate
             regInfo.EstateSettings = EstateDataService.LoadEstateSettings(regInfo.RegionID, true);
-            string newName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);
 
-            if (existingNames.Contains(newName))
+            string newName;
+            if (estateName != null && estateName != "")
+                newName = estateName;
+            else
+                newName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);
+
+            if (estatesByName.ContainsKey(newName))
             {
                 MainConsole.Instance.OutputFormat("An estate named {0} already exists.  Please try again.", newName);
                 return false;
@@ -918,66 +973,102 @@ namespace OpenSim
             if (EstateDataService != null)
                 regInfo.EstateSettings = EstateDataService.LoadEstateSettings(regInfo.RegionID, false);
 
-            if (regInfo.EstateSettings.EstateID == 0) // No record at all
+            if (regInfo.EstateSettings.EstateID != 0)
+                return;
+
+            m_log.WarnFormat("[ESTATE] Region {0} is not part of an estate.", regInfo.RegionName);
+            
+            List<EstateSettings> estates = EstateDataService.LoadEstateSettingsAll();                
+            Dictionary<string, EstateSettings> estatesByName = new Dictionary<string, EstateSettings>();
+
+            foreach (EstateSettings estate in estates)
+                estatesByName[estate.EstateName] = estate;
+
+            string defaultEstateName = null;
+
+            if (m_config.Source.Configs[ESTATE_SECTION_NAME] != null)
             {
-                m_log.WarnFormat("[ESTATE] Region {0} is not part of an estate.", regInfo.RegionName);
-                
-                List<EstateSettings> estates = EstateDataService.LoadEstateSettingsAll();                
-                List<string> estateNames = new List<string>();
-                foreach (EstateSettings estate in estates)
-                    estateNames.Add(estate.EstateName);                
-                
-                while (true)
+                defaultEstateName = m_config.Source.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateName", null);
+
+                if (defaultEstateName != null)
                 {
-                    if (estates.Count == 0)
-                    {                        
-                        m_log.Info("[ESTATE] No existing estates found.  You must create a new one.");
-                        
-                        if (CreateEstate(regInfo, estateNames))
-                            break;                        
+                    EstateSettings defaultEstate;
+                    bool defaultEstateJoined = false;
+
+                    if (estatesByName.ContainsKey(defaultEstateName))
+                    {
+                        defaultEstate = estatesByName[defaultEstateName];
+
+                        if (EstateDataService.LinkRegion(regInfo.RegionID, (int)defaultEstate.EstateID))
+                            defaultEstateJoined = true;
+                    }
+                    else
+                    {
+                        if (CreateEstate(regInfo, estatesByName, defaultEstateName))
+                            defaultEstateJoined = true;
+                    }
+
+                    if (defaultEstateJoined)
+                        return;
+                    else
+                        m_log.ErrorFormat(
+                            "[OPENSIM BASE]: Joining default estate {0} failed", defaultEstateName);
+                }
+            }
+
+            // If we have no default estate or creation of the default estate failed then ask the user.
+            while (true)
+            {
+                if (estates.Count == 0)
+                {
+                    m_log.Info("[ESTATE]: No existing estates found.  You must create a new one.");
+
+                    if (CreateEstate(regInfo, estatesByName, null))
+                        break;
+                    else
+                        continue;
+                }
+                else
+                {
+                    string response
+                        = MainConsole.Instance.CmdPrompt(
+                            string.Format(
+                                "Do you wish to join region {0} to an existing estate (yes/no)?", regInfo.RegionName),
+                                "yes",
+                                new List<string>() { "yes", "no" });
+
+                    if (response == "no")
+                    {
+                        if (CreateEstate(regInfo, estatesByName, null))
+                            break;
                         else
                             continue;
                     }
                     else
                     {
-                        string response 
+                        string[] estateNames = estatesByName.Keys.ToArray();
+                        response
                             = MainConsole.Instance.CmdPrompt(
                                 string.Format(
-                                    "Do you wish to join region {0} to an existing estate (yes/no)?", regInfo.RegionName), 
-                                    "yes", 
-                                    new List<string>() { "yes", "no" });
-                        
-                        if (response == "no")
+                                    "Name of estate to join.  Existing estate names are ({0})",
+                                    string.Join(", ", estateNames)),
+                                estateNames[0]);
+
+                        List<int> estateIDs = EstateDataService.GetEstates(response);
+                        if (estateIDs.Count < 1)
                         {
-                            if (CreateEstate(regInfo, estateNames))                            
-                                break;
-                            else
-                                continue;
+                            MainConsole.Instance.Output("The name you have entered matches no known estate.  Please try again.");
+                            continue;
                         }
-                        else
-                        {                           
-                            response 
-                                = MainConsole.Instance.CmdPrompt(
-                                    string.Format(
-                                        "Name of estate to join.  Existing estate names are ({0})", string.Join(", ", estateNames.ToArray())), 
-                                    estateNames[0]);
-    
-                            List<int> estateIDs = EstateDataService.GetEstates(response);
-                            if (estateIDs.Count < 1)
-                            {
-                                MainConsole.Instance.Output("The name you have entered matches no known estate.  Please try again.");
-                                continue;
-                            }
-    
-                            int estateID = estateIDs[0];
-    
-                            regInfo.EstateSettings = EstateDataService.LoadEstateSettings(estateID);
-    
-                            if (EstateDataService.LinkRegion(regInfo.RegionID, estateID))
-                                break;
-    
-                            MainConsole.Instance.Output("Joining the estate failed. Please try again.");
-                        }
+
+                        int estateID = estateIDs[0];
+
+                        regInfo.EstateSettings = EstateDataService.LoadEstateSettings(estateID);
+
+                        if (EstateDataService.LinkRegion(regInfo.RegionID, estateID))
+                            break;
+
+                        MainConsole.Instance.Output("Joining the estate failed. Please try again.");
                     }
                 }
             }

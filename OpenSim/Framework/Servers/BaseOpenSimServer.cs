@@ -161,43 +161,43 @@ namespace OpenSim.Framework.Servers
                     Notice(String.Format("Console log level is {0}", m_consoleAppender.Threshold));
                 }
                 
-                m_console.Commands.AddCommand("base", false, "quit",
+                m_console.Commands.AddCommand("General", false, "quit",
                         "quit",
                         "Quit the application", HandleQuit);
 
-                m_console.Commands.AddCommand("base", false, "shutdown",
+                m_console.Commands.AddCommand("General", false, "shutdown",
                         "shutdown",
                         "Quit the application", HandleQuit);
 
-                m_console.Commands.AddCommand("base", false, "set log level",
+                m_console.Commands.AddCommand("General", false, "set log level",
                         "set log level <level>",
                         "Set the console logging level", HandleLogLevel);
 
-                m_console.Commands.AddCommand("base", false, "show info",
+                m_console.Commands.AddCommand("General", false, "show info",
                         "show info",
                         "Show general information about the server", HandleShow);
 
-                m_console.Commands.AddCommand("base", false, "show stats",
+                m_console.Commands.AddCommand("General", false, "show stats",
                         "show stats",
                         "Show statistics", HandleShow);
 
-                m_console.Commands.AddCommand("base", false, "show threads",
+                m_console.Commands.AddCommand("General", false, "show threads",
                         "show threads",
                         "Show thread status", HandleShow);
 
-                m_console.Commands.AddCommand("base", false, "show uptime",
+                m_console.Commands.AddCommand("General", false, "show uptime",
                         "show uptime",
                         "Show server uptime", HandleShow);
 
-                m_console.Commands.AddCommand("base", false, "show version",
+                m_console.Commands.AddCommand("General", false, "show version",
                         "show version",
                         "Show server version", HandleShow);
 
-                m_console.Commands.AddCommand("base", false, "threads abort",
+                m_console.Commands.AddCommand("General", false, "threads abort",
                         "threads abort <thread-id>",
                         "Abort a managed thread.  Use \"show threads\" to find possible threads.", HandleThreadsAbort);
 
-                m_console.Commands.AddCommand("base", false, "threads show",
+                m_console.Commands.AddCommand("General", false, "threads show",
                         "threads show",
                         "Show thread status.  Synonym for \"show threads\"",
                         (string module, string[] args) => Notice(GetThreadsReport()));
@@ -269,15 +269,19 @@ namespace OpenSim.Framework.Servers
                     t.Priority,
                     t.ThreadState);
 
-                sb.Append(Environment.NewLine);
+                sb.Append("\n");
             }
 
-            int workers = 0, ports = 0, maxWorkers = 0, maxPorts = 0;
-            ThreadPool.GetAvailableThreads(out workers, out ports);
-            ThreadPool.GetMaxThreads(out maxWorkers, out maxPorts);
+            sb.Append("\n");
 
-            sb.Append(Environment.NewLine + "*** ThreadPool threads ***"  + Environment.NewLine);
-            sb.Append("workers: " + (maxWorkers - workers) + " (" + maxWorkers + "); ports: " + (maxPorts - ports) + " (" + maxPorts + ")" + Environment.NewLine);
+            // For some reason mono 2.6.7 returns an empty threads set!  Not going to confuse people by reporting
+            // zero active threads.
+            int totalThreads = Process.GetCurrentProcess().Threads.Count;
+            if (totalThreads > 0)
+                sb.AppendFormat("Total threads active: {0}\n\n", totalThreads);
+
+            sb.Append("Main threadpool (excluding script engine pools)\n");
+            sb.Append(Util.GetThreadPoolReport());
 
             return sb.ToString();
         }

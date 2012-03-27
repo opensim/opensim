@@ -63,6 +63,31 @@ namespace OpenSim.Framework
         // a "long" call for warning & debugging purposes
         public const int LongCallTime = 500;
 
+        // dictionary of end points
+        private static Dictionary<string,object> m_endpointSerializer = new Dictionary<string,object>();
+        
+
+        private static object EndPointLock(string url)
+        {
+            System.Uri uri = new System.Uri(url);
+            string endpoint = string.Format("{0}:{1}",uri.Host,uri.Port);
+
+            lock (m_endpointSerializer)
+            {
+                object eplock = null;
+
+                if (! m_endpointSerializer.TryGetValue(endpoint,out eplock))
+                {
+                    eplock = new object();
+                    m_endpointSerializer.Add(endpoint,eplock);
+                    // m_log.WarnFormat("[WEB UTIL] add a new host to end point serializer {0}",endpoint);
+                }
+
+                return eplock;
+            }
+        }
+        
+                
         #region JSONRequest
 
         /// <summary>
@@ -95,6 +120,14 @@ namespace OpenSim.Framework
         }
         
         public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed)
+        {
+            lock (EndPointLock(url))
+            {
+                return ServiceOSDRequestWorker(url,data,method,timeout,compressed);
+            }
+        }
+
+        private static OSDMap ServiceOSDRequestWorker(string url, OSDMap data, string method, int timeout, bool compressed)
         {
             int reqnum = m_requestNumber++;
             // m_log.DebugFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
@@ -247,6 +280,14 @@ namespace OpenSim.Framework
         }
         
         public static OSDMap ServiceFormRequest(string url, NameValueCollection data, int timeout)
+        {
+            lock (EndPointLock(url))
+            {
+                return ServiceFormRequestWorker(url,data,timeout);
+            }
+        }
+
+        private static OSDMap ServiceFormRequestWorker(string url, NameValueCollection data, int timeout)
         {
             int reqnum = m_requestNumber++;
             string method = (data != null && data["RequestMethod"] != null) ? data["RequestMethod"] : "unknown";
@@ -469,8 +510,13 @@ namespace OpenSim.Framework
         /// <remarks>
         /// Copying begins at the streams' current positions. The positions are
         /// NOT reset after copying is complete.
+        /// NOTE!! .NET 4.0 adds the method 'Stream.CopyTo(stream, bufferSize)'.
+        /// This function could be replaced with that method once we move
+        /// totally to .NET 4.0. For versions before, this routine exists.
+        /// This routine used to be named 'CopyTo' but the int parameter has
+        /// a different meaning so this method was renamed to avoid any confusion.
         /// </remarks>
-        public static int CopyTo(this Stream copyFrom, Stream copyTo, int maximumBytesToCopy)
+        public static int CopyStream(this Stream copyFrom, Stream copyTo, int maximumBytesToCopy)
         {
             byte[] buffer = new byte[4096];
             int readBytes;

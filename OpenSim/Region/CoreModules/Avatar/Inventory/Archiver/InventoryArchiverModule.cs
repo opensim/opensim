@@ -108,7 +108,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 OnInventoryArchiveSaved += SaveInvConsoleCommandCompleted;
                 
                 scene.AddCommand(
-                    this, "load iar",
+                    "Archiving", this, "load iar",
                     "load iar [-m|--merge] <first> <last> <inventory path> <password> [<IAR path>]",
                     "Load user inventory archive (IAR).",
                     "-m|--merge is an option which merges the loaded IAR with existing inventory folders where possible, rather than always creating new ones"
@@ -121,18 +121,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     HandleLoadInvConsoleCommand);
                 
                 scene.AddCommand(
-                    this, "save iar",
+                    "Archiving", this, "save iar",
                     "save iar [-h|--home=<url>] [--noassets] <first> <last> <inventory path> <password> [<IAR path>] [-c|--creators] [-v|--verbose]",
                     "Save user inventory archive (IAR).", 
-                    "<first> is the user's first name." + Environment.NewLine
-                    + "<last> is the user's last name." + Environment.NewLine
-                    + "<inventory path> is the path inside the user's inventory for the folder/item to be saved." + Environment.NewLine
-                    + "-h|--home=<url> adds the url of the profile service to the saved user information." + Environment.NewLine
-                    + "-c|--creators preserves information about foreign creators." + Environment.NewLine
-                    + "-v|--verbose extra debug messages." + Environment.NewLine
-                    + "--noassets stops assets being saved to the IAR."
+                    "<first> is the user's first name.\n"
+                    + "<last> is the user's last name.\n"
+                    + "<inventory path> is the path inside the user's inventory for the folder/item to be saved.\n"
                     + "<IAR path> is the filesystem path at which to save the IAR."
-                    + string.Format("  If this is not given then the filename {0} in the current directory is used", DEFAULT_INV_BACKUP_FILENAME),
+                    + string.Format("  If this is not given then the filename {0} in the current directory is used.\n", DEFAULT_INV_BACKUP_FILENAME)
+                    + "-h|--home=<url> adds the url of the profile service to the saved user information.\n"
+                    + "-c|--creators preserves information about foreign creators.\n"
+                    + "-v|--verbose extra debug messages.\n"
+                    + "--noassets stops assets being saved to the IAR.",
                     HandleSaveInvConsoleCommand);
 
                 m_aScene = scene;

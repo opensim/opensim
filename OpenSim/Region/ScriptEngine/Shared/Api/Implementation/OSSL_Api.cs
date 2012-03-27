@@ -2093,6 +2093,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return HomeURI;
         }
 
+        public string osGetGridGatekeeperURI()
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridGatekeeperURI");
+            m_host.AddScriptLPS(1);
+
+            string gatekeeperURI = String.Empty;
+            IConfigSource config = m_ScriptEngine.ConfigSource;
+
+            if (config.Configs["GridService"] != null)
+                gatekeeperURI = config.Configs["GridService"].GetString("Gatekeeper", gatekeeperURI);
+
+            return gatekeeperURI;
+        }
+
         public string osGetGridCustom(string key)
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridCustom");
@@ -2942,6 +2956,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             DateTime date = new DateTime(epochTicks);
 
             return date.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
+        }
+
+        /// <summary>
+        /// Get the description from an inventory item
+        /// </summary>
+        /// <param name="inventoryName"></param>
+        /// <returns>Item description</returns>  
+        public LSL_String osGetInventoryDesc(string item)
+        {
+            m_host.AddScriptLPS(1);
+
+            lock (m_host.TaskInventory)
+            {
+                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                {
+                    if (inv.Value.Name == item)
+                    {
+                        return inv.Value.Description.ToString();
+                    }
+                }
+            }
+
+            return String.Empty;
         }
     }
 }

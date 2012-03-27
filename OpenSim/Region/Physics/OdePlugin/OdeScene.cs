@@ -181,8 +181,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float avPIDP = 1400f;
         private float avCapRadius = 0.37f;
         private float avStandupTensor = 2000000f;
-        private bool avCapsuleTilted = true; // true = old compatibility mode with leaning capsule; false = new corrected mode
-        public bool IsAvCapsuleTilted { get { return avCapsuleTilted; } set { avCapsuleTilted = value; } }
+
+        /// <summary>
+        /// true = old compatibility mode with leaning capsule; false = new corrected mode
+        /// </summary>
+        /// <remarks>
+        /// Even when set to false, the capsule still tilts but this is done in a different way.
+        /// </remarks>
+        public bool IsAvCapsuleTilted { get; private set; }
+
         private float avDensity = 80f;
 //        private float avHeightFudgeFactor = 0.52f;
         private float avMovementDivisorWalk = 1.3f;
@@ -501,7 +508,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     avMovementDivisorWalk = physicsconfig.GetFloat("av_movement_divisor_walk", 1.3f);
                     avMovementDivisorRun = physicsconfig.GetFloat("av_movement_divisor_run", 0.8f);
                     avCapRadius = physicsconfig.GetFloat("av_capsule_radius", 0.37f);
-                    avCapsuleTilted = physicsconfig.GetBoolean("av_capsule_tilted", false);
+                    IsAvCapsuleTilted = physicsconfig.GetBoolean("av_capsule_tilted", false);
 
                     contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", 80);
 

@@ -43,7 +43,17 @@ namespace OpenSim.Services.Connectors.Friends
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        protected virtual string ServicePath()
+        {
+            return "friends";
+        }
+
         public bool FriendshipOffered(GridRegion region, UUID userID, UUID friendID, string message)
+        {
+            return FriendshipOffered(region, userID, friendID, message, String.Empty);
+        }
+
+        public virtual bool FriendshipOffered(GridRegion region, UUID userID, UUID friendID, string message, string userName)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
@@ -53,9 +63,10 @@ namespace OpenSim.Services.Connectors.Friends
             sendData["FromID"] = userID.ToString();
             sendData["ToID"] = friendID.ToString();
             sendData["Message"] = message;
+            if (userName != String.Empty)
+                sendData["FromName"] = userName;
 
             return Call(region, sendData);
-
         }
 
         public bool FriendshipApproved(GridRegion region, UUID userID, string userName, UUID friendID)
@@ -138,8 +149,11 @@ namespace OpenSim.Services.Connectors.Friends
             if (region == null)
                 return false;
 
-            m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: region: {0}", region.ExternalHostName + ":" + region.HttpPort);
-            string uri = "http://" + region.ExternalHostName + ":" + region.HttpPort + "/friends";
+            string path = ServicePath();
+            if (!region.ServerURI.EndsWith("/"))
+                path = "/" + path;
+            string uri = region.ServerURI + path;
+            m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: calling {0}", uri);
 
             try
             {

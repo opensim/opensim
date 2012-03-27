@@ -236,16 +236,16 @@ namespace OpenSim.Server.Base
 
             // Register the quit command
             //
-            MainConsole.Instance.Commands.AddCommand("base", false, "quit",
+            MainConsole.Instance.Commands.AddCommand("General", false, "quit",
                     "quit",
                     "Quit the application", HandleQuit);
 
-            MainConsole.Instance.Commands.AddCommand("base", false, "shutdown",
+            MainConsole.Instance.Commands.AddCommand("General", false, "shutdown",
                     "shutdown",
                     "Quit the application", HandleQuit);
-
+            
             // Register a command to read other commands from a file
-            MainConsole.Instance.Commands.AddCommand("base", false, "command-script",
+            MainConsole.Instance.Commands.AddCommand("General", false, "command-script",
                                           "command-script <script>",
                                           "Run a command script from file", HandleScript);
 

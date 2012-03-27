@@ -94,13 +94,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                 m_scenes[scene.RegionInfo.RegionID] = scene;
 
             scene.AddCommand(
-                this, "show appearance",
+                "Users", this, "show appearance",
                 "show appearance [<first-name> <last-name>]",
                 "Synonym for 'appearance show'",
                 HandleShowAppearanceCommand);
             
             scene.AddCommand(
-                this, "appearance show",
+                "Users", this, "appearance show",
                 "appearance show [<first-name> <last-name>]",
                 "Show appearance information for each avatar in the simulator.",
                 "This command checks whether the simulator has all the baked textures required to display an avatar to other viewers.  "
@@ -110,14 +110,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                 HandleShowAppearanceCommand);
 
             scene.AddCommand(
-                this, "appearance send",
+                "Users", this, "appearance send",
                 "appearance send [<first-name> <last-name>]",
                 "Send appearance data for each avatar in the simulator to other viewers.",
                 "Optionally, you can specify that only a particular avatar's appearance data is sent.",
                 HandleSendAppearanceCommand);
 
             scene.AddCommand(
-                this, "appearance rebake",
+                "Users", this, "appearance rebake",
                 "appearance rebake <first-name> <last-name>",
                 "Send a request to the user's viewer for it to rebake and reupload its appearance textures.",
                 "This is currently done for all baked texture references previously received, whether the simulator can find the asset or not."
@@ -127,7 +127,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                 HandleRebakeAppearanceCommand);
 
             scene.AddCommand(
-                this, "appearance find",
+                "Users", this, "appearance find",
                 "appearance find <uuid-or-start-of-uuid>",
                 "Find out which avatar uses the given asset as a baked texture, if any.",
                 "You can specify just the beginning of the uuid, e.g. 2008a8d.  A longer UUID must be in dashed format.",

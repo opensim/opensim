@@ -2771,64 +2771,69 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
-                return;
-            float dist = (float)llVecDist(llGetPos(), pos);
-
-            if (dist > m_ScriptDistanceFactor * 10.0f)
-                return;
-
-            TaskInventoryDictionary partInventory = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
-
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in partInventory)
+            Util.FireAndForget(delegate (object x)
             {
-                if (inv.Value.Name == inventory)
+                if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
+                    return;
+                float dist = (float)llVecDist(llGetPos(), pos);
+
+                if (dist > m_ScriptDistanceFactor * 10.0f)
+                    return;
+
+                //Clone is thread-safe
+                TaskInventoryDictionary partInventory = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
+
+                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in partInventory)
                 {
-                    // make sure we're an object.
-                    if (inv.Value.InvType != (int)InventoryType.Object)
+                    if (inv.Value.Name == inventory)
                     {
-                        llSay(0, "Unable to create requested object. Object is missing from database.");
+                        // make sure we're an object.
+                        if (inv.Value.InvType != (int)InventoryType.Object)
+                        {
+                            llSay(0, "Unable to create requested object. Object is missing from database.");
+                            return;
+                        }
+
+                        Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
+                        Vector3 llvel = new Vector3((float)vel.x, (float)vel.y, (float)vel.z);
+
+                        // need the magnitude later
+                        // float velmag = (float)Util.GetMagnitude(llvel);
+
+                        SceneObjectGroup new_group = World.RezObject(m_host, inv.Value, llpos, Rot2Quaternion(rot), llvel, param);
+
+                        // If either of these are null, then there was an unknown error.
+                        if (new_group == null)
+                            continue;
+
+                        // objects rezzed with this method are die_at_edge by default.
+                        new_group.RootPart.SetDieAtEdge(true);
+
+                        new_group.ResumeScripts();
+
+                        m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
+                                "object_rez", new Object[] {
+                                new LSL_String(
+                                new_group.RootPart.UUID.ToString()) },
+                                new DetectParams[0]));
+
+                        float groupmass = new_group.GetMass();
+
+                        if (new_group.RootPart.PhysActor != null && new_group.RootPart.PhysActor.IsPhysical && llvel != Vector3.Zero)
+                        {
+                            //Recoil.
+                            llApplyImpulse(new LSL_Vector(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
+                        }
+                        // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
                         return;
                     }
-
-                    Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
-                    Vector3 llvel = new Vector3((float)vel.x, (float)vel.y, (float)vel.z);
-
-                    // need the magnitude later
-                    float velmag = (float)Util.GetMagnitude(llvel);
-
-                    SceneObjectGroup new_group = World.RezObject(m_host, inv.Value, llpos, Rot2Quaternion(rot), llvel, param);
-
-                    // If either of these are null, then there was an unknown error.
-                    if (new_group == null)
-                        continue;
-
-                    // objects rezzed with this method are die_at_edge by default.
-                    new_group.RootPart.SetDieAtEdge(true);
-
-                    new_group.ResumeScripts();
-
-                    m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
-                            "object_rez", new Object[] {
-                            new LSL_String(
-                            new_group.RootPart.UUID.ToString()) },
-                            new DetectParams[0]));
-
-                    float groupmass = new_group.GetMass();
-
-                    if (new_group.RootPart.PhysActor != null && new_group.RootPart.PhysActor.IsPhysical && llvel != Vector3.Zero)
-                    {
-                        //Recoil.
-                        llApplyImpulse(new LSL_Vector(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
-                    }
-                    // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
-                    ScriptSleep((int)((groupmass * velmag) / 10));
-                    ScriptSleep(100);
-                    return;
                 }
-            }
 
-            llSay(0, "Could not find object " + inventory);
+                llSay(0, "Could not find object " + inventory);
+            });
+
+            //ScriptSleep((int)((groupmass * velmag) / 10));
+            ScriptSleep(100);
         }
 
         public void llRezObject(string inventory, LSL_Vector pos, LSL_Vector vel, LSL_Rotation rot, int param)
@@ -3820,7 +3825,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<String> nametable = new List<String>();
             World.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
-                if (presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
+                SceneObjectPart sitPart = presence.ParentPart;
+                if (sitPart != null && m_host.ParentGroup.HasChildPrim(sitPart.LocalId))
                     nametable.Add(presence.ControllingClient.Name);
             });
 
@@ -4308,7 +4314,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_host.RegionHandle == presence.RegionHandle)
             {
-                Dictionary<UUID, string> animationstateNames = AnimationSet.Animations.AnimStateNames;
+                Dictionary<UUID, string> animationstateNames = DefaultAvatarAnimations.AnimStateNames;
 
                 if (presence != null)
                 {
@@ -4388,22 +4394,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 // Find pushee position
                 // Pushee Linked?
-                if (pusheeav.ParentID != 0)
-                {
-                    SceneObjectPart parentobj = World.GetSceneObjectPart(pusheeav.ParentID);
-                    if (parentobj != null)
-                    {
-                        PusheePos = parentobj.AbsolutePosition;
-                    }
-                    else
-                    {
-                        PusheePos = pusheeav.AbsolutePosition;
-                    }
-                }
+                SceneObjectPart sitPart = pusheeav.ParentPart;
+                if (sitPart != null)
+                    PusheePos = sitPart.AbsolutePosition;
                 else
-                {
                     PusheePos = pusheeav.AbsolutePosition;
-                }
             }
 
             if (!pusheeIsAvatar)
@@ -5598,14 +5593,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     flags |= ScriptBaseClass.AGENT_IN_AIR;
             }
 
-             if (agent.ParentID != 0)
+             if (agent.ParentPart != null)
              {
                  flags |= ScriptBaseClass.AGENT_ON_OBJECT;
                  flags |= ScriptBaseClass.AGENT_SITTING;
              }
 
              if (agent.Animator.Animations.DefaultAnimation.AnimID
-                == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+                == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
              {
                  flags |= ScriptBaseClass.AGENT_SITTING;
              }
@@ -7687,7 +7682,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
                 if (presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
-                        avatarCount++;
+                    avatarCount++;
             });
 
             return m_host.ParentGroup.PrimCount + avatarCount;
@@ -7719,7 +7714,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     LSL_Vector lower;
                     LSL_Vector upper;
                     if (presence.Animator.Animations.DefaultAnimation.AnimID
-                        == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+                        == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
                     {
                         // This is for ground sitting avatars
                         float height = presence.Appearance.AvatarHeight / 2.66666667f;

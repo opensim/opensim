@@ -50,7 +50,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             m_regStatus = RegionStatus.Up;
         }
         
-        public override void Update() {}
+        public override void Update(int frames) {}
         public override void LoadWorldMap() {}
         
         public override ISceneAgent AddNewClient(IClientAPI client, PresenceType type)

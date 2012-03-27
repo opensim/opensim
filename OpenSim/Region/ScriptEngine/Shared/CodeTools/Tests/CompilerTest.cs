@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using Microsoft.CSharp;
 using NUnit.Framework;
 using OpenSim.Region.ScriptEngine.Shared.CodeTools;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
 {
@@ -92,6 +93,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         //[Test]
         public void TestUseUndeclaredVariable()
         {
+            TestHelpers.InMethod();
+
             m_compilerParameters.OutputAssembly = Path.Combine(m_testDir, Path.GetRandomFileName() + ".dll");
 
             string input = @"default
@@ -124,6 +127,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         //[Test]
         public void TestCastAndConcatString()
         {
+            TestHelpers.InMethod();
+
             m_compilerParameters.OutputAssembly = Path.Combine(m_testDir, Path.GetRandomFileName() + ".dll");
 
             string input = @"string s = "" a string"";

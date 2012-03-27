@@ -262,7 +262,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             try
             {
-                m_log.Debug("[CAPS]: ScriptTaskInventory Request in region: " + m_regionName);
+//                m_log.Debug("[CAPS]: ScriptTaskInventory Request in region: " + m_regionName);
                 //m_log.DebugFormat("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param);
 
                 Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
@@ -761,7 +761,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     SceneObjectPart part = m_Scene.GetSceneObjectPart(objectID);
                     if (part != null)
                     {
-                        TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(notecardID);
+//                        TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(notecardID);
                         if (!m_Scene.Permissions.CanCopyObjectInventory(notecardID, objectID, m_HostCapsObj.AgentID))
                         {
                             return LLSDHelpers.SerialiseLLSDReply(response);

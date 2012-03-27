@@ -60,36 +60,19 @@ namespace OpenSim.Services.HypergridService
 
         private UserAccountCache m_Cache;
 
-        public HGInventoryService(IConfigSource config)
-            : base(config)
+        public HGInventoryService(IConfigSource config, string configName)
+            : base(config, configName)
         {
             m_log.Debug("[HGInventory Service]: Starting");
-
-            string dllName = String.Empty;
-            string connString = String.Empty;
-            //string realm = "Inventory"; // OSG version doesn't use this
-
-            //
-            // Try reading the [DatabaseService] section, if it exists
-            //
-            IConfig dbConfig = config.Configs["DatabaseService"];
-            if (dbConfig != null)
-            {
-                if (dllName == String.Empty)
-                    dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                if (connString == String.Empty)
-                    connString = dbConfig.GetString("ConnectionString", String.Empty);
-            }
+            if (configName != string.Empty)
+                m_ConfigName = configName;
 
             //
             // Try reading the [InventoryService] section, if it exists
             //
-            IConfig invConfig = config.Configs["HGInventoryService"];
+            IConfig invConfig = config.Configs[m_ConfigName];
             if (invConfig != null)
-            {
-                dllName = invConfig.GetString("StorageProvider", dllName);
-                connString = invConfig.GetString("ConnectionString", connString);
-                
+            {                
                 // realm = authConfig.GetString("Realm", realm);
                 string userAccountsDll = invConfig.GetString("UserAccountsService", string.Empty);
                 if (userAccountsDll == string.Empty)
@@ -107,17 +90,6 @@ namespace OpenSim.Services.HypergridService
 
                 m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
             }
-
-            //
-            // We tried, but this doesn't exist. We can't proceed.
-            //
-            if (dllName == String.Empty)
-                throw new Exception("No StorageProvider configured");
-
-            m_Database = LoadPlugin<IXInventoryData>(dllName,
-                    new Object[] {connString, String.Empty});
-            if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
 
             m_log.Debug("[HG INVENTORY SERVICE]: Starting...");
         }

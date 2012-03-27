@@ -224,6 +224,12 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; For V2 map
     MapTileURL = "http://127.0.0.1:8002";
 
+    ; For V2/3 Web Profiles
+    ProfileServerURL = "http://127.0.0.1/profiles/[AGENT_NAME]"
+
+    ; For V2/V3 webapp authentication SSO
+    OpenIDServerURL = "http://127.0.0.1/openid/openidserver/"
+
     ; If you run this login server behind a proxy, set this to true
     ; HasProxy = false
 

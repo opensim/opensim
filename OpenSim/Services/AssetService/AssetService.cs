@@ -46,7 +46,12 @@ namespace OpenSim.Services.AssetService
 
         protected static AssetService m_RootInstance;
 
-        public AssetService(IConfigSource config) : base(config)
+        public AssetService(IConfigSource config)
+            : this(config, "AssetService")
+        {
+        }
+
+        public AssetService(IConfigSource config, string configName) : base(config, configName)
         {
             if (m_RootInstance == null)
             {
@@ -54,9 +59,9 @@ namespace OpenSim.Services.AssetService
 
                 if (m_AssetLoader != null)
                 {
-                    IConfig assetConfig = config.Configs["AssetService"];
+                    IConfig assetConfig = config.Configs[m_ConfigName];
                     if (assetConfig == null)
-                        throw new Exception("No AssetService configuration");
+                        throw new Exception("No " + m_ConfigName + " configuration");
 
                     string loaderArgs = assetConfig.GetString("AssetLoaderArgs",
                             String.Empty);

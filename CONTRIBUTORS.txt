@@ -86,8 +86,10 @@ what it is today.
 * Grumly57
 * GuduleLapointe
 * Ewe Loon
+* Fernando Oliveira
 * Fly-Man
 * Flyte Xevious
+* Garmin Kawaguichi
 * Imaze Rhiano
 * Intimidated
 * Jeremy Bongio (IBM)
@@ -106,6 +108,7 @@ what it is today.
 * M.Igarashi
 * maimedleech
 * Mana Janus
+* MarcelEdward
 * Mic Bowman
 * Michelle Argus
 * Michael Cortez (The Flotsam Project, http://osflotsam.org/)
@@ -135,6 +138,7 @@ what it is today.
 * Ruud Lathorp
 * SachaMagne
 * Salahzar Stenvaag
+* satguru p srivastava
 * sempuki
 * SignpostMarv
 * SpotOn3D

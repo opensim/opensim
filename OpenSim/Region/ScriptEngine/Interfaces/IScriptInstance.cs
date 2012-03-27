@@ -68,14 +68,48 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// </summary>
         bool Suspended { get; set; }
 
+        /// <summary>
+        /// Is the script shutting down?
+        /// </summary>
         bool ShuttingDown { get; set; }
+
+        /// <summary>
+        /// Script state
+        /// </summary>
         string State { get; set; }
+
+        /// <summary>
+        /// Time the script was last started
+        /// </summary>
+        DateTime TimeStarted { get; }
+
+        /// <summary>
+        /// Tick the last measurement period was started.
+        /// </summary>
+        long MeasurementPeriodTickStart { get; }
+
+        /// <summary>
+        /// Ticks spent executing in the last measurement period.
+        /// </summary>
+        long MeasurementPeriodExecutionTime { get; }
+
         IScriptEngine Engine { get; }
         UUID AppDomain { get; set; }
         string PrimName { get; }
         string ScriptName { get; }
         UUID ItemID { get; }
         UUID ObjectID { get; }
+
+        /// <summary>
+        /// UUID of the root object for the linkset that the script is in.
+        /// </summary>
+        UUID RootObjectID { get; }
+
+        /// <summary>
+        /// Local id of the root object for the linkset that the script is in.
+        /// </summary>
+        uint RootLocalID { get; }
+
         uint LocalID { get; }
         UUID AssetID { get; }
         Queue EventQueue { get; }
@@ -89,7 +123,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         void Start();
 
         /// <summary>
-        /// Stop the script.
+        /// Stop the script instance.
         /// </summary>
         /// <param name="timeout"></param>
         /// <returns>true if the script was successfully stopped, false otherwise</returns>
@@ -97,13 +131,17 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 
         void SetState(string state);
 
+        /// <summary>
+        /// Post an event to this script instance.
+        /// </summary>
+        /// <param name="data"></param>
         void PostEvent(EventParams data);
         
         void Suspend();
         void Resume();
 
         /// <summary>
-        /// Process the next event queued for this script
+        /// Process the next event queued for this script instance.
         /// </summary>
         /// <returns></returns>
         object EventProcessor();

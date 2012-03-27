@@ -432,7 +432,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (PhysicsActor != null && m_parentID == 0)
+                if (PhysicsActor != null)
                 {
                     m_pos = PhysicsActor.Position;
 
@@ -455,19 +455,12 @@ namespace OpenSim.Region.Framework.Scenes
                     // in the sim unless the avatar is on a sit target. While
                     // on a sit target, m_pos will contain the desired offset
                     // without the parent rotation applied.
-                    if (ParentID != 0)
-                    {
-                        SceneObjectPart part = m_scene.GetSceneObjectPart(ParentID);
-                        if (part != null)
-                        {
-                            return part.AbsolutePosition + (m_pos * part.GetWorldRotation());
-                        }
-                        else
-                        {
-                            return ParentPosition + m_pos;
-                        }
-                    }
+                    SceneObjectPart sitPart = ParentPart;
+
+                    if (sitPart != null)
+                        return sitPart.AbsolutePosition + (m_pos * sitPart.GetWorldRotation());
                 }
+                
                 return m_pos;
             }
             set
@@ -484,7 +477,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                // Don't update while sitting
+                // Don't update while sitting.  The PhysicsActor above is null whilst sitting.
                 if (ParentID == 0)
                 {
                     m_pos = value;
@@ -511,6 +504,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // There is no offset position when not seated
                 if (ParentID == 0)
                     return;
+
                 m_pos = value;
             }
         }
@@ -569,12 +563,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool IsChildAgent { get; set; }
 
-        public uint ParentID
-        {
-            get { return m_parentID; }
-            set { m_parentID = value; }
-        }
-        private uint m_parentID;
+        /// <summary>
+        /// If the avatar is sitting, the local ID of the prim that it's sitting on.  If not sitting then zero.
+        /// </summary>
+        public uint ParentID { get; set; }
+
+        /// <summary>
+        /// If the avatar is sitting, the prim that it's sitting on.  If not sitting then null.
+        /// </summary>
+        /// <remarks>
+        /// If you use this property then you must take a reference since another thread could set it to null.
+        /// </remarks>
+        public SceneObjectPart ParentPart { get; set; }
 
         public float Health
         {
@@ -1751,36 +1751,34 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (ParentID != 0)
             {
-                SceneObjectPart part = m_scene.GetSceneObjectPart(ParentID);
-                if (part != null)
+                SceneObjectPart part = ParentPart;
+                TaskInventoryDictionary taskIDict = part.TaskInventory;
+                if (taskIDict != null)
                 {
-                    TaskInventoryDictionary taskIDict = part.TaskInventory;
-                    if (taskIDict != null)
+                    lock (taskIDict)
                     {
-                        lock (taskIDict)
+                        foreach (UUID taskID in taskIDict.Keys)
                         {
-                            foreach (UUID taskID in taskIDict.Keys)
-                            {
-                                UnRegisterControlEventsToScript(LocalId, taskID);
-                                taskIDict[taskID].PermsMask &= ~(
-                                    2048 | //PERMISSION_CONTROL_CAMERA
-                                    4); // PERMISSION_TAKE_CONTROLS
-                            }
+                            UnRegisterControlEventsToScript(LocalId, taskID);
+                            taskIDict[taskID].PermsMask &= ~(
+                                2048 | //PERMISSION_CONTROL_CAMERA
+                                4); // PERMISSION_TAKE_CONTROLS
                         }
                     }
-
-                    // Reset sit target.
-                    if (part.SitTargetAvatar == UUID)
-                        part.SitTargetAvatar = UUID.Zero;
-
-                    ParentPosition = part.GetWorldPosition();
-                    ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
                 }
+
+                // Reset sit target.
+                if (part.SitTargetAvatar == UUID)
+                    part.SitTargetAvatar = UUID.Zero;
+
+                ParentPosition = part.GetWorldPosition();
+                ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
 
                 m_pos += ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
                 ParentPosition = Vector3.Zero;
 
                 ParentID = 0;
+                ParentPart = null;
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
 
@@ -2206,19 +2204,16 @@ namespace OpenSim.Region.Framework.Scenes
 //                            "[SCENE PRESENCE]: Sitting {0} at position {1} ({2} + {3}) on part {4} {5} without sit target",
 //                            Name, part.AbsolutePosition, m_pos, ParentPosition, part.Name, part.LocalId);
                 }
+
+                ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
+                ParentID = m_requestedSitTargetID;
+
+                Velocity = Vector3.Zero;
+                RemoveFromPhysicalScene();
+        
+                Animator.TrySetMovementAnimation(sitAnimation);
+                SendAvatarDataToAllAgents();
             }
-            else
-            {
-                return;
-            }
-
-            ParentID = m_requestedSitTargetID;
-
-            Velocity = Vector3.Zero;
-            RemoveFromPhysicalScene();
-
-            Animator.TrySetMovementAnimation(sitAnimation);
-            SendAvatarDataToAllAgents();
         }
 
         public void HandleAgentSitOnGround()
@@ -2298,7 +2293,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (direc.Z > 2.0f)
                     {
-                        direc.Z *= 3.0f;
+                        direc.Z *= 2.6f;
 
                         // TODO: PreJump and jump happen too quickly.  Many times prejump gets ignored.
                         Animator.TrySetMovementAnimation("PREJUMP");
@@ -3831,7 +3826,7 @@ namespace OpenSim.Region.Framework.Scenes
             ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
             if (land != null)
             {
-                if (Scene.DEBUG)
+                if (Scene.DebugTeleporting)
                     TeleportFlagsDebug();
 
                 // If we come in via login, landmark or map, we want to

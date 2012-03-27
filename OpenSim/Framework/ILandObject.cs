@@ -71,6 +71,7 @@ namespace OpenSim.Framework
         bool IsEitherBannedOrRestricted(UUID avatar);
         bool IsBannedFromLand(UUID avatar);
         bool IsRestrictedFromLand(UUID avatar);
+        bool IsInLandAccessList(UUID avatar);
         void SendLandUpdateToClient(IClientAPI remote_client);
         void SendLandUpdateToClient(bool snap_selection, IClientAPI remote_client);
         List<LandAccessEntry> CreateAccessListArrayByFlag(AccessList flag);

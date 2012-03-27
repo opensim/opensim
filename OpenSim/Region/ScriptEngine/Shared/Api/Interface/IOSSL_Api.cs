@@ -161,6 +161,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osGetGridName();
         string osGetGridLoginURI();
         string osGetGridHomeURI();
+        string osGetGridGatekeeperURI();
         string osGetGridCustom(string key);
 
         LSL_String osFormatString(string str, LSL_List strings);
@@ -228,5 +229,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_List osGetAvatarList();
 
         LSL_String osUnixTimeToTimestamp(long time);
+
+        LSL_String osGetInventoryDesc(string item);
     }
 }

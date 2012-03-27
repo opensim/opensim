@@ -115,6 +115,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_tainted_CAPSULE_LENGTH; // set when the capsule length changes.
 
         /// <summary>
+        /// Base movement for calculating tilt.
+        /// </summary>
+        private float m_tiltBaseMovement = (float)Math.Sqrt(2);
+
+        /// <summary>
         /// Used to introduce a fixed tilt because a straight-up capsule falls through terrain, probably a bug in terrain collider
         /// </summary>
         private float m_tiltMagnitudeWhenProjectedOnXYPlane = 0.1131371f;
@@ -524,14 +529,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (movementVector.Y > 0)
                 {
                     // northeast
-                    movementVector.X = (float)Math.Sqrt(2.0);
-                    movementVector.Y = (float)Math.Sqrt(2.0);
+                    movementVector.X = m_tiltBaseMovement;
+                    movementVector.Y = m_tiltBaseMovement;
                 }
                 else
                 {
                     // southeast
-                    movementVector.X = (float)Math.Sqrt(2.0);
-                    movementVector.Y = -(float)Math.Sqrt(2.0);
+                    movementVector.X = m_tiltBaseMovement;
+                    movementVector.Y = -m_tiltBaseMovement;
                 }
             }
             else
@@ -540,14 +545,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (movementVector.Y > 0)
                 {
                     // northwest
-                    movementVector.X = -(float)Math.Sqrt(2.0);
-                    movementVector.Y = (float)Math.Sqrt(2.0);
+                    movementVector.X = -m_tiltBaseMovement;
+                    movementVector.Y = m_tiltBaseMovement;
                 }
                 else
                 {
                     // southwest
-                    movementVector.X = -(float)Math.Sqrt(2.0);
-                    movementVector.Y = -(float)Math.Sqrt(2.0);
+                    movementVector.X = -m_tiltBaseMovement;
+                    movementVector.Y = -m_tiltBaseMovement;
                 }
             }
 

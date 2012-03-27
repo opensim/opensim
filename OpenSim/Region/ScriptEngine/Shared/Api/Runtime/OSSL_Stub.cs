@@ -457,6 +457,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetGridHomeURI();
         }
 
+        public string osGetGridGatekeeperURI()
+        {
+            return m_OSSL_Functions.osGetGridGatekeeperURI();
+        }
+
         public string osGetGridCustom(string key)
         {
             return m_OSSL_Functions.osGetGridCustom(key);
@@ -857,6 +862,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_String osUnixTimeToTimestamp(long time)
         {
             return m_OSSL_Functions.osUnixTimeToTimestamp(time);
+        }
+
+        public LSL_String osGetInventoryDesc(string item)
+        {
+            return m_OSSL_Functions.osGetInventoryDesc(item);
         }
     }
 }

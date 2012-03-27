@@ -231,3 +231,13 @@
 [MapImageService]
 	; Set this if you want to change the default
 	; TilesStoragePath = "maptiles"
+
+[AuthorizationService]
+	; If you have regions with access restrictions
+	; specify them here using the convention
+	; Region_<Region_Name> = <flags>
+	; Valid flags are:
+	; DisallowForeigners -- HG visitors not allowed
+	; DisallowResidents -- only Admins and Managers allowed
+	; Example:
+	; Region_Test_1 = "DisallowForeigners"

@@ -97,7 +97,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_scenePresence.IsChildAgent)
                 return;
 
-            UUID animID = m_scenePresence.ControllingClient.GetDefaultAnimation(name);
+            // XXX: For some reason, we store all animations and use them with upper case names, but in LSL animations
+            // are referenced with lower case names!
+            UUID animID = DefaultAvatarAnimations.GetDefaultAnimation(name.ToUpper());
             if (animID == UUID.Zero)
                 return;
 
@@ -121,7 +123,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_scenePresence.IsChildAgent)
                 return;
 
-            UUID animID = m_scenePresence.ControllingClient.GetDefaultAnimation(name);
+            // XXX: For some reason, we store all animations and use them with upper case names, but in LSL animations
+            // are referenced with lower case names!
+            UUID animID = DefaultAvatarAnimations.GetDefaultAnimation(name.ToUpper());
             if (animID == UUID.Zero)
                 return;
 

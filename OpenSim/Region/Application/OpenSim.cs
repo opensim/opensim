@@ -225,12 +225,12 @@ namespace OpenSim
         /// </summary>
         private void RegisterConsoleCommands()
         {
-            m_console.Commands.AddCommand("region", false, "force update",
+            m_console.Commands.AddCommand("Regions", false, "force update",
                                           "force update",
                                           "Force the update of all objects on clients",
                                           HandleForceUpdate);
 
-            m_console.Commands.AddCommand("region", false, "debug packet",
+            m_console.Commands.AddCommand("Comms", false, "debug packet",
                                           "debug packet <level> [<avatar-first-name> <avatar-last-name>]",
                                           "Turn on packet debugging",
                                             "If level >  255 then all incoming and outgoing packets are logged.\n"
@@ -242,7 +242,7 @@ namespace OpenSim
                                           + "If an avatar name is given then only packets from that avatar are logged",
                                           Debug);
 
-            m_console.Commands.AddCommand("region", false, "debug http",
+            m_console.Commands.AddCommand("Comms", false, "debug http",
                                           "debug http <level>",
                                           "Turn on inbound http request debugging for everything except the event queue (see debug eq).",
                                             "If level >= 2 then the handler used to service the request is logged.\n"
@@ -250,37 +250,37 @@ namespace OpenSim
                                           + "If level <= 0 then no extra http logging is done.\n",
                                           Debug);
 
-            m_console.Commands.AddCommand("region", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
+            m_console.Commands.AddCommand("Comms", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
 
-            m_console.Commands.AddCommand("region", false, "debug scene",
+            m_console.Commands.AddCommand("Regions", false, "debug scene",
                                           "debug scene <scripting> <collisions> <physics>",
                                           "Turn on scene debugging", Debug);
 
-            m_console.Commands.AddCommand("region", false, "change region",
+            m_console.Commands.AddCommand("General", false, "change region",
                                           "change region <region name>",
                                           "Change current console region", ChangeSelectedRegion);
 
-            m_console.Commands.AddCommand("region", false, "save xml",
+            m_console.Commands.AddCommand("Archiving", false, "save xml",
                                           "save xml",
                                           "Save a region's data in XML format", SaveXml);
 
-            m_console.Commands.AddCommand("region", false, "save xml2",
+            m_console.Commands.AddCommand("Archiving", false, "save xml2",
                                           "save xml2",
                                           "Save a region's data in XML2 format", SaveXml2);
 
-            m_console.Commands.AddCommand("region", false, "load xml",
+            m_console.Commands.AddCommand("Archiving", false, "load xml",
                                           "load xml [-newIDs [<x> <y> <z>]]",
                                           "Load a region's data from XML format", LoadXml);
 
-            m_console.Commands.AddCommand("region", false, "load xml2",
+            m_console.Commands.AddCommand("Archiving", false, "load xml2",
                                           "load xml2",
                                           "Load a region's data from XML2 format", LoadXml2);
 
-            m_console.Commands.AddCommand("region", false, "save prims xml2",
+            m_console.Commands.AddCommand("Archiving", false, "save prims xml2",
                                           "save prims xml2 [<prim name> <file name>]",
                                           "Save named prim to XML2", SavePrimsXml2);
 
-            m_console.Commands.AddCommand("region", false, "load oar",
+            m_console.Commands.AddCommand("Archiving", false, "load oar",
                                           "load oar [--merge] [--skip-assets] [<OAR path>]",
                                           "Load a region's data from an OAR archive.",
                                           "--merge will merge the OAR with the existing scene." + Environment.NewLine
@@ -289,7 +289,7 @@ namespace OpenSim
                                           + "  If this is not given then the command looks for an OAR named region.oar in the current directory.",
                                           LoadOar);
 
-            m_console.Commands.AddCommand("region", false, "save oar",
+            m_console.Commands.AddCommand("Archiving", false, "save oar",
                                           //"save oar [-v|--version=<N>] [-p|--profile=<url>] [<OAR path>]",
                                           "save oar [-h|--home=<url>] [--noassets] [--publish] [--perm=<permissions>] [<OAR path>]",
                                           "Save a region's data to an OAR archive.",
@@ -306,54 +306,54 @@ namespace OpenSim
                                           + " If this is not given then the oar is saved to region.oar in the current directory.",
                                           SaveOar);
 
-            m_console.Commands.AddCommand("region", false, "edit scale",
+            m_console.Commands.AddCommand("Regions", false, "edit scale",
                                           "edit scale <name> <x> <y> <z>",
                                           "Change the scale of a named prim", HandleEditScale);
 
-            m_console.Commands.AddCommand("region", false, "kick user",
+            m_console.Commands.AddCommand("Users", false, "kick user",
                                           "kick user <first> <last> [message]",
                                           "Kick a user off the simulator", KickUserCommand);
 
-            m_console.Commands.AddCommand("region", false, "show users",
+            m_console.Commands.AddCommand("Users", false, "show users",
                                           "show users [full]",
                                           "Show user data for users currently on the region", 
                                           "Without the 'full' option, only users actually on the region are shown."
                                             + "  With the 'full' option child agents of users in neighbouring regions are also shown.",
                                           HandleShow);
 
-            m_console.Commands.AddCommand("region", false, "show connections",
+            m_console.Commands.AddCommand("Comms", false, "show connections",
                                           "show connections",
                                           "Show connection data", HandleShow);
 
-            m_console.Commands.AddCommand("region", false, "show circuits",
+            m_console.Commands.AddCommand("Comms", false, "show circuits",
                                           "show circuits",
                                           "Show agent circuit data", HandleShow);
 
-            m_console.Commands.AddCommand("region", false, "show http-handlers",
+            m_console.Commands.AddCommand("Comms", false, "show http-handlers",
                                           "show http-handlers",
                                           "Show all registered http handlers", HandleShow);
 
-            m_console.Commands.AddCommand("region", false, "show pending-objects",
+            m_console.Commands.AddCommand("Comms", false, "show pending-objects",
                                           "show pending-objects",
                                           "Show # of objects on the pending queues of all scene viewers", HandleShow);
 
-            m_console.Commands.AddCommand("region", false, "show modules",
+            m_console.Commands.AddCommand("General", false, "show modules",
                                           "show modules",
                                           "Show module data", HandleShow);
 
-            m_console.Commands.AddCommand("region", false, "show regions",
+            m_console.Commands.AddCommand("Regions", false, "show regions",
                                           "show regions",
                                           "Show region data", HandleShow);
             
-            m_console.Commands.AddCommand("region", false, "show ratings",
+            m_console.Commands.AddCommand("Regions", false, "show ratings",
                                           "show ratings",
                                           "Show rating data", HandleShow);
 
-            m_console.Commands.AddCommand("region", false, "backup",
+            m_console.Commands.AddCommand("Regions", false, "backup",
                                           "backup",
                                           "Persist currently unsaved object changes immediately instead of waiting for the normal persistence call.", RunCommand);
 
-            m_console.Commands.AddCommand("region", false, "create region",
+            m_console.Commands.AddCommand("Regions", false, "create region",
                                           "create region [\"region name\"] <region_file.ini>",
                                           "Create a new region.",
                                           "The settings for \"region name\" are read from <region_file.ini>. Paths specified with <region_file.ini> are relative to your Regions directory, unless an absolute path is given."
@@ -362,62 +362,57 @@ namespace OpenSim
                                           + "If <region_file.ini> does not exist, it will be created.",
                                           HandleCreateRegion);
 
-            m_console.Commands.AddCommand("region", false, "restart",
+            m_console.Commands.AddCommand("Regions", false, "restart",
                                           "restart",
                                           "Restart all sims in this instance", RunCommand);
 
-            m_console.Commands.AddCommand("region", false, "config set",
+            m_console.Commands.AddCommand("General", false, "config set",
                                           "config set <section> <key> <value>",
                                           "Set a config option.  In most cases this is not useful since changed parameters are not dynamically reloaded.  Neither do changed parameters persist - you will have to change a config file manually and restart.", HandleConfig);
 
-            m_console.Commands.AddCommand("region", false, "config get",
+            m_console.Commands.AddCommand("General", false, "config get",
                                           "config get [<section>] [<key>]",
                                           "Synonym for config show",
                                           HandleConfig);
             
-            m_console.Commands.AddCommand("region", false, "config show",
+            m_console.Commands.AddCommand("General", false, "config show",
                                           "config show [<section>] [<key>]",
                                           "Show config information", 
                                           "If neither section nor field are specified, then the whole current configuration is printed." + Environment.NewLine
                                           + "If a section is given but not a field, then all fields in that section are printed.",
                                           HandleConfig);            
 
-            m_console.Commands.AddCommand("region", false, "config save",
+            m_console.Commands.AddCommand("General", false, "config save",
                                           "config save <path>",
                                           "Save current configuration to a file at the given path", HandleConfig);
 
-            m_console.Commands.AddCommand("region", false, "command-script",
+            m_console.Commands.AddCommand("General", false, "command-script",
                                           "command-script <script>",
                                           "Run a command script from file", RunCommand);
 
-            m_console.Commands.AddCommand("region", false, "remove-region",
+            m_console.Commands.AddCommand("Regions", false, "remove-region",
                                           "remove-region <name>",
                                           "Remove a region from this simulator", RunCommand);
 
-            m_console.Commands.AddCommand("region", false, "delete-region",
+            m_console.Commands.AddCommand("Regions", false, "delete-region",
                                           "delete-region <name>",
                                           "Delete a region from disk", RunCommand);
 
-            m_console.Commands.AddCommand("region", false, "modules list",
+            m_console.Commands.AddCommand("General", false, "modules list",
                                           "modules list",
                                           "List modules", HandleModules);
 
-            m_console.Commands.AddCommand("region", false, "modules load",
+            m_console.Commands.AddCommand("General", false, "modules load",
                                           "modules load <name>",
                                           "Load a module", HandleModules);
 
-            m_console.Commands.AddCommand("region", false, "modules unload",
+            m_console.Commands.AddCommand("General", false, "modules unload",
                                           "modules unload <name>",
                                           "Unload a module", HandleModules);
 
-            m_console.Commands.AddCommand("region", false, "Add-InventoryHost",
-                                          "Add-InventoryHost <host>",
-                                          String.Empty, RunCommand);
-
-            m_console.Commands.AddCommand("region", false, "kill uuid",
+            m_console.Commands.AddCommand("Regions", false, "kill uuid",
                                           "kill uuid <UUID>",
                                           "Kill an object by UUID", KillUUID);
-
         }
 
         public override void ShutdownSpecific()
@@ -508,7 +503,11 @@ namespace OpenSim
                     string currentCommand;
                     while ((currentCommand = readFile.ReadLine()) != null)
                     {
-                        if (currentCommand != String.Empty)
+                        currentCommand = currentCommand.Trim();
+                        if (!(currentCommand == ""
+                            || currentCommand.StartsWith(";")
+                            || currentCommand.StartsWith("//")
+                            || currentCommand.StartsWith("#")))
                         {
                             m_log.Info("[COMMANDFILE]: Running '" + currentCommand + "'");
                             m_console.RunCommand(currentCommand);
@@ -829,14 +828,6 @@ namespace OpenSim
                 case "restart":
                     m_sceneManager.RestartCurrentScene();
                     break;
-
-                case "Add-InventoryHost":
-                    if (cmdparams.Length > 0)
-                    {
-                        MainConsole.Instance.Output("Not implemented.");
-                    }
-                    break;
-
             }
         }
 
@@ -928,7 +919,7 @@ namespace OpenSim
                     break;
 
                 case "scene":
-                    if (args.Length == 5)
+                    if (args.Length == 4)
                     {
                         if (m_sceneManager.CurrentScene == null)
                         {
@@ -936,37 +927,19 @@ namespace OpenSim
                         }
                         else
                         {
-                            bool scriptingOn = !Convert.ToBoolean(args[2]);
-                            bool collisionsOn = !Convert.ToBoolean(args[3]);
-                            bool physicsOn = !Convert.ToBoolean(args[4]);
-                            m_sceneManager.CurrentScene.SetSceneCoreDebug(scriptingOn, collisionsOn, physicsOn);
+                            string key = args[2];
+                            string value = args[3];
+                            m_sceneManager.CurrentScene.SetSceneCoreDebug(
+                                new Dictionary<string, string>() { { key, value } });
 
-                            MainConsole.Instance.Output(
-                                String.Format(
-                                    "Set debug scene scripting = {0}, collisions = {1}, physics = {2}",
-                                    !scriptingOn, !collisionsOn, !physicsOn));
+                            MainConsole.Instance.OutputFormat("Set debug scene {0} = {1}", key, value);
                         }
                     }
                     else
                     {
-                        MainConsole.Instance.Output("Usage: debug scene <scripting> <collisions> <physics> (where inside <> is true/false)");
+                        MainConsole.Instance.Output("Usage: debug scene scripting|collisions|physics|teleport true|false");
                     }
 
-                    break;
-
-                case "teleport":
-                    foreach(Scene s in m_sceneManager.Scenes)
-                    {
-                        if (s.DEBUG)
-                        {
-                            s.DEBUG = false;
-                            MainConsole.Instance.Output("Teleport debugging is disabled!");
-                        }
-                        else{
-                            s.DEBUG = true;
-                            MainConsole.Instance.Output("Teleport debugging is enabled!");
-                        }
-                    }
                     break;
 
                 default:

@@ -700,11 +700,6 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public UUID GetDefaultAnimation(string name)
-        {
-            return UUID.Zero;
-        }
-
         public void SendTakeControls(int controls, bool passToAgent, bool TakeControls)
         {
         }

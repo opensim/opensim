@@ -74,6 +74,8 @@ namespace OpenSim.Services.LLLoginService
         protected string m_GatekeeperURL;
         protected bool m_AllowRemoteSetLoginLevel;
         protected string m_MapTileURL;
+        protected string m_ProfileURL;
+        protected string m_OpenIDURL;
         protected string m_SearchURL;
         protected string m_Currency;
 
@@ -108,6 +110,8 @@ namespace OpenSim.Services.LLLoginService
             m_MinLoginLevel = m_LoginServerConfig.GetInt("MinLoginLevel", 0);
             m_GatekeeperURL = m_LoginServerConfig.GetString("GatekeeperURI", string.Empty);
             m_MapTileURL = m_LoginServerConfig.GetString("MapTileURL", string.Empty);
+            m_ProfileURL = m_LoginServerConfig.GetString("ProfileServerURL", string.Empty);
+            m_OpenIDURL = m_LoginServerConfig.GetString("OpenIDServerURL", String.Empty);
             m_SearchURL = m_LoginServerConfig.GetString("SearchURL", string.Empty);
             m_Currency = m_LoginServerConfig.GetString("Currency", string.Empty);
 
@@ -413,7 +417,7 @@ namespace OpenSim.Services.LLLoginService
                 // Finally, fill out the response and return it
                 //
                 LLLoginResponse response = new LLLoginResponse(account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
-                    where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP, m_MapTileURL, m_SearchURL, m_Currency);
+                    where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP, m_MapTileURL, m_ProfileURL, m_OpenIDURL, m_SearchURL, m_Currency);
 
                 m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to client.");
                 return response;
@@ -889,16 +893,16 @@ namespace OpenSim.Services.LLLoginService
         private void RegisterCommands()
         {
             //MainConsole.Instance.Commands.AddCommand
-            MainConsole.Instance.Commands.AddCommand("loginservice", false, "login level",
+            MainConsole.Instance.Commands.AddCommand("Users", false, "login level",
                     "login level <level>",
                     "Set the minimum user level to log in", HandleLoginCommand);
 
-            MainConsole.Instance.Commands.AddCommand("loginservice", false, "login reset",
+            MainConsole.Instance.Commands.AddCommand("Users", false, "login reset",
                     "login reset",
                     "Reset the login level to allow all users",
                     HandleLoginCommand);
 
-            MainConsole.Instance.Commands.AddCommand("loginservice", false, "login text",
+            MainConsole.Instance.Commands.AddCommand("Users", false, "login text",
                     "login text <text>",
                     "Set the text users will see on login", HandleLoginCommand);
 

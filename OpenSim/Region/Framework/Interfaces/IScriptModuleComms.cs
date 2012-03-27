@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Reflection;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -44,6 +45,18 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Modules can subscribe to this event to receive command invocations from in-world scripts
         /// </summary>
         event ScriptCommand OnScriptCommand;
+
+        void RegisterScriptInvocation(object target, string method);
+        void RegisterScriptInvocation(object target, MethodInfo method);
+        void RegisterScriptInvocation(object target, string[] methods);
+        Delegate[] GetScriptInvocationList();
+
+        Delegate LookupScriptInvocation(string fname);
+        string LookupModInvocation(string fname);
+        Type[] LookupTypeSignature(string fname);
+        Type LookupReturnType(string fname);
+
+        object InvokeOperation(UUID hostId, UUID scriptId, string fname, params object[] parms);
 
         /// <summary>
         /// Send a link_message event to an in-world script

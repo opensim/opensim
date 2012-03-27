@@ -1,0 +1,3 @@
+; Copy this file to shutdown_commands.txt to execute region console commands when the simulator is asked to shut down
+; e.g. show stats
+; Lines that start with ; are comments

@@ -197,8 +197,15 @@ namespace OpenSim.Services.Connectors
 
             Dictionary<string, object> structData = data.ToKeyValuePairs();
 
-            foreach (KeyValuePair<string,object> kvp in structData)
+            foreach (KeyValuePair<string, object> kvp in structData)
+            {
+                if (kvp.Value == null)
+                {
+                    m_log.DebugFormat("[ACCOUNTS CONNECTOR]: Null value for {0}", kvp.Key);
+                    continue;
+                }
                 sendData[kvp.Key] = kvp.Value.ToString();
+            }
 
             return SendAndGetBoolReply(sendData);
         }

@@ -82,19 +82,19 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 m_scenes[scene.RegionInfo.RegionID] = scene;
 
             scene.AddCommand(
-                this, "image queues clear",
+                "Comms", this, "image queues clear",
                 "image queues clear <first-name> <last-name>",
                 "Clear the image queues (textures downloaded via UDP) for a particular client.",
                 (mod, cmd) => MainConsole.Instance.Output(HandleImageQueuesClear(cmd)));
 
             scene.AddCommand(
-                this, "image queues show",
+                "Comms", this, "image queues show",
                 "image queues show <first-name> <last-name>",
                 "Show the image queues (textures downloaded via UDP) for a particular client.",
                 (mod, cmd) => MainConsole.Instance.Output(GetImageQueuesReport(cmd)));
 
             scene.AddCommand(
-                this, "show pqueues",
+                "Comms", this, "show pqueues",
                 "show pqueues [full]",
                 "Show priority queue data for each client", 
                 "Without the 'full' option, only root agents are shown."
@@ -102,7 +102,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 (mod, cmd) => MainConsole.Instance.Output(GetPQueuesReport(cmd)));
             
             scene.AddCommand(
-                this, "show queues",
+                "Comms", this, "show queues",
                 "show queues [full]",
                 "Show queue data for each client", 
                 "Without the 'full' option, only root agents are shown."
@@ -110,13 +110,13 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 (mod, cmd) => MainConsole.Instance.Output(GetQueuesReport(cmd)));
 
             scene.AddCommand(
-                this, "show image queues",
+                "Comms", this, "show image queues",
                 "show image queues <first-name> <last-name>",
                 "Show the image queues (textures downloaded via UDP) for a particular client.",
                 (mod, cmd) => MainConsole.Instance.Output(GetImageQueuesReport(cmd)));
             
             scene.AddCommand(
-                this, "show throttles",
+                "Comms", this, "show throttles",
                 "show throttles [full]",
                 "Show throttle settings for each client and for the server overall", 
                 "Without the 'full' option, only root agents are shown."
@@ -124,7 +124,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 (mod, cmd) => MainConsole.Instance.Output(GetThrottlesReport(cmd)));
 
             scene.AddCommand(
-                this, "emergency-monitoring",
+                "Comms", this, "emergency-monitoring",
                 "emergency-monitoring",
                 "Go on/off emergency monitoring mode",
                 "Go on/off emergency monitoring mode",

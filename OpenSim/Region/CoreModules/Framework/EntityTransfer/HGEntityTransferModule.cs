@@ -50,6 +50,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         private bool m_Initialized = false;
 
+        private bool m_RestrictInventoryAccessAbroad = false;
+
         private GatekeeperServiceConnector m_GatekeeperConnector;
 
         #region ISharedRegionModule
@@ -68,6 +70,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (name == Name)
                 {
                     InitialiseCommon(source);
+                    IConfig transferConfig = source.Configs["HGEntityTransfer"];
+                    if (transferConfig != null)
+                        m_RestrictInventoryAccessAbroad = transferConfig.GetBoolean("RestrictInventoryAccessAbroad", false);
+
                     m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: {0} enabled.", Name);
                 }
             }
@@ -169,6 +175,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     IUserAgentService connector = new UserAgentServiceConnector(userAgentDriver);
                     bool success = connector.LoginAgentToGrid(agentCircuit, reg, finalDestination, out reason);
                     logout = success; // flag for later logout from this grid; this is an HG TP
+
+                    if (success && m_RestrictInventoryAccessAbroad)
+                    {
+                        // TODO tell the viewer to remove the root folder
+                    }
 
                     return success;
                 }
@@ -281,6 +292,21 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // can't find the region: Tell viewer and abort
             remoteClient.SendTeleportFailed("The teleport destination could not be found.");
 
+        }
+
+        protected override void Fail(ScenePresence sp, GridRegion finalDestination, bool logout)
+        {
+            base.Fail(sp, finalDestination, logout);
+            if (logout && m_RestrictInventoryAccessAbroad)
+            {
+                // Restore the user's inventory, because we removed it earlier on
+                InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(sp.UUID);
+                if (root != null)
+                {
+                    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Restoring");
+                    sp.ControllingClient.SendBulkUpdateInventory(root);
+                }
+            }
         }
 
         #endregion

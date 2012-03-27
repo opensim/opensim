@@ -304,6 +304,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
+            if (IsInTransit(sp.UUID)) // Avie is already on the way. Caller shouldn't do this.
+                return;
+
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Request Teleport to {0} ({1}) {2}/{3}",
                 reg.ServerURI, finalDestination.ServerURI, finalDestination.RegionName, position);
@@ -444,7 +447,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1}.  Returning avatar to source region.", 
                         sp.Name, finalDestination.RegionName);
                     
-                    Fail(sp, finalDestination);
+                    Fail(sp, finalDestination, logout);
                     return;
                 }
 
@@ -476,7 +479,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} failed due to no callback from destination region.  Returning avatar to source region.", 
                         sp.Name, finalDestination.RegionName);
                     
-                    Fail(sp, finalDestination);                   
+                    Fail(sp, finalDestination, logout);                   
                     return;
                 }
 
@@ -527,7 +530,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
-        private void Fail(ScenePresence sp, GridRegion finalDestination)
+        protected virtual void Fail(ScenePresence sp, GridRegion finalDestination, bool logout)
         {
             // Client never contacted destination. Let's restore everything back
             sp.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
@@ -1859,6 +1862,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (!m_agentsInTransit.Contains(id))
                     m_agentsInTransit.Add(id);
             }
+        }
+
+        protected bool IsInTransit(UUID id)
+        {
+            lock (m_agentsInTransit)
+            {
+                if (m_agentsInTransit.Contains(id))
+                    return true;
+            }
+            return false;
         }
 
         protected bool ResetFromTransit(UUID id)

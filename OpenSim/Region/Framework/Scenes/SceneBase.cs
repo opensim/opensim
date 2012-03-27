@@ -149,9 +149,13 @@ namespace OpenSim.Region.Framework.Scenes
         #region Update Methods
 
         /// <summary>
-        /// Normally called once every frame/tick to let the world preform anything required (like running the physics simulation)
+        /// Called to update the scene loop by a number of frames and until shutdown.
         /// </summary>
-        public abstract void Update();
+        /// <param name="frames">
+        /// Number of frames to update.  Exits on shutdown even if there are frames remaining.
+        /// If -1 then updates until shutdown.
+        /// </param>
+        public abstract void Update(int frames);
 
         #endregion
 
@@ -472,6 +476,63 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Call this from a region module to add a command to the OpenSim console.
         /// </summary>
+        /// <param name="mod">
+        /// The use of IRegionModuleBase is a cheap trick to get a different method signature,
+        /// though all new modules should be using interfaces descended from IRegionModuleBase anyway.
+        /// </param>
+        /// <param name="category">
+        /// Category of the command.  This is the section under which it will appear when the user asks for help
+        /// </param>
+        /// <param name="command"></param>
+        /// <param name="shorthelp"></param>
+        /// <param name="longhelp"></param>
+        /// <param name="callback"></param>
+        public void AddCommand(
+            string category, object mod, string command, string shorthelp, string longhelp, CommandDelegate callback)
+        {
+            AddCommand(category, mod, command, shorthelp, longhelp, string.Empty, callback);
+        }
+
+        /// <summary>
+        /// Call this from a region module to add a command to the OpenSim console.
+        /// </summary>
+        /// <param name="mod"></param>
+        /// <param name="command"></param>
+        /// <param name="shorthelp"></param>
+        /// <param name="longhelp"></param>
+        /// <param name="descriptivehelp"></param>
+        /// <param name="callback"></param>
+        public void AddCommand(object mod, string command, string shorthelp, string longhelp, string descriptivehelp, CommandDelegate callback)
+        {
+            string moduleName = "";
+
+            if (mod != null)
+            {
+                if (mod is IRegionModule)
+                {
+                    IRegionModule module = (IRegionModule)mod;
+                    moduleName = module.Name;
+                }
+                else if (mod is IRegionModuleBase)
+                {
+                    IRegionModuleBase module = (IRegionModuleBase)mod;
+                    moduleName = module.Name;
+                }
+                else
+                {
+                    throw new Exception("AddCommand module parameter must be IRegionModule or IRegionModuleBase");
+                }
+            }
+
+            AddCommand(moduleName, mod, command, shorthelp, longhelp, descriptivehelp, callback);
+        }
+
+        /// <summary>
+        /// Call this from a region module to add a command to the OpenSim console.
+        /// </summary>
+        /// <param name="category">
+        /// Category of the command.  This is the section under which it will appear when the user asks for help
+        /// </param>
         /// <param name="mod"></param>
         /// <param name="command"></param>
         /// <param name="shorthelp"></param>
@@ -479,12 +540,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="descriptivehelp"></param>
         /// <param name="callback"></param>
         public void AddCommand(
-            object mod, string command, string shorthelp, string longhelp, string descriptivehelp, CommandDelegate callback)
+            string category, object mod, string command,
+            string shorthelp, string longhelp, string descriptivehelp, CommandDelegate callback)
         {
             if (MainConsole.Instance == null)
                 return;
 
-            string modulename = String.Empty;
             bool shared = false;
 
             if (mod != null)
@@ -492,20 +553,20 @@ namespace OpenSim.Region.Framework.Scenes
                 if (mod is IRegionModule)
                 {
                     IRegionModule module = (IRegionModule)mod;
-                    modulename = module.Name;
                     shared = module.IsSharedModule;
                 }
                 else if (mod is IRegionModuleBase)
                 {
-                    IRegionModuleBase module = (IRegionModuleBase)mod;
-                    modulename = module.Name;
                     shared = mod is ISharedRegionModule;
                 }
-                else throw new Exception("AddCommand module parameter must be IRegionModule or IRegionModuleBase");
+                else
+                {
+                    throw new Exception("AddCommand module parameter must be IRegionModule or IRegionModuleBase");
+                }
             }
 
             MainConsole.Instance.Commands.AddCommand(
-                modulename, shared, command, shorthelp, longhelp, descriptivehelp, callback);
+                category, shared, command, shorthelp, longhelp, descriptivehelp, callback);
         }
 
         public virtual ISceneObject DeserializeObject(string representation)

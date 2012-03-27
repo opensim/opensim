@@ -108,12 +108,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 //                "[ARCHIVER]: Received {0} of {1} assets requested",
 //                assetsFoundUuids.Count, assetsFoundUuids.Count + assetsNotFoundUuids.Count);
 
+            m_log.InfoFormat("[ARCHIVER]: Adding region settings to archive.");
+
             // Write out region settings
             string settingsPath
                 = String.Format("{0}{1}.xml", ArchiveConstants.SETTINGS_PATH, m_scene.RegionInfo.RegionName);
             m_archiveWriter.WriteFile(settingsPath, RegionSettingsSerializer.Serialize(m_scene.RegionInfo.RegionSettings));
 
-            m_log.InfoFormat("[ARCHIVER]: Added region settings to archive.");
+            m_log.InfoFormat("[ARCHIVER]: Adding parcel settings to archive.");
 
             // Write out land data (aka parcel) settings
             List<ILandObject>landObjects = m_scene.LandChannel.AllParcels();
@@ -124,7 +126,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                                                     landData.GlobalID.ToString());
                 m_archiveWriter.WriteFile(landDataPath, LandDataSerializer.Serialize(landData));
             }
-            m_log.InfoFormat("[ARCHIVER]: Added parcel settings to archive.");
+
+            m_log.InfoFormat("[ARCHIVER]: Adding terrain information to archive.");
 
             // Write out terrain
             string terrainPath
@@ -135,7 +138,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_archiveWriter.WriteFile(terrainPath, ms.ToArray());
             ms.Close();
 
-            m_log.InfoFormat("[ARCHIVER]: Added terrain information to archive.");
+            m_log.InfoFormat("[ARCHIVER]: Adding scene objects to archive.");
            
             // Write out scene object metadata
             foreach (SceneObjectGroup sceneObject in m_sceneObjects)
@@ -145,10 +148,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 string serializedObject = m_serialiser.SerializeGroupToXml2(sceneObject, m_options);                
                 m_archiveWriter.WriteFile(ArchiveHelpers.CreateObjectPath(sceneObject), serializedObject);
             }
-
-            m_log.InfoFormat("[ARCHIVER]: Added scene objects to archive.");
         }
-
-
     }
 }

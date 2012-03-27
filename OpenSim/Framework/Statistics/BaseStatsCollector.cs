@@ -26,8 +26,8 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.Text;
-
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
@@ -46,8 +46,12 @@ namespace OpenSim.Framework.Statistics
             sb.Append(Environment.NewLine);
             sb.Append(
                 string.Format(
-                    "Allocated to OpenSim : {0} MB" + Environment.NewLine,
+                    "Allocated to OpenSim objects: {0} MB\n",
                     Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0)));
+            sb.Append(
+                string.Format(
+                    "Process memory              : {0} MB\n",
+                    Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0)));
 
             return sb.ToString();
         }

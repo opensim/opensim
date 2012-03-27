@@ -58,10 +58,10 @@ namespace OpenSim.Services.HypergridService
 
         private UserAccountCache m_Cache;
 
-        public HGAssetService(IConfigSource config) : base(config)
+        public HGAssetService(IConfigSource config, string configName) : base(config, configName)
         {
             m_log.Debug("[HGAsset Service]: Starting");
-            IConfig assetConfig = config.Configs["HGAssetService"];
+            IConfig assetConfig = config.Configs[configName];
             if (assetConfig == null)
                 throw new Exception("No HGAssetService configuration");
 
