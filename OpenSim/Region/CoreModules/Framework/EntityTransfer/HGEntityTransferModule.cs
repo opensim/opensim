@@ -428,16 +428,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (core.TryGet<IClientInventory>(out inv))
                 {
                     InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
-                    if (root != null)
-                    {
-                        m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Restoring root inventory for user {0}", client.AgentId);
-                        InventoryCollection content = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, root.ID);
-                        m_log.DebugFormat("[XXX]: Folder name {0}, id {1}, parent {2}", root.Name, root.ID, root.ParentID);
-                        foreach (InventoryItemBase i in content.Items)
-                            m_log.DebugFormat("[XXX]:   Name={0}, folderID={1}", i.Name, i.Folder);
+                    client.SendBulkUpdateInventory(root);
+                    //if (root != null)
+                    //{
+                    //    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Restoring root inventory for user {0}", client.AgentId);
+                    //    InventoryCollection content = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, root.ID);
+                    //    m_log.DebugFormat("[XXX]: Folder name {0}, id {1}, parent {2}", root.Name, root.ID, root.ParentID);
+                    //    foreach (InventoryItemBase i in content.Items)
+                    //        m_log.DebugFormat("[XXX]:   Name={0}, folderID={1}", i.Name, i.Folder);
 
-                        inv.SendBulkUpdateInventory(content.Folders.ToArray(), content.Items.ToArray());
-                    }
+                    //    inv.SendBulkUpdateInventory(content.Folders.ToArray(), content.Items.ToArray());
+                    //}
                 }
             }
         }
