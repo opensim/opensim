@@ -12339,5 +12339,53 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             eq.Enqueue(BuildEvent("RemoveInventoryFolder",
                     llsd), AgentId);
         }
+
+        public void SendBulkUpdateInventory(InventoryFolderBase[] folders, InventoryItemBase[] items)
+        {
+            IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+
+            if (eq == null)
+            {
+                m_log.DebugFormat("[LLCLIENT]: Null event queue");
+                return;
+            }
+
+            OSDMap llsd = new OSDMap(3);
+
+            OSDMap AgentDataMap = new OSDMap(1);
+            AgentDataMap.Add("AgentID", OSD.FromUUID(AgentId));
+            AgentDataMap.Add("SessionID", OSD.FromUUID(SessionId));
+
+            OSDArray AgentData = new OSDArray(1);
+            AgentData.Add(AgentDataMap);
+
+            llsd.Add("AgentData", AgentData);
+
+            OSDArray FolderData = new OSDArray();
+
+            foreach (InventoryFolderBase folder in folders)
+            {
+                OSDMap FolderDataMap = new OSDMap(5);
+                FolderDataMap.Add("FolderID", OSD.FromUUID(folder.ID));
+                FolderDataMap.Add("AgentID", OSD.FromUUID(AgentId));
+                FolderDataMap.Add("ParentID", OSD.FromUUID(folder.ParentID));
+                FolderDataMap.Add("Type", OSD.FromInteger(folder.Type));
+                FolderDataMap.Add("Name", OSD.FromString(folder.Name));
+
+                FolderData.Add(FolderDataMap);
+            }
+
+            llsd.Add("FolderData", FolderData);
+
+            OSDArray ItemData = new OSDArray();
+
+            foreach (InventoryItemBase item in items)
+            {
+                OSDMap ItemDataMap = new OSDMap();
+                ItemData.Add(ItemDataMap);
+            }
+
+            llsd.Add("ItemData", ItemData);
+        }
     }
 }

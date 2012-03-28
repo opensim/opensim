@@ -27,6 +27,7 @@
 
 using System;
 using OpenMetaverse;
+using OpenSim.Framework;
 
 namespace OpenSim.Framework.Client
 {
@@ -34,5 +35,6 @@ namespace OpenSim.Framework.Client
     {
         void SendRemoveInventoryFolders(UUID[] folders);
         void SendRemoveInventoryItems(UUID[] folders);
+        void SendBulkUpdateInventory(InventoryFolderBase[] folders, InventoryItemBase[] items);
     }
 }
