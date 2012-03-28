@@ -32,6 +32,7 @@ using System.Reflection;
 using System.Timers;
 using OpenMetaverse;
 using log4net;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
@@ -1160,6 +1161,23 @@ namespace OpenSim.Region.Framework.Scenes
                 IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                 if (friendsModule != null)
                     friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+            }
+
+            // HACK HACK -- just seeing how the viewer responds
+            // Let's send the Suitcase or the real root folder folder for incoming HG agents
+            // Visiting agents get their suitcase contents; incoming local users get their real root folder's content
+            AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(UUID);
+            if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
+            {
+                // HACK FOR NOW. JUST TESTING, SO KEEPING EVERYONE ELSE OUT OF THESE TESTS
+                IConfig config = m_scene.Config.Configs["HGEntityTransferModule"];
+                if (config != null && config.GetBoolean("RestrictInventoryAccessAbroad", false))
+                {
+                    m_log.DebugFormat("[SCENE]: Sending root folder to viewer...");
+                    InventoryFolderBase root = m_scene.InventoryService.GetRootFolder(client.AgentId);
+                    //InventoryCollection rootContents = InventoryService.GetFolderContent(client.AgentId, root.ID);
+                    client.SendBulkUpdateInventory(root);
+                }
             }
 
 //            m_log.DebugFormat(
