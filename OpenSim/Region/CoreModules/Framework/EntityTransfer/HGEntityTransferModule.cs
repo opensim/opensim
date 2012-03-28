@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Reflection;
 
 using OpenSim.Framework;
+using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Connectors.Hypergrid;
@@ -177,9 +178,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     logout = success; // flag for later logout from this grid; this is an HG TP
 
                     if (success && m_RestrictInventoryAccessAbroad)
-                    {
-                        // TODO tell the viewer to remove the root folder
-                    }
+                        RemoveRootFolderContents(sp.ControllingClient);
 
                     return success;
                 }
@@ -299,13 +298,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             base.Fail(sp, finalDestination, logout);
             if (logout && m_RestrictInventoryAccessAbroad)
             {
-                // Restore the user's inventory, because we removed it earlier on
-                InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(sp.UUID);
-                if (root != null)
-                {
-                    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Restoring");
-                    sp.ControllingClient.SendBulkUpdateInventory(root);
-                }
+                RestoreRootFolderContents(sp.ControllingClient);
             }
         }
 
@@ -362,6 +355,47 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         }
 
         #endregion
+
+        private void RemoveRootFolderContents(IClientAPI client)
+        {
+            // TODO tell the viewer to remove the root folder's content
+            if (client is IClientCore)
+            {
+                IClientCore core = (IClientCore)client;
+                IClientInventory inv;
+
+                if (core.TryGet<IClientInventory>(out inv))
+                {
+                    InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
+                    if (root != null)
+                    {
+                        m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Removing root inventory");
+                        InventoryCollection content = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, root.ID);
+                        UUID[] ids = new UUID[content.Folders.Count];
+                        int i = 0;
+                        foreach (InventoryFolderBase f in content.Folders)
+                            ids[i++] = f.ID;
+                        inv.SendRemoveInventoryFolders(ids);
+                        ids = new UUID[content.Items.Count];
+                        i = 0;
+                        foreach (InventoryItemBase it in content.Items)
+                            ids[i++] = it.ID;
+                        inv.SendRemoveInventoryItems(ids);
+                    }
+                }
+            }
+        }
+
+        private void RestoreRootFolderContents(IClientAPI client)
+        {
+            // Restore the user's inventory, because we removed it earlier on
+            InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
+            if (root != null)
+            {
+                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Restoring root inventory");
+                client.SendBulkUpdateInventory(root);
+            }
+        }
 
         private GridRegion MakeRegion(AgentCircuitData aCircuit)
         {
