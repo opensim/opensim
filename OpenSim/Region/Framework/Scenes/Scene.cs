@@ -2800,21 +2800,6 @@ namespace OpenSim.Region.Framework.Scenes
             // Cache the user's name
             CacheUserName(sp, aCircuit);
 
-            // Let's send the Suitcase or the real root folder folder for incoming HG agents
-            // Visiting agents get their suitcase contents; incoming local users get their real root folder's content
-            if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
-            {
-                // HACK FOR NOW. JUST TESTING, SO KEEPING EVERYONE ELSE OUT OF THESE TESTS
-                IConfig config = m_config.Configs["HGEntityTransfer"];
-                if (config != null && config.GetBoolean("RestrictInventoryAccessAbroad", false))
-                {
-                    m_log.DebugFormat("[SCENE]: Sending root folder to viewer...");
-                    InventoryFolderBase root = InventoryService.GetRootFolder(client.AgentId);
-                    //InventoryCollection rootContents = InventoryService.GetFolderContent(client.AgentId, root.ID);
-                    client.SendBulkUpdateInventory(root);
-                }
-            }
-
             EventManager.TriggerOnNewClient(client);
             if (vialogin)
             {
