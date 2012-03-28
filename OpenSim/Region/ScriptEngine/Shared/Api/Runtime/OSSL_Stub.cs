@@ -868,5 +868,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetInventoryDesc(item);
         }
+
+        public LSL_Integer osInviteToGroup(LSL_Key agentId)
+        {
+            return m_OSSL_Functions.osInviteToGroup(agentId);
+        }
+
+        public LSL_Integer osEjectFromGroup(LSL_Key agentId)
+        {
+            return m_OSSL_Functions.osEjectFromGroup(agentId);
+        }
     }
 }

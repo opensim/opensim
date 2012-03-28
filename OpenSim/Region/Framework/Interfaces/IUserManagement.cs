@@ -16,6 +16,21 @@ namespace OpenSim.Region.Framework.Interfaces
         string GetUserServerURL(UUID uuid, string serverType);
 
         /// <summary>
+        /// Get user ID by the given name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>UUID.Zero if no user with that name is found or if the name is "Unknown User"</returns>
+        UUID GetUserIdByName(string name);
+
+        /// <summary>
+        /// Get user ID by the given name.
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <returns>UUID.Zero if no user with that name is found or if the name is "Unknown User"</returns>
+        UUID GetUserIdByName(string firstName, string lastName);
+
+        /// <summary>
         /// Add a user.
         /// </summary>
         /// <remarks>

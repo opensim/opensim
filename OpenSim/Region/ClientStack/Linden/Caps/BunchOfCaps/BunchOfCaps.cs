@@ -114,6 +114,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private IAssetService m_assetService;
         private bool m_dumpAssetsToFile = false;
         private string m_regionName;
+        private int m_levelUpload = 0;
 
         public BunchOfCaps(Scene scene, Caps caps)
         {
@@ -124,7 +125,10 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 IConfig sconfig = config.Configs["Startup"];
                 if (sconfig != null)
+                {
                     m_persistBakedTextures = sconfig.GetBoolean("PersistBakedTextures", m_persistBakedTextures);
+                    m_levelUpload = sconfig.GetInt("LevelUpload", 0);
+                }
             }
 
             m_assetService = m_Scene.AssetService;
@@ -367,21 +371,37 @@ namespace OpenSim.Region.ClientStack.Linden
                 llsdRequest.asset_type == "animation" ||
                 llsdRequest.asset_type == "sound")
             {
+                ScenePresence avatar = null;
                 IClientAPI client = null;
-                IScene scene = null;
-                if (GetClient != null)
-                {
-                    client = GetClient(m_HostCapsObj.AgentID);
-                    scene = client.Scene;
+                m_Scene.TryGetScenePresence(m_HostCapsObj.AgentID, out avatar);
 
-                    IMoneyModule mm = scene.RequestModuleInterface<IMoneyModule>();
+                // check user level
+                if (avatar != null)
+                {
+                    client = avatar.ControllingClient;
+
+                    if (avatar.UserLevel < m_levelUpload)
+                    {
+                        if (client != null)
+                            client.SendAgentAlertMessage("Unable to upload asset. Insufficient permissions.", false);
+
+                        LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
+                        errorResponse.uploader = "";
+                        errorResponse.state = "error";
+                        return errorResponse;
+                    }
+                }
+
+                // check funds
+                if (client != null)
+                {
+                    IMoneyModule mm = m_Scene.RequestModuleInterface<IMoneyModule>();
 
                     if (mm != null)
                     {
                         if (!mm.UploadCovered(client.AgentId, mm.UploadCharge))
                         {
-                            if (client != null)
-                                client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
+                            client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
 
                             LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
                             errorResponse.uploader = "";

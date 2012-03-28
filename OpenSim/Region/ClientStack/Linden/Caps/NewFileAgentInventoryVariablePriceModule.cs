@@ -56,6 +56,7 @@ namespace OpenSim.Region.ClientStack.Linden
 //        private IAssetService m_assetService;
         private bool m_dumpAssetsToFile = false;
         private bool m_enabled = true;
+        private int  m_levelUpload = 0;
 
         #region IRegionModuleBase Members
 
@@ -72,6 +73,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_enabled = meshConfig.GetBoolean("AllowMeshUpload", true);
+            m_levelUpload = meshConfig.GetInt("LevelUpload", 0);
         }
 
         public void AddRegion(Scene pScene)
@@ -137,25 +139,41 @@ namespace OpenSim.Region.ClientStack.Linden
            //     llsdRequest.asset_type == "animation" ||
            //     llsdRequest.asset_type == "sound")
            // {
+                // check user level
+                ScenePresence avatar = null;
                 IClientAPI client = null;
+                m_scene.TryGetScenePresence(agentID, out avatar);
 
-                
+                if (avatar != null)
+                {
+                    client = avatar.ControllingClient;
+
+                    if (avatar.UserLevel < m_levelUpload)
+                    {
+                        if (client != null)
+                            client.SendAgentAlertMessage("Unable to upload asset. Insufficient permissions.", false);
+
+                        LLSDNewFileAngentInventoryVariablePriceReplyResponse errorResponse = new LLSDNewFileAngentInventoryVariablePriceReplyResponse();
+                        errorResponse.rsvp = "";
+                        errorResponse.state = "error";
+                        return errorResponse;
+                    }
+                }
+
+                // check funds
                 IMoneyModule mm = m_scene.RequestModuleInterface<IMoneyModule>();
-                
+
                 if (mm != null)
                 {
-                    if (m_scene.TryGetClient(agentID, out client))
+                    if (!mm.UploadCovered(agentID, mm.UploadCharge))
                     {
-                        if (!mm.UploadCovered(client.AgentId, mm.UploadCharge))
-                        {
-                            if (client != null)
-                                client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
+                        if (client != null)
+                            client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
 
-                            LLSDNewFileAngentInventoryVariablePriceReplyResponse errorResponse = new LLSDNewFileAngentInventoryVariablePriceReplyResponse();
-                            errorResponse.rsvp = "";
-                            errorResponse.state = "error";
-                            return errorResponse;
-                        }
+                        LLSDNewFileAngentInventoryVariablePriceReplyResponse errorResponse = new LLSDNewFileAngentInventoryVariablePriceReplyResponse();
+                        errorResponse.rsvp = "";
+                        errorResponse.state = "error";
+                        return errorResponse;
                     }
                 }
            // }

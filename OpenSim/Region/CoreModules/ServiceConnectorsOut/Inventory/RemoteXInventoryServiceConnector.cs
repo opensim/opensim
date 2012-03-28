@@ -167,7 +167,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public  List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
         {
-            return new List<InventoryFolderBase>();
+            return m_RemoteConnector.GetInventorySkeleton(userId);
         }
 
         public  InventoryCollection GetUserInventory(UUID userID)

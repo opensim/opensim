@@ -1881,8 +1881,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (SceneObjectGroup group in PrimsFromDB)
             {
-                EventManager.TriggerOnSceneObjectLoaded(group);
                 AddRestoredSceneObject(group, true, true);
+                EventManager.TriggerOnSceneObjectLoaded(group);
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                 rootPart.Flags &= ~PrimFlags.Scripted;
                 rootPart.TrimPermissions();
@@ -2799,14 +2799,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Cache the user's name
             CacheUserName(sp, aCircuit);
-
-            // Let's send the Suitcase folder for incoming HG agents
-            if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
-            {
-                m_log.DebugFormat("[SCENE]: Sending root folder to viewer...");
-                InventoryFolderBase suitcase = InventoryService.GetRootFolder(client.AgentId);
-                client.SendBulkUpdateInventory(suitcase);
-            }
 
             EventManager.TriggerOnNewClient(client);
             if (vialogin)
