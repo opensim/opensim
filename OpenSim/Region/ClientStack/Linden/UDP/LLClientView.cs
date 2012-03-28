@@ -12264,6 +12264,44 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(reply, ThrottleOutPacketType.Task);
         }
 
+        public void SendRemoveInventoryItems(UUID[] items)
+        {
+            IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+
+            if (eq == null)
+            {
+                m_log.DebugFormat("[LLCLIENT]: Null event queue");
+                return;
+            }
+
+            OSDMap llsd = new OSDMap(3);
+
+            OSDMap AgentDataMap = new OSDMap(1);
+            AgentDataMap.Add("AgentID", OSD.FromUUID(AgentId));
+            AgentDataMap.Add("SessionID", OSD.FromUUID(SessionId));
+
+            OSDArray AgentData = new OSDArray(1);
+            AgentData.Add(AgentDataMap);
+
+            llsd.Add("AgentData", AgentData);
+
+            OSDArray ItemData = new OSDArray();
+
+            foreach (UUID item in items)
+            {
+                OSDMap ItemDataMap = new OSDMap(2);
+                ItemDataMap.Add("ItemID", OSD.FromUUID(item));
+                ItemDataMap.Add("AgentID", OSD.FromUUID(AgentId));
+
+                ItemData.Add(ItemDataMap);
+            }
+
+            llsd.Add("ItemData", ItemData);
+
+            eq.Enqueue(BuildEvent("RemoveInventoryItem",
+                    llsd), AgentId);
+        }
+
         public void SendRemoveInventoryFolders(UUID[] folders)
         {
             IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();

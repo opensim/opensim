@@ -33,5 +33,6 @@ namespace OpenSim.Framework.Client
     public interface IClientInventory
     {
         void SendRemoveInventoryFolders(UUID[] folders);
+        void SendRemoveInventoryItems(UUID[] folders);
     }
 }
