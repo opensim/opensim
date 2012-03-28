@@ -68,9 +68,11 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void OnNewClientDelegate(IClientAPI client);
         
         /// <summary>
-        /// Deprecated in favour of OnClientConnect.
-        /// Will be marked Obsolete after IClientCore has 100% of IClientAPI interfaces.
+        /// Triggered when a new client is added to the scene.
         /// </summary>
+        /// <remarks>
+        /// Triggered before OnClientLogin.
+        /// </remarks>
         public event OnNewClientDelegate OnNewClient;
 
         /// <summary>
@@ -188,6 +190,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void ClientClosed(UUID clientID, Scene scene);
 
+        /// <summary>
+        /// Fired when a client is removed from a scene.
+        /// </summary>
+        /// <remarks>
+        /// At the point of firing, the scene still contains the client's scene presence.
+        /// </remarks>
         public event ClientClosed OnClientClosed;
 
         public delegate void NewScript(UUID clientID, SceneObjectPart part, UUID itemID);
