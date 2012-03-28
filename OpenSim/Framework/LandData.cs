@@ -69,7 +69,7 @@ namespace OpenSim.Framework
                                 (uint) ParcelFlags.AllowAPrimitiveEntry |
                                 (uint) ParcelFlags.AllowDeedToGroup | (uint) ParcelFlags.AllowTerraform |
                                 (uint) ParcelFlags.CreateObjects | (uint) ParcelFlags.AllowOtherScripts |
-                                (uint) ParcelFlags.SoundLocal;
+                                (uint) ParcelFlags.SoundLocal | (uint) ParcelFlags.AllowVoiceChat;
 
         private byte _landingType = 0;
         private string _name = "Your Parcel";
