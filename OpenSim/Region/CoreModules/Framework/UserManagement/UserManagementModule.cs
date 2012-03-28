@@ -297,6 +297,35 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         #region IUserManagement
 
+        public UUID GetUserIdByName(string name)
+        {
+            string[] parts = name.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2)
+                throw new Exception("Name must have 2 components");
+
+            return GetUserIdByName(parts[0], parts[1]);
+        }
+
+        public UUID GetUserIdByName(string firstName, string lastName)
+        {
+            // TODO: Optimize for reverse lookup if this gets used by non-console commands.
+            lock (m_UserCache)
+            {
+                foreach (UserData user in m_UserCache.Values)
+                {
+                    if (user.FirstName == firstName && user.LastName == lastName)
+                        return user.Id;
+                }
+            }
+
+            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(UUID.Zero, firstName, lastName);
+
+            if (account != null)
+                return account.PrincipalID;
+
+            return UUID.Zero;
+        }
+
         public string GetUserName(UUID uuid)
         {
             string[] names = GetUserNames(uuid);
