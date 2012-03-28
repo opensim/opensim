@@ -2795,6 +2795,10 @@ namespace OpenSim.Region.Framework.Scenes
                     sp.IsChildAgent ? "child" : "root", sp.Name, RegionInfo.RegionName);
             }
 
+            // We must set this here so that TriggerOnNewClient and TriggerOnClientLogin can determine whether the
+            // client is for a root or child agent.
+            client.SceneAgent = sp;
+
             m_LastLogin = Util.EnvironmentTickCount();
 
             // Cache the user's name

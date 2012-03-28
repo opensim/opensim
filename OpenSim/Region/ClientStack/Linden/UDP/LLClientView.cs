@@ -396,7 +396,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
         public UUID AgentId { get { return m_agentId; } }
-        public ISceneAgent SceneAgent { get; private set; }
+        public ISceneAgent SceneAgent { get; set; }
         public UUID ActiveGroupId { get { return m_activeGroupID; } }
         public string ActiveGroupName { get { return m_activeGroupName; } }
         public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } }
@@ -719,7 +719,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public virtual void Start()
         {
-            SceneAgent = m_scene.AddNewClient(this, PresenceType.User);
+            m_scene.AddNewClient(this, PresenceType.User);
 
             RefreshGroupMembership();
         }

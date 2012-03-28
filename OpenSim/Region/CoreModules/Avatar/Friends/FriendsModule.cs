@@ -57,7 +57,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             public UUID PrincipalID;
             public FriendInfo[] Friends;
-            public int Refcount;
 
             public bool IsFriend(string friend)
             {
@@ -255,6 +254,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private void OnNewClient(IClientAPI client)
         {
+            if (client.SceneAgent.IsChildAgent)
+                return;
+
             client.OnInstantMessage += OnInstantMessage;
             client.OnApproveFriendRequest += OnApproveFriendRequest;
             client.OnDenyFriendRequest += OnDenyFriendRequest;
@@ -281,23 +283,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             UUID agentID = client.AgentId;
             lock (m_Friends)
             {
-                UserFriendData friendsData;
-                if (m_Friends.TryGetValue(agentID, out friendsData))
-                {
-                    friendsData.Refcount++;
-                    return false;
-                }
-                else
-                {
-                    friendsData = new UserFriendData();
-                    friendsData.PrincipalID = agentID;
-                    friendsData.Friends = GetFriendsFromService(client);
-                    friendsData.Refcount = 1;
+                UserFriendData friendsData = new UserFriendData();
+                friendsData.PrincipalID = agentID;
+                friendsData.Friends = GetFriendsFromService(client);
 
-                    m_Friends[agentID] = friendsData;
-                    return true;
-                }
+                m_Friends[agentID] = friendsData;
             }
+
+            return true;
         }
 
         private void OnClientClosed(UUID agentID, Scene scene)
@@ -307,23 +300,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             {
                 // do this for root agents closing out
                 StatusChange(agentID, false);
-            }
 
-            lock (m_Friends)
-            {
-                UserFriendData friendsData;
-                if (m_Friends.TryGetValue(agentID, out friendsData))
-                {
-                    friendsData.Refcount--;
-                    if (friendsData.Refcount <= 0)
-                        m_Friends.Remove(agentID);
-                }
+                lock (m_Friends)
+                    m_Friends.Remove(agentID);
             }
         }
 
         private void OnMakeRootAgent(ScenePresence sp)
         {
-            RecacheFriends(sp.ControllingClient);
+            // FIXME: Ideally, we want to avoid doing this here since it sits the EventManager.OnMakeRootAgent event
+            // is on the critical path for transferring an avatar from one region to another.
+            CacheFriends(sp.ControllingClient);
         }
 
         private void OnClientLogin(IClientAPI client)
@@ -628,8 +615,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 ccm.CreateCallingCard(client.AgentId, friendID, UUID.Zero);
             }
 
-            // Update the local cache
-            RecacheFriends(client);
+            // Update the local cache. 
+            CacheFriends(client);
 
             //
             // Notify the friend
@@ -691,7 +678,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 client.SendAlertMessage("Unable to terminate friendship on this sim.");
 
             // Update local cache
-            RecacheFriends(client);
+            CacheFriends(client);
 
             client.SendTerminateFriend(exfriendID);
 
@@ -812,7 +799,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
 
                 // Update the local cache
-                RecacheFriends(friendClient);
+                CacheFriends(friendClient);
 
                 // we're done
                 return true;
@@ -845,7 +832,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 // the friend in this sim as root agent
                 friendClient.SendTerminateFriend(exfriendID);
                 // update local cache
-                RecacheFriends(friendClient);
+                CacheFriends(friendClient);
                 // we're done
                 return true;
             }
@@ -944,19 +931,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         protected virtual FriendInfo[] GetFriendsFromService(IClientAPI client)
         {
             return FriendsService.GetFriends(client.AgentId);
-        }
-
-        protected void RecacheFriends(IClientAPI client)
-        {
-            // FIXME: Ideally, we want to avoid doing this here since it sits the EventManager.OnMakeRootAgent event
-            // is on the critical path for transferring an avatar from one region to another.
-            UUID agentID = client.AgentId;
-            lock (m_Friends)
-            {
-                UserFriendData friendsData;
-                if (m_Friends.TryGetValue(agentID, out friendsData))
-                    friendsData.Friends = GetFriendsFromService(client);
-            }
         }
 
         /// <summary>
