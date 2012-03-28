@@ -12541,7 +12541,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             foreach (InventoryItemBase item in items)
             {
                 OSDMap ItemDataMap = new OSDMap();
-                ItemData.Add(DataMap);
+                ItemData.Add(ItemDataMap);
             }
 
             llsd.Add("ItemData", ItemData);
