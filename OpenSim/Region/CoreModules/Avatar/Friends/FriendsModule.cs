@@ -214,6 +214,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         public virtual void RegionLoaded(Scene scene)
         {
+            scene.AddCommand(
+                "Friends", this, "friends show cache",
+                "friends show cache [<first-name> <last-name>]",
+                "Show the friends cache for the given user",
+                HandleFriendsShowCacheCommand);
         }
 
         public void RemoveRegion(Scene scene)
@@ -890,7 +895,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         /// Get friends from local cache only
         /// </summary>
         /// <param name="agentID"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// An empty array if the user has no friends or friends have not been cached.
+        /// </returns>
         protected FriendInfo[] GetFriends(UUID agentID)
         {
             UserFriendData friendsData;
@@ -939,6 +946,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
         }
 
+        /// <summary>
+        /// Are friends cached on this simulator for a particular user?
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        protected bool AreFriendsCached(UUID userID)
+        {
+            lock (m_Friends)
+                return m_Friends.ContainsKey(userID);
+        }
+
         protected virtual bool StoreRights(UUID agentID, UUID friendID, int rights)
         {
             FriendsService.StoreFriend(agentID.ToString(), friendID.ToString(), rights);
@@ -964,5 +982,61 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         }
 
         #endregion
+
+        protected void HandleFriendsShowCacheCommand(string module, string[] cmd)
+        {
+            if (cmd.Length != 5)
+            {
+                MainConsole.Instance.OutputFormat("Usage: friends show cache [<first-name> <last-name>]");
+                return;
+            }
+
+            string firstName = cmd[3];
+            string lastName = cmd[4];
+
+            IUserManagement umModule = m_Scenes[0].RequestModuleInterface<IUserManagement>();
+            UUID userId = umModule.GetUserIdByName(firstName, lastName);
+
+//            UserAccount ua
+//                = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, firstName, lastName);
+
+            if (userId == UUID.Zero)
+            {
+                MainConsole.Instance.OutputFormat("No such user as {0} {1}", firstName, lastName);
+                return;
+            }
+
+            if (!AreFriendsCached(userId))
+            {
+                MainConsole.Instance.OutputFormat("No friends cached on this simulator for {0} {1}", firstName, lastName);
+                return;
+            }
+
+            MainConsole.Instance.OutputFormat("Cached friends for {0} {1}:", firstName, lastName);
+
+            MainConsole.Instance.OutputFormat("UUID\n");
+
+            FriendInfo[] friends = GetFriends(userId);
+
+            foreach (FriendInfo friend in friends)
+            {
+//                MainConsole.Instance.OutputFormat(friend.PrincipalID.ToString());
+
+//                string friendFirstName, friendLastName;
+//
+//                UserAccount friendUa
+//                    = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, friend.PrincipalID);
+
+                UUID friendId;
+                string friendName;
+
+                if (UUID.TryParse(friend.Friend, out friendId))
+                    friendName = umModule.GetUserName(friendId);
+                else
+                    friendName = friend.Friend;
+
+                MainConsole.Instance.OutputFormat("{0} {1} {2}", friendName, friend.MyFlags, friend.TheirFlags);
+            }
+        }
     }
 }
