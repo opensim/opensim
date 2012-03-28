@@ -12522,7 +12522,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OSDArray FolderData = new OSDArray();
 
-            foreach (UUID InventoryFolderBase in folders)
+            foreach (InventoryFolderBase folder in folders)
             {
                 OSDMap FolderDataMap = new OSDMap(5);
                 FolderDataMap.Add("FolderID", OSD.FromUUID(folder.ID));
@@ -12538,7 +12538,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OSDArray ItemData = new OSDArray();
 
-            foreach (UUID InventoryItemBase in items)
+            foreach (InventoryItemBase item in items)
             {
                 OSDMap ItemDataMap = new OSDMap();
                 ItemData.Add(DataMap);
