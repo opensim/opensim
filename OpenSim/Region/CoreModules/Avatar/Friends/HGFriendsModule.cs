@@ -121,7 +121,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             {
                 UUID agentID = client.AgentId;
                 // we do this only for the root agent
-                if (m_Friends[agentID].Refcount == 1)
+                if (!client.SceneAgent.IsChildAgent)
                 {
                     // We need to preload the user management cache with the names
                     // of foreign friends, just like we do with SOPs' creators
@@ -426,14 +426,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 agentClientCircuit = ((Scene)(agentClient.Scene)).AuthenticateHandler.GetAgentCircuitData(agentClient.CircuitCode);
                 agentUUI = Util.ProduceUserUniversalIdentifier(agentClientCircuit);
                 agentFriendService = agentClientCircuit.ServiceURLs["FriendsServerURI"].ToString();
-                RecacheFriends(agentClient);
+                CacheFriends(agentClient);
             }
             if (friendClient != null)
             {
                 friendClientCircuit = ((Scene)(friendClient.Scene)).AuthenticateHandler.GetAgentCircuitData(friendClient.CircuitCode);
                 friendUUI = Util.ProduceUserUniversalIdentifier(friendClientCircuit);
                 friendFriendService = friendClientCircuit.ServiceURLs["FriendsServerURI"].ToString();
-                RecacheFriends(friendClient);
+                CacheFriends(friendClient);
             }
 
             m_log.DebugFormat("[HGFRIENDS MODULE] HG Friendship! thisUUI={0}; friendUUI={1}; foreignThisFriendService={2}; foreignFriendFriendService={3}",
