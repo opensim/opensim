@@ -4680,11 +4680,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // agent must not be a god
                     if (presence.GodLevel >= 200) return;
 
+                    if (simname == String.Empty)
+                        simname = World.RegionInfo.RegionName;
+
                     // agent must be over the owners land
                     if (m_host.OwnerID == World.LandChannel.GetLandObject(
                             presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
                     {
                         World.RequestTeleportLocation(presence.ControllingClient, simname, new Vector3((float)pos.x, (float)pos.y, (float)pos.z), new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z), (uint)TeleportFlags.ViaLocation);
+                    }
+                    else // or must be wearing the prim
+                    {
+                        if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID)
+                        {
+                            World.RequestTeleportLocation(presence.ControllingClient, simname, new Vector3((float)pos.x, (float)pos.y, (float)pos.z), new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z), (uint)TeleportFlags.ViaLocation);
+                        }
                     }
                 }
             }
