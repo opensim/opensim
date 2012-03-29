@@ -51,7 +51,7 @@ namespace OpenSim.Services.Interfaces
             Friend = string.Empty;
             if (kvp.ContainsKey("Friend") && kvp["Friend"] != null)
                 Friend = kvp["Friend"].ToString();
-            MyFlags = 0;
+            MyFlags = (int)FriendRights.None;
             if (kvp.ContainsKey("MyFlags") && kvp["MyFlags"] != null)
                 Int32.TryParse(kvp["MyFlags"].ToString(), out MyFlags);
             TheirFlags = 0;

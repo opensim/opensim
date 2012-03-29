@@ -5784,7 +5784,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // My guess is this is the folder to stick the calling card into
             List<UUID> callingCardFolders = new List<UUID>();
 
-            UUID agentID = afriendpack.AgentData.AgentID;
             UUID transactionID = afriendpack.TransactionBlock.TransactionID;
 
             for (int fi = 0; fi < afriendpack.FolderData.Length; fi++)
@@ -5795,10 +5794,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             FriendActionDelegate handlerApproveFriendRequest = OnApproveFriendRequest;
             if (handlerApproveFriendRequest != null)
             {
-                handlerApproveFriendRequest(this, agentID, transactionID, callingCardFolders);
+                handlerApproveFriendRequest(this, transactionID, callingCardFolders);
             }
-            return true;
 
+            return true;
         }
 
         private bool HandlerDeclineFriendship(IClientAPI sender, Packet Pack)
@@ -5817,7 +5816,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (OnDenyFriendRequest != null)
             {
                 OnDenyFriendRequest(this,
-                                    dfriendpack.AgentData.AgentID,
                                     dfriendpack.TransactionBlock.TransactionID,
                                     null);
             }
@@ -5837,14 +5835,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             #endregion
 
-            UUID listOwnerAgentID = tfriendpack.AgentData.AgentID;
             UUID exFriendID = tfriendpack.ExBlock.OtherID;
             FriendshipTermination TerminateFriendshipHandler = OnTerminateFriendship;
             if (TerminateFriendshipHandler != null)
             {
-                TerminateFriendshipHandler(this, listOwnerAgentID, exFriendID);
+                TerminateFriendshipHandler(this, exFriendID);
                 return true;
             }
+
             return false;
         }
 
@@ -11162,12 +11160,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return true;
             }
             #endregion
+
             GrantUserFriendRights GrantUserRightsHandler = OnGrantUserRights;
             if (GrantUserRightsHandler != null)
                 GrantUserRightsHandler(this,
-                    GrantUserRights.AgentData.AgentID,
                     GrantUserRights.Rights[0].AgentRelated,
                     GrantUserRights.Rights[0].RelatedRights);
+
             return true;
         }
 

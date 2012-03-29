@@ -120,6 +120,34 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
             Assert.That(((TestClient)sp1Redux.ControllingClient).ReceivedOnlineNotifications.Count, Is.EqualTo(0));
         }
 
+//        [Test]
+//        public void TestLoginWithOnlineFriends()
+//        {
+//            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+//
+//            UUID user1Id = TestHelpers.ParseTail(0x1);
+//            UUID user2Id = TestHelpers.ParseTail(0x2);
+//
+////            UserAccountHelpers.CreateUserWithInventory(m_scene, user1Id);
+////            UserAccountHelpers.CreateUserWithInventory(m_scene, user2Id);
+////
+////            m_fm.AddFriendship(user1Id, user2Id);
+//
+//            ScenePresence sp1 = SceneHelpers.AddScenePresence(m_scene, user1Id);
+//            SceneHelpers.AddScenePresence(m_scene, user2Id);
+//
+//            m_fm.AddFriendship(sp1.ControllingClient, user2Id);
+////            m_fm.LocalGrantRights
+//
+//            m_scene.RemoveClient(sp1.UUID, true);
+//
+//            ScenePresence sp1Redux = SceneHelpers.AddScenePresence(m_scene, user1Id);
+//
+//            Assert.That(((TestClient)sp1Redux.ControllingClient).ReceivedOfflineNotifications.Count, Is.EqualTo(0));
+//            Assert.That(((TestClient)sp1Redux.ControllingClient).ReceivedOnlineNotifications.Count, Is.EqualTo(1));
+//        }
+
         [Test]
         public void TestAddFriendshipWhileOnline()
         {

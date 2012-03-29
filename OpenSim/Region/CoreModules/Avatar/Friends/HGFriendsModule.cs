@@ -105,12 +105,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         #endregion
 
-        protected override void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
+        protected override void OnApproveFriendRequest(IClientAPI client, UUID friendID, List<UUID> callingCardFolders)
         {
             // Update the local cache. Yes, we need to do it right here
             // because the HGFriendsService placed something on the DB
             // from under the sim
-            base.OnApproveFriendRequest(client, agentID, friendID, callingCardFolders);
+            base.OnApproveFriendRequest(client, friendID, callingCardFolders);
         }
 
         protected override bool CacheFriends(IClientAPI client)

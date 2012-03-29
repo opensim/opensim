@@ -258,7 +258,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             client.OnInstantMessage += OnInstantMessage;
             client.OnApproveFriendRequest += OnApproveFriendRequest;
             client.OnDenyFriendRequest += OnDenyFriendRequest;
-            client.OnTerminateFriendship += (thisClient, agentID, exfriendID) => RemoveFriendship(thisClient, exfriendID);
+            client.OnTerminateFriendship += RemoveFriendship;
             client.OnGrantUserRights += OnGrantUserRights;
 
             // We need to cache information for child agents as well as root agents so that friend edit/move/delete
@@ -355,14 +355,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             // Send the friends online
             List<UUID> online = GetOnlineFriends(agentID);
-            if (online.Count > 0)
-            {
-                m_log.DebugFormat(
-                    "[FRIENDS MODULE]: User {0} in region {1} has {2} friends online",
-                    client.Name, client.Scene.RegionInfo.RegionName, online.Count);
 
+//            m_log.DebugFormat(
+//                "[FRIENDS MODULE]: User {0} in region {1} has {2} friends online",
+//                client.Name, client.Scene.RegionInfo.RegionName, online.Count);
+
+            if (online.Count > 0)
                 client.SendAgentOnline(online.ToArray());
-            }
 
             // Send outstanding friendship offers
             List<string> outstanding = new List<string>();
@@ -495,7 +494,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 List<FriendInfo> friendList = new List<FriendInfo>();
                 foreach (FriendInfo fi in friends)
                 {
-                    if (((fi.MyFlags & 1) != 0) && (fi.TheirFlags != -1))
+                    if (((fi.MyFlags & (int)FriendRights.CanSeeOnline) != 0) && (fi.TheirFlags != -1))
                         friendList.Add(fi);
                 }
 
@@ -614,7 +613,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return (account == null) ? "Unknown" : account.FirstName + " " + account.LastName;
         }
 
-        protected virtual void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
+        protected virtual void OnApproveFriendRequest(IClientAPI client, UUID friendID, List<UUID> callingCardFolders)
         {
             m_log.DebugFormat("[FRIENDS]: {0} accepted friendship from {1}", client.AgentId, friendID);
 
@@ -659,18 +658,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
         }
 
-        private void OnDenyFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
+        private void OnDenyFriendRequest(IClientAPI client, UUID friendID, List<UUID> callingCardFolders)
         {
-            m_log.DebugFormat("[FRIENDS]: {0} denied friendship to {1}", agentID, friendID);
+            m_log.DebugFormat("[FRIENDS]: {0} denied friendship to {1}", client.AgentId, friendID);
 
-            DeleteFriendship(agentID, friendID);
+            DeleteFriendship(client.AgentId, friendID);
 
             //
             // Notify the friend
             //
 
             // Try local
-            if (LocalFriendshipDenied(agentID, client.Name, friendID))
+            if (LocalFriendshipDenied(client.AgentId, client.Name, friendID))
                 return;
 
             PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
@@ -681,7 +680,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 {
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
                     if (region != null)
-                        m_FriendsSimConnector.FriendshipDenied(region, agentID, client.Name, friendID);
+                        m_FriendsSimConnector.FriendshipDenied(region, client.AgentId, client.Name, friendID);
                     else
                         m_log.WarnFormat("[FRIENDS]: Could not find region {0} in locating {1}", friendSession.RegionID, friendID);
                 }
@@ -718,11 +717,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }            
         }
 
-        private void OnGrantUserRights(IClientAPI remoteClient, UUID requester, UUID target, int rights)
+        private void OnGrantUserRights(IClientAPI remoteClient, UUID target, int rights)
         {
-            m_log.DebugFormat("[FRIENDS MODULE]: User {0} changing rights to {1} for friend {2}", requester, rights, target);
+            UUID requester = remoteClient.AgentId;
 
-            FriendInfo[] friends = GetFriends(remoteClient.AgentId);
+            m_log.DebugFormat(
+                "[FRIENDS MODULE]: User {0} changing rights to {1} for friend {2}",
+                requester, rights, target);
+
+            FriendInfo[] friends = GetFriends(requester);
             if (friends.Length == 0)
             {
                 return;
@@ -769,7 +772,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 }
             }
             else
+            {
                 m_log.DebugFormat("[FRIENDS MODULE]: friend {0} not found for {1}", target, requester);
+            }
         }
 
         protected virtual FriendInfo GetFriend(FriendInfo[] friends, UUID friendID)
@@ -812,7 +817,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 {
                     ccm.CreateCallingCard(friendID, userID, UUID.Zero);
                 }
-
 
                 // Update the local cache
                 RecacheFriends(friendClient);
