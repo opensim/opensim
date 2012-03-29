@@ -2913,6 +2913,7 @@
       <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
       <Reference name="OpenMetaverse" path="../../../bin/"/>
       <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Data.Null"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Serialization"/>
       <Reference name="OpenSim.Framework.Communications"/>

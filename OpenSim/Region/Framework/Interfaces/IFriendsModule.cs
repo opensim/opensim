@@ -55,7 +55,27 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="exFriendID"></param>
         void RemoveFriendship(IClientAPI client, UUID exFriendID);
 
-        uint GetFriendPerms(UUID PrincipalID, UUID FriendID);
+        /// <summary>
+        /// Get permissions granted by a friend.
+        /// </summary>
+        /// <param name="PrincipalID">The user.</param>
+        /// <param name="FriendID">The friend that granted.</param>
+        /// <returns>The permissions.  These come from the FriendRights enum.</returns>
+        int GetRightsGrantedByFriend(UUID PrincipalID, UUID FriendID);
+
+        /// <summary>
+        /// Grant permissions for a friend.
+        /// </summary>
+        /// <remarks>
+        /// This includes giving them the ability to see when the user is online and permission to edit the user's
+        /// objects.
+        /// Granting lower permissions than the friend currently has will rescind the extra permissions.
+        /// </remarks>
+        /// <param name="remoteClient">The user granting the permissions.</param>
+        /// <param name="friendID">The friend.</param>
+        /// <param name="perms">These come from the FriendRights enum.</param>
+        void GrantRights(IClientAPI remoteClient, UUID friendID, int perms);
+
         bool SendFriendsOnlineIfNeeded(IClientAPI client);
     }
 }

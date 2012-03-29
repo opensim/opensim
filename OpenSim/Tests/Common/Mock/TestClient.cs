@@ -347,15 +347,9 @@ namespace OpenSim.Tests.Common.Mock
             get { return m_agentId; }
         }
 
-        public UUID SessionId
-        {
-            get { return UUID.Zero; }
-        }
+        public UUID SessionId { get; set; }
 
-        public UUID SecureSessionId
-        {
-            get { return UUID.Zero; }
-        }
+        public UUID SecureSessionId { get; set; }
 
         public virtual string FirstName
         {
@@ -379,11 +373,9 @@ namespace OpenSim.Tests.Common.Mock
             get { return true; }
             set { }
         }
-        public bool IsLoggingOut
-        {
-            get { return false; }
-            set { }
-        }
+
+        public bool IsLoggingOut { get; set; }
+
         public UUID ActiveGroupId
         {
             get { return UUID.Zero; }
@@ -449,6 +441,8 @@ namespace OpenSim.Tests.Common.Mock
             m_lastName = agentData.lastname;
             m_circuitCode = agentData.circuitcode;
             m_scene = scene;
+            SessionId = agentData.SessionID;
+            SecureSessionId = agentData.SecureSessionID;
             CapsSeedUrl = agentData.CapsPath;
 
             ReceivedOfflineNotifications = new List<UUID>();
@@ -900,8 +894,24 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
+        /// <summary>
+        /// This is a TestClient only method to do shutdown tasks that are normally carried out by LLUDPServer.RemoveClient()
+        /// </summary>
+        public void Logout()
+        {
+            // We must set this here so that the presence is removed from the PresenceService by the PresenceDetector
+            IsLoggingOut = true;
+
+            Close();
+        }
+
         public void Close()
         {
+            // Fire the callback for this connection closing
+            // This is necesary to get the presence detector to notice that a client has logged out.
+            if (OnConnectionClosed != null)
+                OnConnectionClosed(this);
+
             m_scene.RemoveClient(AgentId, true);
         }
 

@@ -369,8 +369,11 @@ namespace OpenSim.Tests.Common
             agentData.AgentID = agentId;
             agentData.firstname = firstName;
             agentData.lastname = "testlastname";
-            agentData.SessionID = UUID.Zero;
-            agentData.SecureSessionID = UUID.Zero;
+
+            // XXX: Sessions must be unique, otherwise one presence can overwrite another in NullPresenceData.
+            agentData.SessionID = UUID.Random();
+            agentData.SecureSessionID = UUID.Random();
+
             agentData.circuitcode = 123;
             agentData.BaseFolder = UUID.Zero;
             agentData.InventoryFolder = UUID.Zero;
@@ -416,7 +419,10 @@ namespace OpenSim.Tests.Common
             // We emulate the proper login sequence here by doing things in four stages
 
             // Stage 0: login
-            scene.PresenceService.LoginAgent(agentData.AgentID.ToString(), agentData.SessionID, agentData.SecureSessionID);
+            // We need to punch through to the underlying service because scene will not, correctly, let us call it
+            // through it's reference to the LPSC
+            LocalPresenceServicesConnector lpsc = (LocalPresenceServicesConnector)scene.PresenceService;
+            lpsc.m_PresenceService.LoginAgent(agentData.AgentID.ToString(), agentData.SessionID, agentData.SecureSessionID);
 
             // Stages 1 & 2
             ScenePresence sp = IntroduceClientToScene(scene, agentData, TeleportFlags.ViaLogin);

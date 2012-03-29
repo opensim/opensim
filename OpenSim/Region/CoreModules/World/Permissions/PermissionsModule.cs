@@ -487,7 +487,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return false;
         }
 
-        protected bool IsFriendWithPerms(UUID user,UUID objectOwner)
+        protected bool IsFriendWithPerms(UUID user, UUID objectOwner)
         {            
             if (user == UUID.Zero)
                 return false;
@@ -495,11 +495,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_friendsModule == null)
                 return false;
 
-            uint friendPerms = m_friendsModule.GetFriendPerms(user, objectOwner);
-            if ((friendPerms & (uint)FriendRights.CanModifyObjects) != 0)
-                return true;
-
-            return false;
+            int friendPerms = m_friendsModule.GetRightsGrantedByFriend(user, objectOwner);
+            return (friendPerms & (int)FriendRights.CanModifyObjects) != 0;
         }
 
         protected bool IsEstateManager(UUID user)
@@ -508,6 +505,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         
             return m_scene.RegionInfo.EstateSettings.IsEstateManager(user);
         }
+
 #endregion
 
         public bool PropagatePermissions()

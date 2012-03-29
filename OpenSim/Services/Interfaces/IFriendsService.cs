@@ -36,7 +36,15 @@ namespace OpenSim.Services.Interfaces
     {
         public UUID PrincipalID;
         public string Friend;
+
+        /// <summary>
+        /// The permissions that this user has granted to the friend.
+        /// </summary>
         public int MyFlags;
+
+        /// <summary>
+        /// The permissions that the friend has granted to this user.
+        /// </summary>
         public int TheirFlags;
 
         public FriendInfo()
