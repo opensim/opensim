@@ -72,7 +72,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             get { return m_ownerID; }
         }
 
-        public ISceneAgent SceneAgent { get; set; }
+        public ISceneAgent SceneAgent { get { throw new NotImplementedException(); } }
 
         public void Say(string message)
         {

@@ -2670,7 +2670,6 @@ namespace OpenSim.Region.Framework.Scenes
                     sp.IsChildAgent ? "child" : "root", sp.Name, RegionInfo.RegionName);
             }
 
-            client.SceneAgent = sp;
             m_LastLogin = Util.EnvironmentTickCount();
 
             // Cache the user's name
