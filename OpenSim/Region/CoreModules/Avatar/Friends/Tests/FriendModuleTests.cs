@@ -44,6 +44,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
         private FriendsModule m_fm;
         private TestScene m_scene;
 
+        [TestFixtureSetUp]
+        public void FixtureInit()
+        {
+            // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
+            Util.FireAndForgetMethod = FireAndForgetMethod.RegressionTest;
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
+            // threads.  Possibly, later tests should be rewritten so none of them require async stuff (which regression
+            // tests really shouldn't).
+            Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
+        }
+
         [SetUp]
         public void Init()
         {
@@ -62,7 +78,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
         }
 
         [Test]
-        public void TestNoFriends()
+        public void TestLoginWithNoFriends()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -73,6 +89,35 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
 
             Assert.That(((TestClient)sp.ControllingClient).ReceivedOfflineNotifications.Count, Is.EqualTo(0));
             Assert.That(((TestClient)sp.ControllingClient).ReceivedOnlineNotifications.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestLoginWithOfflineFriends()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID user1Id = TestHelpers.ParseTail(0x1);
+            UUID user2Id = TestHelpers.ParseTail(0x2);
+
+//            UserAccountHelpers.CreateUserWithInventory(m_scene, user1Id);
+//            UserAccountHelpers.CreateUserWithInventory(m_scene, user2Id);
+//
+//            m_fm.AddFriendship(user1Id, user2Id);
+
+            ScenePresence sp1 = SceneHelpers.AddScenePresence(m_scene, user1Id);
+            ScenePresence sp2 = SceneHelpers.AddScenePresence(m_scene, user2Id);
+
+            m_fm.AddFriendship(sp1.ControllingClient, user2Id);
+
+            m_scene.RemoveClient(sp1.UUID, true);
+            m_scene.RemoveClient(sp2.UUID, true);
+
+            ScenePresence sp1Redux = SceneHelpers.AddScenePresence(m_scene, user1Id);
+
+            // We don't expect to receive notifications of offline friends on login, just online.
+            Assert.That(((TestClient)sp1Redux.ControllingClient).ReceivedOfflineNotifications.Count, Is.EqualTo(0));
+            Assert.That(((TestClient)sp1Redux.ControllingClient).ReceivedOnlineNotifications.Count, Is.EqualTo(0));
         }
 
         [Test]
