@@ -261,6 +261,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             client.OnTerminateFriendship += (thisClient, agentID, exfriendID) => RemoveFriendship(thisClient, exfriendID);
             client.OnGrantUserRights += OnGrantUserRights;
 
+            // We need to cache information for child agents as well as root agents so that friend edit/move/delete
+            // permissions will work across borders where both regions are on different simulators.
+            //
             // Do not do this asynchronously.  If we do, then subsequent code can outrace CacheFriends() and
             // return misleading results from the still empty friends cache.
             // If we absolutely need to do this asynchronously, then a signalling mechanism is needed so that calls

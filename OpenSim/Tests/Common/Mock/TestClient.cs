@@ -327,7 +327,7 @@ namespace OpenSim.Tests.Common.Mock
         /// </value>
         private UUID m_agentId;
 
-        public ISceneAgent SceneAgent { get { throw new NotImplementedException(); } }
+        public ISceneAgent SceneAgent { get; set; }
 
         /// <value>
         /// The last caps seed url that this client was given.
