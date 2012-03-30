@@ -25,14 +25,31 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
-using System.Collections.Generic;
+using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IFriendsModule
     {
+        /// <summary>
+        /// Are friends cached on this simulator for a particular user?
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        bool AreFriendsCached(UUID userID);
+
+        /// <summary>
+        /// Get friends from local cache only
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns>
+        /// An empty array if the user has no friends or friends have not been cached.
+        /// </returns>
+        FriendInfo[] GetFriendsFromCache(UUID userID);
+
         /// <summary>
         /// Add a friendship between two users.
         /// </summary>
@@ -58,10 +75,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Get permissions granted by a friend.
         /// </summary>
-        /// <param name="PrincipalID">The user.</param>
-        /// <param name="FriendID">The friend that granted.</param>
+        /// <param name="userID">The user.</param>
+        /// <param name="friendID">The friend that granted.</param>
         /// <returns>The permissions.  These come from the FriendRights enum.</returns>
-        int GetRightsGrantedByFriend(UUID PrincipalID, UUID FriendID);
+        int GetRightsGrantedByFriend(UUID userID, UUID friendID);
 
         /// <summary>
         /// Grant permissions for a friend.
