@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -54,7 +55,8 @@ namespace OpenSim.Data.Null
         /// </remarks>
         public static void Clear()
         {
-            m_Data.Clear();
+            lock (m_Data)
+                m_Data.Clear();
         }
 
         public FriendsData[] GetFriends(UUID principalID)
@@ -71,27 +73,30 @@ namespace OpenSim.Data.Null
         /// <returns></returns>
         public FriendsData[] GetFriends(string userID)
         {
-            List<FriendsData> lst = m_Data.FindAll(fdata =>
+            lock (m_Data)
             {
-                return fdata.PrincipalID == userID.ToString();
-            });
-
-            if (lst != null)
-            {
-                lst.ForEach(f =>
+                List<FriendsData> lst = m_Data.FindAll(fdata =>
                 {
-                    FriendsData f2 = m_Data.Find(candidateF2 => f.Friend == candidateF2.PrincipalID);
-                    if (f2 != null)
-                        f.Data["TheirFlags"] = f2.Data["Flags"];
-
-//                    m_log.DebugFormat(
-//                        "[NULL FRIENDS DATA]: Got {0} {1} {2} for {3}",
-//                        f.Friend, f.Data["Flags"], f2 != null ? f.Data["TheirFlags"] : "not found!", f.PrincipalID);
+                    return fdata.PrincipalID == userID.ToString();
                 });
-
-//                m_log.DebugFormat("[NULL FRIENDS DATA]: Got {0} friends for {1}", lst.Count, userID);
-
-                return lst.ToArray();
+    
+                if (lst != null)
+                {
+                    lst.ForEach(f =>
+                    {
+                        FriendsData f2 = m_Data.Find(candidateF2 => f.Friend == candidateF2.PrincipalID);
+                        if (f2 != null)
+                            f.Data["TheirFlags"] = f2.Data["Flags"];
+    
+    //                    m_log.DebugFormat(
+    //                        "[NULL FRIENDS DATA]: Got {0} {1} {2} for {3}",
+    //                        f.Friend, f.Data["Flags"], f2 != null ? f.Data["TheirFlags"] : "not found!", f.PrincipalID);
+                    });
+    
+    //                m_log.DebugFormat("[NULL FRIENDS DATA]: Got {0} friends for {1}", lst.Count, userID);
+    
+                    return lst.ToArray();
+                }
             }
 
             return new FriendsData[0];
@@ -105,7 +110,8 @@ namespace OpenSim.Data.Null
 //            m_log.DebugFormat(
 //                "[NULL FRIENDS DATA]: Storing {0} {1} {2}", data.PrincipalID, data.Friend, data.Data["Flags"]);
 
-            m_Data.Add(data);
+            lock (m_Data)
+                m_Data.Add(data);
 
             return true;
         }
@@ -117,18 +123,21 @@ namespace OpenSim.Data.Null
 
         public bool Delete(string userID, string friendID)
         {
-            List<FriendsData> lst = m_Data.FindAll(delegate(FriendsData fdata) { return fdata.PrincipalID == userID.ToString(); });
-            if (lst != null)
+            lock (m_Data)
             {
-                FriendsData friend = lst.Find(delegate(FriendsData fdata) { return fdata.Friend == friendID; });
-                if (friendID != null)
+                List<FriendsData> lst = m_Data.FindAll(delegate(FriendsData fdata) { return fdata.PrincipalID == userID.ToString(); });
+                if (lst != null)
                 {
-//                    m_log.DebugFormat(
-//                        "[NULL FRIENDS DATA]: Deleting friend {0} {1} for {2}",
-//                        friend.Friend, friend.Data["Flags"], friend.PrincipalID);
-
-                    m_Data.Remove(friend);
-                    return true;
+                    FriendsData friend = lst.Find(delegate(FriendsData fdata) { return fdata.Friend == friendID; });
+                    if (friendID != null)
+                    {
+    //                    m_log.DebugFormat(
+    //                        "[NULL FRIENDS DATA]: Deleting friend {0} {1} for {2}",
+    //                        friend.Friend, friend.Data["Flags"], friend.PrincipalID);
+    
+                        m_Data.Remove(friend);
+                        return true;
+                    }
                 }
             }
 
