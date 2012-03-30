@@ -153,7 +153,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_linearFrictionTimescale.Z < timestep) m_linearFrictionTimescale.Z = timestep;
 
             m_linearMotorDecayTimescale = vd.m_linearMotorDecayTimescale;
-            if (m_linearMotorDecayTimescale < 0.5f) m_linearMotorDecayTimescale = 0.5f;
+            if (m_linearMotorDecayTimescale < timestep) m_linearMotorDecayTimescale = timestep;
             m_linearMotorDecayTimescale *= invtimestep;
 
             m_linearMotorTimescale = vd.m_linearMotorTimescale;
@@ -168,7 +168,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_angularMotorTimescale < timestep) m_angularMotorTimescale = timestep;
 
             m_angularMotorDecayTimescale = vd.m_angularMotorDecayTimescale;
-            if (m_angularMotorDecayTimescale < 0.5f) m_angularMotorDecayTimescale = 0.5f;
+            if (m_angularMotorDecayTimescale < timestep) m_angularMotorDecayTimescale = timestep;
             m_angularMotorDecayTimescale *= invtimestep;
 
             m_angularFrictionTimescale = vd.m_angularFrictionTimescale;
@@ -230,9 +230,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularDeflectionTimescale = pValue;
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
-                    //                    if (pValue < timestep) pValue = timestep;
+                    if (pValue < timestep) pValue = timestep;
                     // try to make impulses to work a bit better
-                    if (pValue < 0.5f) pValue = 0.5f;
+//                    if (pValue < 0.5f) pValue = 0.5f;
                     else if (pValue > 120) pValue = 120;
                     m_angularMotorDecayTimescale = pValue * invtimestep;
                     break;
@@ -281,9 +281,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearDeflectionTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
-                    //                    if (pValue < timestep) pValue = timestep;
+                    if (pValue < timestep) pValue = timestep;
                     // try to make impulses to work a bit better
-                    if (pValue < 0.5f) pValue = 0.5f;
+                    //if (pValue < 0.5f) pValue = 0.5f;
                     else if (pValue > 120) pValue = 120;
                     m_linearMotorDecayTimescale = pValue * invtimestep;
                     break;
@@ -444,9 +444,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearFrictionTimescale = new Vector3(1000, 1000, 1000);
                     m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
                     m_linearMotorTimescale = 1000;
-                    m_linearMotorDecayTimescale = 120;
+                    m_linearMotorDecayTimescale = 120 * invtimestep;
                     m_angularMotorTimescale = 1000;
-                    m_angularMotorDecayTimescale = 1000;
+                    m_angularMotorDecayTimescale = 1000  * invtimestep;
                     m_VhoverHeight = 0;
                     m_VhoverEfficiency = 1;
                     m_VhoverTimescale = 1000;
@@ -901,7 +901,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 GetRollPitch(irotq, out roll, out pitch);
 
                 float ftmp = 1.0f / m_verticalAttractionTimescale / m_verticalAttractionTimescale / _pParentScene.ODE_STEPSIZE;
-                float ftmp2 = m_verticalAttractionEfficiency / _pParentScene.ODE_STEPSIZE;
+                float ftmp2;
+                if (m_bankingEfficiency == 0)
+                    ftmp2 = m_verticalAttractionEfficiency / _pParentScene.ODE_STEPSIZE;
+                else
+                    ftmp2 = 0;
 
                 if (roll > halfpi)
                     roll = pi - roll;
