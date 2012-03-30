@@ -300,8 +300,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return null;
         }
 
-
-        protected override FriendInfo[] GetFriendsFromService(IClientAPI client)
+        public override FriendInfo[] GetFriendsFromService(IClientAPI client)
         {
 //            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering GetFriendsFromService for {0}", client.Name);
             Boolean agentIsLocal = true;

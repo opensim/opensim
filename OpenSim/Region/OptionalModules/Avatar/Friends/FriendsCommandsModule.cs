@@ -32,14 +32,17 @@ using System.Reflection;
 using System.Text;
 using log4net;
 using Mono.Addins;
+using NDesk.Options;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.ClientStack.LindenUDP;
+using OpenSim.Region.CoreModules.Avatar.Friends;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Friends
@@ -100,10 +103,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Friends
             if (m_friendsModule != null && m_userManagementModule != null)
             {
                 m_scene.AddCommand(
-                    "Friends", this, "friends show cache",
-                    "friends show cache [<first-name> <last-name>]",
-                    "Show the friends cache for the given user",
-                    HandleFriendsShowCacheCommand);
+                    "Friends", this, "friends show",
+                    "friends show [--cache] <first-name> <last-name>",
+                    "Show the friends for the given user if they exist.\n",
+                    "The --cache option will show locally cached information for that user.",
+                    HandleFriendsShowCommand);
             }
         }
 
@@ -159,6 +163,81 @@ namespace OpenSim.Region.OptionalModules.Avatar.Friends
                     friendName = friend.Friend;
 
                 MainConsole.Instance.OutputFormat("{0} {1} {2}", friendName, friend.MyFlags, friend.TheirFlags);
+            }
+        }
+
+        protected void HandleFriendsShowCommand(string module, string[] cmd)
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            OptionSet optionSet = new OptionSet().Add("c|cache", delegate (string v) { options["cache"] = v != null; });
+
+            List<string> mainParams = optionSet.Parse(cmd);
+
+            if (mainParams.Count != 4)
+            {
+                MainConsole.Instance.OutputFormat("Usage: friends show [--cache] <first-name> <last-name>");
+                return;
+            }
+
+            string firstName = mainParams[2];
+            string lastName = mainParams[3];
+
+            UUID userId = m_userManagementModule.GetUserIdByName(firstName, lastName);
+
+//            UserAccount ua
+//                = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, firstName, lastName);
+
+            if (userId == UUID.Zero)
+            {
+                MainConsole.Instance.OutputFormat("No such user as {0} {1}", firstName, lastName);
+                return;
+            }
+
+            FriendInfo[] friends;
+
+            if (options.ContainsKey("cache"))
+            {
+                if (!m_friendsModule.AreFriendsCached(userId))
+                {
+                    MainConsole.Instance.OutputFormat("No friends cached on this simulator for {0} {1}", firstName, lastName);
+                    return;
+                }
+                else
+                {
+                    friends = m_friendsModule.GetFriendsFromCache(userId);
+                }
+            }
+            else
+            {
+                // FIXME: We're forced to do this right now because IFriendsService has no region connectors.  We can't
+                // just expose FriendsModule.GetFriendsFromService() because it forces an IClientAPI requirement that
+                // can't currently be changed because of HGFriendsModule code that takes the scene from the client.
+                friends = ((FriendsModule)m_friendsModule).FriendsService.GetFriends(userId);
+            }
+
+            MainConsole.Instance.OutputFormat("Friends for {0} {1} {2}:", firstName, lastName, userId);
+
+            MainConsole.Instance.OutputFormat("UUID, Name, MyFlags, TheirFlags");
+
+            foreach (FriendInfo friend in friends)
+            {
+//                MainConsole.Instance.OutputFormat(friend.PrincipalID.ToString());
+
+//                string friendFirstName, friendLastName;
+//
+//                UserAccount friendUa
+//                    = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, friend.PrincipalID);
+
+                UUID friendId;
+                string friendName;
+
+                if (UUID.TryParse(friend.Friend, out friendId))
+                    friendName = m_userManagementModule.GetUserName(friendId);
+                else
+                    friendName = friend.Friend;
+
+                MainConsole.Instance.OutputFormat(
+                    "{0} {1} {2} {3}", friend.Friend, friendName, friend.MyFlags, friend.TheirFlags);
             }
         }
     }
