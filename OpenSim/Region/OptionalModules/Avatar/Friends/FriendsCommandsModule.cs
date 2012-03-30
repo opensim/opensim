@@ -111,61 +111,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Friends
             }
         }
 
-        protected void HandleFriendsShowCacheCommand(string module, string[] cmd)
-        {
-            if (cmd.Length != 5)
-            {
-                MainConsole.Instance.OutputFormat("Usage: friends show cache [<first-name> <last-name>]");
-                return;
-            }
-
-            string firstName = cmd[3];
-            string lastName = cmd[4];
-
-            UUID userId = m_userManagementModule.GetUserIdByName(firstName, lastName);
-
-//            UserAccount ua
-//                = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, firstName, lastName);
-
-            if (userId == UUID.Zero)
-            {
-                MainConsole.Instance.OutputFormat("No such user as {0} {1}", firstName, lastName);
-                return;
-            }
-
-            if (m_friendsModule.AreFriendsCached(userId))
-            {
-                MainConsole.Instance.OutputFormat("No friends cached on this simulator for {0} {1}", firstName, lastName);
-                return;
-            }
-
-            MainConsole.Instance.OutputFormat("Cached friends for {0} {1}:", firstName, lastName);
-
-            MainConsole.Instance.OutputFormat("UUID\n");
-
-            FriendInfo[] friends = m_friendsModule.GetFriendsFromCache(userId);
-
-            foreach (FriendInfo friend in friends)
-            {
-//                MainConsole.Instance.OutputFormat(friend.PrincipalID.ToString());
-
-//                string friendFirstName, friendLastName;
-//
-//                UserAccount friendUa
-//                    = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, friend.PrincipalID);
-
-                UUID friendId;
-                string friendName;
-
-                if (UUID.TryParse(friend.Friend, out friendId))
-                    friendName = m_userManagementModule.GetUserName(friendId);
-                else
-                    friendName = friend.Friend;
-
-                MainConsole.Instance.OutputFormat("{0} {1} {2}", friendName, friend.MyFlags, friend.TheirFlags);
-            }
-        }
-
         protected void HandleFriendsShowCommand(string module, string[] cmd)
         {
             Dictionary<string, object> options = new Dictionary<string, object>();
