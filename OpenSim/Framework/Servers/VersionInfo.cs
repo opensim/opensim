@@ -39,7 +39,8 @@ namespace OpenSim
             RC1,
             RC2,
             Release,
-            Post_Fixes
+            Post_Fixes,
+            Extended
         }
 
         public static string Version
