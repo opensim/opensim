@@ -510,7 +510,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             }
 
             SceneObjectGroup sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
-            SceneObjectPart rootPart = sceneObject.GetChildPart(sceneObject.UUID);
+            SceneObjectPart rootPart = sceneObject.GetPart(sceneObject.UUID);
 
             rootPart.AddFlag(PrimFlags.Phantom);
 

@@ -1015,7 +1015,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group == null)
                 return null;
-            return group.GetChildPart(localID);
+            return group.GetPart(localID);
         }
         
         /// <summary>
@@ -1062,7 +1062,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(fullID);
             if (group == null)
                 return null;
-            return group.GetChildPart(fullID);
+            return group.GetPart(fullID);
         }
 
         /// <summary>

@@ -79,7 +79,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Vegetation
             }
             
             SceneObjectGroup sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
-            SceneObjectPart rootPart = sceneObject.GetChildPart(sceneObject.UUID);
+            SceneObjectPart rootPart = sceneObject.GetPart(sceneObject.UUID);
             
             // if grass or tree, make phantom
             //rootPart.TrimPermissions();

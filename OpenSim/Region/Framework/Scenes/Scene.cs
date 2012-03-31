@@ -1833,7 +1833,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 AddRestoredSceneObject(group, true, true);
                 EventManager.TriggerOnSceneObjectLoaded(group);
-                SceneObjectPart rootPart = group.GetChildPart(group.UUID);
+                SceneObjectPart rootPart = group.GetPart(group.UUID);
                 rootPart.Flags &= ~PrimFlags.Scripted;
                 rootPart.TrimPermissions();
 
@@ -4174,7 +4174,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    SceneObjectPart part = ((SceneObjectGroup)ent).GetChildPart(((SceneObjectGroup)ent).UUID);
+                    SceneObjectPart part = ((SceneObjectGroup)ent).GetPart(((SceneObjectGroup)ent).UUID);
                     if (part != null)
                     {
                         if (part.Name == cmdparams[2])
