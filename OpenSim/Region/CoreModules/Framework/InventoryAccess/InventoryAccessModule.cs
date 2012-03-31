@@ -966,6 +966,30 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
             }
 
+            int primcount = 0;
+            foreach (SceneObjectGroup g in objlist)
+                primcount += g.PrimCount;
+
+            if (!m_Scene.Permissions.CanRezObject(
+                primcount, remoteClient.AgentId, pos)
+                && !isAttachment)
+            {
+                // The client operates in no fail mode. It will
+                // have already removed the item from the folder
+                // if it's no copy.
+                // Put it back if it's not an attachment
+                //
+                if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!isAttachment))
+                    remoteClient.SendBulkUpdateInventory(item);
+
+                ILandObject land = m_Scene.LandChannel.GetLandObject(pos.X, pos.Y);
+                remoteClient.SendAlertMessage(string.Format(
+                    "Can't rez object '{0}' at <{1:F3}, {2:F3}, {3:F3}> on parcel '{4}' in region {5}.",
+                    item.Name, pos.X, pos.Y, pos.Z, land != null ? land.LandData.Name : "Unknown", m_Scene.RegionInfo.RegionName));
+
+                return false;
+            }
+
             for (int i = 0; i < objlist.Count; i++)
             {
                 SceneObjectGroup so = objlist[i];

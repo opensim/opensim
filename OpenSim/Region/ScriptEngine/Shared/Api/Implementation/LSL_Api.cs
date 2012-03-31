@@ -4214,7 +4214,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.ForEachRootScenePresence(delegate(ScenePresence presence)
             {
                 SceneObjectPart sitPart = presence.ParentPart;
-                if (sitPart != null && m_host.ParentGroup.HasChildPrim(sitPart.LocalId))
+                if (sitPart != null && m_host.ParentGroup.ContainsPart(sitPart.LocalId))
                     nametable.Add(presence.ControllingClient.Name);
             });
 

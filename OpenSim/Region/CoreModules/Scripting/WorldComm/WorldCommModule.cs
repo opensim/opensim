@@ -319,7 +319,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 // Send message to avatar
                 if (channel == 0)
                 {
-                    m_scene.SimChatBroadcast(Utils.StringToBytes(msg), ChatTypeEnum.Owner, 0, pos, name, id, false);
+                    m_scene.SimChatBroadcast(Utils.StringToBytes(msg), ChatTypeEnum.Broadcast, 0, pos, name, id, false);
                 }
 
                 List<SceneObjectGroup> attachments = sp.GetAttachments();
