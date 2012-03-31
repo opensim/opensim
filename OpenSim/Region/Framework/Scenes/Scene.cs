@@ -1978,7 +1978,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 IClientAPI client = null;
-                if (this.TryGetClient(ownerID, out client))
+                if (TryGetClient(ownerID, out client))
                     client.SendAlertMessage("You cannot create objects here.");
             }
         }
