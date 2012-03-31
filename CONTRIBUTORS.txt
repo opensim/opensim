@@ -71,6 +71,7 @@ what it is today.
 * CharlieO
 * ChrisDown
 * Chris Yeoh (IBM)
+* controlbreak
 * coyled
 * Daedius
 * Dong Jun Lan (IBM)

@@ -104,6 +104,11 @@ namespace OpenSim.Data.MSSQL
             {
                 return SqlDbType.BigInt;
             }
+            if (type == typeof(DateTime))
+            {
+                return SqlDbType.DateTime;
+            }
+
             return SqlDbType.VarChar;
         }
 
