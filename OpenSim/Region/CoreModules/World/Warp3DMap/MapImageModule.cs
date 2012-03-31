@@ -64,6 +64,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private bool m_useAntiAliasing = false; // TODO: Make this a config option
         private bool m_Enabled = false;
 
+        private Bitmap lastImage = null;
+        private DateTime lastImageTime = DateTime.MinValue;
+
         #region IRegionModule Members
 
         public void Initialise(IConfigSource source)
@@ -86,14 +89,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             List<string> renderers = RenderingLoader.ListRenderers(Util.ExecutingDirectory());
             if (renderers.Count > 0)
-            {
-                m_primMesher = RenderingLoader.LoadRenderer(renderers[0]);
-                m_log.Info("[MAPTILE]: Loaded prim mesher " + m_primMesher.ToString());
-            }
+                m_log.Info("[MAPTILE]: Loaded prim mesher " + renderers[0]);
             else
-            {
                 m_log.Info("[MAPTILE]: No prim mesher loaded, prim rendering will be disabled");
-            }
 
             m_scene.RegisterModuleInterface<IMapImageGenerator>(this);
         }
@@ -126,9 +124,25 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         public Bitmap CreateMapTile()
         {
+            if ((DateTime.Now - lastImageTime).TotalSeconds < 3600)
+            {
+                return lastImage.Clone(new Rectangle(0, 0, 256, 256), lastImage.PixelFormat);
+            }
+
+            List<string> renderers = RenderingLoader.ListRenderers(Util.ExecutingDirectory());
+            if (renderers.Count > 0)
+            {
+                m_primMesher = RenderingLoader.LoadRenderer(renderers[0]);
+            }
+
             Vector3 camPos = new Vector3(127.5f, 127.5f, 221.7025033688163f);
             Viewport viewport = new Viewport(camPos, -Vector3.UnitZ, 1024f, 0.1f, (int)Constants.RegionSize, (int)Constants.RegionSize, (float)Constants.RegionSize, (float)Constants.RegionSize);
-            return CreateMapTile(viewport, false);
+            Bitmap tile = CreateMapTile(viewport, false);
+            m_primMesher = null;
+
+            lastImage = tile;
+            lastImageTime = DateTime.Now;
+            return lastImage.Clone(new Rectangle(0, 0, 256, 256), lastImage.PixelFormat);
         }
 
         public Bitmap CreateViewImage(Vector3 camPos, Vector3 camDir, float fov, int width, int height, bool useTextures)
