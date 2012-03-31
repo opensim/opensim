@@ -338,6 +338,24 @@ namespace OpenSim.Region.Framework.Scenes
             return m_parts.ContainsKey(partID);
         }
 
+        /// <summary>
+        /// Does this group contain the given part?
+        /// should be able to remove these methods once we have a entity index in scene
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <returns></returns>
+        public bool ContainsPart(uint localID)
+        {
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+            {
+                if (parts[i].LocalId == localID)
+                    return true;
+            }
+
+            return false;
+        }
+
         /// <value>
         /// The root part of this scene object
         /// </value>
@@ -1909,35 +1927,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Does this group contain the child prim
-        /// should be able to remove these methods once we have a entity index in scene
-        /// </summary>
-        /// <param name="primID"></param>
-        /// <returns></returns>
-        public bool HasChildPrim(UUID primID)
-        {
-            return m_parts.ContainsKey(primID);
-        }
-
-        /// <summary>
-        /// Does this group contain the child prim
-        /// should be able to remove these methods once we have a entity index in scene
-        /// </summary>
-        /// <param name="localID"></param>
-        /// <returns></returns>
-        public bool HasChildPrim(uint localID)
-        {
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-            {
-                if (parts[i].LocalId == localID)
-                    return true;
-            }
-
-            return false;
         }
 
         #endregion

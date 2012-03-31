@@ -860,7 +860,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (sog != null)
             {
-                if (sog.HasChildPrim(localID))
+                if (sog.ContainsPart(localID))
                 {
 //                    m_log.DebugFormat(
 //                        "[SCENE GRAPH]: Found scene object {0} {1} {2} containing part with local id {3} in {4}.  Returning.",
@@ -888,7 +888,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ent is SceneObjectGroup)
                 {
                     sog = (SceneObjectGroup)ent;
-                    if (sog.HasChildPrim(localID))
+                    if (sog.ContainsPart(localID))
                     {
                         lock (SceneObjectGroupsByLocalPartID)
                             SceneObjectGroupsByLocalPartID[localID] = sog;
@@ -926,7 +926,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ent is SceneObjectGroup)
                 {
                     sog = (SceneObjectGroup)ent;
-                    if (sog.HasChildPrim(fullID))
+                    if (sog.ContainsPart(fullID))
                     {
                         lock (SceneObjectGroupsByFullPartID)
                             SceneObjectGroupsByFullPartID[fullID] = sog;
