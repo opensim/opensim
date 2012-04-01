@@ -301,9 +301,9 @@ namespace OpenSim.Framework
     public delegate void ConfirmXfer(IClientAPI remoteClient, ulong xferID, uint packetID);
 
     public delegate void FriendActionDelegate(
-        IClientAPI remoteClient, UUID agentID, UUID transactionID, List<UUID> callingCardFolders);
+        IClientAPI remoteClient, UUID transactionID, List<UUID> callingCardFolders);
 
-    public delegate void FriendshipTermination(IClientAPI remoteClient, UUID agentID, UUID ExID);
+    public delegate void FriendshipTermination(IClientAPI remoteClient, UUID ExID);
 
     public delegate void MoneyTransferRequest(
         UUID sourceID, UUID destID, int amount, int transactionType, string description);
@@ -464,7 +464,7 @@ namespace OpenSim.Framework
     public delegate void AvatarNotesUpdate(IClientAPI client, UUID targetID, string notes);
     public delegate void MuteListRequest(IClientAPI client, uint muteCRC);
     public delegate void AvatarInterestUpdate(IClientAPI client, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages);
-    public delegate void GrantUserFriendRights(IClientAPI client, UUID requester, UUID target, int rights);
+    public delegate void GrantUserFriendRights(IClientAPI client, UUID target, int rights);
     public delegate void PlacesQuery(UUID QueryID, UUID TransactionID, string QueryText, uint QueryFlags, byte Category, string SimName, IClientAPI client);
 
     public delegate void AgentFOV(IClientAPI client, float verticalAngle);
@@ -717,7 +717,7 @@ namespace OpenSim.Framework
         /// The scene agent for this client.  This will only be set if the client has an agent in a scene (i.e. if it
         /// is connected).
         /// </summary>
-        ISceneAgent SceneAgent { get; }
+        ISceneAgent SceneAgent { get; set; }
 
         UUID SessionId { get; }
 

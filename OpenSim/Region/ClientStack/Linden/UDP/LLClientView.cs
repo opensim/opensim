@@ -396,7 +396,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
         public UUID AgentId { get { return m_agentId; } }
-        public ISceneAgent SceneAgent { get; private set; }
+        public ISceneAgent SceneAgent { get; set; }
         public UUID ActiveGroupId { get { return m_activeGroupID; } }
         public string ActiveGroupName { get { return m_activeGroupName; } }
         public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } }
@@ -719,7 +719,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public virtual void Start()
         {
-            SceneAgent = m_scene.AddNewClient(this, PresenceType.User);
+            m_scene.AddNewClient(this, PresenceType.User);
 
             RefreshGroupMembership();
         }
@@ -5913,7 +5913,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // My guess is this is the folder to stick the calling card into
             List<UUID> callingCardFolders = new List<UUID>();
 
-            UUID agentID = afriendpack.AgentData.AgentID;
             UUID transactionID = afriendpack.TransactionBlock.TransactionID;
 
             for (int fi = 0; fi < afriendpack.FolderData.Length; fi++)
@@ -5924,10 +5923,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             FriendActionDelegate handlerApproveFriendRequest = OnApproveFriendRequest;
             if (handlerApproveFriendRequest != null)
             {
-                handlerApproveFriendRequest(this, agentID, transactionID, callingCardFolders);
+                handlerApproveFriendRequest(this, transactionID, callingCardFolders);
             }
-            return true;
 
+            return true;
         }
 
         private bool HandlerDeclineFriendship(IClientAPI sender, Packet Pack)
@@ -5946,7 +5945,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (OnDenyFriendRequest != null)
             {
                 OnDenyFriendRequest(this,
-                                    dfriendpack.AgentData.AgentID,
                                     dfriendpack.TransactionBlock.TransactionID,
                                     null);
             }
@@ -5966,14 +5964,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             #endregion
 
-            UUID listOwnerAgentID = tfriendpack.AgentData.AgentID;
             UUID exFriendID = tfriendpack.ExBlock.OtherID;
             FriendshipTermination TerminateFriendshipHandler = OnTerminateFriendship;
             if (TerminateFriendshipHandler != null)
             {
-                TerminateFriendshipHandler(this, listOwnerAgentID, exFriendID);
+                TerminateFriendshipHandler(this, exFriendID);
                 return true;
             }
+
             return false;
         }
 
@@ -11378,12 +11376,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return true;
             }
             #endregion
+
             GrantUserFriendRights GrantUserRightsHandler = OnGrantUserRights;
             if (GrantUserRightsHandler != null)
                 GrantUserRightsHandler(this,
-                    GrantUserRights.AgentData.AgentID,
                     GrantUserRights.Rights[0].AgentRelated,
                     GrantUserRights.Rights[0].RelatedRights);
+
             return true;
         }
 
@@ -12455,7 +12454,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ItemData.Add(ItemDataMap);
             }
 
-            llsd.Add("ItemData", ItemData);
+            llsd.Add("InventoryData", ItemData);
 
             eq.Enqueue(BuildEvent("RemoveInventoryItem",
                     llsd), AgentId);
@@ -12499,6 +12498,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     llsd), AgentId);
         }
 
+        private byte[] EncodeU32(uint val)
+        {
+            byte[] ret = BitConverter.GetBytes(val);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(ret);
+            return ret;
+        }
+
         public void SendBulkUpdateInventory(InventoryFolderBase[] folders, InventoryItemBase[] items)
         {
             IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
@@ -12514,6 +12521,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OSDMap AgentDataMap = new OSDMap(1);
             AgentDataMap.Add("AgentID", OSD.FromUUID(AgentId));
             AgentDataMap.Add("SessionID", OSD.FromUUID(SessionId));
+            AgentDataMap.Add("TransactionID", OSD.FromUUID(UUID.Random()));
 
             OSDArray AgentData = new OSDArray(1);
             AgentData.Add(AgentDataMap);
@@ -12541,10 +12549,47 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             foreach (InventoryItemBase item in items)
             {
                 OSDMap ItemDataMap = new OSDMap();
+                
+                ItemDataMap.Add("ItemID", OSD.FromUUID(item.ID));
+                ItemDataMap.Add("FolderID", OSD.FromUUID(item.Folder));
+
+                ItemDataMap.Add("CreatorID", OSD.FromUUID(item.CreatorIdAsUuid));
+                ItemDataMap.Add("OwnerID", OSD.FromUUID(item.Owner));
+                ItemDataMap.Add("GroupID", OSD.FromUUID(item.GroupID));
+                ItemDataMap.Add("BaseMask", OSD.FromBinary(EncodeU32((uint)item.BasePermissions)));
+                ItemDataMap.Add("OwnerMask", OSD.FromBinary(EncodeU32((uint)item.CurrentPermissions)));
+                ItemDataMap.Add("GroupMask", OSD.FromBinary(EncodeU32((uint)item.GroupPermissions)));
+                ItemDataMap.Add("EveryoneMask", OSD.FromBinary(EncodeU32((uint)item.EveryOnePermissions)));
+                ItemDataMap.Add("NextOwnerMask", OSD.FromBinary(EncodeU32((uint)item.NextPermissions)));
+                ItemDataMap.Add("GroupOwned", OSD.FromBoolean(item.GroupOwned));
+                ItemDataMap.Add("AssetID", OSD.FromUUID(item.AssetID));
+                ItemDataMap.Add("Type", OSD.FromInteger(item.AssetType));
+                ItemDataMap.Add("InvType", OSD.FromInteger(item.InvType));
+                ItemDataMap.Add("Flags", OSD.FromBinary(EncodeU32((uint)item.Flags)));
+                ItemDataMap.Add("SaleType", OSD.FromInteger((byte)item.SaleType));
+                ItemDataMap.Add("SalePrice", OSD.FromInteger(item.SalePrice));
+                ItemDataMap.Add("Name", OSD.FromString(item.Name));
+                ItemDataMap.Add("Description", OSD.FromString(item.Description));
+                ItemDataMap.Add("CreationDate", OSD.FromInteger(item.CreationDate));
+
+                ItemDataMap.Add("CRC", OSD.FromBinary(EncodeU32(
+                        Helpers.InventoryCRC(1000, 0, (sbyte)item.InvType,
+                        (sbyte)item.AssetType, item.AssetID,
+                        item.GroupID, 100,
+                        item.Owner, item.CreatorIdAsUuid,
+                        item.ID, item.Folder,
+                        (uint)PermissionMask.All, 1, (uint)PermissionMask.All, (uint)PermissionMask.All,
+                        (uint)PermissionMask.All)
+                )));
+                ItemDataMap.Add("CallbackID", 0);
+
                 ItemData.Add(ItemDataMap);
             }
 
             llsd.Add("ItemData", ItemData);
+
+            eq.Enqueue(BuildEvent("BulkUpdateInventory",
+                    llsd), AgentId);
         }
     }
 }

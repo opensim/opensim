@@ -105,12 +105,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         #endregion
 
-        protected override void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
+        protected override void OnApproveFriendRequest(IClientAPI client, UUID friendID, List<UUID> callingCardFolders)
         {
             // Update the local cache. Yes, we need to do it right here
             // because the HGFriendsService placed something on the DB
             // from under the sim
-            base.OnApproveFriendRequest(client, agentID, friendID, callingCardFolders);
+            base.OnApproveFriendRequest(client, friendID, callingCardFolders);
         }
 
         protected override bool CacheFriends(IClientAPI client)
@@ -163,7 +163,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(client.Scene.RegionInfo.ScopeID, client.AgentId);
                     if (account == null) // foreign
                     {
-                        FriendInfo[] friends = GetFriends(client.AgentId);
+                        FriendInfo[] friends = GetFriendsFromCache(client.AgentId);
                         foreach (FriendInfo f in friends)
                         {
                             client.SendChangeUserRights(new UUID(f.Friend), client.AgentId, f.TheirFlags);
@@ -300,8 +300,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return null;
         }
 
-
-        protected override FriendInfo[] GetFriendsFromService(IClientAPI client)
+        public override FriendInfo[] GetFriendsFromService(IClientAPI client)
         {
 //            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering GetFriendsFromService for {0}", client.Name);
             Boolean agentIsLocal = true;
@@ -346,7 +345,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             if (agentIsLocal) // agent is local, friend is foreigner
             {
-                FriendInfo[] finfos = GetFriends(agentID);
+                FriendInfo[] finfos = GetFriendsFromCache(agentID);
                 FriendInfo finfo = GetFriend(finfos, friendID);
                 if (finfo != null)
                 {
@@ -453,7 +452,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 bool confirming = false;
                 if (friendUUI == string.Empty)
                 {
-                    finfos = GetFriends(agentID);
+                    finfos = GetFriendsFromCache(agentID);
                     foreach (FriendInfo finfo in finfos)
                     {
                         if (finfo.TheirFlags == -1)
@@ -546,7 +545,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // Delete any previous friendship relations
             FriendInfo[] finfos = null;
             FriendInfo f = null;
-            finfos = GetFriends(a1);
+            finfos = GetFriendsFromCache(a1);
             if (finfos != null)
             {
                 f = GetFriend(finfos, a2);
@@ -558,7 +557,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 }
             }
 
-            finfos = GetFriends(a2);
+            finfos = GetFriendsFromCache(a2);
             if (finfos != null)
             {
                 f = GetFriend(finfos, a1);
@@ -595,7 +594,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (agentIsLocal) // agent is local, 'friend' is foreigner
             {
                 // We need to look for its information in the friends list itself
-                FriendInfo[] finfos = GetFriends(agentID);
+                FriendInfo[] finfos = GetFriendsFromCache(agentID);
                 FriendInfo finfo = GetFriend(finfos, exfriendID);
                 if (finfo != null)
                 {
@@ -639,7 +638,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private string GetUUI(UUID localUser, UUID foreignUser)
         {
             // Let's see if the user is here by any chance
-            FriendInfo[] finfos = GetFriends(localUser);
+            FriendInfo[] finfos = GetFriendsFromCache(localUser);
             if (finfos != EMPTY_FRIENDS) // friend is here, cool
             {
                 FriendInfo finfo = GetFriend(finfos, foreignUser);

@@ -75,6 +75,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Triggered when a new client is added to the scene.
         /// </summary>
         /// <remarks>
+        /// This is triggered for both child and root agent client connections.
         /// Triggered before OnClientLogin.
         /// </remarks>
         public event OnNewClientDelegate OnNewClient;
@@ -195,7 +196,7 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void ClientClosed(UUID clientID, Scene scene);
 
         /// <summary>
-        /// Fired when a client is removed from a scene.
+        /// Fired when a client is removed from a scene whether it's a child or a root agent.
         /// </summary>
         /// <remarks>
         /// At the point of firing, the scene still contains the client's scene presence.

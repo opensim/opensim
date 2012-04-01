@@ -815,7 +815,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             group.ResetIDs();
 
-            SceneObjectPart rootPart = group.GetChildPart(group.UUID);
+            SceneObjectPart rootPart = group.GetPart(group.UUID);
 
             // Since renaming the item in the inventory does not affect the name stored
             // in the serialization, transfer the correct name from the inventory to the

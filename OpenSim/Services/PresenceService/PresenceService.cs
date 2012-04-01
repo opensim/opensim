@@ -151,11 +151,12 @@ namespace OpenSim.Services.PresenceService
 
                     info.Add(ret);
                 }
+
+//                m_log.DebugFormat(
+//                    "[PRESENCE SERVICE]: GetAgents for {0} found {1} presences", userIDStr, data.Length);
             }
 
-            // m_log.DebugFormat("[PRESENCE SERVICE]: GetAgents for {0} userIDs found {1} presences", userIDs.Length, info.Count);
             return info.ToArray();
         }
-
     }
 }

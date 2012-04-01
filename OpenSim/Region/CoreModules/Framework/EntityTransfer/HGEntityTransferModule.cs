@@ -71,7 +71,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (name == Name)
                 {
                     InitialiseCommon(source);
-                    IConfig transferConfig = source.Configs["HGEntityTransfer"];
+                    IConfig transferConfig = source.Configs["HGEntityTransferModule"];
                     if (transferConfig != null)
                         m_RestrictInventoryAccessAbroad = transferConfig.GetBoolean("RestrictInventoryAccessAbroad", false);
 
@@ -94,6 +94,31 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             client.OnTeleportHomeRequest += TriggerTeleportHome;
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
             client.OnConnectionClosed += new Action<IClientAPI>(OnConnectionClosed);
+            client.OnCompleteMovementToRegion += new Action<IClientAPI, bool>(OnCompleteMovementToRegion);
+        }
+
+        protected void OnCompleteMovementToRegion(IClientAPI client, bool arg2)
+        {
+            // HACK HACK -- just seeing how the viewer responds
+            // Let's send the Suitcase or the real root folder folder for incoming HG agents
+            // Visiting agents get their suitcase contents; incoming local users get their real root folder's content
+            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: OnCompleteMovementToRegion of user {0}", client.AgentId);
+            object sp = null;
+            if (client.Scene.TryGetScenePresence(client.AgentId, out sp))
+            {
+                if (sp is ScenePresence)
+                {
+                    AgentCircuitData aCircuit = ((ScenePresence)sp).Scene.AuthenticateHandler.GetAgentCircuitData(client.AgentId);
+                    if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
+                    {
+                        m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: ViaHGLogin");
+                        if (m_RestrictInventoryAccessAbroad)
+                        {
+                            RestoreRootFolderContents(client);
+                        }
+                    }
+                }
+            }
         }
 
 
@@ -105,6 +130,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     m_GatekeeperConnector = new GatekeeperServiceConnector(scene.AssetService);
                     m_Initialized = true;
+
+                    scene.AddCommand(
+                    "HG", this, "send inventory",
+                    "send inventory",
+                    "Don't use this",
+                    HandleSendInventory);
+
                 }
 
         }
@@ -374,7 +406,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
                     if (root != null)
                     {
-                        m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Removing root inventory");
+                        m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Removing root inventory for user {0}", client.AgentId);
                         InventoryCollection content = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, root.ID);
                         UUID[] ids = new UUID[content.Folders.Count];
                         int i = 0;
@@ -393,12 +425,26 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         private void RestoreRootFolderContents(IClientAPI client)
         {
-            // Restore the user's inventory, because we removed it earlier on
-            InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
-            if (root != null)
+            if (client is IClientCore)
             {
-                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Restoring root inventory");
-                client.SendBulkUpdateInventory(root);
+                IClientCore core = (IClientCore)client;
+                IClientInventory inv;
+
+                if (core.TryGet<IClientInventory>(out inv))
+                {
+                    InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
+                    client.SendBulkUpdateInventory(root);
+                    //if (root != null)
+                    //{
+                    //    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Restoring root inventory for user {0}", client.AgentId);
+                    //    InventoryCollection content = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, root.ID);
+                    //    m_log.DebugFormat("[XXX]: Folder name {0}, id {1}, parent {2}", root.Name, root.ID, root.ParentID);
+                    //    foreach (InventoryItemBase i in content.Items)
+                    //        m_log.DebugFormat("[XXX]:   Name={0}, folderID={1}", i.Name, i.Folder);
+
+                    //    inv.SendBulkUpdateInventory(content.Folders.ToArray(), content.Items.ToArray());
+                    //}
+                }
             }
         }
 
@@ -418,5 +464,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             region.InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), (int)0);
             return region;
         }
+
+        protected void HandleSendInventory(string module, string[] cmd)
+        {
+            m_Scenes[0].ForEachClient(delegate(IClientAPI client)
+            {
+                RestoreRootFolderContents(client);
+            });
+        }
+
     }
 }

@@ -93,8 +93,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             if (config == null)
                 return;
 
-            int refreshminutes = Convert.ToInt32(config.GetString("RefreshTime"));
-            if (refreshminutes <= 0)
+            int refreshminutes = Convert.ToInt32(config.GetString("RefreshTime", "-1"));
+            if (refreshminutes < 0)
             {
                 m_log.WarnFormat("[MAP IMAGE SERVICE MODULE]: No refresh time given in config. Module disabled.");
                 return;
@@ -117,12 +117,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                 return;
             }
 
-            m_refreshTimer.Enabled = true;
-            m_refreshTimer.AutoReset = true;
-            m_refreshTimer.Interval = m_refreshtime;
-            m_refreshTimer.Elapsed += new ElapsedEventHandler(HandleMaptileRefresh);
+            if (m_refreshtime > 0)
+            {
+                m_refreshTimer.Enabled = true;
+                m_refreshTimer.AutoReset = true;
+                m_refreshTimer.Interval = m_refreshtime;
+                m_refreshTimer.Elapsed += new ElapsedEventHandler(HandleMaptileRefresh);
+            }
 
-            m_log.InfoFormat("[MAP IMAGE SERVICE MODULE]: enabled with refresh time {0}min and service object {1}",
+            m_log.InfoFormat("[MAP IMAGE SERVICE MODULE]: enabled with refresh time {0} min and service object {1}",
                              refreshminutes, service);
 
             m_enabled = true;

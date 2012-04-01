@@ -244,10 +244,10 @@ namespace OpenSim.Data.Tests
             SceneObjectPart[] newparts = newsog.Parts;
             Assert.That(newparts.Length,Is.EqualTo(4), "Assert.That(newparts.Length,Is.EqualTo(4))");
             
-            Assert.That(newsog.HasChildPrim(tmp0), "Assert.That(newsog.HasChildPrim(tmp0))");
-            Assert.That(newsog.HasChildPrim(tmp1), "Assert.That(newsog.HasChildPrim(tmp1))");
-            Assert.That(newsog.HasChildPrim(tmp2), "Assert.That(newsog.HasChildPrim(tmp2))");
-            Assert.That(newsog.HasChildPrim(tmp3), "Assert.That(newsog.HasChildPrim(tmp3))");
+            Assert.That(newsog.ContainsPart(tmp0), "Assert.That(newsog.ContainsPart(tmp0))");
+            Assert.That(newsog.ContainsPart(tmp1), "Assert.That(newsog.ContainsPart(tmp1))");
+            Assert.That(newsog.ContainsPart(tmp2), "Assert.That(newsog.ContainsPart(tmp2))");
+            Assert.That(newsog.ContainsPart(tmp3), "Assert.That(newsog.ContainsPart(tmp3))");
         }
         
         [Test]

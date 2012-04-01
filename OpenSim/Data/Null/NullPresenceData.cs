@@ -110,7 +110,6 @@ namespace OpenSim.Data.Null
             return false;
         }
 
-
         public PresenceData[] Get(string field, string data)
         {
             if (Instance != this)
