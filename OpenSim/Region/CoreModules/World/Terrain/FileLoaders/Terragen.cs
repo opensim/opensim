@@ -323,6 +323,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             return "Terragen";
         }
 
+        //Returns true if this extension is supported for terrain save-tile
+        public bool SupportsTileSave()
+        {
+            return false;
+        }
+
         /// <summary>
         /// terragen SCAL floats need to be written intel ordered regardless of
         /// big or little endian system
