@@ -57,5 +57,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         {
             return "TIFF";
         }
+
+        //Returns true if this extension is supported for terrain save-tile
+        public bool SupportsTileSave()
+        {
+            return false;
+        }
     }
 }

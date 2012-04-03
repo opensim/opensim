@@ -91,6 +91,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             return "JPEG";
         }
 
+        //Returns true if this extension is supported for terrain save-tile
+        public bool SupportsTileSave()
+        {
+            return false;
+        }
+
         private static Bitmap CreateBitmapFromMap(ITerrainChannel map)
         {
             Bitmap gradientmapLd = new Bitmap("defaultstripe.png");

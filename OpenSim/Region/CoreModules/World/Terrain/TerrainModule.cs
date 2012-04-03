@@ -93,6 +93,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// </summary>
         private string m_supportedFileExtensions = "";
 
+        //For terrain save-tile file extensions
+        private string m_supportFileExtensionsForTileSave = "";
+
         #region ICommandableModule Members
 
         public ICommander CommandInterface
@@ -148,11 +151,20 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
             // Generate user-readable extensions list
             string supportedFilesSeparator = "";
+            string supportedFilesSeparatorForTileSave = "";
 
+            m_supportFileExtensionsForTileSave = "";
             foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
             {
                 m_supportedFileExtensions += supportedFilesSeparator + loader.Key + " (" + loader.Value + ")";
                 supportedFilesSeparator = ", ";
+
+                //For terrain save-tile file extensions
+                if (loader.Value.SupportsTileSave() == true)
+                {
+                    m_supportFileExtensionsForTileSave += supportedFilesSeparatorForTileSave + loader.Key + " (" + loader.Value + ")";
+                    supportedFilesSeparatorForTileSave = ", ";
+                }
             }
         }
 
@@ -589,7 +601,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             // this region is included in the tile request
             foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
             {
-                if (filename.EndsWith(loader.Key))
+                if (filename.EndsWith(loader.Key) && loader.Value.SupportsTileSave())
                 {
                     lock (m_scene)
                     {
@@ -610,7 +622,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
             MainConsole.Instance.OutputFormat(
                 "ERROR: Could not save terrain from {0} to {1}.  Valid file extensions are {2}",
-                m_scene.RegionInfo.RegionName, filename, m_supportedFileExtensions);
+                m_scene.RegionInfo.RegionName, filename, m_supportFileExtensionsForTileSave);
         }
 
         /// <summary>
@@ -1194,7 +1206,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 new Command("save-tile", CommandIntentions.COMMAND_HAZARDOUS, InterfaceSaveTileFile, "Saves the current heightmap to the larger file.");
             saveToTileCommand.AddArgument("filename",
                                             "The file you wish to save to, the file extension determines the loader to be used. Supported extensions include: " +
-                                            m_supportedFileExtensions, "String");
+                                            m_supportFileExtensionsForTileSave, "String");
             saveToTileCommand.AddArgument("file width", "The width of the file in tiles", "Integer");
             saveToTileCommand.AddArgument("file height", "The height of the file in tiles", "Integer");
             saveToTileCommand.AddArgument("minimum X tile", "The X region coordinate of the first section on the file",

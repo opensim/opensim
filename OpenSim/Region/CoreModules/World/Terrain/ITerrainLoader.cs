@@ -32,6 +32,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 {
     public interface ITerrainLoader
     {
+        // Returns true if that extension can be used for terrain save-tile
+        // (Look into each file in Region.CoreModules.World.Terrain.FileLoaders) 
+        bool SupportsTileSave();
+
         string FileExtension { get; }
         ITerrainChannel LoadFile(string filename);
         ITerrainChannel LoadFile(string filename, int fileStartX, int fileStartY, int fileWidth, int fileHeight, int sectionWidth, int sectionHeight);
