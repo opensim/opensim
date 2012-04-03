@@ -2181,20 +2181,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void applyAngularImpulse(Vector3 impulse)
-        {
-            PhysicsActor pa = RootPart.PhysActor;
-
-            if (pa != null)
-            {
-                if (!IsAttachment)
-                {
-                    pa.AddAngularForce(impulse, true);
-                    m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
-                }
-            }
-        }
-
         public void setAngularImpulse(Vector3 impulse)
         {
             PhysicsActor pa = RootPart.PhysActor;
@@ -2211,18 +2197,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Vector3 GetTorque()
         {
-            PhysicsActor pa = RootPart.PhysActor;
-
-            if (pa != null)
-            {
-                if (!IsAttachment)
-                {
-                    Vector3 torque = pa.Torque;
-                    return torque;
-                }
-            }
-
-            return Vector3.Zero;
+            return Torque;
         }
 
          // This is used by both Double-Click Auto-Pilot and llMoveToTarget() in an attached object
