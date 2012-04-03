@@ -2197,7 +2197,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Vector3 GetTorque()
         {
-            return Torque;
+            return RootPart.Torque;
         }
 
          // This is used by both Double-Click Auto-Pilot and llMoveToTarget() in an attached object
