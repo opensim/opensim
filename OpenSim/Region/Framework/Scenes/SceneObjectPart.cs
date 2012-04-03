@@ -4837,11 +4837,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
                 // (mumbles, well, at least if you have infinte CPU powers :-))
-                if (this.PhysActor != null)
+                if (pa != null)
                 {
                     PhysActor.SetVolumeDetect(0);
-
-                this.VolumeDetectActive = false;
+                    this.VolumeDetectActive = false;
+                }
             }
 
             if (SetTemporary)
