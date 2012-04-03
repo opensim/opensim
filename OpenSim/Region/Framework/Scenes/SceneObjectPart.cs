@@ -1488,40 +1488,17 @@ namespace OpenSim.Region.Framework.Scenes
                 if (VolumeDetectActive)
                     isPhantom = false;
 
-                // Added clarification..   since A rigid body is an object that you can kick around, etc.
-                bool RigidBody = isPhysical && !isPhantom;
-
                 // The only time the physics scene shouldn't know about the prim is if it's phantom or an attachment, which is phantom by definition
                 // or flexible
                 if (!isPhantom && !ParentGroup.IsAttachment && !(Shape.PathCurve == (byte)Extrusion.Flexible))
                 {
-                    try
-                    {
-                        PhysActor = ParentGroup.Scene.PhysicsScene.AddPrimShape(
-                                string.Format("{0}/{1}", Name, UUID),
-                                Shape,
-                                AbsolutePosition,
-                                Scale,
-                                RotationOffset,
-                                RigidBody,
-                                m_localId);
-                    }
-                    catch
-                    {
-                        m_log.ErrorFormat("[SCENE]: caught exception meshing object {0}. Object set to phantom.", m_uuid);
-                        PhysActor = null;
-                    }
+                    // Added clarification..   since A rigid body is an object that you can kick around, etc.
+                    bool rigidBody = isPhysical && !isPhantom;
 
-                    // Basic Physics can also return null as well as an exception catch.
-                    PhysicsActor pa = PhysActor;
+                    PhysicsActor pa = AddToPhysics(rigidBody);
 
                     if (pa != null)
-                    {
-                        pa.SOPName = this.Name; // save object into the PhysActor so ODE internals know the joint/body info
-                        pa.SetMaterial(Material);
-                        DoPhysicsPropertyUpdate(RigidBody, true);
                         pa.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
-                    }
                 }
             }
         }
@@ -4322,41 +4299,36 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParentGroup.Scene == null)
                     return;
 
-                if (ParentGroup.Scene.CollidablePrims && PhysActor == null)
+                if (ParentGroup.Scene.CollidablePrims && pa == null)
                 {
-                    // It's not phantom anymore. So make sure the physics engine get's knowledge of it
-                    PhysActor = ParentGroup.Scene.PhysicsScene.AddPrimShape(
-                        string.Format("{0}/{1}", Name, UUID),
-                        Shape,
-                        AbsolutePosition,
-                        Scale,
-                        RotationOffset,
-                        UsePhysics,
-                        m_localId);
+                    pa = AddToPhysics(UsePhysics);
 
-                    PhysActor.SetMaterial(Material);
-                    DoPhysicsPropertyUpdate(UsePhysics, true);
-
-                    if (!ParentGroup.IsDeleted)
+                    if (pa != null)
                     {
-                        if (LocalId == ParentGroup.RootPart.LocalId)
+                        pa.SetMaterial(Material);
+                        DoPhysicsPropertyUpdate(UsePhysics, true);
+    
+                        if (!ParentGroup.IsDeleted)
                         {
-                            ParentGroup.CheckSculptAndLoad();
+                            if (LocalId == ParentGroup.RootPart.LocalId)
+                            {
+                                ParentGroup.CheckSculptAndLoad();
+                            }
                         }
-                    }
-
-                    if (
-                        ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
-                        ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
-                        ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
-                        ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
-                        ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
-                        ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
-                        (CollisionSound != UUID.Zero)
-                        )
-                    {
-                        PhysActor.OnCollisionUpdate += PhysicsCollision;
-                        PhysActor.SubscribeEvents(1000);
+    
+                        if (
+                            ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
+                            (CollisionSound != UUID.Zero)
+                            )
+                        {
+                            pa.OnCollisionUpdate += PhysicsCollision;
+                            pa.SubscribeEvents(1000);
+                        }
                     }
                 }
                 else // it already has a physical representation
@@ -4418,7 +4390,52 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// This removes the part from physics
+        /// Adds this part to the physics scene.
+        /// </summary>
+        /// <remarks>This method also sets the PhysActor property.</remarks>
+        /// <param name="rigidBody">Add this prim with a rigid body.</param>
+        /// <returns>
+        /// The physics actor.  null if there was a failure.
+        /// </returns>
+        private PhysicsActor AddToPhysics(bool rigidBody)
+        {
+            PhysicsActor pa;
+
+            try
+            {
+                pa = ParentGroup.Scene.PhysicsScene.AddPrimShape(
+                        string.Format("{0}/{1}", Name, UUID),
+                        Shape,
+                        AbsolutePosition,
+                        Scale,
+                        RotationOffset,
+                        rigidBody,
+                        m_localId);
+            }
+            catch
+            {
+                m_log.ErrorFormat("[SCENE]: caught exception meshing object {0}. Object set to phantom.", m_uuid);
+                pa = null;
+            }
+
+            // FIXME: Ideally we wouldn't set the property here to reduce situations where threads changing physical
+            // properties can stop on each other.  However, DoPhysicsPropertyUpdate() currently relies on PhysActor
+            // being set.
+            PhysActor = pa;
+
+            // Basic Physics can also return null as well as an exception catch.
+            if (pa != null)
+            {
+                pa.SOPName = this.Name; // save object into the PhysActor so ODE internals know the joint/body info
+                pa.SetMaterial(Material);
+                DoPhysicsPropertyUpdate(rigidBody, true);
+            }
+
+            return pa;
+        }
+
+        /// <summary>
+        /// This removes the part from the physics scene.
         /// </summary>
         /// <remarks>
         /// This isn't the same as turning off physical, since even without being physical the prim has a physics
