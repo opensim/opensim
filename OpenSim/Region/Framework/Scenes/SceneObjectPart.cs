@@ -571,20 +571,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public byte Material
-        {
-            get { return (byte) m_material; }
-            set
-            {
-                m_material = (Material)value;
-
-                PhysicsActor pa = PhysActor;
-
-                if (pa != null)
-                    pa.SetMaterial((int)value);
-            }
-        }
-
         public bool PassTouches
         {
             get { return m_passTouches; }
