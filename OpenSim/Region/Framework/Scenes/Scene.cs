@@ -642,10 +642,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             #endregion Region Settings
 
-            MainConsole.Instance.Commands.AddCommand("Estates", false, "reload estate",
-                                          "reload estate",
-                                          "Reload the estate data", HandleReloadEstate);
-
             //Bind Storage Manager functions to some land manager functions for this scene
             EventManager.OnLandObjectAdded +=
                 new EventManager.LandObjectAdded(simDataService.StoreLandObject);

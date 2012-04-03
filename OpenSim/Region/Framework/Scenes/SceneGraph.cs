@@ -306,7 +306,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (rot != null)
                 sceneObject.UpdateGroupRotationR((Quaternion)rot);
 
-            if (sceneObject.RootPart.PhysActor != null && sceneObject.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)
+            PhysicsActor pa = sceneObject.RootPart.PhysActor;
+            if (pa != null && pa.IsPhysical && vel != Vector3.Zero)
             {
                 sceneObject.RootPart.ApplyImpulse((vel * sceneObject.GetMass()), false);
                 sceneObject.Velocity = vel;

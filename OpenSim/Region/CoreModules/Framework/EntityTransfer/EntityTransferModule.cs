@@ -36,6 +36,7 @@ using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Physics.Manager;
 using OpenSim.Services.Interfaces;
 
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
@@ -1803,10 +1804,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     if (!grp.IsDeleted)
                     {
-                        if (grp.RootPart.PhysActor != null)
-                        {
-                            grp.RootPart.PhysActor.CrossingFailure();
-                        }
+                        PhysicsActor pa = grp.RootPart.PhysActor;
+                        if (pa != null)
+                            pa.CrossingFailure();
                     }
 
                     m_log.ErrorFormat("[ENTITY TRANSFER MODULE]: Prim crossing failed for {0}", grp);
