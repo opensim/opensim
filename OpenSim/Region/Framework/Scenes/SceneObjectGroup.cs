@@ -3583,7 +3583,6 @@ namespace OpenSim.Region.Framework.Scenes
             Quaternion axRot = rot;
             Quaternion oldParentRot = m_rootPart.RotationOffset;
 
-            m_rootPart.StoreUndoState();
             //Don't use UpdateRotation because it schedules an update prematurely
             m_rootPart.RotationOffset = rot;
 

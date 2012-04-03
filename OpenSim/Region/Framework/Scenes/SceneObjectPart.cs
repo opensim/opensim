@@ -4819,6 +4819,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            PhysicsActor pa = PhysActor;
             if (SetVD)
             {
                 // If the above logic worked (this is urgent candidate to unit tests!)
@@ -4828,7 +4829,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // logic should make sure, this Physactor is always here.
                 if (pa != null)
                 {
-                    PhysActor.SetVolumeDetect(1);
+                    pa.SetVolumeDetect(1);
 //                    AddFlag(PrimFlags.Phantom); // We set this flag also if VD is active
                     this.VolumeDetectActive = true;
                 }
@@ -4839,7 +4840,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // (mumbles, well, at least if you have infinte CPU powers :-))
                 if (pa != null)
                 {
-                    PhysActor.SetVolumeDetect(0);
+                    pa.SetVolumeDetect(0);
                     this.VolumeDetectActive = false;
                 }
             }
@@ -4856,8 +4857,8 @@ namespace OpenSim.Region.Framework.Scenes
             //            m_log.Debug("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
 
            // and last in case we have a new actor and not building
-            if (PhysActor != null && PhysActor.Building != building)
-                PhysActor.Building = building;
+            if (pa != null && pa.Building != building)
+                pa.Building = building;
             if (ParentGroup != null)
             {
                 ParentGroup.HasGroupChanged = true;
