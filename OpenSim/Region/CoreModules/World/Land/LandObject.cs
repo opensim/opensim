@@ -56,6 +56,12 @@ namespace OpenSim.Region.CoreModules.World.Land
         protected List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
         protected Dictionary<uint, UUID> m_listTransactions = new Dictionary<uint, UUID>();
 
+        protected IGroupsModule m_groupsModule;
+        protected const uint PARCEL_FLAG_USE_ACCESS_GROUP = 0x100;  // parcel limits access to a group
+        protected Dictionary<UUID, long> m_isGroupMemberCache = new Dictionary<UUID, long>();
+        protected Dictionary<UUID, long> m_notGroupMemberCache = new Dictionary<UUID, long>();
+        protected const long m_groupMemberCacheTimeout = 30;  // cache invalidation after 30 seconds
+
         public bool[,] LandBitmap
         {
             get { return m_landBitmap; }
@@ -132,6 +138,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
                 LandData.GroupID = UUID.Zero;
             LandData.IsGroupOwned = is_group_owned;
+
+            m_groupsModule = scene.RequestModuleInterface<IGroupsModule>();
         }
 
         #endregion
@@ -460,7 +468,55 @@ namespace OpenSim.Region.CoreModules.World.Land
             if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) == 0)
                 return false;
 
-            return (!IsInLandAccessList(avatar));
+            if (IsInLandAccessList(avatar))
+                return false;
+
+            UUID groupID = LandData.GroupID;
+
+            if ((m_groupsModule != null) && (groupID != UUID.Zero) && ((LandData.Flags & PARCEL_FLAG_USE_ACCESS_GROUP) == PARCEL_FLAG_USE_ACCESS_GROUP))
+            {
+                long now = Util.UnixTimeSinceEpoch();
+
+                if (m_isGroupMemberCache.ContainsKey(avatar))
+                {
+                    if (now - m_isGroupMemberCache[avatar] <= m_groupMemberCacheTimeout) // invalid?
+                    {
+                        m_isGroupMemberCache[avatar] = now;
+                        return false;
+                    }
+                    else
+                        m_isGroupMemberCache.Remove(avatar);
+                }
+
+                if (m_notGroupMemberCache.ContainsKey(avatar))
+                {
+                    if (now - m_notGroupMemberCache[avatar] <= m_groupMemberCacheTimeout) // invalid?
+                    {
+                        // m_notGroupMemberCache[avatar] = now;
+                        return true;
+                    }
+                    else
+                        m_notGroupMemberCache.Remove(avatar);
+                }
+
+                GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(avatar);
+
+                if (GroupMembership != null)
+                {
+                    for (int i = 0; i < GroupMembership.Length; i++)
+                    {
+                        if (groupID == GroupMembership[i].GroupID)
+                        {
+                            m_isGroupMemberCache[avatar] = now;
+                            return false;
+                        }
+                    }
+                }
+
+                m_notGroupMemberCache[avatar] = now;
+            }
+
+            return true;
         }
 
         public bool IsInLandAccessList(UUID avatar)
