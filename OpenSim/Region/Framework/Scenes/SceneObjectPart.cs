@@ -2153,26 +2153,26 @@ namespace OpenSim.Region.Framework.Scenes
                                 if (ParentGroup.RootPart == this)
                                     AngularVelocity = new Vector3(0, 0, 0);
 
-                                if (PhysActor.Phantom)
+                                if (pa.Phantom)
                                 {
                                     RemoveFromPhysics();
                                     return;
                                 }
 
-                                PhysActor.IsPhysical = UsePhysics;
-                                PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
-                                PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
-                                PhysActor.delink();
+                                pa.IsPhysical = UsePhysics;
+                                pa.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
+                                pa.OnOutOfBounds -= PhysicsOutOfBounds;
+                                pa.delink();
                                 if (ParentGroup.Scene.PhysicsScene.SupportsNINJAJoints)
                                 {
                                     // destroy all joints connected to this now deactivated body
-                                    ParentGroup.Scene.PhysicsScene.RemoveAllJointsConnectedToActorThreadLocked(PhysActor);
+                                    ParentGroup.Scene.PhysicsScene.RemoveAllJointsConnectedToActorThreadLocked(pa);
                                 }
                             }
                         }
 
-                        if (PhysActor.IsPhysical != UsePhysics)
-                            PhysActor.IsPhysical = UsePhysics;
+                        if (pa.IsPhysical != UsePhysics)
+                            pa.IsPhysical = UsePhysics;
 
                         if (UsePhysics)
                         {
@@ -2197,8 +2197,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     bool phan = ((Flags & PrimFlags.Phantom) != 0);
-                    if (PhysActor.Phantom != phan)
-                        PhysActor.Phantom = phan;
+                    if (pa.Phantom != phan)
+                        pa.Phantom = phan;
 
 
                     // If this part is a sculpt then delay the physics update until we've asynchronously loaded the
@@ -2320,7 +2320,10 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsActor pa = PhysActor;
 
             if (pa != null)
-                return new Vector3(pa.CenterOfMass.X, pa.CenterOfMass.Y, pa.CenterOfMass.Z);
+            {
+                Vector3 vtmp = pa.CenterOfMass;
+                return vtmp;
+            }
             else
                 return new Vector3(0, 0, 0);
         }
@@ -3524,18 +3527,12 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsActor pa = PhysActor;
 
             if (pa != null)
-                pa.FloatOnWater = floatYN == 1;
+                pa.FloatOnWater = (floatYN == 1);
         }
 
         public void SetForce(Vector3 force)
         {
             Force = force;
-/*
-            if (PhysActor != null)
-            {
-                PhysActor.Force = force;
-            }
- */
         }
 
         public SOPVehicle sopVehicle
@@ -5066,33 +5063,32 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             PhysicsActor pa = PhysActor;
-
-            if (
-                ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
-                ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
-                ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
-                ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
-                ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
-                ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
-                (CollisionSound != UUID.Zero)
-                )
+            if (pa != null)
             {
-                // subscribe to physics updates.
-                if (pa != null)
+                const scriptEvents NeededSubsEvents = (
+                            scriptEvents.collision | scriptEvents.collision_start| scriptEvents.collision_end |
+                            scriptEvents.land_collision | scriptEvents.land_collision_start | scriptEvents.land_collision_end
+                            );
+                if (
+//                    ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
+//                    ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+//                    ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
+//                    ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
+//                    ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
+//                    ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
+                    ((AggregateScriptEvents & NeededSubsEvents) != 0) || (CollisionSound != UUID.Zero)
+                    )
                 {
+                    // subscribe to physics updates.
                     pa.OnCollisionUpdate += PhysicsCollision;
                     pa.SubscribeEvents(1000);
                 }
-            }
-            else
-            {
-                if (pa != null)
+                else
                 {
                     pa.UnSubscribeEvents();
                     pa.OnCollisionUpdate -= PhysicsCollision;
                 }
             }
-
             //if ((GetEffectiveObjectFlags() & (uint)PrimFlags.Scripted) != 0)
             //{
             //    ParentGroup.Scene.EventManager.OnScriptTimerEvent += handleTimerAccounting;
