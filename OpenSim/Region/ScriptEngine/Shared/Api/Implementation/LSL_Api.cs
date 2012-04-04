@@ -1474,7 +1474,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (scale.z < 0.01)
                 scale.z = 0.01;
 
-            if (part.ParentGroup.RootPart.PhysActor != null && part.ParentGroup.RootPart.PhysActor.IsPhysical)
+            PhysicsActor pa = part.ParentGroup.RootPart.PhysActor;
+
+            if (pa != null && pa.IsPhysical)
             {
                 if (scale.x > World.m_maxPhys)
                     scale.x = World.m_maxPhys;
@@ -2345,7 +2347,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // but only if the object is not physial and active.   This is important for rotating doors.
             // without the absoluteposition = absoluteposition happening, the doors do not move in the physics
             // scene
-            if (part.PhysActor != null && !part.PhysActor.IsPhysical)
+            PhysicsActor pa = part.PhysActor;
+
+            if (pa != null && !pa.IsPhysical)
             {
                 part.ParentGroup.ResetChildPrimPhysicsPositions();
             }
@@ -3073,7 +3077,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         float groupmass = new_group.GetMass();
 
-                        if (new_group.RootPart.PhysActor != null && new_group.RootPart.PhysActor.IsPhysical && llvel != Vector3.Zero)
+                        PhysicsActor pa = new_group.RootPart.PhysActor;
+
+                        if (pa != null && pa.IsPhysical && llvel != Vector3.Zero)
                         {
                             //Recoil.
                             llApplyImpulse(new LSL_Vector(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
@@ -3510,6 +3516,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetHoverHeight(double height, int water, double tau)
         {
             m_host.AddScriptLPS(1);
+
             if (m_host.PhysActor != null)
             {
                 PIDHoverType hoverType = PIDHoverType.Ground;
@@ -3560,7 +3567,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
             // set the rotation of the object, copy that behavior
-            if (strength == 0 || m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
+            PhysicsActor pa = m_host.PhysActor;
+
+            if (strength == 0 || pa == null || !pa.IsPhysical)
             {
                 llSetLocalRot(target);
             }

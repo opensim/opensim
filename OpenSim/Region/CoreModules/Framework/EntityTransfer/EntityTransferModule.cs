@@ -36,6 +36,7 @@ using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Physics.Manager;
 using OpenSim.Services.Interfaces;
 
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
@@ -1761,9 +1762,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     if (!grp.IsDeleted)
                     {
-                        if (grp.RootPart.PhysActor != null)
+                        PhysicsActor pa = grp.RootPart.PhysActor;
+                        if (pa != null)
                         {
-                            grp.RootPart.PhysActor.CrossingFailure();
+                            pa.CrossingFailure();
                             if (grp.RootPart.KeyframeMotion != null)
                             {
                                 grp.RootPart.Velocity = Vector3.Zero;
