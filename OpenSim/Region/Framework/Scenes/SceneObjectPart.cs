@@ -1789,7 +1789,7 @@ namespace OpenSim.Region.Framework.Scenes
                 impulse = newimpulse;
             }
 
-            ParentGroup.setAngularImpulse(impulse);
+            ParentGroup.ApplyAngularImpulse(impulse);
         }
 
         /// <summary>

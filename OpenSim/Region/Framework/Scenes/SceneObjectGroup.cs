@@ -2181,7 +2181,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void setAngularImpulse(Vector3 impulse)
+        public void ApplyAngularImpulse(Vector3 impulse)
         {
             PhysicsActor pa = RootPart.PhysActor;
 
@@ -2189,7 +2189,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (!IsAttachment)
                 {
-                    pa.Torque = impulse;
+                    pa.AddAngularForce(impulse, true);
                     m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
                 }
             }
