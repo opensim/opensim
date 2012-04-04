@@ -2186,18 +2186,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                             if (ParentID != 0 && ParentID != LocalId)
                             {
-                                ParentGroup.Scene.AddPhysicalPrim(1);
+                                PhysicsActor parentPa = ParentGroup.RootPart.PhysActor;
 
-                                pa.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
-                                pa.OnOutOfBounds += PhysicsOutOfBounds;
-                                if (ParentID != 0 && ParentID != LocalId)
+                                if (parentPa != null)
                                 {
-                                    PhysicsActor parentPa = ParentGroup.RootPart.PhysActor;
-
-                                    if (parentPa != null)
-                                    {
-                                        pa.link(parentPa);
-                                    }
+                                    pa.link(parentPa);
                                 }
                             }
                         }                           
