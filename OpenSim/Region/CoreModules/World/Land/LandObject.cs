@@ -526,7 +526,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (HasGroupAccess(avatar))
                 return false;
 
-            return (!IsInLandAccessList(avatar));
+            return !IsInLandAccessList(avatar);
         }
 
         public bool IsInLandAccessList(UUID avatar)
