@@ -56,11 +56,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         protected List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
         protected Dictionary<uint, UUID> m_listTransactions = new Dictionary<uint, UUID>();
 
-        protected IGroupsModule m_groupsModule;
-        protected const uint PARCEL_FLAG_USE_ACCESS_GROUP = 0x100;  // parcel limits access to a group
-        protected Dictionary<UUID, long> m_isGroupMemberCache = new Dictionary<UUID, long>();
-        protected Dictionary<UUID, long> m_notGroupMemberCache = new Dictionary<UUID, long>();
-        protected const long m_groupMemberCacheTimeout = 30;  // cache invalidation after 30 seconds
+        protected ExpiringCache<UUID, bool> m_groupMemberCache = new ExpiringCache<UUID, bool>();
+        protected TimeSpan m_groupMemberCacheTimeout = TimeSpan.FromSeconds(30);  // cache invalidation after 30 seconds
 
         public bool[,] LandBitmap
         {
@@ -138,8 +135,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
                 LandData.GroupID = UUID.Zero;
             LandData.IsGroupOwned = is_group_owned;
-
-            m_groupsModule = scene.RequestModuleInterface<IGroupsModule>();
         }
 
         #endregion
@@ -450,19 +445,30 @@ namespace OpenSim.Region.CoreModules.World.Land
                 ScenePresence sp;
                 if (!m_scene.TryGetScenePresence(avatar, out sp))
                 {
+                    bool isMember;
+                    if (m_groupMemberCache.TryGetValue(avatar, out isMember))
+                        return isMember;
+
                     IGroupsModule groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
                     if (groupsModule == null)
                         return false;
 
                     GroupMembershipData[] membership = groupsModule.GetMembershipData(avatar);
                     if (membership == null || membership.Length == 0)
+                    {
+                        m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
                         return false;
+                    }
 
                     foreach (GroupMembershipData d in membership)
                     {
                         if (d.GroupID == LandData.GroupID)
+                        {
+                            m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
                             return true;
+                        }
                     }
+                    m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
                     return false;
                 }
 
@@ -520,55 +526,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (HasGroupAccess(avatar))
                 return false;
 
-            if (IsInLandAccessList(avatar))
-                return false;
-
-            UUID groupID = LandData.GroupID;
-
-            if ((m_groupsModule != null) && (groupID != UUID.Zero) && ((LandData.Flags & PARCEL_FLAG_USE_ACCESS_GROUP) == PARCEL_FLAG_USE_ACCESS_GROUP))
-            {
-                long now = Util.UnixTimeSinceEpoch();
-
-                if (m_isGroupMemberCache.ContainsKey(avatar))
-                {
-                    if (now - m_isGroupMemberCache[avatar] <= m_groupMemberCacheTimeout) // invalid?
-                    {
-                        m_isGroupMemberCache[avatar] = now;
-                        return false;
-                    }
-                    else
-                        m_isGroupMemberCache.Remove(avatar);
-                }
-
-                if (m_notGroupMemberCache.ContainsKey(avatar))
-                {
-                    if (now - m_notGroupMemberCache[avatar] <= m_groupMemberCacheTimeout) // invalid?
-                    {
-                        // m_notGroupMemberCache[avatar] = now;
-                        return true;
-                    }
-                    else
-                        m_notGroupMemberCache.Remove(avatar);
-                }
-
-                GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(avatar);
-
-                if (GroupMembership != null)
-                {
-                    for (int i = 0; i < GroupMembership.Length; i++)
-                    {
-                        if (groupID == GroupMembership[i].GroupID)
-                        {
-                            m_isGroupMemberCache[avatar] = now;
-                            return false;
-                        }
-                    }
-                }
-
-                m_notGroupMemberCache[avatar] = now;
-            }
-
-            return true;
+            return (!IsInLandAccessList(avatar));
         }
 
         public bool IsInLandAccessList(UUID avatar)
