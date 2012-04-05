@@ -424,37 +424,34 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             if (LandData.GroupID != UUID.Zero && (LandData.Flags & (uint)ParcelFlags.UseAccessGroup) == (uint)ParcelFlags.UseAccessGroup)
             {
-                ScenePresence sp;
-                if (!m_scene.TryGetScenePresence(avatar, out sp))
+                bool isMember;
+                if (m_groupMemberCache.TryGetValue(avatar, out isMember))
+                    return isMember;
+
+                IGroupsModule groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
+                if (groupsModule == null)
                 {
-                    bool isMember;
-                    if (m_groupMemberCache.TryGetValue(avatar, out isMember))
-                        return isMember;
-
-                    IGroupsModule groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
-                    if (groupsModule == null)
-                        return false;
-
-                    GroupMembershipData[] membership = groupsModule.GetMembershipData(avatar);
-                    if (membership == null || membership.Length == 0)
-                    {
-                        m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
-                        return false;
-                    }
-
-                    foreach (GroupMembershipData d in membership)
-                    {
-                        if (d.GroupID == LandData.GroupID)
-                        {
-                            m_groupMemberCache.Add(avatar, true, m_groupMemberCacheTimeout);
-                            return true;
-                        }
-                    }
                     m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
                     return false;
                 }
 
-                return sp.ControllingClient.IsGroupMember(LandData.GroupID);
+                GroupMembershipData[] membership = groupsModule.GetMembershipData(avatar);
+                if (membership == null || membership.Length == 0)
+                {
+                    m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
+                    return false;
+                }
+
+                foreach (GroupMembershipData d in membership)
+                {
+                    if (d.GroupID == LandData.GroupID)
+                    {
+                        m_groupMemberCache.Add(avatar, true, m_groupMemberCacheTimeout);
+                        return true;
+                    }
+                }
+                m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
+                return false;
             }
             return false;
         }
