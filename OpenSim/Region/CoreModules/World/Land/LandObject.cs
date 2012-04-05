@@ -446,7 +446,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (d.GroupID == LandData.GroupID)
                         {
-                            m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
+                            m_groupMemberCache.Add(avatar, true, m_groupMemberCacheTimeout);
                             return true;
                         }
                     }
@@ -454,10 +454,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     return false;
                 }
 
-                if (!sp.ControllingClient.IsGroupMember(LandData.GroupID))
-                    return false;
-
-                return true;
+                return sp.ControllingClient.IsGroupMember(LandData.GroupID);
             }
             return false;
         }
