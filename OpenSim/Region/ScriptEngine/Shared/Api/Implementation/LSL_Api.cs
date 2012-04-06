@@ -7171,6 +7171,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     switch (code)
                     {
                         case (int)ScriptBaseClass.PRIM_POSITION:
+                        case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                             if (remain < 1)
                                 return;
 
