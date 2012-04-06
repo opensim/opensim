@@ -10354,6 +10354,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.OBJECT_CREATOR:
                                 ret.Add(new LSL_String(UUID.Zero.ToString()));
                                 break;
+                            // For the following 8 see the Object version below
+                            case ScriptBaseClass.OBJECT_RUNNING_SCRIPT_COUNT:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_TOTAL_SCRIPT_COUNT:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_SCRIPT_MEMORY:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_SCRIPT_TIME:
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_SERVER_COST:
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_STREAMING_COST:
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_PHYSICS_COST:
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            default:
+                                // Invalid or unhandled constant.
+                                ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
+                                break;
                         }
                     }
 
@@ -10390,6 +10419,49 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
                             case ScriptBaseClass.OBJECT_CREATOR:
                                 ret.Add(new LSL_String(obj.CreatorID.ToString()));
+                                break;
+                            // The following 8 I have intentionaly coded to return zero. They are part of
+                            // "Land Impact" calculations. These calculations are probably not applicable
+                            // to OpenSim, required figures (cpu/memory usage) are not currently tracked
+                            // I have intentionally left these all at zero rather than return possibly
+                            // missleading numbers
+                            case ScriptBaseClass.OBJECT_RUNNING_SCRIPT_COUNT:
+                                // in SL this currently includes crashed scripts
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_TOTAL_SCRIPT_COUNT:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_SCRIPT_MEMORY:
+                                // The value returned in SL for mono scripts is 65536 * number of active scripts
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_SCRIPT_TIME:
+                                // Average cpu time per simulator frame expended on all scripts in the objetc
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
+                                // according to the SL wiki A prim or linkset will have prim
+                                // equivalent of the number of prims in a linkset if it does not
+                                // contain a mesh anywhere in the link set or is not a normal prim
+                                // The value returned in SL for normal prims is prim count
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_SERVER_COST:
+                                // The value returned in SL for normal prims is prim count
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_STREAMING_COST:
+                                // The value returned in SL for normal prims is prim count * 0.06
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_PHYSICS_COST:
+                                // The value returned in SL for normal prims is prim count
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            default:
+                                // Invalid or unhandled constant.
+                                ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
                                 break;
                         }
                     }
