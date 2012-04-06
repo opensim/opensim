@@ -161,15 +161,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// If another thread is simultaneously turning physics off on this part then this refernece could become
         /// null at any time.
         /// </remarks>
-        public PhysicsActor PhysActor
-        {
-            get { return m_physActor; }
-            set
-            {
-//                m_log.DebugFormat("[SOP]: PhysActor set to {0} for {1} {2}", value, Name, UUID);
-                m_physActor = value;
-            }
-        }
+        public PhysicsActor PhysActor { get; set; }
 
         //Xantor 20080528 Sound stuff:
         //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
@@ -268,7 +260,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_passTouches;
 
-        private PhysicsActor m_physActor;
         protected Vector3 m_acceleration;
         protected Vector3 m_angularVelocity;
 
