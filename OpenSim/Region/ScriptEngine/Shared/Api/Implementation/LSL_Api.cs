@@ -2025,19 +2025,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Vector3 pos;
 
-            if (part.ParentID == 0)
+            if (!part.IsRoot)
             {
-                pos = part.AbsolutePosition;
+                pos = part.OffsetPosition;
             }
             else
             {
-                if (part.IsRoot)
+                if (part.ParentGroup.IsAttachment)
                 {
                     pos = part.AttachedPos;
                 }
                 else
                 {
-                    pos = part.OffsetPosition;
+                    pos = part.AbsolutePosition;
                 }
             }
 
