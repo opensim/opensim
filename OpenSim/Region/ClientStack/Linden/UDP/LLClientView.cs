@@ -4957,7 +4957,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.MediaURL = Utils.EmptyBytes; // FIXME: Support this in OpenSim
             if (data.ParentGroup.IsAttachment)
             {
-                update.NameValue = Util.StringToBytes256("AttachItemID STRING RW SV " + data.FromItemID);
+                update.NameValue = Util.StringToBytes256("AttachItemID STRING RW SV " + data.ParentGroup.FromItemID);
                 update.State = (byte)((data.ParentGroup.AttachmentPoint % 16) * 16 + (data.ParentGroup.AttachmentPoint / 16));
             }
             else

@@ -571,7 +571,9 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_LoopSoundSlavePrims = value; }
         }
 
-        // The UUID for the Region this Object is in.
+        /// <summary>
+        /// The UUID for the region this object is in.
+        /// </summary>
         public UUID RegionUUID
         {
             get
@@ -583,6 +585,11 @@ namespace OpenSim.Region.Framework.Scenes
                 return UUID.Zero;
             }
         }
+
+       /// <summary>
+       /// The item ID that this object was rezzed from, if applicable.
+       /// </summary>
+       public UUID FromItemID { get; set; }
 
         #endregion
 
@@ -644,18 +651,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 } 
             }
-        }
-
-        public void SetFromItemID(UUID AssetId)
-        {
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].FromItemID = AssetId;
-        }
-
-        public UUID GetFromItemID()
-        {
-            return m_rootPart.FromItemID;
         }
 
         /// <summary>
@@ -2687,6 +2682,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_rootPart.AttachedPos = pos;
                 }
+
                 if (RootPart.GetStatusSandbox())
                 {
                     if (Util.GetDistanceTo(RootPart.StatusSandboxPos, pos) > 10)
@@ -2697,8 +2693,8 @@ namespace OpenSim.Region.Framework.Scenes
                               ChatTypeEnum.DebugChannel, 0x7FFFFFFF, RootPart.AbsolutePosition, Name, UUID, false);
                     }
                 }
-                AbsolutePosition = pos;
 
+                AbsolutePosition = pos;
                 HasGroupChanged = true;
             }
 
@@ -3270,7 +3266,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual string ExtraToXmlString()
         {
-            return "<ExtraFromItemID>" + GetFromItemID().ToString() + "</ExtraFromItemID>";
+            return "<ExtraFromItemID>" + FromItemID.ToString() + "</ExtraFromItemID>";
         }
 
         public virtual void ExtraFromXmlString(string xmlstr)
@@ -3282,7 +3278,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID uuid = UUID.Zero;
             UUID.TryParse(id, out uuid);
 
-            SetFromItemID(uuid);
+            FromItemID = uuid;
         }
 
         #endregion

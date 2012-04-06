@@ -181,8 +181,6 @@ namespace OpenSim.Region.Framework.Scenes
         public uint TimeStampLastActivity; // Will be used for AutoReturn
 
         public uint TimeStampTerse;
-        
-        public UUID FromItemID;
 
         public UUID FromFolderID;
 

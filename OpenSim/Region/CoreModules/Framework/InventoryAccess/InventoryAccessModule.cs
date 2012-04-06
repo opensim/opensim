@@ -1008,7 +1008,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 rootPart.TrimPermissions();
 
                 if (isAttachment)
-                    so.SetFromItemID(item.ID);
+                    so.FromItemID = item.ID;
             }
 
             return true;
