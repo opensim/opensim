@@ -56,6 +56,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         protected List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
         protected Dictionary<uint, UUID> m_listTransactions = new Dictionary<uint, UUID>();
 
+        protected ExpiringCache<UUID, bool> m_groupMemberCache = new ExpiringCache<UUID, bool>();
+        protected TimeSpan m_groupMemberCacheTimeout = TimeSpan.FromSeconds(30);  // cache invalidation after 30 seconds
+
         public bool[,] LandBitmap
         {
             get { return m_landBitmap; }
@@ -417,6 +420,45 @@ namespace OpenSim.Region.CoreModules.World.Land
             return false;
         }
 
+        public bool HasGroupAccess(UUID avatar)
+        {
+            if (LandData.GroupID != UUID.Zero && (LandData.Flags & (uint)ParcelFlags.UseAccessGroup) == (uint)ParcelFlags.UseAccessGroup)
+            {
+                ScenePresence sp;
+                if (!m_scene.TryGetScenePresence(avatar, out sp))
+                {
+                    bool isMember;
+                    if (m_groupMemberCache.TryGetValue(avatar, out isMember))
+                        return isMember;
+
+                    IGroupsModule groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
+                    if (groupsModule == null)
+                        return false;
+
+                    GroupMembershipData[] membership = groupsModule.GetMembershipData(avatar);
+                    if (membership == null || membership.Length == 0)
+                    {
+                        m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
+                        return false;
+                    }
+
+                    foreach (GroupMembershipData d in membership)
+                    {
+                        if (d.GroupID == LandData.GroupID)
+                        {
+                            m_groupMemberCache.Add(avatar, true, m_groupMemberCacheTimeout);
+                            return true;
+                        }
+                    }
+                    m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
+                    return false;
+                }
+
+                return sp.ControllingClient.IsGroupMember(LandData.GroupID);
+            }
+            return false;
+        }
+
         public bool IsBannedFromLand(UUID avatar)
         {
             ExpireAccessList();
@@ -448,6 +490,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsRestrictedFromLand(UUID avatar)
         {
+            if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) == 0)
+                return false;
+
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
 
@@ -457,10 +502,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (avatar == LandData.OwnerID)
                 return false;
 
-            if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) == 0)
+            if (HasGroupAccess(avatar))
                 return false;
 
-            return (!IsInLandAccessList(avatar));
+            return !IsInLandAccessList(avatar);
         }
 
         public bool IsInLandAccessList(UUID avatar)

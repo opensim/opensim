@@ -114,7 +114,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: ViaHGLogin");
                         if (m_RestrictInventoryAccessAbroad)
                         {
-                            RestoreRootFolderContents(client);
+                            IUserManagement uMan = m_Scenes[0].RequestModuleInterface<IUserManagement>();
+                            if (uMan.IsLocalGridUser(client.AgentId))
+                            {
+                                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: User is local");
+                                RestoreRootFolderContents(client);
+                            }
+                            else
+                            {
+                                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: User is foreign");
+                                RestoreSuitcaseFolderContents(client);
+                            }
                         }
                     }
                 }
@@ -210,7 +220,20 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     logout = success; // flag for later logout from this grid; this is an HG TP
 
                     if (success && m_RestrictInventoryAccessAbroad)
-                        RemoveRootFolderContents(sp.ControllingClient);
+                    {
+                        IUserManagement uMan = m_aScene.RequestModuleInterface<IUserManagement>();
+                        if (uMan != null && uMan.IsLocalGridUser(sp.UUID))
+                        {
+                            // local grid user
+                            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: User is local");
+                            RemoveRootFolderContents(sp.ControllingClient);
+                        }
+                        else
+                        {
+                            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: User is foreign");
+                            RemoveSuitcaseFolderContents(sp.ControllingClient);
+                        }
+                    }
 
                     return success;
                 }
@@ -401,25 +424,40 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
                     if (root != null)
                     {
-                        m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Removing root inventory for user {0}", client.AgentId);
+                        m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Removing root inventory for user {0}", client.Name);
                         InventoryCollection content = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, root.ID);
-                        UUID[] ids = new UUID[content.Folders.Count];
-                        int i = 0;
+                        List<UUID> fids = new List<UUID>();
+                        List<UUID> iids = new List<UUID>();
+                        List<InventoryFolderBase> keep = new List<InventoryFolderBase>();
+
                         foreach (InventoryFolderBase f in content.Folders)
-                            ids[i++] = f.ID;
-                        inv.SendRemoveInventoryFolders(ids);
-                        ids = new UUID[content.Items.Count];
-                        i = 0;
+                        {
+                            if (f.Name != "My Suitcase")
+                            {
+                                f.Name = f.Name + " (Unavailable)";
+                                keep.Add(f);
+                            }
+                        }
+
+                        // items directly under the root folder
                         foreach (InventoryItemBase it in content.Items)
-                            ids[i++] = it.ID;
-                        inv.SendRemoveInventoryItems(ids);
+                            it.Name = it.Name + " (Unavailable)"; ;
+
+                        // Send the new names 
+                        inv.SendBulkUpdateInventory(keep.ToArray(), content.Items.ToArray());
+
                     }
                 }
             }
         }
 
+        private void RemoveSuitcaseFolderContents(IClientAPI client)
+        {
+        }
+
         private void RestoreRootFolderContents(IClientAPI client)
         {
+            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Restoring root folder");
             if (client is IClientCore)
             {
                 IClientCore core = (IClientCore)client;
@@ -428,19 +466,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (core.TryGet<IClientInventory>(out inv))
                 {
                     InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
-                    client.SendBulkUpdateInventory(root);
-                    //if (root != null)
-                    //{
-                    //    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Restoring root inventory for user {0}", client.AgentId);
-                    //    InventoryCollection content = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, root.ID);
-                    //    m_log.DebugFormat("[XXX]: Folder name {0}, id {1}, parent {2}", root.Name, root.ID, root.ParentID);
-                    //    foreach (InventoryItemBase i in content.Items)
-                    //        m_log.DebugFormat("[XXX]:   Name={0}, folderID={1}", i.Name, i.Folder);
+                    InventoryCollection content = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, root.ID);
 
-                    //    inv.SendBulkUpdateInventory(content.Folders.ToArray(), content.Items.ToArray());
-                    //}
+                    inv.SendBulkUpdateInventory(content.Folders.ToArray(), content.Items.ToArray());
                 }
             }
+        }
+
+        private void RestoreSuitcaseFolderContents(IClientAPI client)
+        {
         }
 
         private GridRegion MakeRegion(AgentCircuitData aCircuit)

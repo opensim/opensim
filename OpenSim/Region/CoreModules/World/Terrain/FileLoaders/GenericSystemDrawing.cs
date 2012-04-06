@@ -177,6 +177,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             return "SYS.DRAWING";
         }
 
+        //Returns true if this extension is supported for terrain save-tile
+        public virtual bool SupportsTileSave()
+        {
+            return false;
+        }
+
         /// <summary>
         /// Protected method, generates a grayscale bitmap
         /// image from a specified terrain channel.
