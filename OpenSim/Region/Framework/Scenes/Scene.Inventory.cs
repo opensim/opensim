@@ -36,6 +36,7 @@ using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Framework;
+using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
 
@@ -117,31 +118,42 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="item"></param>
         public bool AddInventoryItem(InventoryItemBase item)
         {
-            if (UUID.Zero == item.Folder)
+            if (item.Folder != UUID.Zero && InventoryService.AddItem(item))
             {
-                InventoryFolderBase f = InventoryService.GetFolderForType(item.Owner, (AssetType)item.AssetType);
+                int userlevel = 0;
+                if (Permissions.IsGod(item.Owner))
+                {
+                    userlevel = 1;
+                }
+                EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, item.AssetID, item.Name, userlevel);
+
+                return true;
+            }
+
+            // OK so either the viewer didn't send a folderID or AddItem failed
+            UUID originalFolder = item.Folder;
+            InventoryFolderBase f = InventoryService.GetFolderForType(item.Owner, (AssetType)item.AssetType);
+            if (f != null)
+            {
+                m_log.DebugFormat(
+                    "[AGENT INVENTORY]: Found folder {0} type {1} for item {2}",
+                    f.Name, (AssetType)f.Type, item.Name);
+                    
+                item.Folder = f.ID;
+            }
+            else
+            {
+                f = InventoryService.GetRootFolder(item.Owner);
                 if (f != null)
                 {
-//                    m_log.DebugFormat(
-//                        "[LOCAL INVENTORY SERVICES CONNECTOR]: Found folder {0} type {1} for item {2}", 
-//                        f.Name, (AssetType)f.Type, item.Name);
-                    
                     item.Folder = f.ID;
                 }
                 else
                 {
-                    f = InventoryService.GetRootFolder(item.Owner);
-                    if (f != null)
-                    {
-                        item.Folder = f.ID;
-                    }
-                    else
-                    {
-                        m_log.WarnFormat(
-                            "[AGENT INVENTORY]: Could not find root folder for {0} when trying to add item {1} with no parent folder specified",
-                            item.Owner, item.Name);
-                        return false;
-                    }
+                    m_log.WarnFormat(
+                        "[AGENT INVENTORY]: Could not find root folder for {0} when trying to add item {1} with no parent folder specified",
+                        item.Owner, item.Name);
+                    return false;
                 }
             }
             
@@ -153,7 +165,13 @@ namespace OpenSim.Region.Framework.Scenes
                     userlevel = 1;
                 }
                 EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, item.AssetID, item.Name, userlevel);
-                
+
+                if (originalFolder != UUID.Zero)
+                {
+                    // Tell the viewer that the item didn't go there
+                    ChangePlacement(item, f);
+                }
+
                 return true;
             }
             else
@@ -165,7 +183,32 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
         }
-        
+
+        private void ChangePlacement(InventoryItemBase item, InventoryFolderBase f)
+        {
+            ScenePresence sp = GetScenePresence(item.Owner);
+            if (sp != null)
+            {
+                if (sp.ControllingClient is IClientCore)
+                {
+                    IClientCore core = (IClientCore)sp.ControllingClient;
+                    IClientInventory inv;
+
+                    if (core.TryGet<IClientInventory>(out inv))
+                    {
+                        InventoryFolderBase parent = new InventoryFolderBase(f.ParentID, f.Owner);
+                        parent = InventoryService.GetFolder(parent);
+                        inv.SendRemoveInventoryItems(new UUID[] { item.ID });
+                        inv.SendBulkUpdateInventory(new InventoryFolderBase[0], new InventoryItemBase[] { item });
+                        string message = "The item was placed in folder " + f.Name;
+                        if (parent != null)
+                            message += " under " + parent.Name;
+                        sp.ControllingClient.SendAgentAlertMessage(message, false);
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Add the given inventory item to a user's inventory.
         /// </summary>
