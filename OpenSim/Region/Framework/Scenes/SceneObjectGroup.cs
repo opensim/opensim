@@ -586,10 +586,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-       /// <summary>
-       /// The item ID that this object was rezzed from, if applicable.
-       /// </summary>
-       public UUID FromItemID { get; set; }
+        /// <summary>
+        /// The item ID that this object was rezzed from, if applicable.
+        /// </summary>
+        /// <remarks>
+        /// If not applicable will be UUID.Zero
+        /// </remarks>
+        public UUID FromItemID { get; set; }
+
+        /// <summary>
+        /// The folder ID that this object was rezzed from, if applicable.
+        /// </summary>
+        /// <remarks>
+        /// If not applicable will be UUID.Zero
+        /// </remarks>
+        public UUID FromFolderID { get; set; }
 
         #endregion
 

@@ -4271,7 +4271,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 block.OwnerID = sop.OwnerID;
 
             block.ItemID = sop.FromUserInventoryItemID;
-            block.FolderID = UUID.Zero; // sop.FromFolderID ??
+            block.FolderID = UUID.Zero; // sog.FromFolderID ??
             block.FromTaskID = UUID.Zero; // ???
             block.InventorySerial = (short)sop.InventorySerial;
             

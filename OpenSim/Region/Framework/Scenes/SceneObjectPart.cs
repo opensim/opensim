@@ -182,8 +182,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public uint TimeStampTerse;
 
-        public UUID FromFolderID;
-
         public int STATUS_ROTATE_X;
 
         public int STATUS_ROTATE_Y;
