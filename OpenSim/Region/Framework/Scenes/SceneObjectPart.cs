@@ -125,12 +125,14 @@ namespace OpenSim.Region.Framework.Scenes
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <value>
-        /// Is this sop a root part?
+        /// Is this a root part?
         /// </value>
-        
+        /// <remarks>
+        /// This will return true even if the whole object is attached to an avatar.
+        /// </remarks>
         public bool IsRoot 
         {
-           get { return ParentGroup.RootPart == this; } 
+            get { return ParentGroup.RootPart == this; } 
         }
 
         #region Fields
@@ -1112,6 +1114,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// The parent ID of this part.
+        /// </summary>
+        /// <remarks>
+        /// If this is a root part which is not attached to an avatar then the value will be 0.
+        /// If this is a root part which is attached to an avatar then the value is the local id of that avatar.
+        /// If this is a child part then the value is the local ID of the root part.
+        /// </remarks>
         public uint ParentID
         {
             get { return _parentID; }

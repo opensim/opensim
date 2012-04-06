@@ -2022,27 +2022,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected LSL_Vector GetPartLocalPos(SceneObjectPart part)
         {
             m_host.AddScriptLPS(1);
+
+            Vector3 pos;
+
             if (part.ParentID == 0)
             {
-                return new LSL_Vector(part.AbsolutePosition.X,
-                                      part.AbsolutePosition.Y,
-                                      part.AbsolutePosition.Z);
+                pos = part.AbsolutePosition;
             }
             else
             {
-                if (m_host.IsRoot)
+                if (part.IsRoot)
                 {
-                    return new LSL_Vector(m_host.AttachedPos.X,
-                                          m_host.AttachedPos.Y,
-                                          m_host.AttachedPos.Z);
+                    pos = part.AttachedPos;
                 }
                 else
                 {
-                    return new LSL_Vector(part.OffsetPosition.X,
-                                          part.OffsetPosition.Y,
-                                          part.OffsetPosition.Z);
+                    pos = part.OffsetPosition;
                 }
             }
+
+//            m_log.DebugFormat("[LSL API]: Returning {0} in GetPartLocalPos()", pos);
+
+            return new LSL_Vector(pos.X, pos.Y, pos.Z);
         }
 
         public void llSetRot(LSL_Rotation rot)
