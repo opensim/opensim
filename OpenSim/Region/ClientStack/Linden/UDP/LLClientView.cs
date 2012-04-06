@@ -1913,7 +1913,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             folderBlock.FolderID = folder.ID;
             folderBlock.ParentID = folder.ParentID;
-            folderBlock.Type = -1;
+            //folderBlock.Type = -1;
+            folderBlock.Type = (sbyte)folder.Type;
             folderBlock.Name = Util.StringToBytes256(folder.Name);
 
             return folderBlock;
