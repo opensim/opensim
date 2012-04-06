@@ -111,19 +111,21 @@ namespace OpenSim.Services.Connectors
             if (ret.Count == 0)
                 return null;
 
-            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+            Dictionary<string, object> folders = (Dictionary<string, object>)ret["FOLDERS"];
+
+            List<InventoryFolderBase> fldrs = new List<InventoryFolderBase>();
 
             try
             {
-                foreach (Object o in ret.Values)
-                    folders.Add(BuildFolder((Dictionary<string, object>)o));
+                foreach (Object o in folders.Values)
+                    fldrs.Add(BuildFolder((Dictionary<string, object>)o));
             }
             catch (Exception e)
             {
                 m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception unwrapping folder list: {0}", e.Message);
             }
 
-            return folders;
+            return fldrs;
         }
 
         public InventoryFolderBase GetRootFolder(UUID principalID)
@@ -492,12 +494,41 @@ namespace OpenSim.Services.Connectors
             return int.Parse(ret["RESULT"].ToString());
         }
 
-
-        // These are either obsolete or unused
-        //
         public InventoryCollection GetUserInventory(UUID principalID)
         {
-            return null;
+            InventoryCollection inventory = new InventoryCollection();
+            inventory.Folders = new List<InventoryFolderBase>();
+            inventory.Items = new List<InventoryItemBase>();
+            inventory.UserID = principalID;
+
+            try
+            {
+                Dictionary<string, object> ret = MakeRequest("GETUSERINVENTORY",
+                        new Dictionary<string, object> {
+                            { "PRINCIPAL", principalID.ToString() }
+                        });
+
+                if (ret == null)
+                    return null;
+                if (ret.Count == 0)
+                    return null;
+
+                Dictionary<string, object> folders =
+                        (Dictionary<string, object>)ret["FOLDERS"];
+                Dictionary<string, object> items =
+                        (Dictionary<string, object>)ret["ITEMS"];
+
+                foreach (Object o in folders.Values) // getting the values directly, we don't care about the keys folder_i
+                    inventory.Folders.Add(BuildFolder((Dictionary<string, object>)o));
+                foreach (Object o in items.Values) // getting the values directly, we don't care about the keys item_i
+                    inventory.Items.Add(BuildItem((Dictionary<string, object>)o));
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception in GetUserInventory: {0}", e.Message);
+            }
+
+            return inventory;
         }
 
         public void GetUserInventory(UUID principalID, InventoryReceiptCallback callback)
