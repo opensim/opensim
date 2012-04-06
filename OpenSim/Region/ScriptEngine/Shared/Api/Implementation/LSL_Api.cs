@@ -2907,10 +2907,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llGetMass()
         {
             m_host.AddScriptLPS(1);
-            if (m_host.IsRoot)
-                return m_host.ParentGroup.GetMass();
+
+            if (m_host.ParentGroup.IsAttachment)
+            {
+                ScenePresence attachedAvatar = World.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
+
+                if (attachedAvatar != null)
+                {
+                    return attachedAvatar.GetMass();
+                }
+                else
+                {
+                    return 0;
+                }
+            }
             else
-                return m_host.GetMass();
+            {
+                if (m_host.IsRoot)
+                {
+                    return m_host.ParentGroup.GetMass();
+                }
+                else
+                {
+                    return m_host.GetMass();
+                }
+            }
         }
 
         public void llCollisionFilter(string name, string id, int accept)
