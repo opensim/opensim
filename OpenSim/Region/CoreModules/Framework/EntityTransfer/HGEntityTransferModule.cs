@@ -411,36 +411,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #endregion
 
-        // COMPLETE FAIL
-        //private void RemoveRootFolderContents(IClientAPI client)
-        //{
-        //    InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
-        //    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Removing root inventory for user {0}, version {1}", client.AgentId, root.Version);
-        //    InventoryCollection content = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, root.ID);
-
-        //    List<InventoryFolderBase> keep = new List<InventoryFolderBase>();
-        //    foreach (InventoryFolderBase f in content.Folders)
-        //    {
-        //        if (f.Type == (short)AssetType.TrashFolder || f.Type == (short)AssetType.Landmark ||
-        //            f.Type == (short)AssetType.FavoriteFolder || f.Type == (short)AssetType.CurrentOutfitFolder)
-        //        {
-        //            // Don't remove these because the viewer refuses to exist without them
-        //            // and immediately sends a request to create them again, which makes things
-        //            // very confusing in the viewer.
-        //            // Just change their names
-        //            f.Name = "Home " + f.Name + " (Unavailable)";
-        //            keep.Add(f);
-        //        }
-        //        else
-        //        {
-        //            m_log.DebugFormat("[RRR]:   Name={0}, Version={1}, Type={2}, PfolderID={3}", f.Name, f.Version, f.Type, f.ParentID);
-        //        }
-        //    }
-
-
-        //    client.SendInventoryFolderDetails(client.AgentId, root.ID, new List<InventoryItemBase>(), keep, root.Version + 1, true, true);
-        //}
-
         private void RemoveRootFolderContents(IClientAPI client)
         {
             // TODO tell the viewer to remove the root folder's content
@@ -473,106 +443,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         foreach (InventoryItemBase it in content.Items)
                             it.Name = it.Name + " (Unavailable)"; ;
 
-                        // next, add the subfolders and items of the keep folders
-                        //foreach (InventoryFolderBase f in keep)
-                        //{
-                        //    InventoryCollection c = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, f.ID);
-                        //    foreach (InventoryFolderBase sf in c.Folders)
-                        //    {
-                        //        m_log.DebugFormat("[RRR]:   Name={0}, Version={1}, Type={2}, PfolderID={3}", f.Name, f.Version, f.Type, f.ParentID);
-                        //        fids.Add(sf.ID);
-                        //    }
-                        //    foreach (InventoryItemBase it in c.Items)
-                        //        iids.Add(it.ID);
-                        //}
-
-                        //inv.SendRemoveInventoryFolders(fids.ToArray());
-
-                        // Increase the version number
-                        //root.Version += 1;
-                        //m_Scenes[0].InventoryService.UpdateFolder(root);
-                        //foreach (InventoryFolderBase f in keep)
-                        //{
-                        //    f.Version += 1;
-                        //    m_Scenes[0].InventoryService.UpdateFolder(f);
-                        //}
-
-                        // Send the new names and versions
+                        // Send the new names 
                         inv.SendBulkUpdateInventory(keep.ToArray(), content.Items.ToArray());
-
-                    }
-                }
-            }
-        }
-
-        private void RemoveRootFolderContents2(IClientAPI client)
-        {
-            // TODO tell the viewer to remove the root folder's content
-            if (client is IClientCore)
-            {
-                IClientCore core = (IClientCore)client;
-                IClientInventory inv;
-
-                if (core.TryGet<IClientInventory>(out inv))
-                {
-                    InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
-                    if (root != null)
-                    {
-                        m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Removing root inventory for user {0}", client.Name);
-                        InventoryCollection content = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, root.ID);
-                        List<UUID> fids = new List<UUID>();
-                        List<UUID> iids = new List<UUID>();
-                        List<InventoryFolderBase> keep = new List<InventoryFolderBase>();
-
-                        foreach (InventoryFolderBase f in content.Folders)
-                        {
-                            if (f.Type == (short)AssetType.TrashFolder || f.Type == (short)AssetType.Landmark ||
-                                f.Type == (short)AssetType.FavoriteFolder || f.Type == (short)AssetType.CurrentOutfitFolder)
-                            {
-                                // Don't remove these because the viewer refuses to exist without them
-                                // and immediately sends a request to create them again, which makes things
-                                // very confusing in the viewer.
-                                // Just change their names
-                                f.Name = "Home " + f.Name + " (Unavailable)";
-                                keep.Add(f);
-                            }
-                            else
-                            {
-                                m_log.DebugFormat("[RRR]:   Name={0}, Version={1}, Type={2}, PfolderID={3}", f.Name, f.Version, f.Type, f.ParentID);
-                                fids.Add(f.ID);
-                            }
-                        }
-
-                        foreach (InventoryItemBase it in content.Items)
-                            iids.Add(it.ID);
-
-                        // next, add the subfolders and items of the keep folders
-                        foreach (InventoryFolderBase f in keep)
-                        {
-                            InventoryCollection c = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, f.ID);
-                            foreach (InventoryFolderBase sf in c.Folders)
-                            {
-                                m_log.DebugFormat("[RRR]:   Name={0}, Version={1}, Type={2}, PfolderID={3}", f.Name, f.Version, f.Type, f.ParentID);
-                                fids.Add(sf.ID);
-                            }
-                            foreach (InventoryItemBase it in c.Items)
-                                iids.Add(it.ID);
-                        }
-                        
-                        inv.SendRemoveInventoryFolders(fids.ToArray());
-                        inv.SendRemoveInventoryItems(iids.ToArray());
-
-                        // Increase the version number
-                        root.Version += 1;
-                        m_Scenes[0].InventoryService.UpdateFolder(root);
-                        //foreach (InventoryFolderBase f in keep)
-                        //{
-                        //    f.Version += 1;
-                        //    m_Scenes[0].InventoryService.UpdateFolder(f);
-                        //}
-
-                        // Send the new names and versions
-                        inv.SendBulkUpdateInventory(keep.ToArray(), new InventoryItemBase[0]);
 
                     }
                 }
@@ -581,57 +453,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         private void RemoveSuitcaseFolderContents(IClientAPI client)
         {
-            return;
-
-            //// TODO tell the viewer to remove the suitcase folder's content
-            //if (client is IClientCore)
-            //{
-            //    IClientCore core = (IClientCore)client;
-            //    IClientInventory inv;
-
-            //    if (core.TryGet<IClientInventory>(out inv))
-            //    {
-            //        InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
-            //        if (root != null)
-            //        {
-            //            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Removing suitcase inventory for user {0}", client.Name);
-            //            InventoryCollection content = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, root.ID);
-            //            List<UUID> fids = new List<UUID>();
-            //            List<UUID> iids = new List<UUID>();
-
-            //            if (content.Folders.Count == 0)
-            //                m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: no subfolders???");
-            //            foreach (InventoryFolderBase f in content.Folders)
-            //            {
-            //                m_log.DebugFormat("[RRR]:   Name={0}, Version={1}, Type={2}, PfolderID={3}", f.Name, f.Version, f.Type, f.ParentID);
-            //                fids.Add(f.ID);
-            //            }
-
-            //            foreach (InventoryItemBase it in content.Items)
-            //                iids.Add(it.ID);
-
-            //            inv.SendRemoveInventoryFolders(fids.ToArray());
-            //            inv.SendRemoveInventoryItems(iids.ToArray());
-
-            //            // Increase the version number
-            //            root.Version += 1;
-            //            m_Scenes[0].InventoryService.UpdateFolder(root);
-            //        }
-            //    }
-            //}
         }
 
         private void RestoreRootFolderContents(IClientAPI client)
         {
-            // This works!
-            //InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
-            //client.SendBulkUpdateInventory(root);
-
-            // SORTA KINDA some items are missing...
-            //InventoryCollection userInventory = m_Scenes[0].InventoryService.GetUserInventory(client.AgentId);
-            //InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
-            //client.SendBulkUpdateInventory(root);
-
             m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Restoring root folder");
             if (client is IClientCore)
             {
@@ -646,75 +471,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     inv.SendBulkUpdateInventory(content.Folders.ToArray(), content.Items.ToArray());
                 }
             }
-
-            // ATTEMPT # 3 -- STILL DOESN'T WORK!
-            //if (client is IClientCore)
-            //{
-            //    IClientCore core = (IClientCore)client;
-            //    IClientInventory inv;
-
-            //    if (core.TryGet<IClientInventory>(out inv))
-            //    {
-            //        InventoryCollection userInventory = m_Scenes[0].InventoryService.GetUserInventory(client.AgentId);
-            //        if (userInventory != null)
-            //        {
-            //            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Restoring root inventory for user {0}", client.AgentId);
-            //            foreach (InventoryFolderBase f in userInventory.Folders)
-            //                m_log.DebugFormat("[AAA]: FOLDER {0} {1} {2} {3} {4}", f.Name, f.Type, f.Version, f.ID, f.ParentID);
-            //            foreach (InventoryItemBase f in userInventory.Items)
-            //                m_log.DebugFormat("[AAA]: ITEM {0} {1} {2}", f.Name, f.ID, f.Folder);
-            //            inv.SendBulkUpdateInventory(userInventory.Folders.ToArray(), userInventory.Items.ToArray());
-            //        }
-            //        else
-            //            m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unable to retrieve inventory for user {0}", client.AgentId);
-            //    }
-            //}
-
-
-            // ATTEMPT #2 -- BETTER THAN 1, BUT STILL DOES NOT WORK WELL
-            //if (client is IClientCore)
-            //{
-            //    IClientCore core = (IClientCore)client;
-            //    IClientInventory inv;
-
-            //    if (core.TryGet<IClientInventory>(out inv))
-            //    {
-            //        List<InventoryFolderBase> skel = m_Scenes[0].InventoryService.GetInventorySkeleton(client.AgentId);
-            //        if (skel != null)
-            //        {
-            //            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Restoring root inventory for user {0}", client.AgentId);
-            //            foreach (InventoryFolderBase f in skel)
-            //                m_log.DebugFormat("[AAA]: {0} {1} {2} {3} {4}", f.Name, f.Type, f.Version, f.ID, f.ParentID);
-            //            inv.SendBulkUpdateInventory(skel.ToArray(), new InventoryItemBase[0]);
-            //        }
-            //        else
-            //            m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unable to retrieve skeleton for user {0}", client.AgentId);
-
-                    // ATTEMPT #1 -- DOES NOT WORK
-                    //InventoryFolderBase root = m_Scenes[0].InventoryService.GetRootFolder(client.AgentId);
-                    //if (root != null)
-                    //{
-                        //InventoryCollection content = m_Scenes[0].InventoryService.GetFolderContent(client.AgentId, root.ID);
-                        //InventoryFolderBase[] folders = new InventoryFolderBase[content.Folders.Count + 1];
-                        //m_log.DebugFormat("[AAA]: Folder name {0}, id {1}, version {2}, parent {3}", root.Name, root.ID, root.Version, root.ParentID);
-                        //folders[0] = root;
-                        //for (int count = 1; count < content.Folders.Count + 1; count++)
-                        //{
-                        //    folders[count] = content.Folders[count - 1];
-                        //    m_log.DebugFormat("[AAA]:   Name={0}, Id={1}, Version={2}, type={3}, folderID={4}", 
-                        //        folders[count].Name, folders[count].ID, folders[count].Version, folders[count].Type, folders[count].ParentID);
-                        //}
-                        //foreach (InventoryItemBase i in content.Items)
-                        //    m_log.DebugFormat("[AAA]:   Name={0}, folderID={1}", i.Name, i.Folder);
-                        //inv.SendBulkUpdateInventory(/*content.Folders.ToArray()*/ folders, content.Items.ToArray());
-                    //}
-                //}
-            //}
         }
 
         private void RestoreSuitcaseFolderContents(IClientAPI client)
         {
-
         }
 
         private GridRegion MakeRegion(AgentCircuitData aCircuit)
