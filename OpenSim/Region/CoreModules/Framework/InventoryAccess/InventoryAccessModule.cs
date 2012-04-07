@@ -674,9 +674,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 //
                 if (action == DeRezAction.Take || action == DeRezAction.TakeCopy)
                 {
-                    if (so.RootPart.FromFolderID != UUID.Zero && userID == remoteClient.AgentId)
+                    if (so.FromFolderID != UUID.Zero && userID == remoteClient.AgentId)
                     {
-                        InventoryFolderBase f = new InventoryFolderBase(so.RootPart.FromFolderID, userID);
+                        InventoryFolderBase f = new InventoryFolderBase(so.FromFolderID, userID);
                         if (f != null)
                             folder = m_Scene.InventoryService.GetFolder(f);
                     }
@@ -1012,7 +1012,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     }
                 }
 
-                rootPart.FromFolderID = item.Folder;
+                so.FromFolderID = item.Folder;
 
 //                Console.WriteLine("rootPart.OwnedID {0}, item.Owner {1}, item.CurrentPermissions {2:X}",
 //                                  rootPart.OwnerID, item.Owner, item.CurrentPermissions);
@@ -1071,7 +1071,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 rootPart.TrimPermissions();
 
                 if (isAttachment)
-                    so.SetFromItemID(item.ID);
+                    so.FromItemID = item.ID;
             }
 
             return true;

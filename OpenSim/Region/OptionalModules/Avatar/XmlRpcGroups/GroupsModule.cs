@@ -1294,7 +1294,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             OnAgentDataUpdateRequest(remoteClient, dataForAgentID, UUID.Zero);
 
-
             // Need to send a group membership update to the client
             // UDP version doesn't seem to behave nicely.  But we're going to send it out here
             // with an empty group membership to hopefully remove groups being displayed due
@@ -1305,6 +1304,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             SendGroupMembershipInfoViaCaps(remoteClient, dataForAgentID, membershipArray);
             remoteClient.SendAvatarGroupsReply(dataForAgentID, membershipArray);
 
+            if (remoteClient.AgentId == dataForAgentID)
+                remoteClient.RefreshGroupMembership();
         }
 
         /// <summary>

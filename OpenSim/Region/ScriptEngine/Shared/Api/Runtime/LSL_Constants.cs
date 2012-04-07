@@ -481,6 +481,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int DEBUG_CHANNEL = 0x7FFFFFFF;
         public const int PUBLIC_CHANNEL = 0x00000000;
 
+        // Constants for llGetObjectDetails
+        public const int OBJECT_UNKNOWN_DETAIL = -1;
         public const int OBJECT_NAME = 1;
         public const int OBJECT_DESC = 2;
         public const int OBJECT_POS = 3;
@@ -489,6 +491,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OBJECT_OWNER = 6;
         public const int OBJECT_GROUP = 7;
         public const int OBJECT_CREATOR = 8;
+        public const int OBJECT_RUNNING_SCRIPT_COUNT = 9;
+        public const int OBJECT_TOTAL_SCRIPT_COUNT = 10;
+        public const int OBJECT_SCRIPT_MEMORY = 11;
+        public const int OBJECT_SCRIPT_TIME = 12;
+        public const int OBJECT_PRIM_EQUIVALENCE = 13;
+        public const int OBJECT_SERVER_COST = 14;
+        public const int OBJECT_STREAMING_COST = 15;
+        public const int OBJECT_PHYSICS_COST = 16;
 
         // Can not be public const?
         public static readonly vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);

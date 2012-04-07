@@ -162,7 +162,7 @@ namespace OpenSim.Capabilities.Handlers
                     invFetch.owner_id, invFetch.folder_id, invFetch.owner_id,
                     invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order, out version);
 
-            if (inv.Folders != null)
+            if (inv != null && inv.Folders != null)
             {
                 foreach (InventoryFolderBase invFolder in inv.Folders)
                 {
@@ -170,7 +170,7 @@ namespace OpenSim.Capabilities.Handlers
                 }
             }
 
-            if (inv.Items != null)
+            if (inv != null && inv.Items != null)
             {
                 foreach (InventoryItemBase invItem in inv.Items)
                 {

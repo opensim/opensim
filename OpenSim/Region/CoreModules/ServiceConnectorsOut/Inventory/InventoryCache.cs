@@ -12,6 +12,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private static ExpiringCache<UUID, InventoryFolderBase> m_RootFolders = new ExpiringCache<UUID, InventoryFolderBase>();
         private static ExpiringCache<UUID, Dictionary<AssetType, InventoryFolderBase>> m_FolderTypes = new ExpiringCache<UUID, Dictionary<AssetType, InventoryFolderBase>>();
+        private static ExpiringCache<UUID, InventoryCollection> m_Inventories = new ExpiringCache<UUID, InventoryCollection>();
 
         public void Cache(UUID userID, InventoryFolderBase root)
         {
@@ -53,6 +54,56 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     return f;
             }
 
+            return null;
+        }
+
+        public void Cache(UUID userID, InventoryCollection inv)
+        {
+            lock (m_Inventories)
+                m_Inventories.AddOrUpdate(userID, inv, 120);
+        }
+
+        public InventoryCollection GetUserInventory(UUID userID)
+        {
+            InventoryCollection inv = null;
+            if (m_Inventories.TryGetValue(userID, out inv))
+                return inv;
+            return null;
+        }
+
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        {
+            InventoryCollection inv = null;
+            InventoryCollection c;
+            if (m_Inventories.TryGetValue(userID, out inv))
+            {
+                c = new InventoryCollection();
+                c.UserID = userID;
+
+                c.Folders = inv.Folders.FindAll(delegate(InventoryFolderBase f)
+                {
+                    return f.ParentID == folderID;
+                });
+                c.Items = inv.Items.FindAll(delegate(InventoryItemBase i)
+                {
+                    return i.Folder == folderID;
+                });
+                return c;
+            }
+            return null;
+        }
+
+        public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
+        {
+            InventoryCollection inv = null;
+            if (m_Inventories.TryGetValue(userID, out inv))
+            {
+                List<InventoryItemBase> items = inv.Items.FindAll(delegate(InventoryItemBase i)
+                {
+                    return i.Folder == folderID;
+                });
+                return items;
+            }
             return null;
         }
     }

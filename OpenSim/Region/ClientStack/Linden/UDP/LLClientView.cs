@@ -1923,7 +1923,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             folderBlock.FolderID = folder.ID;
             folderBlock.ParentID = folder.ParentID;
-            folderBlock.Type = -1;
+            //folderBlock.Type = -1;
+            folderBlock.Type = (sbyte)folder.Type;
             folderBlock.Name = Util.StringToBytes256(folder.Name);
 
             return folderBlock;
@@ -4360,7 +4361,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 block.OwnerID = sop.OwnerID;
 
             block.ItemID = sop.FromUserInventoryItemID;
-            block.FolderID = UUID.Zero; // sop.FromFolderID ??
+            block.FolderID = UUID.Zero; // sog.FromFolderID ??
             block.FromTaskID = UUID.Zero; // ???
             block.InventorySerial = (short)sop.InventorySerial;
             
@@ -5082,7 +5083,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.MediaURL = Utils.EmptyBytes; // FIXME: Support this in OpenSim
             if (data.ParentGroup.IsAttachment)
             {
-                update.NameValue = Util.StringToBytes256("AttachItemID STRING RW SV " + data.FromItemID);
+                update.NameValue = Util.StringToBytes256("AttachItemID STRING RW SV " + data.ParentGroup.FromItemID);
                 update.State = (byte)((data.ParentGroup.AttachmentPoint % 16) * 16 + (data.ParentGroup.AttachmentPoint / 16));
             }
             else

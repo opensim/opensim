@@ -126,12 +126,14 @@ namespace OpenSim.Region.Framework.Scenes
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <value>
-        /// Is this sop a root part?
+        /// Is this a root part?
         /// </value>
-        
+        /// <remarks>
+        /// This will return true even if the whole object is attached to an avatar.
+        /// </remarks>
         public bool IsRoot 
         {
-           get { return ParentGroup.RootPart == this; } 
+            get { return ParentGroup.RootPart == this; } 
         }
 
         #region Fields
@@ -160,15 +162,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// If another thread is simultaneously turning physics off on this part then this refernece could become
         /// null at any time.
         /// </remarks>
-        public PhysicsActor PhysActor
-        {
-            get { return m_physActor; }
-            set
-            {
-//                m_log.DebugFormat("[SOP]: PhysActor set to {0} for {1} {2}", value, Name, UUID);
-                m_physActor = value;
-            }
-        }
+        public PhysicsActor PhysActor { get; set; }
 
         //Xantor 20080528 Sound stuff:
         //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
@@ -188,10 +182,6 @@ namespace OpenSim.Region.Framework.Scenes
         public uint TimeStampLastActivity; // Will be used for AutoReturn
 
         public uint TimeStampTerse;
-        
-        public UUID FromItemID;
-
-        public UUID FromFolderID;
 
         // The following two are to hold the attachment data
         // while an object is inworld
@@ -275,7 +265,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_passTouches;
 
-        private PhysicsActor m_physActor;
         protected Vector3 m_acceleration;
         protected Vector3 m_angularVelocity;
 
@@ -1149,6 +1138,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// The parent ID of this part.
+        /// </summary>
+        /// <remarks>
+        /// If this is a root part which is not attached to an avatar then the value will be 0.
+        /// If this is a root part which is attached to an avatar then the value is the local id of that avatar.
+        /// If this is a child part then the value is the local ID of the root part.
+        /// </remarks>
         public uint ParentID
         {
             get { return _parentID; }
@@ -1847,9 +1844,6 @@ namespace OpenSim.Region.Framework.Scenes
 //                if (VolumeDetectActive)
 //                    isPhantom = false;
 
-                // Added clarification..   since A rigid body is an object that you can kick around, etc.
-//                bool RigidBody = isPhysical && !isPhantom;
-
                 // The only time the physics scene shouldn't know about the prim is if it's phantom or an attachment, which is phantom by definition
                 // or flexible
                 //                if (!isPhantom && !ParentGroup.IsAttachment && !(Shape.PathCurve == (byte)Extrusion.Flexible))
@@ -1876,7 +1870,6 @@ namespace OpenSim.Region.Framework.Scenes
                         PhysActor = null;
                     }
 
-                    // Basic Physics can also return null as well as an exception catch.
                     PhysicsActor pa = PhysActor;
 
                     if (pa != null)
@@ -4859,7 +4852,52 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// This removes the part from physics
+        /// Adds this part to the physics scene.
+        /// </summary>
+        /// <remarks>This method also sets the PhysActor property.</remarks>
+        /// <param name="rigidBody">Add this prim with a rigid body.</param>
+        /// <returns>
+        /// The physics actor.  null if there was a failure.
+        /// </returns>
+        private PhysicsActor AddToPhysics(bool rigidBody)
+        {
+            PhysicsActor pa;
+
+            try
+            {
+                pa = ParentGroup.Scene.PhysicsScene.AddPrimShape(
+                        string.Format("{0}/{1}", Name, UUID),
+                        Shape,
+                        AbsolutePosition,
+                        Scale,
+                        RotationOffset,
+                        rigidBody,
+                        m_localId);
+            }
+            catch
+            {
+                m_log.ErrorFormat("[SCENE]: caught exception meshing object {0}. Object set to phantom.", m_uuid);
+                pa = null;
+            }
+
+            // FIXME: Ideally we wouldn't set the property here to reduce situations where threads changing physical
+            // properties can stop on each other.  However, DoPhysicsPropertyUpdate() currently relies on PhysActor
+            // being set.
+            PhysActor = pa;
+
+            // Basic Physics can also return null as well as an exception catch.
+            if (pa != null)
+            {
+                pa.SOPName = this.Name; // save object into the PhysActor so ODE internals know the joint/body info
+                pa.SetMaterial(Material);
+                DoPhysicsPropertyUpdate(rigidBody, true);
+            }
+
+            return pa;
+        }
+
+        /// <summary>
+        /// This removes the part from the physics scene.
         /// </summary>
         /// <remarks>
         /// This isn't the same as turning off physical, since even without being physical the prim has a physics

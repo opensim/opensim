@@ -2271,11 +2271,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected LSL_Vector GetPartLocalPos(SceneObjectPart part)
         {
             m_host.AddScriptLPS(1);
-            if (part.ParentID == 0)
+
+            Vector3 pos;
+
+            if (!part.IsRoot)
             {
-                return new LSL_Vector(part.AbsolutePosition.X,
-                                      part.AbsolutePosition.Y,
-                                      part.AbsolutePosition.Z);
+                pos = part.OffsetPosition;
             }
             else
             {
@@ -2287,11 +2288,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 else
                 {
-                    return new LSL_Vector(part.OffsetPosition.X,
-                                          part.OffsetPosition.Y,
-                                          part.OffsetPosition.Z);
+                    pos = part.AbsolutePosition;
                 }
             }
+
+//            m_log.DebugFormat("[LSL API]: Returning {0} in GetPartLocalPos()", pos);
+
+            return new LSL_Vector(pos.X, pos.Y, pos.Z);
         }
 
         public void llSetRot(LSL_Rotation rot)
@@ -3165,7 +3168,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llGetMass()
         {
             m_host.AddScriptLPS(1);
-            return m_host.GetMass();
+
+            if (m_host.ParentGroup.IsAttachment)
+            {
+                ScenePresence attachedAvatar = World.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
+
+                if (attachedAvatar != null)
+                {
+                    return attachedAvatar.GetMass();
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            else
+            {
+                if (m_host.IsRoot)
+                {
+                    return m_host.ParentGroup.GetMass();
+                }
+                else
+                {
+                    return m_host.GetMass();
+                }
+            }
         }
 
         public void llCollisionFilter(string name, string id, int accept)
@@ -3334,7 +3361,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SceneObjectPart host = (SceneObjectPart)o;
 
             SceneObjectGroup grp = host.ParentGroup;
-            UUID itemID = grp.GetFromItemID();
+            UUID itemID = grp.FromItemID;
             ScenePresence presence = World.GetScenePresence(host.OwnerID);
 
             IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
@@ -7782,14 +7809,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     switch (code)
                     {
                         case (int)ScriptBaseClass.PRIM_POSITION:
-                            if (remain < 1)
-                                return;
-
-                            v=rules.GetVector3Item(idx++);
-                            positionChanged = true;
-                            currentPosition = GetSetPosTarget(part, v, currentPosition);
-
-                            break;
                         case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                             if (remain < 1)
                                 return;
@@ -11154,6 +11173,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.OBJECT_CREATOR:
                                 ret.Add(new LSL_String(UUID.Zero.ToString()));
                                 break;
+                            // For the following 8 see the Object version below
+                            case ScriptBaseClass.OBJECT_RUNNING_SCRIPT_COUNT:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_TOTAL_SCRIPT_COUNT:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_SCRIPT_MEMORY:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_SCRIPT_TIME:
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_SERVER_COST:
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_STREAMING_COST:
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_PHYSICS_COST:
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            default:
+                                // Invalid or unhandled constant.
+                                ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
+                                break;
                         }
                     }
 
@@ -11190,6 +11238,49 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
                             case ScriptBaseClass.OBJECT_CREATOR:
                                 ret.Add(new LSL_String(obj.CreatorID.ToString()));
+                                break;
+                            // The following 8 I have intentionaly coded to return zero. They are part of
+                            // "Land Impact" calculations. These calculations are probably not applicable
+                            // to OpenSim, required figures (cpu/memory usage) are not currently tracked
+                            // I have intentionally left these all at zero rather than return possibly
+                            // missleading numbers
+                            case ScriptBaseClass.OBJECT_RUNNING_SCRIPT_COUNT:
+                                // in SL this currently includes crashed scripts
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_TOTAL_SCRIPT_COUNT:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_SCRIPT_MEMORY:
+                                // The value returned in SL for mono scripts is 65536 * number of active scripts
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_SCRIPT_TIME:
+                                // Average cpu time per simulator frame expended on all scripts in the objetc
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
+                                // according to the SL wiki A prim or linkset will have prim
+                                // equivalent of the number of prims in a linkset if it does not
+                                // contain a mesh anywhere in the link set or is not a normal prim
+                                // The value returned in SL for normal prims is prim count
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_SERVER_COST:
+                                // The value returned in SL for normal prims is prim count
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_STREAMING_COST:
+                                // The value returned in SL for normal prims is prim count * 0.06
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_PHYSICS_COST:
+                                // The value returned in SL for normal prims is prim count
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            default:
+                                // Invalid or unhandled constant.
+                                ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
                                 break;
                         }
                     }

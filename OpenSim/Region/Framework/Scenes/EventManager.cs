@@ -506,6 +506,12 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void PrimsLoaded(Scene s);
         public event PrimsLoaded OnPrimsLoaded;
 
+        public delegate void TeleportStart(IClientAPI client, GridRegion destination, GridRegion finalDestination, uint teleportFlags, bool gridLogout);
+        public event TeleportStart OnTeleportStart;
+
+        public delegate void TeleportFail(IClientAPI client, bool gridLogout);
+        public event TeleportFail OnTeleportFail;
+
         public class MoneyTransferArgs : EventArgs
         {
             public UUID sender;
@@ -2487,5 +2493,48 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+
+        public void TriggerTeleportStart(IClientAPI client, GridRegion destination, GridRegion finalDestination, uint teleportFlags, bool gridLogout)
+        {
+            TeleportStart handler = OnTeleportStart;
+
+            if (handler != null)
+            {
+                foreach (TeleportStart d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(client, destination, finalDestination, teleportFlags, gridLogout);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for TeleportStart failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerTeleportFail(IClientAPI client, bool gridLogout)
+        {
+            TeleportFail handler = OnTeleportFail;
+
+            if (handler != null)
+            {
+                foreach (TeleportFail d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(client, gridLogout);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for TeleportFail failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
     }
 }
