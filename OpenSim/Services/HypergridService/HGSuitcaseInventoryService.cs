@@ -107,7 +107,6 @@ namespace OpenSim.Services.HypergridService
         public override List<InventoryFolderBase> GetInventorySkeleton(UUID principalID)
         {
             XInventoryFolder suitcase = GetSuitcaseXFolder(principalID);
-            XInventoryFolder root = GetRootXFolder(principalID);
 
             List<XInventoryFolder> tree = GetFolderTree(principalID, suitcase.folderID);
             if (tree == null || (tree != null && tree.Count == 0))
@@ -119,7 +118,7 @@ namespace OpenSim.Services.HypergridService
                 folders.Add(ConvertToOpenSim(x));
             }
 
-            SetAsNormalFolder(suitcase, root);
+            SetAsNormalFolder(suitcase);
             folders.Add(ConvertToOpenSim(suitcase));
 
             return folders;
@@ -134,12 +133,11 @@ namespace OpenSim.Services.HypergridService
             userInventory.Items = new List<InventoryItemBase>();
 
             XInventoryFolder suitcase = GetSuitcaseXFolder(userID);
-            XInventoryFolder root = GetRootXFolder(userID);
 
             List<XInventoryFolder> tree = GetFolderTree(userID, suitcase.folderID);
             if (tree == null || (tree != null && tree.Count == 0))
             {
-                SetAsNormalFolder(suitcase, root);
+                SetAsNormalFolder(suitcase);
                 userInventory.Folders.Add(ConvertToOpenSim(suitcase));
                 return userInventory;
             }
@@ -164,7 +162,7 @@ namespace OpenSim.Services.HypergridService
                 userInventory.Items.AddRange(items);
             }
 
-            SetAsNormalFolder(suitcase, root);
+            SetAsNormalFolder(suitcase);
             userInventory.Folders.Add(ConvertToOpenSim(suitcase));
 
             m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: GetUserInventory for user {0} returning {1} folders and {2} items",
@@ -181,6 +179,7 @@ namespace OpenSim.Services.HypergridService
             if (root == null)
             {
                 m_log.WarnFormat("[HG SUITCASE INVENTORY SERVICE]: Unable to retrieve local root folder for user {0}", principalID);
+                return null;
             }
 
             // Warp! Root folder for travelers is the suitcase folder
@@ -200,7 +199,7 @@ namespace OpenSim.Services.HypergridService
                 CreateSystemFolders(principalID, suitcase.folderID);
             }
 
-            SetAsNormalFolder(suitcase, root);
+            SetAsNormalFolder(suitcase);
 
             return ConvertToOpenSim(suitcase);
         }
@@ -484,7 +483,7 @@ namespace OpenSim.Services.HypergridService
             return null;
         }
 
-        private void SetAsNormalFolder(XInventoryFolder suitcase, XInventoryFolder root)
+        private void SetAsNormalFolder(XInventoryFolder suitcase)
         {
             suitcase.type = (short)AssetType.Folder;
         }
