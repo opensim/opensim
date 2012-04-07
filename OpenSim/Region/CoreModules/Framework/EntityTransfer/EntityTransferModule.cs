@@ -561,12 +561,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Finally, kill the agent we just created at the destination.
             m_aScene.SimulationService.CloseAgent(finalDestination, sp.UUID);
 
+            sp.Scene.EventManager.TriggerTeleportFail(sp.ControllingClient, logout);
         }
 
         protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason, out bool logout)
         {
             logout = false;
-            return m_aScene.SimulationService.CreateAgent(finalDestination, agentCircuit, teleportFlags, out reason);
+            bool success = m_aScene.SimulationService.CreateAgent(finalDestination, agentCircuit, teleportFlags, out reason);
+
+            if (success)
+                sp.Scene.EventManager.TriggerTeleportStart(sp.ControllingClient, reg, finalDestination, teleportFlags, logout);
+
+            return success;
         }
 
         protected virtual bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent)
