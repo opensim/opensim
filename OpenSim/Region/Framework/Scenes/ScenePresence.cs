@@ -3514,6 +3514,22 @@ namespace OpenSim.Region.Framework.Scenes
             });
         }
 
+        /// <summary>
+        /// Gets the mass.
+        /// </summary>
+        /// <returns>
+        /// The mass.
+        /// </returns>
+        public float GetMass()
+        {
+            PhysicsActor pa = PhysicsActor;
+
+            if (pa != null)
+                return pa.Mass;
+            else
+                return 0;
+        }
+
         internal void PushForce(Vector3 impulse)
         {
             if (PhysicsActor != null)
