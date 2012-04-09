@@ -2280,19 +2280,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (part.IsRoot)
-                {
-                    return new LSL_Vector(part.AttachedPos.X,
-                                          part.AttachedPos.Y,
-                                          part.AttachedPos.Z);
-                }
+                if (part.ParentGroup.IsAttachment)
+                    pos = part.AttachedPos;
                 else
-                {
                     pos = part.AbsolutePosition;
-                }
             }
-
-//            m_log.DebugFormat("[LSL API]: Returning {0} in GetPartLocalPos()", pos);
 
             return new LSL_Vector(pos.X, pos.Y, pos.Z);
         }
