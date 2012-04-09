@@ -156,6 +156,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly ILog m_log;
         // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
+        public bool OdeUbitLib = false;
 //        private int threadid = 0;
         private Random fluidRandomizer = new Random(Environment.TickCount);
 
@@ -374,7 +375,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             mesher = meshmerizer;
             m_config = config;
 
-//            m_log.WarnFormat("ODE configuration: {0}", d.GetConfiguration("ODE"));
+            string ode_config = d.GetConfiguration("ODE");
+            m_log.WarnFormat("ODE configuration: {0}", ode_config);
+
+            if (ode_config.Contains("ODE_Ubit"))
+            {
+                OdeUbitLib = true;
+            }
+
             /*
                         if (region != null)
                         {
@@ -527,13 +535,24 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         // sets a global contact for a joint for contactgeom , and base contact description)
 
-        private IntPtr CreateContacJoint(ref d.ContactGeom contactGeom, float mu, float bounce,float cfm,float erp)
+        private IntPtr CreateContacJoint(ref d.ContactGeom contactGeom, float mu, float bounce, float cfm, float erpscale, float dscale)
         {
             if (GlobalContactsArray == IntPtr.Zero || m_global_contactcount >= maxContactsbeforedeath)
                 return IntPtr.Zero;
 
+            float erp = contactGeom.depth;
+            erp *= erpscale;
+            if (erp < minERP)
+                erp = minERP;
+            else if (erp > MaxERP)
+                erp = MaxERP;
+
+            float depth = contactGeom.depth * dscale;
+            if (depth > 0.5f)
+                depth = 0.5f;
+
             d.Contact newcontact = new d.Contact();
-            newcontact.geom.depth = contactGeom.depth;
+            newcontact.geom.depth = depth;
             newcontact.geom.g1 = contactGeom.g1;
             newcontact.geom.g2 = contactGeom.g2;
             newcontact.geom.pos = contactGeom.pos;
@@ -692,6 +711,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             float bounce = 0;
             float cfm = 0.0001f;
             float erp = 0.1f;
+            float erpscale = 1.0f;
+            float dscale = 1.0f;
+            bool IgnoreNegSides = false;
+          
 
             ContactData contactdata1 = new ContactData(0, 0, false);
             ContactData contactdata2 = new ContactData(0, 0, false);
@@ -781,10 +804,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                             cfm = p1.Mass;
                             if (cfm > p2.Mass)
                                 cfm = p2.Mass;
-                            cfm = (float)Math.Sqrt(cfm);
-                            cfm *= 0.0001f;
-                            if (cfm > 0.8f)
-                                cfm = 0.8f;
+            dscale = 10 / cfm;
+            dscale = (float)Math.Sqrt(dscale);
+            if (dscale > 1.0f)
+                dscale = 1.0f;
+            erpscale = cfm * 0.01f;
+            cfm = 0.0001f / cfm;
+            if (cfm > 0.01f)
+                cfm = 0.01f;
 
                             if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
                                 mu *= frictionMovementMult;
@@ -801,11 +828,22 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     if (Math.Abs(p1.Velocity.X) > 0.1f || Math.Abs(p1.Velocity.Y) > 0.1f)
                                         mu *= frictionMovementMult;
                                     p1.CollidingGround = true;
+
                                     cfm = p1.Mass;
-                                    cfm = (float)Math.Sqrt(cfm);
-                                    cfm *= 0.0001f;
-                                    if (cfm > 0.8f)
-                                        cfm = 0.8f;
+                                    dscale = 10 / cfm;
+                                    dscale = (float)Math.Sqrt(dscale);
+                                    if (dscale > 1.0f)
+                                        dscale = 1.0f;
+                                    erpscale = cfm * 0.01f;
+                                    cfm = 0.0001f / cfm;
+                                    if (cfm > 0.01f)
+                                        cfm = 0.01f;
+
+                                    if (d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
+                                    {
+                                        if (curContact.side1 > 0)
+                                            IgnoreNegSides = true;
+                                    }
 
                                 }
                                 else if (name == "Water")
@@ -830,11 +868,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 p2.getContactData(ref contactdata2);
                                 bounce = contactdata2.bounce * TerrainBounce;
                                 mu = (float)Math.Sqrt(contactdata2.mu * TerrainFriction);
+
                                 cfm = p2.Mass;
-                                cfm = (float)Math.Sqrt(cfm);
-                                cfm *= 0.0001f;
-                                if (cfm > 0.8f)
-                                    cfm = 0.8f;
+                                dscale = 10 / cfm;
+                                dscale = (float)Math.Sqrt(dscale);
+
+                                if (dscale > 1.0f)
+                                    dscale = 1.0f;
+
+                                erpscale = cfm * 0.01f;
+                                cfm = 0.0001f / cfm;
+                                if (cfm > 0.01f)
+                                    cfm = 0.01f;
+
+                                if (curContact.side1 > 0) // should be 2 ?
+                                    IgnoreNegSides = true;
 
                                 if (Math.Abs(p2.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y) > 0.1f)
                                     mu *= frictionMovementMult;
@@ -862,39 +910,45 @@ namespace OpenSim.Region.Physics.OdePlugin
             int i = 0;
             while(true)
             {
-                if (dop1foot && (p1.Position.Z - curContact.pos.Z) > (p1.Size.Z - avCapRadius) * 0.5f)
-                    p1.IsColliding = true;
-                if (dop2foot && (p2.Position.Z - curContact.pos.Z) > (p2.Size.Z - avCapRadius) * 0.5f)
-                    p2.IsColliding = true;
 
-
-                erp = curContact.depth;
-                if (erp < minERP)
-                    erp = minERP;
-                else if (erp > MaxERP)
-                    erp = MaxERP;
-
-                Joint = CreateContacJoint(ref curContact, mu, bounce,cfm,erp);
-                d.JointAttach(Joint, b1, b2);
-
-                if (++m_global_contactcount >= maxContactsbeforedeath)
-                    break;
-
-                if(++i >= count)
-                    break;
-
-                if (!GetCurContactGeom(i, ref curContact))
-                    break;
-
-                if (curContact.depth > maxDepthContact.PenetrationDepth)
+                if (IgnoreNegSides && curContact.side1 < 0)
                 {
-                    maxDepthContact.Position.X = curContact.pos.X;
-                    maxDepthContact.Position.Y = curContact.pos.Y;
-                    maxDepthContact.Position.Z = curContact.pos.Z;
-                    maxDepthContact.SurfaceNormal.X = curContact.normal.X;
-                    maxDepthContact.SurfaceNormal.Y = curContact.normal.Y;
-                    maxDepthContact.SurfaceNormal.Z = curContact.normal.Z;
-                    maxDepthContact.PenetrationDepth = curContact.depth;
+                    if (++i >= count)
+                        break;
+
+                    if (!GetCurContactGeom(i, ref curContact))
+                        break;
+                }
+                else
+
+                {
+                    if (dop1foot && (p1.Position.Z - curContact.pos.Z) > (p1.Size.Z - avCapRadius) * 0.5f)
+                        p1.IsColliding = true;
+                    if (dop2foot && (p2.Position.Z - curContact.pos.Z) > (p2.Size.Z - avCapRadius) * 0.5f)
+                        p2.IsColliding = true;
+
+                    Joint = CreateContacJoint(ref curContact, mu, bounce, cfm, erpscale, dscale);
+                    d.JointAttach(Joint, b1, b2);
+
+                    if (++m_global_contactcount >= maxContactsbeforedeath)
+                        break;
+
+                    if (++i >= count)
+                        break;
+
+                    if (!GetCurContactGeom(i, ref curContact))
+                        break;
+
+                    if (curContact.depth > maxDepthContact.PenetrationDepth)
+                    {
+                        maxDepthContact.Position.X = curContact.pos.X;
+                        maxDepthContact.Position.Y = curContact.pos.Y;
+                        maxDepthContact.Position.Z = curContact.pos.Z;
+                        maxDepthContact.SurfaceNormal.X = curContact.normal.X;
+                        maxDepthContact.SurfaceNormal.Y = curContact.normal.Y;
+                        maxDepthContact.SurfaceNormal.Z = curContact.normal.Z;
+                        maxDepthContact.PenetrationDepth = curContact.depth;
+                    }
                 }
             }
 
@@ -1865,12 +1919,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public float GetTerrainHeightAtXY(float x, float y)
         {
-            // assumes 1m size grid and constante size square regions
-            // needs to know about sims around in future
-            // region offset in mega position
+
 
             int offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
             int offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
+
 
             IntPtr heightFieldGeom = IntPtr.Zero;
 
@@ -1903,28 +1956,55 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             int regsize = (int)Constants.RegionSize + 3; // map size see setterrain number of samples
 
-            // we  still have square fixed size regions
-            // also flip x and y because of how map is done for ODE fliped axis
-            // so ix,iy,dx and dy are inter exchanged
-            if (x < regsize - 1)
+            if (OdeUbitLib)
             {
-                iy = (int)x;
-                dy = x - (float)iy;
+                if (x < regsize - 1)
+                {
+                    ix = (int)x;
+                    dx = x - (float)ix;
+                }
+                else // out world use external height
+                {
+                    ix = regsize - 1;
+                    dx = 0;
+                }
+                if (y < regsize - 1)
+                {
+                    iy = (int)y;
+                    dy = y - (float)iy;
+                }
+                else
+                {
+                    iy = regsize - 1;
+                    dy = 0;
+                }
             }
-            else // out world use external height
-            {
-                iy = regsize - 1;
-                dy = 0;
-            }
-            if (y < regsize - 1)
-            {
-                ix = (int)y;
-                dx = y - (float)ix;
-            }
+
             else
             {
-                ix = regsize - 1;
-                dx = 0;
+                // we  still have square fixed size regions
+                // also flip x and y because of how map is done for ODE fliped axis
+                // so ix,iy,dx and dy are inter exchanged
+                if (x < regsize - 1)
+                {
+                    iy = (int)x;
+                    dy = x - (float)iy;
+                }
+                else // out world use external height
+                {
+                    iy = regsize - 1;
+                    dy = 0;
+                }
+                if (y < regsize - 1)
+                {
+                    ix = (int)y;
+                    dx = y - (float)ix;
+                }
+                else
+                {
+                    ix = regsize - 1;
+                    dx = 0;
+                }
             }
 
             float h0;
@@ -1951,6 +2031,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             return h0 + h1 + h2;
         }
+
+
         public override void SetTerrain(float[] heightMap)
         {
             if (m_worldOffset != Vector3.Zero && m_parentScene != null)
@@ -1972,7 +2054,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         public void SetTerrain(float[] heightMap, Vector3 pOffset)
-            {
+        {
+            if (OdeUbitLib)
+                UbitSetTerrain(heightMap, pOffset);
+            else
+                OriSetTerrain(heightMap, pOffset);
+        }
+
+        public void OriSetTerrain(float[] heightMap, Vector3 pOffset)
+        {
             // assumes 1m size grid and constante size square regions
             // needs to know about sims around in future
 
@@ -2085,6 +2175,108 @@ namespace OpenSim.Region.Physics.OdePlugin
                
             }
         }
+
+        public void UbitSetTerrain(float[] heightMap, Vector3 pOffset)
+        {
+            // assumes 1m size grid and constante size square regions
+            // needs to know about sims around in future
+
+            float[] _heightmap;
+
+            uint heightmapWidth = Constants.RegionSize + 2;
+            uint heightmapHeight = Constants.RegionSize + 2;
+
+            uint heightmapWidthSamples = heightmapWidth + 1;
+            uint heightmapHeightSamples = heightmapHeight + 1;
+
+            _heightmap = new float[heightmapWidthSamples * heightmapHeightSamples];
+
+
+            uint regionsize = Constants.RegionSize;
+
+            float hfmin = float.MaxValue;
+//            float hfmax = float.MinValue;
+            float val;
+
+
+            uint maxXXYY = regionsize - 1;
+            // adding one margin all around so things don't fall in edges
+
+            uint xx;
+            uint yy = 0;
+            uint yt = 0;
+
+            for (uint y = 0; y < heightmapHeightSamples; y++)
+            {
+                if (y > 1 && y < maxXXYY)
+                    yy += regionsize;
+                xx = 0;
+                for (uint x = 0; x < heightmapWidthSamples; x++)
+                {
+                    if (x > 1 && x < maxXXYY)
+                        xx++;
+
+                    val = heightMap[yy + xx];
+                    if (val < 0.0f)
+                        val = 0.0f; // no neg terrain as in chode
+                    _heightmap[yt + x] = val;
+
+                    if (hfmin > val)
+                        hfmin = val;
+//                    if (hfmax < val)
+//                        hfmax = val;
+                }
+                yt += heightmapWidthSamples;
+            }
+            lock (OdeLock)
+            {
+                IntPtr GroundGeom = IntPtr.Zero;
+                if (RegionTerrain.TryGetValue(pOffset, out GroundGeom))
+                {
+                    RegionTerrain.Remove(pOffset);
+                    if (GroundGeom != IntPtr.Zero)
+                    {
+                        if (TerrainHeightFieldHeights.ContainsKey(GroundGeom))
+                        {
+                            TerrainHeightFieldHeightsHandlers[GroundGeom].Free();
+                            TerrainHeightFieldHeightsHandlers.Remove(GroundGeom);
+                            TerrainHeightFieldHeights.Remove(GroundGeom);
+                        }
+                        d.SpaceRemove(StaticSpace, GroundGeom);
+                        d.GeomDestroy(GroundGeom);
+                    }
+                }
+                IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
+
+                const int wrap = 0;
+                float thickness = hfmin;
+                if (thickness < 0)
+                    thickness = 1;
+
+                GCHandle _heightmaphandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
+
+                d.GeomUbitTerrainDataBuild(HeightmapData, _heightmaphandler.AddrOfPinnedObject(), 0, 1.0f,
+                                                 (int)heightmapWidthSamples, (int)heightmapHeightSamples,
+                                                 thickness, wrap);
+
+//                d.GeomUbitTerrainDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
+                GroundGeom = d.CreateUbitTerrain(StaticSpace, HeightmapData, 1);
+                if (GroundGeom != IntPtr.Zero)
+                {
+                    d.GeomSetCategoryBits(GroundGeom, (int)(CollisionCategories.Land));
+                    d.GeomSetCollideBits(GroundGeom, (int)(CollisionCategories.Space));
+
+                }
+                geom_name_map[GroundGeom] = "Terrain";
+
+                d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f, 0);
+                RegionTerrain.Add(pOffset, GroundGeom, GroundGeom);
+                //                TerrainHeightFieldHeights.Add(GroundGeom, ODElandMap);
+                TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
+                TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
+            }
+        }
+
 
         public override void DeleteTerrain()
         {

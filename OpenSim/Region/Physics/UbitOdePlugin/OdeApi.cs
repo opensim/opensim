@@ -107,16 +107,17 @@ namespace OdeAPI
 			ConvexClass,
 			GeomTransformClass,
 			TriMeshClass,
-			HeightfieldClass,
+            HeightfieldClass,
 			FirstSpaceClass,
 			SimpleSpaceClass = FirstSpaceClass,
 			HashSpaceClass,
 			QuadTreeSpaceClass,
 			LastSpaceClass = QuadTreeSpaceClass,
+            UbitTerrainClass,
 			FirstUserClass,
 			LastUserClass = FirstUserClass + MaxUserClasses - 1,
 			NumClasses,
-			MaxUserClasses = 4
+			MaxUserClasses = 5
 		}
 
 		public enum JointType : int
@@ -201,8 +202,11 @@ namespace OdeAPI
 		[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 		public delegate void GeomDtorFn(IntPtr o);
 
-		[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-		public delegate dReal HeightfieldGetHeight(IntPtr p_user_data, int x, int z);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate dReal HeightfieldGetHeight(IntPtr p_user_data, int x, int z);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate dReal UbitTerrainGetHeight(IntPtr p_user_data, int x, int z);
 
 		[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 		public delegate void NearCallback(IntPtr data, IntPtr geom1, IntPtr geom2);
@@ -729,6 +733,18 @@ namespace OdeAPI
             return CreateiHeightfield(space, data, bPlaceable);
         }
 
+        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateUbitTerrain"), SuppressUnmanagedCodeSecurity]
+        public static extern IntPtr CreateiUbitTerrain(IntPtr space, IntPtr data, int bPlaceable);
+        public static IntPtr CreateUbitTerrain(IntPtr space, IntPtr data, int bPlaceable)
+        {
+            NTotalGeoms++;
+            return CreateiUbitTerrain(space, data, bPlaceable);
+        }
+
+
+
+        
+
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateGeom"), SuppressUnmanagedCodeSecurity]
 		public static extern IntPtr CreateiGeom(int classnum);
         public static IntPtr CreateGeom(int classnum)
@@ -964,6 +980,8 @@ namespace OdeAPI
 				dReal width, dReal depth, int widthSamples, int depthSamples,
 				dReal scale, dReal offset, dReal thickness, int bWrap);
 
+
+
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomHeightfieldDataBuildDouble"), SuppressUnmanagedCodeSecurity]
 		public static extern void GeomHeightfieldDataBuildDouble(IntPtr d, double[] pHeightData, int bCopyHeightData,
 				dReal width, dReal depth, int widthSamples, int depthSamples,
@@ -988,6 +1006,33 @@ namespace OdeAPI
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomHeightfieldSetHeightfieldData"), SuppressUnmanagedCodeSecurity]
 		public static extern void GeomHeightfieldSetHeightfieldData(IntPtr g, IntPtr d);
+
+
+        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomUbitTerrainDataBuild"), SuppressUnmanagedCodeSecurity]
+        public static extern void GeomUbitTerrainDataBuild(IntPtr d, float[] pHeightData, int bCopyHeightData,
+                dReal sampleSize, int widthSamples, int depthSamples,
+                dReal offset, dReal thickness, int bWrap);
+
+        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomUbitTerrainDataBuild"), SuppressUnmanagedCodeSecurity]
+        public static extern void GeomUbitTerrainDataBuild(IntPtr d, IntPtr pHeightData, int bCopyHeightData,
+                dReal sampleSize, int widthSamples, int depthSamples,
+                dReal thickness, int bWrap);
+
+        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomUbitTerrainDataCreate"), SuppressUnmanagedCodeSecurity]
+        public static extern IntPtr GeomUbitTerrainDataCreate();
+
+        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomUbitTerrainDataDestroy"), SuppressUnmanagedCodeSecurity]
+        public static extern void GeomUbitTerrainDataDestroy(IntPtr d);
+
+        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomUbitTerrainDataSetBounds"), SuppressUnmanagedCodeSecurity]
+        public static extern void GeomUbitTerrainDataSetBounds(IntPtr d, dReal minHeight, dReal maxHeight);
+
+        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomUbitTerrainGetHeightfieldData"), SuppressUnmanagedCodeSecurity]
+        public static extern IntPtr GeomUbitTerrainGetHeightfieldData(IntPtr g);
+
+        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomUbitTerrainSetHeightfieldData"), SuppressUnmanagedCodeSecurity]
+        public static extern void GeomUbitTerrainSetHeightfieldData(IntPtr g, IntPtr d);
+
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomIsEnabled"), SuppressUnmanagedCodeSecurity]
 		public static extern bool GeomIsEnabled(IntPtr geom);
