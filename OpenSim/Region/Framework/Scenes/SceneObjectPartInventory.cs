@@ -1081,8 +1081,57 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-            
+
             return false;
+        }
+
+        /// <summary>
+        /// Returns the count of scripts in this parts inventory.
+        /// </summary>
+        /// <returns></returns>
+        public int ScriptCount()
+        {
+            int count = 0;
+            lock (m_items)
+            {
+                foreach (TaskInventoryItem item in m_items.Values)
+                {
+                    if (item.InvType == (int)InventoryType.LSL)
+                    {
+                        count++;
+                    }
+                }
+            }
+
+            return count;
+        }
+        /// <summary>
+        /// Returns the count of running scripts in this parts inventory.
+        /// </summary>
+        /// <returns></returns>
+        public int RunningScriptCount()
+        {
+            IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
+            if (engines.Length == 0)
+                return 0;
+
+            int count = 0;
+            List<TaskInventoryItem> scripts = GetInventoryScripts();
+
+            foreach (TaskInventoryItem item in scripts)
+            {
+                foreach (IScriptModule engine in engines)
+                {
+                    if (engine != null)
+                    {
+                        if (engine.GetScriptState(item.ItemID))
+                        {
+                            count++;
+                        }
+                    }
+                }
+            }
+            return count;
         }
 
         public List<UUID> GetInventoryList()

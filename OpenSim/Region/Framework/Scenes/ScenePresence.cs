@@ -3418,6 +3418,44 @@ namespace OpenSim.Region.Framework.Scenes
                 return m_attachments.Count > 0;
         }
 
+        /// <summary>
+        /// Returns the total count of scripts in all parts inventories.
+        /// </summary>
+        public int ScriptCount()
+        {
+            int count = 0;
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup gobj in m_attachments)
+                {
+                    if (gobj != null)
+                    {
+                        count += gobj.ScriptCount();
+                    }
+                }
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// Returns the total count of running scripts in all parts.
+        /// </summary>
+        public int RunningScriptCount()
+        {
+            int count = 0;
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup gobj in m_attachments)
+                {
+                    if (gobj != null)
+                    {
+                        count += gobj.RunningScriptCount();
+                    }
+                }
+            }
+            return count;
+        }
+
         public bool HasScriptedAttachments()
         {
             lock (m_attachments)
