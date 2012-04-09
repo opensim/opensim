@@ -3176,15 +3176,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (m_host.IsRoot)
-                {
+                // new SL always returns object mass
+//                if (m_host.IsRoot)
+//                {
                     return m_host.ParentGroup.GetMass();
-                }
-                else
-                {
-                    return m_host.GetMass();
-                }
+//                }
+//                else
+//                {
+//                    return m_host.GetMass();
+//                }
             }
+        }
+
+ 
+        public LSL_Float llGetMassMKS()
+        {
+            return 100f * llGetMass();
         }
 
         public void llCollisionFilter(string name, string id, int accept)
@@ -4959,7 +4966,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 float distance = (PusheePos - m_host.AbsolutePosition).Length();
                 float distance_term = distance * distance * distance; // Script Energy
-                float pusher_mass = m_host.GetMass();
+                // use total object mass and not part
+                float pusher_mass = m_host.ParentGroup.GetMass();
 
                 float PUSH_ATTENUATION_DISTANCE = 17f;
                 float PUSH_ATTENUATION_SCALE = 5f;
@@ -9964,9 +9972,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 try
                 {
+                    /*
                     SceneObjectPart obj = World.GetSceneObjectPart(World.Entities[key].LocalId);
                     if (obj != null)
                         return (double)obj.GetMass();
+                     */
+                    // return total object mass
+                    SceneObjectGroup obj = World.GetGroupByPrim(World.Entities[key].LocalId);
+                    if (obj != null)
+                        return (double)obj.GetMass();
+
                     // the object is null so the key is for an avatar
                     ScenePresence avatar = World.GetScenePresence(key);
                     if (avatar != null)
