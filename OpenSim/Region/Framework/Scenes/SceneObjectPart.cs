@@ -2260,18 +2260,29 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Vector3 GetGeometricCenter()
         {
-            PhysicsActor pa = PhysActor;
-
-            if (pa != null)
-            {
-                Vector3 vtmp = pa.CenterOfMass;
-                return vtmp;
-            }
-            else
+            // this is not real geometric center but a average of positions relative to root prim acording to
+            // http://wiki.secondlife.com/wiki/llGetGeometricCenter
+            // ignoring tortured prims details since sl also seems to ignore
+            // so no real use in doing it on physics
+            if (ParentGroup.IsDeleted)
                 return new Vector3(0, 0, 0);
+
+            return ParentGroup.GetGeometricCenter();
+
+            /*
+                        PhysicsActor pa = PhysActor;
+
+                        if (pa != null)
+                        {
+                            Vector3 vtmp = pa.CenterOfMass;
+                            return vtmp;
+                        }
+                        else
+                            return new Vector3(0, 0, 0);
+             */
         }
 
-        public float GetMass()
+         public float GetMass()
         {
             PhysicsActor pa = PhysActor;
 

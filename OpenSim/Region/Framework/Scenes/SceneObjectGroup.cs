@@ -3955,7 +3955,35 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-        
+
+        public Vector3 GetGeometricCenter()
+        {
+            // this is not real geometric center but a average of positions relative to root prim acording to
+            // http://wiki.secondlife.com/wiki/llGetGeometricCenter
+            // ignoring tortured prims details since sl also seems to ignore
+            // so no real use in doing it on physics
+            
+            Vector3 gc = Vector3.Zero;
+
+            int nparts = m_parts.Count;
+            if (nparts <= 1)
+                return gc;
+
+            SceneObjectPart[] parts = m_parts.GetArray();
+            nparts = parts.Length; // just in case it changed
+            if (nparts <= 1)
+                return gc;
+
+            // average all parts positions
+            for (int i = 0; i < nparts; i++)
+                gc += parts[i].GetWorldPosition();
+            gc /= nparts;
+
+            // relative to root:
+            gc -= AbsolutePosition;
+            return gc;
+        }
+
         public float GetMass()
         {
             float retmass = 0f;
