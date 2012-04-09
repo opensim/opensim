@@ -228,6 +228,16 @@ namespace OpenSim.Region.Framework.Interfaces
         bool ContainsScripts();
 
         /// <summary>
+        /// Returns the count of scripts contained
+        /// </summary></returns>
+        int ScriptCount();
+
+        /// <summary>
+        /// Returns the count of running scripts contained
+        /// </summary></returns>
+        int RunningScriptCount();
+
+        /// <summary>
         /// Get the uuids of all items in this inventory
         /// </summary>
         /// <returns></returns>

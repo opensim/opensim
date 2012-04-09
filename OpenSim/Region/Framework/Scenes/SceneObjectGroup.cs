@@ -4017,7 +4017,33 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
                 parts[i].TriggerScriptChangedEvent(val);
         }
-        
+
+        /// <summary>
+        /// Returns a count of the number of scripts in this groups parts.
+        /// </summary>
+        public int ScriptCount()
+        {
+            int count = 0;
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+                count += parts[i].Inventory.ScriptCount();
+
+            return count;
+        }
+
+        /// <summary>
+        /// Returns a count of the number of running scripts in this groups parts.
+        /// </summary>
+        public int RunningScriptCount()
+        {
+            int count = 0;
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+                count += parts[i].Inventory.RunningScriptCount();
+
+            return count;
+        }
+
         public override string ToString()
         {
             return String.Format("{0} {1} ({2})", Name, UUID, AbsolutePosition);

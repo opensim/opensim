@@ -71,6 +71,12 @@ namespace OpenSim.Region.Framework.Interfaces
 
         bool HasScript(UUID itemID, out bool running);
 
+        /// <summary>
+        /// Returns true if a script is running.
+        /// </summary>
+        /// <param name="itemID">The item ID of the script.</param>
+        bool GetScriptState(UUID itemID);
+
         void SaveAllState();
 
         /// <summary>

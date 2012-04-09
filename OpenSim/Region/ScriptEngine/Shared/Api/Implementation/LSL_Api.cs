@@ -11175,19 +11175,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
                             // For the following 8 see the Object version below
                             case ScriptBaseClass.OBJECT_RUNNING_SCRIPT_COUNT:
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(av.RunningScriptCount()));
                                 break;
                             case ScriptBaseClass.OBJECT_TOTAL_SCRIPT_COUNT:
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(av.ScriptCount()));
                                 break;
                             case ScriptBaseClass.OBJECT_SCRIPT_MEMORY:
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(av.RunningScriptCount() * 16384));
                                 break;
                             case ScriptBaseClass.OBJECT_SCRIPT_TIME:
                                 ret.Add(new LSL_Float(0));
                                 break;
                             case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(1));
                                 break;
                             case ScriptBaseClass.OBJECT_SERVER_COST:
                                 ret.Add(new LSL_Float(0));
@@ -11239,24 +11239,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.OBJECT_CREATOR:
                                 ret.Add(new LSL_String(obj.CreatorID.ToString()));
                                 break;
-                            // The following 8 I have intentionaly coded to return zero. They are part of
-                            // "Land Impact" calculations. These calculations are probably not applicable
-                            // to OpenSim, required figures (cpu/memory usage) are not currently tracked
-                            // I have intentionally left these all at zero rather than return possibly
-                            // missleading numbers
                             case ScriptBaseClass.OBJECT_RUNNING_SCRIPT_COUNT:
-                                // in SL this currently includes crashed scripts
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(obj.ParentGroup.RunningScriptCount()));
                                 break;
                             case ScriptBaseClass.OBJECT_TOTAL_SCRIPT_COUNT:
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(obj.ParentGroup.ScriptCount()));
                                 break;
                             case ScriptBaseClass.OBJECT_SCRIPT_MEMORY:
                                 // The value returned in SL for mono scripts is 65536 * number of active scripts
-                                ret.Add(new LSL_Integer(0));
+                                // and 16384 * number of active scripts for LSO. since llGetFreememory
+                                // is coded to give the LSO value use it here
+                                ret.Add(new LSL_Integer(obj.ParentGroup.RunningScriptCount() * 16384));
                                 break;
                             case ScriptBaseClass.OBJECT_SCRIPT_TIME:
-                                // Average cpu time per simulator frame expended on all scripts in the objetc
+                                // Average cpu time per simulator frame expended on all scripts in the object
+                                // Not currently available at Object level
                                 ret.Add(new LSL_Float(0));
                                 break;
                             case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
@@ -11264,18 +11261,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 // equivalent of the number of prims in a linkset if it does not
                                 // contain a mesh anywhere in the link set or is not a normal prim
                                 // The value returned in SL for normal prims is prim count
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(obj.ParentGroup.PrimCount));
                                 break;
+                            // The following 3 costs I have intentionaly coded to return zero. They are part of
+                            // "Land Impact" calculations. These calculations are probably not applicable
+                            // to OpenSim and are not yet complete in SL
                             case ScriptBaseClass.OBJECT_SERVER_COST:
-                                // The value returned in SL for normal prims is prim count
+                                // The linden calculation is here
+                                // http://wiki.secondlife.com/wiki/Mesh/Mesh_Server_Weight
+                                // The value returned in SL for normal prims looks like the prim count
                                 ret.Add(new LSL_Float(0));
                                 break;
                             case ScriptBaseClass.OBJECT_STREAMING_COST:
-                                // The value returned in SL for normal prims is prim count * 0.06
+                                // The linden calculation is here
+                                // http://wiki.secondlife.com/wiki/Mesh/Mesh_Streaming_Cost
+                                // The value returned in SL for normal prims looks like the prim count * 0.06
                                 ret.Add(new LSL_Float(0));
                                 break;
                             case ScriptBaseClass.OBJECT_PHYSICS_COST:
-                                // The value returned in SL for normal prims is prim count
+                                // The linden calculation is here
+                                // http://wiki.secondlife.com/wiki/Mesh/Mesh_physics
+                                // The value returned in SL for normal prims looks like the prim count
                                 ret.Add(new LSL_Float(0));
                                 break;
                             default:
