@@ -319,13 +319,13 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; password help: optional: page providing password assistance for users of your grid
     ;password = http://127.0.0.1/password
 	
-	; HG address of the gatekeeper, if you have one
-	; this is the entry point for all the regions of the world
-	; gatekeeper = http://127.0.0.1:8002/
+    ; HG address of the gatekeeper, if you have one
+    ; this is the entry point for all the regions of the world
+    ; gatekeeper = http://127.0.0.1:8002/
 
-	; HG user domain, if you have one
-	; this is the entry point for all user-related HG services
-	; uas = http://127.0.0.1:8002/
+    ; HG user domain, if you have one
+    ; this is the entry point for all user-related HG services
+    ; uas = http://127.0.0.1:8002/
 
 [GatekeeperService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:GatekeeperService"

@@ -231,13 +231,13 @@
     ; currently unused
     ;password = http://127.0.0.1/password
 
-	; HG address of the gatekeeper, if you have one
-	; this is the entry point for all the regions of the world
-	; gatekeeper = http://127.0.0.1:9000/
+    ; HG address of the gatekeeper, if you have one
+    ; this is the entry point for all the regions of the world
+    ; gatekeeper = http://127.0.0.1:9000/
 
-	; HG user domain, if you have one
-	; this is the entry point for all user-related HG services
-	; uas = http://127.0.0.1:9000/
+    ; HG user domain, if you have one
+    ; this is the entry point for all user-related HG services
+    ; uas = http://127.0.0.1:9000/
 
 [MapImageService]
 	; Set this if you want to change the default
