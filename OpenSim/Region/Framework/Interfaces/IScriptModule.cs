@@ -83,6 +83,14 @@ namespace OpenSim.Region.Framework.Interfaces
         void StartProcessing();
 
         /// <summary>
+        /// Get the execution times of all scripts in the given array if they are currently running.
+        /// </summary>
+        /// <returns>
+        /// A float the value is a representative execution time in milliseconds of all scripts in that Array.
+        /// </returns>
+        float GetScriptExecutionTime(List<UUID> itemIDs);
+
+        /// <summary>
         /// Get the execution times of all scripts in each object.
         /// </summary>
         /// <returns>
