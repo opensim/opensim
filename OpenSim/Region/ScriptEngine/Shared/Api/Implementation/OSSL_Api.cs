@@ -3049,5 +3049,60 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return ScriptBaseClass.TRUE;
         }
+
+        /// <summary>
+        /// Sets terrain estate texture
+        /// </summary>
+        /// <param name="level"></param>
+        /// <param name="texture"></param>
+        /// <returns></returns>
+        public void osSetTerrainTexture(int level, LSL_Key texture)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osSetTerrainTexture");
+
+            m_host.AddScriptLPS(1);
+            //Check to make sure that the script's owner is the estate manager/master
+            //World.Permissions.GenericEstatePermission(
+            if (World.Permissions.IsGod(m_host.OwnerID))
+            {
+                if (level < 0 || level > 3)
+                    return;
+
+                UUID textureID = new UUID();
+                if (!UUID.TryParse(texture, out textureID))
+                    return;
+
+                // estate module is required
+                IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
+                if (estate != null)
+                    estate.setEstateTerrainBaseTexture(level, textureID);
+            }
+        }
+
+        /// <summary>
+        /// Sets terrain heights of estate
+        /// </summary>
+        /// <param name="corner"></param>
+        /// <param name="low"></param>
+        /// <param name="high"></param>
+        /// <returns></returns>
+        public void osSetTerrainTextureHeight(int corner, double low, double high)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osSetTerrainTextureHeight");
+
+            m_host.AddScriptLPS(1);
+            //Check to make sure that the script's owner is the estate manager/master
+            //World.Permissions.GenericEstatePermission(
+            if (World.Permissions.IsGod(m_host.OwnerID))
+            {
+                if (corner < 0 || corner > 3)
+                    return;
+
+                // estate module is required
+                IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
+                if (estate != null)
+                    estate.setEstateTerrainTextureHeights(corner, (float)low, (float)high);
+            }
+        }
     }
 }

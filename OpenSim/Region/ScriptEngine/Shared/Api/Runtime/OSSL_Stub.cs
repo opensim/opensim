@@ -878,5 +878,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osEjectFromGroup(agentId);
         }
+
+        public void osSetTerrainTexture(int level, LSL_Key texture)
+        {
+            m_OSSL_Functions.osSetTerrainTexture(level, texture);
+        }
+
+        public void osSetTerrainTextureHeight(int corner, double low, double high)
+        {
+            m_OSSL_Functions.osSetTerrainTextureHeight(corner, low, high);
+        }
     }
 }

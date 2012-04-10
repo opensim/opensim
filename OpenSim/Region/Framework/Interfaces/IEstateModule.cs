@@ -45,5 +45,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Tell all clients about the current state of the region (terrain textures, water height, etc.).
         /// </summary>
         void sendRegionHandshakeToAll();
+
+        void setEstateTerrainBaseTexture(int level, UUID texture);
+        void setEstateTerrainTextureHeights(int corner, float lowValue, float highValue);
     }
 }
