@@ -429,7 +429,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     bool isMember;
                     if (m_groupMemberCache.TryGetValue(avatar, out isMember))
+                    {
+                        m_groupMemberCache.Update(avatar, isMember, m_groupMemberCacheTimeout);
                         return isMember;
+                    }
 
                     IGroupsModule groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
                     if (groupsModule == null)
