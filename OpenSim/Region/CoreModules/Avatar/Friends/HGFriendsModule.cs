@@ -135,7 +135,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 if (!UserManagementModule.IsLocalGridUser(friendID))
                 {
                     ScenePresence avatar = null;
-                    client.Scene.TryGetScenePresence(principalID, out avatar);
+                    ((Scene)client.Scene).TryGetScenePresence(principalID, out avatar);
 
                     if (avatar == null)
                         return;
