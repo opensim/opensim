@@ -87,6 +87,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 m_StatusNotifier = new HGStatusNotifier(this);
         }
 
+        protected override void InitModule(IConfigSource config)
+        {
+            base.InitModule(config);
+
+            // Additionally to the base method
+            IConfig friendsConfig = config.Configs["HGFriendsModule"];
+            if (friendsConfig != null)
+            {
+                // TODO: read in all config variables pertaining to
+                // HG friendship permissions
+            }
+        }
+
         #endregion
 
         #region IFriendsSimConnector
@@ -104,6 +117,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         }
 
         #endregion
+
+        protected override void OnInstantMessage(IClientAPI client, GridInstantMessage im)
+        {
+            if ((InstantMessageDialog)im.dialog == InstantMessageDialog.FriendshipOffered)
+            {
+                // we got a friendship offer
+                UUID principalID = new UUID(im.fromAgentID);
+                UUID friendID = new UUID(im.toAgentID);
+
+                // TODO: CHECK IF friendID is foreigner and if principalID has the permission
+                // to request these kinds of friendships. If not, return immediately.
+                // Maybe you want to let the client know too with
+                // client.SendAlertMessage
+            }
+
+            base.OnInstantMessage(client, im);
+        }
 
         protected override void OnApproveFriendRequest(IClientAPI client, UUID friendID, List<UUID> callingCardFolders)
         {
