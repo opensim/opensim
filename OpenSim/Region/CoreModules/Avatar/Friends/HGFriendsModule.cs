@@ -50,6 +50,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private int m_levelHGFriends = 0;
+
         IUserManagement m_uMan;
         public IUserManagement UserManagementModule
         {
@@ -95,6 +97,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             IConfig friendsConfig = config.Configs["HGFriendsModule"];
             if (friendsConfig != null)
             {
+                m_levelHGFriends = friendsConfig.GetInt("LevelHGFriends", 0);
+
                 // TODO: read in all config variables pertaining to
                 // HG friendship permissions
             }
@@ -126,10 +130,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 UUID principalID = new UUID(im.fromAgentID);
                 UUID friendID = new UUID(im.toAgentID);
 
-                // TODO: CHECK IF friendID is foreigner and if principalID has the permission
-                // to request these kinds of friendships. If not, return immediately.
-                // Maybe you want to let the client know too with
-                // client.SendAlertMessage
+                // Check if friendID is foreigner and if principalID has the permission
+                // to request friendships with foreigners. If not, return immediately.
+                if (!UserManagementModule.IsLocalGridUser(friendID))
+                {
+                    ScenePresence avatar = null;
+                    client.Scene.TryGetScenePresence(principalID, out avatar);
+
+                    if (avatar == null)
+                        return;
+
+                    if (avatar.UserLevel < m_levelHGFriends)
+                    {
+                        client.SendAgentAlertMessage("Unable to send friendship invitation to foreigner. Insufficient permissions.", false);
+                        return;
+                    }
+                }
             }
 
             base.OnInstantMessage(client, im);
