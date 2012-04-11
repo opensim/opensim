@@ -162,7 +162,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }            
         }
 
-        protected void InitModule(IConfigSource config)
+        protected virtual void InitModule(IConfigSource config)
         {
             IConfig friendsConfig = config.Configs["Friends"];
             if (friendsConfig != null)
@@ -546,7 +546,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
         }
 
-        private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
+        protected virtual void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
             if ((InstantMessageDialog)im.dialog == InstantMessageDialog.FriendshipOffered)
             { 

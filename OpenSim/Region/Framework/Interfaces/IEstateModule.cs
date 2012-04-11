@@ -47,5 +47,8 @@ namespace OpenSim.Region.Framework.Interfaces
         void sendRegionHandshakeToAll();
         void TriggerEstateInfoChange();
         void TriggerRegionInfoChange();
+
+        void setEstateTerrainBaseTexture(int level, UUID texture);
+        void setEstateTerrainTextureHeights(int corner, float lowValue, float highValue);
     }
 }

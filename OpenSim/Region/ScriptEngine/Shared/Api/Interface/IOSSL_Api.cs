@@ -234,5 +234,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         LSL_Integer osInviteToGroup(LSL_Key agentId);
         LSL_Integer osEjectFromGroup(LSL_Key agentId);
+
+        void osSetTerrainTexture(int level, LSL_Key texture);
+        void osSetTerrainTextureHeight(int corner, double low, double high);
     }
 }

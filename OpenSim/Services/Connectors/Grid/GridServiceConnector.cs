@@ -116,29 +116,36 @@ namespace OpenSim.Services.Connectors
                     }
                     else if (replyData.ContainsKey("Result")&& (replyData["Result"].ToString().ToLower() == "failure"))
                     {
-                        m_log.DebugFormat("[GRID CONNECTOR]: Registration failed: {0}", replyData["Message"].ToString());
+                        m_log.ErrorFormat(
+                            "[GRID CONNECTOR]: Registration failed: {0} when contacting {1}", replyData["Message"], uri);
+
                         return replyData["Message"].ToString();
                     }
                     else if (!replyData.ContainsKey("Result"))
                     {
-                        m_log.DebugFormat("[GRID CONNECTOR]: reply data does not contain result field");
+                        m_log.ErrorFormat(
+                            "[GRID CONNECTOR]: reply data does not contain result field when contacting {0}", uri);
                     }
                     else
                     {
-                        m_log.DebugFormat("[GRID CONNECTOR]: unexpected result {0}", replyData["Result"].ToString());
-                        return "Unexpected result "+replyData["Result"].ToString();
+                        m_log.ErrorFormat(
+                            "[GRID CONNECTOR]: unexpected result {0} when contacting {1}", replyData["Result"], uri);
+
+                        return "Unexpected result " + replyData["Result"].ToString();
                     }
-                    
                 }
                 else
-                    m_log.DebugFormat("[GRID CONNECTOR]: RegisterRegion received null reply");
+                {
+                    m_log.ErrorFormat(
+                        "[GRID CONNECTOR]: RegisterRegion received null reply when contacting grid server at {0}", uri);
+                }
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[GRID CONNECTOR]: Exception when contacting grid server at {0}: {1}", uri, e.Message);
+                m_log.ErrorFormat("[GRID CONNECTOR]: Exception when contacting grid server at {0}: {1}", uri, e.Message);
             }
 
-            return "Error communicating with grid service";
+            return string.Format("Error communicating with the grid service at {0}", uri);
         }
 
         public bool DeregisterRegion(UUID regionID)
