@@ -4032,6 +4032,45 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// A float the value is a representative execution time in milliseconds of all scripts in the link set.
+        /// </summary>
+        public float ScriptExecutionTime()
+        {
+            IScriptModule[] engines = Scene.RequestModuleInterfaces<IScriptModule>();
+
+            if (engines.Length == 0) // No engine at all
+                return 0.0f;
+
+            float time = 0.0f;
+
+            // get all the scripts in all parts
+            SceneObjectPart[] parts = m_parts.GetArray();
+            List<TaskInventoryItem> scripts = new List<TaskInventoryItem>();
+            for (int i = 0; i < parts.Length; i++)
+            {
+                scripts.AddRange(parts[i].Inventory.GetInventoryItems(InventoryType.LSL));
+            }
+            // extract the UUIDs
+            List<UUID> ids = new List<UUID>(scripts.Count);
+            foreach (TaskInventoryItem script in scripts)
+            {
+                if (!ids.Contains(script.ItemID))
+                {
+                    ids.Add(script.ItemID);
+                }
+            }
+            // Offer the list of script UUIDs to each engine found and accumulate the time
+            foreach (IScriptModule e in engines)
+            {
+                if (e != null)
+                {
+                    time += e.GetScriptExecutionTime(ids);
+                }
+            }
+            return time;
+        }
+
+        /// <summary>
         /// Returns a count of the number of running scripts in this groups parts.
         /// </summary>
         public int RunningScriptCount()

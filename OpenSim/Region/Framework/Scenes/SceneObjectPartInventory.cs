@@ -267,14 +267,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource)
         {
-            Items.LockItemsForRead(true);
-            IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
-            Items.LockItemsForRead(false);
-            foreach (TaskInventoryItem item in items)
-            {
-                if ((int)InventoryType.LSL == item.InvType)
-                    CreateScriptInstance(item, startParam, postOnRez, engine, stateSource);
-            }
+            List<TaskInventoryItem> scripts = GetInventoryItems(InventoryType.LSL);
+            foreach (TaskInventoryItem item in scripts)
+                CreateScriptInstance(item, startParam, postOnRez, engine, stateSource);
         }
 
         public ArrayList GetScriptErrors(UUID itemID)
@@ -305,17 +300,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// </param>
         public void RemoveScriptInstances(bool sceneObjectBeingDeleted)
         {
-            Items.LockItemsForRead(true);
-            IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
-            Items.LockItemsForRead(false);
-
-            foreach (TaskInventoryItem item in items)
+            List<TaskInventoryItem> scripts = GetInventoryItems(InventoryType.LSL);
+            foreach (TaskInventoryItem item in scripts)
             {
-                if ((int)InventoryType.LSL == item.InvType)
-                {
-                    RemoveScriptInstance(item.ItemID, sceneObjectBeingDeleted);
-                    m_part.RemoveScriptEvents(item.ItemID);
-                }
+                RemoveScriptInstance(item.ItemID, sceneObjectBeingDeleted);
+                m_part.RemoveScriptEvents(item.ItemID);
             }
         }
 
@@ -1291,17 +1280,15 @@ namespace OpenSim.Region.Framework.Scenes
         public int ScriptCount()
         {
             int count = 0;
-            lock (m_items)
+            Items.LockItemsForRead(true);
+            foreach (TaskInventoryItem item in m_items.Values)
             {
-                foreach (TaskInventoryItem item in m_items.Values)
+                if (item.InvType == (int)InventoryType.LSL)
                 {
-                    if (item.InvType == (int)InventoryType.LSL)
-                    {
-                        count++;
-                    }
+                    count++;
                 }
             }
-
+            Items.LockItemsForRead(false);
             return count;
         }
         /// <summary>
@@ -1315,7 +1302,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return 0;
 
             int count = 0;
-            List<TaskInventoryItem> scripts = GetInventoryScripts();
+            List<TaskInventoryItem> scripts = GetInventoryItems(InventoryType.LSL);
 
             foreach (TaskInventoryItem item in scripts)
             {
@@ -1347,22 +1334,24 @@ namespace OpenSim.Region.Framework.Scenes
         {
             List<TaskInventoryItem> ret = new List<TaskInventoryItem>();
 
-            lock (m_items)
-                ret = new List<TaskInventoryItem>(m_items.Values);
+            Items.LockItemsForRead(true);
+            ret = new List<TaskInventoryItem>(m_items.Values);
+            Items.LockItemsForRead(false);
 
             return ret;
         }
 
-        public List<TaskInventoryItem> GetInventoryScripts()
+        public List<TaskInventoryItem> GetInventoryItems(InventoryType type)
         {
             List<TaskInventoryItem> ret = new List<TaskInventoryItem>();
 
-            lock (m_items)
-            {
-                foreach (TaskInventoryItem item in m_items.Values)
-                    if (item.InvType == (int)InventoryType.LSL)
-                        ret.Add(item);
-            }
+            Items.LockItemsForRead(true);
+
+            foreach (TaskInventoryItem item in m_items.Values)
+                if (item.InvType == (int)type)
+                    ret.Add(item);
+
+            Items.LockItemsForRead(false);
 
             return ret;
         }
@@ -1384,35 +1373,32 @@ namespace OpenSim.Region.Framework.Scenes
             if (engines.Length == 0) // No engine at all
                 return ret;
 
-            Items.LockItemsForRead(true);
-            foreach (TaskInventoryItem item in m_items.Values)
+            List<TaskInventoryItem> scripts = GetInventoryItems(InventoryType.LSL);
+
+            foreach (TaskInventoryItem item in scripts)
             {
-                if (item.InvType == (int)InventoryType.LSL)
+                foreach (IScriptModule e in engines)
                 {
-                    foreach (IScriptModule e in engines)
+                    if (e != null)
                     {
-                        if (e != null)
+                        string n = e.GetXMLState(item.ItemID);
+                        if (n != String.Empty)
                         {
-                            string n = e.GetXMLState(item.ItemID);
-                            if (n != String.Empty)
+                            if (oldIDs)
                             {
-                                if (oldIDs)
-                                {
-                                    if (!ret.ContainsKey(item.OldItemID))
-                                        ret[item.OldItemID] = n;
-                                }
-                                else
-                                {
-                                    if (!ret.ContainsKey(item.ItemID))
-                                        ret[item.ItemID] = n;
-                                }
-                                break;
+                                if (!ret.ContainsKey(item.OldItemID))
+                                    ret[item.OldItemID] = n;
                             }
+                            else
+                            {
+                                if (!ret.ContainsKey(item.ItemID))
+                                    ret[item.ItemID] = n;
+                            }
+                            break;
                         }
                     }
                 }
             }
-            Items.LockItemsForRead(false);
             return ret;
         }
         
@@ -1422,27 +1408,21 @@ namespace OpenSim.Region.Framework.Scenes
             if (engines.Length == 0)
                 return;
 
+            List<TaskInventoryItem> scripts = GetInventoryItems(InventoryType.LSL);
 
-            Items.LockItemsForRead(true);
-
-            foreach (TaskInventoryItem item in m_items.Values)
+            foreach (TaskInventoryItem item in scripts)
             {
-                if (item.InvType == (int)InventoryType.LSL)
+                foreach (IScriptModule engine in engines)
                 {
-                    foreach (IScriptModule engine in engines)
+                    if (engine != null)
                     {
-                        if (engine != null)
-                        {
-                            if (item.OwnerChanged)
-                                engine.PostScriptEvent(item.ItemID, "changed", new Object[] { (int)Changed.OWNER });
-                            item.OwnerChanged = false;
-                            engine.ResumeScript(item.ItemID);
-                        }
+                        if (item.OwnerChanged)
+                            engine.PostScriptEvent(item.ItemID, "changed", new Object[] { (int)Changed.OWNER });
+                        item.OwnerChanged = false;
+                        engine.ResumeScript(item.ItemID);
                     }
                 }
             }
-
-            Items.LockItemsForRead(false);
         }
     }
 }
