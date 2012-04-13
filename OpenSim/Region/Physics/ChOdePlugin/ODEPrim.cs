@@ -179,6 +179,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public bool m_outofBounds;
         private float m_density = 10.000006836f; // Aluminum g/cm3;
 
+        private float m_primMass = 10.000006836f; // Aluminum g/cm3;
+
         private byte m_shapetype;
         private byte m_taintshapetype;
 
@@ -538,7 +540,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override float Mass
         {
-            get { return CalculateMass(); }
+            get
+            {
+                CalculateMass();
+                return m_primMass;
+            }
         }
 
         public override Vector3 Force
@@ -1316,6 +1322,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
 
+            m_primMass = returnMass;
+            if (m_primMass > _parent_scene.maximumMassObject)
+                m_primMass = _parent_scene.maximumMassObject;
 
             // Recursively calculate mass
             bool HasChildPrim = false;

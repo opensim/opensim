@@ -581,6 +581,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetMass();
         }
 
+        public LSL_Float llGetMassMKS()
+        {
+            return m_LSL_Functions.llGetMassMKS();
+        }
+
         public void llGetNextEmail(string address, string subject)
         {
             m_LSL_Functions.llGetNextEmail(address, subject);

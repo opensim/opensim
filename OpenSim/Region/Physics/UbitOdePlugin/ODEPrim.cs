@@ -395,7 +395,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override float Mass
         {
-            get { return _mass; }
+            get { return primMass; }
         }
 
         public override Vector3 Force
