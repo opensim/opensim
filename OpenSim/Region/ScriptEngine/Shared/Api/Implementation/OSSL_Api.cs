@@ -1186,12 +1186,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osSetRegionWaterHeight");
 
             m_host.AddScriptLPS(1);
-            //Check to make sure that the script's owner is the estate manager/master
-            //World.Permissions.GenericEstatePermission(
-            if (World.Permissions.IsGod(m_host.OwnerID))
-            {
-                World.EventManager.TriggerRequestChangeWaterHeight((float)height);
-            }
+
+            World.EventManager.TriggerRequestChangeWaterHeight((float)height);
         }
 
         /// <summary>
@@ -1202,27 +1198,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="sunHour">The "Sun Hour" that is desired, 0...24, with 0 just after SunRise</param>
         public void osSetRegionSunSettings(bool useEstateSun, bool sunFixed, double sunHour)
         {
-            CheckThreatLevel(ThreatLevel.Nuisance, "osSetRegionSunSettings");
+            CheckThreatLevel(ThreatLevel.High, "osSetRegionSunSettings");
 
             m_host.AddScriptLPS(1);
-            //Check to make sure that the script's owner is the estate manager/master
-            //World.Permissions.GenericEstatePermission(
-            if (World.Permissions.IsGod(m_host.OwnerID))
-            {
-                while (sunHour > 24.0)
-                    sunHour -= 24.0;
 
-                while (sunHour < 0)
-                    sunHour += 24.0;
+            while (sunHour > 24.0)
+                sunHour -= 24.0;
 
+            while (sunHour < 0)
+                sunHour += 24.0;
 
-                World.RegionInfo.RegionSettings.UseEstateSun = useEstateSun;
-                World.RegionInfo.RegionSettings.SunPosition  = sunHour + 6; // LL Region Sun Hour is 6 to 30
-                World.RegionInfo.RegionSettings.FixedSun     = sunFixed;
-                World.RegionInfo.RegionSettings.Save();
+            World.RegionInfo.RegionSettings.UseEstateSun = useEstateSun;
+            World.RegionInfo.RegionSettings.SunPosition  = sunHour + 6; // LL Region Sun Hour is 6 to 30
+            World.RegionInfo.RegionSettings.FixedSun     = sunFixed;
+            World.RegionInfo.RegionSettings.Save();
 
-                World.EventManager.TriggerEstateToolsSunUpdate(World.RegionInfo.RegionHandle, sunFixed, useEstateSun, (float)sunHour);
-            }
+            World.EventManager.TriggerEstateToolsSunUpdate(
+                World.RegionInfo.RegionHandle, sunFixed, useEstateSun, (float)sunHour);
         }
 
         /// <summary>
@@ -1232,26 +1224,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="sunHour">The "Sun Hour" that is desired, 0...24, with 0 just after SunRise</param>
         public void osSetEstateSunSettings(bool sunFixed, double sunHour)
         {
-            CheckThreatLevel(ThreatLevel.Nuisance, "osSetEstateSunSettings");
+            CheckThreatLevel(ThreatLevel.High, "osSetEstateSunSettings");
 
             m_host.AddScriptLPS(1);
-            //Check to make sure that the script's owner is the estate manager/master
-            //World.Permissions.GenericEstatePermission(
-            if (World.Permissions.IsGod(m_host.OwnerID))
-            {
-                while (sunHour > 24.0)
-                    sunHour -= 24.0;
 
-                while (sunHour < 0)
-                    sunHour += 24.0;
+            while (sunHour > 24.0)
+                sunHour -= 24.0;
 
-                World.RegionInfo.EstateSettings.UseGlobalTime = !sunFixed;
-                World.RegionInfo.EstateSettings.SunPosition = sunHour;
-                World.RegionInfo.EstateSettings.FixedSun = sunFixed;
-                World.RegionInfo.EstateSettings.Save();
+            while (sunHour < 0)
+                sunHour += 24.0;
 
-                World.EventManager.TriggerEstateToolsSunUpdate(World.RegionInfo.RegionHandle, sunFixed, World.RegionInfo.RegionSettings.UseEstateSun, (float)sunHour);
-            }
+            World.RegionInfo.EstateSettings.UseGlobalTime = !sunFixed;
+            World.RegionInfo.EstateSettings.SunPosition = sunHour;
+            World.RegionInfo.EstateSettings.FixedSun = sunFixed;
+            World.RegionInfo.EstateSettings.Save();
+
+            World.EventManager.TriggerEstateToolsSunUpdate(
+                World.RegionInfo.RegionHandle, sunFixed, World.RegionInfo.RegionSettings.UseEstateSun, (float)sunHour);
         }
 
         /// <summary>
@@ -2555,7 +2544,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osNpcStopMoveToTarget(LSL_Key npc)
         {
-            CheckThreatLevel(ThreatLevel.VeryLow, "osNpcStopMoveTo");
+            CheckThreatLevel(ThreatLevel.High, "osNpcStopMoveToTarget");
             m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
