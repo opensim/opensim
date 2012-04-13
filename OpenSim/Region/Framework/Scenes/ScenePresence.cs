@@ -753,7 +753,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_movementAnimationUpdateCounter >= 2)
             {
                 m_movementAnimationUpdateCounter = 0;
-                if (Animator != null)
+                if (Animator != null && ParentID == 0) // don't do it sitting
                 {
                     Animator.UpdateMovementAnimations();
                 }
@@ -1077,11 +1077,12 @@ namespace OpenSim.Region.Framework.Scenes
         public void TeleportWithMomentum(Vector3 pos)
         {
             bool isFlying = Flying;
+            Vector3 vel = Velocity;
             RemoveFromPhysicalScene();
             CheckLandingPoint(ref pos);
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
-
+            Velocity = vel;
             SendTerseUpdateToAllClients();
         }
 
