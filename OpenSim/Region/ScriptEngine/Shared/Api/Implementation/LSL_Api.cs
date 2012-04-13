@@ -10367,7 +10367,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_Integer(av.RunningScriptCount() * 16384));
                                 break;
                             case ScriptBaseClass.OBJECT_SCRIPT_TIME:
-                                ret.Add(new LSL_Float(0));
+                                ret.Add(new LSL_Float(av.ScriptExecutionTime() / 1000.0f));
                                 break;
                             case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
                                 ret.Add(new LSL_Integer(1));
@@ -10435,9 +10435,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_Integer(obj.ParentGroup.RunningScriptCount() * 16384));
                                 break;
                             case ScriptBaseClass.OBJECT_SCRIPT_TIME:
-                                // Average cpu time per simulator frame expended on all scripts in the object
-                                // Not currently available at Object level
-                                ret.Add(new LSL_Float(0));
+                                // Average cpu time in seconds per simulator frame expended on all scripts in the object
+                                ret.Add(new LSL_Float(obj.ParentGroup.ScriptExecutionTime() / 1000.0f));
                                 break;
                             case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
                                 // according to the SL wiki A prim or linkset will have prim

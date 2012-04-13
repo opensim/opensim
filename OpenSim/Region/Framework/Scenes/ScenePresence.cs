@@ -3438,6 +3438,25 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// A float the value is a representative execution time in milliseconds of all scripts in all attachments.
+        /// </summary>
+        public float ScriptExecutionTime()
+        {
+            float time = 0.0f;
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup gobj in m_attachments)
+                {
+                    if (gobj != null)
+                    {
+                        time += gobj.ScriptExecutionTime();
+                    }
+                }
+            }
+            return time;
+        }
+
+        /// <summary>
         /// Returns the total count of running scripts in all parts.
         /// </summary>
         public int RunningScriptCount()

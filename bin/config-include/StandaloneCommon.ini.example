@@ -61,6 +61,10 @@
     ;; uncomment the next line. You may want to do this on sims that have licensed content.
     ; OutboundPermission = False
 
+[HGFriendsModule]
+    ; User level required to be able to send friendship invitations to foreign users
+    ;LevelHGFriends = 0;
+
 [GridService]
     ;; For in-memory region storage (default)
     StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
