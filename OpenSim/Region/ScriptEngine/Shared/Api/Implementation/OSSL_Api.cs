@@ -2514,7 +2514,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osNpcStopMoveToTarget(LSL_Key npc)
         {
-            CheckThreatLevel(ThreatLevel.VeryLow, "osNpcStopMoveTo");
+            CheckThreatLevel(ThreatLevel.High, "osNpcStopMoveToTarget");
             m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
