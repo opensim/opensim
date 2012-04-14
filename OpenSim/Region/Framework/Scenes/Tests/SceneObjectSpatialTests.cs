@@ -44,19 +44,26 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     [TestFixture]
     public class SceneObjectSpatialTests
     {
+        TestScene m_scene;
+        UUID m_ownerId = TestHelpers.ParseTail(0x1);
+
+        [SetUp]
+        public void SetUp()
+        {
+            m_scene = SceneHelpers.SetupScene();
+        }
+
         [Test]
         public void TestSceneObjectGroupPosition()
         {
             TestHelpers.InMethod();
 
-            Scene scene = SceneHelpers.SetupScene();
-            UUID ownerId = TestHelpers.ParseTail(0x1);
             Vector3 position = new Vector3(10, 20, 30);
 
             SceneObjectGroup so
-                = SceneHelpers.CreateSceneObject(1, ownerId, "obj1", 0x10);
+                = SceneHelpers.CreateSceneObject(1, m_ownerId, "obj1", 0x10);
             so.AbsolutePosition = position;
-            scene.AddNewSceneObject(so, false);
+            m_scene.AddNewSceneObject(so, false);
 
             Assert.That(so.AbsolutePosition, Is.EqualTo(position));
         }
@@ -66,14 +73,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 
-            Scene scene = SceneHelpers.SetupScene();
-            UUID ownerId = TestHelpers.ParseTail(0x1);
             Vector3 partPosition = new Vector3(10, 20, 30);
 
             SceneObjectGroup so
-                = SceneHelpers.CreateSceneObject(1, ownerId, "obj1", 0x10);
+                = SceneHelpers.CreateSceneObject(1, m_ownerId, "obj1", 0x10);
             so.AbsolutePosition = partPosition;
-            scene.AddNewSceneObject(so, false);
+            m_scene.AddNewSceneObject(so, false);
 
             Assert.That(so.RootPart.AbsolutePosition, Is.EqualTo(partPosition));
             Assert.That(so.RootPart.OffsetPosition, Is.EqualTo(Vector3.Zero));
