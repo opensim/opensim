@@ -45,6 +45,23 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     public class SceneObjectSpatialTests
     {
         [Test]
+        public void TestSceneObjectGroupPosition()
+        {
+            TestHelpers.InMethod();
+
+            Scene scene = SceneHelpers.SetupScene();
+            UUID ownerId = TestHelpers.ParseTail(0x1);
+            Vector3 position = new Vector3(10, 20, 30);
+
+            SceneObjectGroup so
+                = SceneHelpers.CreateSceneObject(1, ownerId, "obj1", 0x10);
+            so.AbsolutePosition = position;
+            scene.AddNewSceneObject(so, false);
+
+            Assert.That(so.AbsolutePosition, Is.EqualTo(position));
+        }
+
+        [Test]
         public void TestGetRootPartPosition()
         {
             TestHelpers.InMethod();
@@ -58,7 +75,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             so.AbsolutePosition = partPosition;
             scene.AddNewSceneObject(so, false);
 
-            Assert.That(so.AbsolutePosition, Is.EqualTo(partPosition));
             Assert.That(so.RootPart.AbsolutePosition, Is.EqualTo(partPosition));
             Assert.That(so.RootPart.OffsetPosition, Is.EqualTo(Vector3.Zero));
             Assert.That(so.RootPart.RelativePosition, Is.EqualTo(partPosition));
