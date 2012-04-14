@@ -81,8 +81,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             m_scene.AddNewSceneObject(so, false);
 
             Assert.That(so.RootPart.AbsolutePosition, Is.EqualTo(partPosition));
-            Assert.That(so.RootPart.OffsetPosition, Is.EqualTo(Vector3.Zero));
+            Assert.That(so.RootPart.GroupPosition, Is.EqualTo(partPosition));
+            Assert.That(so.RootPart.GetWorldPosition(), Is.EqualTo(partPosition));
             Assert.That(so.RootPart.RelativePosition, Is.EqualTo(partPosition));
+            Assert.That(so.RootPart.OffsetPosition, Is.EqualTo(Vector3.Zero));
         }
     }
 }
