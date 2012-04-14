@@ -60,6 +60,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(so.AbsolutePosition, Is.EqualTo(partPosition));
             Assert.That(so.RootPart.AbsolutePosition, Is.EqualTo(partPosition));
+            Assert.That(so.RootPart.OffsetPosition, Is.EqualTo(Vector3.Zero));
+            Assert.That(so.RootPart.RelativePosition, Is.EqualTo(partPosition));
         }
     }
 }
