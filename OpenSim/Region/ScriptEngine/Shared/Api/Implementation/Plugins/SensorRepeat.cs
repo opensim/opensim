@@ -308,7 +308,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
             SceneObjectPart SensePoint = ts.host;
 
-            Vector3 fromRegionPos = SensePoint.AbsolutePosition;
+            Vector3 fromRegionPos = SensePoint.GetWorldPosition();
 
             // pre define some things to avoid repeated definitions in the loop body
             Vector3 toRegionPos;
@@ -319,14 +319,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             float dy;
             float dz;
 
-            Quaternion q = SensePoint.RotationOffset;
+            Quaternion q = SensePoint.GetWorldRotation();
             if (SensePoint.ParentGroup.IsAttachment)
             {
-                // In attachments, the sensor cone always orients with the
+                // In attachments, rotate the sensor cone with the
                 // avatar rotation. This may include a nonzero elevation if
                 // in mouselook.
+                // This will not include the rotation and position of the
+                // attachment point (e.g. your head when a sensor is in your
+                // hair attached to your scull. Your hair  will turn with
+                // your head but the sensor will stay with your (global)
+                // avatar rotation and position.
+                // Position of a sensor in a child prim attached to an avatar
+                // will be still wrong. 
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
-                q = avatar.Rotation;
+                q = avatar.Rotation*q;
             }
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
             LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
@@ -439,16 +446,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 return sensedEntities;
 
             SceneObjectPart SensePoint = ts.host;
-            Vector3 fromRegionPos = SensePoint.AbsolutePosition;
+            Vector3 fromRegionPos = SensePoint.GetWorldPosition();
             
-            Quaternion q = SensePoint.RotationOffset;
+            Quaternion q = SensePoint.GetWorldRotation();
             if (SensePoint.ParentGroup.IsAttachment)
             {
-                // In attachments, the sensor cone always orients with the
+                // In attachments, rotate the sensor cone with the
                 // avatar rotation. This may include a nonzero elevation if
                 // in mouselook.
+                // This will not include the rotation and position of the
+                // attachment point (e.g. your head when a sensor is in your
+                // hair attached to your scull. Your hair  will turn with
+                // your head but the sensor will stay with your (global)
+                // avatar rotation and position.
+                // Position of a sensor in a child prim attached to an avatar
+                // will be still wrong. 
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
-                q = avatar.Rotation;
+                q = avatar.Rotation*q;
             }
 
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
