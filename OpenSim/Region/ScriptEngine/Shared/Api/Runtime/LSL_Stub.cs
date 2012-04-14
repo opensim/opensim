@@ -586,6 +586,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetMassMKS();
         }
 
+        public LSL_Integer llGetMemoryLimit()
+        {
+            return m_LSL_Functions.llGetMemoryLimit();
+        }
+
         public void llGetNextEmail(string address, string subject)
         {
             m_LSL_Functions.llGetNextEmail(address, subject);
@@ -774,6 +779,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_String llGetSimulatorHostname()
         {
             return m_LSL_Functions.llGetSimulatorHostname();
+        }
+
+        public LSL_Integer llGetSPMaxMemory()
+        {
+            return m_LSL_Functions.llGetSPMaxMemory();
         }
 
         public LSL_Integer llGetStartParameter()
@@ -1445,6 +1455,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llScriptDanger(pos);
         }
 
+        public void llScriptProfiler(LSL_Integer flags)
+        {
+            m_LSL_Functions.llScriptProfiler(flags);
+        }
+
         public LSL_Key llSendRemoteData(string channel, string dest, int idata, string sdata)
         {
             return m_LSL_Functions.llSendRemoteData(channel, dest, idata, sdata);
@@ -1553,6 +1568,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void llSetLocalRot(LSL_Rotation rot)
         {
             m_LSL_Functions.llSetLocalRot(rot);
+        }
+
+        public LSL_Integer llSetMemoryLimit(LSL_Integer limit)
+        {
+            return m_LSL_Functions.llSetMemoryLimit(limit);
         }
 
         public void llSetObjectDesc(string desc)

@@ -12019,6 +12019,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 1;
         }
 
+        public LSL_Integer llGetMemoryLimit()
+        {
+            m_host.AddScriptLPS(1);
+            // The value returned for LSO scripts in SL
+            return 16384;
+        }
+
+        public LSL_Integer llSetMemoryLimit(LSL_Integer limit)
+        {
+            m_host.AddScriptLPS(1);
+            // Treat as an LSO script
+            return ScriptBaseClass.FALSE;
+        }
+
+        public LSL_Integer llGetSPMaxMemory()
+        {
+            m_host.AddScriptLPS(1);
+            // The value returned for LSO scripts in SL
+            return 16384;
+        }
+
+        public virtual LSL_Integer llGetUsedMemory()
+        {
+            m_host.AddScriptLPS(1);
+            // The value returned for LSO scripts in SL
+            return 16384;
+        }
+
+        public void llScriptProfiler(LSL_Integer flags)
+        {
+            m_host.AddScriptLPS(1);
+            // This does nothing for LSO scripts in SL
+        }
+
         #region Not Implemented
         //
         // Listing the unimplemented lsl functions here, please move
@@ -12029,25 +12063,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llGetEnv");
-        }
-
-        public void llGetSPMaxMemory()
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llGetSPMaxMemory");
-        }
-
-        public virtual LSL_Integer llGetUsedMemory()
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llGetUsedMemory");
-            return 0;
-        }
-
-        public void llScriptProfiler(LSL_Integer flags)
-        {
-            m_host.AddScriptLPS(1);
-            //NotImplemented("llScriptProfiler");
         }
 
         public void llSetSoundQueueing(int queue)

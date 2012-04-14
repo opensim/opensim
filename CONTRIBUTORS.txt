@@ -144,6 +144,7 @@ what it is today.
 * SignpostMarv
 * SpotOn3D
 * Strawberry Fride
+* Talun
 * tglion
 * tlaukkan/Tommil (Tommi S. E. Laukkanen, Bubble Cloud)
 * tyre

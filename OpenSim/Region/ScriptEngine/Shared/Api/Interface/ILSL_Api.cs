@@ -149,7 +149,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
       LSL_Rotation llGetLocalRot();
          LSL_Float llGetMass();
          LSL_Float llGetMassMKS();
-      void llGetNextEmail(string address, string subject);
+       LSL_Integer llGetMemoryLimit();
+              void llGetNextEmail(string address, string subject);
         LSL_String llGetNotecardLine(string name, int line);
            LSL_Key llGetNumberOfNotecardLines(string name);
        LSL_Integer llGetNumberOfPrims();
@@ -187,6 +188,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llGetScriptName();
        LSL_Integer llGetScriptState(string name);
         LSL_String llGetSimulatorHostname();
+       LSL_Integer llGetSPMaxMemory();
        LSL_Integer llGetStartParameter();
        LSL_Integer llGetStatus(int status);
         LSL_String llGetSubString(string src, int start, int end);
@@ -322,6 +324,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSay(int channelID, string text);
               void llScaleTexture(double u, double v, int face);
        LSL_Integer llScriptDanger(LSL_Vector pos);
+              void llScriptProfiler(LSL_Integer flag);
            LSL_Key llSendRemoteData(string channel, string dest, int idata, string sdata);
               void llSensor(string name, string id, int type, double range, double arc);
               void llSensorRemove();
@@ -345,6 +348,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetLinkTexture(int linknumber, string texture, int face);
               void llSetLinkTextureAnim(int linknum, int mode, int face, int sizex, int sizey, double start, double length, double rate);
               void llSetLocalRot(LSL_Rotation rot);
+       LSL_Integer llSetMemoryLimit(LSL_Integer limit);
               void llSetObjectDesc(string desc);
               void llSetObjectName(string name);
               void llSetObjectPermMask(int mask, int value);
