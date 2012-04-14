@@ -140,6 +140,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int m_eventsubscription = 0;
         private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
 
+        private Vector3 m_taintMomentum = Vector3.Zero;
+        private bool m_haveTaintMomentum = false;
+
+
         // unique UUID of this character object
         public UUID m_uuid;
         public bool bad = false;
@@ -800,8 +804,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (value.IsFinite())
                 {
-                    m_pidControllerActive = true;
                     _target_velocity = value;
+                    m_pidControllerActive = true;
                 }
                 else
                 {
@@ -911,6 +915,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void SetMomentum(Vector3 momentum)
         {
+            if (momentum.IsFinite())
+            {
+                m_taintMomentum = momentum;
+                m_haveTaintMomentum = true;
+                _parent_scene.AddPhysicsActorTaint(this);
+            }
         }
 
 
@@ -1424,6 +1434,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
+                if (m_haveTaintMomentum)
+                {
+                    m_haveTaintMomentum = false;
+                    _velocity = m_taintMomentum;
+                    _target_velocity = m_taintMomentum;
+                    m_pidControllerActive = true;
+                    d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
+                }
             }
         }
 

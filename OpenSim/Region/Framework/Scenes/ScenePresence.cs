@@ -1082,7 +1082,9 @@ namespace OpenSim.Region.Framework.Scenes
             CheckLandingPoint(ref pos);
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
-            Velocity = vel;
+            if (PhysicsActor != null)
+                PhysicsActor.SetMomentum(vel);
+
             SendTerseUpdateToAllClients();
         }
 
