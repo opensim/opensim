@@ -54,7 +54,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
-        public void TestSceneObjectGroupPosition()
+        public void TestGetSceneObjectGroupPosition()
         {
             TestHelpers.InMethod();
 
