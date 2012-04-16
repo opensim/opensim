@@ -921,6 +921,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_haveTaintMomentum = true;
                 _parent_scene.AddPhysicsActorTaint(this);
             }
+            else
+                m_log.Warn("[PHYSICS] !isFinite momentum");
         }
 
 
@@ -1337,7 +1339,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (m_syncRoot)
             {
-
                 if (m_tainted_isPhysical != m_isPhysical)
                 {
                     if (m_tainted_isPhysical)
@@ -1379,9 +1380,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 d.GeomDestroy(Shell);
                             }
-                            catch (System.AccessViolationException)
+                            catch (Exception e)
                             {
-                                m_log.Error("[PHYSICS]: PrimGeom dead");
+                                m_log.ErrorFormat("[PHYSICS]: Failed to destroy character shell {0}",e.Message);
                             }
                             // Remove any old entries
     //string tShell;
@@ -1428,10 +1429,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         d.BodySetPosition(Body, m_taintPosition.X, m_taintPosition.Y, m_taintPosition.Z);
 
-                        _position.X = m_taintPosition.X;
-                        _position.Y = m_taintPosition.Y;
-                        _position.Z = m_taintPosition.Z;
                     }
+                    _position.X = m_taintPosition.X;
+                    _position.Y = m_taintPosition.Y;
+                    _position.Z = m_taintPosition.Z;
                 }
 
                 if (m_haveTaintMomentum)
@@ -1440,7 +1441,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _velocity = m_taintMomentum;
                     _target_velocity = m_taintMomentum;
                     m_pidControllerActive = true;
-                    d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
+                    if (Body != IntPtr.Zero)
+                        d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
                 }
             }
         }
