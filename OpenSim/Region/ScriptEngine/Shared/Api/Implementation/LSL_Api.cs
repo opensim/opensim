@@ -9255,7 +9255,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             // child agents have a mass of 1.0
                             return 1;
                         else
-                            return (double)avatar.PhysicsActor.Mass;
+                            return (double)avatar.GetMass();
                 }
                 catch (KeyNotFoundException)
                 {
