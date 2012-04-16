@@ -117,6 +117,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         // Default, Collide with Other Geometries, spaces, bodies and characters.
         private CollisionCategories m_collisionFlags = (CollisionCategories.Character
                                                         | CollisionCategories.Geom
+                                                        | CollisionCategories.VolumeDtc
                                                         );
         // we do land collisions not ode                | CollisionCategories.Land);
         public IntPtr Body = IntPtr.Zero;
