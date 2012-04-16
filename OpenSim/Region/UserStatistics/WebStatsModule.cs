@@ -90,7 +90,7 @@ namespace OpenSim.Region.UserStatistics
 
                     dbConn = new SqliteConnection("URI=file:LocalUserStatistics.db,version=3");
                     dbConn.Open();
-                    CheckAndUpdateDatabase(dbConn);
+                    CreateTables(dbConn);
 
                     Prototype_distributor protodep = new Prototype_distributor();
                     Updater_distributor updatedep = new Updater_distributor();
@@ -237,35 +237,11 @@ namespace OpenSim.Region.UserStatistics
 
             return responsedata;
         }
-       
-        public void CheckAndUpdateDatabase(SqliteConnection db)
-        {
-            lock (db)
-            {
-                // TODO: FIXME: implement stats migrations
-                const string SQL = @"SELECT * FROM migrations LIMIT 1";
-
-                using (SqliteCommand cmd = new SqliteCommand(SQL, db))
-                {
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                    catch (SqliteSyntaxException)
-                    {
-                        CreateTables(db);
-                    }
-                }
-            }
-        }
 
         public void CreateTables(SqliteConnection db)
         {
             using (SqliteCommand createcmd = new SqliteCommand(SQL_STATS_TABLE_CREATE, db))
             {
-                createcmd.ExecuteNonQuery();
-
-                createcmd.CommandText = SQL_MIGRA_TABLE_CREATE;
                 createcmd.ExecuteNonQuery();
             }
         }
@@ -688,9 +664,7 @@ namespace OpenSim.Region.UserStatistics
         }
 
         #region SQL
-        private const string SQL_MIGRA_TABLE_CREATE = @"create table migrations(name varchar(100), version int)";
-
-        private const string SQL_STATS_TABLE_CREATE = @"CREATE TABLE stats_session_data (
+        private const string SQL_STATS_TABLE_CREATE = @"CREATE TABLE IF NOT EXISTS stats_session_data (
                session_id VARCHAR(36) NOT NULL PRIMARY KEY,
                agent_id VARCHAR(36) NOT NULL DEFAULT '',
                region_id VARCHAR(36) NOT NULL DEFAULT '',
@@ -807,8 +781,8 @@ set session_id=:session_id,
     f_resent=:f_resent,
     f_send_packet=:f_send_packet
 WHERE session_id=:session_key";
-        #endregion
     }
+    #endregion
 
     public static class UserSessionUtil
     {
