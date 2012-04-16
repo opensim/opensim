@@ -9980,7 +9980,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // return total object mass
                     SceneObjectGroup obj = World.GetGroupByPrim(World.Entities[key].LocalId);
                     if (obj != null)
-                        return (double)obj.GetMass();
+                        return obj.GetMass();
 
                     // the object is null so the key is for an avatar
                     ScenePresence avatar = World.GetScenePresence(key);
@@ -9990,7 +9990,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             // child agents have a mass of 1.0
                             return 1;
                         else
-                            return (double)avatar.PhysicsActor.Mass;
+                            return avatar.GetMass();
                 }
                 catch (KeyNotFoundException)
                 {
@@ -11829,6 +11829,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return contacts[0];
         }
+/*
+        // not done:
+        private ContactResult[] testRay2NonPhysicalPhantom(Vector3 rayStart, Vector3 raydir, float raylenght)
+        {
+            ContactResult[] contacts = null;
+            World.ForEachSOG(delegate(SceneObjectGroup group)
+            {
+                if (m_host.ParentGroup == group)
+                    return;
+
+                if (group.IsAttachment)
+                    return;
+
+                if(group.RootPart.PhysActor != null)
+                    return;
+
+                contacts = group.RayCastGroupPartsOBBNonPhysicalPhantom(rayStart, raydir, raylenght);
+            });
+            return contacts;
+        }
+*/
 
         public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
         {
