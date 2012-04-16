@@ -446,7 +446,7 @@ namespace OpenSim.Region.UserStatistics
         {
 //            m_log.DebugFormat("[WEB STATS MODULE]: Received viewer starts report from {0}", agentID);
  
-            UpdateUserStats(ParseViewerStats(request,agentID), dbConn);
+            UpdateUserStats(ParseViewerStats(request, agentID), dbConn);
 
             return String.Empty;
         }
@@ -654,8 +654,6 @@ namespace OpenSim.Region.UserStatistics
                     updatecmd.Parameters.Add(new SqliteParameter(":f_send_packet", uid.session_data.f_send_packet));
     
                     updatecmd.Parameters.Add(new SqliteParameter(":session_key", uid.session_data.session_id.ToString()));
-                    updatecmd.Parameters.Add(new SqliteParameter(":agent_key", uid.session_data.agent_id.ToString()));
-                    updatecmd.Parameters.Add(new SqliteParameter(":region_key", uid.session_data.region_id.ToString()));
 
 //                    m_log.DebugFormat("[WEB STATS MODULE]: Database stats update for {0}", uid.session_data.agent_id);
 
@@ -667,11 +665,18 @@ namespace OpenSim.Region.UserStatistics
 
                         updatecmd.CommandText = SQL_STATS_TABLE_INSERT;
 
+//                        StringBuilder parameters = new StringBuilder();
+//                        SqliteParameterCollection spc = updatecmd.Parameters;
+//                        foreach (SqliteParameter sp in spc)
+//                            parameters.AppendFormat("{0}={1},", sp.ParameterName, sp.Value);
+//
+//                        m_log.DebugFormat("[WEB STATS MODULE]: Parameters {0}", parameters);
+
                         try
                         {
                             updatecmd.ExecuteNonQuery();
                         }
-                        catch (Exception e)
+                        catch (SqliteExecutionException e)
                         {
                             m_log.WarnFormat(
                                 "[WEB STATS MODULE]: failed to write stats for {0}, storage Execution Exception {1}{2}",
@@ -801,7 +806,7 @@ set session_id=:session_id,
     f_off_circuit=:f_off_circuit,
     f_resent=:f_resent,
     f_send_packet=:f_send_packet
-WHERE session_id=:session_key AND agent_id=:agent_key AND region_id=:region_key";
+WHERE session_id=:session_key";
         #endregion
     }
 
