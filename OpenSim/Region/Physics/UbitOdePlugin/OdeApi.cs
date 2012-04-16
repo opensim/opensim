@@ -889,13 +889,13 @@ namespace OdeAPI
 		public static extern IntPtr GeomGetBody(IntPtr geom);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetCategoryBits"), SuppressUnmanagedCodeSecurity]
-		public static extern int GeomGetCategoryBits(IntPtr geom);
+		public static extern uint GeomGetCategoryBits(IntPtr geom);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetClassData"), SuppressUnmanagedCodeSecurity]
 		public static extern IntPtr GeomGetClassData(IntPtr geom);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetCollideBits"), SuppressUnmanagedCodeSecurity]
-		public static extern int GeomGetCollideBits(IntPtr geom);
+		public static extern uint GeomGetCollideBits(IntPtr geom);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetClass"), SuppressUnmanagedCodeSecurity]
 		public static extern GeomClassID GeomGetClass(IntPtr geom);
@@ -1086,10 +1086,10 @@ namespace OdeAPI
 		public static extern void GeomSetBody(IntPtr geom, IntPtr body);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomSetCategoryBits"), SuppressUnmanagedCodeSecurity]
-		public static extern void GeomSetCategoryBits(IntPtr geom, int bits);
+		public static extern void GeomSetCategoryBits(IntPtr geom, uint bits);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomSetCollideBits"), SuppressUnmanagedCodeSecurity]
-		public static extern void GeomSetCollideBits(IntPtr geom, int bits);
+		public static extern void GeomSetCollideBits(IntPtr geom, uint bits);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomSetConvex"), SuppressUnmanagedCodeSecurity]
 		public static extern IntPtr GeomSetConvex(IntPtr geom, dReal[] planes, int planeCount, dReal[] points, int pointCount, int[] polygons);
