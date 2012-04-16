@@ -94,7 +94,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             req.length = length;
             req.Normal = direction;
             req.Origin = position;
-            req.filter = RayFilterFlags.AllButLand;
+            req.filter = RayFilterFlags.AllPrims;
 
             m_PendingRequests.Enqueue(req);
         }
@@ -115,7 +115,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             req.Normal = direction;
             req.Origin = position;
             req.Count = DefaultMaxCount;
-            req.filter = RayFilterFlags.AllButLand;
+            req.filter = RayFilterFlags.AllPrims;
 
             m_PendingRequests.Enqueue(req);
         }
@@ -129,7 +129,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             req.length = length;
             req.Normal = direction;
             req.Origin = position;
-            req.filter = RayFilterFlags.AllButLand;
+            req.filter = RayFilterFlags.AllPrims;
 
             m_PendingRequests.Enqueue(req);
         }
@@ -143,7 +143,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             req.Normal = direction;
             req.Origin = position;
             req.Count = DefaultMaxCount;
-            req.filter = RayFilterFlags.AllButLand;
+            req.filter = RayFilterFlags.AllPrims;
 
             m_PendingRequests.Enqueue(req);
         }
@@ -165,7 +165,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             req.Normal = direction;
             req.Origin = position;
             req.Count = count;
-            req.filter = RayFilterFlags.AllButLand;
+            req.filter = RayFilterFlags.AllPrims;
 
             m_PendingRequests.Enqueue(req);
         }
@@ -194,7 +194,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             req.Normal = direction;
             req.Origin = position;
             req.Count = count;
-            req.filter = RayFilterFlags.AllButLand;
+            req.filter = RayFilterFlags.AllPrims;
 
             m_PendingRequests.Enqueue(req);
         }
@@ -208,7 +208,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             req.Normal = direction;
             req.Origin = position;
             req.Count = count;
-            req.filter = RayFilterFlags.AllButLand;
+            req.filter = RayFilterFlags.AllPrims;
 
             m_PendingRequests.Enqueue(req);
         }
@@ -222,7 +222,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             req.Normal = direction;
             req.Origin = position;
             req.Count = count;
-            req.filter = RayFilterFlags.AllButLand;
+            req.filter = RayFilterFlags.AllPrims;
 
             m_PendingRequests.Enqueue(req);
         }
