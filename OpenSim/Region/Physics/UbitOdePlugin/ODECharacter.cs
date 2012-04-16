@@ -990,6 +990,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // end add Kitto Flora
             }
 
+            if (vel.X * vel.X + vel.Y * vel.Y + vel.Z * vel.Z > 2500.0f) // 50m/s apply breaks
+            {
+                float breakfactor = 0.16f * m_mass; // will give aprox 60m/s terminal velocity at free fall
+                vec.X -= breakfactor * vel.X;
+                vec.Y -= breakfactor * vel.Y;
+                vec.Z -= breakfactor * vel.Z;
+            }
+
             if (vec.IsFinite())
             {
                 if (vec.X != 0 || vec.Y !=0 || vec.Z !=0)
