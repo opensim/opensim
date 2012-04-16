@@ -718,7 +718,7 @@ namespace OpenSim.Region.UserStatistics
 session_id, agent_id, region_id, last_updated, remote_ip, name_f, name_l, avg_agents_in_view, min_agents_in_view, max_agents_in_view, 
 mode_agents_in_view, avg_fps, min_fps, max_fps, mode_fps, a_language, mem_use, meters_traveled, avg_ping, min_ping, max_ping, mode_ping, 
 regions_visited, run_time, avg_sim_fps, min_sim_fps, max_sim_fps, mode_sim_fps, start_time, client_version, s_cpu, s_gpu, s_os, s_ram,
-d_object_kb, d_texture_kb, n_in_kb, n_in_pk, n_out_kb, n_out_pk, f_dropped, f_failed_resends, f_invalid, f_invalid, f_off_circuit,
+d_object_kb, d_texture_kb, d_world_kb, n_in_kb, n_in_pk, n_out_kb, n_out_pk, f_dropped, f_failed_resends, f_invalid, f_off_circuit,
 f_resent, f_send_packet
 )
 VALUES
@@ -726,7 +726,7 @@ VALUES
 :session_id, :agent_id, :region_id, :last_updated, :remote_ip, :name_f, :name_l, :avg_agents_in_view, :min_agents_in_view, :max_agents_in_view, 
 :mode_agents_in_view, :avg_fps, :min_fps, :max_fps, :mode_fps, :a_language, :mem_use, :meters_traveled, :avg_ping, :min_ping, :max_ping, :mode_ping, 
 :regions_visited, :run_time, :avg_sim_fps, :min_sim_fps, :max_sim_fps, :mode_sim_fps, :start_time, :client_version, :s_cpu, :s_gpu, :s_os, :s_ram,
-:d_object_kb, :d_texture_kb, :n_in_kb, :n_in_pk, :n_out_kb, :n_out_pk, :f_dropped, :f_failed_resends, :f_invalid, :f_invalid, :f_off_circuit,
+:d_object_kb, :d_texture_kb, :d_world_kb, :n_in_kb, :n_in_pk, :n_out_kb, :n_out_pk, :f_dropped, :f_failed_resends, :f_invalid, :f_off_circuit,
 :f_resent, :f_send_packet
 )
 ";
