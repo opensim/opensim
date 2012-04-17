@@ -771,16 +771,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="timeStep"></param>
         public void Move(float timeStep, List<OdeCharacter> defects)
         {
-            //  no lock; for now it's only called from within Simulate()
-
-            // If the PID Controller isn't active then we set our force
-            // calculating base velocity to the current position
-
             if (Body == IntPtr.Zero)
                 return;
 
-            d.Vector3 dtmp;
-            d.BodyCopyPosition(Body, out dtmp);
+            d.Vector3 dtmp = d.BodyGetPosition(Body);
             Vector3 localpos = new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
 
             // the Amotor still lets avatar rotation to drift during colisions
@@ -797,21 +791,42 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 _zeroPosition = localpos;
             }
-            //PidStatus = true;
-
 
             if (!localpos.IsFinite())
             {
-
                 m_log.Warn("[PHYSICS]: Avatar Position is non-finite!");
                 defects.Add(this);
                 // _parent_scene.RemoveCharacter(this);
 
                 // destroy avatar capsule and related ODE data
                 AvatarGeomAndBodyDestroy();
-
                 return;
             }
+
+            // check outbounds forcing to be in world
+            bool fixbody = false;
+            if (localpos.X < 0.0f)
+            {
+                fixbody = true;
+                localpos.X = 0.1f;
+            }
+            else if (localpos.X > _parent_scene.WorldExtents.X - 0.1f)
+            {
+                fixbody = true;
+                localpos.X = _parent_scene.WorldExtents.X - 0.1f;
+            }
+            if (localpos.Y < 0.0f)
+            {
+                fixbody = true;
+                localpos.Y = 0.1f;
+            }
+            else if (localpos.Y > _parent_scene.WorldExtents.Y - 0.1)
+            {
+                fixbody = true;
+                localpos.Y = _parent_scene.WorldExtents.Y - 0.1f;
+            }
+            if (fixbody)
+                d.BodySetPosition(Body, localpos.X, localpos.Y, localpos.Z);
 
             Vector3 vec = Vector3.Zero;
             dtmp = d.BodyGetLinearVel(Body);
@@ -820,16 +835,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             float movementdivisor = 1f;
             //Ubit change divisions into multiplications below
             if (!m_alwaysRun)
-            {
                 movementdivisor = 1 / walkDivisor;
-            }
             else
-            {
                 movementdivisor = 1 / runDivisor;
-            }
 
+            //******************************************
             // colide with land
-
             d.AABB aabb;
             d.GeomGetAABB(Shell, out aabb);
             float chrminZ = aabb.MinZ;
@@ -856,26 +867,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
                     vec.Z = depth * PID_P * 30;
 
-                /*
-                                Vector3 vtmp;
-                                vtmp.X = _target_velocity.X * timeStep;
-                                vtmp.Y = _target_velocity.Y * timeStep;
-                                // fake and avoid squares
-                                float k = (Math.Abs(vtmp.X) + Math.Abs(vtmp.Y));
-                                if (k > 0)
-                                    {
-                                    posch.X += vtmp.X;
-                                    posch.Y += vtmp.Y;
-                                    terrainheight -= _parent_scene.GetTerrainHeightAtXY(posch.X, posch.Y);
-                                    k = 1 + Math.Abs(terrainheight) / k;
-                                    movementdivisor /= k;
-
-                                    if (k < 1)
-                                        k = 1;
-                                    }
-                */
-
-
                 if (depth < 0.1f)
                 {
                     m_iscolliding = true;
@@ -901,6 +892,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             else
                 m_iscollidingGround = false;
 
+            //******************************************
 
             //  if velocity is zero, use position control; otherwise, velocity control
             if (_target_velocity.X == 0.0f && _target_velocity.Y == 0.0f && _target_velocity.Z == 0.0f
@@ -1012,97 +1004,31 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // _parent_scene.RemoveCharacter(this);
                 // destroy avatar capsule and related ODE data
                 AvatarGeomAndBodyDestroy();
+                return;
             }
+
+            // update our local ideia of position velocity and aceleration
+            _position = localpos;
+            _acceleration = _velocity; // previus velocity
+            _velocity = vel;
+            _acceleration = (vel - _acceleration) / timeStep;
+          
         }
 
         /// <summary>
-        /// Updates the reported position and velocity.  This essentially sends the data up to ScenePresence.
+        /// Updates the reported position and velocity.
+        /// Used to copy variables from unmanaged space at heartbeat rate and also trigger scene updates acording
+        /// also outbounds checking
+        /// copy and outbounds now done in move(..) at ode rate
+        /// 
         /// </summary>
         public void UpdatePositionAndVelocity()
         {
-            //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
-            if (Body == IntPtr.Zero)
-                return;
+            return;
 
-            d.Vector3 vec;
-            try
-            {
-                d.BodyCopyPosition(Body, out vec);
-            }
-            catch (NullReferenceException)
-            {
-                bad = true;
-                _parent_scene.BadCharacter(this);
-                vec = new d.Vector3(_position.X, _position.Y, _position.Z);
-                base.RaiseOutOfBounds(_position); // Tells ScenePresence that there's a problem!
-                m_log.WarnFormat("[ODEPLUGIN]: Avatar Null reference for Avatar {0}, physical actor {1}", m_name, m_uuid);
-            }
+//            if (Body == IntPtr.Zero)
+//                return;
 
-            _position.X = vec.X;
-            _position.Y = vec.Y;
-            _position.Z = vec.Z;
-
-            bool fixbody = false;
-
-            if (_position.X < 0.0f)
-            {
-                fixbody = true;
-                _position.X = 0.1f;
-            }
-            else if (_position.X > (int)_parent_scene.WorldExtents.X - 0.1f)
-            {
-                fixbody = true;
-                _position.X = (int)_parent_scene.WorldExtents.X - 0.1f;
-            }
-
-            if (_position.Y < 0.0f)
-            {
-                fixbody = true;
-                _position.Y = 0.1f;
-            }
-            else if (_position.Y > (int)_parent_scene.WorldExtents.Y - 0.1)
-            {
-                fixbody = true;
-                _position.Y = (int)_parent_scene.WorldExtents.Y - 0.1f;
-            }
-
-            if (fixbody)
-                d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
-
-            // Did we move last? = zeroflag
-            // This helps keep us from sliding all over
-/*
-            if (_zeroFlag)
-            {
-                _velocity.X = 0.0f;
-                _velocity.Y = 0.0f;
-                _velocity.Z = 0.0f;
-
-                // Did we send out the 'stopped' message?
-                if (!m_lastUpdateSent)
-                {
-                    m_lastUpdateSent = true;
-                    base.RequestPhysicsterseUpdate();
-                }
-            }
-            else
-            {
-                m_lastUpdateSent = false;
- */
-                try
-                {
-                    vec = d.BodyGetLinearVel(Body);
-                }
-                catch (NullReferenceException)
-                {
-                    vec.X = _velocity.X;
-                    vec.Y = _velocity.Y;
-                    vec.Z = _velocity.Z;
-                }
-                _velocity.X = (vec.X);
-                _velocity.Y = (vec.Y);
-                _velocity.Z = (vec.Z);
- //           }
         }
 
         /// <summary>

@@ -1861,6 +1861,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 statstart = Util.EnvironmentTickCount();
 
+/*
+// now included in characters move() and done at ode rate
+//  maybe be needed later if we need to do any extra work at hearbeat rate
                 lock (_characters)
                 {
                     foreach (OdeCharacter actor in _characters)
@@ -1874,7 +1877,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                     }
                 }
-
+*/
                 lock (_badCharacter)
                 {
                     if (_badCharacter.Count > 0)
