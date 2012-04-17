@@ -131,7 +131,7 @@ namespace OpenSim.Region.UserStatistics
             }
         }
 
-        public void ReceiveClassicSimStatsPacket(SimStats stats)
+        private void ReceiveClassicSimStatsPacket(SimStats stats)
         {
             if (!enabled)
             {
@@ -163,7 +163,7 @@ namespace OpenSim.Region.UserStatistics
             }
         }
         
-        public Hashtable HandleUnknownCAPSRequest(Hashtable request)
+        private Hashtable HandleUnknownCAPSRequest(Hashtable request)
         {
             //string regpath = request["uri"].ToString();
             int response_code = 200;
@@ -178,7 +178,7 @@ namespace OpenSim.Region.UserStatistics
             return responsedata;
         }
 
-        public Hashtable HandleStatsRequest(Hashtable request)
+        private Hashtable HandleStatsRequest(Hashtable request)
         {
             lastHit = System.Environment.TickCount;
             Hashtable responsedata = new Hashtable();
@@ -238,7 +238,7 @@ namespace OpenSim.Region.UserStatistics
             return responsedata;
         }
 
-        public void CreateTables(SqliteConnection db)
+        private void CreateTables(SqliteConnection db)
         {
             using (SqliteCommand createcmd = new SqliteCommand(SQL_STATS_TABLE_CREATE, db))
             {
@@ -277,7 +277,7 @@ namespace OpenSim.Region.UserStatistics
             get { return true; }
         }
 
-        public void OnRegisterCaps(UUID agentID, Caps caps)
+        private void OnRegisterCaps(UUID agentID, Caps caps)
         {
 //            m_log.DebugFormat("[WEB STATS MODULE]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
 
@@ -292,7 +292,7 @@ namespace OpenSim.Region.UserStatistics
                                                        }));
         }
 
-        public void OnDeRegisterCaps(UUID agentID, Caps caps)
+        private void OnDeRegisterCaps(UUID agentID, Caps caps)
         {
         }
 
@@ -312,7 +312,7 @@ namespace OpenSim.Region.UserStatistics
             }
         }
 
-        public void OnMakeRootAgent(ScenePresence agent)
+        private void OnMakeRootAgent(ScenePresence agent)
         {
             UUID regionUUID = GetRegionUUIDFromHandle(agent.RegionHandle);
 
@@ -341,11 +341,11 @@ namespace OpenSim.Region.UserStatistics
             }
         }
 
-        public void OnMakeChildAgent(ScenePresence agent)
+        private void OnMakeChildAgent(ScenePresence agent)
         {
         }
 
-        public void OnClientClosed(UUID agentID, Scene scene)
+        private void OnClientClosed(UUID agentID, Scene scene)
         {
             lock (m_sessions)
             {
@@ -356,7 +356,7 @@ namespace OpenSim.Region.UserStatistics
             }
         }
 
-        public string readLogLines(int amount)
+        private string readLogLines(int amount)
         {
             Encoding encoding = Encoding.ASCII;
             int sizeOfChar = encoding.GetByteCount("\n");
@@ -394,7 +394,7 @@ namespace OpenSim.Region.UserStatistics
             return encoding.GetString(buffer);
         }
 
-        public UUID GetRegionUUIDFromHandle(ulong regionhandle)
+        private UUID GetRegionUUIDFromHandle(ulong regionhandle)
         {
             lock (m_scenes)
             {
@@ -417,7 +417,7 @@ namespace OpenSim.Region.UserStatistics
         /// <param name="agentID"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public string ViewerStatsReport(string request, string path, string param,
+        private string ViewerStatsReport(string request, string path, string param,
                                       UUID agentID, Caps caps)
         {
 //            m_log.DebugFormat("[WEB STATS MODULE]: Received viewer starts report from {0}", agentID);
@@ -427,7 +427,7 @@ namespace OpenSim.Region.UserStatistics
             return String.Empty;
         }
 
-        public UserSessionID ParseViewerStats(string request, UUID agentID)
+        private UserSessionID ParseViewerStats(string request, UUID agentID)
         {
             UserSessionID uid = new UserSessionID();
             UserSessionData usd;
@@ -568,7 +568,7 @@ namespace OpenSim.Region.UserStatistics
             return uid;
         }
 
-        public void UpdateUserStats(UserSessionID uid, SqliteConnection db)
+        private void UpdateUserStats(UserSessionID uid, SqliteConnection db)
         {
             if (uid.session_id == UUID.Zero)
                 return;
