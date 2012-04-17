@@ -97,7 +97,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return;
             }
 
-            m_log.DebugFormat("[JsonStore] module {0} enabled",(m_enabled ? "is" : "is not"));
+            if (m_enabled)
+                m_log.DebugFormat("[JsonStore] module is enabled");
         }
 
         // -----------------------------------------------------------------
