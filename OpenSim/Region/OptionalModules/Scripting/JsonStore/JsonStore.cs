@@ -74,7 +74,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
-        public JsonStore(string value = "")
+        public JsonStore() : this("") {}
+        
+        public JsonStore(string value)
         {
             m_TakeStore = new List<TakeValueCallbackClass>();
             m_ReadStore = new List<TakeValueCallbackClass>();
