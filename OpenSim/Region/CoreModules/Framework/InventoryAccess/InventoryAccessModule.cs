@@ -768,6 +768,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     g.RootPart.AttachPoint = g.RootPart.Shape.State;
                     g.RootPart.AttachOffset = g.AbsolutePosition;
+                    g.RootPart.Shape.State = 0;
                 }
 
                 objlist.Add(g);
@@ -800,6 +801,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
                     g.RootPart.AttachPoint = g.RootPart.Shape.State;
                     g.RootPart.AttachOffset = g.AbsolutePosition;
+                    g.RootPart.Shape.State = 0;
 
                     objlist.Add(g);
                     XmlElement el = (XmlElement)n;
