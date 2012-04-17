@@ -322,7 +322,7 @@ namespace OpenSim.Framework
                 l_EstateManagers.Remove(avatarID);
         }
 
-        public bool IsEstateManager(UUID avatarID)
+        public bool IsEstateManagerOrOwner(UUID avatarID)
         {
             if (IsEstateOwner(avatarID))
                 return true;
@@ -368,7 +368,7 @@ namespace OpenSim.Framework
 
         public bool HasAccess(UUID user)
         {
-            if (IsEstateManager(user))
+            if (IsEstateManagerOrOwner(user))
                 return true;
 
             return l_EstateAccess.Contains(user);

@@ -967,7 +967,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             RegionHandshakeArgs args = new RegionHandshakeArgs();
 
-            args.isEstateManager = Scene.RegionInfo.EstateSettings.IsEstateManager(remoteClient.AgentId);
+            args.isEstateManager = Scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(remoteClient.AgentId);
             if (Scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero && Scene.RegionInfo.EstateSettings.EstateOwner == remoteClient.AgentId)
                 args.isEstateManager = true;
 

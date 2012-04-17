@@ -369,7 +369,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ESTATE_MANAGER"))
                     {
                         //Only Estate Managers may use the function
-                        if (World.RegionInfo.EstateSettings.IsEstateManager(ownerID) && World.RegionInfo.EstateSettings.EstateOwner != ownerID)
+                        if (World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(ownerID) && World.RegionInfo.EstateSettings.EstateOwner != ownerID)
                         {
                             return;
                         }

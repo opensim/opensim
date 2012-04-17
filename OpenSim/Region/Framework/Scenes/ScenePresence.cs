@@ -3832,7 +3832,7 @@ namespace OpenSim.Region.Framework.Scenes
                 land.LandData.UserLocation != Vector3.Zero &&
                 land.LandData.OwnerID != m_uuid &&
                 (!m_scene.Permissions.IsGod(m_uuid)) &&
-                (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)))
+                (!m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_uuid)))
             {
                 float curr = Vector3.Distance(AbsolutePosition, pos);
                 if (Vector3.Distance(land.LandData.UserLocation, pos) < curr)
@@ -3852,7 +3852,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (GodLevel < 200 &&
                     ((!m_scene.Permissions.IsGod(m_uuid) &&
-                    !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)) || 
+                    !m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_uuid)) || 
                     (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
                     (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0))
                 {
@@ -3920,7 +3920,7 @@ namespace OpenSim.Region.Framework.Scenes
                         GodLevel < 200 &&
                         ((land.LandData.OwnerID != m_uuid && 
                           !m_scene.Permissions.IsGod(m_uuid) &&
-                          !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)) || 
+                          !m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_uuid)) || 
                          (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
                          (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0))
                     {

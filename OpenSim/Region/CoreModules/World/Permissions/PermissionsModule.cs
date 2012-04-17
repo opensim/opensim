@@ -503,7 +503,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         {
             if (user == UUID.Zero) return false;
         
-            return m_scene.RegionInfo.EstateSettings.IsEstateManager(user);
+            return m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(user);
         }
 
 #endregion
