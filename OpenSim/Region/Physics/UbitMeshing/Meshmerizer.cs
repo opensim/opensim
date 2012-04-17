@@ -339,7 +339,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             if (primShape.SculptData.Length <= 0)
             {
-                m_log.ErrorFormat("[MESH]: asset data for {0} is zero length", primName);
+                m_log.InfoFormat("[MESH]: asset data for {0} is zero length", primName);
                 return false;
             }
 

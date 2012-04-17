@@ -140,6 +140,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int m_eventsubscription = 0;
         private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
 
+        private Vector3 m_taintMomentum = Vector3.Zero;
+        private bool m_haveTaintMomentum = false;
+
+
         // unique UUID of this character object
         public UUID m_uuid;
         public bool bad = false;
@@ -800,8 +804,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (value.IsFinite())
                 {
-                    m_pidControllerActive = true;
                     _target_velocity = value;
+                    m_pidControllerActive = true;
                 }
                 else
                 {
@@ -911,6 +915,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void SetMomentum(Vector3 momentum)
         {
+            if (momentum.IsFinite())
+            {
+                m_taintMomentum = momentum;
+                m_haveTaintMomentum = true;
+                _parent_scene.AddPhysicsActorTaint(this);
+            }
+            else
+                m_log.Warn("[PHYSICS] !isFinite momentum");
         }
 
 
@@ -1110,9 +1122,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 // end add Kitto Flora
             }
+
+            if (vel.X * vel.X + vel.Y * vel.Y + vel.Z * vel.Z > 2500.0f) // 50ms apply breaks
+            {
+                float breakfactor = 0.16f * m_mass; // will give aprox 60m/s terminal velocity at free fall
+                vec.X -= breakfactor * vel.X;
+                vec.Y -= breakfactor * vel.Y;
+                vec.Z -= breakfactor * vel.Z;
+            }
+
             if (vec.IsFinite())
             {
-            	if (!vec.ApproxEquals(Vector3.Zero, 0.02f))     // 0.01 allows 0.002 !!
+            	if (vec.LengthSquared() > 0.0004f)     // 0.01 allows 0.002 !!
             	{
 //Console.WriteLine("DF 2"); // ##
 
@@ -1327,7 +1348,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (m_syncRoot)
             {
-
                 if (m_tainted_isPhysical != m_isPhysical)
                 {
                     if (m_tainted_isPhysical)
@@ -1369,9 +1389,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 d.GeomDestroy(Shell);
                             }
-                            catch (System.AccessViolationException)
+                            catch (Exception e)
                             {
-                                m_log.Error("[PHYSICS]: PrimGeom dead");
+                                m_log.ErrorFormat("[PHYSICS]: Failed to destroy character shell {0}",e.Message);
                             }
                             // Remove any old entries
     //string tShell;
@@ -1418,12 +1438,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         d.BodySetPosition(Body, m_taintPosition.X, m_taintPosition.Y, m_taintPosition.Z);
 
-                        _position.X = m_taintPosition.X;
-                        _position.Y = m_taintPosition.Y;
-                        _position.Z = m_taintPosition.Z;
                     }
+                    _position.X = m_taintPosition.X;
+                    _position.Y = m_taintPosition.Y;
+                    _position.Z = m_taintPosition.Z;
                 }
 
+                if (m_haveTaintMomentum)
+                {
+                    m_haveTaintMomentum = false;
+                    _velocity = m_taintMomentum;
+                    _target_velocity = m_taintMomentum;
+                    m_pidControllerActive = true;
+                    if (Body != IntPtr.Zero)
+                        d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
+                }
             }
         }
 

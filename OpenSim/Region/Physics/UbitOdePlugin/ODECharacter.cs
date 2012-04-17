@@ -115,12 +115,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         private CollisionCategories m_collisionCategories = (CollisionCategories.Character);
 
         // Default, Collide with Other Geometries, spaces, bodies and characters.
-        private CollisionCategories m_collisionFlags = (CollisionCategories.Geom
-                                                        | CollisionCategories.Space
-                                                        | CollisionCategories.Body
-                                                        | CollisionCategories.Character
+        private CollisionCategories m_collisionFlags = (CollisionCategories.Character
+                                                        | CollisionCategories.Geom
+                                                        | CollisionCategories.VolumeDtc
                                                         );
-        // we do land collisions not ode                                                       | CollisionCategories.Land);
+        // we do land collisions not ode                | CollisionCategories.Land);
         public IntPtr Body = IntPtr.Zero;
         private OdeScene _parent_scene;
         public IntPtr Shell = IntPtr.Zero;
@@ -639,6 +638,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void SetMomentum(Vector3 momentum)
         {
+            if (momentum.IsFinite())
+                AddChange(changes.Momentum, momentum);
         }
 
 
@@ -663,8 +664,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             Shell = d.CreateCapsule(_parent_scene.ActiveSpace, CAPSULE_RADIUS, CAPSULE_LENGTH);
 
-            d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
-            d.GeomSetCollideBits(Shell, (int)m_collisionFlags);
+            d.GeomSetCategoryBits(Shell, (uint)m_collisionCategories);
+            d.GeomSetCollideBits(Shell, (uint)m_collisionFlags);
 
             d.MassSetCapsule(out ShellMass, m_density, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
 
@@ -759,7 +760,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _parent_scene.geom_name_map.Remove(Shell);
                 _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
                 d.GeomDestroy(Shell);
-                _parent_scene.geom_name_map.Remove(Shell);
                 Shell = IntPtr.Zero;
             }
         }
@@ -989,6 +989,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     vec.Z += (target_altitude - localpos.Z) * PID_P * 5.0f;
                 }
                 // end add Kitto Flora
+            }
+
+            if (vel.X * vel.X + vel.Y * vel.Y + vel.Z * vel.Z > 2500.0f) // 50m/s apply breaks
+            {
+                float breakfactor = 0.16f * m_mass; // will give aprox 60m/s terminal velocity at free fall
+                vec.X -= breakfactor * vel.X;
+                vec.Y -= breakfactor * vel.Y;
+                vec.Z -= breakfactor * vel.Z;
             }
 
             if (vec.IsFinite())
@@ -1324,6 +1332,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        // for now momentum is actually velocity
+        private void changeMomentum(Vector3 newmomentum)
+        {
+            _velocity = newmomentum;
+            _target_velocity = newmomentum;
+            m_pidControllerActive = true;
+            if (Body != IntPtr.Zero)
+                d.BodySetLinearVel(Body, newmomentum.X, newmomentum.Y, newmomentum.Z);
+        }
+
         private void donullchange()
         {
         }
@@ -1394,6 +1412,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 case changes.Size:
                     changeSize((Vector3)arg);
+                    break;
+
+                case changes.Momentum:
+                    changeMomentum((Vector3)arg);
                     break;
 /* not in use for now
                 case changes.Shape:

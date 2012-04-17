@@ -9980,7 +9980,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // return total object mass
                     SceneObjectGroup obj = World.GetGroupByPrim(World.Entities[key].LocalId);
                     if (obj != null)
-                        return (double)obj.GetMass();
+                        return obj.GetMass();
 
                     // the object is null so the key is for an avatar
                     ScenePresence avatar = World.GetScenePresence(key);
@@ -9990,7 +9990,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             // child agents have a mass of 1.0
                             return 1;
                         else
-                            return (double)avatar.PhysicsActor.Mass;
+                            return avatar.GetMass();
                 }
                 catch (KeyNotFoundException)
                 {
@@ -11834,6 +11834,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return contacts[0];
         }
+/*
+        // not done:
+        private ContactResult[] testRay2NonPhysicalPhantom(Vector3 rayStart, Vector3 raydir, float raylenght)
+        {
+            ContactResult[] contacts = null;
+            World.ForEachSOG(delegate(SceneObjectGroup group)
+            {
+                if (m_host.ParentGroup == group)
+                    return;
+
+                if (group.IsAttachment)
+                    return;
+
+                if(group.RootPart.PhysActor != null)
+                    return;
+
+                contacts = group.RayCastGroupPartsOBBNonPhysicalPhantom(rayStart, raydir, raylenght);
+            });
+            return contacts;
+        }
+*/
 
         public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
         {
@@ -11874,36 +11895,99 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool checkNonPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_NONPHYSICAL) == ScriptBaseClass.RC_REJECT_NONPHYSICAL);
             bool checkPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_PHYSICAL) == ScriptBaseClass.RC_REJECT_PHYSICAL);
 
-            if (checkTerrain)
-            {
-                ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
-                if (groundContact != null)
-                    results.Add((ContactResult)groundContact);
-            }
 
-            if (checkAgents)
+            if (World.SuportsRayCastFiltered())
             {
-                ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
-                foreach (ContactResult r in agentHits)
-                    results.Add(r);
-            }
+                if (dist == 0)
+                    return list;
 
-            if (checkPhysical || checkNonPhysical)
+                RayFilterFlags rayfilter = RayFilterFlags.ClosestAndBackCull;
+                if (checkTerrain)
+                    rayfilter |= RayFilterFlags.land;
+//                if (checkAgents)
+//                    rayfilter |= RayFilterFlags.agent;
+                if (checkPhysical)
+                    rayfilter |= RayFilterFlags.physical;
+                if (checkNonPhysical)
+                    rayfilter |= RayFilterFlags.nonphysical;
+                if (detectPhantom)
+                    rayfilter |= RayFilterFlags.LSLPhanton;
+
+                Vector3 direction = dir * ( 1/dist);
+
+                if(rayfilter == 0)
+                {
+                    list.Add(new LSL_Integer(0));
+                    return list;
+                }
+
+                // get some more contacts to sort ???
+                int physcount = 4 * count;
+                if (physcount > 20)
+                    physcount = 20;
+
+                object physresults;
+                physresults = World.RayCastFiltered(rayStart, direction, dist, physcount, rayfilter);
+
+                if (physresults == null)
+                {
+                    list.Add(new LSL_Integer(-3)); // timeout error
+                    return list;
+                }
+
+                results = (List<ContactResult>)physresults;
+
+                // for now physics doesn't detect sitted avatars so do it outside physics
+                if (checkAgents)
+                {
+                    ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
+                    foreach (ContactResult r in agentHits)
+                        results.Add(r);
+                }
+
+            // bug: will not detect phantom unless they are physical
+            // don't use ObjectIntersection because its also bad
+
+            }
+            else
             {
-                ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd, checkPhysical, checkNonPhysical, detectPhantom);
-                foreach (ContactResult r in objectHits)
-                    results.Add(r);
+                if (checkTerrain)
+                {
+                    ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
+                    if (groundContact != null)
+                        results.Add((ContactResult)groundContact);
+                }
+
+                if (checkAgents)
+                {
+                    ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
+                    foreach (ContactResult r in agentHits)
+                        results.Add(r);
+                }
+
+                if (checkPhysical || checkNonPhysical || detectPhantom)
+                {
+                    ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd, checkPhysical, checkNonPhysical, detectPhantom);
+                    foreach (ContactResult r in objectHits)
+                        results.Add(r);
+                }
             }
 
             results.Sort(delegate(ContactResult a, ContactResult b)
             {
-                return (int)(a.Depth - b.Depth);
+                return a.Depth.CompareTo(b.Depth);
             });
             
             int values = 0;
+            SceneObjectGroup thisgrp = m_host.ParentGroup;
+
             foreach (ContactResult result in results)
             {
                 if (result.Depth > dist)
+                    continue;
+
+                // physics ray can return colisions with host prim
+                if (m_host.LocalId == result.ConsumerID)
                     continue;
 
                 UUID itemID = UUID.Zero;
@@ -11913,6 +11997,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // It's a prim!
                 if (part != null)
                 {
+                    // dont detect members of same object ???
+                    if (part.ParentGroup == thisgrp)
+                        continue;
+
                     if ((dataFlags & ScriptBaseClass.RC_GET_ROOT_KEY) == ScriptBaseClass.RC_GET_ROOT_KEY)
                         itemID = part.ParentGroup.UUID;
                     else
@@ -11923,7 +12011,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                 {
                     ScenePresence sp = World.GetScenePresence(result.ConsumerID);
-                    /// It it a boy? a girl?
+                    /// It it a boy? a girl? 
                     if (sp != null)
                         itemID = sp.UUID;
                 }
@@ -11934,14 +12022,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if ((dataFlags & ScriptBaseClass.RC_GET_LINK_NUM) == ScriptBaseClass.RC_GET_LINK_NUM)
                     list.Add(new LSL_Integer(linkNum));
 
-
                 if ((dataFlags & ScriptBaseClass.RC_GET_NORMAL) == ScriptBaseClass.RC_GET_NORMAL)
                     list.Add(new LSL_Vector(result.Normal.X, result.Normal.Y, result.Normal.Z));
-                
-                values++;
-                count--;
 
-                if (count == 0)
+                values++;
+                if (values >= count)
                     break;
             }
 

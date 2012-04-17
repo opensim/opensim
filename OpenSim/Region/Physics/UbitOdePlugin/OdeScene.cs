@@ -60,19 +60,31 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int lastframe;
     }
 
+    // colision flags of things others can colide with
+    // rays, sensors, probes removed since can't  be colided with
+    // The top space where things are placed provided further selection
+    // ie physical are in active space nonphysical in static
+    // this should be exclusive as possible
+
     [Flags]
-    public enum CollisionCategories : int
+    public enum CollisionCategories : uint
     {
         Disabled = 0,
-        Geom = 0x00000001,
-        Body = 0x00000002,
-        Space = 0x00000004,
-        Character = 0x00000008,
-        Land = 0x00000010,
-        Water = 0x00000020,
-        Wind = 0x00000040,
-        Sensor = 0x00000080,
-        Selected = 0x00000100
+        //by 'things' types
+        Space =         0x01,
+        Geom =          0x02, // aka prim/part
+        Character =     0x04,
+        Land =          0x08,
+        Water =         0x010,
+
+        // by state
+        Phantom =       0x01000,
+        VolumeDtc =     0x02000,
+        Selected =      0x04000,
+        NoShape =       0x08000,
+
+
+        All =           0xffffffff
     }
 
     /// <summary>
@@ -116,6 +128,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         Acceleration,
         Force,
         Torque,
+        Momentum,
 
         AddForce,
         AddAngForce,
@@ -186,7 +199,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float waterlevel = 0f;
         private int framecount = 0;
 
-        internal IntPtr WaterGeom;
+        private IntPtr WaterGeom = IntPtr.Zero;
+        private IntPtr WaterHeightmapData = IntPtr.Zero;
+        private GCHandle WaterMapHandler = new GCHandle();
 
         public float avPIDD = 2200f; // make it visible
         public float avPIDP = 900f; // make it visible
@@ -213,9 +228,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 //        public int geomCrossingFailuresBeforeOutofbounds = 6;
 
-        public int bodyFramesAutoDisable = 20;
+        public int bodyFramesAutoDisable = 5;
 
-        private float[] _watermap;
 
         private d.NearCallback nearCallback;
 
@@ -350,7 +364,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // i must RtC#FM 
                     }
 
-                d.HashSpaceSetLevels(TopSpace, -2, 8); // cell sizes from .25 to 256 ?? need check what this really does
+                d.HashSpaceSetLevels(TopSpace, -2, 8);
                 d.HashSpaceSetLevels(ActiveSpace, -2, 8);
                 d.HashSpaceSetLevels(StaticSpace, -2, 8);
 
@@ -358,13 +372,27 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.SpaceSetSublevel(ActiveSpace, 1);
                 d.SpaceSetSublevel(StaticSpace, 1);
 
+                d.GeomSetCategoryBits(ActiveSpace, (uint)(CollisionCategories.Space |
+                                                        CollisionCategories.Geom |
+                                                        CollisionCategories.Character |
+                                                        CollisionCategories.Phantom |
+                                                        CollisionCategories.VolumeDtc
+                                                        ));
+                d.GeomSetCollideBits(ActiveSpace, 0);
+                d.GeomSetCategoryBits(StaticSpace, (uint)(CollisionCategories.Space |
+                                                        CollisionCategories.Geom |
+                                                        CollisionCategories.Land |
+                                                        CollisionCategories.Water |
+                                                        CollisionCategories.Phantom |
+                                                        CollisionCategories.VolumeDtc
+                                                        ));
+                d.GeomSetCollideBits(StaticSpace, 0);
+
                 contactgroup = d.JointGroupCreate(0);
                 //contactgroup
 
                 d.WorldSetAutoDisableFlag(world, false);
             }
-
-            _watermap = new float[258 * 258];
         }
 
         // Initialize the mesh plugin
@@ -374,15 +402,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 //            checkThread();
             mesher = meshmerizer;
             m_config = config;
-
+/*
             string ode_config = d.GetConfiguration("ODE");
-            m_log.WarnFormat("ODE configuration: {0}", ode_config);
-
-            if (ode_config.Contains("ODE_Ubit"))
+            if (ode_config != null && ode_config != "")
             {
-                OdeUbitLib = true;
-            }
+                m_log.WarnFormat("ODE configuration: {0}", ode_config);
 
+                if (ode_config.Contains("ODE_Ubit"))
+                {
+                    OdeUbitLib = true;
+                }
+            }
+*/
             /*
                         if (region != null)
                         {
@@ -518,6 +549,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     waitForSpaceUnlock(newspace);
                     d.SpaceSetSublevel(newspace, 2);
                     d.HashSpaceSetLevels(newspace, -2, 8);
+                    d.GeomSetCategoryBits(newspace, (uint)(CollisionCategories.Space |
+                                        CollisionCategories.Geom |
+                                        CollisionCategories.Land |
+                                        CollisionCategories.Water |
+                                        CollisionCategories.Phantom |
+                                        CollisionCategories.VolumeDtc
+                                        ));
+                    d.GeomSetCollideBits(newspace, 0);
+
                     staticPrimspace[i, j] = newspace;
                 }
             // let this now be real maximum values
@@ -1745,8 +1785,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         m_rayCastManager.ProcessQueuedRequests();
 
-
-
                         statray += Util.EnvironmentTickCountSubtract(statstart);
                         collision_optimized();
                         statcol += Util.EnvironmentTickCountSubtract(statstart);
@@ -2125,14 +2163,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     RegionTerrain.Remove(pOffset);
                     if (GroundGeom != IntPtr.Zero)
                     {
+                        d.GeomDestroy(GroundGeom);
+
                         if (TerrainHeightFieldHeights.ContainsKey(GroundGeom))
                             {
                             TerrainHeightFieldHeightsHandlers[GroundGeom].Free();
                             TerrainHeightFieldHeightsHandlers.Remove(GroundGeom);
                             TerrainHeightFieldHeights.Remove(GroundGeom);
                             }
-                        d.SpaceRemove(StaticSpace, GroundGeom);
-                        d.GeomDestroy(GroundGeom);
                     }
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
@@ -2147,8 +2185,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 GroundGeom = d.CreateHeightfield(StaticSpace, HeightmapData, 1);
                 if (GroundGeom != IntPtr.Zero)
                 {
-                    d.GeomSetCategoryBits(GroundGeom, (int)(CollisionCategories.Land));
-                    d.GeomSetCollideBits(GroundGeom, (int)(CollisionCategories.Space));
+                    d.GeomSetCategoryBits(GroundGeom, (uint)(CollisionCategories.Land));
+                    d.GeomSetCollideBits(GroundGeom, 0);
 
                 }
                 geom_name_map[GroundGeom] = "Terrain";
@@ -2236,14 +2274,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     RegionTerrain.Remove(pOffset);
                     if (GroundGeom != IntPtr.Zero)
                     {
+                        d.GeomDestroy(GroundGeom);
+
                         if (TerrainHeightFieldHeights.ContainsKey(GroundGeom))
                         {
-                            TerrainHeightFieldHeightsHandlers[GroundGeom].Free();
+                            if (TerrainHeightFieldHeightsHandlers[GroundGeom].IsAllocated)
+                                TerrainHeightFieldHeightsHandlers[GroundGeom].Free();
                             TerrainHeightFieldHeightsHandlers.Remove(GroundGeom);
                             TerrainHeightFieldHeights.Remove(GroundGeom);
                         }
-                        d.SpaceRemove(StaticSpace, GroundGeom);
-                        d.GeomDestroy(GroundGeom);
                     }
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
@@ -2263,8 +2302,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 GroundGeom = d.CreateUbitTerrain(StaticSpace, HeightmapData, 1);
                 if (GroundGeom != IntPtr.Zero)
                 {
-                    d.GeomSetCategoryBits(GroundGeom, (int)(CollisionCategories.Land));
-                    d.GeomSetCollideBits(GroundGeom, (int)(CollisionCategories.Space));
+                    d.GeomSetCategoryBits(GroundGeom, (uint)(CollisionCategories.Land));
+                    d.GeomSetCollideBits(GroundGeom, 0);
 
                 }
                 geom_name_map[GroundGeom] = "Terrain";
@@ -2359,57 +2398,76 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void randomizeWater(float baseheight)
         {
-            const uint heightmapWidth = m_regionWidth + 2;
-            const uint heightmapHeight = m_regionHeight + 2;
-            const uint heightmapWidthSamples = m_regionWidth + 2;
-            const uint heightmapHeightSamples = m_regionHeight + 2;
+            const uint heightmapWidth = Constants.RegionSize + 2;
+            const uint heightmapHeight = Constants.RegionSize + 2;
+            const uint heightmapWidthSamples = heightmapWidth + 1;
+            const uint heightmapHeightSamples = heightmapHeight + 1;
+
             const float scale = 1.0f;
             const float offset = 0.0f;
-            const float thickness = 2.9f;
             const int wrap = 0;
 
-            for (int i = 0; i < (258 * 258); i++)
+            float[] _watermap = new float[heightmapWidthSamples * heightmapWidthSamples];
+
+            float maxheigh = float.MinValue;
+            float minheigh = float.MaxValue;
+            float val;
+            for (int i = 0; i < (heightmapWidthSamples * heightmapHeightSamples); i++)
             {
-                _watermap[i] = (baseheight-0.1f) + ((float)fluidRandomizer.Next(1,9) / 10f);
-               // m_log.Info((baseheight - 0.1f) + ((float)fluidRandomizer.Next(1, 9) / 10f));
+
+                val = (baseheight - 0.1f) + ((float)fluidRandomizer.Next(1, 9) / 10f);
+                _watermap[i] = val;
+                if (maxheigh < val)
+                    maxheigh = val;
+                if (minheigh > val)
+                    minheigh = val;
             }
+
+            float thickness = minheigh;
 
             lock (OdeLock)
             {
                 if (WaterGeom != IntPtr.Zero)
                 {
-                d.SpaceRemove(StaticSpace, WaterGeom);
+                    d.GeomDestroy(WaterGeom);
+                    d.GeomHeightfieldDataDestroy(WaterHeightmapData);
+                    WaterGeom = IntPtr.Zero;
+                    WaterHeightmapData = IntPtr.Zero;
+                    if(WaterMapHandler.IsAllocated)
+                        WaterMapHandler.Free();
                 }
-                IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
-                d.GeomHeightfieldDataBuildSingle(HeightmapData, _watermap, 0, heightmapWidth, heightmapHeight,
+
+                WaterHeightmapData = d.GeomHeightfieldDataCreate();
+
+                WaterMapHandler = GCHandle.Alloc(_watermap, GCHandleType.Pinned);
+
+                d.GeomHeightfieldDataBuildSingle(WaterHeightmapData, WaterMapHandler.AddrOfPinnedObject(), 0, heightmapWidth, heightmapHeight,
                                                  (int)heightmapWidthSamples, (int)heightmapHeightSamples, scale,
                                                  offset, thickness, wrap);
-                d.GeomHeightfieldDataSetBounds(HeightmapData, m_regionWidth, m_regionHeight);
-                WaterGeom = d.CreateHeightfield(StaticSpace, HeightmapData, 1);
+                d.GeomHeightfieldDataSetBounds(WaterHeightmapData, minheigh, maxheigh);
+                WaterGeom = d.CreateHeightfield(StaticSpace, WaterHeightmapData, 1);
                 if (WaterGeom != IntPtr.Zero)
                 {
-                    d.GeomSetCategoryBits(WaterGeom, (int)(CollisionCategories.Water));
-                    d.GeomSetCollideBits(WaterGeom, (int)(CollisionCategories.Space));
+                    d.GeomSetCategoryBits(WaterGeom, (uint)(CollisionCategories.Water));
+                    d.GeomSetCollideBits(WaterGeom, 0);
 
+                    geom_name_map[WaterGeom] = "Water";
+
+                    d.Matrix3 R = new d.Matrix3();
+
+                    Quaternion q1 = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 1.5707f);
+                    Quaternion q2 = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 1.5707f);
+
+                    q1 = q1 * q2;
+                    Vector3 v3;
+                    float angle;
+                    q1.GetAxisAngle(out v3, out angle);
+
+                    d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
+                    d.GeomSetRotation(WaterGeom, ref R);
+                    d.GeomSetPosition(WaterGeom, (float)Constants.RegionSize * 0.5f, (float)Constants.RegionSize * 0.5f, 0);
                 }
-                geom_name_map[WaterGeom] = "Water";
-
-                d.Matrix3 R = new d.Matrix3();
-
-                Quaternion q1 = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 1.5707f);
-                Quaternion q2 = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 1.5707f);
-
-                q1 = q1 * q2;
-                Vector3 v3;
-                float angle;
-                q1.GetAxisAngle(out v3, out angle);
-
-                d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
-                d.GeomSetRotation(WaterGeom, ref R);
-                d.GeomSetPosition(WaterGeom, 128, 128, 0);
-                
             }
-
         }
 
         public override void Dispose()
@@ -2427,10 +2485,33 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
+                if (TerrainHeightFieldHeightsHandlers.Count > 0)
+                {
+                    foreach (GCHandle gch in TerrainHeightFieldHeightsHandlers.Values)
+                    {
+                        if (gch.IsAllocated)
+                            gch.Free();
+                    }
+                }
+
+                if (WaterGeom != IntPtr.Zero)
+                {
+                    d.GeomDestroy(WaterGeom);
+                        WaterGeom = IntPtr.Zero;
+                    if (WaterHeightmapData != IntPtr.Zero)
+                        d.GeomHeightfieldDataDestroy(WaterHeightmapData);
+                    WaterHeightmapData = IntPtr.Zero;
+
+                    if (WaterMapHandler.IsAllocated)
+                        WaterMapHandler.Free();
+                }
+
+
                 if (ContactgeomsArray != IntPtr.Zero)
                     Marshal.FreeHGlobal(ContactgeomsArray);
                 if (GlobalContactsArray != IntPtr.Zero)
                     Marshal.FreeHGlobal(GlobalContactsArray);
+
 
                 d.WorldDestroy(world);
                 //d.CloseODE();
@@ -2500,6 +2581,35 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (ourResults == null)
                 return new List<ContactResult>();
             return new List<ContactResult>(ourResults);
+        }
+
+        public override bool SuportsRaycastWorldFiltered()
+        {
+            return true;
+        }
+
+        public override object RaycastWorld(Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags filter)
+        {
+            object SyncObject = new object();
+            List<ContactResult> ourresults = new List<ContactResult>();
+
+            RayCallback retMethod = delegate(List<ContactResult> results)
+            {
+                lock (SyncObject)
+                {
+                    ourresults = results;
+                    Monitor.PulseAll(SyncObject);
+                }
+            };
+
+            lock (SyncObject)
+            {
+                m_rayCastManager.QueueRequest(position, direction, length, Count,filter, retMethod);
+                if (!Monitor.Wait(SyncObject, 500))
+                    return null;
+                else
+                    return ourresults;
+            }
         }
 
         public override void RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)

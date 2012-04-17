@@ -43,6 +43,34 @@ namespace OpenSim.Region.Physics.Manager
     public delegate void JointDeactivated(PhysicsJoint joint);
     public delegate void JointErrorMessage(PhysicsJoint joint, string message); // this refers to an "error message due to a problem", not "amount of joint constraint violation"
 
+    public enum RayFilterFlags:ushort
+    {
+        // the flags
+        water = 0x01,
+        land = 0x02,
+        agent = 0x04,
+        nonphysical = 0x08,
+        physical = 0x10,
+        phantom = 0x20,
+        volumedtc = 0x40,
+
+        // ray cast colision control (may only work for meshs)
+        BackFaceCull = 0x4000,
+        ClosestHit = 0x8000,
+
+        // some combinations
+        LSLPhanton = phantom | volumedtc,
+        PrimsNonPhantom = nonphysical | physical,
+        PrimsNonPhantomAgents = nonphysical | physical | agent,
+
+        AllPrims = nonphysical | phantom | volumedtc | physical,
+        AllButLand = agent | nonphysical | physical | phantom | volumedtc,
+
+        ClosestAndBackCull = ClosestHit | BackFaceCull,
+
+        All = 0x3f
+    }
+
     /// <summary>
     /// Contact result from a raycast.
     /// </summary>
@@ -53,6 +81,8 @@ namespace OpenSim.Region.Physics.Manager
         public uint ConsumerID;
         public Vector3 Normal;
     }
+
+
 
     public abstract class PhysicsScene
     {
@@ -278,6 +308,16 @@ namespace OpenSim.Region.Physics.Manager
         public virtual List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int Count)
         {
             return new List<ContactResult>();
+        }
+
+        public virtual object RaycastWorld(Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags filter)
+        {
+            return null;
+        }
+
+        public virtual bool SuportsRaycastWorldFiltered()
+        {
+            return false;
         }
 
         public virtual void RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, RaycastCallback retMethod){}

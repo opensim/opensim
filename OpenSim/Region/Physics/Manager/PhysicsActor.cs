@@ -172,6 +172,12 @@ namespace OpenSim.Region.Physics.Manager
 
         public virtual bool Phantom { get; set; }
 
+        public virtual bool IsVolumeDtc
+        {
+            get { return false; }
+            set { return; }
+        }
+
         public virtual byte PhysicsShapeType { get; set; }
 
         public abstract PrimitiveBaseShape Shape { set; }

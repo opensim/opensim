@@ -108,25 +108,29 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_waterHeight;
         private float m_buoyancy;                //KF: m_buoyancy should be set by llSetBuoyancy() for non-vehicle. 
 
-        private int body_autodisable_frames = 20;
+        private int body_autodisable_frames = 5;
+        private int bodydisablecontrol = 0;
 
-        private const CollisionCategories m_default_collisionFlags = (CollisionCategories.Geom
-                                                        | CollisionCategories.Space
-                                                        | CollisionCategories.Body
-                                                        | CollisionCategories.Character
-                                                        );
-//        private bool m_collidesLand = true;
-        private bool m_collidesWater;
-        public bool m_returnCollisions;
-        private bool m_softcolide;
-
-        private bool m_NoColide;  // for now only for internal use for bad meshs
 
         // Default we're a Geometry
         private CollisionCategories m_collisionCategories = (CollisionCategories.Geom);
+        // Default colide nonphysical don't try to colide with anything
+        private const CollisionCategories m_default_collisionFlagsNotPhysical = 0;
+
+        private const CollisionCategories m_default_collisionFlagsPhysical = (CollisionCategories.Geom |
+                                        CollisionCategories.Character |
+                                        CollisionCategories.Land |
+                                        CollisionCategories.VolumeDtc);
+
+//        private bool m_collidesLand = true;
+        private bool m_collidesWater;
+        public bool m_returnCollisions;
+
+        private bool m_NoColide;  // for now only for internal use for bad meshs
+
 
         // Default, Collide with Other Geometries, spaces and Bodies
-        private CollisionCategories m_collisionFlags = m_default_collisionFlags;
+        private CollisionCategories m_collisionFlags = m_default_collisionFlagsNotPhysical;
 
         public bool m_disabled;
 
@@ -179,6 +183,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float primOOBradiusSQ;
         public d.Mass primdMass; // prim inertia information on it's own referencial
         float primMass; // prim own mass
+        float primVolume; // prim own volume;
         float _mass; // object mass acording to case
         private bool hasOOBoffsetFromMesh = false; // if true we did compute it form mesh centroid, else from aabb
 
@@ -215,6 +220,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 AddChange(changes.Physical, value);
             }
         }
+
+        public override bool IsVolumeDtc
+        {
+            set { return; }
+            get { return m_isVolumeDetect; }
+
+        }
+
 
         public override bool Phantom  // this is not reliable for internal use
         {
@@ -327,10 +340,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
                 if (m_colliderfilter == 0)
-                {
-                    m_softcolide = false;
                     m_iscolliding = false;
-                }
                 else
                     m_iscolliding = true;
             }
@@ -422,6 +432,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override Vector3 GeometricCenter
         {
+            // this is not real geometric center but a average of positions relative to root prim acording to
+            // http://wiki.secondlife.com/wiki/llGetGeometricCenter
+            // ignoring tortured prims details since sl also seems to ignore
+            // so no real use in doing it on physics
             get
             {
                 return Vector3.Zero;
@@ -949,7 +963,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_iscolliding = false;
             m_colliderfilter = 0;
-            m_softcolide = true;
             m_NoColide = false;
 
             hasOOBoffsetFromMesh = false;
@@ -990,6 +1003,132 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void resetCollisionAccounting()
         {
             m_collisionscore = 0;
+        }
+
+        private void UpdateCollisionCatFlags()
+        {
+            if(m_isphysical && m_disabled)
+            {
+                m_collisionCategories = 0;
+                m_collisionFlags = 0;
+            }
+
+            else if (m_isSelected)
+            {
+                m_collisionCategories = CollisionCategories.Selected;
+                m_collisionFlags = 0;
+            }
+
+            else if (m_isVolumeDetect)
+            {
+                m_collisionCategories = CollisionCategories.VolumeDtc;
+                if (m_isphysical)
+                    m_collisionFlags = CollisionCategories.Geom | CollisionCategories.Character;
+                else
+                    m_collisionFlags = 0;
+            }
+            else if (m_isphantom)
+            {
+                m_collisionCategories = CollisionCategories.Phantom;
+                if (m_isphysical)
+                    m_collisionFlags = CollisionCategories.Land;
+                else
+                    m_collisionFlags = 0;
+            }
+            else
+            {
+                m_collisionCategories = CollisionCategories.Geom;
+                if (m_isphysical)
+                    m_collisionFlags = m_default_collisionFlagsPhysical;
+                else
+                    m_collisionFlags = m_default_collisionFlagsNotPhysical;
+            }
+        }
+
+        private void ApplyCollisionCatFlags()
+        {
+            if (prim_geom != IntPtr.Zero)
+            {
+                if (!childPrim && childrenPrim.Count > 0)
+                {
+                    foreach (OdePrim prm in childrenPrim)
+                    {
+                        if (m_isphysical && m_disabled)
+                        {
+                            prm.m_collisionCategories = 0;
+                            prm.m_collisionFlags = 0;
+                        }
+                        else
+                        {
+                            // preserve some
+                            if (prm.m_isSelected)
+                            {
+                                prm.m_collisionCategories = CollisionCategories.Selected;
+                                prm.m_collisionFlags = 0;
+                            }
+                            else if (prm.IsVolumeDtc)
+                            {
+                                prm.m_collisionCategories = CollisionCategories.VolumeDtc;
+                                if (m_isphysical)
+                                    prm.m_collisionFlags = CollisionCategories.Geom | CollisionCategories.Character;
+                                else
+                                    prm.m_collisionFlags = 0;
+                            }
+                            else if (prm.m_isphantom)
+                            {
+                                prm.m_collisionCategories = CollisionCategories.Phantom;
+                                if (m_isphysical)
+                                    prm.m_collisionFlags = CollisionCategories.Land;
+                                else
+                                    prm.m_collisionFlags = 0;
+                            }
+                            else
+                            {
+                                prm.m_collisionCategories = m_collisionCategories;
+                                prm.m_collisionFlags = m_collisionFlags;
+                            }
+                        }
+
+                        if (prm.prim_geom != IntPtr.Zero)
+                        {
+                            if (prm.m_NoColide)
+                            {
+                                d.GeomSetCategoryBits(prm.prim_geom, 0);
+                                if (m_isphysical)
+                                    d.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
+                                else
+                                    d.GeomSetCollideBits(prm.prim_geom, 0);
+                            }
+                            else
+                            {
+                                d.GeomSetCategoryBits(prm.prim_geom, (uint)prm.m_collisionCategories);
+                                d.GeomSetCollideBits(prm.prim_geom, (uint)prm.m_collisionFlags);
+                            }
+                        }
+                    }
+                }
+
+                if (m_NoColide)
+                {
+                    d.GeomSetCategoryBits(prim_geom, 0);
+                    d.GeomSetCollideBits(prim_geom, (uint)CollisionCategories.Land);
+                    if (collide_geom != prim_geom && collide_geom != IntPtr.Zero)
+                    {
+                        d.GeomSetCategoryBits(collide_geom, 0);
+                        d.GeomSetCollideBits(collide_geom, (uint)CollisionCategories.Land);
+                    }
+                }
+                else
+                {
+                    d.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
+                    if (collide_geom != prim_geom && collide_geom != IntPtr.Zero)
+                    {
+                        d.GeomSetCategoryBits(collide_geom, (uint)m_collisionCategories);
+                        d.GeomSetCollideBits(collide_geom, (uint)m_collisionFlags);
+                    }
+                }
+            }
         }
 
         private void createAMotor(Vector3 axis)
@@ -1188,7 +1327,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomSetCategoryBits(prim_geom, 0);
                     if (m_isphysical)
                     {
-                        d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
+                        d.GeomSetCollideBits(prim_geom, (uint)CollisionCategories.Land);
                     }
                     else
                     {
@@ -1198,8 +1337,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                    d.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
                 }
 
                 CalcPrimBodyData();
@@ -1296,6 +1435,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
                 prim_geom = IntPtr.Zero;
+                collide_geom = IntPtr.Zero;
             }
             else
             {
@@ -1319,66 +1459,23 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             IntPtr targetSpace = _parent_scene.MoveGeomToStaticSpace(prim.prim_geom, prim._position, prim.m_targetSpace);
             prim.m_targetSpace = targetSpace;
-            d.GeomEnable(prim_geom);
+            collide_geom = IntPtr.Zero;
         }
 
         public void enableBodySoft()
         {
+            m_disabled = false;
             if (!childPrim && !m_isSelected)
             {
                 if (m_isphysical && Body != IntPtr.Zero)
                 {
-                    if (m_isphantom && !m_isVolumeDetect)
-                    {
-                        m_collisionCategories = 0;
-                        m_collisionFlags = CollisionCategories.Land;
-                    }
-                    else
-                    {
-                        m_collisionCategories |= CollisionCategories.Body;
-                        m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
-                    }
+                    UpdateCollisionCatFlags();
+                    ApplyCollisionCatFlags();
 
-                    foreach (OdePrim prm in childrenPrim)
-                    {
-                        prm.m_collisionCategories = m_collisionCategories;
-                        prm.m_collisionFlags = m_collisionFlags;
-
-                        if (prm.prim_geom != IntPtr.Zero)
-                        {
-                            if (prm.m_NoColide)
-                            {
-                                d.GeomSetCategoryBits(prm.prim_geom, 0);
-                                d.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
-                            }
-                            else
-                            {
-                                d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
-                                d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
-                            }
-                            d.GeomEnable(prm.prim_geom);
-                        }
-                    }
-
-                    if (prim_geom != IntPtr.Zero)
-                    {
-                        if (m_NoColide)
-                        {
-                            d.GeomSetCategoryBits(prim_geom, 0);
-                            d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
-                        }
-                        else
-                        {
-                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-                        }
-                        d.GeomEnable(prim_geom);
-                    }
                     d.BodyEnable(Body);
                 }
             }
-            m_disabled = false;
-            resetCollisionAccounting(); // this sets m_disable to false
+            resetCollisionAccounting();
         }
 
         private void disableBodySoft()
@@ -1388,45 +1485,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (m_isphysical && Body != IntPtr.Zero)
                 {
-                    m_collisionCategories &= ~CollisionCategories.Body;
-                    m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
-
-                    foreach (OdePrim prm in childrenPrim)
-                    {
-                        prm.m_collisionCategories = m_collisionCategories;
-                        prm.m_collisionFlags = m_collisionFlags;
-
-                        if (prm.prim_geom != IntPtr.Zero)
-                        {
-                            if (prm.m_NoColide)
-                            {
-                                d.GeomSetCategoryBits(prm.prim_geom, 0);
-                                d.GeomSetCollideBits(prm.prim_geom, 0);
-                            }
-                            else
-                            {
-                                d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
-                                d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
-                            }
-                            d.GeomDisable(prm.prim_geom);
-                        }
-                    }
-
-                    if (prim_geom != IntPtr.Zero)
-                    {
-                        if (m_NoColide)
-                        {
-                            d.GeomSetCategoryBits(prim_geom, 0);
-                            d.GeomSetCollideBits(prim_geom, 0);
-                        }
-                        else
-                        {
-                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-                        }
-                        d.GeomDisable(prim_geom);
-                    }
-
+                    if (m_isSelected)
+                        m_collisionFlags = CollisionCategories.Selected;
+                    else
+                        m_collisionCategories = 0;
+                    m_collisionFlags = 0;
+                    ApplyCollisionCatFlags();
                     d.BodyDisable(Body);
                 }
             }
@@ -1566,7 +1630,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             //            d.BodySetAngularDampingThreshold(Body, 0.001f);
             d.BodySetDamping(Body, .002f, .002f);
 
-
                 if (m_targetSpace != IntPtr.Zero)
                 {
                     _parent_scene.waitForSpaceUnlock(m_targetSpace);
@@ -1588,6 +1651,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.SpaceSetSublevel(m_targetSpace, 3);
                 d.SpaceSetCleanup(m_targetSpace, false);
                 d.SpaceAdd(m_targetSpace, prim_geom);
+
+                d.GeomSetCategoryBits(m_targetSpace, (uint)(CollisionCategories.Space |
+                                                            CollisionCategories.Geom |
+                                                            CollisionCategories.Phantom |
+                                                            CollisionCategories.VolumeDtc
+                                                            ));
+                d.GeomSetCollideBits(m_targetSpace, 0);
                 collide_geom = m_targetSpace;
             }
 
@@ -1619,38 +1689,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.SpaceAdd(m_targetSpace, prm.prim_geom);
                     }
 
-                    if (m_isSelected || m_disabled)
-                    {
-                        prm.m_collisionCategories &= ~CollisionCategories.Body;
-                        prm.m_collisionFlags &= ~(CollisionCategories.Land | CollisionCategories.Wind);
-                        d.GeomDisable(prm.prim_geom);
-                    }
-                    else
-                    {
-                        if (m_isphantom && !m_isVolumeDetect)
-                        {
-                            prm.m_collisionCategories = 0;
-                            prm.m_collisionFlags = CollisionCategories.Land;
-                        }
-                        else
-                        {
-                            prm.m_collisionCategories |= CollisionCategories.Body;
-                            prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
-                        }
-                        d.GeomEnable(prm.prim_geom);
-                    }
-
-                    if (prm.m_NoColide)
-                    {
-                        d.GeomSetCategoryBits(prm.prim_geom, 0);
-                        d.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
-                        d.GeomEnable(prm.prim_geom);
-                    }
-                    else
-                    {
-                        d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
-                        d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
-                    }
                     prm.m_collisionscore = 0;
 
                     if(!m_disabled)
@@ -1666,45 +1704,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                 createAMotor(m_angularlock);
             }
 
+            m_collisionscore = 0;
+
+            UpdateCollisionCatFlags();
+            ApplyCollisionCatFlags();
+
             if (m_isSelected || m_disabled)
             {
-                m_collisionCategories &= ~CollisionCategories.Body;
-                m_collisionFlags &= ~(CollisionCategories.Land | CollisionCategories.Wind);
-
-                d.GeomDisable(prim_geom);
                 d.BodyDisable(Body);
             }
             else
             {
-                if (m_isphantom && !m_isVolumeDetect)
-                {
-                    m_collisionCategories = 0;
-                    m_collisionFlags = CollisionCategories.Land;
-                }
-                else
-                {
-                    m_collisionCategories |= CollisionCategories.Body;
-                    m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
-                }
-
                 d.BodySetAngularVel(Body, m_rotationalVelocity.X, m_rotationalVelocity.Y, m_rotationalVelocity.Z);
                 d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
             }
 
-            if (m_NoColide)
-            {
-                d.GeomSetCategoryBits(prim_geom, 0);
-                d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
-            }
-            else
-            {
-                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-            }
-
-            m_collisionscore = 0;
-
-            m_softcolide = true;
             _parent_scene.addActivePrim(this);
             _parent_scene.addActiveGroups(this);
         }
@@ -1714,8 +1728,22 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (Body != IntPtr.Zero)
             {
                 _parent_scene.remActivePrim(this);
-                m_collisionCategories &= ~CollisionCategories.Body;
-                m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
+
+                collide_geom = IntPtr.Zero;
+
+                if (m_disabled)
+                    m_collisionCategories = 0;
+                else if (m_isSelected)
+                    m_collisionCategories = CollisionCategories.Selected;
+                else if (m_isVolumeDetect)
+                    m_collisionCategories = CollisionCategories.VolumeDtc;
+                else if (m_isphantom)
+                    m_collisionCategories = CollisionCategories.Phantom;
+                else
+                    m_collisionCategories = CollisionCategories.Geom;
+
+                m_collisionFlags = 0;
+
                 if (prim_geom != IntPtr.Zero)
                 {
                     if (m_NoColide)
@@ -1725,8 +1753,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                        d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                        d.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
+                        d.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
                     }
                     UpdateDataFromGeom();
                     d.GeomSetBody(prim_geom, IntPtr.Zero);
@@ -1740,8 +1768,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                         foreach (OdePrim prm in childrenPrim)
                         {
                             _parent_scene.remActivePrim(prm);
-                            prm.m_collisionCategories = m_collisionCategories;
-                            prm.m_collisionFlags = m_collisionFlags;
+
+                            if (prm.m_isSelected)
+                                prm.m_collisionCategories = CollisionCategories.Selected;
+                            else if (prm.m_isVolumeDetect)
+                                prm.m_collisionCategories = CollisionCategories.VolumeDtc;
+                            else if (prm.m_isphantom)
+                                prm.m_collisionCategories = CollisionCategories.Phantom;
+                            else
+                                prm.m_collisionCategories = CollisionCategories.Geom;
+
+                            prm.m_collisionFlags = 0;
+
                             if (prm.prim_geom != IntPtr.Zero)
                             {
                                 if (prm.m_NoColide)
@@ -1751,8 +1789,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 }
                                 else
                                 {
-                                    d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
-                                    d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
+                                    d.GeomSetCategoryBits(prm.prim_geom, (uint)prm.m_collisionCategories);
+                                    d.GeomSetCollideBits(prm.prim_geom, (uint)prm.m_collisionFlags);
                                 }
                                 prm.UpdateDataFromGeom();
                                 SetInStaticSpace(prm);
@@ -2292,6 +2330,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // keep using basic shape mass for now
             volume = CalculatePrimVolume();
 
+            primVolume = volume;
             primMass = m_density * volume;
 
             if (primMass <= 0)
@@ -2515,12 +2554,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomSetQuaternion(prim_geom, ref myrot);
 
                 if (!m_isphysical)
+                {
                     SetInStaticSpace(this);
-            }
-
-            if (m_isphysical && Body == IntPtr.Zero)
-            {
-                MakeBody();
+                    UpdateCollisionCatFlags();
+                    ApplyCollisionCatFlags();
+                }
+                else 
+                    MakeBody();
             }
         }
 
@@ -2602,86 +2642,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-
         private void changePhantomStatus(bool newval)
         {
             m_isphantom = newval;
 
-            if (m_isSelected)
-            {
-                m_collisionCategories = CollisionCategories.Selected;
-                m_collisionFlags = (CollisionCategories.Sensor | CollisionCategories.Space);
-            }
-            else
-            {
-                if (m_isphantom && !m_isVolumeDetect)
-                {
-                    m_collisionCategories = 0;
-                    if (m_isphysical)
-                        m_collisionFlags = CollisionCategories.Land;
-                    else
-                        m_collisionFlags = 0; // should never happen
-                }
-
-                else
-                {
-                    m_collisionCategories = CollisionCategories.Geom;
-                    if (m_isphysical)
-                        m_collisionCategories |= CollisionCategories.Body;
-
-                    m_collisionFlags = m_default_collisionFlags | CollisionCategories.Land;
-
-                    if (m_collidesWater)
-                        m_collisionFlags |= CollisionCategories.Water;
-                }
-            }
-
-            if (!childPrim)
-            {
-                foreach (OdePrim prm in childrenPrim)
-                {
-                    prm.m_collisionCategories = m_collisionCategories;
-                    prm.m_collisionFlags = m_collisionFlags;
-
-                    if (!prm.m_disabled && prm.prim_geom != IntPtr.Zero)
-                    {
-                        if (prm.m_NoColide)
-                        {
-                            d.GeomSetCategoryBits(prm.prim_geom, 0);
-                            if (m_isphysical)
-                                d.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
-                            else
-                                d.GeomSetCollideBits(prm.prim_geom, 0);
-                        }
-                        else
-                        {
-                            d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
-                            d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
-                        }
-                        if(!m_isSelected)
-                            d.GeomEnable(prm.prim_geom);
-                    }
-                }
-            }
-
-            if (!m_disabled && prim_geom != IntPtr.Zero)
-            {
-                if (m_NoColide)
-                {
-                    d.GeomSetCategoryBits(prim_geom, 0);
-                    if (m_isphysical)
-                        d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
-                    else
-                        d.GeomSetCollideBits(prim_geom, 0);
-                }
-                else
-                {
-                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-                }
-                if(!m_isSelected)
-                    d.GeomEnable(prim_geom);
-            }
+            UpdateCollisionCatFlags();
+            ApplyCollisionCatFlags();
         }
 
         private void changeSelectedStatus(bool newval)
@@ -2714,7 +2680,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_delaySelect || m_isphysical)
                 {
                     m_collisionCategories = CollisionCategories.Selected;
-                    m_collisionFlags = (CollisionCategories.Sensor | CollisionCategories.Space);
+                    m_collisionFlags = 0;
 
                     if (!childPrim)
                     {
@@ -2733,10 +2699,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 }
                                 else
                                 {
-                                    d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
-                                    d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
+                                    d.GeomSetCategoryBits(prm.prim_geom, (uint)m_collisionCategories);
+                                    d.GeomSetCollideBits(prm.prim_geom, (uint)m_collisionFlags);
                                 }
-                                d.GeomDisable(prm.prim_geom);
                             }
                             prm.m_delaySelect = false;
                         }
@@ -2748,13 +2713,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             d.GeomSetCategoryBits(prim_geom, 0);
                             d.GeomSetCollideBits(prim_geom, 0);
+                            if (collide_geom != prim_geom && collide_geom != IntPtr.Zero)
+                            {
+                                d.GeomSetCategoryBits(collide_geom, 0);
+                                d.GeomSetCollideBits(collide_geom, 0);
+                            }
+
                         }
                         else
                         {
-                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                            d.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
+                            d.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
+                            if (collide_geom != prim_geom && collide_geom != IntPtr.Zero)
+                            {
+                                d.GeomSetCategoryBits(collide_geom, (uint)m_collisionCategories);
+                                d.GeomSetCollideBits(collide_geom, (uint)m_collisionFlags);
+                            }
                         }
-                        d.GeomDisable(prim_geom);
                     }
 
                     m_delaySelect = false;
@@ -2769,75 +2744,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!childPrim && Body != IntPtr.Zero && !m_disabled)
                     d.BodyEnable(Body);
 
-                if (m_isphantom && !m_isVolumeDetect)
-                {
-                    m_collisionCategories = 0;
-                    if(m_isphysical)
-                        m_collisionFlags = CollisionCategories.Land;
-                    else
-                        m_collisionFlags = 0;
-                }
-                else
-                {
-                    m_collisionCategories = CollisionCategories.Geom;
-                    if (m_isphysical)
-                        m_collisionCategories |= CollisionCategories.Body;
-
-                    m_collisionFlags = m_default_collisionFlags | CollisionCategories.Land;
-
-                    if (m_collidesWater)
-                        m_collisionFlags |= CollisionCategories.Water;
-                }
-
-                if (!childPrim)
-                {
-                    foreach (OdePrim prm in childrenPrim)
-                    {
-                        prm.m_collisionCategories = m_collisionCategories;
-                        prm.m_collisionFlags = m_collisionFlags;
-
-                        if (!prm.m_disabled && prm.prim_geom != IntPtr.Zero)
-                        {
-                            if (prm.m_NoColide)
-                            {
-                                d.GeomSetCategoryBits(prm.prim_geom, 0);
-                                if (m_isphysical)
-                                    d.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
-                                else
-                                    d.GeomSetCollideBits(prm.prim_geom, 0);
-                            }
-                            else
-                            {
-                                d.GeomSetCategoryBits(prm.prim_geom, (int)m_collisionCategories);
-                                d.GeomSetCollideBits(prm.prim_geom, (int)m_collisionFlags);
-                            }
-                            d.GeomEnable(prm.prim_geom);
-                        }
-                        prm.m_delaySelect = false;
-                        prm.m_softcolide = true;
-                    }
-                }
-
-                if (!m_disabled && prim_geom != IntPtr.Zero)
-                {
-                    if (m_NoColide)
-                    {
-                        d.GeomSetCategoryBits(prim_geom, 0);
-                        if (m_isphysical)
-                            d.GeomSetCollideBits(prim_geom, (int)CollisionCategories.Land);
-                        else
-                            d.GeomSetCollideBits(prim_geom, 0);
-                    }
-                    else
-                    {
-                        d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                        d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-                    }
-                    d.GeomEnable(prim_geom);
-                }
+                UpdateCollisionCatFlags();
+                ApplyCollisionCatFlags();
 
                 m_delaySelect = false;
-                m_softcolide = true;
             }
 
             resetCollisionAccounting();
@@ -2890,7 +2800,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (givefakepos < 0)
                 givefakepos = 0;
             //            changeSelectedStatus();
-            m_softcolide = true;
             resetCollisionAccounting();
         }
 
@@ -2951,7 +2860,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             givefakeori--;
             if (givefakeori < 0)
                 givefakeori = 0;
-            m_softcolide = true;
             resetCollisionAccounting();
         }
 
@@ -3022,7 +2930,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (givefakeori < 0)
                 givefakeori = 0;
 
-            m_softcolide = true;
             resetCollisionAccounting();
         }
 
@@ -3111,17 +3018,25 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomSetQuaternion(prim_geom, ref myrot);
             }
 
-            if (chp)
+            if (m_isphysical)
             {
-                if (parent != null)
+                if (chp)
                 {
-                    parent.MakeBody();
+                    if (parent != null)
+                    {
+                        parent.MakeBody();
+                    }
                 }
+                else
+                        MakeBody();
             }
-            else
-                MakeBody();
 
-            m_softcolide = true;
+            else
+            {
+                UpdateCollisionCatFlags();
+                ApplyCollisionCatFlags();
+            }
+
             resetCollisionAccounting();
         }
 
@@ -3142,18 +3057,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_collidesWater = newval;
 
-            if (prim_geom != IntPtr.Zero && !m_isphantom)
-            {
-                if (m_collidesWater)
-                {
-                    m_collisionFlags |= CollisionCategories.Water;
-                }
-                else
-                {
-                    m_collisionFlags &= ~CollisionCategories.Water;
-                }
-                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-            }
+            UpdateCollisionCatFlags();
+            ApplyCollisionCatFlags();
         }
 
         private void changeSetTorque(Vector3 newtorque)
@@ -3240,6 +3145,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void changeVolumedetetion(bool newVolDtc)
         {
             m_isVolumeDetect = newVolDtc;
+            UpdateCollisionCatFlags();
+            ApplyCollisionCatFlags();
         }
 
         protected void changeBuilding(bool newbuilding)
@@ -3320,288 +3227,306 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void Move()
         {
             if (!childPrim && m_isphysical && Body != IntPtr.Zero &&
-                !m_disabled && !m_isSelected && d.BodyIsEnabled(Body) && !m_building && !m_outbounds)
+                !m_disabled && !m_isSelected && !m_building && !m_outbounds)
             //                  !m_disabled && !m_isSelected && !m_building && !m_outbounds)
             {
-//                if (!d.BodyIsEnabled(Body)) d.BodyEnable(Body); // KF add 161009
+                //                if (!d.BodyIsEnabled(Body)) d.BodyEnable(Body); // KF add 161009
 
-                float timestep = _parent_scene.ODE_STEPSIZE;
-
-                // check outside region
-                d.Vector3 lpos;
-                d.GeomCopyPosition(prim_geom, out lpos); // root position that is seem by rest of simulator
-
-                if (lpos.Z < -100 || lpos.Z > 100000f)
+                if (d.BodyIsEnabled(Body))
                 {
-                    m_outbounds = true;
+                    float timestep = _parent_scene.ODE_STEPSIZE;
 
-                    lpos.Z = Util.Clip(lpos.Z, -100f, 100000f);
-                    _acceleration.X = 0;
-                    _acceleration.Y = 0;
-                    _acceleration.Z = 0;
+                    // check outside region
+                    d.Vector3 lpos;
+                    d.GeomCopyPosition(prim_geom, out lpos); // root position that is seem by rest of simulator
 
-                    _velocity.X = 0;
-                    _velocity.Y = 0;
-                    _velocity.Z = 0;
-                    m_rotationalVelocity.X = 0;
-                    m_rotationalVelocity.Y = 0;
-                    m_rotationalVelocity.Z = 0;
-
-                    d.BodySetLinearVel(Body, 0, 0, 0); // stop it
-                    d.BodySetAngularVel(Body, 0, 0, 0); // stop it
-                    d.BodySetPosition(Body, lpos.X, lpos.Y, lpos.Z); // put it somewhere 
-                    m_lastposition = _position;
-                    m_lastorientation = _orientation;
-
-                    base.RequestPhysicsterseUpdate();
-
-                    m_throttleUpdates = false;
-                    throttleCounter = 0;
-                    _zeroFlag = true;
-
-                    disableBodySoft(); // disable it and colisions
-                    base.RaiseOutOfBounds(_position);
-                    return;
-                }
-
-                if (lpos.X < 0f)
-                {
-                    _position.X = Util.Clip(lpos.X, -2f, -0.1f);
-                    m_outbounds = true;
-                }
-                else if(lpos.X > _parent_scene.WorldExtents.X)
-                {
-                    _position.X = Util.Clip(lpos.X, _parent_scene.WorldExtents.X + 0.1f, _parent_scene.WorldExtents.X + 2f);
-                    m_outbounds = true;
-                }
-                if (lpos.Y < 0f)
-                {
-                    _position.Y = Util.Clip(lpos.Y, -2f, -0.1f);
-                    m_outbounds = true;
-                }
-                else if(lpos.Y > _parent_scene.WorldExtents.Y)
-                {
-                    _position.Y = Util.Clip(lpos.Y, _parent_scene.WorldExtents.Y + 0.1f, _parent_scene.WorldExtents.Y + 2f);
-                    m_outbounds = true;
-                }
-
-                if(m_outbounds)
-                {
-                    m_lastposition = _position;
-                    m_lastorientation = _orientation;
-
-                    d.Vector3 dtmp = d.BodyGetAngularVel(Body);
-                    m_rotationalVelocity.X = dtmp.X;
-                    m_rotationalVelocity.Y = dtmp.Y;
-                    m_rotationalVelocity.Z = dtmp.Z;
-
-                    dtmp = d.BodyGetLinearVel(Body);
-                    _velocity.X = dtmp.X;
-                    _velocity.Y = dtmp.Y;
-                    _velocity.Z = dtmp.Z;
-
-                    d.BodySetLinearVel(Body, 0, 0, 0); // stop it
-                    d.BodySetAngularVel(Body, 0, 0, 0);
-                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                    disableBodySoft(); // stop collisions
-                    base.RequestPhysicsterseUpdate();
-                    return;
-                }
-
-
-                float fx = 0;
-                float fy = 0;
-                float fz = 0;
-
-                if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
-                {
-                    // 'VEHICLES' are dealt with in ODEDynamics.cs
-                    m_vehicle.Step();
-                }
-                else
-                {
-                    float m_mass = _mass;
-
-                    //                    fz = 0f;
-                    //m_log.Info(m_collisionFlags.ToString());
-                    if (m_usePID)
+                    if (lpos.Z < -100 || lpos.Z > 100000f)
                     {
+                        m_outbounds = true;
 
-                        // If the PID Controller isn't active then we set our force
-                        // calculating base velocity to the current position
+                        lpos.Z = Util.Clip(lpos.Z, -100f, 100000f);
+                        _acceleration.X = 0;
+                        _acceleration.Y = 0;
+                        _acceleration.Z = 0;
 
-                        if ((m_PIDTau < 1) && (m_PIDTau != 0))
-                        {
-                            //PID_G = PID_G / m_PIDTau;
-                            m_PIDTau = 1;
-                        }
+                        _velocity.X = 0;
+                        _velocity.Y = 0;
+                        _velocity.Z = 0;
+                        m_rotationalVelocity.X = 0;
+                        m_rotationalVelocity.Y = 0;
+                        m_rotationalVelocity.Z = 0;
 
-                        if ((PID_G - m_PIDTau) <= 0)
-                        {
-                            PID_G = m_PIDTau + 1;
-                        }
+                        d.BodySetLinearVel(Body, 0, 0, 0); // stop it
+                        d.BodySetAngularVel(Body, 0, 0, 0); // stop it
+                        d.BodySetPosition(Body, lpos.X, lpos.Y, lpos.Z); // put it somewhere 
+                        m_lastposition = _position;
+                        m_lastorientation = _orientation;
 
-                        d.Vector3 vel = d.BodyGetLinearVel(Body);
-                        d.Vector3 pos = d.BodyGetPosition(Body);
-                        _target_velocity =
-                            new Vector3(
-                                (m_PIDTarget.X - pos.X) * ((PID_G - m_PIDTau) * timestep),
-                                (m_PIDTarget.Y - pos.Y) * ((PID_G - m_PIDTau) * timestep),
-                                (m_PIDTarget.Z - pos.Z) * ((PID_G - m_PIDTau) * timestep)
-                                );
+                        base.RequestPhysicsterseUpdate();
 
-                        //  if velocity is zero, use position control; otherwise, velocity control
+                        m_throttleUpdates = false;
+                        throttleCounter = 0;
+                        _zeroFlag = true;
 
-                        if (_target_velocity.ApproxEquals(Vector3.Zero, 0.1f))
-                        {
-                            //  keep track of where we stopped.  No more slippin' & slidin'
-
-                            // We only want to deactivate the PID Controller if we think we want to have our surrogate
-                            // react to the physics scene by moving it's position.
-                            // Avatar to Avatar collisions
-                            // Prim to avatar collisions
-
-                            //fx = (_target_velocity.X - vel.X) * (PID_D) + (_zeroPosition.X - pos.X) * (PID_P * 2);
-                            //fy = (_target_velocity.Y - vel.Y) * (PID_D) + (_zeroPosition.Y - pos.Y) * (PID_P * 2);
-                            //fz = fz + (_target_velocity.Z - vel.Z) * (PID_D) + (_zeroPosition.Z - pos.Z) * PID_P;
-                            d.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
-                            d.BodySetLinearVel(Body, 0, 0, 0);
-                            d.BodyAddForce(Body, 0, 0, fz);
-                            return;
-                        }
-                        else
-                        {
-                            _zeroFlag = false;
-
-                            // We're flying and colliding with something
-                            fx = ((_target_velocity.X) - vel.X) * (PID_D);
-                            fy = ((_target_velocity.Y) - vel.Y) * (PID_D);
-
-                            // vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
-
-                            fz = ((_target_velocity.Z - vel.Z) * (PID_D));
-                        }
-                    }        // end if (m_usePID)
-
-                    // Hover PID Controller needs to be mutually exlusive to MoveTo PID controller
-                    else if (m_useHoverPID)
-                    {
-                        //Console.WriteLine("Hover " +  Name);
-
-                        // If we're using the PID controller, then we have no gravity
-
-                        //  no lock; for now it's only called from within Simulate()
-
-                        // If the PID Controller isn't active then we set our force
-                        // calculating base velocity to the current position
-
-                        if ((m_PIDTau < 1))
-                        {
-                            PID_G = PID_G / m_PIDTau;
-                        }
-
-                        if ((PID_G - m_PIDTau) <= 0)
-                        {
-                            PID_G = m_PIDTau + 1;
-                        }
-
-                        // Where are we, and where are we headed?
-                        d.Vector3 pos = d.BodyGetPosition(Body);
-                        d.Vector3 vel = d.BodyGetLinearVel(Body);
-
-                        //    Non-Vehicles have a limited set of Hover options.
-                        // determine what our target height really is based on HoverType
-                        switch (m_PIDHoverType)
-                        {
-                            case PIDHoverType.Ground:
-                                m_groundHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
-                                m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
-                                break;
-                            case PIDHoverType.GroundAndWater:
-                                m_groundHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
-                                m_waterHeight = _parent_scene.GetWaterLevel();
-                                if (m_groundHeight > m_waterHeight)
-                                {
-                                    m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
-                                }
-                                else
-                                {
-                                    m_targetHoverHeight = m_waterHeight + m_PIDHoverHeight;
-                                }
-                                break;
-
-                        }     // end switch (m_PIDHoverType)
-
-
-                        _target_velocity =
-                            new Vector3(0.0f, 0.0f,
-                                (m_targetHoverHeight - pos.Z) * ((PID_G - m_PIDHoverTau) * timestep)
-                                );
-
-                        //  if velocity is zero, use position control; otherwise, velocity control
-
-                        if (_target_velocity.ApproxEquals(Vector3.Zero, 0.1f))
-                        {
-                            //  keep track of where we stopped.  No more slippin' & slidin'
-
-                            // We only want to deactivate the PID Controller if we think we want to have our surrogate
-                            // react to the physics scene by moving it's position.
-                            // Avatar to Avatar collisions
-                            // Prim to avatar collisions
-
-                            d.BodySetPosition(Body, pos.X, pos.Y, m_targetHoverHeight);
-                            d.BodySetLinearVel(Body, vel.X, vel.Y, 0);
-                            // ?                        d.BodyAddForce(Body, 0, 0, fz);
-                            return;
-                        }
-                        else
-                        {
-                            _zeroFlag = false;
-
-                            // We're flying and colliding with something
-                            fz = ((_target_velocity.Z - vel.Z) * (PID_D));
-                        }
+                        disableBodySoft(); // disable it and colisions
+                        base.RaiseOutOfBounds(_position);
+                        return;
                     }
+
+                    if (lpos.X < 0f)
+                    {
+                        _position.X = Util.Clip(lpos.X, -2f, -0.1f);
+                        m_outbounds = true;
+                    }
+                    else if (lpos.X > _parent_scene.WorldExtents.X)
+                    {
+                        _position.X = Util.Clip(lpos.X, _parent_scene.WorldExtents.X + 0.1f, _parent_scene.WorldExtents.X + 2f);
+                        m_outbounds = true;
+                    }
+                    if (lpos.Y < 0f)
+                    {
+                        _position.Y = Util.Clip(lpos.Y, -2f, -0.1f);
+                        m_outbounds = true;
+                    }
+                    else if (lpos.Y > _parent_scene.WorldExtents.Y)
+                    {
+                        _position.Y = Util.Clip(lpos.Y, _parent_scene.WorldExtents.Y + 0.1f, _parent_scene.WorldExtents.Y + 2f);
+                        m_outbounds = true;
+                    }
+
+                    if (m_outbounds)
+                    {
+                        m_lastposition = _position;
+                        m_lastorientation = _orientation;
+
+                        d.Vector3 dtmp = d.BodyGetAngularVel(Body);
+                        m_rotationalVelocity.X = dtmp.X;
+                        m_rotationalVelocity.Y = dtmp.Y;
+                        m_rotationalVelocity.Z = dtmp.Z;
+
+                        dtmp = d.BodyGetLinearVel(Body);
+                        _velocity.X = dtmp.X;
+                        _velocity.Y = dtmp.Y;
+                        _velocity.Z = dtmp.Z;
+
+                        d.BodySetLinearVel(Body, 0, 0, 0); // stop it
+                        d.BodySetAngularVel(Body, 0, 0, 0);
+                        d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                        disableBodySoft(); // stop collisions
+                        base.RequestPhysicsterseUpdate();
+                        return;
+                    }
+
+                    if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
+                    {
+                        // 'VEHICLES' are dealt with in ODEDynamics.cs
+                        m_vehicle.Step();
+                        return;
+                    }
+
                     else
                     {
-                        float b = (1.0f - m_buoyancy);
-                        fx = _parent_scene.gravityx * b;
-                        fy = _parent_scene.gravityy * b;
-                        fz = _parent_scene.gravityz * b;
+
+                        float fx = 0;
+                        float fy = 0;
+                        float fz = 0;
+
+                        float m_mass = _mass;
+
+                        //                    fz = 0f;
+                        //m_log.Info(m_collisionFlags.ToString());
+                        if (m_usePID)
+                        {
+
+                            // If the PID Controller isn't active then we set our force
+                            // calculating base velocity to the current position
+
+                            if ((m_PIDTau < 1) && (m_PIDTau != 0))
+                            {
+                                //PID_G = PID_G / m_PIDTau;
+                                m_PIDTau = 1;
+                            }
+
+                            if ((PID_G - m_PIDTau) <= 0)
+                            {
+                                PID_G = m_PIDTau + 1;
+                            }
+
+                            d.Vector3 vel = d.BodyGetLinearVel(Body);
+                            d.Vector3 pos = d.BodyGetPosition(Body);
+                            _target_velocity =
+                                new Vector3(
+                                    (m_PIDTarget.X - pos.X) * ((PID_G - m_PIDTau) * timestep),
+                                    (m_PIDTarget.Y - pos.Y) * ((PID_G - m_PIDTau) * timestep),
+                                    (m_PIDTarget.Z - pos.Z) * ((PID_G - m_PIDTau) * timestep)
+                                    );
+
+                            //  if velocity is zero, use position control; otherwise, velocity control
+
+                            if (_target_velocity.ApproxEquals(Vector3.Zero, 0.1f))
+                            {
+                                //  keep track of where we stopped.  No more slippin' & slidin'
+
+                                // We only want to deactivate the PID Controller if we think we want to have our surrogate
+                                // react to the physics scene by moving it's position.
+                                // Avatar to Avatar collisions
+                                // Prim to avatar collisions
+
+                                //fx = (_target_velocity.X - vel.X) * (PID_D) + (_zeroPosition.X - pos.X) * (PID_P * 2);
+                                //fy = (_target_velocity.Y - vel.Y) * (PID_D) + (_zeroPosition.Y - pos.Y) * (PID_P * 2);
+                                //fz = fz + (_target_velocity.Z - vel.Z) * (PID_D) + (_zeroPosition.Z - pos.Z) * PID_P;
+                                d.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
+                                d.BodySetLinearVel(Body, 0, 0, 0);
+                                d.BodyAddForce(Body, 0, 0, fz);
+                                return;
+                            }
+                            else
+                            {
+                                _zeroFlag = false;
+
+                                // We're flying and colliding with something
+                                fx = ((_target_velocity.X) - vel.X) * (PID_D);
+                                fy = ((_target_velocity.Y) - vel.Y) * (PID_D);
+
+                                // vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
+
+                                fz = ((_target_velocity.Z - vel.Z) * (PID_D));
+                            }
+                        }        // end if (m_usePID)
+
+                        // Hover PID Controller needs to be mutually exlusive to MoveTo PID controller
+                        else if (m_useHoverPID)
+                        {
+                            //Console.WriteLine("Hover " +  Name);
+
+                            // If we're using the PID controller, then we have no gravity
+
+                            //  no lock; for now it's only called from within Simulate()
+
+                            // If the PID Controller isn't active then we set our force
+                            // calculating base velocity to the current position
+
+                            if ((m_PIDTau < 1))
+                            {
+                                PID_G = PID_G / m_PIDTau;
+                            }
+
+                            if ((PID_G - m_PIDTau) <= 0)
+                            {
+                                PID_G = m_PIDTau + 1;
+                            }
+
+                            // Where are we, and where are we headed?
+                            d.Vector3 pos = d.BodyGetPosition(Body);
+                            d.Vector3 vel = d.BodyGetLinearVel(Body);
+
+                            //    Non-Vehicles have a limited set of Hover options.
+                            // determine what our target height really is based on HoverType
+                            switch (m_PIDHoverType)
+                            {
+                                case PIDHoverType.Ground:
+                                    m_groundHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
+                                    m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
+                                    break;
+                                case PIDHoverType.GroundAndWater:
+                                    m_groundHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
+                                    m_waterHeight = _parent_scene.GetWaterLevel();
+                                    if (m_groundHeight > m_waterHeight)
+                                    {
+                                        m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
+                                    }
+                                    else
+                                    {
+                                        m_targetHoverHeight = m_waterHeight + m_PIDHoverHeight;
+                                    }
+                                    break;
+
+                            }     // end switch (m_PIDHoverType)
+
+
+                            _target_velocity =
+                                new Vector3(0.0f, 0.0f,
+                                    (m_targetHoverHeight - pos.Z) * ((PID_G - m_PIDHoverTau) * timestep)
+                                    );
+
+                            //  if velocity is zero, use position control; otherwise, velocity control
+
+                            if (_target_velocity.ApproxEquals(Vector3.Zero, 0.1f))
+                            {
+                                //  keep track of where we stopped.  No more slippin' & slidin'
+
+                                // We only want to deactivate the PID Controller if we think we want to have our surrogate
+                                // react to the physics scene by moving it's position.
+                                // Avatar to Avatar collisions
+                                // Prim to avatar collisions
+
+                                d.BodySetPosition(Body, pos.X, pos.Y, m_targetHoverHeight);
+                                d.BodySetLinearVel(Body, vel.X, vel.Y, 0);
+                                // ?                        d.BodyAddForce(Body, 0, 0, fz);
+                                return;
+                            }
+                            else
+                            {
+                                _zeroFlag = false;
+
+                                // We're flying and colliding with something
+                                fz = ((_target_velocity.Z - vel.Z) * (PID_D));
+                            }
+                        }
+                        else
+                        {
+                            float b = (1.0f - m_buoyancy);
+                            fx = _parent_scene.gravityx * b;
+                            fy = _parent_scene.gravityy * b;
+                            fz = _parent_scene.gravityz * b;
+                        }
+
+                        fx *= m_mass;
+                        fy *= m_mass;
+                        fz *= m_mass;
+
+                        // constant force
+                        fx += m_force.X;
+                        fy += m_force.Y;
+                        fz += m_force.Z;
+
+                        fx += m_forceacc.X;
+                        fy += m_forceacc.Y;
+                        fz += m_forceacc.Z;
+
+                        m_forceacc = Vector3.Zero;
+
+                        //m_log.Info("[OBJPID]: X:" + fx.ToString() + " Y:" + fy.ToString() + " Z:" + fz.ToString());
+                        if (fx != 0 || fy != 0 || fz != 0)
+                        {
+                            d.BodyAddForce(Body, fx, fy, fz);
+                            //Console.WriteLine("AddForce " + fx + "," + fy + "," + fz);
+                        }
+
+                        Vector3 trq;
+
+                        trq = _torque;
+                        trq += m_angularForceacc;
+                        m_angularForceacc = Vector3.Zero;
+                        if (trq.X != 0 || trq.Y != 0 || trq.Z != 0)
+                        {
+                            d.BodyAddTorque(Body, trq.X, trq.Y, trq.Z);
+                        }
+
                     }
+                }
+                else // body disabled
+                {
+                    // let vehicles sleep
+                    if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
+                        return;
 
-                    fx *= m_mass;
-                    fy *= m_mass;
-                    fz *= m_mass;
+                    if (++bodydisablecontrol < 20)
+                        return;
 
-                    // constant force
-                    fx += m_force.X;
-                    fy += m_force.Y;
-                    fz += m_force.Z;
-
-                    fx += m_forceacc.X;
-                    fy += m_forceacc.Y;
-                    fz += m_forceacc.Z;
-
-                    m_forceacc = Vector3.Zero;
-
-                    //m_log.Info("[OBJPID]: X:" + fx.ToString() + " Y:" + fy.ToString() + " Z:" + fz.ToString());
-                    if (fx != 0 || fy != 0 || fz != 0)
-                    {
-                        d.BodyAddForce(Body, fx, fy, fz);
-                        //Console.WriteLine("AddForce " + fx + "," + fy + "," + fz);
-                    }
-
-                    Vector3 trq;
-
-                    trq = _torque;
-                    trq += m_angularForceacc;
-                    m_angularForceacc = Vector3.Zero;
-                    if (trq.X != 0 || trq.Y != 0 || trq.Z != 0)
-                    {
-                        d.BodyAddTorque(Body, trq.X, trq.Y, trq.Z);
-                    }
-
+                    bodydisablecontrol = 0;
+                    d.BodyEnable(Body);
+                    return;
                 }
             }
             else
