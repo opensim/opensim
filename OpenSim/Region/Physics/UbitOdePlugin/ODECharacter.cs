@@ -851,10 +851,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 float depth = terrainheight - chrminZ;
                 if (!flying)
                 {
-                    vec.Z = -vel.Z * PID_D * 1.5f + depth * PID_P * 50;
+                    vec.Z = -vel.Z * PID_D * 1.5f + depth * PID_P * 30;
                 }
                 else
-                    vec.Z = depth * PID_P * 50;
+                    vec.Z = depth * PID_P * 30;
 
                 /*
                                 Vector3 vtmp;

@@ -455,15 +455,15 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", geomDefaultDensity);
                     bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", bodyFramesAutoDisable);
-
+/*
                     bodyPIDD = physicsconfig.GetFloat("body_pid_derivative", bodyPIDD);
                     bodyPIDG = physicsconfig.GetFloat("body_pid_gain", bodyPIDG);
-
+*/
                     forceSimplePrimMeshing = physicsconfig.GetBoolean("force_simple_prim_meshing", forceSimplePrimMeshing);
                     meshSculptedPrim = physicsconfig.GetBoolean("mesh_sculpted_prim", meshSculptedPrim);
                     meshSculptLOD = physicsconfig.GetFloat("mesh_lod", meshSculptLOD);
                     MeshSculptphysicalLOD = physicsconfig.GetFloat("mesh_physical_lod", MeshSculptphysicalLOD);
-
+/*
                     if (Environment.OSVersion.Platform == PlatformID.Unix)
                     {
                         avPIDD = physicsconfig.GetFloat("av_pid_derivative_linux", avPIDD);
@@ -471,10 +471,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
+ 
                         avPIDD = physicsconfig.GetFloat("av_pid_derivative_win", avPIDD);
                         avPIDP = physicsconfig.GetFloat("av_pid_proportional_win", avPIDP);
                     }
-
+*/
                     physics_logging = physicsconfig.GetBoolean("physics_logging", false);
                     physics_logging_interval = physicsconfig.GetInt("physics_logging_interval", 0);
                     physics_logging_append_existing_logfile = physicsconfig.GetBoolean("physics_logging_append_existing_logfile", false);
