@@ -101,6 +101,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected internal Dictionary<uint, SceneObjectGroup> SceneObjectGroupsByLocalPartID = new Dictionary<uint, SceneObjectGroup>();        
 
+        /// <summary>
+        /// Lock to prevent object group update, linking and delinking operations from running concurrently.
+        /// </summary>
         private Object m_updateLock = new Object();
 
         #endregion

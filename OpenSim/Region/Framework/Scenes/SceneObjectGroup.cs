@@ -2584,6 +2584,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Link the prims in a given group to this group
         /// </summary>
+        /// <remarks>
+        /// Do not call this method directly - use Scene.LinkObjects() instead to avoid races between threads.
+        /// FIXME: There are places where scripts call these methods directly without locking.  This is a potential race condition.
+        /// </remarks>
         /// <param name="objectGroup">The group of prims which should be linked to this group</param>
         public void LinkToGroup(SceneObjectGroup objectGroup)
         {
@@ -2714,6 +2718,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// Delink the given prim from this group.  The delinked prim is established as
         /// an independent SceneObjectGroup.
         /// </summary>
+        /// <remarks>
+        /// FIXME: This method should not be called directly since it bypasses update locking, allowing a potential race
+        /// condition.  But currently there is no
+        /// alternative method that does take a lonk to delink a single prim.
+        /// </remarks>
         /// <param name="partID"></param>
         /// <returns>The object group of the newly delinked prim.  Null if part could not be found</returns>
         public SceneObjectGroup DelinkFromGroup(uint partID)
@@ -2725,6 +2734,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// Delink the given prim from this group.  The delinked prim is established as
         /// an independent SceneObjectGroup.
         /// </summary>
+        /// <remarks>
+        /// FIXME: This method should not be called directly since it bypasses update locking, allowing a potential race
+        /// condition.  But currently there is no
+        /// alternative method that does take a lonk to delink a single prim.
+        /// </remarks>
         /// <param name="partID"></param>
         /// <param name="sendEvents"></param>
         /// <returns>The object group of the newly delinked prim.  Null if part could not be found</returns>
@@ -2750,6 +2764,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// Delink the given prim from this group.  The delinked prim is established as
         /// an independent SceneObjectGroup.
         /// </summary>
+        /// <remarks>
+        /// FIXME: This method should not be called directly since it bypasses update locking, allowing a potential race
+        /// condition.  But currently there is no
+        /// alternative method that does take a lonk to delink a single prim.
+        /// </remarks>
         /// <param name="partID"></param>
         /// <param name="sendEvents"></param>
         /// <returns>The object group of the newly delinked prim.</returns>
