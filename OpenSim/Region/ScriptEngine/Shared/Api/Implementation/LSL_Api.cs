@@ -9990,7 +9990,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             // child agents have a mass of 1.0
                             return 1;
                         else
-                            return avatar.GetMass();
+                            return (double)avatar.GetMass();
                 }
                 catch (KeyNotFoundException)
                 {
@@ -12042,7 +12042,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool isAccount = false;
             bool isGroup = false;
 
-            if (!estate.IsEstateOwner(m_host.OwnerID) || !estate.IsEstateManager(m_host.OwnerID))
+            if (!estate.IsEstateOwner(m_host.OwnerID) || !estate.IsEstateManagerOrOwner(m_host.OwnerID))
                 return 0;
 
             UUID id = new UUID();

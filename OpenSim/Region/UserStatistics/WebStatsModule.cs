@@ -90,7 +90,7 @@ namespace OpenSim.Region.UserStatistics
 
                     dbConn = new SqliteConnection("URI=file:LocalUserStatistics.db,version=3");
                     dbConn.Open();
-                    CheckAndUpdateDatabase(dbConn);
+                    CreateTables(dbConn);
 
                     Prototype_distributor protodep = new Prototype_distributor();
                     Updater_distributor updatedep = new Updater_distributor();
@@ -131,7 +131,7 @@ namespace OpenSim.Region.UserStatistics
             }
         }
 
-        public void ReceiveClassicSimStatsPacket(SimStats stats)
+        private void ReceiveClassicSimStatsPacket(SimStats stats)
         {
             if (!enabled)
             {
@@ -163,7 +163,7 @@ namespace OpenSim.Region.UserStatistics
             }
         }
         
-        public Hashtable HandleUnknownCAPSRequest(Hashtable request)
+        private Hashtable HandleUnknownCAPSRequest(Hashtable request)
         {
             //string regpath = request["uri"].ToString();
             int response_code = 200;
@@ -178,7 +178,7 @@ namespace OpenSim.Region.UserStatistics
             return responsedata;
         }
 
-        public Hashtable HandleStatsRequest(Hashtable request)
+        private Hashtable HandleStatsRequest(Hashtable request)
         {
             lastHit = System.Environment.TickCount;
             Hashtable responsedata = new Hashtable();
@@ -237,35 +237,11 @@ namespace OpenSim.Region.UserStatistics
 
             return responsedata;
         }
-       
-        public void CheckAndUpdateDatabase(SqliteConnection db)
-        {
-            lock (db)
-            {
-                // TODO: FIXME: implement stats migrations
-                const string SQL = @"SELECT * FROM migrations LIMIT 1";
 
-                using (SqliteCommand cmd = new SqliteCommand(SQL, db))
-                {
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                    catch (SqliteSyntaxException)
-                    {
-                        CreateTables(db);
-                    }
-                }
-            }
-        }
-
-        public void CreateTables(SqliteConnection db)
+        private void CreateTables(SqliteConnection db)
         {
             using (SqliteCommand createcmd = new SqliteCommand(SQL_STATS_TABLE_CREATE, db))
             {
-                createcmd.ExecuteNonQuery();
-
-                createcmd.CommandText = SQL_MIGRA_TABLE_CREATE;
                 createcmd.ExecuteNonQuery();
             }
         }
@@ -301,7 +277,7 @@ namespace OpenSim.Region.UserStatistics
             get { return true; }
         }
 
-        public void OnRegisterCaps(UUID agentID, Caps caps)
+        private void OnRegisterCaps(UUID agentID, Caps caps)
         {
 //            m_log.DebugFormat("[WEB STATS MODULE]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
 
@@ -316,7 +292,7 @@ namespace OpenSim.Region.UserStatistics
                                                        }));
         }
 
-        public void OnDeRegisterCaps(UUID agentID, Caps caps)
+        private void OnDeRegisterCaps(UUID agentID, Caps caps)
         {
         }
 
@@ -336,7 +312,7 @@ namespace OpenSim.Region.UserStatistics
             }
         }
 
-        public void OnMakeRootAgent(ScenePresence agent)
+        private void OnMakeRootAgent(ScenePresence agent)
         {
             UUID regionUUID = GetRegionUUIDFromHandle(agent.RegionHandle);
 
@@ -365,11 +341,11 @@ namespace OpenSim.Region.UserStatistics
             }
         }
 
-        public void OnMakeChildAgent(ScenePresence agent)
+        private void OnMakeChildAgent(ScenePresence agent)
         {
         }
 
-        public void OnClientClosed(UUID agentID, Scene scene)
+        private void OnClientClosed(UUID agentID, Scene scene)
         {
             lock (m_sessions)
             {
@@ -380,7 +356,7 @@ namespace OpenSim.Region.UserStatistics
             }
         }
 
-        public string readLogLines(int amount)
+        private string readLogLines(int amount)
         {
             Encoding encoding = Encoding.ASCII;
             int sizeOfChar = encoding.GetByteCount("\n");
@@ -418,7 +394,7 @@ namespace OpenSim.Region.UserStatistics
             return encoding.GetString(buffer);
         }
 
-        public UUID GetRegionUUIDFromHandle(ulong regionhandle)
+        private UUID GetRegionUUIDFromHandle(ulong regionhandle)
         {
             lock (m_scenes)
             {
@@ -441,17 +417,17 @@ namespace OpenSim.Region.UserStatistics
         /// <param name="agentID"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public string ViewerStatsReport(string request, string path, string param,
+        private string ViewerStatsReport(string request, string path, string param,
                                       UUID agentID, Caps caps)
         {
 //            m_log.DebugFormat("[WEB STATS MODULE]: Received viewer starts report from {0}", agentID);
  
-            UpdateUserStats(ParseViewerStats(request,agentID), dbConn);
+            UpdateUserStats(ParseViewerStats(request, agentID), dbConn);
 
             return String.Empty;
         }
 
-        public UserSessionID ParseViewerStats(string request, UUID agentID)
+        private UserSessionID ParseViewerStats(string request, UUID agentID)
         {
             UserSessionID uid = new UserSessionID();
             UserSessionData usd;
@@ -592,14 +568,14 @@ namespace OpenSim.Region.UserStatistics
             return uid;
         }
 
-        public void UpdateUserStats(UserSessionID uid, SqliteConnection db)
+        private void UpdateUserStats(UserSessionID uid, SqliteConnection db)
         {
             if (uid.session_id == UUID.Zero)
                 return;
 
             lock (db)
             {
-                using (SqliteCommand updatecmd = new SqliteCommand(SQL_STATS_TABLE_UPDATE, db))
+                using (SqliteCommand updatecmd = new SqliteCommand(SQL_STATS_TABLE_INSERT, db))
                 {
                     updatecmd.Parameters.Add(new SqliteParameter(":session_id", uid.session_data.session_id.ToString()));
                     updatecmd.Parameters.Add(new SqliteParameter(":agent_id", uid.session_data.agent_id.ToString()));
@@ -648,44 +624,26 @@ namespace OpenSim.Region.UserStatistics
                     updatecmd.Parameters.Add(new SqliteParameter(":f_dropped", uid.session_data.f_dropped));
                     updatecmd.Parameters.Add(new SqliteParameter(":f_failed_resends", uid.session_data.f_failed_resends));
                     updatecmd.Parameters.Add(new SqliteParameter(":f_invalid", uid.session_data.f_invalid));
-    
                     updatecmd.Parameters.Add(new SqliteParameter(":f_off_circuit", uid.session_data.f_off_circuit));
                     updatecmd.Parameters.Add(new SqliteParameter(":f_resent", uid.session_data.f_resent));
                     updatecmd.Parameters.Add(new SqliteParameter(":f_send_packet", uid.session_data.f_send_packet));
-    
-                    updatecmd.Parameters.Add(new SqliteParameter(":session_key", uid.session_data.session_id.ToString()));
-                    updatecmd.Parameters.Add(new SqliteParameter(":agent_key", uid.session_data.agent_id.ToString()));
-                    updatecmd.Parameters.Add(new SqliteParameter(":region_key", uid.session_data.region_id.ToString()));
+
+//                        StringBuilder parameters = new StringBuilder();
+//                        SqliteParameterCollection spc = updatecmd.Parameters;
+//                        foreach (SqliteParameter sp in spc)
+//                            parameters.AppendFormat("{0}={1},", sp.ParameterName, sp.Value);
+//
+//                        m_log.DebugFormat("[WEB STATS MODULE]: Parameters {0}", parameters);
 
 //                    m_log.DebugFormat("[WEB STATS MODULE]: Database stats update for {0}", uid.session_data.agent_id);
 
-                    int result = updatecmd.ExecuteNonQuery();
-
-                    if (result == 0)
-                    {
-//                        m_log.DebugFormat("[WEB STATS MODULE]: Database stats insert for {0}", uid.session_data.agent_id);
-
-                        updatecmd.CommandText = SQL_STATS_TABLE_INSERT;
-
-                        try
-                        {
-                            updatecmd.ExecuteNonQuery();
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.WarnFormat(
-                                "[WEB STATS MODULE]: failed to write stats for {0}, storage Execution Exception {1}{2}",
-                                uid.session_data.agent_id, e.Message, e.StackTrace);
-                        }
-                    }
+                    updatecmd.ExecuteNonQuery();
                 }
             }
         }
 
         #region SQL
-        private const string SQL_MIGRA_TABLE_CREATE = @"create table migrations(name varchar(100), version int)";
-
-        private const string SQL_STATS_TABLE_CREATE = @"CREATE TABLE stats_session_data (
+        private const string SQL_STATS_TABLE_CREATE = @"CREATE TABLE IF NOT EXISTS stats_session_data (
                session_id VARCHAR(36) NOT NULL PRIMARY KEY,
                agent_id VARCHAR(36) NOT NULL DEFAULT '',
                region_id VARCHAR(36) NOT NULL DEFAULT '',
@@ -735,11 +693,11 @@ namespace OpenSim.Region.UserStatistics
                f_send_packet INT NOT NULL DEFAULT '0'
             );";
 
-        private const string SQL_STATS_TABLE_INSERT = @"INSERT INTO stats_session_data (
+        private const string SQL_STATS_TABLE_INSERT = @"INSERT OR REPLACE INTO stats_session_data (
 session_id, agent_id, region_id, last_updated, remote_ip, name_f, name_l, avg_agents_in_view, min_agents_in_view, max_agents_in_view, 
 mode_agents_in_view, avg_fps, min_fps, max_fps, mode_fps, a_language, mem_use, meters_traveled, avg_ping, min_ping, max_ping, mode_ping, 
 regions_visited, run_time, avg_sim_fps, min_sim_fps, max_sim_fps, mode_sim_fps, start_time, client_version, s_cpu, s_gpu, s_os, s_ram,
-d_object_kb, d_texture_kb, n_in_kb, n_in_pk, n_out_kb, n_out_pk, f_dropped, f_failed_resends, f_invalid, f_invalid, f_off_circuit,
+d_object_kb, d_texture_kb, d_world_kb, n_in_kb, n_in_pk, n_out_kb, n_out_pk, f_dropped, f_failed_resends, f_invalid, f_off_circuit,
 f_resent, f_send_packet
 )
 VALUES
@@ -747,62 +705,13 @@ VALUES
 :session_id, :agent_id, :region_id, :last_updated, :remote_ip, :name_f, :name_l, :avg_agents_in_view, :min_agents_in_view, :max_agents_in_view, 
 :mode_agents_in_view, :avg_fps, :min_fps, :max_fps, :mode_fps, :a_language, :mem_use, :meters_traveled, :avg_ping, :min_ping, :max_ping, :mode_ping, 
 :regions_visited, :run_time, :avg_sim_fps, :min_sim_fps, :max_sim_fps, :mode_sim_fps, :start_time, :client_version, :s_cpu, :s_gpu, :s_os, :s_ram,
-:d_object_kb, :d_texture_kb, :n_in_kb, :n_in_pk, :n_out_kb, :n_out_pk, :f_dropped, :f_failed_resends, :f_invalid, :f_invalid, :f_off_circuit,
+:d_object_kb, :d_texture_kb, :d_world_kb, :n_in_kb, :n_in_pk, :n_out_kb, :n_out_pk, :f_dropped, :f_failed_resends, :f_invalid, :f_off_circuit,
 :f_resent, :f_send_packet
 )
 ";
 
-        private const string SQL_STATS_TABLE_UPDATE = @"
-UPDATE stats_session_data 
-set session_id=:session_id,
-    agent_id=:agent_id,
-    region_id=:region_id,
-    last_updated=:last_updated,
-    remote_ip=:remote_ip,
-    name_f=:name_f,
-    name_l=:name_l,
-    avg_agents_in_view=:avg_agents_in_view,
-    min_agents_in_view=:min_agents_in_view,
-    max_agents_in_view=:max_agents_in_view,
-    mode_agents_in_view=:mode_agents_in_view,
-    avg_fps=:avg_fps,
-    min_fps=:min_fps,
-    max_fps=:max_fps,
-    mode_fps=:mode_fps,
-    a_language=:a_language,
-    mem_use=:mem_use,
-    meters_traveled=:meters_traveled,
-    avg_ping=:avg_ping,
-    min_ping=:min_ping,
-    max_ping=:max_ping,
-    mode_ping=:mode_ping,
-    regions_visited=:regions_visited,
-    run_time=:run_time,
-    avg_sim_fps=:avg_sim_fps,
-    min_sim_fps=:min_sim_fps,
-    max_sim_fps=:max_sim_fps,
-    mode_sim_fps=:mode_sim_fps,
-    start_time=:start_time,
-    client_version=:client_version,
-    s_cpu=:s_cpu,
-    s_gpu=:s_gpu,
-    s_os=:s_os,
-    s_ram=:s_ram,
-    d_object_kb=:d_object_kb,
-    d_texture_kb=:d_texture_kb,
-    d_world_kb=:d_world_kb,
-    n_in_kb=:n_in_kb,
-    n_in_pk=:n_in_pk,
-    n_out_kb=:n_out_kb,
-    n_out_pk=:n_out_pk,
-    f_dropped=:f_dropped,
-    f_failed_resends=:f_failed_resends,
-    f_invalid=:f_invalid,
-    f_off_circuit=:f_off_circuit,
-    f_resent=:f_resent,
-    f_send_packet=:f_send_packet
-WHERE session_id=:session_key AND agent_id=:agent_key AND region_id=:region_key";
-        #endregion
+    #endregion
+
     }
 
     public static class UserSessionUtil

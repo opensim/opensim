@@ -487,7 +487,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
 
-            if (m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar))
+            if (m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(avatar))
                 return false;
 
             if (avatar == LandData.OwnerID)
@@ -517,7 +517,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
 
-            if (m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar))
+            if (m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(avatar))
                 return false;
 
             if (avatar == LandData.OwnerID)
