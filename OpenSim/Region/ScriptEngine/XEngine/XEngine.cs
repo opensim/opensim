@@ -1021,11 +1021,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                             AppDomain sandbox;
                             if (m_AppDomainLoading)
+                            {
                                 sandbox = AppDomain.CreateDomain(
                                                 m_Scene.RegionInfo.RegionID.ToString(),
                                                 evidence, appSetup);
+                                m_AppDomains[appDomain].AssemblyResolve +=
+                                    new ResolveEventHandler(
+                                        AssemblyResolver.OnAssemblyResolve);
+                            }
                             else
+                            {
                                 sandbox = AppDomain.CurrentDomain;
+                            }
                             
                             //PolicyLevel sandboxPolicy = PolicyLevel.CreateAppDomainLevel();
                             //AllMembershipCondition sandboxMembershipCondition = new AllMembershipCondition();
@@ -1037,9 +1044,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             
                             m_AppDomains[appDomain] = sandbox;
 
-                            m_AppDomains[appDomain].AssemblyResolve +=
-                                new ResolveEventHandler(
-                                    AssemblyResolver.OnAssemblyResolve);
                             m_DomainScripts[appDomain] = new List<UUID>();
                         }
                         catch (Exception e)
