@@ -368,7 +368,7 @@ namespace OpenSim.Framework
                 if (ban.BannedUserID == avatarID)
                     return true;
 
-            if (!IsEstateManager(avatarID) && !HasAccess(avatarID))
+            if (!IsEstateManagerOrOwner(avatarID) && !HasAccess(avatarID))
             {
                 if (DenyMinors)
                 {
