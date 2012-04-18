@@ -862,12 +862,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 float depth = terrainheight - chrminZ;
                 if (!flying)
                 {
-                    vec.Z = -vel.Z * PID_D * 3f + depth * PID_P * 60;
+                    vec.Z = -vel.Z * PID_D * 1.5f + depth * PID_P * 60;
                 }
                 else
                     vec.Z = depth * PID_P * 60;
 
-                if (depth < 0.1f)
+                if (depth < 0.2f)
                 {
                     m_iscolliding = true;
                     m_colliderfilter = 2;
