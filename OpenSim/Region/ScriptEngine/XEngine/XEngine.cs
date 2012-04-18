@@ -1025,7 +1025,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                 sandbox = AppDomain.CreateDomain(
                                                 m_Scene.RegionInfo.RegionID.ToString(),
                                                 evidence, appSetup);
-                                m_AppDomains[appDomain].AssemblyResolve +=
+                                sandbox.AssemblyResolve +=
                                     new ResolveEventHandler(
                                         AssemblyResolver.OnAssemblyResolve);
                             }
