@@ -683,7 +683,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             PID_D *= m_mass / _parent_scene.ODE_STEPSIZE;
             PID_P /= 50 * 80;
             PID_P *= m_mass / _parent_scene.ODE_STEPSIZE;
-
+            
             Body = d.BodyCreate(_parent_scene.world);
 
             d.BodySetAutoDisableFlag(Body, false);
@@ -862,10 +862,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 float depth = terrainheight - chrminZ;
                 if (!flying)
                 {
-                    vec.Z = -vel.Z * PID_D * 1.5f + depth * PID_P * 30;
+                    vec.Z = -vel.Z * PID_D * 3f + depth * PID_P * 60;
                 }
                 else
-                    vec.Z = depth * PID_P * 30;
+                    vec.Z = depth * PID_P * 60;
 
                 if (depth < 0.1f)
                 {
@@ -1171,7 +1171,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         CAPSULE_LENGTH = caplen;
 
                         AvatarGeomAndBodyCreation(_position.X, _position.Y,
-                                          _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2));
+                                          _position.Z + (CAPSULE_LENGTH - prevCapsule) * 0.5f);
 
                         Velocity = Vector3.Zero;
 
