@@ -64,18 +64,19 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public virtual ITerrainChannel LoadFile(string filename, int offsetX, int offsetY, int fileWidth, int fileHeight, int w, int h)
         {
-            Bitmap bitmap = new Bitmap(filename);
-            ITerrainChannel retval = new TerrainChannel(true);
-
-            for (int x = 0; x < retval.Width; x++)
+            using (Bitmap bitmap = new Bitmap(filename))
             {
-                for (int y = 0; y < retval.Height; y++)
-                {
-                    retval[x, y] = bitmap.GetPixel(offsetX * retval.Width + x, (bitmap.Height - (retval.Height * (offsetY + 1))) + retval.Height - y - 1).GetBrightness() * 128;
-                }
-            }
+                ITerrainChannel retval = new TerrainChannel(true);
 
-            return retval;
+                for (int x = 0; x < retval.Width; x++)
+                {
+                    for (int y = 0; y < retval.Height; y++)
+                    {
+                        retval[x, y] = bitmap.GetPixel(offsetX * retval.Width + x, (bitmap.Height - (retval.Height * (offsetY + 1))) + retval.Height - y - 1).GetBrightness() * 128;
+                    }
+                }
+                return retval;
+            }
         }
 
         public virtual ITerrainChannel LoadStream(Stream stream)
