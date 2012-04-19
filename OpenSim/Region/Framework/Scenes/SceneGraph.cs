@@ -1519,8 +1519,18 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
                 {
                     // VolumeDetect can't be set via UI and will always be off when a change is made there
-                    if (PhysData.PhysShapeType == PhysShapeType.invalid)
-                        group.UpdatePrimFlags(localID, UsePhysics, SetTemporary, SetPhantom, false);
+                    // now only change volume dtc if phantom off
+
+                    if (PhysData.PhysShapeType == PhysShapeType.invalid) // check for extraPhysics data
+                    {
+                        bool vdtc;
+                        if (SetPhantom) // if phantom keep volumedtc
+                            vdtc = group.RootPart.VolumeDetectActive;
+                        else // else turn it off
+                            vdtc = false;
+
+                        group.UpdatePrimFlags(localID, UsePhysics, SetTemporary, SetPhantom, vdtc);
+                    }
                     else
                     {
                         SceneObjectPart part = GetSceneObjectPart(localID);

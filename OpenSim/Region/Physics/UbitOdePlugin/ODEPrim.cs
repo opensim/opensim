@@ -3228,17 +3228,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (!childPrim && m_isphysical && Body != IntPtr.Zero &&
                 !m_disabled && !m_isSelected && !m_building && !m_outbounds)
-            //                  !m_disabled && !m_isSelected && !m_building && !m_outbounds)
             {
-                //                if (!d.BodyIsEnabled(Body)) d.BodyEnable(Body); // KF add 161009
-
                 if (d.BodyIsEnabled(Body))
                 {
                     float timestep = _parent_scene.ODE_STEPSIZE;
 
                     // check outside region
-                    d.Vector3 lpos;
-                    d.GeomCopyPosition(prim_geom, out lpos); // root position that is seem by rest of simulator
+                    d.Vector3 lpos = d.GeomGetPosition(prim_geom); // root position that is seem by rest of simulator
 
                     if (lpos.Z < -100 || lpos.Z > 100000f)
                     {
@@ -3321,12 +3317,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         // 'VEHICLES' are dealt with in ODEDynamics.cs
                         m_vehicle.Step();
-                        return;
                     }
-
                     else
                     {
-
                         float fx = 0;
                         float fy = 0;
                         float fz = 0;
@@ -3512,10 +3505,39 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             d.BodyAddTorque(Body, trq.X, trq.Y, trq.Z);
                         }
-
                     }
+
+                    // update our ideia of velocities and acelerations
+                    d.Quaternion ori;
+                    d.Vector3 dtmpu;
+
+                    _position.X = lpos.X;
+                    _position.Y = lpos.Y;
+                    _position.Z = lpos.Z;
+
+                    d.GeomCopyQuaternion(prim_geom, out ori);
+                    _orientation.X = ori.X;
+                    _orientation.Y = ori.Y;
+                    _orientation.Z = ori.Z;
+                    _orientation.W = ori.W;
+
+                    _acceleration = _velocity;
+
+                    dtmpu = d.BodyGetLinearVel(Body);
+                    _velocity.X = dtmpu.X;
+                    _velocity.Y = dtmpu.Y;
+                    _velocity.Z = dtmpu.Z;
+
+                    float invts = 1 / timestep;
+                    _acceleration = (_velocity - _acceleration) * invts;
+
+                    dtmpu = d.BodyGetAngularVel(Body);
+                    m_rotationalVelocity.X = dtmpu.X;
+                    m_rotationalVelocity.Y = dtmpu.Y;
+                    m_rotationalVelocity.Z = dtmpu.Z;
                 }
-                else // body disabled
+
+                else // body disabled/sleeping
                 {
                     // let vehicles sleep
                     if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
@@ -3546,36 +3568,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (Body != IntPtr.Zero)
                 {
-                    Vector3 pv = Vector3.Zero;
                     bool lastZeroFlag = _zeroFlag;
 
-                    d.Vector3 lpos;
-                    d.GeomCopyPosition(prim_geom, out lpos); // root position that is seem by rest of simulator
-
-
-                    d.Quaternion ori;
-                    d.GeomCopyQuaternion(prim_geom, out ori);
-                    d.Vector3 vel = d.BodyGetLinearVel(Body);
-                    d.Vector3 rotvel = d.BodyGetAngularVel(Body);
-
-                    if ((Math.Abs(m_lastposition.X - lpos.X) < 0.01)
-                        && (Math.Abs(m_lastposition.Y - lpos.Y) < 0.01)
-                        && (Math.Abs(m_lastposition.Z - lpos.Z) < 0.01)
-                        && (Math.Abs(m_lastorientation.X - ori.X) < 0.0001)
-                        && (Math.Abs(m_lastorientation.Y - ori.Y) < 0.0001)
-                        && (Math.Abs(m_lastorientation.Z - ori.Z) < 0.0001)
+                    if ((Math.Abs(m_lastposition.X - _position.X) < 0.01)
+                        && (Math.Abs(m_lastposition.Y - _position.Y) < 0.01)
+                        && (Math.Abs(m_lastposition.Z - _position.Z) < 0.01)
+                        && (Math.Abs(m_lastorientation.X - _orientation.X) < 0.0001)
+                        && (Math.Abs(m_lastorientation.Y - _orientation.Y) < 0.0001)
+                        && (Math.Abs(m_lastorientation.Z - _orientation.Z) < 0.0001)
                         )
                     {
                         _zeroFlag = true;
-                        //Console.WriteLine("ZFT 2");
                         m_throttleUpdates = false;
                     }
                     else
                     {
-                        //m_log.Debug(Math.Abs(m_lastposition.X - l_position.X).ToString());
                         _zeroFlag = false;
                         m_lastUpdateSent = false;
-                        //m_throttleUpdates = false;
                     }
 
                     if (_zeroFlag)
@@ -3583,22 +3592,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_lastposition = _position;
                         m_lastorientation = _orientation;
 
-                        _velocity.X = 0.0f;
-                        _velocity.Y = 0.0f;
-                        _velocity.Z = 0.0f;
+                        _velocity = Vector3.Zero;
+                        _acceleration = Vector3.Zero;
+                        m_rotationalVelocity = Vector3.Zero;
 
-                        _acceleration.X = 0;
-                        _acceleration.Y = 0;
-                        _acceleration.Z = 0;
-
-                        m_rotationalVelocity.X = 0;
-                        m_rotationalVelocity.Y = 0;
-                        m_rotationalVelocity.Z = 0;
                         if (!m_lastUpdateSent)
                         {
                             m_throttleUpdates = false;
                             throttleCounter = 0;
-                            m_rotationalVelocity = pv;
 
                             base.RequestPhysicsterseUpdate();
 
@@ -3612,39 +3613,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                             base.RequestPhysicsterseUpdate();
                         }
 
-                        m_lastVelocity = _velocity;
-
-                        _position.X = lpos.X;
-                        _position.Y = lpos.Y;
-                        _position.Z = lpos.Z;
-
-                        _velocity.X = vel.X;
-                        _velocity.Y = vel.Y;
-                        _velocity.Z = vel.Z;
-
-                        _orientation.X = ori.X;
-                        _orientation.Y = ori.Y;
-                        _orientation.Z = ori.Z;
-                        _orientation.W = ori.W;
-
-                        _acceleration = ((_velocity - m_lastVelocity) / simulatedtime);
-
-                        if (m_rotationalVelocity.ApproxEquals(pv, 0.0001f))
-                        {
-                            m_rotationalVelocity = pv;
-                        }
-                        else
-                        {
-                            m_rotationalVelocity.X = rotvel.X;
-                            m_rotationalVelocity.Y = rotvel.Y;
-                            m_rotationalVelocity.Z = rotvel.Z;
-                        }
-
                         m_lastUpdateSent = false;
                         if (!m_throttleUpdates || throttleCounter > _parent_scene.geomUpdatesPerThrottledUpdate)
                         {
                             m_lastposition = _position;
                             m_lastorientation = _orientation;
+                            m_lastVelocity = _velocity;
                             base.RequestPhysicsterseUpdate();
                         }
                         else
@@ -3656,17 +3630,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else if (!m_lastUpdateSent || !_zeroFlag)
                 {
                     // Not a body..   so Make sure the client isn't interpolating
-                    _velocity.X = 0;
-                    _velocity.Y = 0;
-                    _velocity.Z = 0;
+                    _velocity = Vector3.Zero;
+                    _acceleration = Vector3.Zero;
+                    m_rotationalVelocity = Vector3.Zero;
+                    m_lastVelocity = Vector3.Zero;
 
-                    _acceleration.X = 0;
-                    _acceleration.Y = 0;
-                    _acceleration.Z = 0;
-
-                    m_rotationalVelocity.X = 0;
-                    m_rotationalVelocity.Y = 0;
-                    m_rotationalVelocity.Z = 0;
                     _zeroFlag = true;
 
                     if (!m_lastUpdateSent)

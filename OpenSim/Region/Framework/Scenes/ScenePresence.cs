@@ -1076,6 +1076,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TeleportWithMomentum(Vector3 pos)
         {
+            TeleportWithMomentum(pos, null);
+        }
+
+        public void TeleportWithMomentum(Vector3 pos, Vector3? v)
+        {
             bool isFlying = Flying;
             Vector3 vel = Velocity;
             RemoveFromPhysicalScene();
@@ -1083,7 +1088,12 @@ namespace OpenSim.Region.Framework.Scenes
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
             if (PhysicsActor != null)
-                PhysicsActor.SetMomentum(vel);
+            {
+                if (v.HasValue)
+                    PhysicsActor.SetMomentum((Vector3)v);
+                else
+                    PhysicsActor.SetMomentum(vel);
+            }
 
             SendTerseUpdateToAllClients();
         }
