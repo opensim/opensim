@@ -323,9 +323,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             {
                 NPCAvatar av;
                 if (m_avatars.TryGetValue(npcID, out av))
+                {
+                    if (npcID == callerID)
+                        return true;
                     return CheckPermissions(av, callerID);
+                }
                 else
+                {
                     return false;
+                }
             }
         }
 
@@ -337,7 +343,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         /// <returns>true if they do, false if they don't.</returns>
         private bool CheckPermissions(NPCAvatar av, UUID callerID)
         {
-            return callerID == UUID.Zero || av.OwnerID == UUID.Zero || av.OwnerID == callerID;
+            return callerID == UUID.Zero || av.OwnerID == UUID.Zero || av.OwnerID == callerID || av.AgentId == callerID;
         }
     }
 }

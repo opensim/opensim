@@ -1941,6 +1941,12 @@ namespace OpenSim.Region.Framework.Scenes
 //                            "[SCENE]: Storing {0}, {1} in {2}",
 //                            Name, UUID, m_scene.RegionInfo.RegionName);
 
+                        if (RootPart.Shape.PCode == 9 && RootPart.Shape.State != 0)
+                        {
+                            RootPart.Shape.State = 0;
+                            ScheduleGroupForFullUpdate();
+                        }
+
                         SceneObjectGroup backup_group = Copy(false);
                         backup_group.RootPart.Velocity = RootPart.Velocity;
                         backup_group.RootPart.Acceleration = RootPart.Acceleration;
