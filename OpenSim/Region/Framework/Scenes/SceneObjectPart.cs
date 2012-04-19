@@ -1830,7 +1830,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 		public void ApplyPhysics(uint _ObjectFlags, bool _VolumeDetectActive, bool building)
         {
-            VolumeDetectActive = _VolumeDetectActive; //?? as is used this is redundante
+            VolumeDetectActive = _VolumeDetectActive;
 
             if (!ParentGroup.Scene.CollidablePrims)
                 return;
@@ -1839,7 +1839,10 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             bool isPhysical = (_ObjectFlags & (uint) PrimFlags.Physics) != 0;
-            bool isPhantom = (_ObjectFlags & (uint) PrimFlags.Phantom) != 0;
+            bool isPhantom = (_ObjectFlags & (uint)PrimFlags.Phantom) != 0;
+
+            if (_VolumeDetectActive)
+                isPhantom = true;
 
             if (IsJoint())
             {
@@ -2065,6 +2068,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Do a physics propery update for this part.
+        /// now also updates phantom and volume detector
         /// </summary>
         /// <param name="UsePhysics"></param>
         /// <param name="isNew"></param>
@@ -2096,7 +2100,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 if (ParentGroup.RootPart == this)
                                     AngularVelocity = new Vector3(0, 0, 0);
 
-                                if (pa.Phantom)
+                                if (pa.Phantom && !VolumeDetectActive)
                                 {
                                     RemoveFromPhysics();
                                     return;
@@ -2143,6 +2147,14 @@ namespace OpenSim.Region.Framework.Scenes
                     if (pa.Phantom != phan)
                         pa.Phantom = phan;
 
+// some engines dont' have this check still
+//                    if (VolumeDetectActive != pa.IsVolumeDtc)
+                    {
+                        if (VolumeDetectActive)
+                            pa.SetVolumeDetect(1);
+                        else
+                            pa.SetVolumeDetect(0);
+                    }
 
                     // If this part is a sculpt then delay the physics update until we've asynchronously loaded the
                     // mesh data.
@@ -4599,6 +4611,12 @@ namespace OpenSim.Region.Framework.Scenes
             if ((UsePhysics == wasUsingPhysics) && (wasTemporary == SetTemporary) && (wasPhantom == SetPhantom) && (SetVD == wasVD))
                 return;
 
+            VolumeDetectActive = SetVD;
+
+            // volume detector implies phantom
+            if (VolumeDetectActive)
+                SetPhantom = true;
+
             if (UsePhysics)
                 AddFlag(PrimFlags.Physics);
             else
@@ -4614,7 +4632,6 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 RemFlag(PrimFlags.TemporaryOnRez);
 
-            VolumeDetectActive = SetVD;
 
             if (ParentGroup.Scene == null)
                 return;
@@ -4624,7 +4641,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (pa != null && building && pa.Building != building)
                 pa.Building = building;
 
-            if ((SetPhantom && !UsePhysics) ||  ParentGroup.IsAttachment || PhysicsShapeType == (byte)PhysShapeType.none
+            if ((SetPhantom && !UsePhysics && !SetVD) ||  ParentGroup.IsAttachment || PhysicsShapeType == (byte)PhysShapeType.none
                 || (Shape.PathCurve == (byte)Extrusion.Flexible))
             {
                 if (pa != null)
@@ -4669,12 +4686,12 @@ namespace OpenSim.Region.Framework.Scenes
                     else // it already has a physical representation
                     {
                         DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status.
-
-                        if(VolumeDetectActive)
-                            pa.SetVolumeDetect(1);
-                        else
-                            pa.SetVolumeDetect(0);
-
+                        /* moved into DoPhysicsPropertyUpdate
+                                                if(VolumeDetectActive)
+                                                    pa.SetVolumeDetect(1);
+                                                else
+                                                    pa.SetVolumeDetect(0);
+                        */
                         if (pa.Building != building)
                             pa.Building = building;
                     }
