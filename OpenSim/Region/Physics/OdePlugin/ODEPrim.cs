@@ -156,7 +156,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         public IntPtr m_targetSpace = IntPtr.Zero;
 
+        /// <summary>
+        /// The prim geometry, used for collision detection.
+        /// </summary>
+        /// <remarks>
+        /// This is never null except for a brief period when the geometry needs to be replaced (due to resizing or
+        /// mesh change) or when the physical prim is being removed from the scene.
+        /// </remarks>
         public IntPtr prim_geom { get; private set; }
+
         public IntPtr _triMeshData { get; private set; }
 
         private IntPtr _linkJointGroup = IntPtr.Zero;
@@ -325,14 +333,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             prim_geom = geom;
 //Console.WriteLine("SetGeom to " + prim_geom + " for " + Name);
-            if (prim_geom != IntPtr.Zero)
-            {
-                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
 
-                _parent_scene.geom_name_map[prim_geom] = Name;
-                _parent_scene.actor_name_map[prim_geom] = this;
-            }
+            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+
+            _parent_scene.geom_name_map[prim_geom] = Name;
 
             if (childPrim)
             {
@@ -765,11 +770,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_collisionCategories &= ~CollisionCategories.Body;
                         m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
 
-                        if (prim_geom != IntPtr.Zero)
-                        {
-                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-                        }
+                        d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                        d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
 
                         d.BodyDestroy(Body);
                         lock (childrenPrim)
@@ -793,11 +795,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_collisionCategories &= ~CollisionCategories.Body;
                     m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
 
-                    if (prim_geom != IntPtr.Zero)
-                    {
-                        d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                        d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-                    }
+                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
 
                     Body = IntPtr.Zero;
                 }
@@ -864,10 +863,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //            _parent_scene.waitForSpaceUnlock(m_targetSpace);
             try
             {
-                if (prim_geom == IntPtr.Zero)
-                {
-                    SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
-                }
+                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
             }
             catch (AccessViolationException)
             {
@@ -890,73 +886,67 @@ namespace OpenSim.Region.Physics.OdePlugin
 #if SPAM
 Console.WriteLine("ZProcessTaints for " + Name);
 #endif
+
+            // This must be processed as the very first taint so that later operations have a prim_geom to work with
+            // if this is a new prim.
             if (m_taintadd)
-            {
                 changeadd();
-            }
-            
-            if (prim_geom != IntPtr.Zero)
-            {
-                 if (!_position.ApproxEquals(m_taintposition, 0f))
-                     changemove();
 
-                 if (m_taintrot != _orientation)
-                 {
-                    if (childPrim && IsPhysical)    // For physical child prim...
-                    {
-                        rotate();
-                        // KF: ODE will also rotate the parent prim!
-                        // so rotate the root back to where it was
-                        OdePrim parent = (OdePrim)_parent;
-                        parent.rotate();
-                    }
-                    else
-                    {
-                        //Just rotate the prim
-                        rotate();
-                    }
+            if (!_position.ApproxEquals(m_taintposition, 0f))
+                 changemove();
+
+            if (m_taintrot != _orientation)
+            {
+                if (childPrim && IsPhysical)    // For physical child prim...
+                {
+                    rotate();
+                    // KF: ODE will also rotate the parent prim!
+                    // so rotate the root back to where it was
+                    OdePrim parent = (OdePrim)_parent;
+                    parent.rotate();
                 }
-            
-                if (m_taintPhysics != IsPhysical && !(m_taintparent != _parent))
-                    changePhysicsStatus();
-
-                if (!_size.ApproxEquals(m_taintsize, 0f))
-                    changesize();
-
-                if (m_taintshape)
-                    changeshape();
-
-                if (m_taintforce)
-                    changeAddForce();
-
-                if (m_taintaddangularforce)
-                    changeAddAngularForce();
-
-                if (!m_taintTorque.ApproxEquals(Vector3.Zero, 0.001f))
-                    changeSetTorque();
-
-                if (m_taintdisable)
-                    changedisable();
-
-                if (m_taintselected != m_isSelected)
-                    changeSelectedStatus();
-
-                if (!m_taintVelocity.ApproxEquals(Vector3.Zero, 0.001f))
-                    changevelocity();
-
-                if (m_taintparent != _parent)
-                    changelink();
-
-                if (m_taintCollidesWater != m_collidesWater)
-                    changefloatonwater();
-
-                if (!m_angularlock.ApproxEquals(m_taintAngularLock,0f))
-                    changeAngularLock();
+                else
+                {
+                    //Just rotate the prim
+                    rotate();
+                }
             }
-            else
-            {
-                m_log.ErrorFormat("[PHYSICS]: The scene reused a disposed PhysActor for {0}! *waves finger*, Don't be evil.  A couple of things can cause this.   An improper prim breakdown(be sure to set prim_geom to zero after d.GeomDestroy!   An improper buildup (creating the geom failed).   Or, the Scene Reused a physics actor after disposing it.)", Name);
-            }
+        
+            if (m_taintPhysics != IsPhysical && !(m_taintparent != _parent))
+                changePhysicsStatus();
+
+            if (!_size.ApproxEquals(m_taintsize, 0f))
+                changesize();
+
+            if (m_taintshape)
+                changeshape();
+
+            if (m_taintforce)
+                changeAddForce();
+
+            if (m_taintaddangularforce)
+                changeAddAngularForce();
+
+            if (!m_taintTorque.ApproxEquals(Vector3.Zero, 0.001f))
+                changeSetTorque();
+
+            if (m_taintdisable)
+                changedisable();
+
+            if (m_taintselected != m_isSelected)
+                changeSelectedStatus();
+
+            if (!m_taintVelocity.ApproxEquals(Vector3.Zero, 0.001f))
+                changevelocity();
+
+            if (m_taintparent != _parent)
+                changelink();
+
+            if (m_taintCollidesWater != m_collidesWater)
+                changefloatonwater();
+
+            if (!m_angularlock.ApproxEquals(m_taintAngularLock,0f))
+                changeAngularLock();
         }
 
         /// <summary>
@@ -1093,17 +1083,9 @@ Console.WriteLine("ZProcessTaints for " + Name);
                                 prm.m_collisionCategories |= CollisionCategories.Body;
                                 prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
-                                if (prm.prim_geom == IntPtr.Zero)
-                                {
-                                    m_log.WarnFormat(
-                                        "[PHYSICS]: Unable to link one of the linkset elements {0} for parent {1}.  No geom yet", 
-                                        prm.Name, prim.Name);
-                                    continue;
-                                }
 //Console.WriteLine(" GeomSetCategoryBits 1: " + prm.prim_geom + " - " + (int)prm.m_collisionCategories + " for " + Name);
                                 d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
                                 d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
-
 
                                 d.Quaternion quat = new d.Quaternion();
                                 quat.W = prm._orientation.W;
@@ -1303,11 +1285,8 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     disableBodySoft();
                 }
 
-                if (prim_geom != IntPtr.Zero)
-                {
-                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-                }
+                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
 
                 if (IsPhysical)
                 {
@@ -1328,11 +1307,8 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 if (m_collidesWater)
                     m_collisionFlags |= CollisionCategories.Water;
 
-                if (prim_geom != IntPtr.Zero)
-                {
-                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-                }
+                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
 
                 if (IsPhysical)
                 {
@@ -1472,6 +1448,9 @@ Console.WriteLine("CreateGeom:");
             }
             else
             {
+                m_log.WarnFormat(
+                    "[ODE PRIM]: Called RemoveGeom() on {0} {1} where geometry was already null.", Name, LocalID);
+
                 return false;
             }
         }
@@ -1505,16 +1484,13 @@ Console.WriteLine("changeadd 1");
 #endif
             CreateGeom(m_targetSpace, mesh);
 
-            if (prim_geom != IntPtr.Zero)
-            {
-                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                d.Quaternion myrot = new d.Quaternion();
-                myrot.X = _orientation.X;
-                myrot.Y = _orientation.Y;
-                myrot.Z = _orientation.Z;
-                myrot.W = _orientation.W;
-                d.GeomSetQuaternion(prim_geom, ref myrot);
-            }
+            d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+            d.Quaternion myrot = new d.Quaternion();
+            myrot.X = _orientation.X;
+            myrot.Y = _orientation.Y;
+            myrot.Z = _orientation.Z;
+            myrot.W = _orientation.W;
+            d.GeomSetQuaternion(prim_geom, ref myrot);
 
             if (IsPhysical && Body == IntPtr.Zero)
                 enableBody();
@@ -1588,13 +1564,11 @@ Console.WriteLine(" JointCreateFixed");
             m_targetSpace = tempspace;
 
 //                _parent_scene.waitForSpaceUnlock(m_targetSpace);
-            if (prim_geom != IntPtr.Zero)
-            {
-                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+
+            d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
 
 //                    _parent_scene.waitForSpaceUnlock(m_targetSpace);
-                d.SpaceAdd(m_targetSpace, prim_geom);
-            }
+            d.SpaceAdd(m_targetSpace, prim_geom);
 
             changeSelectedStatus();
 
@@ -2045,18 +2019,16 @@ Console.WriteLine(" JointCreateFixed");
         {
             m_collidesWater = m_taintCollidesWater;
 
-            if (prim_geom != IntPtr.Zero)
+            if (m_collidesWater)
             {
-                if (m_collidesWater)
-                {
-                    m_collisionFlags |= CollisionCategories.Water;
-                }
-                else
-                {
-                    m_collisionFlags &= ~CollisionCategories.Water;
-                }
-                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                m_collisionFlags |= CollisionCategories.Water;
             }
+            else
+            {
+                m_collisionFlags &= ~CollisionCategories.Water;
+            }
+
+            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
         }
 
         /// <summary>
