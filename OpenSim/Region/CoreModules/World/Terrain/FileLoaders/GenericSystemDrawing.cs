@@ -139,8 +139,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             string tempName = Path.GetTempFileName();
 
             Bitmap existingBitmap = null;
-            Bitmap thisBitmap;
-            Bitmap newBitmap;
+            Bitmap thisBitmap = null;
+            Bitmap newBitmap = null;
 
             try
             {
@@ -176,8 +176,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                 if (existingBitmap != null)
                     existingBitmap.Dispose();
 
-                thisBitmap.Dispose();
-                newBitmap.Dispose();
+                if (thisBitmap != null)
+                    thisBitmap.Dispose();
+
+                if (newBitmap != null)
+                    newBitmap.Dispose();
 
                 if (File.Exists(tempName))
                     File.Delete(tempName);
