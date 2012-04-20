@@ -1579,23 +1579,21 @@ Console.WriteLine(" JointCreateFixed");
                     //m_log.Debug("[BUG]: race!");
                 //}
             }
-            else
+
+            // string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
+            // int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
+//          _parent_scene.waitForSpaceUnlock(m_targetSpace);
+
+            IntPtr tempspace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
+            m_targetSpace = tempspace;
+
+//                _parent_scene.waitForSpaceUnlock(m_targetSpace);
+            if (prim_geom != IntPtr.Zero)
             {
-                // string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
-                // int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
-//                _parent_scene.waitForSpaceUnlock(m_targetSpace);
-
-                IntPtr tempspace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
-                m_targetSpace = tempspace;
-
-//                _parent_scene.waitForSpaceUnlock(m_targetSpace);
-                if (prim_geom != IntPtr.Zero)
-                {
-                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
 
 //                    _parent_scene.waitForSpaceUnlock(m_targetSpace);
-                    d.SpaceAdd(m_targetSpace, prim_geom);
-                }
+                d.SpaceAdd(m_targetSpace, prim_geom);
             }
 
             changeSelectedStatus();
