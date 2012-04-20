@@ -154,7 +154,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
             UUID mapTile = m_HGMapImage;
             string filename = string.Empty;
-            Bitmap bitmap = null;
+
             try
             {
                 WebClient c = new WebClient();
@@ -167,11 +167,18 @@ namespace OpenSim.Services.Connectors.Hypergrid
                     c.DownloadFile(imageURL, filename);
                 }
                 else
+                {
                     m_log.DebugFormat("[GATEKEEPER SERVICE CONNECTOR]: using cached image");
+                }
 
-                bitmap = new Bitmap(filename);
-                //m_log.Debug("Size: " + m.PhysicalDimension.Height + "-" + m.PhysicalDimension.Width);
-                byte[] imageData = OpenJPEG.EncodeFromImage(bitmap, true);
+                byte[] imageData = null;
+
+                using (Bitmap bitmap = new Bitmap(filename))
+                {
+                    //m_log.Debug("Size: " + m.PhysicalDimension.Height + "-" + m.PhysicalDimension.Width);
+                    imageData = OpenJPEG.EncodeFromImage(bitmap, true);
+                }
+                
                 AssetBase ass = new AssetBase(UUID.Random(), "region " + name, (sbyte)AssetType.Texture, regionID.ToString());
 
                 // !!! for now
