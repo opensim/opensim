@@ -62,5 +62,25 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));            
         }
+
+        [Test]
+        public void TestSetPhysics()
+        {
+            TestHelpers.InMethod();
+
+//            Scene scene = SceneSetupHelpers.SetupScene();
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, UUID.Zero);
+            SceneObjectPart rootPart = so.RootPart;
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
+
+            so.ScriptSetPhysicsStatus(true);
+
+//            Console.WriteLine("so.RootPart.Flags [{0}]", so.RootPart.Flags);
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.Physics));
+
+            so.ScriptSetPhysicsStatus(false);
+
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));            
+        }
     }
 }
