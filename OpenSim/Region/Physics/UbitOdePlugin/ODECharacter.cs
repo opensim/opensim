@@ -862,12 +862,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 float depth = terrainheight - chrminZ;
                 if (!flying)
                 {
-                    vec.Z = -vel.Z * PID_D * 1.5f + depth * PID_P * 60;
+                    vec.Z = -vel.Z * PID_D * 1.5f + depth * PID_P * 50;
                 }
                 else
-                    vec.Z = depth * PID_P * 60;
+                    vec.Z = depth * PID_P * 50;
 
-                if (depth < 0.2f)
+                if (depth < 0.1f)
                 {
                     m_iscolliding = true;
                     m_colliderfilter = 2;
@@ -1009,9 +1009,17 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // update our local ideia of position velocity and aceleration
             _position = localpos;
-            _acceleration = _velocity; // previus velocity
-            _velocity = vel;
-            _acceleration = (vel - _acceleration) / timeStep;
+            if (_zeroFlag)
+            {
+                _velocity = Vector3.Zero;
+                _acceleration = Vector3.Zero;
+            }
+            else
+            {
+                _acceleration = _velocity; // previus velocity
+                _velocity = vel;
+                _acceleration = (vel - _acceleration) / timeStep;
+            }
           
         }
 
