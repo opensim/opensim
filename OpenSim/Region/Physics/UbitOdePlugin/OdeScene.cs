@@ -2007,7 +2007,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else // out world use external height
                 {
-                    ix = regsize - 1;
+                    ix = regsize - 2;
                     dx = 0;
                 }
                 if (y < regsize - 1)
@@ -2017,7 +2017,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    iy = regsize - 1;
+                    iy = regsize - 2;
                     dy = 0;
                 }
             }
@@ -2034,7 +2034,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else // out world use external height
                 {
-                    iy = regsize - 1;
+                    iy = regsize - 2;
                     dy = 0;
                 }
                 if (y < regsize - 1)
@@ -2044,7 +2044,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    ix = regsize - 1;
+                    ix = regsize - 2;
                     dx = 0;
                 }
             }
@@ -2057,18 +2057,35 @@ namespace OpenSim.Region.Physics.OdePlugin
             iy += ix; // all indexes have iy + ix
 
             float[] heights = TerrainHeightFieldHeights[heightFieldGeom];
+            /*
+                        if ((dx + dy) <= 1.0f)
+                        {
+                            h0 = ((float)heights[iy]); // 0,0 vertice
+                            h1 = (((float)heights[iy + 1]) - h0) * dx; // 1,0 vertice minus 0,0
+                            h2 = (((float)heights[iy + regsize]) - h0) * dy; // 0,1 vertice minus 0,0
+                        }
+                        else
+                        {
+                            h0 = ((float)heights[iy + regsize + 1]); // 1,1 vertice
+                            h1 = (((float)heights[iy + 1]) - h0) * (1 - dy); // 1,1 vertice minus 1,0
+                            h2 = (((float)heights[iy + regsize]) - h0) * (1 - dx); // 1,1 vertice minus 0,1
+                        }
+            */
+            h0 = ((float)heights[iy]); // 0,0 vertice
 
-            if ((dx + dy) <= 1.0f)
+            if ((dy > dx))
             {
-                h0 = ((float)heights[iy]); // 0,0 vertice
-                h1 = (((float)heights[iy + 1]) - h0) * dx; // 1,0 vertice minus 0,0
-                h2 = (((float)heights[iy + regsize]) - h0) * dy; // 0,1 vertice minus 0,0
+                iy += regsize;
+                h2 = (float)heights[iy]; // 0,1 vertice
+                h1 = (h2 - h0) * dy; // 0,1 vertice minus 0,0
+                h2 = ((float)heights[iy + 1] - h2) * dx; // 1,1 vertice minus 0,1
             }
             else
             {
-                h0 = ((float)heights[iy + regsize + 1]); // 1,1 vertice
-                h1 = (((float)heights[iy + 1]) - h0) * (1 - dy); // 1,1 vertice minus 1,0
-                h2 = (((float)heights[iy + regsize]) - h0) * (1 - dx); // 1,1 vertice minus 0,1
+                iy++;
+                h2 = (float)heights[iy]; // vertice 1,0
+                h1 = (h2 - h0) * dx; // 1,0 vertice minus 0,0
+                h2 = (((float)heights[iy + regsize]) - h2) * dy; // 1,1 vertice minus 1,0
             }
 
             return h0 + h1 + h2;
