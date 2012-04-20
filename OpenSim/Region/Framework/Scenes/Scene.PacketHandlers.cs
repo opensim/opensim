@@ -129,27 +129,47 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
         {
+            /*
+                        SceneObjectPart part = GetSceneObjectPart(primLocalID);
+
+                        if (null == part)
+                            return;
+
+                        if (part.IsRoot)
+                        {
+                            SceneObjectGroup sog = part.ParentGroup;
+                            sog.SendPropertiesToClient(remoteClient);
+
+                            // A prim is only tainted if it's allowed to be edited by the person clicking it.
+                            if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
+                                || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
+                            {
+                                sog.IsSelected = true;
+                                EventManager.TriggerParcelPrimCountTainted();
+                            }
+                        }
+                        else
+                        {
+                             part.SendPropertiesToClient(remoteClient);
+                        }
+             */
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
 
             if (null == part)
                 return;
 
-            if (part.IsRoot)
-            {
-                SceneObjectGroup sog = part.ParentGroup;
-                sog.SendPropertiesToClient(remoteClient);
+            SceneObjectGroup sog = part.ParentGroup;
+            if (sog == null)
+                return;
 
-                // A prim is only tainted if it's allowed to be edited by the person clicking it.
-                if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
-                    || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
-                {
-                    sog.IsSelected = true;
-                    EventManager.TriggerParcelPrimCountTainted();
-                }
-            }
-            else
+            part.SendPropertiesToClient(remoteClient);
+
+            // A prim is only tainted if it's allowed to be edited by the person clicking it.
+            if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
+                || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
             {
-                 part.SendPropertiesToClient(remoteClient);
+                part.IsSelected = true;
+                EventManager.TriggerParcelPrimCountTainted();
             }
         }
 
@@ -202,7 +222,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
             if (part == null)
                 return;
-            
+ /*           
             // A deselect packet contains all the local prims being deselected.  However, since selection is still
             // group based we only want the root prim to trigger a full update - otherwise on objects with many prims
             // we end up sending many duplicate ObjectUpdates
@@ -237,6 +257,22 @@ namespace OpenSim.Region.Framework.Scenes
                         part.UUID, remoteClient.AgentId))
                     EventManager.TriggerParcelPrimCountTainted();
             }
+  */
+
+            bool oldgprSelect = part.ParentGroup.IsSelected;
+
+            // This is wrong, wrong, wrong. Selection should not be
+            // handled by group, but by prim. Legacy cruft.
+            // TODO: Make selection flagging per prim!
+            //
+            if (Permissions.CanEditObject(part.ParentGroup.UUID, remoteClient.AgentId)
+                || Permissions.CanMoveObject(part.ParentGroup.UUID, remoteClient.AgentId))
+            {
+                part.IsSelected = false;
+                if (!part.ParentGroup.IsAttachment && oldgprSelect != part.ParentGroup.IsSelected)
+                    EventManager.TriggerParcelPrimCountTainted();
+            }
+
         }
 
         public virtual void ProcessMoneyTransferRequest(UUID source, UUID destination, int amount, 

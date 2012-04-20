@@ -304,6 +304,9 @@ namespace OpenSim.Region.Framework.Scenes
         protected float m_friction = 0.6f; // wood
         protected float m_bounce = 0.5f; // wood
 
+
+        protected bool m_isSelected = false;
+
         /// <summary>
         /// Stores media texture data
         /// </summary>
@@ -577,6 +580,16 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public bool IsSelected
+        {
+            get { return m_isSelected; }
+            set
+            {
+                m_isSelected = value;
+                if (ParentGroup != null)
+                    ParentGroup.PartSelectChanged(value);
+            }
+        }
         
         
         public Dictionary<int, string> CollisionFilter
@@ -1907,6 +1920,7 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.m_rezzed = m_rezzed;
 
             dupe.m_UndoRedo = null;
+            dupe.m_isSelected = false;
 
             dupe.IgnoreUndoUpdate = false;
             dupe.Undoing = false;
