@@ -151,11 +151,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             Scene scene = (Scene)(client.Scene);
             ScenePresence presence = scene.GetScenePresence(client.AgentId);
 
+            // Round up Z co-ordinate rather than round-down by casting.  This stops tall avatars from being given
+            // a teleport Z co-ordinate by short avatars that drops them through or embeds them in thin floors on
+            // arrival.
+            //
+            // Ideally we would give the exact float position adjusting for the relative height of the two avatars
+            // but it looks like a float component isn't possible with a parcel ID.
             UUID dest = Util.BuildFakeParcelID(
                     scene.RegionInfo.RegionHandle,
                     (uint)presence.AbsolutePosition.X,
                     (uint)presence.AbsolutePosition.Y,
-                    (uint)presence.AbsolutePosition.Z);
+                    (uint)Math.Ceiling(presence.AbsolutePosition.Z));
 
             m_log.DebugFormat("TP invite with message {0}", message);
 
