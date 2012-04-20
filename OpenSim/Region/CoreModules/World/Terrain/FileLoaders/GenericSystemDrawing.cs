@@ -59,7 +59,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         /// <returns>A terrain channel generated from the image.</returns>
         public virtual ITerrainChannel LoadFile(string filename)
         {
-            return LoadBitmap(new Bitmap(filename));
+            using (Bitmap b = new Bitmap(filename))
+                return LoadBitmap(b);
         }
 
         public virtual ITerrainChannel LoadFile(string filename, int offsetX, int offsetY, int fileWidth, int fileHeight, int w, int h)
@@ -75,13 +76,15 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                         retval[x, y] = bitmap.GetPixel(offsetX * retval.Width + x, (bitmap.Height - (retval.Height * (offsetY + 1))) + retval.Height - y - 1).GetBrightness() * 128;
                     }
                 }
+
                 return retval;
             }
         }
 
         public virtual ITerrainChannel LoadStream(Stream stream)
         {
-            return LoadBitmap(new Bitmap(stream));
+            using (Bitmap b = new Bitmap(stream))
+                return LoadBitmap(b);
         }
 
         protected virtual ITerrainChannel LoadBitmap(Bitmap bitmap)
@@ -227,16 +230,21 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         /// <returns>A System.Drawing.Bitmap containing a coloured image</returns>
         protected static Bitmap CreateBitmapFromMap(ITerrainChannel map)
         {
-            Bitmap gradientmapLd = new Bitmap("defaultstripe.png");
+            int pallete;
+            Bitmap bmp;
+            Color[] colours;
 
-            int pallete = gradientmapLd.Height;
-
-            Bitmap bmp = new Bitmap(map.Width, map.Height);
-            Color[] colours = new Color[pallete];
-
-            for (int i = 0; i < pallete; i++)
+            using (Bitmap gradientmapLd = new Bitmap("defaultstripe.png"))
             {
-                colours[i] = gradientmapLd.GetPixel(0, i);
+                pallete = gradientmapLd.Height;
+    
+                bmp = new Bitmap(map.Width, map.Height);
+                colours = new Color[pallete];
+    
+                for (int i = 0; i < pallete; i++)
+                {
+                    colours[i] = gradientmapLd.GetPixel(0, i);
+                }
             }
 
             for (int y = 0; y < map.Height; y++)
