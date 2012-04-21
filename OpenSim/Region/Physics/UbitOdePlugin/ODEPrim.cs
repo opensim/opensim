@@ -68,9 +68,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_fakeisphysical;
         private bool m_isphantom;
         private bool m_fakeisphantom;
+        internal bool m_isVolumeDetect; // If true, this prim only detects collisions but doesn't collide actively
+        private bool m_fakeisVolumeDetect; // If true, this prim only detects collisions but doesn't collide actively
 
         protected bool m_building;
         protected bool m_forcePosOrRotation;
+        private bool m_iscolliding;
+
+        internal bool m_isSelected;
+        private bool m_delaySelect;
+        private bool m_lastdoneSelected;
+        internal bool m_outbounds;
 
         private Quaternion m_lastorientation = new Quaternion();
         private Quaternion _orientation;
@@ -153,14 +161,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private List<OdePrim> childrenPrim = new List<OdePrim>();
 
-        private bool m_iscolliding;
-
-        public bool m_isSelected;
-        private bool m_delaySelect;
-        private bool m_lastdoneSelected;
-        public bool m_outbounds;
-
-        internal bool m_isVolumeDetect; // If true, this prim only detects collisions but doesn't collide actively
 
         private bool m_throttleUpdates;
         private int throttleCounter;
@@ -223,9 +223,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override bool IsVolumeDtc
         {
-            set { return; }
-            get { return m_isVolumeDetect; }
-
+            get { return m_fakeisVolumeDetect; }
+            set
+            {
+                m_fakeisVolumeDetect = value;
+                AddChange(changes.VolumeDtc, value);
+            }
         }
 
 
@@ -234,10 +237,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return m_fakeisphantom; }
             set
             {
-                m_fakeisphantom = value; // we show imediatly to outside that we changed physical
-                // and also to stop imediatly some updates
-                // but real change will only happen in taintprocessing
-
+                m_fakeisphantom = value;
                 AddChange(changes.Phantom, value);
             }
         }
@@ -427,7 +427,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void SetVolumeDetect(int param)
         {
-            AddChange(changes.VolumeDtc, (param != 0));
+            m_fakeisVolumeDetect = (param != 0);
+            AddChange(changes.VolumeDtc, m_fakeisVolumeDetect);
         }
 
         public override Vector3 GeometricCenter
@@ -958,6 +959,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_fakeisphysical = m_isphysical;
 
             m_isVolumeDetect = false;
+            m_fakeisVolumeDetect = false;
 
             m_force = Vector3.Zero;
 
@@ -1066,7 +1068,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 prm.m_collisionCategories = CollisionCategories.Selected;
                                 prm.m_collisionFlags = 0;
                             }
-                            else if (prm.IsVolumeDtc)
+                            else if (prm.m_isVolumeDetect)
                             {
                                 prm.m_collisionCategories = CollisionCategories.VolumeDtc;
                                 if (m_isphysical)
@@ -1445,14 +1447,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             hasOOBoffsetFromMesh = false;
             CalcPrimBodyData();
         }
-
+/*
         private void ChildSetGeom(OdePrim odePrim)
         {
             // well.. 
             DestroyBody();
             MakeBody();
         }
-
+*/
         //sets non physical prim m_targetSpace to right space in spaces grid for static prims
         // should only be called for non physical prims unless they are becoming non physical
         private void SetInStaticSpace(OdePrim prim)
@@ -2650,6 +2652,31 @@ namespace OpenSim.Region.Physics.OdePlugin
             ApplyCollisionCatFlags();
         }
 
+/* not in use
+        internal void ChildSelectedChange(bool childSelect)
+        {
+            if(childPrim)
+                return;
+
+            if (childSelect == m_isSelected)
+                return;
+
+            if (childSelect)
+            {
+                DoSelectedStatus(true);
+            }
+
+            else
+            {
+                foreach (OdePrim prm in childrenPrim)
+                {
+                    if (prm.m_isSelected)
+                        return;
+                }
+                DoSelectedStatus(false);
+            }
+        }
+*/
         private void changeSelectedStatus(bool newval)
         {
             if (m_lastdoneSelected == newval)
@@ -2669,6 +2696,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void DoSelectedStatus(bool newval)
         {
+            if (m_isSelected == newval)
+            {
+                resetCollisionAccounting();
+                return;
+            }
+
             m_isSelected = newval;
             Stop();
 
@@ -2706,6 +2739,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                             prm.m_delaySelect = false;
                         }
                     }
+//                    else if (_parent != null)
+//                        ((OdePrim)_parent).ChildSelectedChange(true);
+
 
                     if (prim_geom != null)
                     {
@@ -2741,8 +2777,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                if (!childPrim && Body != IntPtr.Zero && !m_disabled)
-                    d.BodyEnable(Body);
+                if (!childPrim)
+                {
+                    if (Body != IntPtr.Zero && !m_disabled)
+                        d.BodyEnable(Body);
+                }
+//                else if (_parent != null)
+//                    ((OdePrim)_parent).ChildSelectedChange(false);
 
                 UpdateCollisionCatFlags();
                 ApplyCollisionCatFlags();
@@ -3145,6 +3186,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void changeVolumedetetion(bool newVolDtc)
         {
             m_isVolumeDetect = newVolDtc;
+            m_fakeisVolumeDetect = newVolDtc;
             UpdateCollisionCatFlags();
             ApplyCollisionCatFlags();
         }
@@ -3370,7 +3412,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 //fz = fz + (_target_velocity.Z - vel.Z) * (PID_D) + (_zeroPosition.Z - pos.Z) * PID_P;
                                 d.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
                                 d.BodySetLinearVel(Body, 0, 0, 0);
-                                d.BodyAddForce(Body, 0, 0, fz);
+                                // d.BodyAddForce(Body, 0, 0, fz);
                                 return;
                             }
                             else
@@ -3419,14 +3461,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 case PIDHoverType.Ground:
                                     m_groundHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
-                                    m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
+
                                     break;
                                 case PIDHoverType.GroundAndWater:
                                     m_groundHeight = _parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y);
                                     m_waterHeight = _parent_scene.GetWaterLevel();
                                     if (m_groundHeight > m_waterHeight)
                                     {
-                                        m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
+                                        if (m_PIDHoverHeight > 0 || m_isVolumeDetect)
+                                            m_targetHoverHeight = m_groundHeight + m_PIDHoverHeight;
+                                        else
+                                            m_targetHoverHeight = m_groundHeight;
                                     }
                                     else
                                     {
@@ -3436,34 +3481,35 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                             }     // end switch (m_PIDHoverType)
 
-
-                            _target_velocity =
-                                new Vector3(0.0f, 0.0f,
-                                    (m_targetHoverHeight - pos.Z) * ((PID_G - m_PIDHoverTau) * timestep)
-                                    );
-
-                            //  if velocity is zero, use position control; otherwise, velocity control
-
-                            if (_target_velocity.ApproxEquals(Vector3.Zero, 0.1f))
+                            // don't go underground unless volumedetector 
+                            
+                            if (m_targetHoverHeight > m_groundHeight || m_isVolumeDetect)
                             {
-                                //  keep track of where we stopped.  No more slippin' & slidin'
+                                fz = (m_targetHoverHeight - pos.Z) * (PID_G - m_PIDHoverTau) * timestep;
 
-                                // We only want to deactivate the PID Controller if we think we want to have our surrogate
-                                // react to the physics scene by moving it's position.
-                                // Avatar to Avatar collisions
-                                // Prim to avatar collisions
+                                //  if velocity is zero, use position control; otherwise, velocity control
 
-                                d.BodySetPosition(Body, pos.X, pos.Y, m_targetHoverHeight);
-                                d.BodySetLinearVel(Body, vel.X, vel.Y, 0);
-                                // ?                        d.BodyAddForce(Body, 0, 0, fz);
-                                return;
-                            }
-                            else
-                            {
-                                _zeroFlag = false;
+                                if (Math.Abs(fz) < 0.1f)
+                                {
+                                    //  keep track of where we stopped.  No more slippin' & slidin'
 
-                                // We're flying and colliding with something
-                                fz = ((_target_velocity.Z - vel.Z) * (PID_D));
+                                    // We only want to deactivate the PID Controller if we think we want to have our surrogate
+                                    // react to the physics scene by moving it's position.
+                                    // Avatar to Avatar collisions
+                                    // Prim to avatar collisions
+
+                                    d.BodySetPosition(Body, pos.X, pos.Y, m_targetHoverHeight);
+                                    d.BodySetLinearVel(Body, vel.X, vel.Y, 0);
+                                    // ?                        d.BodyAddForce(Body, 0, 0, fz);
+                                    return;
+                                }
+                                else
+                                {
+                                    _zeroFlag = false;
+
+                                    // We're flying and colliding with something
+                                    fz = ((fz - vel.Z) * (PID_D));
+                                }
                             }
                         }
                         else
