@@ -1056,7 +1056,9 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 if (childrenPrim.Contains(prim))
                     return;
 
-//Console.WriteLine("childrenPrim.Add " + prim);
+//                m_log.DebugFormat(
+//                    "[ODE PRIM]: Linking prim {0} {1} to {2} {3}", prim.Name, prim.LocalID, Name, LocalID);
+
                 childrenPrim.Add(prim);
 
                 foreach (OdePrim prm in childrenPrim)
@@ -1194,12 +1196,14 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     //prm.childPrim = false;
                 }
             }
+
             disableBody();
 
-            if (Body != IntPtr.Zero)
-            {
-                _parent_scene.DeactivatePrim(this);
-            }
+            // Spurious - Body == IntPtr.Zero after disableBody()
+//            if (Body != IntPtr.Zero)
+//            {
+//                _parent_scene.DeactivatePrim(this);
+//            }
 
             lock (childrenPrim)
             {
@@ -1213,6 +1217,9 @@ Console.WriteLine("ZProcessTaints for " + Name);
 
         private void ChildDelink(OdePrim odePrim)
         {
+//            m_log.DebugFormat(
+//                "[ODE PRIM]: Delinking prim {0} {1} from {2} {3}", odePrim.Name, odePrim.LocalID, Name, LocalID);
+
             // Okay, we have a delinked child..   need to rebuild the body.
             lock (childrenPrim)
             {
@@ -1227,6 +1234,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     //prm.childPrim = false;
                 }
             }
+
             disableBody();
 
             lock (childrenPrim)
@@ -1235,10 +1243,11 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 childrenPrim.Remove(odePrim);
             }
 
-            if (Body != IntPtr.Zero)
-            {
-                _parent_scene.DeactivatePrim(this);
-            }
+            // Spurious - Body == IntPtr.Zero after disableBody()
+//            if (Body != IntPtr.Zero)
+//            {
+//                _parent_scene.DeactivatePrim(this);
+//            }
 
             lock (childrenPrim)
             {
