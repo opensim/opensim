@@ -43,22 +43,30 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     [TestFixture]
     public class SceneObjectStatusTests
     {
+        private TestScene m_scene;
+        private SceneObjectGroup m_so1;
+
+        [SetUp]
+        public void Init()
+        {
+            m_scene = SceneHelpers.SetupScene();
+            SceneObjectGroup m_so1 = SceneHelpers.CreateSceneObject(1, UUID.Zero);
+        }
+
         [Test]
         public void TestSetPhantom()
         {
             TestHelpers.InMethod();
 
-//            Scene scene = SceneSetupHelpers.SetupScene();
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, UUID.Zero);
-            SceneObjectPart rootPart = so.RootPart;
+            SceneObjectPart rootPart = m_so1.RootPart;
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
 
-            so.ScriptSetPhantomStatus(true);
+            m_so1.ScriptSetPhantomStatus(true);
 
 //            Console.WriteLine("so.RootPart.Flags [{0}]", so.RootPart.Flags);
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.Phantom));
 
-            so.ScriptSetPhantomStatus(false);
+            m_so1.ScriptSetPhantomStatus(false);
 
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));            
         }
@@ -68,17 +76,15 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 
-//            Scene scene = SceneSetupHelpers.SetupScene();
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, UUID.Zero);
-            SceneObjectPart rootPart = so.RootPart;
+            SceneObjectPart rootPart = m_so1.RootPart;
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
 
-            so.ScriptSetPhysicsStatus(true);
+            m_so1.ScriptSetPhysicsStatus(true);
 
 //            Console.WriteLine("so.RootPart.Flags [{0}]", so.RootPart.Flags);
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.Physics));
 
-            so.ScriptSetPhysicsStatus(false);
+            m_so1.ScriptSetPhysicsStatus(false);
 
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));            
         }
