@@ -1042,142 +1042,144 @@ Console.WriteLine("ZProcessTaints for " + Name);
         /// <param name="prim">Child prim</param>
         private void AddChildPrim(OdePrim prim)
         {
-//Console.WriteLine("AddChildPrim  " + Name);
-            if (LocalID != prim.LocalID)
+            if (LocalID == prim.LocalID)
+                return;
+
+            if (Body == IntPtr.Zero)
             {
-                if (Body == IntPtr.Zero)
-                {
-                    Body = d.BodyCreate(_parent_scene.world);
-                    setMass();
-                }
-                if (Body != IntPtr.Zero)
-                {
-                    lock (childrenPrim)
-                    {
-                        if (!childrenPrim.Contains(prim))
-                        {
+                Body = d.BodyCreate(_parent_scene.world);
+                setMass();
+            }
+
+            lock (childrenPrim)
+            {
+                if (childrenPrim.Contains(prim))
+                    return;
+
 //Console.WriteLine("childrenPrim.Add " + prim);
-                            childrenPrim.Add(prim);
-                            
-                            foreach (OdePrim prm in childrenPrim)
-                            {
-                                d.Mass m2;
-                                d.MassSetZero(out m2);
-                                d.MassSetBoxTotal(out m2, prim.CalculateMass(), prm._size.X, prm._size.Y, prm._size.Z);
+                childrenPrim.Add(prim);
 
-                                d.Quaternion quat = new d.Quaternion();
-                                quat.W = prm._orientation.W;
-                                quat.X = prm._orientation.X;
-                                quat.Y = prm._orientation.Y;
-                                quat.Z = prm._orientation.Z;
+                foreach (OdePrim prm in childrenPrim)
+                {
+                    d.Mass m2;
+                    d.MassSetZero(out m2);
+                    d.MassSetBoxTotal(out m2, prim.CalculateMass(), prm._size.X, prm._size.Y, prm._size.Z);
 
-                                d.Matrix3 mat = new d.Matrix3();
-                                d.RfromQ(out mat, ref quat);
-                                d.MassRotate(ref m2, ref mat);
-                                d.MassTranslate(ref m2, Position.X - prm.Position.X, Position.Y - prm.Position.Y, Position.Z - prm.Position.Z);
-                                d.MassAdd(ref pMass, ref m2);
-                            }
-                            
-                            foreach (OdePrim prm in childrenPrim)
-                            {
-                                prm.m_collisionCategories |= CollisionCategories.Body;
-                                prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                    d.Quaternion quat = new d.Quaternion();
+                    quat.W = prm._orientation.W;
+                    quat.X = prm._orientation.X;
+                    quat.Y = prm._orientation.Y;
+                    quat.Z = prm._orientation.Z;
+
+                    d.Matrix3 mat = new d.Matrix3();
+                    d.RfromQ(out mat, ref quat);
+                    d.MassRotate(ref m2, ref mat);
+                    d.MassTranslate(ref m2, Position.X - prm.Position.X, Position.Y - prm.Position.Y, Position.Z - prm.Position.Z);
+                    d.MassAdd(ref pMass, ref m2);
+                }
+
+                foreach (OdePrim prm in childrenPrim)
+                {
+                    prm.m_collisionCategories |= CollisionCategories.Body;
+                    prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
 //Console.WriteLine(" GeomSetCategoryBits 1: " + prm.prim_geom + " - " + (int)prm.m_collisionCategories + " for " + Name);
-                                d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
-                                d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
+                    d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
+                    d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
 
-                                d.Quaternion quat = new d.Quaternion();
-                                quat.W = prm._orientation.W;
-                                quat.X = prm._orientation.X;
-                                quat.Y = prm._orientation.Y;
-                                quat.Z = prm._orientation.Z;
+                    d.Quaternion quat = new d.Quaternion();
+                    quat.W = prm._orientation.W;
+                    quat.X = prm._orientation.X;
+                    quat.Y = prm._orientation.Y;
+                    quat.Z = prm._orientation.Z;
 
-                                d.Matrix3 mat = new d.Matrix3();
-                                d.RfromQ(out mat, ref quat);
-                                if (Body != IntPtr.Zero)
-                                {
-                                    d.GeomSetBody(prm.prim_geom, Body);
-                                    prm.childPrim = true;
-                                    d.GeomSetOffsetWorldPosition(prm.prim_geom, prm.Position.X , prm.Position.Y, prm.Position.Z);
-                                    //d.GeomSetOffsetPosition(prim.prim_geom,
-                                    //    (Position.X - prm.Position.X) - pMass.c.X,
-                                    //    (Position.Y - prm.Position.Y) - pMass.c.Y,
-                                    //    (Position.Z - prm.Position.Z) - pMass.c.Z);
-                                    d.GeomSetOffsetWorldRotation(prm.prim_geom, ref mat);
-                                    //d.GeomSetOffsetRotation(prm.prim_geom, ref mat);
-                                    d.MassTranslate(ref pMass, -pMass.c.X, -pMass.c.Y, -pMass.c.Z);
-                                    d.BodySetMass(Body, ref pMass);
-                                }
-                                else
-                                {
-                                    m_log.DebugFormat("[PHYSICS]: {0} ain't got no boooooooooddy, no body", Name);
-                                }
+                    d.Matrix3 mat = new d.Matrix3();
+                    d.RfromQ(out mat, ref quat);
+                    if (Body != IntPtr.Zero)
+                    {
+                        d.GeomSetBody(prm.prim_geom, Body);
+                        prm.childPrim = true;
+                        d.GeomSetOffsetWorldPosition(prm.prim_geom, prm.Position.X , prm.Position.Y, prm.Position.Z);
+                        //d.GeomSetOffsetPosition(prim.prim_geom,
+                        //    (Position.X - prm.Position.X) - pMass.c.X,
+                        //    (Position.Y - prm.Position.Y) - pMass.c.Y,
+                        //    (Position.Z - prm.Position.Z) - pMass.c.Z);
+                        d.GeomSetOffsetWorldRotation(prm.prim_geom, ref mat);
+                        //d.GeomSetOffsetRotation(prm.prim_geom, ref mat);
+                        d.MassTranslate(ref pMass, -pMass.c.X, -pMass.c.Y, -pMass.c.Z);
+                        d.BodySetMass(Body, ref pMass);
+                    }
+                    else
+                    {
+                        m_log.DebugFormat("[PHYSICS]: {0} ain't got no boooooooooddy, no body", Name);
+                    }
 
-                                prm.m_interpenetrationcount = 0;
-                                prm.m_collisionscore = 0;
-                                prm.m_disabled = false;
+                    prm.m_interpenetrationcount = 0;
+                    prm.m_collisionscore = 0;
+                    prm.m_disabled = false;
 
-                                // The body doesn't already have a finite rotation mode set here
-                                if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0f)) && _parent == null)
-                                {
-                                    prm.createAMotor(m_angularlock);
-                                }
-                                prm.Body = Body;
-                                _parent_scene.ActivatePrim(prm);
-                            }
+                    // The body doesn't already have a finite rotation mode set here
+                    if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0f)) && _parent == null)
+                    {
+                        prm.createAMotor(m_angularlock);
+                    }
+                    prm.Body = Body;
+                    _parent_scene.ActivatePrim(prm);
+                }
 
-                            m_collisionCategories |= CollisionCategories.Body;
-                            m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                m_collisionCategories |= CollisionCategories.Body;
+                m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
 //Console.WriteLine("GeomSetCategoryBits 2: " + prim_geom + " - " + (int)m_collisionCategories + " for " + Name);
-                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
 //Console.WriteLine(" Post GeomSetCategoryBits 2");
-                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
 
-                            d.Quaternion quat2 = new d.Quaternion();
-                            quat2.W = _orientation.W;
-                            quat2.X = _orientation.X;
-                            quat2.Y = _orientation.Y;
-                            quat2.Z = _orientation.Z;
+                d.Quaternion quat2 = new d.Quaternion();
+                quat2.W = _orientation.W;
+                quat2.X = _orientation.X;
+                quat2.Y = _orientation.Y;
+                quat2.Z = _orientation.Z;
 
-                            d.Matrix3 mat2 = new d.Matrix3();
-                            d.RfromQ(out mat2, ref quat2);
-                            d.GeomSetBody(prim_geom, Body);
-                            d.GeomSetOffsetWorldPosition(prim_geom, Position.X - pMass.c.X, Position.Y - pMass.c.Y, Position.Z - pMass.c.Z);
-                            //d.GeomSetOffsetPosition(prim.prim_geom,
-                            //    (Position.X - prm.Position.X) - pMass.c.X,
-                            //    (Position.Y - prm.Position.Y) - pMass.c.Y,
-                            //    (Position.Z - prm.Position.Z) - pMass.c.Z);
-                            //d.GeomSetOffsetRotation(prim_geom, ref mat2);
-                            d.MassTranslate(ref pMass, -pMass.c.X, -pMass.c.Y, -pMass.c.Z);
-                            d.BodySetMass(Body, ref pMass);
+                d.Matrix3 mat2 = new d.Matrix3();
+                d.RfromQ(out mat2, ref quat2);
+                d.GeomSetBody(prim_geom, Body);
+                d.GeomSetOffsetWorldPosition(prim_geom, Position.X - pMass.c.X, Position.Y - pMass.c.Y, Position.Z - pMass.c.Z);
+                //d.GeomSetOffsetPosition(prim.prim_geom,
+                //    (Position.X - prm.Position.X) - pMass.c.X,
+                //    (Position.Y - prm.Position.Y) - pMass.c.Y,
+                //    (Position.Z - prm.Position.Z) - pMass.c.Z);
+                //d.GeomSetOffsetRotation(prim_geom, ref mat2);
+                d.MassTranslate(ref pMass, -pMass.c.X, -pMass.c.Y, -pMass.c.Z);
+                d.BodySetMass(Body, ref pMass);
 
-                            d.BodySetAutoDisableFlag(Body, true);
-                            d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
+                d.BodySetAutoDisableFlag(Body, true);
+                d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
 
-                            m_interpenetrationcount = 0;
-                            m_collisionscore = 0;
-                            m_disabled = false;
+                m_interpenetrationcount = 0;
+                m_collisionscore = 0;
+                m_disabled = false;
 
-                            // The body doesn't already have a finite rotation mode set here
-                            if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0f)) && _parent == null)
-                            {
-                                createAMotor(m_angularlock);
-                            }
-                            d.BodySetPosition(Body, Position.X, Position.Y, Position.Z);
-                            if (m_vehicle.Type != Vehicle.TYPE_NONE)
-                                m_vehicle.Enable(Body, _parent_scene);
-
-                            _parent_scene.ActivatePrim(this);
-                        }
-                    }
+                // The body doesn't already have a finite rotation mode set here
+                if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0f)) && _parent == null)
+                {
+                    createAMotor(m_angularlock);
                 }
+
+                d.BodySetPosition(Body, Position.X, Position.Y, Position.Z);
+
+                if (m_vehicle.Type != Vehicle.TYPE_NONE)
+                    m_vehicle.Enable(Body, _parent_scene);
+
+                _parent_scene.ActivatePrim(this);
             }
         }
 
         private void ChildSetGeom(OdePrim odePrim)
         {
+//            m_log.DebugFormat(
+//                "[ODE PRIM]: ChildSetGeom {0} {1} for {2} {3}", odePrim.Name, odePrim.LocalID, Name, LocalID);
+
             //if (IsPhysical && Body != IntPtr.Zero)
             lock (childrenPrim)
             {
