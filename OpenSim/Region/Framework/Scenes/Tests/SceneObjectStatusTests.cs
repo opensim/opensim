@@ -58,7 +58,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
-        public void TestSetPhantom()
+        public void TestSetPhantomSinglePrim()
         {
             TestHelpers.InMethod();
 
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
-        public void TestSetPhysics()
+        public void TestSetPhysicsSinglePrim()
         {
             TestHelpers.InMethod();
 
@@ -91,6 +91,32 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             m_so1.ScriptSetPhysicsStatus(false);
 
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
+        }
+        
+        [Test]
+        public void TestSetPhysicsLinkset()
+        {
+            TestHelpers.InMethod();
+
+            m_scene.AddSceneObject(m_so1);
+            m_scene.AddSceneObject(m_so2);
+
+            m_scene.LinkObjects(m_ownerId, m_so1.LocalId, new List<uint>() { m_so2.LocalId });
+
+            m_so1.ScriptSetPhysicsStatus(true);
+
+            Assert.That(m_so1.RootPart.Flags, Is.EqualTo(PrimFlags.Physics));
+            Assert.That(m_so1.Parts[1].Flags, Is.EqualTo(PrimFlags.Physics));
+
+            m_so1.ScriptSetPhysicsStatus(false);
+
+            Assert.That(m_so1.RootPart.Flags, Is.EqualTo(PrimFlags.None));
+            Assert.That(m_so1.Parts[1].Flags, Is.EqualTo(PrimFlags.None));
+
+            m_so1.ScriptSetPhysicsStatus(true);
+
+            Assert.That(m_so1.RootPart.Flags, Is.EqualTo(PrimFlags.Physics));
+            Assert.That(m_so1.Parts[1].Flags, Is.EqualTo(PrimFlags.Physics));
         }
 
         /// <summary>
