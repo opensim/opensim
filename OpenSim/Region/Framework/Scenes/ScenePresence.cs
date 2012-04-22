@@ -753,9 +753,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_movementAnimationUpdateCounter >= 2)
             {
                 m_movementAnimationUpdateCounter = 0;
-                if (Animator != null && ParentID == 0) // skip it if sitting
+                if (Animator != null)
                 {
-                    Animator.UpdateMovementAnimations();
+                    if(ParentID == 0) // skip it if sitting
+                        Animator.UpdateMovementAnimations();
                 }
                 else
                 {
@@ -1400,6 +1401,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     //                    Vector3 posAdjusted = m_pos + HEAD_ADJUSTMENT;
                     //                    m_scene.PhysicsScene.RaycastWorld(m_pos, Vector3.Normalize(CameraPosition - posAdjusted), Vector3.Distance(CameraPosition, posAdjusted) + 0.3f, RayCastCameraCallback);
+                    
                     Vector3 posAdjusted = AbsolutePosition + HEAD_ADJUSTMENT;
                     Vector3 distTocam = CameraPosition - posAdjusted;
                     float distTocamlen = distTocam.Length();
@@ -1408,6 +1410,7 @@ namespace OpenSim.Region.Framework.Scenes
                         distTocam *= 1.0f / distTocamlen;
                         m_scene.PhysicsScene.RaycastWorld(posAdjusted, distTocam, distTocamlen + 0.3f, RayCastCameraCallback);
                     }
+                    
                 }
             }
 
