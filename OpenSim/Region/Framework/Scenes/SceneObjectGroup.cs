@@ -2673,6 +2673,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 linkPart.LinkNum = linkNum++;
+                linkPart.UpdatePrimFlags(UsesPhysics, IsTemporary, IsPhantom, IsVolumeDetect);
 
                 SceneObjectPart[] ogParts = objectGroup.Parts;
                 Array.Sort(ogParts, delegate(SceneObjectPart a, SceneObjectPart b)
@@ -2908,6 +2909,8 @@ namespace OpenSim.Region.Framework.Scenes
             oldRot = part.RotationOffset;
             Quaternion newRot = Quaternion.Inverse(parentRot) * worldRot;
             part.RotationOffset = newRot;
+
+            part.UpdatePrimFlags(UsesPhysics, IsTemporary, IsPhantom, IsVolumeDetect);
         }
 
         /// <summary>

@@ -2226,7 +2226,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="prim"></param>
         internal void RemovePrimThreadLocked(OdePrim prim)
         {
-//Console.WriteLine("RemovePrimThreadLocked " +  prim.m_primName);
+//            m_log.DebugFormat("[ODE SCENE]: Removing physical prim {0} {1}", prim.Name, prim.LocalID);
+
             lock (prim)
             {
                 RemoveCollisionEventReporting(prim);
