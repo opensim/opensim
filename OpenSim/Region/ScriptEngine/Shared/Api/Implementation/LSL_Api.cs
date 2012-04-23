@@ -2994,7 +2994,49 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_UrlModule.ReleaseURL(url);
         }
 
-        public void llAttachToAvatar(int attachment)
+        /// <summary>
+        /// Attach the object containing this script to the avatar that owns it.
+        /// </summary>
+        /// <param name='attachment'>The attachment point (e.g. ATTACH_CHEST)</param>
+        /// <returns>true if the attach suceeded, false if it did not</returns>
+        public bool AttachToAvatar(int attachmentPoint)
+        {
+            SceneObjectGroup grp = m_host.ParentGroup;
+            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+
+            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+
+            if (attachmentsModule != null)
+                return attachmentsModule.AttachObject(presence, grp, (uint)attachmentPoint, false);
+            else
+                return false;
+        }
+
+        /// <summary>
+        /// Detach the object containing this script from the avatar it is attached to.
+        /// </summary>
+        /// <remarks>
+        /// Nothing happens if the object is not attached.
+        /// </remarks>
+        public void DetachFromAvatar()
+        {
+            Util.FireAndForget(DetachWrapper, m_host);
+        }
+
+        private void DetachWrapper(object o)
+        {
+            SceneObjectPart host = (SceneObjectPart)o;
+
+            SceneObjectGroup grp = host.ParentGroup;
+            UUID itemID = grp.FromItemID;
+            ScenePresence presence = World.GetScenePresence(host.OwnerID);
+
+            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+            if (attachmentsModule != null)
+                attachmentsModule.DetachSingleAttachmentToInv(presence, itemID);
+        }
+
+        public void llAttachToAvatar(int attachmentPoint)
         {
             m_host.AddScriptLPS(1);
 
@@ -3007,15 +3049,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
-            {
-                SceneObjectGroup grp = m_host.ParentGroup;
-
-                ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
-
-                IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
-                if (attachmentsModule != null)
-                    attachmentsModule.AttachObject(presence, grp, (uint)attachment, false);
-            }
+                AttachToAvatar(attachmentPoint);
         }
 
         public void llDetachFromAvatar()
@@ -3031,24 +3065,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
-            {
-                IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
-                if (attachmentsModule != null)
-                    Util.FireAndForget(DetachWrapper, m_host);
-            }
-        }
-
-        private void DetachWrapper(object o)
-        {
-            SceneObjectPart host = (SceneObjectPart)o;
-
-            SceneObjectGroup grp = host.ParentGroup;
-            UUID itemID = grp.FromItemID;
-            ScenePresence presence = World.GetScenePresence(host.OwnerID);
-
-            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
-            if (attachmentsModule != null)
-                attachmentsModule.DetachSingleAttachmentToInv(presence, itemID);
+                DetachFromAvatar();
         }
 
         public void llTakeCamera(string avatar)
