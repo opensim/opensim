@@ -356,7 +356,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[BASE HTTP SERVER]: OnRequest() failed with {0}{1}", e.Message, e.StackTrace);
+                m_log.Error(String.Format("[BASE HTTP SERVER]: OnRequest() failed: {0}", e.Message), e);
             }
         }
 
@@ -551,11 +551,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                     catch (SocketException e)
                     {
                         // This has to be here to prevent a Linux/Mono crash
-                        m_log.WarnFormat("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                        m_log.Warn(String.Format("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e.Message), e);
                     }
                     catch (IOException e)
                     {
-                        m_log.Warn("[BASE HTTP SERVER]: XmlRpcRequest issue: " + e.Message);
+                        m_log.Warn(String.Format("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.", e.Message), e);
                     }
 
                     return;
@@ -658,15 +658,15 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //
                 // An alternative may be to turn off all response write exceptions on the HttpListener, but let's go
                 // with the minimum first
-                m_log.WarnFormat("[BASE HTTP SERVER]: HandleRequest threw {0}.\nNOTE: this may be spurious on Linux", e);
+                m_log.Warn(String.Format("[BASE HTTP SERVER]: HandleRequest threw {0}.\nNOTE: this may be spurious on Linux", e.Message), e);
             }
             catch (IOException e)
             {
-                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}{1}", e.Message, e.StackTrace);
+                m_log.Error(String.Format("[BASE HTTP SERVER]: HandleRequest() threw {0}", e.Message), e);
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}{1}", e.Message, e.StackTrace);
+                m_log.Error(String.Format("[BASE HTTP SERVER]: HandleRequest() threw {0}", e.Message), e);
                 SendHTML500(response);
             }
             finally
@@ -925,11 +925,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                         catch (SocketException e)
                         {
                             // This has to be here to prevent a Linux/Mono crash
-                            m_log.WarnFormat("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                            m_log.Warn(String.Format("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e.Message), e);
                         }
                         catch (IOException e)
                         {
-                            m_log.Warn("[BASE HTTP SERVER]: XmlRpcRequest issue: " + e.Message);
+                            m_log.Warn(String.Format("[BASE HTTP SERVER]: XmlRpcRequest issue {0}", e.Message), e);
                         }
                     }
                     return;
@@ -962,11 +962,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 catch (SocketException e)
                 {
                     // This has to be here to prevent a Linux/Mono crash
-                    m_log.WarnFormat("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                    m_log.Warn(String.Format("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e.Message), e);
                 }
                 catch (IOException e)
                 {
-                    m_log.Warn("[BASE HTTP SERVER]: XmlRpcRequest issue: " + e.Message);
+                    m_log.Warn(String.Format("[BASE HTTP SERVER]: XmlRpcRequest issue {0}", e.Message), e);
                 }
             }
         }
@@ -1077,12 +1077,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 catch (IOException e)
                 {
-                    m_log.WarnFormat("[BASE HTTP SERVER]: LLSD IOException {0}.", e);
+                    m_log.Warn(String.Format("[BASE HTTP SERVER]: LLSD IOException {0}", e.Message), e);
                 }
                 catch (SocketException e)
                 {
                     // This has to be here to prevent a Linux/Mono crash
-                    m_log.WarnFormat("[BASE HTTP SERVER]: LLSD issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                    m_log.Warn(String.Format("[BASE HTTP SERVER]: LLSD issue {0}.\nNOTE: this may be spurious on Linux.", e.Message), e);
                 }
             }
         }
@@ -1334,8 +1334,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                     catch (SocketException f)
                     {
                         // This has to be here to prevent a Linux/Mono crash
-                        m_log.WarnFormat(
-                            "[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", f);
+                        m_log.Warn(
+                            String.Format("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", f.Message), f);
                     }
                 }
                 catch(Exception)
@@ -1630,11 +1630,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 catch (SocketException e)
                 {
                     // This has to be here to prevent a Linux/Mono crash
-                    m_log.WarnFormat("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                    m_log.Warn(String.Format("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e.Message), e);
                 }
                 catch (IOException e)
                 {
-                    m_log.Warn("[BASE HTTP SERVER]: XmlRpcRequest issue: " + e.Message);
+                    m_log.Warn(String.Format("[BASE HTTP SERVER]: XmlRpcRequest issue {0}", e.Message), e);
                 }
             }
         }
@@ -1671,7 +1671,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 catch (SocketException e)
                 {
                     // This has to be here to prevent a Linux/Mono crash
-                    m_log.WarnFormat("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                    m_log.Warn(String.Format("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e.Message), e);
                 }
             }
         }
@@ -1707,7 +1707,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 catch (SocketException e)
                 {
                     // This has to be here to prevent a Linux/Mono crash
-                    m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                    m_log.Warn(String.Format("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e.Message), e);
                 }
             }
         }
@@ -1786,7 +1786,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void httpServerException(object source, Exception exception)
         {
-            m_log.ErrorFormat("[BASE HTTP SERVER]: {0} had an exception {1}", source.ToString(), exception.ToString());
+            m_log.Error(String.Format("[BASE HTTP SERVER]: {0} had an exception: {1}", source.ToString(), exception.Message), exception);
            /*
             if (HTTPDRunning)// && NotSocketErrors > 5)
             {
