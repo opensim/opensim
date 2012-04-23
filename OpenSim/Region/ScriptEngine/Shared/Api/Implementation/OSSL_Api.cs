@@ -351,7 +351,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     UUID ownerID = ti.OwnerID;
 
-                    //OSSL only may be used if objet is in the same group as the parcel
+                    //OSSL only may be used if object is in the same group as the parcel
                     if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_GROUP_MEMBER"))
                     {
                         ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
@@ -729,11 +729,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
+            // For safety, we add another permission check here, and don't rely only on the standard OSSL permissions
             if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
             {
                 MainConsole.Instance.RunCommand(command);
                 return true;
             }
+
             return false;
         }
 
@@ -2825,21 +2827,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Severe, "osKickAvatar");
             m_host.AddScriptLPS(1);
 
-            if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
+            World.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                World.ForEachRootScenePresence(delegate(ScenePresence sp)
+                if (sp.Firstname == FirstName && sp.Lastname == SurName)
                 {
-                    if (sp.Firstname == FirstName && sp.Lastname == SurName)
-                    {
-                        // kick client...
-                        if (alert != null)
-                            sp.ControllingClient.Kick(alert);
+                    // kick client...
+                    if (alert != null)
+                        sp.ControllingClient.Kick(alert);
 
-                        // ...and close on our side
-                        sp.Scene.IncomingCloseAgent(sp.UUID);
-                    }
-                });
-            }
+                    // ...and close on our side
+                    sp.Scene.IncomingCloseAgent(sp.UUID);
+                }
+            });
         }
         
         public void osCauseDamage(string avatar, double damage)
