@@ -189,8 +189,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         private const uint m_regionHeight = Constants.RegionSize;
 
         public float ODE_STEPSIZE = 0.020f;
+        public float HalfOdeStep = 0.01f;
         private float metersInSpace = 25.6f;
         private float m_timeDilation = 1.0f;
+
+        DateTime m_lastframe;
 
         public float gravityx = 0f;
         public float gravityy = 0f;
@@ -485,6 +488,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
+            HalfOdeStep = ODE_STEPSIZE * 0.5f;
+
             ContactgeomsArray = Marshal.AllocHGlobal(contactsPerCollision * d.ContactGeom.unmanagedSizeOf);
             GlobalContactsArray = GlobalContactsArray = Marshal.AllocHGlobal(maxContactsbeforedeath * d.Contact.unmanagedSizeOf);
 
@@ -564,6 +569,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // let this now be real maximum values
             spaceGridMaxX--;
             spaceGridMaxY--;
+            m_lastframe = DateTime.UtcNow;
         }
 
         internal void waitForSpaceUnlock(IntPtr space)
@@ -1685,24 +1691,30 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns></returns>
         public override float Simulate(float timeStep)
         {
+
+            DateTime now = DateTime.UtcNow;
+            TimeSpan SinceLastFrame = now - m_lastframe;
+            m_lastframe = now;
+            timeStep = (float)SinceLastFrame.TotalSeconds;
+            
             // acumulate time so we can reduce error
             step_time += timeStep;
 
-            if (step_time < ODE_STEPSIZE)
+            if (step_time < HalfOdeStep)
                 return 0;
 
-            if (framecount >= int.MaxValue)
+            if (framecount < 0)
                 framecount = 0;
 
             framecount++;
 
-            int curphysiteractions = m_physicsiterations;
+            int curphysiteractions;
 
+            // if in trouble reduce step resolution
             if (step_time >= m_SkipFramesAtms)
-            {
-                // if in trouble reduce step resolution
-                curphysiteractions /= 2;
-            }
+                curphysiteractions = m_physicsiterations / 2;
+            else
+                curphysiteractions = m_physicsiterations;
 
             int nodeframes = 0;
 
@@ -1722,8 +1734,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     base.TriggerPhysicsBasedRestart();
                 }
 
-
-                while (step_time >= ODE_STEPSIZE && nodeframes < 10) //limit number of steps so we don't say here for ever
+                while (step_time >= HalfOdeStep && nodeframes < 10) //limit number of steps so we don't say here for ever
                 {
                     try
                     {
@@ -1905,15 +1916,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
                 }
                 
-                // think time dilation is not a physics issue alone..  but ok let's fake something
-                if (step_time < ODE_STEPSIZE) // we did the required loops
+                // think time dilation as to do with dinamic step size that we dont' have
+                // even so tell something to world
+                if (nodeframes < 10) // we did the requested loops
                     m_timeDilation = 1.0f;
-                else
-                { // we didn't forget the lost ones and let user know something
-                    m_timeDilation = 1 - step_time / timeStep;
-                    if (m_timeDilation < 0)
-                        m_timeDilation = 0;
-                    step_time = 0;
+                else if (step_time > 0)
+                {
+                    m_timeDilation = timeStep / step_time;
+                    if (m_timeDilation > 1)
+                        m_timeDilation = 1;
+                    if (step_time > m_SkipFramesAtms)
+                        step_time = 0;
                 }
             }
 

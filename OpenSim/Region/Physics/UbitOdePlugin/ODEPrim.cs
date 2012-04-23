@@ -695,7 +695,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_PIDTau = 0;
                 else
                 {
-                    float mint = (0.05f > _parent_scene.ODE_STEPSIZE ? 0.05f : _parent_scene.ODE_STEPSIZE);
+                    float mint = (0.05f > m_timeStep ? 0.05f : m_timeStep);
                     if (value < mint)
                         m_PIDTau = mint;
                     else
@@ -723,7 +723,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_PIDHoverTau = 0;
                 else
                 {
-                    float mint = (0.05f > _parent_scene.ODE_STEPSIZE ? 0.05f : _parent_scene.ODE_STEPSIZE);
+                    float mint = (0.05f > m_timeStep ? 0.05f : m_timeStep);
                     if (value < mint)
                         m_PIDHoverTau = mint;
                     else
@@ -801,7 +801,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (force.IsFinite())
             {
-                AddChange(changes.AddForce, force / _parent_scene.ODE_STEPSIZE);
+                AddChange(changes.AddForce, force * m_invTimeStep);
             }
             else
             {
@@ -814,7 +814,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (force.IsFinite())
             {
-                AddChange(changes.AddAngForce, force / _parent_scene.ODE_STEPSIZE);
+                AddChange(changes.AddAngForce, force * m_invTimeStep);
             }
             else
             {
