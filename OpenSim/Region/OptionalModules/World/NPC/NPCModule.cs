@@ -157,7 +157,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
                     sp.CompleteMovement(npcAvatar, false);
                     m_avatars.Add(npcAvatar.AgentId, npcAvatar);
-                    m_log.DebugFormat("[NPC MODULE]: Created NPC with id {0}", npcAvatar.AgentId);
+                    m_log.DebugFormat("[NPC MODULE]: Created NPC {0} {1}", npcAvatar.AgentId, sp.Name);
 
                     return npcAvatar.AgentId;
                 }
@@ -299,7 +299,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     scene.RemoveClient(agentID, false);
                     m_avatars.Remove(agentID);
 
-//                    m_log.DebugFormat("[NPC MODULE]: Removed {0} {1}", agentID, av.Name);
+                    m_log.DebugFormat("[NPC MODULE]: Removed NPC {0} {1}", agentID, av.Name);
                     return true;
                 }
             }

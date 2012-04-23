@@ -143,7 +143,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[ATTACHMENTS MODULE]: Unable to rez attachment: {0}{1}", e.Message, e.StackTrace);
+                    UUID agentId = (sp.ControllingClient == null) ? (UUID)null : sp.ControllingClient.AgentId;
+                    m_log.ErrorFormat("[ATTACHMENTS MODULE]: Unable to rez attachment with itemID {0}, assetID {1}, point {2} for {3}: {4}\n{5}",
+                        attach.ItemID, attach.AssetID, p, agentId, e.Message, e.StackTrace);
                 }
             }
         }

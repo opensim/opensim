@@ -248,10 +248,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 if (bakedTextureFace == null)
                 {
-                    m_log.WarnFormat(
-                        "[AV FACTORY]: No texture ID set for {0} for {1} in {2} not found when trying to save permanently",
-                        bakeType, sp.Name, m_scene.RegionInfo.RegionName);
-
+                    // This can happen legitimately, since some baked textures might not exist
+                    //m_log.WarnFormat(
+                    //    "[AV FACTORY]: No texture ID set for {0} for {1} in {2} not found when trying to save permanently",
+                    //    bakeType, sp.Name, m_scene.RegionInfo.RegionName);
                     continue;
                 }
 
@@ -417,7 +417,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 //                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
 
                 int ftIndex = (int)AppearanceManager.BakeTypeToAgentTextureIndex(bakeType);
-                bakedTextures[bakeType] = faceTextures[ftIndex];
+                Primitive.TextureEntryFace texture = faceTextures[ftIndex];    // this will be null if there's no such baked texture
+                bakedTextures[bakeType] = texture;
             }
 
             return bakedTextures;
