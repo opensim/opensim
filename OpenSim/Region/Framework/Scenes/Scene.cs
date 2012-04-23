@@ -833,13 +833,11 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
         }
 
-        /// <summary>
-        /// Mock constructor for scene group persistency unit tests.
-        /// SceneObjectGroup RegionId property is delegated to Scene.
-        /// </summary>
-        /// <param name="regInfo"></param>
         public Scene(RegionInfo regInfo)
         {
+            PhysicalPrims = true;
+            CollidablePrims = true;
+
             BordersLocked = true;
             Border northBorder = new Border();
             northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize);  //<---
@@ -866,8 +864,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_eventManager = new EventManager();
 
             m_permissions = new ScenePermissions(this);
-
-//            m_lastUpdate = Util.EnvironmentTickCount();
         }
 
         #endregion

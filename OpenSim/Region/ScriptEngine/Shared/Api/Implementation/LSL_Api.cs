@@ -948,13 +948,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
+            if (channel == ScriptBaseClass.DEBUG_CHANNEL)
+            {
+                return;
+            }
+
             UUID TargetID;
             UUID.TryParse(target, out TargetID);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if (wComm != null)
-                if (!wComm.DeliverMessageTo(TargetID, channel, m_host.AbsolutePosition, m_host.Name, m_host.UUID, msg, out error))
-                    LSLError(error);
+                wComm.DeliverMessageTo(TargetID, channel, m_host.AbsolutePosition, m_host.Name, m_host.UUID, msg);
         }
 
         public LSL_Integer llListen(int channelID, string name, string ID, string msg)

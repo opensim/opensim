@@ -4685,7 +4685,6 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         }
                     }
-
                     else // it already has a physical representation
                     {
                         DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status.

@@ -62,6 +62,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 
+            m_scene.AddSceneObject(m_so1);
+
             SceneObjectPart rootPart = m_so1.RootPart;
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
 
@@ -79,6 +81,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestSetPhysicsSinglePrim()
         {
             TestHelpers.InMethod();
+
+            m_scene.AddSceneObject(m_so1);
 
             SceneObjectPart rootPart = m_so1.RootPart;
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));

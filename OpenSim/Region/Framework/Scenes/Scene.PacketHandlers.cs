@@ -38,8 +38,9 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public partial class Scene
     {
+
         protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
-                               UUID fromID, bool fromAgent, bool broadcast)
+                               UUID fromID, UUID targetID, bool fromAgent, bool broadcast)
         {
             OSChatMessage args = new OSChatMessage();
 
@@ -63,14 +64,20 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             args.From = fromName;
-            //args.
+            args.TargetUUID = targetID;
 
             if (broadcast)
                 EventManager.TriggerOnChatBroadcast(this, args);
             else
                 EventManager.TriggerOnChatFromWorld(this, args);
         }
-        
+
+        protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
+                               UUID fromID, bool fromAgent, bool broadcast)
+        {
+            SimChat(message, type, channel, fromPos, fromName, fromID, UUID.Zero, fromAgent, broadcast);
+        }
+
         /// <summary>
         ///
         /// </summary>
@@ -107,6 +114,19 @@ namespace OpenSim.Region.Framework.Scenes
                                      UUID fromID, bool fromAgent)
         {
             SimChat(message, type, channel, fromPos, fromName, fromID, fromAgent, true);
+        }
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="type"></param>
+        /// <param name="fromPos"></param>
+        /// <param name="fromName"></param>
+        /// <param name="fromAgentID"></param>
+        /// <param name="targetID"></param>
+        public void SimChatToAgent(UUID targetID, byte[] message, Vector3 fromPos, string fromName, UUID fromID, bool fromAgent)
+        {
+            SimChat(message, ChatTypeEnum.Say, 0, fromPos, fromName, fromID, targetID, fromAgent, false);
         }
 
         /// <summary>

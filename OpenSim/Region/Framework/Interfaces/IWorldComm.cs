@@ -103,7 +103,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name='msg'>
         /// Message.
         /// </param>
-        bool DeliverMessageTo(UUID target, int channel, Vector3 pos, string name, UUID id, string msg, out string error);
+        void DeliverMessageTo(UUID target, int channel, Vector3 pos, string name, UUID id, string msg);
 
         /// <summary>
         /// Are there any listen events ready to be dispatched?
