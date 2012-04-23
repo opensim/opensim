@@ -686,6 +686,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             
             Body = d.BodyCreate(_parent_scene.world);
 
+            _zeroFlag = false;
+            m_pidControllerActive = true;
+
             d.BodySetAutoDisableFlag(Body, false);
             d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
 

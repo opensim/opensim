@@ -521,7 +521,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.WorldSetAngularDamping(world, 0.001f);
             d.WorldSetAngularDampingThreshold(world, 0f);
             d.WorldSetLinearDampingThreshold(world, 0f);
-            d.WorldSetMaxAngularSpeed(world, 256f);
+            d.WorldSetMaxAngularSpeed(world, 100f);
 
             d.WorldSetCFM(world,1e-6f); // a bit harder than default
             //d.WorldSetCFM(world, 1e-4f); // a bit harder than default
@@ -1685,17 +1685,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns></returns>
         public override float Simulate(float timeStep)
         {
-            int statstart;
-            int statchanges = 0;
-            int statchmove = 0;
-            int statactmove = 0;
-            int statray = 0;
-            int statcol = 0;
-            int statstep = 0;
-            int statmovchar = 0;
-            int statmovprim;
-            int totjcontact = 0;
-
             // acumulate time so we can reduce error
             step_time += timeStep;
 
@@ -1738,8 +1727,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     try
                     {
-                        statstart = Util.EnvironmentTickCount();
-
                         // clear pointer/counter to contacts to pass into joints
                         m_global_contactcount = 0;
 
@@ -1778,17 +1765,39 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         }
 
-                        statchanges += Util.EnvironmentTickCountSubtract(statstart);
+                        // Move characters
+                        lock (_characters)
+                        {
+                            List<OdeCharacter> defects = new List<OdeCharacter>();
+                            foreach (OdeCharacter actor in _characters)
+                            {
+                                if (actor != null)
+                                    actor.Move(ODE_STEPSIZE, defects);
+                            }
+                            if (defects.Count != 0)
+                            {
+                                foreach (OdeCharacter defect in defects)
+                                {
+                                    RemoveCharacter(defect);
+                                }
+                            }
+                        }
 
-                        statactmove += Util.EnvironmentTickCountSubtract(statstart);
+                        // Move other active objects
+                        lock (_activegroups)
+                        {
+                            foreach (OdePrim aprim in _activegroups)
+                            {
+                                aprim.Move();
+                            }
+                        }
+
                         //if ((framecount % m_randomizeWater) == 0)
                         // randomizeWater(waterlevel);
 
                         m_rayCastManager.ProcessQueuedRequests();
 
-                        statray += Util.EnvironmentTickCountSubtract(statstart);
                         collision_optimized();
-                        statcol += Util.EnvironmentTickCountSubtract(statstart);
 
                         lock (_collisionEventPrim)
                         {
@@ -1813,38 +1822,39 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                         }
 
+                        // do a ode simulation step
                         d.WorldQuickStep(world, ODE_STEPSIZE);
-                        statstep += Util.EnvironmentTickCountSubtract(statstart);
+                        d.JointGroupEmpty(contactgroup);
 
-                        // Move characters
-                        lock (_characters)
+                        // update managed ideia of physical data and do updates to core
+                        /*
+                                        lock (_characters)
+                                        {
+                                            foreach (OdeCharacter actor in _characters)
+                                            {
+                                                if (actor != null)
+                                                {
+                                                    if (actor.bad)
+                                                        m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
+
+                                                    actor.UpdatePositionAndVelocity();
+                                                }
+                                            }
+                                        }
+                        */
+
+                        lock (_activegroups)
                         {
-                            List<OdeCharacter> defects = new List<OdeCharacter>();
-                            foreach (OdeCharacter actor in _characters)
                             {
-                                if (actor != null)
-                                    actor.Move(ODE_STEPSIZE, defects);
-                            }
-                            if (defects.Count != 0)
-                            {
-                                foreach (OdeCharacter defect in defects)
+                                foreach (OdePrim actor in _activegroups)
                                 {
-                                    RemoveCharacter(defect);
+                                    if (actor.IsPhysical)
+                                    {
+                                        actor.UpdatePositionAndVelocity();
+                                    }
                                 }
                             }
                         }
-                        statchmove += Util.EnvironmentTickCountSubtract(statstart);
-
-                        // Move other active objects
-                        lock (_activegroups)
-                        {
-                            foreach (OdePrim aprim in _activegroups)
-                            {
-                                aprim.Move();
-                            }
-                        }
-
-                        //ode.dunlock(world);
                     }
                     catch (Exception e)
                     {
@@ -1852,32 +1862,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 //                        ode.dunlock(world);
                     }
 
-                    d.JointGroupEmpty(contactgroup);
-                    totjcontact += m_global_contactcount;
 
                     step_time -= ODE_STEPSIZE;
                     nodeframes++;
                 }
 
-                statstart = Util.EnvironmentTickCount();
-
-/*
-// now included in characters move() and done at ode rate
-//  maybe be needed later if we need to do any extra work at hearbeat rate
-                lock (_characters)
-                {
-                    foreach (OdeCharacter actor in _characters)
-                    {
-                        if (actor != null)
-                        {
-                            if (actor.bad)
-                                m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
-
-                            actor.UpdatePositionAndVelocity();
-                        }
-                    }
-                }
-*/
                 lock (_badCharacter)
                 {
                     if (_badCharacter.Count > 0)
@@ -1890,22 +1879,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         _badCharacter.Clear();
                     }
                 }
-                statmovchar = Util.EnvironmentTickCountSubtract(statstart);
-
-                lock (_activegroups)
-                {
-                    {
-                        foreach (OdePrim actor in _activegroups)
-                        {
-                            if (actor.IsPhysical)
-                            {
-                                actor.UpdatePositionAndVelocity((float)nodeframes * ODE_STEPSIZE);
-                            }
-                        }
-                    }
-                }
-
-                statmovprim = Util.EnvironmentTickCountSubtract(statstart);
 
                 int nactivegeoms = d.SpaceGetNumGeoms(ActiveSpace);
                 int nstaticgeoms = d.SpaceGetNumGeoms(StaticSpace);
