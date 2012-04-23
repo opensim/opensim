@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -278,6 +278,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     return "FALLDOWN";
                 }
 
+                // Check if the user has stopped walking just now
+                if (CurrentMovementAnimation == "WALK" && (move == Vector3.Zero))
+                    return "STAND";
+
                 return CurrentMovementAnimation;
             }
 
@@ -402,13 +406,16 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         public void UpdateMovementAnimations()
         {
-            CurrentMovementAnimation = DetermineMovementAnimation();
+            lock (m_animations)
+            {
+                CurrentMovementAnimation = DetermineMovementAnimation();
 
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE ANIMATOR]: Determined animation {0} for {1} in UpdateMovementAnimations()",
-//                CurrentMovementAnimation, m_scenePresence.Name);
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE ANIMATOR]: Determined animation {0} for {1} in UpdateMovementAnimations()",
+//                    CurrentMovementAnimation, m_scenePresence.Name);
 
-            TrySetMovementAnimation(CurrentMovementAnimation);
+                TrySetMovementAnimation(CurrentMovementAnimation);
+            }
         }
 
         public UUID[] GetAnimationArray()
