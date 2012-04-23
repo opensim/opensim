@@ -58,6 +58,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Friends
         private Scene m_scene;
         private IFriendsModule m_friendsModule;
         private IUserManagement m_userManagementModule;
+        private IPresenceService m_presenceService;
 
 //        private IAvatarFactoryModule m_avatarFactory;
         
@@ -99,8 +100,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Friends
 
             m_friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
             m_userManagementModule = m_scene.RequestModuleInterface<IUserManagement>();
+            m_presenceService = m_scene.RequestModuleInterface<IPresenceService>();
 
-            if (m_friendsModule != null && m_userManagementModule != null)
+            if (m_friendsModule != null && m_userManagementModule != null && m_presenceService != null)
             {
                 m_scene.AddCommand(
                     "Friends", this, "friends show",
@@ -162,7 +164,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Friends
 
             MainConsole.Instance.OutputFormat("Friends for {0} {1} {2}:", firstName, lastName, userId);
 
-            MainConsole.Instance.OutputFormat("UUID, Name, MyFlags, TheirFlags");
+            MainConsole.Instance.OutputFormat(
+                "{0,-36}  {1,-36}  {2,-7}  {3,7}  {4,10}", "UUID", "Name", "Status", "MyFlags", "TheirFlags");
 
             foreach (FriendInfo friend in friends)
             {
@@ -175,14 +178,22 @@ namespace OpenSim.Region.OptionalModules.Avatar.Friends
 
                 UUID friendId;
                 string friendName;
+                string onlineText;
 
                 if (UUID.TryParse(friend.Friend, out friendId))
                     friendName = m_userManagementModule.GetUserName(friendId);
                 else
                     friendName = friend.Friend;
 
+                OpenSim.Services.Interfaces.PresenceInfo[] pi = m_presenceService.GetAgents(new string[] { friend.Friend });
+                if (pi.Length > 0)
+                    onlineText = "online";
+                else
+                    onlineText = "offline";
+
                 MainConsole.Instance.OutputFormat(
-                    "{0} {1} {2} {3}", friend.Friend, friendName, friend.MyFlags, friend.TheirFlags);
+                    "{0,-36}  {1,-36}  {2,-7}  {3,-7}  {4,-10}",
+                    friend.Friend, friendName, onlineText, friend.MyFlags, friend.TheirFlags);
             }
         }
     }
