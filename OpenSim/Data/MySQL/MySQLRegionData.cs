@@ -187,7 +187,11 @@ namespace OpenSim.Data.MySQL
                             if (s == "locY")
                                 continue;
 
-                            ret.Data[s] = result[s].ToString();
+                            object value = result[s];
+                            if (value is DBNull)
+                                ret.Data[s] = null;
+                            else
+                                ret.Data[s] = result[s].ToString();
                         }
 
                         retList.Add(ret);
