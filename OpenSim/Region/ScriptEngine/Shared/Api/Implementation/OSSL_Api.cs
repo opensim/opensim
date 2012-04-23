@@ -1617,7 +1617,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public Object osParseJSONNew(string JSON)
         {
-            CheckThreatLevel(ThreatLevel.None, "osParseJSON");
+            CheckThreatLevel(ThreatLevel.None, "osParseJSONNew");
 
             m_host.AddScriptLPS(1);
 
