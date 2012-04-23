@@ -726,6 +726,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_isSelected = value;
                 // Tell physics engine that group is selected
 
+                // this is not right
+                // but ode engines should only really need to know about root part
+                // so they can put entire object simulation on hold and not colliding
+                // keep as was for now
+                
                 PhysicsActor pa = m_rootPart.PhysActor;
                 if (pa != null)
                 {
@@ -744,6 +749,40 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 if (RootPart.KeyframeMotion != null)
                     RootPart.KeyframeMotion.Selected = value;
+            }
+        }
+
+        public void PartSelectChanged(bool partSelect)
+        {
+            // any part selected makes group selected
+            if (m_isSelected == partSelect)
+                return;
+
+            if (partSelect)
+            {
+                IsSelected = partSelect;
+//                if (!IsAttachment)
+//                    ScheduleGroupForFullUpdate();
+            }
+            else
+            {
+                // bad bad bad 2 heavy for large linksets
+                // since viewer does send lot of (un)selects
+                // this needs to be replaced by a specific list or count ?
+                // but that will require extra code in several places
+
+                SceneObjectPart[] parts = m_parts.GetArray();
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    SceneObjectPart part = parts[i];
+                    if (part.IsSelected)
+                        return;
+                }
+                IsSelected = partSelect;
+                if (!IsAttachment)
+                {
+                    ScheduleGroupForFullUpdate();
+                }
             }
         }
 
@@ -3161,14 +3200,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-/*
-                RootPart.UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect);
-                for (int i = 0; i < parts.Length; i++)
-                {
-                    if (parts[i] != RootPart)
-                        parts[i].UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect);
-                }
-*/
                 if (parts.Length > 1)
                 {
                     m_rootPart.UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect, true);
@@ -3185,7 +3216,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                     m_rootPart.UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect, false);
- 
             }
         }
 
