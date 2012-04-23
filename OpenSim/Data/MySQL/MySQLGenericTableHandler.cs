@@ -91,15 +91,17 @@ namespace OpenSim.Data.MySQL
             if (m_ColumnNames != null)
                 return;
 
-            m_ColumnNames = new List<string>();
+            List<string> columnNames = new List<string>();
 
             DataTable schemaTable = reader.GetSchemaTable();
             foreach (DataRow row in schemaTable.Rows)
             {
                 if (row["ColumnName"] != null &&
                         (!m_Fields.ContainsKey(row["ColumnName"].ToString())))
-                    m_ColumnNames.Add(row["ColumnName"].ToString());
+                    columnNames.Add(row["ColumnName"].ToString());
             }
+
+            m_ColumnNames = columnNames;
         }
 
         public virtual T[] Get(string field, string key)
