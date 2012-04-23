@@ -161,6 +161,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public void Teleport(ScenePresence sp, ulong regionHandle, Vector3 position, Vector3 lookAt, uint teleportFlags)
         {
+            if (sp.Scene.Permissions.IsGridGod(sp.UUID))
+            {
+                // This user will be a God in the destination scene, too
+                teleportFlags |= (uint)TeleportFlags.Godlike;
+            }
+
             if (!sp.Scene.Permissions.CanTeleport(sp.UUID))
                 return;
 
