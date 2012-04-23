@@ -364,6 +364,11 @@ namespace OpenSim.Services.InventoryService
         //
         public virtual bool DeleteFolders(UUID principalID, List<UUID> folderIDs)
         {
+            return DeleteFoldersEx(principalID, folderIDs, true);
+        }
+
+        public bool DeleteFoldersEx(UUID principalID, List<UUID> folderIDs, bool onlyIfTrash)
+        {
             if (!m_AllowDelete)
                 return false;
 
@@ -371,11 +376,12 @@ namespace OpenSim.Services.InventoryService
             //
             foreach (UUID id in folderIDs)
             {
-                if (!ParentIsTrash(id))
+                if (onlyIfTrash && !ParentIsTrash(id))
                     continue;
+                //m_log.InfoFormat("[XINVENTORY SERVICE]: Delete folder {0}", id);
                 InventoryFolderBase f = new InventoryFolderBase();
                 f.ID = id;
-                PurgeFolder(f);
+                PurgeFolderEx(f, onlyIfTrash);
                 m_Database.DeleteFolders("folderID", id.ToString());
             }
 
@@ -384,10 +390,15 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool PurgeFolder(InventoryFolderBase folder)
         {
+            return PurgeFolderEx(folder, true);
+        }
+
+        private bool PurgeFolderEx(InventoryFolderBase folder, bool onlyIfTrash)
+        {
             if (!m_AllowDelete)
                 return false;
 
-            if (!ParentIsTrash(folder.ID))
+            if (onlyIfTrash && !ParentIsTrash(folder.ID))
                 return false;
 
             XInventoryFolder[] subFolders = m_Database.GetFolders(
@@ -396,7 +407,7 @@ namespace OpenSim.Services.InventoryService
 
             foreach (XInventoryFolder x in subFolders)
             {
-                PurgeFolder(ConvertToOpenSim(x));
+                PurgeFolderEx(ConvertToOpenSim(x), onlyIfTrash);
                 m_Database.DeleteFolders("folderID", x.folderID.ToString());
             }
 
