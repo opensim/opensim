@@ -38,189 +38,239 @@ namespace OpenSim.Framework
     public static class SLUtil
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        
         #region SL / file extension / content-type conversions
 
-        private class TypeMapping
-        {
-            private sbyte assetType;
-            private InventoryType inventoryType;
-            private string contentType;
-            private string contentType2;
-            private string extension;
-
-            public sbyte AssetTypeCode
-            {
-                get { return assetType; }
-            }
-
-            public object AssetType
-            {
-                get {
-                    if (Enum.IsDefined(typeof(OpenMetaverse.AssetType), assetType))
-                        return (OpenMetaverse.AssetType)assetType;
-                    else
-                        return OpenMetaverse.AssetType.Unknown;
-                }
-            }
-
-            public InventoryType InventoryType
-            {
-                get { return inventoryType; }
-            }
-
-            public string ContentType
-            {
-                get { return contentType; }
-            }
-
-            public string ContentType2
-            {
-                get { return contentType2; }
-            }
-
-            public string Extension
-            {
-                get { return extension; }
-            }
-
-            private TypeMapping(sbyte assetType, InventoryType inventoryType, string contentType, string contentType2, string extension)
-            {
-                this.assetType = assetType;
-                this.inventoryType = inventoryType;
-                this.contentType = contentType;
-                this.contentType2 = contentType2;
-                this.extension = extension;
-            }
-
-            public TypeMapping(AssetType assetType, InventoryType inventoryType, string contentType, string contentType2, string extension)
-                : this((sbyte)assetType, inventoryType, contentType, contentType2, extension)
-            {
-            }
-
-            public TypeMapping(AssetType assetType, InventoryType inventoryType, string contentType, string extension)
-                : this((sbyte)assetType, inventoryType, contentType, null, extension)
-            {
-            }
-        }
-
-        /// <summary>
-        /// Maps between AssetType, InventoryType and Content-Type.
-        /// Where more than one possibility exists, the first one takes precedence. E.g.:
-        ///   AssetType "AssetType.Texture" -> Content-Type "image-xj2c"
-        ///   Content-Type "image/x-j2c" -> InventoryType "InventoryType.Texture"
-        /// </summary>
-        private static TypeMapping[] MAPPINGS = new TypeMapping[] {
-            new TypeMapping(AssetType.Unknown, InventoryType.Unknown, "application/octet-stream", "bin"),
-            new TypeMapping(AssetType.Texture, InventoryType.Texture, "image/x-j2c", "image/jp2", "j2c"),
-            new TypeMapping(AssetType.Texture, InventoryType.Snapshot, "image/x-j2c", "image/jp2", "j2c"),
-            new TypeMapping(AssetType.TextureTGA, InventoryType.Texture, "image/tga", "tga"),
-            new TypeMapping(AssetType.ImageTGA, InventoryType.Texture, "image/tga", "tga"),
-            new TypeMapping(AssetType.ImageJPEG, InventoryType.Texture, "image/jpeg", "jpg"),
-            new TypeMapping(AssetType.Sound, InventoryType.Sound, "audio/ogg", "application/ogg", "ogg"),
-            new TypeMapping(AssetType.SoundWAV, InventoryType.Sound, "audio/x-wav", "wav"),
-            new TypeMapping(AssetType.CallingCard, InventoryType.CallingCard, "application/vnd.ll.callingcard", "application/x-metaverse-callingcard", "callingcard"),
-            new TypeMapping(AssetType.Landmark, InventoryType.Landmark, "application/vnd.ll.landmark", "application/x-metaverse-landmark", "landmark"),
-            new TypeMapping(AssetType.Clothing, InventoryType.Wearable, "application/vnd.ll.clothing", "application/x-metaverse-clothing", "clothing"),
-            new TypeMapping(AssetType.Object, InventoryType.Object, "application/vnd.ll.primitive", "application/x-metaverse-primitive", "primitive"),
-            new TypeMapping(AssetType.Object, InventoryType.Attachment, "application/vnd.ll.primitive", "application/x-metaverse-primitive", "primitive"),
-            new TypeMapping(AssetType.Notecard, InventoryType.Notecard, "application/vnd.ll.notecard", "application/x-metaverse-notecard", "notecard"),
-            new TypeMapping(AssetType.Folder, InventoryType.Folder, "application/vnd.ll.folder", "folder"),
-            new TypeMapping(AssetType.RootFolder, InventoryType.RootCategory, "application/vnd.ll.rootfolder", "rootfolder"),
-            new TypeMapping(AssetType.LSLText, InventoryType.LSL, "application/vnd.ll.lsltext", "application/x-metaverse-lsl", "lsl"),
-            new TypeMapping(AssetType.LSLBytecode, InventoryType.LSL, "application/vnd.ll.lslbyte", "application/x-metaverse-lso", "lso"),
-            new TypeMapping(AssetType.Bodypart, InventoryType.Wearable, "application/vnd.ll.bodypart", "application/x-metaverse-bodypart", "bodypart"),
-            new TypeMapping(AssetType.TrashFolder, InventoryType.Folder, "application/vnd.ll.trashfolder", "trashfolder"),
-            new TypeMapping(AssetType.SnapshotFolder, InventoryType.Folder, "application/vnd.ll.snapshotfolder", "snapshotfolder"),
-            new TypeMapping(AssetType.LostAndFoundFolder, InventoryType.Folder, "application/vnd.ll.lostandfoundfolder", "lostandfoundfolder"),
-            new TypeMapping(AssetType.Animation, InventoryType.Animation, "application/vnd.ll.animation", "application/x-metaverse-animation", "animation"),
-            new TypeMapping(AssetType.Gesture, InventoryType.Gesture, "application/vnd.ll.gesture", "application/x-metaverse-gesture", "gesture"),
-            new TypeMapping(AssetType.Simstate, InventoryType.Snapshot, "application/x-metaverse-simstate", "simstate"),
-            new TypeMapping(AssetType.FavoriteFolder, InventoryType.Unknown, "application/vnd.ll.favoritefolder", "favoritefolder"),
-            new TypeMapping(AssetType.Link, InventoryType.Unknown, "application/vnd.ll.link", "link"),
-            new TypeMapping(AssetType.LinkFolder, InventoryType.Unknown, "application/vnd.ll.linkfolder", "linkfolder"),
-            new TypeMapping(AssetType.CurrentOutfitFolder, InventoryType.Unknown, "application/vnd.ll.currentoutfitfolder", "currentoutfitfolder"),
-            new TypeMapping(AssetType.OutfitFolder, InventoryType.Unknown, "application/vnd.ll.outfitfolder", "outfitfolder"),
-            new TypeMapping(AssetType.MyOutfitsFolder, InventoryType.Unknown, "application/vnd.ll.myoutfitsfolder", "myoutfitsfolder"),
-            new TypeMapping(AssetType.Mesh, InventoryType.Mesh, "application/vnd.ll.mesh", "llm")
-        };
-
-        private static Dictionary<sbyte, string> asset2Content;
-        private static Dictionary<sbyte, string> asset2Extension;
-        private static Dictionary<InventoryType, string> inventory2Content;
-        private static Dictionary<string, sbyte> content2Asset;
-        private static Dictionary<string, InventoryType> content2Inventory;
-
-        static SLUtil()
-        {
-            asset2Content = new Dictionary<sbyte, string>();
-            asset2Extension = new Dictionary<sbyte, string>();
-            inventory2Content = new Dictionary<InventoryType, string>();
-            content2Asset = new Dictionary<string, sbyte>();
-            content2Inventory = new Dictionary<string, InventoryType>();
-            
-            foreach (TypeMapping mapping in MAPPINGS)
-            {
-                sbyte assetType = mapping.AssetTypeCode;
-                if (!asset2Content.ContainsKey(assetType))
-                    asset2Content.Add(assetType, mapping.ContentType);
-                if (!asset2Extension.ContainsKey(assetType))
-                    asset2Extension.Add(assetType, mapping.Extension);
-                if (!inventory2Content.ContainsKey(mapping.InventoryType))
-                    inventory2Content.Add(mapping.InventoryType, mapping.ContentType);
-                if (!content2Asset.ContainsKey(mapping.ContentType))
-                    content2Asset.Add(mapping.ContentType, assetType);
-                if (!content2Inventory.ContainsKey(mapping.ContentType))
-                    content2Inventory.Add(mapping.ContentType, mapping.InventoryType);
-
-                if (mapping.ContentType2 != null)
-                {
-                    if (!content2Asset.ContainsKey(mapping.ContentType2))
-                        content2Asset.Add(mapping.ContentType2, assetType);
-                    if (!content2Inventory.ContainsKey(mapping.ContentType2))
-                        content2Inventory.Add(mapping.ContentType2, mapping.InventoryType);
-                }
-            }
-        }
-        
         public static string SLAssetTypeToContentType(int assetType)
         {
-            string contentType;
-            if (!asset2Content.TryGetValue((sbyte)assetType, out contentType))
-                contentType = asset2Content[(sbyte)AssetType.Unknown];
-            return contentType;
+            switch ((AssetType)assetType)
+            {
+                case AssetType.Texture:
+                    return "image/x-j2c";
+                case AssetType.Sound:
+                    return "audio/ogg";
+                case AssetType.CallingCard:
+                    return "application/vnd.ll.callingcard";
+                case AssetType.Landmark:
+                    return "application/vnd.ll.landmark";
+                case AssetType.Clothing:
+                    return "application/vnd.ll.clothing";
+                case AssetType.Object:
+                    return "application/vnd.ll.primitive";
+                case AssetType.Notecard:
+                    return "application/vnd.ll.notecard";
+                case AssetType.Folder:
+                    return "application/vnd.ll.folder";
+                case AssetType.RootFolder:
+                    return "application/vnd.ll.rootfolder";
+                case AssetType.LSLText:
+                    return "application/vnd.ll.lsltext";
+                case AssetType.LSLBytecode:
+                    return "application/vnd.ll.lslbyte";
+                case AssetType.TextureTGA:
+                case AssetType.ImageTGA:
+                    return "image/tga";
+                case AssetType.Bodypart:
+                    return "application/vnd.ll.bodypart";
+                case AssetType.TrashFolder:
+                    return "application/vnd.ll.trashfolder";
+                case AssetType.SnapshotFolder:
+                    return "application/vnd.ll.snapshotfolder";
+                case AssetType.LostAndFoundFolder:
+                    return "application/vnd.ll.lostandfoundfolder";
+                case AssetType.SoundWAV:
+                    return "audio/x-wav";
+                case AssetType.ImageJPEG:
+                    return "image/jpeg";
+                case AssetType.Animation:
+                    return "application/vnd.ll.animation";
+                case AssetType.Gesture:
+                    return "application/vnd.ll.gesture";
+                case AssetType.Simstate:
+                    return "application/x-metaverse-simstate";
+                case AssetType.FavoriteFolder:
+                    return "application/vnd.ll.favoritefolder";
+                case AssetType.Link:
+                    return "application/vnd.ll.link";
+                case AssetType.LinkFolder:
+                    return "application/vnd.ll.linkfolder";
+                case AssetType.CurrentOutfitFolder:
+                    return "application/vnd.ll.currentoutfitfolder";
+                case AssetType.OutfitFolder:
+                    return "application/vnd.ll.outfitfolder";
+                case AssetType.MyOutfitsFolder:
+                    return "application/vnd.ll.myoutfitsfolder";
+                case AssetType.Unknown:
+                default:
+                    return "application/octet-stream";
+            }
         }
 
         public static string SLInvTypeToContentType(int invType)
         {
-            string contentType;
-            if (!inventory2Content.TryGetValue((InventoryType)invType, out contentType))
-                contentType = inventory2Content[InventoryType.Unknown];
-            return contentType;
+            switch ((InventoryType)invType)
+            {
+                case InventoryType.Animation:
+                    return "application/vnd.ll.animation";
+                case InventoryType.CallingCard:
+                    return "application/vnd.ll.callingcard";
+                case InventoryType.Folder:
+                    return "application/vnd.ll.folder";
+                case InventoryType.Gesture:
+                    return "application/vnd.ll.gesture";
+                case InventoryType.Landmark:
+                    return "application/vnd.ll.landmark";
+                case InventoryType.LSL:
+                    return "application/vnd.ll.lsltext";
+                case InventoryType.Notecard:
+                    return "application/vnd.ll.notecard";
+                case InventoryType.Attachment:
+                case InventoryType.Object:
+                    return "application/vnd.ll.primitive";
+                case InventoryType.Sound:
+                    return "audio/ogg";
+                case InventoryType.Snapshot:
+                case InventoryType.Texture:
+                    return "image/x-j2c";
+                case InventoryType.Wearable:
+                    return "application/vnd.ll.clothing";
+                default:
+                    return "application/octet-stream";
+            }
         }
 
         public static sbyte ContentTypeToSLAssetType(string contentType)
         {
-            sbyte assetType;
-            if (!content2Asset.TryGetValue(contentType, out assetType))
-                assetType = (sbyte)AssetType.Unknown;
-            return (sbyte)assetType;
+            switch (contentType)
+            {
+                case "image/x-j2c":
+                case "image/jp2":
+                    return (sbyte)AssetType.Texture;
+                case "application/ogg":
+                case "audio/ogg":
+                    return (sbyte)AssetType.Sound;
+                case "application/vnd.ll.callingcard":
+                case "application/x-metaverse-callingcard":
+                    return (sbyte)AssetType.CallingCard;
+                case "application/vnd.ll.landmark":
+                case "application/x-metaverse-landmark":
+                    return (sbyte)AssetType.Landmark;
+                case "application/vnd.ll.clothing":
+                case "application/x-metaverse-clothing":
+                    return (sbyte)AssetType.Clothing;
+                case "application/vnd.ll.primitive":
+                case "application/x-metaverse-primitive":
+                    return (sbyte)AssetType.Object;
+                case "application/vnd.ll.notecard":
+                case "application/x-metaverse-notecard":
+                    return (sbyte)AssetType.Notecard;
+                case "application/vnd.ll.folder":
+                    return (sbyte)AssetType.Folder;
+                case "application/vnd.ll.rootfolder":
+                    return (sbyte)AssetType.RootFolder;
+                case "application/vnd.ll.lsltext":
+                case "application/x-metaverse-lsl":
+                    return (sbyte)AssetType.LSLText;
+                case "application/vnd.ll.lslbyte":
+                case "application/x-metaverse-lso":
+                    return (sbyte)AssetType.LSLBytecode;
+                case "image/tga":
+                    // Note that AssetType.TextureTGA will be converted to AssetType.ImageTGA
+                    return (sbyte)AssetType.ImageTGA;
+                case "application/vnd.ll.bodypart":
+                case "application/x-metaverse-bodypart":
+                    return (sbyte)AssetType.Bodypart;
+                case "application/vnd.ll.trashfolder":
+                    return (sbyte)AssetType.TrashFolder;
+                case "application/vnd.ll.snapshotfolder":
+                    return (sbyte)AssetType.SnapshotFolder;
+                case "application/vnd.ll.lostandfoundfolder":
+                    return (sbyte)AssetType.LostAndFoundFolder;
+                case "audio/x-wav":
+                    return (sbyte)AssetType.SoundWAV;
+                case "image/jpeg":
+                    return (sbyte)AssetType.ImageJPEG;
+                case "application/vnd.ll.animation":
+                case "application/x-metaverse-animation":
+                    return (sbyte)AssetType.Animation;
+                case "application/vnd.ll.gesture":
+                case "application/x-metaverse-gesture":
+                    return (sbyte)AssetType.Gesture;
+                case "application/x-metaverse-simstate":
+                    return (sbyte)AssetType.Simstate;
+                case "application/vnd.ll.favoritefolder":
+                    return (sbyte)AssetType.FavoriteFolder;
+                case "application/vnd.ll.link":
+                    return (sbyte)AssetType.Link;
+                case "application/vnd.ll.linkfolder":
+                    return (sbyte)AssetType.LinkFolder;
+                case "application/vnd.ll.currentoutfitfolder":
+                    return (sbyte)AssetType.CurrentOutfitFolder;
+                case "application/vnd.ll.outfitfolder":
+                    return (sbyte)AssetType.OutfitFolder;
+                case "application/vnd.ll.myoutfitsfolder":
+                    return (sbyte)AssetType.MyOutfitsFolder;
+                case "application/octet-stream":
+                default:
+                    return (sbyte)AssetType.Unknown;
+            }
         }
 
         public static sbyte ContentTypeToSLInvType(string contentType)
         {
-            InventoryType invType;
-            if (!content2Inventory.TryGetValue(contentType, out invType))
-                invType = InventoryType.Unknown;
-            return (sbyte)invType;
-        }
-
-        public static string SLAssetTypeToExtension(int assetType)
-        {
-            string extension;
-            if (!asset2Extension.TryGetValue((sbyte)assetType, out extension))
-                extension = asset2Extension[(sbyte)AssetType.Unknown];
-            return extension;
+            switch (contentType)
+            {
+                case "image/x-j2c":
+                case "image/jp2":
+                case "image/tga":
+                case "image/jpeg":
+                    return (sbyte)InventoryType.Texture;
+                case "application/ogg":
+                case "audio/ogg":
+                case "audio/x-wav":
+                    return (sbyte)InventoryType.Sound;
+                case "application/vnd.ll.callingcard":
+                case "application/x-metaverse-callingcard":
+                    return (sbyte)InventoryType.CallingCard;
+                case "application/vnd.ll.landmark":
+                case "application/x-metaverse-landmark":
+                    return (sbyte)InventoryType.Landmark;
+                case "application/vnd.ll.clothing":
+                case "application/x-metaverse-clothing":
+                case "application/vnd.ll.bodypart":
+                case "application/x-metaverse-bodypart":
+                    return (sbyte)InventoryType.Wearable;
+                case "application/vnd.ll.primitive":
+                case "application/x-metaverse-primitive":
+                    return (sbyte)InventoryType.Object;
+                case "application/vnd.ll.notecard":
+                case "application/x-metaverse-notecard":
+                    return (sbyte)InventoryType.Notecard;
+                case "application/vnd.ll.folder":
+                    return (sbyte)InventoryType.Folder;
+                case "application/vnd.ll.rootfolder":
+                    return (sbyte)InventoryType.RootCategory;
+                case "application/vnd.ll.lsltext":
+                case "application/x-metaverse-lsl":
+                case "application/vnd.ll.lslbyte":
+                case "application/x-metaverse-lso":
+                    return (sbyte)InventoryType.LSL;
+                case "application/vnd.ll.trashfolder":
+                case "application/vnd.ll.snapshotfolder":
+                case "application/vnd.ll.lostandfoundfolder":
+                    return (sbyte)InventoryType.Folder;
+                case "application/vnd.ll.animation":
+                case "application/x-metaverse-animation":
+                    return (sbyte)InventoryType.Animation;
+                case "application/vnd.ll.gesture":
+                case "application/x-metaverse-gesture":
+                    return (sbyte)InventoryType.Gesture;
+                case "application/x-metaverse-simstate":
+                    return (sbyte)InventoryType.Snapshot;
+                case "application/octet-stream":
+                default:
+                    return (sbyte)InventoryType.Unknown;
+            }
         }
 
         #endregion SL / file extension / content-type conversions
