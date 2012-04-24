@@ -338,6 +338,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
 
             _parent_scene.geom_name_map[prim_geom] = Name;
+            _parent_scene.actor_name_map[prim_geom] = this;
 
             if (childPrim)
             {
