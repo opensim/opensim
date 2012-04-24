@@ -286,6 +286,13 @@ namespace OpenSim.Region.Framework.Scenes
                         sparetime = TotalFrameTime;
                 }
                 
+                // other MS is actually simulation time
+                //                m_otherMS = m_frameMS - m_physicsMS - m_imageMS - m_netMS - m_agentMS;
+                // m_imageMS  m_netMS are not included in m_frameMS
+
+                m_otherMS = m_frameMS - m_physicsMS -  m_agentMS;
+                if (m_otherMS < 0)
+                    m_otherMS = 0;
 
                 for (int i = 0; i < 23; i++)
                 {
