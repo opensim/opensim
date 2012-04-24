@@ -391,7 +391,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             lock (sp.AttachmentsSyncLock)
             {
                 // Save avatar attachment information
-                m_log.Debug("[ATTACHMENTS MODULE]: Detaching from UserID: " + sp.UUID + ", ItemID: " + itemID);
+//                m_log.Debug("[ATTACHMENTS MODULE]: Detaching from UserID: " + sp.UUID + ", ItemID: " + itemID);
 
                 bool changed = sp.Appearance.DetachAttachment(itemID);
                 if (changed && m_scene.AvatarFactory != null)
@@ -471,9 +471,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             if (grp.HasGroupChanged || (saveAllScripted && grp.ContainsScripts()))
             {
-                m_log.DebugFormat(
-                    "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
-                    grp.UUID, grp.AttachmentPoint);
+//                m_log.DebugFormat(
+//                    "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
+//                    grp.UUID, grp.AttachmentPoint);
 
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
 
@@ -504,12 +504,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 }
                 grp.HasGroupChanged = false; // Prevent it being saved over and over
             }
-            else
-            {
-                m_log.DebugFormat(
-                    "[ATTACHMENTS MODULE]: Don't need to update asset for unchanged attachment {0}, attachpoint {1}",
-                    grp.UUID, grp.AttachmentPoint);
-            }
+//            else
+//            {
+//                m_log.DebugFormat(
+//                    "[ATTACHMENTS MODULE]: Don't need to update asset for unchanged attachment {0}, attachpoint {1}",
+//                    grp.UUID, grp.AttachmentPoint);
+//            }
         }
 
         /// <summary>
@@ -891,13 +891,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 // Calls attach with a Zero position
                 if (AttachObject(sp, part.ParentGroup, AttachmentPt, false))
                 {
-                    m_scene.EventManager.TriggerOnAttach(objectLocalID, part.ParentGroup.FromItemID, remoteClient.AgentId);
+//                    m_log.Debug(
+//                        "[ATTACHMENTS MODULE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId
+//                        + ", AttachmentPoint: " + AttachmentPt);
 
                     // Save avatar attachment information
-                    m_log.Debug(
-                        "[ATTACHMENTS MODULE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId
-                        + ", AttachmentPoint: " + AttachmentPt);
-
+                    m_scene.EventManager.TriggerOnAttach(objectLocalID, part.ParentGroup.FromItemID, remoteClient.AgentId);
                 }
             }
             catch (Exception e)
