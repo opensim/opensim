@@ -2531,6 +2531,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osNpcSay(LSL_Key npc, string message)
         {
+            osNpcSay(npc, 0, message);
+        }
+
+        public void osNpcSay(LSL_Key npc, int channel, string message)
+        {
             CheckThreatLevel(ThreatLevel.High, "osNpcSay");
             m_host.AddScriptLPS(1);
 
@@ -2542,7 +2547,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!module.CheckPermissions(npcId, m_host.OwnerID))
                     return;
 
-                module.Say(npcId, World, message);
+                module.Say(npcId, World, message, channel);
+            }
+        }
+
+        public void osNpcShout(LSL_Key npc, int channel, string message)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcShout");
+            m_host.AddScriptLPS(1);
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+
+                module.Shout(npcId, World, message, channel);
             }
         }
 
@@ -2624,6 +2646,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (module.CheckPermissions(npcID, m_host.OwnerID))
                     AvatarStopAnimation(npcID.ToString(), animation);
+            }
+        }
+
+        public void osNpcWhisper(LSL_Key npc, int channel, string message)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcWhisper");
+            m_host.AddScriptLPS(1);
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+
+                module.Whisper(npcId, World, message, channel);
             }
         }
 

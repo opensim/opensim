@@ -569,6 +569,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcSay(npc, message);
         }
 
+        public void osNpcSay(key npc, int channel, string message)
+        {
+            m_OSSL_Functions.osNpcSay(npc, channel, message);
+        }
+
+
+        public void osNpcShout(key npc, int channel, string message)
+        {
+            m_OSSL_Functions.osNpcShout(npc, channel, message);
+        }
+
         public void osNpcSit(LSL_Key npc, LSL_Key target, int options)
         {
             m_OSSL_Functions.osNpcSit(npc, target, options);
@@ -592,6 +603,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void osNpcStopAnimation(LSL_Key npc, string animation)
         {
             m_OSSL_Functions.osNpcStopAnimation(npc, animation);
+        }
+
+        public void osNpcWhisper(key npc, int channel, string message)
+        {
+            m_OSSL_Functions.osNpcWhisper(npc, channel, message);
         }
 
         public LSL_Key osOwnerSaveAppearance(string notecard)
