@@ -89,7 +89,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
         protected uint m_localID;
+
+        /// <summary>
+        /// The UUID of the item that hosts this script
+        /// </summary>
         protected UUID m_itemID;
+
         protected bool throwErrorOnNotImplemented = true;
         protected AsyncCommandManager AsyncCommands = null;
         protected float m_ScriptDelayFactor = 1.0f;
@@ -336,28 +341,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        protected UUID InventorySelf()
+        /// <summary>
+        /// Get the inventory item that hosts ourselves.
+        /// </summary>
+        /// <remarks>
+        /// FIXME: It would be far easier to pass in TaskInventoryItem rather than just m_itemID so that we don't need
+        /// to keep looking ourselves up.
+        /// </remarks>
+        /// <returns></returns>
+        protected TaskInventoryItem GetSelfInventoryItem()
         {
-            UUID invItemID = new UUID();
+            TaskInventoryItem invItem = null;
+
             bool unlock = false;
             if (!m_host.TaskInventory.IsReadLockedByMe())
             {
                 m_host.TaskInventory.LockItemsForRead(true);
                 unlock = true;
             }
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if (inv.Value.Type == 10 && inv.Value.ItemID == m_itemID)
-                {
-                    invItemID = inv.Key;
-                    break;
-                }
-            }
+
+            invItem = m_host.TaskInventory[m_itemID];
+
             if (unlock)
             {
                 m_host.TaskInventory.LockItemsForRead(false);
             }
-            return invItemID;
+
+            return invItem;
         }
 
         protected UUID InventoryKey(string name, int type)
@@ -941,8 +951,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void  llRegionSayTo(string target, int channel, string msg)
         {
-            string error = String.Empty;
-
             if (msg.Length > 1023)
                 msg = msg.Substring(0, 1023);
 
@@ -2952,15 +2960,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llGiveMoney(string destination, int amount)
         {
-            UUID invItemID=InventorySelf();
-            if (invItemID == UUID.Zero)
-                return 0;
-
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            TaskInventoryItem item = m_host.TaskInventory[invItemID];
-            m_host.TaskInventory.LockItemsForRead(false);
+            TaskInventoryItem item = GetSelfInventoryItem();
 
             if (item.PermsGranter == UUID.Zero)
                 return 0;
@@ -3214,19 +3216,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llTakeControls(int controls, int accept, int pass_on)
         {
-            TaskInventoryItem item;
-
-            m_host.TaskInventory.LockItemsForRead(true);
-            if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return;
-            }
-            else
-            {
-                item = m_host.TaskInventory[InventorySelf()];
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
+            TaskInventoryItem item = GetSelfInventoryItem();
 
             if (item.PermsGranter != UUID.Zero)
             {
@@ -3246,25 +3236,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llReleaseControls()
         {
-            TaskInventoryItem item;
-
-            m_host.TaskInventory.LockItemsForRead(true);
-            lock (m_host.TaskInventory)
-            {
-                
-                if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return;
-                }
-                else
-                {
-                    item = m_host.TaskInventory[InventorySelf()];
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-
             m_host.AddScriptLPS(1);
+
+            TaskInventoryItem item = GetSelfInventoryItem();
 
             if (item.PermsGranter != UUID.Zero)
             {
@@ -3290,73 +3264,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_UrlModule.ReleaseURL(url);
         }
 
-        public void llAttachToAvatar(int attachment)
+        /// <summary>
+        /// Attach the object containing this script to the avatar that owns it.
+        /// </summary>
+        /// <param name='attachment'>The attachment point (e.g. ATTACH_CHEST)</param>
+        /// <returns>true if the attach suceeded, false if it did not</returns>
+        public bool AttachToAvatar(int attachmentPoint)
         {
-            m_host.AddScriptLPS(1);
+            SceneObjectGroup grp = m_host.ParentGroup;
+            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
 
-            TaskInventoryItem item;
+            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
 
-            m_host.TaskInventory.LockItemsForRead(true);
-
-            if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return;
-            }
+            if (attachmentsModule != null)
+                return attachmentsModule.AttachObject(presence, grp, (uint)attachmentPoint, false);
             else
-            {
-                item = m_host.TaskInventory[InventorySelf()];
-            }
-
-            m_host.TaskInventory.LockItemsForRead(false);
-
-            if (item.PermsGranter != m_host.OwnerID)
-                return;
-
-            if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
-            {
-                SceneObjectGroup grp = m_host.ParentGroup;
-
-                ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
-
-                IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
-                if (attachmentsModule != null)
-                    attachmentsModule.AttachObject(presence, grp, (uint)attachment, false);
-            }
+                return false;
         }
 
-        public void llDetachFromAvatar()
+        /// <summary>
+        /// Detach the object containing this script from the avatar it is attached to.
+        /// </summary>
+        /// <remarks>
+        /// Nothing happens if the object is not attached.
+        /// </remarks>
+        public void DetachFromAvatar()
         {
-            m_host.AddScriptLPS(1);
-
-            if (m_host.ParentGroup.AttachmentPoint == 0)
-                return;
-
-            TaskInventoryItem item;
-
-            m_host.TaskInventory.LockItemsForRead(true);
-
-            if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return;
-            }
-            else
-            {
-                item = m_host.TaskInventory[InventorySelf()];
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-
-
-            if (item.PermsGranter != m_host.OwnerID)
-                return;
-
-            if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
-            {
-                IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
-                if (attachmentsModule != null)
-                    Util.FireAndForget(DetachWrapper, m_host);
-            }
+            Util.FireAndForget(DetachWrapper, m_host);
         }
 
         private void DetachWrapper(object o)
@@ -3370,6 +3304,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
             if (attachmentsModule != null)
                 attachmentsModule.DetachSingleAttachmentToInv(presence, itemID);
+        }
+
+        public void llAttachToAvatar(int attachmentPoint)
+        {
+            m_host.AddScriptLPS(1);
+
+            TaskInventoryItem item = GetSelfInventoryItem();
+
+            m_host.TaskInventory.LockItemsForRead(false);
+
+            if (item.PermsGranter != m_host.OwnerID)
+                return;
+
+            if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
+                AttachToAvatar(attachmentPoint);
+        }
+
+        public void llDetachFromAvatar()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_host.ParentGroup.AttachmentPoint == 0)
+                return;
+
+            TaskInventoryItem item = GetSelfInventoryItem();
+
+            if (item.PermsGranter != m_host.OwnerID)
+                return;
+
+            if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
+                DetachFromAvatar();
         }
 
         public void llTakeCamera(string avatar)
@@ -3626,23 +3591,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            UUID invItemID = InventorySelf();
-            if (invItemID == UUID.Zero)
-                return;
+            TaskInventoryItem item = GetSelfInventoryItem();
 
-            TaskInventoryItem item;
-
-            m_host.TaskInventory.LockItemsForRead(true);
-            if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return;
-            }
-            else
-            {
-                item = m_host.TaskInventory[InventorySelf()];
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
             if (item.PermsGranter == UUID.Zero)
                 return;
 
@@ -3666,24 +3616,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            UUID invItemID=InventorySelf();
-            if (invItemID == UUID.Zero)
-                return;
-
-            TaskInventoryItem item;
-
-            m_host.TaskInventory.LockItemsForRead(true);
-            if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return;
-            }
-            else
-            {
-                item = m_host.TaskInventory[InventorySelf()];
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-            
+            TaskInventoryItem item = GetSelfInventoryItem();
 
             if (item.PermsGranter == UUID.Zero)
                 return;
@@ -3738,30 +3671,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llRequestPermissions(string agent, int perm)
         {
-            UUID agentID = new UUID();
+            UUID agentID;
 
             if (!UUID.TryParse(agent, out agentID))
                 return;
 
-            UUID invItemID = InventorySelf();
-
-            if (invItemID == UUID.Zero)
-                return; // Not in a prim? How??
-
-            TaskInventoryItem item;
-
-
-            m_host.TaskInventory.LockItemsForRead(true);
-            if (!m_host.TaskInventory.ContainsKey(invItemID))
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return;
-            }
-            else
-            {
-                item = m_host.TaskInventory[invItemID];
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
+            TaskInventoryItem item = GetSelfInventoryItem();
 
             if (agentID == UUID.Zero || perm == 0) // Releasing permissions
             {
@@ -3795,8 +3710,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
                 {
                     m_host.TaskInventory.LockItemsForWrite(true);
-                    m_host.TaskInventory[invItemID].PermsGranter = agentID;
-                    m_host.TaskInventory[invItemID].PermsMask = perm;
+                    m_host.TaskInventory[m_itemID].PermsGranter = agentID;
+                    m_host.TaskInventory[m_itemID].PermsMask = perm;
                     m_host.TaskInventory.LockItemsForWrite(false);
 
                     m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
@@ -3834,8 +3749,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
                     {
                         m_host.TaskInventory.LockItemsForWrite(true);
-                        m_host.TaskInventory[invItemID].PermsGranter = agentID;
-                        m_host.TaskInventory[invItemID].PermsMask = perm;
+                        m_host.TaskInventory[m_itemID].PermsGranter = agentID;
+                        m_host.TaskInventory[m_itemID].PermsMask = perm;
                         m_host.TaskInventory.LockItemsForWrite(false);
 
                         m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
@@ -3859,8 +3774,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!m_waitingForScriptAnswer)
                 {
                     m_host.TaskInventory.LockItemsForWrite(true);
-                    m_host.TaskInventory[invItemID].PermsGranter = agentID;
-                    m_host.TaskInventory[invItemID].PermsMask = 0;
+                    m_host.TaskInventory[m_itemID].PermsGranter = agentID;
+                    m_host.TaskInventory[m_itemID].PermsMask = 0;
                     m_host.TaskInventory.LockItemsForWrite(false);
 
                     presence.ControllingClient.OnScriptAnswer += handleScriptAnswer;
@@ -3868,7 +3783,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
 
                 presence.ControllingClient.SendScriptQuestion(
-                    m_host.UUID, m_host.ParentGroup.RootPart.Name, ownerName, invItemID, perm);
+                    m_host.UUID, m_host.ParentGroup.RootPart.Name, ownerName, m_itemID, perm);
 
                 return;
             }
@@ -3885,23 +3800,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (taskID != m_host.UUID)
                 return;
 
-            UUID invItemID = InventorySelf();
-
-            if (invItemID == UUID.Zero)
-                return;
-
-            client.OnScriptAnswer-=handleScriptAnswer;
-            m_waitingForScriptAnswer=false;
+            client.OnScriptAnswer -= handleScriptAnswer;
+            m_waitingForScriptAnswer = false;
 
             if ((answer & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) == 0)
                 llReleaseControls();
 
-            
             m_host.TaskInventory.LockItemsForWrite(true);
-            m_host.TaskInventory[invItemID].PermsMask = answer;
+            m_host.TaskInventory[m_itemID].PermsMask = answer;
             m_host.TaskInventory.LockItemsForWrite(false);
             
-
             m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
                     "run_time_permissions", new Object[] {
                     new LSL_Integer(answer) },
@@ -3912,41 +3820,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            
-            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-            {
-                if (item.Type == 10 && item.ItemID == m_itemID)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return item.PermsGranter.ToString();
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-
-            return UUID.Zero.ToString();
+            return GetSelfInventoryItem().PermsGranter.ToString();
         }
 
         public LSL_Integer llGetPermissions()
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
+            int perms = GetSelfInventoryItem().PermsMask;
 
-            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-            {
-                if (item.Type == 10 && item.ItemID == m_itemID)
-                {
-                    int perms = item.PermsMask;
-                    if (m_automaticLinkPermission)
-                        perms |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return perms;
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
+            if (m_automaticLinkPermission)
+                perms |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
 
-            return 0;
+            return perms;
         }
 
         public LSL_Integer llGetLinkNumber()
@@ -3984,17 +3870,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCreateLink(string target, int parent)
         {
             m_host.AddScriptLPS(1);
-            UUID invItemID = InventorySelf();
+
             UUID targetID;
 
             if (!UUID.TryParse(target, out targetID))
                 return;
 
-            TaskInventoryItem item;
-            m_host.TaskInventory.LockItemsForRead(true);
-            item = m_host.TaskInventory[invItemID];
-            m_host.TaskInventory.LockItemsForRead(false);
-             
+            TaskInventoryItem item = GetSelfInventoryItem();
+
             if ((item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
                 && !m_automaticLinkPermission)
             {
@@ -4049,18 +3932,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llBreakLink(int linknum)
         {
             m_host.AddScriptLPS(1);
-            UUID invItemID = InventorySelf();
 
-            m_host.TaskInventory.LockItemsForRead(true);
-                if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
-                    && !m_automaticLinkPermission)
-                {
-                    ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return;
-                }
-            m_host.TaskInventory.LockItemsForRead(false);
-            
+            if ((GetSelfInventoryItem().PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
+                && !m_automaticLinkPermission)
+            {
+                ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
+                return;
+            }
+
             if (linknum < ScriptBaseClass.LINK_THIS)
                 return;
 
@@ -4159,12 +4038,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            UUID invItemID = InventorySelf();
-
-            TaskInventoryItem item;
-            m_host.TaskInventory.LockItemsForRead(true);
-            item = m_host.TaskInventory[invItemID];
-            m_host.TaskInventory.LockItemsForRead(false);
+            TaskInventoryItem item = GetSelfInventoryItem();
              
             if ((item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
                 && !m_automaticLinkPermission)
@@ -5037,22 +4911,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetScriptName()
         {
-            string result = String.Empty;
-
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-            {
-                if (item.Type == 10 && item.ItemID == m_itemID)
-                {
-                    result =  item.Name!=null?item.Name:String.Empty;
-                    break;
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
+            TaskInventoryItem item = GetSelfInventoryItem();
 
-            return result;
+            return item.Name != null ? item.Name : String.Empty;
         }
 
         public LSL_Integer llGetLinkNumberOfSides(int link)
@@ -10437,22 +10300,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetCameraPos()
         {
             m_host.AddScriptLPS(1);
-            UUID invItemID = InventorySelf();
 
-            if (invItemID == UUID.Zero)
-                return new LSL_Vector();
+            TaskInventoryItem item = GetSelfInventoryItem();
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return new LSL_Vector();
-            }
+            if (item.PermsGranter == UUID.Zero)
+               return new LSL_Vector();
 
-            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
+            if ((item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
                 ShoutError("No permissions to track the camera");
-                m_host.TaskInventory.LockItemsForRead(false);
                 return new LSL_Vector();
             }
             m_host.TaskInventory.LockItemsForRead(false);
@@ -10469,20 +10325,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Rotation llGetCameraRot()
         {
             m_host.AddScriptLPS(1);
-            UUID invItemID = InventorySelf();
-            if (invItemID == UUID.Zero)
-                return new LSL_Rotation();
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return new LSL_Rotation();
-            }
-            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
+            TaskInventoryItem item = GetSelfInventoryItem();
+
+            if (item.PermsGranter == UUID.Zero)
+               return new LSL_Rotation();
+
+            if ((item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
                 ShoutError("No permissions to track the camera");
-                m_host.TaskInventory.LockItemsForRead(false);
                 return new LSL_Rotation();
             }
             m_host.TaskInventory.LockItemsForRead(false);
@@ -10670,30 +10521,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            // our key in the object we are in
-            UUID invItemID = InventorySelf();
-            if (invItemID == UUID.Zero) return;
-
             // the object we are in
             UUID objectID = m_host.ParentUUID;
-            if (objectID == UUID.Zero) return;
+            if (objectID == UUID.Zero)
+                return;
 
-            UUID agentID;
-            m_host.TaskInventory.LockItemsForRead(true);
+            TaskInventoryItem item = GetSelfInventoryItem();
+
             // we need the permission first, to know which avatar we want to set the camera for
-            agentID = m_host.TaskInventory[invItemID].PermsGranter;
+            UUID agentID = item.PermsGranter;
 
             if (agentID == UUID.Zero)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
                 return;
-            }
-            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CONTROL_CAMERA) == 0)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
+
+            if ((item.PermsMask & ScriptBaseClass.PERMISSION_CONTROL_CAMERA) == 0)
                 return;
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
 
             ScenePresence presence = World.GetScenePresence(agentID);
 
@@ -10735,34 +10577,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            // our key in the object we are in
-            UUID invItemID=InventorySelf();
-            if (invItemID == UUID.Zero) return;
-
             // the object we are in
             UUID objectID = m_host.ParentUUID;
-            if (objectID == UUID.Zero) return;
+            if (objectID == UUID.Zero)
+                return;
+
+            TaskInventoryItem item = GetSelfInventoryItem();
 
             // we need the permission first, to know which avatar we want to clear the camera for
-            UUID agentID;
-            m_host.TaskInventory.LockItemsForRead(true);
-            agentID = m_host.TaskInventory[invItemID].PermsGranter;
+            UUID agentID = item.PermsGranter;
+
             if (agentID == UUID.Zero)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
                 return;
-            }
-            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CONTROL_CAMERA) == 0)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
+
+            if ((item.PermsMask & ScriptBaseClass.PERMISSION_CONTROL_CAMERA) == 0)
                 return;
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
 
             ScenePresence presence = World.GetScenePresence(agentID);
 
             // we are not interested in child-agents
-            if (presence.IsChildAgent) return;
+            if (presence.IsChildAgent)
+                return;
 
             presence.ControllingClient.SendClearFollowCamProperties(objectID);
         }
@@ -12231,18 +12066,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 try
                 {
-                    UUID invItemID=InventorySelf();
-                    if (invItemID == UUID.Zero)
+                    TaskInventoryItem item = GetSelfInventoryItem();
+                    if (item == null)
                     {
                         replydata = "SERVICE_ERROR";
                         return;
                     }
 
                     m_host.AddScriptLPS(1);
-
-                    m_host.TaskInventory.LockItemsForRead(true);
-                    TaskInventoryItem item = m_host.TaskInventory[invItemID];
-                    m_host.TaskInventory.LockItemsForRead(false);
 
                     if (item.PermsGranter == UUID.Zero)
                     {

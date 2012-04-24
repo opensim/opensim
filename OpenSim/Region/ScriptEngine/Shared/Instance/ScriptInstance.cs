@@ -964,7 +964,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public IScriptApi GetApi(string name)
         {
             if (m_Apis.ContainsKey(name))
+            {
+//                m_log.DebugFormat("[SCRIPT INSTANCE]: Found api {0} in {1}@{2}", name, ScriptName, PrimName);
+
                 return m_Apis[name];
+            }
+
+//            m_log.DebugFormat("[SCRIPT INSTANCE]: Did not find api {0} in {1}@{2}", name, ScriptName, PrimName);
+
             return null;
         }
         

@@ -355,7 +355,26 @@ namespace OpenSim.Services.LLLoginService
 
         private void SetDefaultValues()
         {
-            DST = TimeZone.CurrentTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+            TimeZoneInfo gridTimeZone;
+
+            try
+            {
+                // First try to fetch DST from Pacific Standard Time, because this is
+                // the one expected by the viewer. "US/Pacific" is the string to search 
+                // on linux and mac, and should work also on Windows (to confirm)
+                gridTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US/Pacific");
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat(
+                    "[TIMEZONE]: {0} Falling back to system time. System time should be set to Pacific Standard Time to provide the expected time",
+                    e.Message);
+
+                gridTimeZone = TimeZoneInfo.Local;
+            }
+
+            DST = gridTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+
             StipendSinceLogin = "N";
             Gendered = "Y";
             EverLoggedIn = "Y";
