@@ -350,6 +350,7 @@ namespace OpenSim.Services.LLLoginService
         private void SetDefaultValues()
         {
             TimeZoneInfo gridTimeZone;
+
             try
             {
                 // First try to fetch DST from Pacific Standard Time, because this is
@@ -359,9 +360,13 @@ namespace OpenSim.Services.LLLoginService
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[TIMEZONE]: {0} Falling back to system time. System time should be set to Pacific Standard Time to provide the expected time", e.Message);
+                m_log.WarnFormat(
+                    "[TIMEZONE]: {0} Falling back to system time. System time should be set to Pacific Standard Time to provide the expected time",
+                    e.Message);
+
                 gridTimeZone = TimeZoneInfo.Local;
             }
+
             DST = gridTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
 
             StipendSinceLogin = "N";
