@@ -461,6 +461,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        public override bool IsVolumeDtc
+        {
+            set { return; }
+            get { return m_isVolumeDetect; }
+
+        }
+
         public override bool Phantom
         {
             get { return m_isphantom; }
@@ -597,6 +604,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_isVolumeDetect = (param != 0);
             }
         }
+
 
         public override Vector3 CenterOfMass
         {
@@ -1372,6 +1380,25 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+
+        private void UpdateDataFromGeom()
+        {
+            if (prim_geom != IntPtr.Zero)
+            {
+                d.Quaternion qtmp;
+                d.GeomCopyQuaternion(prim_geom, out qtmp);
+                _orientation.W = qtmp.W;
+                _orientation.X = qtmp.X;
+                _orientation.Y = qtmp.Y;
+                _orientation.Z = qtmp.Z;
+
+                d.Vector3 lpos = d.GeomGetPosition(prim_geom);
+                _position.X = lpos.X;
+                _position.Y = lpos.Y;
+                _position.Z = lpos.Z;
+            }
+        }
+
         public void disableBody()
         {
             //this kills the body so things like 'mesh' can re-create it.
@@ -1400,25 +1427,31 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                         }
 
-                        d.BodyDestroy(Body);
+                        UpdateDataFromGeom();
+
                         lock (childrenPrim)
                         {
                             if (childrenPrim.Count > 0)
                             {
                                 foreach (OdePrim prm in childrenPrim)
                                 {
-                                    if (prm.m_NoColide && prm.prim_geom != IntPtr.Zero)
+                                    if (prm.prim_geom != IntPtr.Zero)
                                     {
-                                        d.GeomSetCategoryBits(prm.prim_geom, 0);
-                                        d.GeomSetCollideBits(prm.prim_geom, 0);
-                                        d.GeomDisable(prm.prim_geom);
-                                    }
+                                        if (prm.m_NoColide)
+                                        {
+                                            d.GeomSetCategoryBits(prm.prim_geom, 0);
+                                            d.GeomSetCollideBits(prm.prim_geom, 0);
+                                            d.GeomDisable(prm.prim_geom);
 
+                                        }
+                                        prm.UpdateDataFromGeom();
+                                    }
                                     _parent_scene.remActivePrim(prm);
                                     prm.Body = IntPtr.Zero;
                                 }
                             }
                         }
+                        d.BodyDestroy(Body);
                         Body = IntPtr.Zero;
                     }
                 }

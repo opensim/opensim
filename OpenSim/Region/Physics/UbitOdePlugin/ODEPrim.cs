@@ -2467,15 +2467,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (prim_geom != IntPtr.Zero)
             {
-                d.Quaternion qtmp = new d.Quaternion { };
+                d.Quaternion qtmp;
                 d.GeomCopyQuaternion(prim_geom, out qtmp);
                 _orientation.W = qtmp.W;
                 _orientation.X = qtmp.X;
                 _orientation.Y = qtmp.Y;
                 _orientation.Z = qtmp.Z;
 
-                d.Vector3 lpos;
-                d.GeomCopyPosition(prim_geom, out lpos);
+                d.Vector3 lpos = d.GeomGetPosition(prim_geom);
                 _position.X = lpos.X;
                 _position.Y = lpos.Y;
                 _position.Z = lpos.Z;
@@ -3565,8 +3564,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     bool lastZeroFlag = _zeroFlag;
 
-                    d.Vector3 lpos;
-                    d.GeomCopyPosition(prim_geom, out lpos); // root position that is seem by rest of simulator
+                    d.Vector3 lpos = d.GeomGetPosition(prim_geom);
 
                     d.Quaternion ori;
                     d.GeomCopyQuaternion(prim_geom, out ori);
