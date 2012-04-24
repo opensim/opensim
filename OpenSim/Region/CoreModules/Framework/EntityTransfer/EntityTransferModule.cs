@@ -172,13 +172,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Reset animations; the viewer does that in teleports.
             sp.Animator.ResetAnimations();
 
+            string destinationRegionName = "(not found)";
+
             try
             {
                 if (regionHandle == sp.Scene.RegionInfo.RegionHandle)
                 {
+                    destinationRegionName = sp.Scene.RegionInfo.RegionName;
+
                     m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation {0} within {1}",
-                        position, sp.Scene.RegionInfo.RegionName);
+                        "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation for {0} to {1} within existing region {2}",
+                        sp.Name, position, destinationRegionName);
 
                     // Teleport within the same region
                     if (IsOutsideRegion(sp.Scene, position) || position.Z < 0)
@@ -188,6 +192,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         m_log.WarnFormat(
                             "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
                             position, sp.Name, sp.UUID, emergencyPos);
+                        
                         position = emergencyPos;
                     }
 
@@ -232,6 +237,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             sp.ControllingClient.SendTeleportFailed("Problem at destination");
                             return;
                         }
+
+                        destinationRegionName = finalDestination.RegionName;
 
                         // check if HyperGrid teleport is allowed, based on user level
                         int flags = m_aScene.GridService.GetRegionFlags(sp.Scene.RegionInfo.ScopeID, reg.RegionID);
@@ -307,7 +314,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[ENTITY TRANSFER MODULE]: Exception on teleport: {0} {1}", e.Message, e.StackTrace);
+                m_log.ErrorFormat(
+                    "[ENTITY TRANSFER MODULE]: Exception on teleport of {0} from {1}@{2} to {3}@{4}: {5}{6}",
+                    sp.Name, sp.AbsolutePosition, sp.Scene.RegionInfo.RegionName, position, destinationRegionName,
+                    e.Message, e.StackTrace);
+
                 sp.ControllingClient.SendTeleportFailed("Internal error");
             }
         }
