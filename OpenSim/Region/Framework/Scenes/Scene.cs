@@ -1390,6 +1390,7 @@ namespace OpenSim.Region.Framework.Scenes
             int tmpPhysicsMS, tmpPhysicsMS2, tmpAgentMS, tmpTempOnRezMS, evMS, backMS, terMS;
             int previousFrameTick;
             int maintc;
+            int sleepMS;
 
             while (!m_shuttingDown && (endFrame == null || Frame < endFrame))
             {
@@ -1557,9 +1558,13 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_firstHeartbeat = false;
 
+                sleepMS = Util.EnvironmentTickCount();
                 if (maintc > 0)
                     Thread.Sleep(maintc);
 
+                sleepMS = Util.EnvironmentTickCountSubtract(sleepMS);
+                StatsReporter.addSleepMS(sleepMS);
+                
                 // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
                     && Util.EnvironmentTickCountSubtract(
