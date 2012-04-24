@@ -253,24 +253,13 @@ namespace OpenSim.Region.Framework.Scenes
                     physfps = 0;
 
 #endregion
-                
-                //Our time dilation is 0.91 when we're running a full speed,
-                // therefore to make sure we get an appropriate range,
-                // we have to factor in our error.   (0.10f * statsUpdateFactor)
-                // multiplies the fix for the error times the amount of times it'll occur a second
-                // / 10 divides the value by the number of times the sim heartbeat runs (10fps)
-                // Then we divide the whole amount by the amount of seconds pass in between stats updates.
-
-                // 'statsUpdateFactor' is how often stats packets are sent in seconds. Used below to change
-                // values to X-per-second values.
-
                 float factor = 1 / statsUpdateFactor;
                 if (reportedFPS <= 0)
                     reportedFPS = 1;
 
                 float perframe = 1.0f / (float)reportedFPS;
 
-                float TotalFrameTime = 1000.0f * statsUpdateFactor * perframe;
+                float TotalFrameTime = m_frameMS * perframe;
 
                 float targetframetime = 1100.0f / (float)m_nominalReportedFps;
 
@@ -279,7 +268,8 @@ namespace OpenSim.Region.Framework.Scenes
                     sparetime = 0;
                 else
                 {
-                    sparetime = TotalFrameTime - m_frameMS * perframe;
+                    sparetime = m_frameMS - m_physicsMS - m_agentMS;
+                    sparetime *= perframe;
                     if (sparetime < 0)
                         sparetime = 0;
                     else if (sparetime > TotalFrameTime)
@@ -290,7 +280,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //                m_otherMS = m_frameMS - m_physicsMS - m_imageMS - m_netMS - m_agentMS;
                 // m_imageMS  m_netMS are not included in m_frameMS
 
-                m_otherMS = m_frameMS - m_physicsMS -  m_agentMS;
+                m_otherMS = m_frameMS - m_physicsMS -  m_agentMS - m_sleeptimeMS;
                 if (m_otherMS < 0)
                     m_otherMS = 0;
 
