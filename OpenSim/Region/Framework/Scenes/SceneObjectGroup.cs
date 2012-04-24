@@ -3685,16 +3685,25 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (togroup)
                 {
-                    // related to group                  
-                    if ((change & ObjectChangeType.Position) != 0)
+                    // related to group
+                    if ((change & (ObjectChangeType.Rotation | ObjectChangeType.Position)) != 0)
                     {
-                        group.AbsolutePosition = data.position;
-                        updateType = updatetype.groupterse;
-                    }
-                    if ((change & ObjectChangeType.Rotation) != 0)
-                    {
-                        group.RootPart.UpdateRotation(data.rotation);
-                        updateType = updatetype.none;
+                        if ((change & ObjectChangeType.Rotation) != 0)
+                        {
+                            group.RootPart.UpdateRotation(data.rotation);
+                            updateType = updatetype.none;
+                        }
+                        if ((change & ObjectChangeType.Position) != 0)
+                        {
+                            group.AbsolutePosition = data.position;
+                            updateType = updatetype.groupterse;
+                        }
+                        else
+                        // ugly rotation update of all parts
+                        {
+                            group.AbsolutePosition = AbsolutePosition;
+                        }
+
                     }
                     if ((change & ObjectChangeType.Scale) != 0)
                     {
@@ -3719,10 +3728,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (part == group.RootPart)
                     {
-                        if ((change & ObjectChangeType.Position) != 0)
-                            group.UpdateRootPosition(data.position);
                         if ((change & ObjectChangeType.Rotation) != 0)
                             group.UpdateRootRotation(data.rotation);
+                        if ((change & ObjectChangeType.Position) != 0)
+                            group.UpdateRootPosition(data.position);
                         if ((change & ObjectChangeType.Scale) != 0)
                             part.Resize(data.scale);
                     }
