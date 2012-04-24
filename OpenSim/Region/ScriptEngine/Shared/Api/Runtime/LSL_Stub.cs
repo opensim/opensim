@@ -369,6 +369,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llFrand(mag);
         }
 
+        public LSL_Key llGenerateKey()
+        {
+            return m_LSL_Functions.llGenerateKey();
+        }
+
         public LSL_Vector llGetAccel()
         {
             return m_LSL_Functions.llGetAccel();

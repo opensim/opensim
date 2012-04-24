@@ -1734,6 +1734,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 rgb.y = texcolor.G;
                 rgb.z = texcolor.B;
                 return rgb;
+
             }
             else
             {
@@ -3190,6 +3191,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             return m_host.UUID.ToString();
+        }
+
+        public LSL_Key llGenerateKey()
+        {
+            m_host.AddScriptLPS(1);
+            return UUID.Random().ToString();
         }
 
         public void llSetBuoyancy(double buoyancy)
