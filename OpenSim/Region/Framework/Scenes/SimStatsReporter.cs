@@ -267,21 +267,25 @@ namespace OpenSim.Region.Framework.Scenes
                 float factor = 1 / statsUpdateFactor;
                 if (reportedFPS <= 0)
                     reportedFPS = 1;
-                float TotalFrameTime = 1000.0f * statsUpdateFactor / (float)reportedFPS;
+
                 float perframe = 1.0f / (float)reportedFPS;
 
+                float TotalFrameTime = 1000.0f * statsUpdateFactor * perframe;
+
+                float targetframetime = 1100.0f / (float)m_nominalReportedFps;
+
                 float sparetime;
-                if (m_nominalReportedFps <= 0)
+                if (TotalFrameTime > targetframetime )
                     sparetime = 0;
                 else
                 {
-                    sparetime = 1000.0f / (float)m_nominalReportedFps;
-                    sparetime -= m_frameMS * perframe;
+                    sparetime = TotalFrameTime - m_frameMS * perframe;
                     if (sparetime < 0)
                         sparetime = 0;
                     else if (sparetime > TotalFrameTime)
                         sparetime = TotalFrameTime;
                 }
+                
 
                 for (int i = 0; i < 23; i++)
                 {
