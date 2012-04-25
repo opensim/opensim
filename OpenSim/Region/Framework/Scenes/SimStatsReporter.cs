@@ -75,7 +75,20 @@ namespace OpenSim.Region.Framework.Scenes
             OutPacketsPerSecond = 18,
             PendingDownloads = 19,
             PendingUploads = 20,
+            VirtualSizeKB = 21,
+            ResidentSizeKB = 22,
+            PendingLocalUploads = 23,
             UnAckedBytes = 24,
+            PhysicsPinnedTasks = 25,
+            PhysicsLODTasks = 26,
+            PhysicsStepMS = 27,
+            PhysicsShapeMS = 28,
+            PhysicsOtherMS = 29,
+            PhysicsMemory = 30,
+            ScriptEPS = 31,
+            SimSpareTime = 32,
+            SimSleepTime = 33,
+            IOPumpTime = 34
         }
 
         /// <summary>
@@ -123,7 +136,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         // saved last reported value so there is something available for llGetRegionFPS 
         private float lastReportedSimFPS = 0;
-        private float[] lastReportedSimStats = new float[21];
+        private float[] lastReportedSimStats = new float[23];
         private float m_pfps = 0;
 
         /// <summary>
@@ -142,6 +155,8 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_physicsMS = 0;
         private int m_imageMS = 0;
         private int m_otherMS = 0;
+        private int m_sleeptimeMS = 0;
+
 
 //Ckrinke: (3-21-08) Comment out to remove a compiler warning. Bring back into play when needed.
 //Ckrinke        private int m_scriptMS = 0;
@@ -200,7 +215,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void statsHeartBeat(object sender, EventArgs e)
         {
-            SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[21];
+            SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[23];
             SimStatsPacket.RegionBlock rb = new SimStatsPacket.RegionBlock();
             
             // Know what's not thread safe in Mono... modifying timers.
@@ -238,18 +253,38 @@ namespace OpenSim.Region.Framework.Scenes
                     physfps = 0;
 
 #endregion
+                float factor = 1 / statsUpdateFactor;
+                if (reportedFPS <= 0)
+                    reportedFPS = 1;
+
+                float perframe = 1.0f / (float)reportedFPS;
+
+                float TotalFrameTime = m_frameMS * perframe;
+
+                float targetframetime = 1100.0f / (float)m_nominalReportedFps;
+
+                float sparetime;
+                if (TotalFrameTime > targetframetime )
+                    sparetime = 0;
+                else
+                {
+                    sparetime = m_frameMS - m_physicsMS - m_agentMS;
+                    sparetime *= perframe;
+                    if (sparetime < 0)
+                        sparetime = 0;
+                    else if (sparetime > TotalFrameTime)
+                        sparetime = TotalFrameTime;
+                }
                 
-                //Our time dilation is 0.91 when we're running a full speed,
-                // therefore to make sure we get an appropriate range,
-                // we have to factor in our error.   (0.10f * statsUpdateFactor)
-                // multiplies the fix for the error times the amount of times it'll occur a second
-                // / 10 divides the value by the number of times the sim heartbeat runs (10fps)
-                // Then we divide the whole amount by the amount of seconds pass in between stats updates.
+                // other MS is actually simulation time
+                //                m_otherMS = m_frameMS - m_physicsMS - m_imageMS - m_netMS - m_agentMS;
+                // m_imageMS  m_netMS are not included in m_frameMS
 
-                // 'statsUpdateFactor' is how often stats packets are sent in seconds. Used below to change
-                // values to X-per-second values.
+                m_otherMS = m_frameMS - m_physicsMS -  m_agentMS - m_sleeptimeMS;
+                if (m_otherMS < 0)
+                    m_otherMS = 0;
 
-                for (int i = 0; i < 21; i++)
+                for (int i = 0; i < 23; i++)
                 {
                     sb[i] = new SimStatsPacket.StatBlock();
                 }
@@ -279,19 +314,25 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[7].StatValue = m_activePrim;
 
                 sb[8].StatID = (uint)Stats.FrameMS;
-                sb[8].StatValue = m_frameMS / statsUpdateFactor;
+                //                sb[8].StatValue = m_frameMS / statsUpdateFactor;
+                sb[8].StatValue = TotalFrameTime;
 
                 sb[9].StatID = (uint)Stats.NetMS;
-                sb[9].StatValue = m_netMS / statsUpdateFactor;
+                //                sb[9].StatValue = m_netMS / statsUpdateFactor;
+                sb[9].StatValue = m_netMS * perframe;
 
                 sb[10].StatID = (uint)Stats.PhysicsMS;
-                sb[10].StatValue = m_physicsMS / statsUpdateFactor;
+                //                sb[10].StatValue = m_physicsMS / statsUpdateFactor;
+                sb[10].StatValue = m_physicsMS * perframe;
 
                 sb[11].StatID = (uint)Stats.ImageMS ;
-                sb[11].StatValue = m_imageMS / statsUpdateFactor;
+                //                sb[11].StatValue = m_imageMS / statsUpdateFactor;
+                sb[11].StatValue = m_imageMS * perframe;
 
                 sb[12].StatID = (uint)Stats.OtherMS;
-                sb[12].StatValue = m_otherMS / statsUpdateFactor;
+                //                sb[12].StatValue = m_otherMS / statsUpdateFactor;
+                sb[12].StatValue = m_otherMS * perframe;
+
 
                 sb[13].StatID = (uint)Stats.InPacketsPerSecond;
                 sb[13].StatValue = (m_inPacketsPerSecond / statsUpdateFactor);
@@ -303,7 +344,8 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[15].StatValue = m_unAckedBytes;
 
                 sb[16].StatID = (uint)Stats.AgentMS;
-                sb[16].StatValue = m_agentMS / statsUpdateFactor;
+//                sb[16].StatValue = m_agentMS / statsUpdateFactor;
+                sb[16].StatValue = m_agentMS * perframe;
 
                 sb[17].StatID = (uint)Stats.PendingDownloads;
                 sb[17].StatValue = m_pendingDownloads;
@@ -316,8 +358,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 sb[20].StatID = (uint)Stats.ScriptLinesPerSecond;
                 sb[20].StatValue = m_scriptLinesPerSecond / statsUpdateFactor;
-                
-                for (int i = 0; i < 21; i++)
+
+                sb[21].StatID = (uint)Stats.SimSpareTime;
+                sb[21].StatValue = sparetime;
+
+                sb[22].StatID = (uint)Stats.SimSleepTime;
+                sb[22].StatValue = m_sleeptimeMS * perframe;
+               
+                for (int i = 0; i < 23; i++)
                 {
                     lastReportedSimStats[i] = sb[i].StatValue;
                 }
@@ -358,6 +406,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_physicsMS = 0;
             m_imageMS = 0;
             m_otherMS = 0;
+            m_sleeptimeMS = 0;
 
 //Ckrinke This variable is not used, so comment to remove compiler warning until it is used.
 //Ckrinke            m_scriptMS = 0;
@@ -482,6 +531,11 @@ namespace OpenSim.Region.Framework.Scenes
         public void addOtherMS(int ms)
         {
             m_otherMS += ms;
+        }
+
+        public void addSleepMS(int ms)
+        {
+            m_sleeptimeMS += ms;
         }
 
         public void AddPendingDownloads(int count)

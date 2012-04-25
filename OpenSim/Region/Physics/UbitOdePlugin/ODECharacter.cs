@@ -346,12 +346,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_iscollidingObj = true;
 
                 //            m_iscollidingObj = value;
-/*
+
                 if (m_iscollidingObj)
                     m_pidControllerActive = false;
                 else
                     m_pidControllerActive = true;
- */
             }
         }
 

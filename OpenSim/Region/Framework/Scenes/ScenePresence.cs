@@ -755,7 +755,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_movementAnimationUpdateCounter = 0;
                 if (Animator != null)
                 {
-                    if(ParentID == 0) // skip it if sitting
+                    if(ParentID == 0 && !SitGround) // skip it if sitting
                         Animator.UpdateMovementAnimations();
                 }
                 else

@@ -2339,7 +2339,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     pa.PIDHoverHeight = height;
                     pa.PIDHoverType = hoverType;
-                    pa.PIDTau = tau;
+                    pa.PIDHoverTau = tau;
                     pa.PIDHoverActive = true;
                 }
                 else
@@ -2664,19 +2664,21 @@ namespace OpenSim.Region.Framework.Scenes
             Quaternion oldRootRotation = linkPart.RotationOffset;
 
             linkPart.OffsetPosition = linkPart.GroupPosition - AbsolutePosition;
-            linkPart.ParentID = m_rootPart.LocalId;
-            linkPart.GroupPosition = AbsolutePosition;
-            Vector3 axPos = linkPart.OffsetPosition;
 
+            linkPart.ParentID = m_rootPart.LocalId;
+            
+            linkPart.GroupPosition = AbsolutePosition;           
+
+            Vector3 axPos = linkPart.OffsetPosition;
             Quaternion parentRot = m_rootPart.RotationOffset;
             axPos *= Quaternion.Inverse(parentRot);
-
             linkPart.OffsetPosition = axPos;
+
             Quaternion oldRot = linkPart.RotationOffset;
             Quaternion newRot = Quaternion.Inverse(parentRot) * oldRot;
             linkPart.RotationOffset = newRot;
 
-            linkPart.ParentID = m_rootPart.LocalId;
+//            linkPart.ParentID = m_rootPart.LocalId; done above
 
             if (m_rootPart.LinkNum == 0)
                 m_rootPart.LinkNum = 1;
@@ -3707,16 +3709,25 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (togroup)
                 {
-                    // related to group                  
-                    if ((change & ObjectChangeType.Position) != 0)
+                    // related to group
+                    if ((change & (ObjectChangeType.Rotation | ObjectChangeType.Position)) != 0)
                     {
-                        group.AbsolutePosition = data.position;
-                        updateType = updatetype.groupterse;
-                    }
-                    if ((change & ObjectChangeType.Rotation) != 0)
-                    {
-                        group.RootPart.UpdateRotation(data.rotation);
-                        updateType = updatetype.none;
+                        if ((change & ObjectChangeType.Rotation) != 0)
+                        {
+                            group.RootPart.UpdateRotation(data.rotation);
+                            updateType = updatetype.none;
+                        }
+                        if ((change & ObjectChangeType.Position) != 0)
+                        {
+                            group.AbsolutePosition = data.position;
+                            updateType = updatetype.groupterse;
+                        }
+                        else
+                        // ugly rotation update of all parts
+                        {
+                            group.AbsolutePosition = AbsolutePosition;
+                        }
+
                     }
                     if ((change & ObjectChangeType.Scale) != 0)
                     {
@@ -3741,10 +3752,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (part == group.RootPart)
                     {
-                        if ((change & ObjectChangeType.Position) != 0)
-                            group.UpdateRootPosition(data.position);
                         if ((change & ObjectChangeType.Rotation) != 0)
                             group.UpdateRootRotation(data.rotation);
+                        if ((change & ObjectChangeType.Position) != 0)
+                            group.UpdateRootPosition(data.position);
                         if ((change & ObjectChangeType.Scale) != 0)
                             part.Resize(data.scale);
                     }

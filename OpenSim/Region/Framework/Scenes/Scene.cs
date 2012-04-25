@@ -1386,10 +1386,12 @@ namespace OpenSim.Region.Framework.Scenes
             int tmpPhysicsMS, tmpPhysicsMS2, tmpAgentMS, tmpTempOnRezMS, evMS, backMS, terMS;
             int previousFrameTick;
             int maintc;
+            int sleepMS;
+            int framestart;
 
             while (!m_shuttingDown && (endFrame == null || Frame < endFrame))
             {
-                maintc = Util.EnvironmentTickCount();
+                framestart = Util.EnvironmentTickCount();
                 ++Frame;
 
 //            m_log.DebugFormat("[SCENE]: Processing frame {0} in {1}", Frame, RegionInfo.RegionName);
@@ -1476,7 +1478,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //    landMS = Util.EnvironmentTickCountSubtract(ldMS);
                     //}
 
-                    frameMS = Util.EnvironmentTickCountSubtract(maintc);
+                    //                    frameMS = Util.EnvironmentTickCountSubtract(maintc);
                     otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
 
                     // if (Frame%m_update_avatars == 0)
@@ -1491,7 +1493,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // frameMS currently records work frame times, not total frame times (work + any required sleep to
                     // reach min frame time.
-                    StatsReporter.addFrameMS(frameMS);
+                    //                    StatsReporter.addFrameMS(frameMS);
 
                     StatsReporter.addAgentMS(agentMS);
                     StatsReporter.addPhysicsMS(physicsMS + physicsMS2);
@@ -1548,14 +1550,22 @@ namespace OpenSim.Region.Framework.Scenes
 
                 previousFrameTick = m_lastFrameTick;
                 m_lastFrameTick = Util.EnvironmentTickCount();
-                maintc = Util.EnvironmentTickCountSubtract(m_lastFrameTick, maintc);
+                maintc = Util.EnvironmentTickCountSubtract(m_lastFrameTick, framestart);
                 maintc = (int)(MinFrameTime * 1000) - maintc;
 
                 m_firstHeartbeat = false;
 
+
+                sleepMS = Util.EnvironmentTickCount();
+
                 if (maintc > 0)
                     Thread.Sleep(maintc);
 
+                sleepMS = Util.EnvironmentTickCountSubtract(sleepMS);
+                frameMS = Util.EnvironmentTickCountSubtract(framestart);
+                StatsReporter.addSleepMS(sleepMS);
+                StatsReporter.addFrameMS(frameMS);
+                
                 // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
                     && Util.EnvironmentTickCountSubtract(
