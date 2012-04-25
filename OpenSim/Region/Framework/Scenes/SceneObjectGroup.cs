@@ -1969,6 +1969,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="objectGroup">The group of prims which should be linked to this group</param>
         public void LinkToGroup(SceneObjectGroup objectGroup)
         {
+            LinkToGroup(objectGroup, false);
+        }
+
+        public void LinkToGroup(SceneObjectGroup objectGroup, bool insert)
+        {
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: Linking group with root part {0}, {1} to group with root part {2}, {3}",
 //                objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
@@ -1978,6 +1983,10 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             SceneObjectPart linkPart = objectGroup.m_rootPart;
+
+            // physics flags from group to be applied to linked parts
+            bool grpusephys = UsesPhysics;
+            bool grptemporary = IsTemporary;
 
             Vector3 oldGroupPosition = linkPart.GroupPosition;
             Quaternion oldRootRotation = linkPart.RotationOffset;
@@ -2002,15 +2011,35 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (m_parts.SyncRoot)
             {
-                int linkNum = PrimCount + 1;
+                int linkNum;
+                if (insert)
+                {
+                    linkNum = 2;
+                    foreach (SceneObjectPart part in Parts)
+                    {
+                        if (part.LinkNum > 1)
+                            part.LinkNum++;
+                    }
+                }
+                else
+                {
+                    linkNum = PrimCount + 1;
+                }
 
                 m_parts.Add(linkPart.UUID, linkPart);
 
                 linkPart.SetParent(this);
                 linkPart.CreateSelected = true;
 
+                // let physics know preserve part volume dtc messy since UpdatePrimFlags doesn't look to parent changes for now
+                linkPart.UpdatePrimFlags(grpusephys, grptemporary, (IsPhantom || (linkPart.Flags & PrimFlags.Phantom) != 0), linkPart.VolumeDetectActive);
+                if (linkPart.PhysActor != null && m_rootPart.PhysActor != null && m_rootPart.PhysActor.IsPhysical)
+                {
+                    linkPart.PhysActor.link(m_rootPart.PhysActor);
+                    this.Scene.PhysicsScene.AddPhysicsActorTaint(linkPart.PhysActor);
+                }
+
                 linkPart.LinkNum = linkNum++;
-                linkPart.UpdatePrimFlags(UsesPhysics, IsTemporary, IsPhantom, IsVolumeDetect);
 
                 SceneObjectPart[] ogParts = objectGroup.Parts;
                 Array.Sort(ogParts, delegate(SceneObjectPart a, SceneObjectPart b)
@@ -2022,7 +2051,16 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     SceneObjectPart part = ogParts[i];
                     if (part.UUID != objectGroup.m_rootPart.UUID)
+                    {
                         LinkNonRootPart(part, oldGroupPosition, oldRootRotation, linkNum++);
+                        // let physics know
+                        part.UpdatePrimFlags(grpusephys, grptemporary, (IsPhantom || (part.Flags & PrimFlags.Phantom) != 0), part.VolumeDetectActive);
+                        if (part.PhysActor != null && m_rootPart.PhysActor != null && m_rootPart.PhysActor.IsPhysical)
+                        {
+                            part.PhysActor.link(m_rootPart.PhysActor);
+                            this.Scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
+                        }
+                    }
                     part.ClearUndoState();
                 }
             }
