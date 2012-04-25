@@ -172,7 +172,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // check if HyperGrid teleport is allowed, based on user level
                 if (sp.UserLevel < m_levelHGTeleport)
                 {
-                    m_log.WarnFormat("[ENTITY TRANSFER MODULE]: Final destination link is non permitted hypergrid region. Unable to teleport agent.");
+                    m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unable to HG teleport agent due to insufficient UserLevel.");
                     reason = "HyperGrid teleport not permitted";
                     return false;
                 }
