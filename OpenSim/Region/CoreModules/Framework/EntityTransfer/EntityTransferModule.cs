@@ -61,8 +61,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             set { m_MaxTransferDistance = value; }
         }
 
-        private int m_levelHGTeleport = 0;
-
         protected bool m_Enabled = false;
         protected Scene m_aScene;
         protected List<Scene> m_Scenes = new List<Scene>();
@@ -106,7 +104,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (transferConfig != null)
             {
                 MaxTransferDistance = transferConfig.GetInt("max_distance", 4095);
-                m_levelHGTeleport = transferConfig.GetInt("LevelHGTeleport", 0);
             }
 
             m_agentsInTransit = new List<UUID>();
@@ -239,16 +236,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         }
 
                         destinationRegionName = finalDestination.RegionName;
-
-                        // check if HyperGrid teleport is allowed, based on user level
-                        int flags = m_aScene.GridService.GetRegionFlags(sp.Scene.RegionInfo.ScopeID, reg.RegionID);
-
-                        if (((flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0) && (sp.UserLevel < m_levelHGTeleport))
-                        {
-                            m_log.WarnFormat("[ENTITY TRANSFER MODULE]: Final destination link is non permitted hypergrid region. Unable to teleport agent.");
-                            sp.ControllingClient.SendTeleportFailed("HyperGrid teleport not permitted");
-                            return;
-                        }
 
                         uint curX = 0, curY = 0;
                         Utils.LongToUInts(sp.Scene.RegionInfo.RegionHandle, out curX, out curY);
@@ -413,7 +400,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 bool logout = false;
                 if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout))
                 {
-                    sp.ControllingClient.SendTeleportFailed(String.Format("Destination refused: {0}",
+                    sp.ControllingClient.SendTeleportFailed(String.Format("Teleport refused: {0}",
                                                                               reason));
                     return;
                 }
