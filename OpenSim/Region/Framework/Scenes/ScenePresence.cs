@@ -990,6 +990,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         public void Teleport(Vector3 pos)
         {
+//            m_log.DebugFormat("[SCENE PRESENCE]: Moving {0} to {1} in {2}", Name, pos, Scene.RegionInfo.RegionName);
+
             bool isFlying = Flying;
             RemoveFromPhysicalScene();
             Velocity = Vector3.Zero;
@@ -1002,6 +1004,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TeleportWithMomentum(Vector3 pos)
         {
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Moving {0} to {1} with existing momentum {2} in {3} ",
+//                Name, pos, Velocity, Scene.RegionInfo.RegionName);
+
             bool isFlying = Flying;
             RemoveFromPhysicalScene();
             CheckLandingPoint(ref pos);
