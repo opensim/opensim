@@ -155,18 +155,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     ScenePresence sp;
                     if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
                     {
-                        m_log.DebugFormat(
-                            "[NPC MODULE]: Successfully retrieved scene presence for NPC {0} {1}", sp.Name, sp.UUID);
-
                         sp.CompleteMovement(npcAvatar, false);
                         m_avatars.Add(npcAvatar.AgentId, npcAvatar);
+                        m_log.DebugFormat("[NPC MODULE]: Created NPC {0} {1}", npcAvatar.AgentId, sp.Name);
                     }
-                    else
-                    {
-                        m_log.WarnFormat("[NPC MODULE]: Could not find scene presence for NPC {0} {1}", sp.Name, sp.UUID);
-                        npcAvatar.AgentId = UUID.Zero;
-                    }
-
                 }
                 ev.Set();
             });
@@ -308,7 +300,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     scene.RemoveClient(agentID, false);
                     m_avatars.Remove(agentID);
 
-//                    m_log.DebugFormat("[NPC MODULE]: Removed {0} {1}", agentID, av.Name);
+                    m_log.DebugFormat("[NPC MODULE]: Removed NPC {0} {1}", agentID, av.Name);
                     return true;
                 }
             }
