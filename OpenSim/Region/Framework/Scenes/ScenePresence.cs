@@ -1068,11 +1068,6 @@ namespace OpenSim.Region.Framework.Scenes
             TeleportWithMomentum(pos, Vector3.Zero);
         }
 
-        public void TeleportWithMomentum(Vector3 pos)
-        {
-            TeleportWithMomentum(pos, null);
-        }
-
         public void TeleportWithMomentum(Vector3 pos, Vector3? v)
         {
             bool isFlying = Flying;

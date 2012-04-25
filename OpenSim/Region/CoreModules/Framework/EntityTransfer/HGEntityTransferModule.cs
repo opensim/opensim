@@ -50,6 +50,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Initialized = false;
+        private int m_levelHGTeleport = 0;
 
         private GatekeeperServiceConnector m_GatekeeperConnector;
 
@@ -68,6 +69,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 string name = moduleConfig.GetString("EntityTransferModule", "");
                 if (name == Name)
                 {
+                    IConfig transferConfig = source.Configs["EntityTransfer"];
+                    if (transferConfig != null)
+                        m_levelHGTeleport = transferConfig.GetInt("LevelHGTeleport", 0);
+
                     InitialiseCommon(source);
                     m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: {0} enabled.", Name);
                 }
@@ -164,6 +169,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
             {
                 // this user is going to another grid
+                // check if HyperGrid teleport is allowed, based on user level
+                if (sp.UserLevel < m_levelHGTeleport)
+                {
+                    m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unable to HG teleport agent due to insufficient UserLevel.");
+                    reason = "HyperGrid teleport not permitted";
+                    return false;
+                }
+
                 if (agentCircuit.ServiceURLs.ContainsKey("HomeURI"))
                 {
                     string userAgentDriver = agentCircuit.ServiceURLs["HomeURI"].ToString();
