@@ -1771,7 +1771,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             Vector3 pos = m_scene.GetNearestAllowedPosition(targetAvatar, land);
 
-            targetAvatar.TeleportWithMomentum(pos);
+            targetAvatar.TeleportWithMomentum(pos, null);
             targetAvatar.ControllingClient.SendAlertMessage("You have been ejected by " + parcelManager.Firstname + " " + parcelManager.Lastname);
             parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected.");
             
