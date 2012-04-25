@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using OpenMetaverse;
@@ -43,24 +44,141 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     [TestFixture]
     public class SceneObjectStatusTests
     {
+        private TestScene m_scene;
+        private UUID m_ownerId = TestHelpers.ParseTail(0x1);
+        private SceneObjectGroup m_so1;
+        private SceneObjectGroup m_so2;
+
+        [SetUp]
+        public void Init()
+        {
+            m_scene = SceneHelpers.SetupScene();
+            m_so1 = SceneHelpers.CreateSceneObject(1, m_ownerId, "so1", 0x10);
+            m_so2 = SceneHelpers.CreateSceneObject(1, m_ownerId, "so2", 0x20);
+        }
+
         [Test]
-        public void TestSetPhantom()
+        public void TestSetPhantomSinglePrim()
         {
             TestHelpers.InMethod();
 
-//            Scene scene = SceneSetupHelpers.SetupScene();
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, UUID.Zero);
-            SceneObjectPart rootPart = so.RootPart;
+            m_scene.AddSceneObject(m_so1);
+
+            SceneObjectPart rootPart = m_so1.RootPart;
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
 
-            so.ScriptSetPhantomStatus(true);
+            m_so1.ScriptSetPhantomStatus(true);
 
 //            Console.WriteLine("so.RootPart.Flags [{0}]", so.RootPart.Flags);
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.Phantom));
 
-            so.ScriptSetPhantomStatus(false);
+            m_so1.ScriptSetPhantomStatus(false);
 
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));            
+        }
+
+        [Test]
+        public void TestSetPhysicsSinglePrim()
+        {
+            TestHelpers.InMethod();
+
+            m_scene.AddSceneObject(m_so1);
+
+            SceneObjectPart rootPart = m_so1.RootPart;
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
+
+            m_so1.ScriptSetPhysicsStatus(true);
+
+//            Console.WriteLine("so.RootPart.Flags [{0}]", so.RootPart.Flags);
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.Physics));
+
+            m_so1.ScriptSetPhysicsStatus(false);
+
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
+        }
+        
+        [Test]
+        public void TestSetPhysicsLinkset()
+        {
+            TestHelpers.InMethod();
+
+            m_scene.AddSceneObject(m_so1);
+            m_scene.AddSceneObject(m_so2);
+
+            m_scene.LinkObjects(m_ownerId, m_so1.LocalId, new List<uint>() { m_so2.LocalId });
+
+            m_so1.ScriptSetPhysicsStatus(true);
+
+            Assert.That(m_so1.RootPart.Flags, Is.EqualTo(PrimFlags.Physics));
+            Assert.That(m_so1.Parts[1].Flags, Is.EqualTo(PrimFlags.Physics));
+
+            m_so1.ScriptSetPhysicsStatus(false);
+
+            Assert.That(m_so1.RootPart.Flags, Is.EqualTo(PrimFlags.None));
+            Assert.That(m_so1.Parts[1].Flags, Is.EqualTo(PrimFlags.None));
+
+            m_so1.ScriptSetPhysicsStatus(true);
+
+            Assert.That(m_so1.RootPart.Flags, Is.EqualTo(PrimFlags.Physics));
+            Assert.That(m_so1.Parts[1].Flags, Is.EqualTo(PrimFlags.Physics));
+        }
+
+        /// <summary>
+        /// Test that linking results in the correct physical status for all linkees.
+        /// </summary>
+        [Test]
+        public void TestLinkPhysicsBothPhysical()
+        {
+            TestHelpers.InMethod();
+
+            m_scene.AddSceneObject(m_so1);
+            m_scene.AddSceneObject(m_so2);
+
+            m_so1.ScriptSetPhysicsStatus(true);
+            m_so2.ScriptSetPhysicsStatus(true);
+
+            m_scene.LinkObjects(m_ownerId, m_so1.LocalId, new List<uint>() { m_so2.LocalId });
+
+            Assert.That(m_so1.RootPart.Flags, Is.EqualTo(PrimFlags.Physics));
+            Assert.That(m_so1.Parts[1].Flags, Is.EqualTo(PrimFlags.Physics));
+        }
+
+        /// <summary>
+        /// Test that linking results in the correct physical status for all linkees.
+        /// </summary>
+        [Test]
+        public void TestLinkPhysicsRootPhysicalOnly()
+        {
+            TestHelpers.InMethod();
+
+            m_scene.AddSceneObject(m_so1);
+            m_scene.AddSceneObject(m_so2);
+
+            m_so1.ScriptSetPhysicsStatus(true);
+
+            m_scene.LinkObjects(m_ownerId, m_so1.LocalId, new List<uint>() { m_so2.LocalId });
+
+            Assert.That(m_so1.RootPart.Flags, Is.EqualTo(PrimFlags.Physics));
+            Assert.That(m_so1.Parts[1].Flags, Is.EqualTo(PrimFlags.Physics));
+        }
+
+        /// <summary>
+        /// Test that linking results in the correct physical status for all linkees.
+        /// </summary>
+        [Test]
+        public void TestLinkPhysicsChildPhysicalOnly()
+        {
+            TestHelpers.InMethod();
+
+            m_scene.AddSceneObject(m_so1);
+            m_scene.AddSceneObject(m_so2);
+
+            m_so2.ScriptSetPhysicsStatus(true);
+
+            m_scene.LinkObjects(m_ownerId, m_so1.LocalId, new List<uint>() { m_so2.LocalId });
+
+            Assert.That(m_so1.RootPart.Flags, Is.EqualTo(PrimFlags.None));
+            Assert.That(m_so1.Parts[1].Flags, Is.EqualTo(PrimFlags.None));
         }
     }
 }

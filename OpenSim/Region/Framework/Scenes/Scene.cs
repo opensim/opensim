@@ -684,8 +684,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
 
-                PhysicalPrims = startupConfig.GetBoolean("physical_prim", true);
-                CollidablePrims = startupConfig.GetBoolean("collidable_prim", true);
+                PhysicalPrims = startupConfig.GetBoolean("physical_prim", PhysicalPrims);
+                CollidablePrims = startupConfig.GetBoolean("collidable_prim", CollidablePrims);
 
                 m_maxNonphys = startupConfig.GetFloat("NonphysicalPrimMax", m_maxNonphys);
                 if (RegionInfo.NonphysPrimMax > 0)
@@ -800,13 +800,11 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
         }
 
-        /// <summary>
-        /// Mock constructor for scene group persistency unit tests.
-        /// SceneObjectGroup RegionId property is delegated to Scene.
-        /// </summary>
-        /// <param name="regInfo"></param>
         public Scene(RegionInfo regInfo)
         {
+            PhysicalPrims = true;
+            CollidablePrims = true;
+
             BordersLocked = true;
             Border northBorder = new Border();
             northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize);  //<---
@@ -833,8 +831,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_eventManager = new EventManager();
 
             m_permissions = new ScenePermissions(this);
-
-//            m_lastUpdate = Util.EnvironmentTickCount();
         }
 
         #endregion

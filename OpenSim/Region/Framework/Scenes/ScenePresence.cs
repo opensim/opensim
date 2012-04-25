@@ -990,23 +990,24 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         public void Teleport(Vector3 pos)
         {
-            bool isFlying = Flying;
-            RemoveFromPhysicalScene();
-            Velocity = Vector3.Zero;
-            CheckLandingPoint(ref pos);
-            AbsolutePosition = pos;
-            AddToPhysicalScene(isFlying);
-
-            SendTerseUpdateToAllClients();
+            TeleportWithMomentum(pos, null);
         }
 
-        public void TeleportWithMomentum(Vector3 pos)
+        public void TeleportWithMomentum(Vector3 pos, Vector3? v)
         {
             bool isFlying = Flying;
+            Vector3 vel = Velocity;
             RemoveFromPhysicalScene();
             CheckLandingPoint(ref pos);
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
+            if (PhysicsActor != null)
+            {
+                if (v.HasValue)
+                    PhysicsActor.SetMomentum((Vector3)v);
+                else
+                    PhysicsActor.SetMomentum(vel);
+            }
 
             SendTerseUpdateToAllClients();
         }

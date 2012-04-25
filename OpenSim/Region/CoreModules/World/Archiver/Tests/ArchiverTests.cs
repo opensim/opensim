@@ -102,9 +102,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
             Vector3 groupPosition = new Vector3(10, 20, 30);
             Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
-            Vector3 offsetPosition = new Vector3(5, 10, 15);
+//            Vector3 offsetPosition = new Vector3(5, 10, 15);
 
-            return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition) { Name = partName };
+            return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, Vector3.Zero) { Name = partName };
         }
 
         protected SceneObjectPart CreateSceneObjectPart2()

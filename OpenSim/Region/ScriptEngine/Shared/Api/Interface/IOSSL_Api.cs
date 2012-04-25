@@ -98,6 +98,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osAvatarPlayAnimation(string avatar, string animation);
         void osAvatarStopAnimation(string avatar, string animation);
 
+        // Attachment commands
+
+        /// <summary>
+        /// Attach the object containing this script to the avatar that owns it without checking for PERMISSION_ATTACH
+        /// </summary>
+        /// <param name='attachment'>The attachment point.  For example, ATTACH_CHEST</param>
+        void osForceAttachToAvatar(int attachment);
+
+        /// <summary>
+        /// Detach the object containing this script from the avatar it is attached to without checking for PERMISSION_ATTACH
+        /// </summary>
+        /// <remarks>Nothing happens if the object is not attached.</remarks>
+        void osForceDetachFromAvatar();
+
         //texture draw functions
         string osMovePen(string drawList, int x, int y);
         string osDrawLine(string drawList, int startX, int startY, int endX, int endY);

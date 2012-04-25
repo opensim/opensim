@@ -308,56 +308,56 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <param name='msg'>
         /// Message.
         /// </param>
-        public bool DeliverMessageTo(UUID target, int channel, Vector3 pos, string name, UUID id, string msg, out string error)
+        public void DeliverMessageTo(UUID target, int channel, Vector3 pos, string name, UUID id, string msg)
         {
-            error = null;
             // Is id an avatar?
             ScenePresence sp = m_scene.GetScenePresence(target);
 
             if (sp != null)
             {
-                // Send message to avatar
+                // ignore if a child agent this is restricted to inside one region
+                if (sp.IsChildAgent)
+                    return;
+
+                // Send message to the avatar.
+                // Channel zero only goes to the avatar
+                // non zero channel messages only go to the attachments
                 if (channel == 0)
                 {
-                    m_scene.SimChatBroadcast(Utils.StringToBytes(msg), ChatTypeEnum.Broadcast, 0, pos, name, id, false);
-                }
-
-                List<SceneObjectGroup> attachments = sp.GetAttachments();
-
-                if (attachments.Count == 0)
-                    return true;
-
-                // Get uuid of attachments
-                List<UUID> targets = new List<UUID>();
-                foreach (SceneObjectGroup sog in attachments)
+                    m_scene.SimChatToAgent(target, Utils.StringToBytes(msg), pos, name, id, false);
+               }
+                else
                 {
-                    if (!sog.IsDeleted)
-                        targets.Add(sog.UUID);
+                    List<SceneObjectGroup> attachments = sp.GetAttachments();
+                    if (attachments.Count == 0)
+                        return;
+
+                    // Get uuid of attachments
+                    List<UUID> targets = new List<UUID>();
+                    foreach (SceneObjectGroup sog in attachments)
+                    {
+                        if (!sog.IsDeleted)
+                            targets.Add(sog.UUID);
+                    }
+
+                    // Need to check each attachment
+                    foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
+                    {
+                        if (li.GetHostID().Equals(id))
+                            continue;
+
+                        if (m_scene.GetSceneObjectPart(li.GetHostID()) == null)
+                            continue;
+
+                        if (targets.Contains(li.GetHostID()))
+                            QueueMessage(new ListenerInfo(li, name, id, msg));
+                    }
                 }
 
-                // Need to check each attachment
-                foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
-                {
-                    if (li.GetHostID().Equals(id))
-                        continue;
-
-                    if (m_scene.GetSceneObjectPart(li.GetHostID()) == null)
-                        continue;
-
-                    if (targets.Contains(li.GetHostID()))
-                        QueueMessage(new ListenerInfo(li, name, id, msg));
-                }
-
-                return true;
+                return;
             }
 
-            // Need to toss an error here
-            if (channel == 0)
-            {
-                error = "Cannot use llRegionSayTo to message objects on channel 0";
-                return false;
-            }
-
+            // No avatar found so look for an object
             foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
             {
                 // Dont process if this message is from yourself!
@@ -375,7 +375,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 }
             }
 
-            return true;
+            return;
         }
 
         protected void QueueMessage(ListenerInfo li)

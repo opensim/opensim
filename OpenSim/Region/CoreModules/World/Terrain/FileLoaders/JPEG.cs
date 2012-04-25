@@ -99,16 +99,21 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         private static Bitmap CreateBitmapFromMap(ITerrainChannel map)
         {
-            Bitmap gradientmapLd = new Bitmap("defaultstripe.png");
+            int pallete;
+            Bitmap bmp;
+            Color[] colours;
 
-            int pallete = gradientmapLd.Height;
-
-            Bitmap bmp = new Bitmap(map.Width, map.Height);
-            Color[] colours = new Color[pallete];
-
-            for (int i = 0; i < pallete; i++)
+            using (Bitmap gradientmapLd = new Bitmap("defaultstripe.png"))
             {
-                colours[i] = gradientmapLd.GetPixel(0, i);
+                pallete = gradientmapLd.Height;
+    
+                bmp = new Bitmap(map.Width, map.Height);
+                colours = new Color[pallete];
+    
+                for (int i = 0; i < pallete; i++)
+                {
+                    colours[i] = gradientmapLd.GetPixel(0, i);
+                }
             }
 
             for (int y = 0; y < map.Height; y++)

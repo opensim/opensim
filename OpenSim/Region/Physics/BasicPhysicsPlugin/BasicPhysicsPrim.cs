@@ -34,13 +34,20 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 {
-    public class BasicActor : PhysicsActor
+    public class BasicPhysicsPrim : PhysicsActor
     {
         private Vector3 _size;
+        private PrimitiveBaseShape _shape;
 
-        public BasicActor(Vector3 size)
+        public BasicPhysicsPrim(
+            string name, uint localId, Vector3 position, Vector3 size, Quaternion orientation, PrimitiveBaseShape shape)
         {
+            Name = name;
+            LocalID = localId;
+            Position = position;
             Size = size;
+            Orientation = orientation;
+            Shape = shape;
         }
 
         public override int PhysicsActorType
@@ -129,7 +136,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override PrimitiveBaseShape Shape
         {
-            set { return; }
+            set { _shape = value; }
         }
 
         public override float Mass
@@ -198,11 +205,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { }
         }
 
-        public override Quaternion Orientation
-        {
-            get { return Quaternion.Identity; }
-            set { }
-        }
+        public override Quaternion Orientation { get; set; }
 
         public override Vector3 Acceleration { get; set; }
 
