@@ -832,8 +832,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void  llRegionSayTo(string target, int channel, string msg)
         {
-            string error = String.Empty;
-
             if (msg.Length > 1023)
                 msg = msg.Substring(0, 1023);
 
@@ -3548,7 +3546,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCreateLink(string target, int parent)
         {
             m_host.AddScriptLPS(1);
-
             UUID targetID;
 
             if (!UUID.TryParse(target, out targetID))
@@ -3572,11 +3569,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (targetPart.ParentGroup.AttachmentPoint != 0)
                 return; // Fail silently if attached
+
+            if (targetPart.ParentGroup.RootPart.OwnerID != m_host.ParentGroup.RootPart.OwnerID)
+                return;
+
             SceneObjectGroup parentPrim = null, childPrim = null;
 
             if (targetPart != null)
             {
-                if (parent != 0) {
+                if (parent != 0)
+                {
                     parentPrim = m_host.ParentGroup;
                     childPrim = targetPart.ParentGroup;
                 }
@@ -3588,7 +3590,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 // Required for linking
                 childPrim.RootPart.ClearUpdateSchedule();
-                parentPrim.LinkToGroup(childPrim);
+                parentPrim.LinkToGroup(childPrim, true);
             }
 
             parentPrim.TriggerScriptChangedEvent(Changed.LINK);
