@@ -289,8 +289,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osAvatarStopAnimation(avatar, animation);
         }
 
+        // Avatar functions
 
-        //Texture Draw functions
+        public void osForceAttachToAvatar(int attachmentPoint)
+        {
+            m_OSSL_Functions.osForceAttachToAvatar(attachmentPoint);
+        }
+
+        public void osForceDetachFromAvatar()
+        {
+            m_OSSL_Functions.osForceDetachFromAvatar();
+        }
+
+        // Texture Draw functions
 
         public string osMovePen(string drawList, int x, int y)
         {

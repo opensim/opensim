@@ -88,11 +88,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             if (renderers.Count > 0)
             {
                 m_primMesher = RenderingLoader.LoadRenderer(renderers[0]);
-                m_log.Info("[MAPTILE]: Loaded prim mesher " + m_primMesher.ToString());
+                m_log.Debug("[MAPTILE]: Loaded prim mesher " + m_primMesher.ToString());
             }
             else
             {
-                m_log.Info("[MAPTILE]: No prim mesher loaded, prim rendering will be disabled");
+                m_log.Debug("[MAPTILE]: No prim mesher loaded, prim rendering will be disabled");
             }
 
             m_scene.RegisterModuleInterface<IMapImageGenerator>(this);

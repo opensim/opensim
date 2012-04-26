@@ -1812,9 +1812,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         // if there already exists a file at that location, it may be locked.
                         m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", path, ex.Message);
                     }
+
+                    string textpath = path + ".text";
                     try
                     {
-                        using (FileStream fs = File.Create(path + ".text"))
+                        using (FileStream fs = File.Create(textpath))
                         {
                             using (StreamWriter sw = new StreamWriter(fs))
                             {
@@ -1827,7 +1829,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     catch (IOException ex)
                     {
                         // if there already exists a file at that location, it may be locked.
-                        m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", path, ex.Message);
+                        m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", textpath, ex.Message);
                     }
                 }
             }
@@ -1876,7 +1878,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 catch (IOException ex)
                 {
                     // if there already exists a file at that location, it may be locked.
-                    m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", statepath, ex.Message);
+                    m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", mappath, ex.Message);
                 }
             }
 

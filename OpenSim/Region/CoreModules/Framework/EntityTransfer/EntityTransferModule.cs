@@ -61,8 +61,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             set { m_MaxTransferDistance = value; }
         }
 
-        private int m_levelHGTeleport = 0;
-
         protected bool m_Enabled = false;
         protected Scene m_aScene;
         protected List<Scene> m_Scenes = new List<Scene>();
@@ -106,7 +104,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (transferConfig != null)
             {
                 MaxTransferDistance = transferConfig.GetInt("max_distance", 4095);
-                m_levelHGTeleport = transferConfig.GetInt("LevelHGTeleport", 0);
             }
 
             m_agentsInTransit = new List<UUID>();
@@ -172,13 +169,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Reset animations; the viewer does that in teleports.
             sp.Animator.ResetAnimations();
 
+            string destinationRegionName = "(not found)";
+
             try
             {
                 if (regionHandle == sp.Scene.RegionInfo.RegionHandle)
                 {
+                    destinationRegionName = sp.Scene.RegionInfo.RegionName;
+
                     m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation {0} within {1}",
-                        position, sp.Scene.RegionInfo.RegionName);
+                        "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation for {0} to {1} within existing region {2}",
+                        sp.Name, position, destinationRegionName);
 
                     // Teleport within the same region
                     if (IsOutsideRegion(sp.Scene, position) || position.Z < 0)
@@ -188,6 +189,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         m_log.WarnFormat(
                             "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
                             position, sp.Name, sp.UUID, emergencyPos);
+
                         position = emergencyPos;
                     }
 
@@ -210,6 +212,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.ControllingClient.SendTeleportStart(teleportFlags);
 
                     sp.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
+                    sp.Velocity = Vector3.Zero;
                     sp.Teleport(position);
 
                     foreach (SceneObjectGroup grp in sp.GetAttachments())
@@ -233,15 +236,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             return;
                         }
 
-                        // check if HyperGrid teleport is allowed, based on user level
-                        int flags = m_aScene.GridService.GetRegionFlags(sp.Scene.RegionInfo.ScopeID, reg.RegionID);
-
-                        if (((flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0) && (sp.UserLevel < m_levelHGTeleport))
-                        {
-                            m_log.WarnFormat("[ENTITY TRANSFER MODULE]: Final destination link is non permitted hypergrid region. Unable to teleport agent.");
-                            sp.ControllingClient.SendTeleportFailed("HyperGrid teleport not permitted");
-                            return;
-                        }
+                        destinationRegionName = finalDestination.RegionName;
 
                         uint curX = 0, curY = 0;
                         Utils.LongToUInts(sp.Scene.RegionInfo.RegionHandle, out curX, out curY);
@@ -307,7 +302,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[ENTITY TRANSFER MODULE]: Exception on teleport: {0} {1}", e.Message, e.StackTrace);
+                m_log.ErrorFormat(
+                    "[ENTITY TRANSFER MODULE]: Exception on teleport of {0} from {1}@{2} to {3}@{4}: {5}{6}",
+                    sp.Name, sp.AbsolutePosition, sp.Scene.RegionInfo.RegionName, position, destinationRegionName,
+                    e.Message, e.StackTrace);
+
                 sp.ControllingClient.SendTeleportFailed("Internal error");
             }
         }
@@ -402,7 +401,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 bool logout = false;
                 if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout))
                 {
-                    sp.ControllingClient.SendTeleportFailed(String.Format("Destination refused: {0}",
+                    sp.ControllingClient.SendTeleportFailed(String.Format("Teleport refused: {0}",
                                                                               reason));
                     return;
                 }

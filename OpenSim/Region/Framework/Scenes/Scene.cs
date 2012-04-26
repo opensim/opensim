@@ -103,6 +103,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_trustBinaries;
         public bool m_allowScriptCrossings;
         public bool m_useFlySlow;
+        public bool m_useTrashOnDelete = true;
 
         /// <summary>
         /// Temporarily setting to trigger appearance resends at 60 second intervals.
@@ -709,6 +710,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_clampPrimSize = true;
                 }
 
+                m_useTrashOnDelete = startupConfig.GetBoolean("UseTrashOnDelete",m_useTrashOnDelete);
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
                 m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
                 m_dontPersistBefore =

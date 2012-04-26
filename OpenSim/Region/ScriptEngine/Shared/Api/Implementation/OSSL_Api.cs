@@ -209,6 +209,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             throw new Exception("OSSL Runtime Error: " + msg);
         }
 
+        /// <summary>
+        /// Initialize the LSL interface.
+        /// </summary>
+        /// <remarks>
+        /// FIXME: This is an abomination.  We should be able to set this up earlier but currently we have no
+        /// guarantee the interface is present on Initialize().  There needs to be another post initialize call from
+        /// ScriptInstance.
+        /// </remarks>
         private void InitLSL()
         {
             if (m_LSL_Api != null)
@@ -1609,7 +1617,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public Object osParseJSONNew(string JSON)
         {
-            CheckThreatLevel(ThreatLevel.None, "osParseJSON");
+            CheckThreatLevel(ThreatLevel.None, "osParseJSONNew");
 
             m_host.AddScriptLPS(1);
 
@@ -3131,6 +3139,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (estate != null)
                     estate.setEstateTerrainTextureHeights(corner, (float)low, (float)high);
             }
+        }
+
+        public void osForceAttachToAvatar(int attachmentPoint)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osForceAttachToAvatar");
+
+            m_host.AddScriptLPS(1);
+
+            InitLSL();
+            ((LSL_Api)m_LSL_Api).AttachToAvatar(attachmentPoint);
+        }
+
+        public void osForceDetachFromAvatar()
+        {
+            CheckThreatLevel(ThreatLevel.High, "osForceDetachFromAvatar");
+
+            m_host.AddScriptLPS(1);
+
+            InitLSL();
+            ((LSL_Api)m_LSL_Api).DetachFromAvatar();
         }
     }
 }

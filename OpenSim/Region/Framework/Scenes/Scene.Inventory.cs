@@ -1988,7 +1988,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (permissionToTake)
+            if (permissionToTake && (action != DeRezAction.Delete || this.m_useTrashOnDelete))
             {
                 m_asyncSceneObjectDeleter.DeleteToInventory(
                         action, destinationID, deleteGroups, remoteClient,

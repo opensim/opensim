@@ -33,6 +33,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
+using OpenSim.Region.CoreModules.Framework.EntityTransfer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Tests.Common;
@@ -47,6 +48,41 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     [TestFixture]
     public class ScenePresenceTeleportTests
     {
+        [Test]
+        public void TestSameRegionTeleport()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            EntityTransferModule etm = new EntityTransferModule();
+
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("Modules");
+            // Not strictly necessary since FriendsModule assumes it is the default (!)
+            config.Configs["Modules"].Set("EntityTransferModule", etm.Name);
+
+            TestScene scene = SceneHelpers.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
+            SceneHelpers.SetupSceneModules(scene, config, etm);
+
+            Vector3 teleportPosition = new Vector3(10, 11, 12);
+            Vector3 teleportLookAt = new Vector3(20, 21, 22);
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
+            sp.AbsolutePosition = new Vector3(30, 31, 32);
+            scene.RequestTeleportLocation(
+                sp.ControllingClient,
+                scene.RegionInfo.RegionHandle,
+                teleportPosition,
+                teleportLookAt,
+                (uint)TeleportFlags.ViaLocation);
+
+            Assert.That(sp.AbsolutePosition, Is.EqualTo(teleportPosition));
+
+            // Lookat is sent to the client only - sp.Lookat does not yield the same thing (calculation from camera
+            // position instead).
+//            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
+        }
+
         /// <summary>
         /// Test a teleport between two regions that are not neighbours and do not share any neighbours in common.
         /// </summary>

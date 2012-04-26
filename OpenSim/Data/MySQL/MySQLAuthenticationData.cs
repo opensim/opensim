@@ -79,14 +79,7 @@ namespace OpenSim.Data.MySQL
                 {
                     ret.PrincipalID = principalID;
 
-                    if (m_ColumnNames == null)
-                    {
-                        m_ColumnNames = new List<string>();
-
-                        DataTable schemaTable = result.GetSchemaTable();
-                        foreach (DataRow row in schemaTable.Rows)
-                            m_ColumnNames.Add(row["ColumnName"].ToString());
-                    }
+                    CheckColumnNames(result);
 
                     foreach (string s in m_ColumnNames)
                     {
@@ -103,6 +96,20 @@ namespace OpenSim.Data.MySQL
                     return null;
                 }
             }
+        }
+
+        private void CheckColumnNames(IDataReader result)
+        {
+            if (m_ColumnNames != null)
+                return;
+
+            List<string> columnNames = new List<string>();
+
+            DataTable schemaTable = result.GetSchemaTable();
+            foreach (DataRow row in schemaTable.Rows)
+                columnNames.Add(row["ColumnName"].ToString());
+
+            m_ColumnNames = columnNames;
         }
 
         public bool Store(AuthenticationData data)
