@@ -85,7 +85,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             m_attMod = new AttachmentsModule();
             m_npcMod = new NPCModule();
 
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, config, m_afMod, m_umMod, m_attMod, m_npcMod, new BasicInventoryAccessModule());
         }
 

@@ -60,7 +60,7 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
             CapabilitiesModule capsModule = new CapabilitiesModule();
             EventQueueGetModule eqgModule = new EventQueueGetModule();
 
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, config, capsModule, eqgModule);
         }
 

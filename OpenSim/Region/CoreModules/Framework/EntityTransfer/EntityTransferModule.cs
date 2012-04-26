@@ -597,7 +597,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual void AgentHasMovedAway(ScenePresence sp, bool logout)
         {
-            sp.Scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, true);
+            if (sp.Scene.AttachmentsModule != null)
+                sp.Scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, true);
         }
 
         protected void KillEntity(Scene scene, uint localID)

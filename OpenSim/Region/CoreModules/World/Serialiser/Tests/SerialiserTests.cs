@@ -343,7 +343,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         public void Init()
         {
             m_serialiserModule = new SerialiserModule();
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, m_serialiserModule);
         }
 

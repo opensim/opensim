@@ -67,7 +67,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             config = initConfigSource.AddConfig("NPC");
             config.Set("Enabled", "true");
 
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, initConfigSource, new AvatarFactoryModule(), new NPCModule());
 
             m_engine = new XEngine.XEngine();

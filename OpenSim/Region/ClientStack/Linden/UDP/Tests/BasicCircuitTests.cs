@@ -158,7 +158,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             TestHelpers.InMethod();
 //            XmlConfigurator.Configure();
 
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
             uint myCircuitCode = 123456;
             UUID myAgentUuid   = TestHelpers.ParseTail(0x1);
             UUID mySessionUuid = TestHelpers.ParseTail(0x2);

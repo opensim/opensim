@@ -61,7 +61,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Not strictly necessary since FriendsModule assumes it is the default (!)
             config.Configs["Modules"].Set("EntityTransferModule", etm.Name);
 
-            TestScene scene = SceneHelpers.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
+            TestScene scene = new SceneHelpers().SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
             SceneHelpers.SetupSceneModules(scene, config, etm);
 
             Vector3 teleportPosition = new Vector3(10, 11, 12);
@@ -83,145 +83,58 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
         }
 
-        /// <summary>
-        /// Test a teleport between two regions that are not neighbours and do not share any neighbours in common.
-        /// </summary>
-        /// Does not yet do what is says on the tin.
-        /// Commenting for now
-        //[Test, LongRunning]
-        public void TestSimpleNotNeighboursTeleport()
+        [Test]
+        public void TestSameSimulatorSeparatedRegionsTeleport()
         {
             TestHelpers.InMethod();
-            ThreadRunResults results = new ThreadRunResults();
-            results.Result = false;
-            results.Message = "Test did not run";
-            TestRunning testClass = new TestRunning(results);
+//            log4net.Config.XmlConfigurator.Configure();
 
-            Thread testThread = new Thread(testClass.run);
+            UUID userId = TestHelpers.ParseTail(0x1);
 
-            // Seems kind of redundant to start a thread and then join it, however..   We need to protect against
-            // A thread abort exception in the simulator code.
-            testThread.Start();
-            testThread.Join();
+            EntityTransferModule etm = new EntityTransferModule();
+            LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
 
-            Assert.That(testClass.results.Result, Is.EqualTo(true), testClass.results.Message);
-            // Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
-        }
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("Modules");
+            // Not strictly necessary since FriendsModule assumes it is the default (!)
+            config.Configs["Modules"].Set("EntityTransferModule", etm.Name);
+            config.Configs["Modules"].Set("SimulationServices", lscm.Name);
 
-        [TearDown]
-        public void TearDown()
-        {
-            try
-            {
-                if (MainServer.Instance != null) MainServer.Instance.Stop();
-            }
-            catch (NullReferenceException)
-            { }
-        }
+            SceneHelpers sh = new SceneHelpers();
+            TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
+            TestScene sceneB = sh.SetupScene("sceneB", TestHelpers.ParseTail(0x200), 1002, 1000);
 
-    }
+            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, etm, lscm);
 
-    public class ThreadRunResults
-    {
-        public bool Result = false;
-        public string Message = string.Empty;
-    }
+            Vector3 teleportPosition = new Vector3(10, 11, 12);
+            Vector3 teleportLookAt = new Vector3(20, 21, 22);
 
-    public class TestRunning
-    {
-        public ThreadRunResults results;
-        public TestRunning(ThreadRunResults t)
-        {
-            results = t;
-        }
-        public void run(object o)
-        {
-            
-            //results.Result = true;
-            log4net.Config.XmlConfigurator.Configure();
+            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId);
+            sp.AbsolutePosition = new Vector3(30, 31, 32);
 
-            UUID sceneAId = UUID.Parse("00000000-0000-0000-0000-000000000100");
-            UUID sceneBId = UUID.Parse("00000000-0000-0000-0000-000000000200");
+            // XXX: A very nasty hack to tell the client about the destination scene without having to crank the whole
+            // UDP stack (?)
+            ((TestClient)sp.ControllingClient).TeleportTargetScene = sceneB;
 
-            // shared module
-            ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
+            sceneA.RequestTeleportLocation(
+                sp.ControllingClient,
+                sceneB.RegionInfo.RegionHandle,
+                teleportPosition,
+                teleportLookAt,
+                (uint)TeleportFlags.ViaLocation);
 
+            Assert.That(sceneA.GetScenePresence(userId), Is.Null);
 
-            Scene sceneB = SceneHelpers.SetupScene("sceneB", sceneBId, 1010, 1010);
-            SceneHelpers.SetupSceneModules(sceneB, new IniConfigSource(), interregionComms);
-            sceneB.RegisterRegionWithGrid();
+            ScenePresence sceneBSp = sceneB.GetScenePresence(userId);
+            Assert.That(sceneBSp, Is.Not.Null);
+            Assert.That(sceneBSp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneB.RegionInfo.RegionName));
+            Assert.That(sceneBSp.AbsolutePosition, Is.EqualTo(teleportPosition));
 
-            Scene sceneA = SceneHelpers.SetupScene("sceneA", sceneAId, 1000, 1000);
-            SceneHelpers.SetupSceneModules(sceneA, new IniConfigSource(), interregionComms);
-            sceneA.RegisterRegionWithGrid();
+            // TODO: Add assertions to check correct circuit details in both scenes.
 
-            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000041");
-            TestClient client = (TestClient)SceneHelpers.AddScenePresence(sceneA, agentId).ControllingClient;
-
-            ICapabilitiesModule sceneACapsModule = sceneA.RequestModuleInterface<ICapabilitiesModule>();
-
-            results.Result = (sceneACapsModule.GetCapsPath(agentId) == client.CapsSeedUrl);
-            
-            if (!results.Result)
-            {
-                results.Message = "Incorrect caps object path set up in sceneA";
-                return;
-            }
-
-            /*
-            Assert.That(
-                sceneACapsModule.GetCapsPath(agentId),
-                Is.EqualTo(client.CapsSeedUrl),
-                "Incorrect caps object path set up in sceneA");
-            */
-            // FIXME: This is a hack to get the test working - really the normal OpenSim mechanisms should be used.
-            
-
-            client.TeleportTargetScene = sceneB;
-            client.Teleport(sceneB.RegionInfo.RegionHandle, new Vector3(100, 100, 100), new Vector3(40, 40, 40));
-
-            results.Result = (sceneB.GetScenePresence(agentId) != null);
-            if (!results.Result)
-            {
-                results.Message = "Client does not have an agent in sceneB";
-                return;
-            }
-
-            //Assert.That(sceneB.GetScenePresence(agentId), Is.Not.Null, "Client does not have an agent in sceneB");
-            
-            //Assert.That(sceneA.GetScenePresence(agentId), Is.Null, "Client still had an agent in sceneA");
-
-            results.Result = (sceneA.GetScenePresence(agentId) == null);
-            if (!results.Result)
-            {
-                results.Message = "Client still had an agent in sceneA";
-                return;
-            }
-
-            ICapabilitiesModule sceneBCapsModule = sceneB.RequestModuleInterface<ICapabilitiesModule>();
-
-
-            results.Result = ("http://" + sceneB.RegionInfo.ExternalHostName + ":" + sceneB.RegionInfo.HttpPort +
-                              "/CAPS/" + sceneBCapsModule.GetCapsPath(agentId) + "0000/" == client.CapsSeedUrl);
-            if (!results.Result)
-            {
-                results.Message = "Incorrect caps object path set up in sceneB";
-                return;
-            }
-
-            // Temporary assertion - caps url construction should at least be doable through a method.
-            /*
-            Assert.That(
-                "http://" + sceneB.RegionInfo.ExternalHostName + ":" + sceneB.RegionInfo.HttpPort + "/CAPS/" + sceneBCapsModule.GetCapsPath(agentId) + "0000/",
-                Is.EqualTo(client.CapsSeedUrl),
-                "Incorrect caps object path set up in sceneB");
-            */
-            // This assertion will currently fail since we don't remove the caps paths when no longer needed
-            //Assert.That(sceneACapsModule.GetCapsPath(agentId), Is.Null, "sceneA still had a caps object path");
-
-            // TODO: Check that more of everything is as it should be
-
-            // TODO: test what happens if we try to teleport to a region that doesn't exist
+            // Lookat is sent to the client only - sp.Lookat does not yield the same thing (calculation from camera
+            // position instead).
+//            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
         }
     }
 }

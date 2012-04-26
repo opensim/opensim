@@ -437,6 +437,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_simulationService == null)
                     m_simulationService = RequestModuleInterface<ISimulationService>();
+
                 return m_simulationService;
             }
         }
@@ -3217,7 +3218,7 @@ namespace OpenSim.Region.Framework.Scenes
                 try
                 {
                     m_log.DebugFormat(
-                        "[SCENE]: Removing {0} agent {1} {2} from region {2}",
+                        "[SCENE]: Removing {0} agent {1} {2} from region {3}",
                         (isChildAgent ? "child" : "root"), avatar.Name, agentID, RegionInfo.RegionName);
 
                     m_sceneGraph.removeUserCount(!isChildAgent);
@@ -3879,7 +3880,10 @@ namespace OpenSim.Region.Framework.Scenes
             ILandObject nearestParcel = GetNearestAllowedParcel(cAgentData.AgentID, Constants.RegionSize / 2, Constants.RegionSize / 2);
             if (nearestParcel == null)
             {
-                m_log.DebugFormat("[SCENE]: Denying root agent entry to {0}: no allowed parcel", cAgentData.AgentID);
+                m_log.DebugFormat(
+                    "[SCENE]: Denying root agent entry to {0} in {1}: no allowed parcel",
+                    cAgentData.AgentID, RegionInfo.RegionName);
+
                 return false;
             }
 

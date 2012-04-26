@@ -79,7 +79,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 
             J2KDecoderModule j2kdm = new J2KDecoderModule();
 
-            scene = SceneHelpers.SetupScene();
+            scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(scene, j2kdm);
 
             tc = new TestClient(SceneHelpers.GenerateAgentData(userId), scene);

@@ -78,7 +78,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
             config.AddConfig("FriendsService");
             config.Configs["FriendsService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
 
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             m_fm = new FriendsModule();
             SceneHelpers.SetupSceneModules(m_scene, config, m_fm);
         }

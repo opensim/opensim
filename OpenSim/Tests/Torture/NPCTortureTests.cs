@@ -98,7 +98,7 @@ namespace OpenSim.Tests.Torture
             umm = new UserManagementModule();
             am = new AttachmentsModule();
 
-            scene = SceneHelpers.SetupScene();
+            scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(scene, config, afm, umm, am, new BasicInventoryAccessModule(), new NPCModule());
         }
 
