@@ -3217,8 +3217,8 @@ namespace OpenSim.Region.Framework.Scenes
                 try
                 {
                     m_log.DebugFormat(
-                        "[SCENE]: Removing {0} agent {1} from region {2}",
-                        (isChildAgent ? "child" : "root"), agentID, RegionInfo.RegionName);
+                        "[SCENE]: Removing {0} agent {1} {2} from region {2}",
+                        (isChildAgent ? "child" : "root"), avatar.Name, agentID, RegionInfo.RegionName);
 
                     m_sceneGraph.removeUserCount(!isChildAgent);
 
