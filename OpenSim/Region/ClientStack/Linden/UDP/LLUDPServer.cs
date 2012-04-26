@@ -1350,7 +1350,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
-                m_log.DebugFormat("[LLUDPSERVER]: Dropping incoming {0} packet for dead client {1}", packet.Type, udpClient.AgentID);
+                m_log.DebugFormat(
+                    "[LLUDPSERVER]: Dropped incoming {0} for dead client {1} in {2}",
+                    packet.Type, udpClient.AgentID, m_scene.RegionInfo.RegionName);
             }
         }
 
