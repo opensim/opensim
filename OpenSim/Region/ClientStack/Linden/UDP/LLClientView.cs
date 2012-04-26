@@ -3533,7 +3533,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             AvatarAppearancePacket avp = (AvatarAppearancePacket)PacketPool.Instance.GetPacket(PacketType.AvatarAppearance);
             // TODO: don't create new blocks if recycling an old packet
-            avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[218];
+            avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[visualParams.Length];
             avp.ObjectData.TextureEntry = textureEntry;
 
             AvatarAppearancePacket.VisualParamBlock avblock = null;
