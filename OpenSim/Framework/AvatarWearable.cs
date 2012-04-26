@@ -67,9 +67,10 @@ namespace OpenSim.Framework
 
         public static readonly int ALPHA = 13;
         public static readonly int TATTOO = 14;
-        public static readonly int PHYSICS = 15;
+//        public static readonly int PHYSICS = 15;
 
-        public static readonly int MAX_WEARABLES = 16;
+        //        public static readonly int MAX_WEARABLES = 16;
+        public static readonly int MAX_WEARABLES = 15;
 
         public static readonly UUID DEFAULT_BODY_ITEM = new UUID("66c41e39-38f9-f75a-024e-585989bfaba9");
         public static readonly UUID DEFAULT_BODY_ASSET = new UUID("66c41e39-38f9-f75a-024e-585989bfab73");
