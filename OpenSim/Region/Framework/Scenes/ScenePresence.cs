@@ -1103,7 +1103,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             CheckLandingPoint(ref newpos);
             AbsolutePosition = newpos;
-/*
+
+
+            m_log.DebugFormat("[avnLocalTeleport] {0} {1}", newpos, rotateToVelXY);
+
             if (newvel.HasValue)
             {
                 if (newvel == Vector3.Zero)
@@ -1130,7 +1133,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_velocity = (Vector3)newvel;
                 }
             }
-*/
+
             SendTerseUpdateToAllClients();
         }
 
