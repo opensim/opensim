@@ -42,6 +42,8 @@ namespace OpenSim.Framework
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        // this is viewer capabilities and weared things dependent
+        // should be only used as initial default value ( V1 viewers )
         public readonly static int VISUALPARAM_COUNT = 218;
 
         public readonly static int TEXTURE_COUNT = 21;
@@ -319,19 +321,30 @@ namespace OpenSim.Framework
             // made. We determine if any of the visual parameters actually
             // changed to know if the appearance should be saved later
             bool changed = false;
-            for (int i = 0; i < AvatarAppearance.VISUALPARAM_COUNT; i++)
+
+            int newsize = visualParams.Length;
+
+            if (newsize != m_visualparams.Length)
             {
-                if (visualParams[i] != m_visualparams[i])
+                changed = true;
+                m_visualparams = (byte[])visualParams.Clone();
+            }
+            else
+            {
+
+                for (int i = 0; i < newsize; i++)
                 {
-// DEBUG ON
-//                    m_log.WarnFormat("[AVATARAPPEARANCE] vparams changed [{0}] {1} ==> {2}",
-//                                     i,m_visualparams[i],visualParams[i]);
-// DEBUG OFF
-                    m_visualparams[i] = visualParams[i];
-                    changed = true;
+                    if (visualParams[i] != m_visualparams[i])
+                    {
+                        // DEBUG ON
+                        //                    m_log.WarnFormat("[AVATARAPPEARANCE] vparams changed [{0}] {1} ==> {2}",
+                        //                                     i,m_visualparams[i],visualParams[i]);
+                        // DEBUG OFF
+                        m_visualparams[i] = visualParams[i];
+                        changed = true;
+                    }
                 }
             }
-
             // Reset the height if the visual parameters actually changed
             if (changed)
                 SetHeight();
@@ -389,7 +402,8 @@ namespace OpenSim.Framework
             }
 
             s += "Visual Params: ";
-            for (uint j = 0; j < AvatarAppearance.VISUALPARAM_COUNT; j++)
+            //            for (uint j = 0; j < AvatarAppearance.VISUALPARAM_COUNT; j++)
+            for (uint j = 0; j < m_visualparams.Length; j++)
                 s += String.Format("{0},",m_visualparams[j]);
             s += "\n";
 

@@ -357,7 +357,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sceneObject.RootPart.ApplyImpulse((vel * sceneObject.GetMass()), false);
                 sceneObject.Velocity = vel;
             }
-        
+
             return true;
         }
 
