@@ -143,6 +143,7 @@ what it is today.
 * sempuki
 * SignpostMarv
 * SpotOn3D
+* Stefan_Boom / stoehr
 * Strawberry Fride
 * Talun
 * tglion

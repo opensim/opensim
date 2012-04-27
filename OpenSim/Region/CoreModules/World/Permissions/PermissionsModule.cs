@@ -166,6 +166,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnDeedParcel += CanDeedParcel;
             m_scene.Permissions.OnDeedObject += CanDeedObject;
             m_scene.Permissions.OnIsGod += IsGod;
+            m_scene.Permissions.OnIsGridGod += IsGridGod;
             m_scene.Permissions.OnIsAdministrator += IsAdministrator;
             m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
             m_scene.Permissions.OnDeleteObject += CanDeleteObject; //MAYBE FULLY IMPLEMENTED
@@ -466,22 +467,34 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (IsEstateManager(user) && m_RegionManagerIsGod)
                 return true;
 
+            if (IsGridGod(user, null))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Is the given user a God throughout the grid (not just in the current scene)?
+        /// </summary>
+        /// <param name="user">The user</param>
+        /// <param name="scene">Unused, can be null</param>
+        /// <returns></returns>
+        protected bool IsGridGod(UUID user, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (user == UUID.Zero) return false;
+
             if (m_allowGridGods)
             {
                 ScenePresence sp = m_scene.GetScenePresence(user);
                 if (sp != null)
-                {
-                    if (sp.UserLevel >= 200)
-                        return true;
-                    return false;
-                }
+                    return (sp.UserLevel >= 200);
 
                 UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, user);
                 if (account != null)
-                {
-                    if (account.UserLevel >= 200)
-                        return true;
-                }
+                    return (account.UserLevel >= 200);
             }
 
             return false;

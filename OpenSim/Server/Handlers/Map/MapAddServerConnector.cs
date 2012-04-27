@@ -33,17 +33,24 @@ using System.Xml;
 
 using Nini.Config;
 using log4net;
+using OpenMetaverse;
 
+using OpenSim.Framework;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+
 namespace OpenSim.Server.Handlers.MapImage
 {
     public class MapAddServiceConnector : ServiceConnector
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private IMapImageService m_MapService;
+        private IGridService m_GridService;
         private string m_ConfigName = "MapImageService";
 
         public MapAddServiceConnector(IConfigSource config, IHttpServer server, string configName) :
@@ -53,16 +60,27 @@ namespace OpenSim.Server.Handlers.MapImage
             if (serverConfig == null)
                 throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
 
-            string gridService = serverConfig.GetString("LocalServiceModule",
+            string mapService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
 
-            if (gridService == String.Empty)
+            if (mapService == String.Empty)
                 throw new Exception("No LocalServiceModule in config file");
 
             Object[] args = new Object[] { config };
-            m_MapService = ServerUtils.LoadPlugin<IMapImageService>(gridService, args);
+            m_MapService = ServerUtils.LoadPlugin<IMapImageService>(mapService, args);
 
-            server.AddStreamHandler(new MapServerPostHandler(m_MapService));
+            string gridService = serverConfig.GetString("GridService", String.Empty);
+            if (gridService != string.Empty)
+                m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
+
+            if (m_GridService != null)
+                m_log.InfoFormat("[MAP IMAGE HANDLER]: GridService check is ON");
+            else
+                m_log.InfoFormat("[MAP IMAGE HANDLER]: GridService check is OFF");
+
+            bool proxy = serverConfig.GetBoolean("HasProxy", false);
+            server.AddStreamHandler(new MapServerPostHandler(m_MapService, m_GridService, proxy));
+
         }
     }
 
@@ -70,11 +88,15 @@ namespace OpenSim.Server.Handlers.MapImage
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IMapImageService m_MapService;
+        private IGridService m_GridService;
+        bool m_Proxy;
 
-        public MapServerPostHandler(IMapImageService service) :
+        public MapServerPostHandler(IMapImageService service, IGridService grid, bool proxy) :
             base("POST", "/map")
         {
             m_MapService = service;
+            m_GridService = grid;
+            m_Proxy = proxy;
         }
 
         public override byte[] Handle(string path, Stream requestData, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
@@ -104,6 +126,27 @@ namespace OpenSim.Server.Handlers.MapImage
 //
 //                if (request.ContainsKey("TYPE"))
 //                    type = request["TYPE"].ToString();
+
+                if (m_GridService != null)
+                {
+                    System.Net.IPAddress ipAddr = GetCallerIP(httpRequest);
+                    GridRegion r = m_GridService.GetRegionByPosition(UUID.Zero, x * (int)Constants.RegionSize, y * (int)Constants.RegionSize);
+                    if (r != null)
+                    {
+                        if (r.ExternalEndPoint.Address.ToString() != ipAddr.ToString())
+                        {
+                            m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be trying to impersonate region in IP {1}", ipAddr, r.ExternalEndPoint.Address);
+                            return FailureResult("IP address of caller does not match IP address of registered region");
+                        }
+
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be rogue. Region not found at coordinates {1}-{2}", 
+                            ipAddr, x, y);
+                        return FailureResult("Region not found at given coordinates");
+                    }
+                }
 
                 byte[] data = Convert.FromBase64String(request["DATA"].ToString());
 
@@ -183,5 +226,31 @@ namespace OpenSim.Server.Handlers.MapImage
 
             return ms.ToArray();
         }
+
+        private System.Net.IPAddress GetCallerIP(IOSHttpRequest request)
+        {
+            if (!m_Proxy)
+                return request.RemoteIPEndPoint.Address;
+
+            // We're behind a proxy
+            string xff = "X-Forwarded-For";
+            string xffValue = request.Headers[xff.ToLower()];
+            if (xffValue == null || (xffValue != null && xffValue == string.Empty))
+                xffValue = request.Headers[xff];
+
+            if (xffValue == null || (xffValue != null && xffValue == string.Empty))
+            {
+                m_log.WarnFormat("[MAP IMAGE HANDLER]: No XFF header");
+                return request.RemoteIPEndPoint.Address;
+            }
+
+            System.Net.IPEndPoint ep = Util.GetClientIPFromXFF(xffValue);
+            if (ep != null)
+                return ep.Address;
+
+            // Oops
+            return request.RemoteIPEndPoint.Address;
+        }
+
     }
 }

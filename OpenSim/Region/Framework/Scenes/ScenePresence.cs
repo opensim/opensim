@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -45,6 +45,7 @@ using TeleportFlags = OpenSim.Framework.Constants.TeleportFlags;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+    [Flags]
     enum ScriptControlled : uint
     {
         CONTROL_ZERO = 0,
@@ -1295,7 +1296,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
-//                Scene.RegionInfo.RegionName, remoteClient.Name, agentData.ControlFlags);
+//                Scene.RegionInfo.RegionName, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
 
             if (IsChildAgent)
             {
@@ -1405,14 +1406,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            lock (scriptedcontrols)
-            {
-                if (scriptedcontrols.Count > 0)
-                {
-                    SendControlToScripts((uint)flags);
-                    flags = RemoveIgnoredControls(flags, IgnoredControls);
-                }
-            }
+            uint flagsForScripts = (uint)flags;
+            flags = RemoveIgnoredControls(flags, IgnoredControls);
 
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
                 HandleAgentSitOnGround();
@@ -1505,7 +1500,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     MovementFlag |= (byte)nudgehack;
                                 }
 
-//                                m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with {1}", Name, DCF);
+                                //m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with {1}", Name, DCF);
                                 MovementFlag += (byte)(uint)DCF;
                                 update_movementflag = true;
                             }
@@ -1518,7 +1513,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 && ((MovementFlag & (byte)nudgehack) == nudgehack))
                                 ) // This or is for Nudge forward
                             {
-//                                m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with lack of {1}", Name, DCF);
+                                //m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with lack of {1}", Name, DCF);
                                 MovementFlag -= ((byte)(uint)DCF);
                                 update_movementflag = true;
 
@@ -1599,8 +1594,18 @@ namespace OpenSim.Region.Framework.Scenes
 //                    }
 //                }
 
-//                if (update_movementflag && ParentID == 0)
-//                    Animator.UpdateMovementAnimations();
+                if (update_movementflag && ParentID == 0)
+                    Animator.UpdateMovementAnimations();
+
+                lock (scriptedcontrols)
+                {
+                    if (scriptedcontrols.Count > 0)
+                    {
+                        // Notify the scripts only after calling UpdateMovementAnimations(), so that if a script
+                        // (e.g., a walking script) checks which animation is active it will be the correct animation.
+                        SendControlToScripts(flagsForScripts);
+                    }
+                }
             }
 
             m_scene.EventManager.TriggerOnClientMovement(this);
