@@ -50,7 +50,7 @@ namespace OpenSim.Capabilities.Handlers.GetTexture.Tests
             TestHelpers.InMethod();
 
             // Overkill - we only really need the asset service, not a whole scene.
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
 
             GetTextureHandler handler = new GetTextureHandler(null, scene.AssetService);
             TestOSHttpRequest req = new TestOSHttpRequest();

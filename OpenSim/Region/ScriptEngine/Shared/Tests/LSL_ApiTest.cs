@@ -58,7 +58,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             IConfig config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");
 
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
 
             XEngine.XEngine engine = new XEngine.XEngine();
@@ -261,7 +261,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestHelpers.InMethod();
 
             // Create Prim1.
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             string obj1Name = "Prim1";
             UUID objUuid = new UUID("00000000-0000-0000-0000-000000000001");
             SceneObjectPart part1 =

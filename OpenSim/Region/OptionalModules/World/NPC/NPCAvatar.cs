@@ -76,22 +76,27 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public void Say(string message)
         {
-            SendOnChatFromClient(message, ChatTypeEnum.Say);
+            SendOnChatFromClient(0, message, ChatTypeEnum.Say);
         }
 
-        public void Shout(string message)
+        public void Say(int channel, string message)
         {
-            SendOnChatFromClient(message, ChatTypeEnum.Shout);
+            SendOnChatFromClient(channel, message, ChatTypeEnum.Say);
         }
 
-        public void Whisper(string message)
+        public void Shout(int channel, string message)
         {
-            SendOnChatFromClient(message, ChatTypeEnum.Whisper);
+            SendOnChatFromClient(channel, message, ChatTypeEnum.Shout);
+        }
+
+        public void Whisper(int channel, string message)
+        {
+            SendOnChatFromClient(channel, message, ChatTypeEnum.Whisper);
         }
 
         public void Broadcast(string message)
         {
-            SendOnChatFromClient(message, ChatTypeEnum.Broadcast);
+            SendOnChatFromClient(0, message, ChatTypeEnum.Broadcast);
         }
 
         public void GiveMoney(UUID target, int amount)
@@ -146,10 +151,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         #region Internal Functions
 
-        private void SendOnChatFromClient(string message, ChatTypeEnum chatType)
+        private void SendOnChatFromClient(int channel, string message, ChatTypeEnum chatType)
         {
             OSChatMessage chatFromClient = new OSChatMessage();
-            chatFromClient.Channel = 0;
+            chatFromClient.Channel = channel;
             chatFromClient.From = Name;
             chatFromClient.Message = message;
             chatFromClient.Position = StartPos;

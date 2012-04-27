@@ -61,7 +61,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                         
             UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");
             
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
             IConfigSource configSource = new IniConfigSource();
             IConfig config = configSource.AddConfig("Startup");
             config.Set("serverside_object_permissions", true);
@@ -100,7 +100,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");
             UUID objectOwnerId = UUID.Parse("20000000-0000-0000-0000-000000000001");
             
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
             IConfigSource configSource = new IniConfigSource();
             IConfig config = configSource.AddConfig("Startup");
             config.Set("serverside_object_permissions", true);

@@ -245,7 +245,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (!m_Scene.CheckClient(m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint))
             {
-                m_log.DebugFormat("[CAPS]: Unauthorized CAPS client");
+                m_log.DebugFormat(
+                    "[CAPS]: Unauthorized CAPS client {0} from {1}",
+                    m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint);
+
                 return string.Empty;
             }
 

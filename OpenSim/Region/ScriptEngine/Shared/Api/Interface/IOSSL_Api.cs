@@ -217,11 +217,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void        osNpcSetRot(LSL_Key npc, rotation rot);
         void        osNpcStopMoveToTarget(LSL_Key npc);
         void        osNpcSay(key npc, string message);
+        void        osNpcSay(key npc, int channel, string message);
+        void        osNpcShout(key npc, int channel, string message);
         void        osNpcSit(key npc, key target, int options);
         void        osNpcStand(LSL_Key npc);
         void        osNpcRemove(key npc);
         void        osNpcPlayAnimation(LSL_Key npc, string animation);
         void        osNpcStopAnimation(LSL_Key npc, string animation);
+        void        osNpcWhisper(key npc, int channel, string message);
 
         LSL_Key     osOwnerSaveAppearance(string notecard);
         LSL_Key     osAgentSaveAppearance(key agentId, string notecard);

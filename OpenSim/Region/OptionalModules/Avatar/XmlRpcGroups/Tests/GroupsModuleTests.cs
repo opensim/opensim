@@ -50,7 +50,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
             IConfigSource configSource = new IniConfigSource();
             IConfig config = configSource.AddConfig("Groups");            
             config.Set("Enabled", true);

@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [SetUp]
         public void SetUp()
         {
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
         }
 
         [Test]

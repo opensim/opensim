@@ -45,7 +45,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     {
         static public Random random;
         SceneObjectGroup found;
-        Scene scene = SceneHelpers.SetupScene();
+        Scene scene = new SceneHelpers().SetupScene();
 
         [Test]
         public void T010_AddObjects()
