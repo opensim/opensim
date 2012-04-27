@@ -1099,27 +1099,36 @@ namespace OpenSim.Region.Framework.Scenes
             SendTerseUpdateToAllClients();
         }
 
-        public void avnLocalTeleport(Vector3 newpos, Quaternion? newrot,Vector3? v, bool Stopit)
+        public void avnLocalTeleport(Vector3 newpos, Vector3? newvel, bool rotateToVelXY)
         {
             CheckLandingPoint(ref newpos);
             AbsolutePosition = newpos;
 
-            if (newrot.HasValue)
+            if (newvel.HasValue)
             {
-                // TODO
-            }
+                if (newvel == Vector3.Zero)
+                {
+                    if (PhysicsActor != null)
+                        PhysicsActor.SetMomentum(Vector3.Zero);
+                    m_velocity = Vector3.Zero;
+                }
+                else
+                {
+                    if (rotateToVelXY)
+                    {
+                        float x = ((Vector3)newvel).X;
+                        float y = ((Vector3)newvel).Y;
 
-            if (v.HasValue)
-            {
-                if (PhysicsActor != null)
-                    PhysicsActor.SetMomentum((Vector3)v);
-//                m_velocity = (Vector3)v;
-            }
-            else if (Stopit)
-            {
-                if (PhysicsActor != null)
-                    PhysicsActor.SetMomentum(Vector3.Zero);
-                m_velocity = Vector3.Zero;
+                        x = 0.5f * (float)Math.Atan2(y, x);
+                        y = (float)Math.Cos(x);
+                        x = (float)Math.Sin(x);
+                        Rotation = new Quaternion(0f, 0f, x, y);
+                    }
+
+                    if (PhysicsActor != null)
+                        PhysicsActor.SetMomentum((Vector3)newvel);
+                    m_velocity = (Vector3)newvel;
+                }
             }
 
             SendTerseUpdateToAllClients();

@@ -109,7 +109,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private string m_name = String.Empty;
         // other filter control
         int m_colliderfilter = 0;
-        //        int m_colliderGroundfilter = 0;
+        int m_colliderGroundfilter = 0;
         int m_colliderObjectfilter = 0;
 
         // Default we're a Character
@@ -281,7 +281,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_iscolliding = false;
                 else
                 {
-//                    SetPidStatus(false);
                     m_pidControllerActive = true;
                     m_iscolliding = true;
                 }
@@ -617,7 +616,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (pushforce)
                 {
-                    AddChange(changes.Force, force * m_density / _parent_scene.ODE_STEPSIZE / 28f);
+                    AddChange(changes.Force, force * m_density / (_parent_scene.ODE_STEPSIZE * 28f));
                 }
                 else
                 {
@@ -791,7 +790,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             qtmp.Z = 0;
             d.BodySetQuaternion(Body, ref qtmp);
 
-            if (m_pidControllerActive == false && !m_freemove)
+            if (m_pidControllerActive == false)
             {
                 _zeroPosition = localpos;
             }
@@ -830,11 +829,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                 localpos.Y = _parent_scene.WorldExtents.Y - 0.1f;
             }
             if (fixbody)
+            {
+                m_freemove = false;
                 d.BodySetPosition(Body, localpos.X, localpos.Y, localpos.Z);
+            }
+
+            float breakfactor;
 
             Vector3 vec = Vector3.Zero;
             dtmp = d.BodyGetLinearVel(Body);
             Vector3 vel = new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
+            float velLengthSquared = vel.LengthSquared();
 
             float movementdivisor = 1f;
             //Ubit change divisions into multiplications below
@@ -863,7 +868,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             float terrainheight = _parent_scene.GetTerrainHeightAtXY(posch.X, posch.Y);
             if (chrminZ < terrainheight)
             {
-                m_freemove = false;
                 float depth = terrainheight - chrminZ;
                 if (!flying)
                 {
@@ -874,34 +878,46 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (depth < 0.1f)
                 {
-                    m_iscolliding = true;
-                    m_colliderfilter = 2;
-                    m_iscollidingGround = true;
+                    m_colliderGroundfilter++;
+                    if (m_colliderGroundfilter > 2)
+                    {
+                        m_iscolliding = true;
+                        m_colliderfilter = 2;
+                        m_colliderGroundfilter = 2;
+                        m_iscollidingGround = true;
 
-                    ContactPoint contact = new ContactPoint();
-                    contact.PenetrationDepth = depth;
-                    contact.Position.X = localpos.X;
-                    contact.Position.Y = localpos.Y;
-                    contact.Position.Z = chrminZ;
-                    contact.SurfaceNormal.X = 0f;
-                    contact.SurfaceNormal.Y = 0f;
-                    contact.SurfaceNormal.Z = -1f;
-                    AddCollisionEvent(0, contact);
+                        ContactPoint contact = new ContactPoint();
+                        contact.PenetrationDepth = depth;
+                        contact.Position.X = localpos.X;
+                        contact.Position.Y = localpos.Y;
+                        contact.Position.Z = chrminZ;
+                        contact.SurfaceNormal.X = 0f;
+                        contact.SurfaceNormal.Y = 0f;
+                        contact.SurfaceNormal.Z = -1f;
+                        AddCollisionEvent(0, contact);
 
-                    vec.Z *= 0.5f;
+                        vec.Z *= 0.5f;
+                    }
                 }
 
                 else
+                {
+                    m_colliderGroundfilter = 0;
                     m_iscollidingGround = false;
+                }
             }
             else
+            {
+                m_colliderGroundfilter = 0;
                 m_iscollidingGround = false;
+            }
 
             //******************************************
 
             bool tviszero = (_target_velocity.X == 0.0f && _target_velocity.Y == 0.0f && _target_velocity.Z == 0.0f);
 
-            if(!tviszero || m_iscolliding)
+            //            if (!tviszero || m_iscolliding || velLengthSquared <0.01)
+            if (!tviszero)
                 m_freemove = false;
 
             if (!m_freemove)
@@ -934,7 +950,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    m_freemove = false;
                     m_pidControllerActive = true;
                     _zeroFlag = false;
 
@@ -981,6 +996,24 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                     }
                 }
+
+                if (velLengthSquared > 2500.0f) // 50m/s apply breaks
+                {
+                    breakfactor = 0.16f * m_mass;
+                    vec.X -= breakfactor * vel.X;
+                    vec.Y -= breakfactor * vel.Y;
+                    vec.Z -= breakfactor * vel.Z;
+                }
+            }
+            else
+            {
+                breakfactor = 5f * m_mass;
+                vec.X -= breakfactor * vel.X;
+                vec.Y -= breakfactor * vel.Y;
+                if (flying)
+                    vec.Z -= breakfactor * vel.Z;
+                else
+                    vec.Z -= 2f* m_mass * vel.Z;
             }
 
             if (flying)
@@ -995,14 +1028,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     vec.Z += (target_altitude - localpos.Z) * PID_P * 5.0f;
                 }
                 // end add Kitto Flora
-            }
-
-            if (vel.X * vel.X + vel.Y * vel.Y + vel.Z * vel.Z > 2500.0f) // 50m/s apply breaks
-            {
-                float breakfactor = 0.16f * m_mass; // will give aprox 60m/s terminal velocity at free fall
-                vec.X -= breakfactor * vel.X;
-                vec.Y -= breakfactor * vel.Y;
-                vec.Z -= breakfactor * vel.Z;
             }
 
             if (vec.IsFinite())
@@ -1222,7 +1247,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (Body != IntPtr.Zero)
                     d.BodySetPosition(Body, newPos.X, newPos.Y, newPos.Z);
                 _position = newPos;
-                m_pidControllerActive = true;
+                m_pidControllerActive = false;
             }
 
         private void changeOrientation(Quaternion newOri)
@@ -1269,11 +1294,30 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changeBuilding(bool arg)
         {
-        }                                 
+        }
+
+        private void setFreeMove()
+        {
+            m_pidControllerActive = true;
+            _zeroFlag = false;
+            _target_velocity = Vector3.Zero;
+            m_freemove = true;
+            m_colliderfilter = -2;
+            m_colliderObjectfilter = -2;
+            m_colliderGroundfilter = -2;
+
+            m_iscolliding = false;
+            m_iscollidingGround = false;
+            m_iscollidingObj = false;
+
+            CollisionEventsThisFrame = new CollisionEventUpdate();
+            m_eventsubscription = 0;
+        }
 
         private void changeForce(Vector3 newForce)
         {
-            m_pidControllerActive = false;
+            setFreeMove();
+
             if (Body != IntPtr.Zero)
             {
                 if (newForce.X != 0f || newForce.Y != 0f || newForce.Z != 0)
@@ -1285,14 +1329,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void changeMomentum(Vector3 newmomentum)
         {
             _velocity = newmomentum;
-            _target_velocity = Vector3.Zero;
-            m_freemove = true;
-            m_pidControllerActive = true;
-            m_colliderfilter = 0;
-            m_colliderObjectfilter = 0;
-            m_iscolliding = false;
-            m_iscollidingGround = false;
-            m_iscollidingObj = false;
+            setFreeMove();
 
             if (Body != IntPtr.Zero)
                 d.BodySetLinearVel(Body, newmomentum.X, newmomentum.Y, newmomentum.Z);
