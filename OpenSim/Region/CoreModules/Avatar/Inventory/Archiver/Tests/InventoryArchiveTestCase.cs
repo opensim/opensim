@@ -100,7 +100,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(scene, archiverModule);            
             
             UserAccountHelpers.CreateUserWithInventory(scene, m_uaLL1, "hampshire");

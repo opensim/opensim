@@ -135,6 +135,36 @@ namespace OpenSim.Region.Framework.Interfaces
         bool Say(UUID agentID, Scene scene, string text);
 
         /// <summary>
+        /// Get the NPC to say something.
+        /// </summary>
+        /// <param name="agentID">The UUID of the NPC</param>
+        /// <param name="scene"></param>
+        /// <param name="text"></param>
+        /// <param name="channel"></param>
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool Say(UUID agentID, Scene scene, string text, int channel);
+
+        /// <summary>
+        /// Get the NPC to shout something.
+        /// </summary>
+        /// <param name="agentID">The UUID of the NPC</param>
+        /// <param name="scene"></param>
+        /// <param name="text"></param>
+        /// <param name="channel"></param>
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool Shout(UUID agentID, Scene scene, string text, int channel);
+
+        /// <summary>
+        /// Get the NPC to whisper something.
+        /// </summary>
+        /// <param name="agentID">The UUID of the NPC</param>
+        /// <param name="scene"></param>
+        /// <param name="text"></param>
+        /// <param name="channel"></param>
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool Whisper(UUID agentID, Scene scene, string text, int channel);
+
+        /// <summary>
         /// Sit the NPC.
         /// </summary>
         /// <param name="agentID"></param>

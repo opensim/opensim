@@ -126,7 +126,7 @@ namespace OpenSim.Tests.Torture
             // Using a local variable for scene, at least on mono 2.6.7, means that it's much more likely to be garbage
             // collected when we teardown this test.  If it's done in a member variable, even if that is subsequently
             // nulled out, the garbage collect can be delayed.
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
 
 //            Process process = Process.GetCurrentProcess();
 //            long startProcessMemory = process.PrivateMemorySize64;

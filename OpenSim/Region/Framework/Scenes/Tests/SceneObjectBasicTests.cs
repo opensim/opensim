@@ -88,7 +88,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             int partsToTestCount = 3;
 
             SceneObjectGroup so
@@ -118,7 +118,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
 
             string obj1Name = "Alfred";
             string obj2Name = "Betty";
@@ -152,7 +152,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             int partsToTestCount = 3;
 
             SceneObjectGroup so
@@ -185,7 +185,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
             SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
             scene.DeleteSceneObject(part.ParentGroup, false);
 
@@ -204,7 +204,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
 
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
 
             // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;

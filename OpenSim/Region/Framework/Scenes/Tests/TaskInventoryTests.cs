@@ -58,7 +58,7 @@ namespace OpenSim.Region.Framework.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
@@ -81,7 +81,7 @@ namespace OpenSim.Region.Framework.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
@@ -124,7 +124,7 @@ namespace OpenSim.Region.Framework.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
@@ -153,7 +153,7 @@ namespace OpenSim.Region.Framework.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;

@@ -163,28 +163,37 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                     return;
                 }
                     
-                m_comms.RegisterScriptInvocation(this,"JsonCreateStore");
-                m_comms.RegisterScriptInvocation(this,"JsonDestroyStore");
+                try
+                {
+                    m_comms.RegisterScriptInvocation(this,"JsonCreateStore");
+                    m_comms.RegisterScriptInvocation(this,"JsonDestroyStore");
 
-                m_comms.RegisterScriptInvocation(this,"JsonReadNotecard");
-                m_comms.RegisterScriptInvocation(this,"JsonWriteNotecard");
+                    m_comms.RegisterScriptInvocation(this,"JsonReadNotecard");
+                    m_comms.RegisterScriptInvocation(this,"JsonWriteNotecard");
 
-                m_comms.RegisterScriptInvocation(this,"JsonTestPath");
-                m_comms.RegisterScriptInvocation(this,"JsonTestPathJson");
+                    m_comms.RegisterScriptInvocation(this,"JsonTestPath");
+                    m_comms.RegisterScriptInvocation(this,"JsonTestPathJson");
 
-                m_comms.RegisterScriptInvocation(this,"JsonGetValue");
-                m_comms.RegisterScriptInvocation(this,"JsonGetValueJson");
+                    m_comms.RegisterScriptInvocation(this,"JsonGetValue");
+                    m_comms.RegisterScriptInvocation(this,"JsonGetValueJson");
 
-                m_comms.RegisterScriptInvocation(this,"JsonTakeValue");
-                m_comms.RegisterScriptInvocation(this,"JsonTakeValueJson");
+                    m_comms.RegisterScriptInvocation(this,"JsonTakeValue");
+                    m_comms.RegisterScriptInvocation(this,"JsonTakeValueJson");
 
-                m_comms.RegisterScriptInvocation(this,"JsonReadValue");
-                m_comms.RegisterScriptInvocation(this,"JsonReadValueJson");
+                    m_comms.RegisterScriptInvocation(this,"JsonReadValue");
+                    m_comms.RegisterScriptInvocation(this,"JsonReadValueJson");
 
-                m_comms.RegisterScriptInvocation(this,"JsonSetValue");
-                m_comms.RegisterScriptInvocation(this,"JsonSetValueJson");
+                    m_comms.RegisterScriptInvocation(this,"JsonSetValue");
+                    m_comms.RegisterScriptInvocation(this,"JsonSetValueJson");
 
-                m_comms.RegisterScriptInvocation(this,"JsonRemoveValue");
+                    m_comms.RegisterScriptInvocation(this,"JsonRemoveValue");
+                }
+                catch (Exception e)
+                {
+                    // See http://opensimulator.org/mantis/view.php?id=5971 for more information
+                    m_log.WarnFormat("[JsonStroreScripts] script method registration failed; {0}",e.Message);
+                    m_enabled = false;
+                }
             }
         }
 

@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
         public void SetUp()
         {
             m_module = new MoapModule();
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, m_module);            
         }        
         

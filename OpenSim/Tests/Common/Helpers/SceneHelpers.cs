@@ -58,57 +58,67 @@ namespace OpenSim.Tests.Common
     /// </summary>
     public class SceneHelpers
     {
-        public static TestScene SetupScene()
+        private AgentCircuitManager m_acm = new AgentCircuitManager();
+        private ISimulationDataService m_simDataService
+            = OpenSim.Server.Base.ServerUtils.LoadPlugin<ISimulationDataService>("OpenSim.Tests.Common.dll", null);
+        private IEstateDataService m_estateDataService;
+
+        private LocalAssetServicesConnector m_assetService;
+        private LocalAuthenticationServicesConnector m_authenticationService;
+        private LocalInventoryServicesConnector m_inventoryService;
+        private LocalGridServicesConnector m_gridService;
+        private LocalUserAccountServicesConnector m_userAccountService;
+        private LocalPresenceServicesConnector m_presenceService;
+
+        private CoreAssetCache m_cache;
+
+        public SceneHelpers() : this(null) {}
+
+        public SceneHelpers(CoreAssetCache cache)
         {
-            return SetupScene(null);
+            m_assetService          = StartAssetService(cache);
+            m_authenticationService = StartAuthenticationService();
+            m_inventoryService      = StartInventoryService();
+            m_gridService           = StartGridService();
+            m_userAccountService    = StartUserAccountService();
+            m_presenceService       = StartPresenceService();
+
+            m_inventoryService.PostInitialise();
+            m_assetService.PostInitialise();
+            m_userAccountService.PostInitialise();
+            m_presenceService.PostInitialise();
+
+            m_cache = cache;
         }
 
         /// <summary>
         /// Set up a test scene
         /// </summary>
         /// <remarks>
-        /// Automatically starts service threads, as would the normal runtime.
+        /// Automatically starts services, as would the normal runtime.
         /// </remarks>
         /// <returns></returns>
-        public static TestScene SetupScene(CoreAssetCache cache)
+        public TestScene SetupScene()
         {
-            return SetupScene("Unit test region", UUID.Random(), 1000, 1000, cache);
+            return SetupScene("Unit test region", UUID.Random(), 1000, 1000);
         }
 
-        public static TestScene SetupScene(string name, UUID id, uint x, uint y)
+        public TestScene SetupScene(string name, UUID id, uint x, uint y)
         {
-            return SetupScene(name, id, x, y, null);
+            return SetupScene(name, id, x, y, new IniConfigSource());
         }
 
         /// <summary>
-        /// Set up a scene. If it's more then one scene, use the same CommunicationsManager to link regions
-        /// or a different, to get a brand new scene with new shared region modules.
+        /// Set up a scene.
         /// </summary>
         /// <param name="name">Name of the region</param>
         /// <param name="id">ID of the region</param>
         /// <param name="x">X co-ordinate of the region</param>
         /// <param name="y">Y co-ordinate of the region</param>
-        /// <param name="cache"></param>
-        /// <returns></returns>
-        public static TestScene SetupScene(
-            string name, UUID id, uint x, uint y, CoreAssetCache cache)
-        {
-            return SetupScene(name, id, x, y, cache, new IniConfigSource());
-        }
-
-        /// <summary>
-        /// Set up a scene. If it's more then one scene, use the same CommunicationsManager to link regions
-        /// or a different, to get a brand new scene with new shared region modules.
-        /// </summary>
-        /// <param name="name">Name of the region</param>
-        /// <param name="id">ID of the region</param>
-        /// <param name="x">X co-ordinate of the region</param>
-        /// <param name="y">Y co-ordinate of the region</param>
-        /// <param name="cache"></param>
         /// <param name="configSource"></param>
         /// <returns></returns>
-        public static TestScene SetupScene(
-            string name, UUID id, uint x, uint y, CoreAssetCache cache, IConfigSource configSource)
+        public TestScene SetupScene(
+            string name, UUID id, uint x, uint y, IConfigSource configSource)
         {
             Console.WriteLine("Setting up test scene {0}", name);
 
@@ -119,30 +129,47 @@ namespace OpenSim.Tests.Common
             regInfo.RegionName = name;
             regInfo.RegionID = id;
 
-            AgentCircuitManager acm = new AgentCircuitManager();
             SceneCommunicationService scs = new SceneCommunicationService();
 
-            ISimulationDataService simDataService = OpenSim.Server.Base.ServerUtils.LoadPlugin<ISimulationDataService>("OpenSim.Tests.Common.dll", null);
-            IEstateDataService estateDataService = null;
-
             TestScene testScene = new TestScene(
-                regInfo, acm, scs, simDataService, estateDataService, null, false, configSource, null);
+                regInfo, m_acm, scs, m_simDataService, m_estateDataService, null, false, configSource, null);
 
             IRegionModule godsModule = new GodsModule();
             godsModule.Initialise(testScene, new IniConfigSource());
             testScene.AddModule(godsModule.Name, godsModule);
 
-            LocalAssetServicesConnector       assetService       = StartAssetService(testScene, cache);
-                                                                   StartAuthenticationService(testScene);
-            LocalInventoryServicesConnector   inventoryService   = StartInventoryService(testScene);
-                                                                   StartGridService(testScene);
-            LocalUserAccountServicesConnector userAccountService = StartUserAccountService(testScene);
-            LocalPresenceServicesConnector    presenceService    = StartPresenceService(testScene);
+            // Add scene to services
+            m_assetService.AddRegion(testScene);
 
-            inventoryService.PostInitialise();
-            assetService.PostInitialise();
-            userAccountService.PostInitialise();
-            presenceService.PostInitialise();
+            if (m_cache != null)
+            {
+                m_cache.AddRegion(testScene);
+                m_cache.RegionLoaded(testScene);
+                testScene.AddRegionModule(m_cache.Name, m_cache);
+            }
+
+            m_assetService.RegionLoaded(testScene);
+            testScene.AddRegionModule(m_assetService.Name, m_assetService);
+
+            m_authenticationService.AddRegion(testScene);
+            m_authenticationService.RegionLoaded(testScene);
+            testScene.AddRegionModule(m_authenticationService.Name, m_authenticationService);
+
+            m_inventoryService.AddRegion(testScene);
+            m_inventoryService.RegionLoaded(testScene);
+            testScene.AddRegionModule(m_inventoryService.Name, m_inventoryService);
+
+            m_gridService.AddRegion(testScene);
+            m_gridService.RegionLoaded(testScene);
+            testScene.AddRegionModule(m_gridService.Name, m_gridService);
+
+            m_userAccountService.AddRegion(testScene);
+            m_userAccountService.RegionLoaded(testScene);
+            testScene.AddRegionModule(m_userAccountService.Name, m_userAccountService);
+
+            m_presenceService.AddRegion(testScene);
+            m_presenceService.RegionLoaded(testScene);
+            testScene.AddRegionModule(m_presenceService.Name, m_presenceService);
             
             testScene.RegionInfo.EstateSettings.EstateOwner = UUID.Random();
             testScene.SetModuleInterfaces();
@@ -162,19 +189,17 @@ namespace OpenSim.Tests.Common
             return testScene;
         }
 
-        private static LocalAssetServicesConnector StartAssetService(Scene testScene, CoreAssetCache cache)
+        private static LocalAssetServicesConnector StartAssetService(CoreAssetCache cache)
         {
-            LocalAssetServicesConnector assetService = new LocalAssetServicesConnector();
             IConfigSource config = new IniConfigSource();
-            
             config.AddConfig("Modules");            
             config.Configs["Modules"].Set("AssetServices", "LocalAssetServicesConnector");            
             config.AddConfig("AssetService");
             config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Services.AssetService.dll:AssetService");            
             config.Configs["AssetService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
-            
+
+            LocalAssetServicesConnector assetService = new LocalAssetServicesConnector();
             assetService.Initialise(config);
-            assetService.AddRegion(testScene);
 
             if (cache != null)
             {
@@ -184,56 +209,43 @@ namespace OpenSim.Tests.Common
                 cacheConfig.AddConfig("AssetCache");
 
                 cache.Initialise(cacheConfig);
-                cache.AddRegion(testScene);
-                cache.RegionLoaded(testScene);
-                testScene.AddRegionModule(cache.Name, cache);
             }
-
-            assetService.RegionLoaded(testScene);
-            testScene.AddRegionModule(assetService.Name, assetService);
             
             return assetService;
         }
 
-        private static void StartAuthenticationService(Scene testScene)
+        private static LocalAuthenticationServicesConnector StartAuthenticationService()
         {
-            ISharedRegionModule service = new LocalAuthenticationServicesConnector();
             IConfigSource config = new IniConfigSource();
-            
             config.AddConfig("Modules");
             config.AddConfig("AuthenticationService");
             config.Configs["Modules"].Set("AuthenticationServices", "LocalAuthenticationServicesConnector");
             config.Configs["AuthenticationService"].Set(
                 "LocalServiceModule", "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService");
             config.Configs["AuthenticationService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
-            
+
+            LocalAuthenticationServicesConnector service = new LocalAuthenticationServicesConnector();
             service.Initialise(config);
-            service.AddRegion(testScene);
-            service.RegionLoaded(testScene);
-            testScene.AddRegionModule(service.Name, service);
-            //m_authenticationService = service;
+
+            return service;
         }
 
-        private static LocalInventoryServicesConnector StartInventoryService(Scene testScene)
+        private static LocalInventoryServicesConnector StartInventoryService()
         {
-            LocalInventoryServicesConnector inventoryService = new LocalInventoryServicesConnector();
-            
             IConfigSource config = new IniConfigSource();            
             config.AddConfig("Modules");
             config.AddConfig("InventoryService");
             config.Configs["Modules"].Set("InventoryServices", "LocalInventoryServicesConnector");
             config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:InventoryService");
             config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
-            
+
+            LocalInventoryServicesConnector inventoryService = new LocalInventoryServicesConnector();
             inventoryService.Initialise(config);
-            inventoryService.AddRegion(testScene);
-            inventoryService.RegionLoaded(testScene);
-            testScene.AddRegionModule(inventoryService.Name, inventoryService);
             
             return inventoryService;           
         }
 
-        private static LocalGridServicesConnector StartGridService(Scene testScene)
+        private static LocalGridServicesConnector StartGridService()
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
@@ -245,8 +257,6 @@ namespace OpenSim.Tests.Common
 
             LocalGridServicesConnector gridService = new LocalGridServicesConnector();
             gridService.Initialise(config);
-            gridService.AddRegion(testScene);
-            gridService.RegionLoaded(testScene);
             
             return gridService;
         }
@@ -256,7 +266,7 @@ namespace OpenSim.Tests.Common
         /// </summary>
         /// <param name="testScene"></param>
         /// <returns></returns>
-        private static LocalUserAccountServicesConnector StartUserAccountService(Scene testScene)
+        private static LocalUserAccountServicesConnector StartUserAccountService()
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
@@ -268,10 +278,6 @@ namespace OpenSim.Tests.Common
 
             LocalUserAccountServicesConnector userAccountService = new LocalUserAccountServicesConnector();
             userAccountService.Initialise(config);
-
-            userAccountService.AddRegion(testScene);
-            userAccountService.RegionLoaded(testScene);
-            testScene.AddRegionModule(userAccountService.Name, userAccountService);
             
             return userAccountService;
         }
@@ -280,7 +286,7 @@ namespace OpenSim.Tests.Common
         /// Start a presence service
         /// </summary>
         /// <param name="testScene"></param>
-        private static LocalPresenceServicesConnector StartPresenceService(Scene testScene)
+        private static LocalPresenceServicesConnector StartPresenceService()
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
@@ -292,10 +298,6 @@ namespace OpenSim.Tests.Common
 
             LocalPresenceServicesConnector presenceService = new LocalPresenceServicesConnector();
             presenceService.Initialise(config);
-
-            presenceService.AddRegion(testScene);
-            presenceService.RegionLoaded(testScene);
-            testScene.AddRegionModule(presenceService.Name, presenceService);
             
             return presenceService;
         }
@@ -313,10 +315,37 @@ namespace OpenSim.Tests.Common
         /// <summary>
         /// Setup modules for a scene.
         /// </summary>
-        /// <param name="scene"></param>
+        /// <remarks>
+        /// If called directly, then all the modules must be shared modules.
+        /// </remarks>
+        /// <param name="scenes"></param>
         /// <param name="config"></param>
         /// <param name="modules"></param>
         public static void SetupSceneModules(Scene scene, IConfigSource config, params object[] modules)
+        {
+            SetupSceneModules(new Scene[] { scene }, config, modules);
+        }
+
+        /// <summary>
+        /// Setup modules for a scene using their default settings.
+        /// </summary>
+        /// <param name="scenes"></param>
+        /// <param name="modules"></param>
+        public static void SetupSceneModules(Scene[] scenes, params object[] modules)
+        {
+            SetupSceneModules(scenes, new IniConfigSource(), modules);
+        }
+
+        /// <summary>
+        /// Setup modules for scenes.
+        /// </summary>
+        /// <remarks>
+        /// If called directly, then all the modules must be shared modules.
+        /// </remarks>
+        /// <param name="scenes"></param>
+        /// <param name="config"></param>
+        /// <param name="modules"></param>
+        public static void SetupSceneModules(Scene[] scenes, IConfigSource config, params object[] modules)
         {
             List<IRegionModuleBase> newModules = new List<IRegionModuleBase>();
             foreach (object module in modules)
@@ -324,8 +353,13 @@ namespace OpenSim.Tests.Common
                 if (module is IRegionModule)
                 {
                     IRegionModule m = (IRegionModule)module;
-                    m.Initialise(scene, config);
-                    scene.AddModule(m.Name, m);
+
+                    foreach (Scene scene in scenes)
+                    {
+                        m.Initialise(scene, config);
+                        scene.AddModule(m.Name, m);
+                    }
+
                     m.PostInitialise();
                 }
                 else if (module is IRegionModuleBase)
@@ -345,15 +379,19 @@ namespace OpenSim.Tests.Common
 
             foreach (IRegionModuleBase module in newModules)
             {
-                module.AddRegion(scene);
-                scene.AddRegionModule(module.Name, module);
+                foreach (Scene scene in scenes)
+                {
+                    module.AddRegion(scene);
+                    scene.AddRegionModule(module.Name, module);
+                }
             }
             
             // RegionLoaded is fired after all modules have been appropriately added to all scenes
             foreach (IRegionModuleBase module in newModules)
-                module.RegionLoaded(scene);                
+                foreach (Scene scene in scenes)
+                    module.RegionLoaded(scene);
 
-            scene.SetModuleInterfaces();
+            foreach (Scene scene in scenes) { scene.SetModuleInterfaces(); }
         }
 
         /// <summary>

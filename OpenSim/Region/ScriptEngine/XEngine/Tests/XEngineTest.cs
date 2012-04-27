@@ -73,7 +73,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
             // to AssemblyResolver.OnAssemblyResolve fails.
             xEngineConfig.Set("AppDomainLoading", "false");
 
-            m_scene = SceneHelpers.SetupScene("My Test", UUID.Random(), 1000, 1000, null, configSource);
+            m_scene = new SceneHelpers().SetupScene("My Test", UUID.Random(), 1000, 1000, configSource);
             SceneHelpers.SetupSceneModules(m_scene, configSource, m_xEngine, wcModule);
             m_scene.StartScripts();
         }

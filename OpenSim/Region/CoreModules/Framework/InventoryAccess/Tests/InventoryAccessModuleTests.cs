@@ -65,7 +65,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             config.AddConfig("Modules");
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
             
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, config, m_iam);
             
             // Create user

@@ -67,10 +67,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void Init()
         {
             TestHelpers.InMethod();
-            
-            scene = SceneHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
-            scene2 = SceneHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
-            scene3 = SceneHelpers.SetupScene("Neighbour x-1", UUID.Random(), 999, 1000);
+
+            SceneHelpers sh = new SceneHelpers();
+
+            scene = sh.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
+            scene2 = sh.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
+            scene3 = sh.SetupScene("Neighbour x-1", UUID.Random(), 999, 1000);
 
             ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
             interregionComms.Initialise(new IniConfigSource());
@@ -101,7 +103,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 
             Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(sp.UUID), Is.Not.Null);
@@ -126,7 +128,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             IConfig config = configSource.AddConfig("Modules");
             config.Set("SimulationServices", "LocalSimulationConnectorModule");
 
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(scene, configSource, lsc);
 
             UUID agentId = TestHelpers.ParseTail(0x01);
@@ -176,8 +178,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             
 //            UUID agent1Id = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
-            TestScene myScene1 = SceneHelpers.SetupScene("Neighbour y", UUID.Random(), 1000, 1000);
-            TestScene myScene2 = SceneHelpers.SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);
+            TestScene myScene1 = new SceneHelpers().SetupScene("Neighbour y", UUID.Random(), 1000, 1000);
+            TestScene myScene2 = new SceneHelpers().SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);
 
             IConfigSource configSource = new IniConfigSource();
             IConfig config = configSource.AddConfig("Startup");

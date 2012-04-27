@@ -201,7 +201,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public override void TeleportHome(UUID id, IClientAPI client)
         {
-            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.FirstName, client.LastName);
+            m_log.DebugFormat(
+                "[ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.Name, client.AgentId);
 
             // Let's find out if this is a foreign user or a local user
             IUserManagement uMan = m_aScene.RequestModuleInterface<IUserManagement>(); 

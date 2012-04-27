@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             config.AddConfig("Modules");
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
 
-            scene = SceneHelpers.SetupScene();
+            scene = new SceneHelpers().SetupScene();
             m_attMod = new AttachmentsModule();
             SceneHelpers.SetupSceneModules(scene, config, m_attMod, new BasicInventoryAccessModule());
         }

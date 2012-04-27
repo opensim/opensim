@@ -297,10 +297,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (checkPermissions.Contains("T") && !canTransfer)
                     partPermitted = false;
 
+                // If the user is the Creator of the object then it can always be included in the OAR
+                bool creator = (obj.CreatorID.Guid == user.Guid);
+                if (creator)
+                    partPermitted = true;
+
                 //string name = (objGroup.PrimCount == 1) ? objGroup.Name : string.Format("{0} ({1}/{2})", obj.Name, primNumber, objGroup.PrimCount);
-                //m_log.DebugFormat("[ARCHIVER]: Object permissions: {0}: Base={1:X4}, Owner={2:X4}, Everyone={3:X4}, permissionClass={4}, checkPermissions={5}, canCopy={6}, canTransfer={7}, permitted={8}",
+                //m_log.DebugFormat("[ARCHIVER]: Object permissions: {0}: Base={1:X4}, Owner={2:X4}, Everyone={3:X4}, permissionClass={4}, checkPermissions={5}, canCopy={6}, canTransfer={7}, creator={8}, permitted={9}",
                 //    name, obj.BaseMask, obj.OwnerMask, obj.EveryoneMask,
-                //    permissionClass, checkPermissions, canCopy, canTransfer, permitted);
+                //    permissionClass, checkPermissions, canCopy, canTransfer, creator, partPermitted);
 
                 if (!partPermitted)
                 {
