@@ -279,6 +279,10 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     LocalServiceModule = "OpenSim.Services.MapImageService.dll:MapImageService"
 	; Set this if you want to change the default
 	; TilesStoragePath = "maptiles"
+	;
+	; If for some reason you have the AddMapTile service outside the firewall (e.g. 8002),
+	; you may want to set this. Otherwise, don't set it, because it's already protected.
+	; GridService = "OpenSim.Services.GridService.dll:GridService"
 
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
