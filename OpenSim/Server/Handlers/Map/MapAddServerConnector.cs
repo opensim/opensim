@@ -78,7 +78,8 @@ namespace OpenSim.Server.Handlers.MapImage
             else
                 m_log.InfoFormat("[MAP IMAGE HANDLER]: GridService check is OFF");
 
-            server.AddStreamHandler(new MapServerPostHandler(m_MapService, m_GridService));
+            bool proxy = serverConfig.GetBoolean("HasProxy", false);
+            server.AddStreamHandler(new MapServerPostHandler(m_MapService, m_GridService, proxy));
 
         }
     }
@@ -88,12 +89,14 @@ namespace OpenSim.Server.Handlers.MapImage
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IMapImageService m_MapService;
         private IGridService m_GridService;
+        bool m_Proxy;
 
-        public MapServerPostHandler(IMapImageService service, IGridService grid) :
+        public MapServerPostHandler(IMapImageService service, IGridService grid, bool proxy) :
             base("POST", "/map")
         {
             m_MapService = service;
             m_GridService = grid;
+            m_Proxy = proxy;
         }
 
         public override byte[] Handle(string path, Stream requestData, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
@@ -129,7 +132,7 @@ namespace OpenSim.Server.Handlers.MapImage
                     GridRegion r = m_GridService.GetRegionByPosition(UUID.Zero, x * (int)Constants.RegionSize, y * (int)Constants.RegionSize);
                     if (r != null)
                     {
-                        if (r.ExternalEndPoint.Address != httpRequest.RemoteIPEndPoint.Address)
+                        if (r.ExternalEndPoint.Address != GetCallerIP(httpRequest))
                         {
                             m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be rogue", httpRequest.RemoteIPEndPoint.Address);
                             return FailureResult("IP address of caller does not match IP address of registered region");
@@ -221,5 +224,31 @@ namespace OpenSim.Server.Handlers.MapImage
 
             return ms.ToArray();
         }
+
+        private System.Net.IPAddress GetCallerIP(IOSHttpRequest request)
+        {
+            if (!m_Proxy)
+                return request.RemoteIPEndPoint.Address;
+
+            // We're behind a proxy
+            string xff = "X-Forwarded-For";
+            string xffValue = request.Headers[xff.ToLower()];
+            if (xffValue == null || (xffValue != null && xffValue == string.Empty))
+                xffValue = request.Headers[xff];
+
+            if (xffValue == null || (xffValue != null && xffValue == string.Empty))
+            {
+                m_log.WarnFormat("[MAP IMAGE HANDLER]: No XFF header");
+                return request.RemoteIPEndPoint.Address;
+            }
+
+            System.Net.IPEndPoint ep = Util.GetClientIPFromXFF(xffValue);
+            if (ep != null)
+                return ep.Address;
+
+            // Oops
+            return request.RemoteIPEndPoint.Address;
+        }
+
     }
 }

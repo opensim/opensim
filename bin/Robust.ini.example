@@ -258,6 +258,10 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 	; If for some reason you have the AddMapTile service outside the firewall (e.g. 8002),
 	; you may want to set this. Otherwise, don't set it, because it's already protected.
 	; GridService = "OpenSim.Services.GridService.dll:GridService"
+	;
+    ; Additionally, if you run this server behind a proxy, set this to true
+    ; HasProxy = false
+
 
 
 [GridInfoService]
