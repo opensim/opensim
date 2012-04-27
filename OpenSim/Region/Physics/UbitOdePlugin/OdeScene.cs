@@ -1020,12 +1020,16 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, ContactPoint contact)
             {
-            // obj1LocalID = 0;
-            //returncollisions = false;
             obj2LocalID = 0;
-            //ctype = 0;
-            //cStartStop = 0;
-            if (!(p2.SubscribedEvents() || p1.SubscribedEvents()))
+            bool p1events = p1.SubscribedEvents();
+            bool p2events = p2.SubscribedEvents();
+
+            if (p1 is OdePrim && p1.IsVolumeDtc)
+                p2events = false;
+            if (p2 is OdePrim && p2.IsVolumeDtc)
+                p1events = false;
+
+            if (!(p2events || p1events))
                 return;
 
             switch ((ActorTypes)p1.PhysicsActorType)
@@ -1037,7 +1041,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         case ActorTypes.Agent:
                             cc2 = (OdeCharacter)p2;
                             obj2LocalID = cc2.m_localID;
-                            if (p2.SubscribedEvents())
+                            if (p2events)
                                 cc2.AddCollisionEvent(cc1.m_localID, contact);
                             break;
 
@@ -1046,7 +1050,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 {
                                 cp2 = (OdePrim)p2;
                                 obj2LocalID = cp2.m_localID;
-                                if (p2.SubscribedEvents())
+                                if (p2events)
                                     cp2.AddCollisionEvent(cc1.m_localID, contact);
                                 }
                             break;
@@ -1057,7 +1061,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             obj2LocalID = 0;
                             break;
                         }
-                    if (p1.SubscribedEvents())
+                    if (p1events)
                         {
                         contact.SurfaceNormal = -contact.SurfaceNormal;
                         cc1.AddCollisionEvent(obj2LocalID, contact);
@@ -1078,7 +1082,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     {
                                     cc2 = (OdeCharacter)p2;
                                     obj2LocalID = cc2.m_localID;
-                                    if (p2.SubscribedEvents())
+                                    if (p2events)
                                         cc2.AddCollisionEvent(cp1.m_localID, contact);
                                     }
                                 break;
@@ -1088,7 +1092,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     {
                                     cp2 = (OdePrim)p2;
                                     obj2LocalID = cp2.m_localID;
-                                    if (p2.SubscribedEvents())
+                                    if (p2events)
                                         cp2.AddCollisionEvent(cp1.m_localID, contact);
                                     }
                                 break;
@@ -1099,7 +1103,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 obj2LocalID = 0;
                                 break;
                             }
-                        if (p1.SubscribedEvents())
+                        if (p1events)
                             {
                             contact.SurfaceNormal = -contact.SurfaceNormal;
                             cp1.AddCollisionEvent(obj2LocalID, contact);
@@ -1734,7 +1738,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     base.TriggerPhysicsBasedRestart();
                 }
 
-                while (step_time >= HalfOdeStep && nodeframes < 10) //limit number of steps so we don't say here for ever
+                while (step_time > HalfOdeStep && nodeframes < 10) //limit number of steps so we don't say here for ever
                 {
                     try
                     {
