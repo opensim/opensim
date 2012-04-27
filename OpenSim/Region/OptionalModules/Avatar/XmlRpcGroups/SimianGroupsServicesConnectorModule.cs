@@ -1401,9 +1401,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     {
                         response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
-                        m_log.InfoFormat("[SIMIAN GROUPS CONNECTOR] request failed {0}",CacheKey);
+                        m_log.ErrorFormat("[SIMIAN GROUPS CONNECTOR]: request failed {0}", CacheKey);
                     }
                     
                     // and cache the response
