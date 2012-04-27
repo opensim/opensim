@@ -1117,21 +1117,18 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    if (rotateToVelXY)
-                    {
-                        float x = ((Vector3)newvel).X;
-                        float y = ((Vector3)newvel).Y;
-
-                        x = 0.5f * (float)Math.Atan2(y, x);
-                        y = (float)Math.Cos(x);
-                        x = (float)Math.Sin(x);
-                        Rotation = new Quaternion(0f, 0f, x, y);
-                        m_log.DebugFormat("[avnLocalTeleport] final rotation {0}", Rotation);
-                    }
-
                     if (PhysicsActor != null)
                         PhysicsActor.SetMomentum((Vector3)newvel);
                     m_velocity = (Vector3)newvel;
+
+                    if (rotateToVelXY)
+                    {
+                        Vector3 lookAt = (Vector3)newvel;
+                        lookAt.Z = 0;
+                        lookAt.Normalize();
+                        ControllingClient.SendLocalTeleport(newpos, lookAt, (uint)TeleportFlags.ViaLocation);
+                        return;
+                    }
                 }
             }
 
