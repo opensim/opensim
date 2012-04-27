@@ -271,6 +271,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             sb.AppendFormat("Description: {0}\n", so.Description);
             sb.AppendFormat("Location:    {0} @ {1}\n", so.AbsolutePosition, so.Scene.RegionInfo.RegionName);
             sb.AppendFormat("Parts:       {0}\n", so.PrimCount);
+            sb.AppendFormat("Flags:       {0}\n", so.RootPart.Flags);
 
             return sb;
         }
@@ -283,6 +284,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             sb.AppendFormat("Parent:      {0}",
                 sop.IsRoot ? "Is Root\n" : string.Format("{0} {1}\n", sop.ParentGroup.Name, sop.ParentGroup.UUID));
             sb.AppendFormat("Link number: {0}\n", sop.LinkNum);
+            sb.AppendFormat("Flags:       {0}\n", sop.Flags);
 
             return sb;
         }
