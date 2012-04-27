@@ -173,7 +173,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (sp.UserLevel < m_levelHGTeleport)
                 {
                     m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unable to HG teleport agent due to insufficient UserLevel.");
-                    reason = "HyperGrid teleport not permitted";
+                    reason = "Hypergrid teleport not allowed";
                     return false;
                 }
 
