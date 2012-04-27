@@ -1111,8 +1111,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (v.HasValue)
             {
-                if (PhysicsActor != null)
+                if (PhysicsActor != null) // speedup
                     PhysicsActor.SetMomentum((Vector3)v);
+                Velocity = (Vector3)v;
             }
             else if (Stopit)
             {
