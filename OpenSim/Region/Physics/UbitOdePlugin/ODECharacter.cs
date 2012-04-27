@@ -1275,6 +1275,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             _velocity = newmomentum;
             _target_velocity = newmomentum;
             m_pidControllerActive = true;
+            m_colliderfilter = 0;
+            m_colliderObjectfilter = 0;
+            m_iscolliding = false;
+            m_iscollidingGround = false;
+            m_iscollidingObj = false;
+
             if (Body != IntPtr.Zero)
                 d.BodySetLinearVel(Body, newmomentum.X, newmomentum.Y, newmomentum.Z);
         }
