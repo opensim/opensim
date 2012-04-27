@@ -133,7 +133,7 @@ namespace OpenSim.Server.Handlers.MapImage
                     if (r != null)
                     {
                         System.Net.IPAddress ipAddr = GetCallerIP(httpRequest);
-                        if (r.ExternalEndPoint.Address != ipAddr)
+                        if (r.ExternalEndPoint.Address.ToString() != ipAddr.ToString())
                         {
                             m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be trying to impersonate region in IP {1}", ipAddr, r.ExternalEndPoint.Address);
                             return FailureResult("IP address of caller does not match IP address of registered region");
