@@ -121,6 +121,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_amEfect = 0;                                            // current angular motor eficiency
         private float m_ffactor = 1.0f;
 
+        private float m_timestep = 0.02f;
+        private float m_invtimestep = 50;
+
         public float FrictionFactor
         {
             get
@@ -133,14 +136,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             rootPrim = rootp;
             _pParentScene = rootPrim._parent_scene;
+            m_timestep = _pParentScene.ODE_STEPSIZE;
+            m_invtimestep = 1.0f / m_timestep;
         }
 
         public void DoSetVehicle(VehicleData vd)
         {
-
-            float timestep = _pParentScene.ODE_STEPSIZE;
-            float invtimestep = 1.0f / timestep;
-
             m_type = vd.m_type;
             m_flags = vd.m_flags;
 
@@ -148,61 +149,60 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_linearMotorDirection = vd.m_linearMotorDirection;
 
             m_linearFrictionTimescale = vd.m_linearFrictionTimescale;
-            if (m_linearFrictionTimescale.X < timestep) m_linearFrictionTimescale.X = timestep;
-            if (m_linearFrictionTimescale.Y < timestep) m_linearFrictionTimescale.Y = timestep;
-            if (m_linearFrictionTimescale.Z < timestep) m_linearFrictionTimescale.Z = timestep;
+            if (m_linearFrictionTimescale.X < m_timestep) m_linearFrictionTimescale.X = m_timestep;
+            if (m_linearFrictionTimescale.Y < m_timestep) m_linearFrictionTimescale.Y = m_timestep;
+            if (m_linearFrictionTimescale.Z < m_timestep) m_linearFrictionTimescale.Z = m_timestep;
 
             m_linearMotorDecayTimescale = vd.m_linearMotorDecayTimescale;
-            if (m_linearMotorDecayTimescale < timestep) m_linearMotorDecayTimescale = timestep;
-            m_linearMotorDecayTimescale *= invtimestep;
+            if (m_linearMotorDecayTimescale < m_timestep) m_linearMotorDecayTimescale = m_timestep;
+            m_linearMotorDecayTimescale *= m_invtimestep;
 
             m_linearMotorTimescale = vd.m_linearMotorTimescale;
-            if (m_linearMotorTimescale < timestep) m_linearMotorTimescale = timestep;
-
+            if (m_linearMotorTimescale < m_timestep) m_linearMotorTimescale = m_timestep;
 
             m_linearMotorOffset = vd.m_linearMotorOffset;
 
             //Angular properties
             m_angularMotorDirection = vd.m_angularMotorDirection;
             m_angularMotorTimescale = vd.m_angularMotorTimescale;
-            if (m_angularMotorTimescale < timestep) m_angularMotorTimescale = timestep;
+            if (m_angularMotorTimescale < m_timestep) m_angularMotorTimescale = m_timestep;
 
             m_angularMotorDecayTimescale = vd.m_angularMotorDecayTimescale;
-            if (m_angularMotorDecayTimescale < timestep) m_angularMotorDecayTimescale = timestep;
-            m_angularMotorDecayTimescale *= invtimestep;
+            if (m_angularMotorDecayTimescale < m_timestep) m_angularMotorDecayTimescale = m_timestep;
+            m_angularMotorDecayTimescale *= m_invtimestep;
 
             m_angularFrictionTimescale = vd.m_angularFrictionTimescale;
-            if (m_angularFrictionTimescale.X < timestep) m_angularFrictionTimescale.X = timestep;
-            if (m_angularFrictionTimescale.Y < timestep) m_angularFrictionTimescale.Y = timestep;
-            if (m_angularFrictionTimescale.Z < timestep) m_angularFrictionTimescale.Z = timestep;
+            if (m_angularFrictionTimescale.X < m_timestep) m_angularFrictionTimescale.X = m_timestep;
+            if (m_angularFrictionTimescale.Y < m_timestep) m_angularFrictionTimescale.Y = m_timestep;
+            if (m_angularFrictionTimescale.Z < m_timestep) m_angularFrictionTimescale.Z = m_timestep;
 
             //Deflection properties
             m_angularDeflectionEfficiency = vd.m_angularDeflectionEfficiency;
             m_angularDeflectionTimescale = vd.m_angularDeflectionTimescale;
-            if (m_angularDeflectionTimescale < timestep) m_angularDeflectionTimescale = timestep;
+            if (m_angularDeflectionTimescale < m_timestep) m_angularDeflectionTimescale = m_timestep;
 
             m_linearDeflectionEfficiency = vd.m_linearDeflectionEfficiency;
             m_linearDeflectionTimescale = vd.m_linearDeflectionTimescale;
-            if (m_linearDeflectionTimescale < timestep) m_linearDeflectionTimescale = timestep;
+            if (m_linearDeflectionTimescale < m_timestep) m_linearDeflectionTimescale = m_timestep;
 
             //Banking properties
             m_bankingEfficiency = vd.m_bankingEfficiency;
             m_bankingMix = vd.m_bankingMix;
             m_bankingTimescale = vd.m_bankingTimescale;
-            if (m_bankingTimescale < timestep) m_bankingTimescale = timestep;
+            if (m_bankingTimescale < m_timestep) m_bankingTimescale = m_timestep;
 
             //Hover and Buoyancy properties
             m_VhoverHeight = vd.m_VhoverHeight;
             m_VhoverEfficiency = vd.m_VhoverEfficiency;
             m_VhoverTimescale = vd.m_VhoverTimescale;
-            if (m_VhoverTimescale < timestep) m_VhoverTimescale = timestep;
+            if (m_VhoverTimescale < m_timestep) m_VhoverTimescale = m_timestep;
 
             m_VehicleBuoyancy = vd.m_VehicleBuoyancy;
 
             //Attractor properties
             m_verticalAttractionEfficiency = vd.m_verticalAttractionEfficiency;
             m_verticalAttractionTimescale = vd.m_verticalAttractionTimescale;
-            if (m_verticalAttractionTimescale < timestep) m_verticalAttractionTimescale = timestep;
+            if (m_verticalAttractionTimescale < m_timestep) m_verticalAttractionTimescale = m_timestep;
 
             // Axis
             m_referenceFrame = vd.m_referenceFrame;
@@ -215,8 +215,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
         {
             float len;
-            float invtimestep = 1.0f / _pParentScene.ODE_STEPSIZE;
-            float timestep = _pParentScene.ODE_STEPSIZE;
 
             switch (pParam)
             {
@@ -226,18 +224,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularDeflectionEfficiency = pValue;
                     break;
                 case Vehicle.ANGULAR_DEFLECTION_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
+                    if (pValue < m_timestep) pValue = m_timestep;
                     m_angularDeflectionTimescale = pValue;
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
-                    // try to make impulses to work a bit better
-//                    if (pValue < 0.5f) pValue = 0.5f;
+                    if (pValue < m_timestep) pValue = m_timestep;
                     else if (pValue > 120) pValue = 120;
-                    m_angularMotorDecayTimescale = pValue * invtimestep;
+                    m_angularMotorDecayTimescale = pValue * m_invtimestep;
                     break;
                 case Vehicle.ANGULAR_MOTOR_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
+                    if (pValue < m_timestep) pValue = m_timestep;
                     m_angularMotorTimescale = pValue;
                     break;
                 case Vehicle.BANKING_EFFICIENCY:
@@ -251,7 +247,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_bankingMix = pValue;
                     break;
                 case Vehicle.BANKING_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
+                    if (pValue < m_timestep) pValue = m_timestep;
                     m_bankingTimescale = pValue;
                     break;
                 case Vehicle.BUOYANCY:
@@ -268,7 +264,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_VhoverHeight = pValue;
                     break;
                 case Vehicle.HOVER_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
+                    if (pValue < m_timestep) pValue = m_timestep;
                     m_VhoverTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_DEFLECTION_EFFICIENCY:
@@ -277,18 +273,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearDeflectionEfficiency = pValue;
                     break;
                 case Vehicle.LINEAR_DEFLECTION_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
+                    if (pValue < m_timestep) pValue = m_timestep;
                     m_linearDeflectionTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
-                    // try to make impulses to work a bit better
-                    //if (pValue < 0.5f) pValue = 0.5f;
+                    if (pValue < m_timestep) pValue = m_timestep;
                     else if (pValue > 120) pValue = 120;
-                    m_linearMotorDecayTimescale = pValue * invtimestep;
+                    m_linearMotorDecayTimescale = pValue * m_invtimestep;
                     break;
                 case Vehicle.LINEAR_MOTOR_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
+                    if (pValue < m_timestep) pValue = m_timestep;
                     m_linearMotorTimescale = pValue;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_EFFICIENCY:
@@ -297,14 +291,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_verticalAttractionEfficiency = pValue;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
+                    if (pValue < m_timestep) pValue = m_timestep;
                     m_verticalAttractionTimescale = pValue;
                     break;
 
                 // These are vector properties but the engine lets you use a single float value to
                 // set all of the components to the same value
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
+                    if (pValue < m_timestep) pValue = m_timestep;
                     m_angularFrictionTimescale = new Vector3(pValue, pValue, pValue);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
@@ -318,7 +312,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.BodyEnable(rootPrim.Body);
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
-                    if (pValue < timestep) pValue = timestep;
+                    if (pValue < m_timestep) pValue = m_timestep;
                     m_linearFrictionTimescale = new Vector3(pValue, pValue, pValue);
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
@@ -344,14 +338,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal void ProcessVectorVehicleParam(Vehicle pParam, Vector3 pValue)
         {
             float len;
-            float invtimestep = 1.0f / _pParentScene.ODE_STEPSIZE;
-            float timestep = _pParentScene.ODE_STEPSIZE;
+
             switch (pParam)
             {
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
-                    if (pValue.X < timestep) pValue.X = timestep;
-                    if (pValue.Y < timestep) pValue.Y = timestep;
-                    if (pValue.Z < timestep) pValue.Z = timestep;
+                    if (pValue.X < m_timestep) pValue.X = m_timestep;
+                    if (pValue.Y < m_timestep) pValue.Y = m_timestep;
+                    if (pValue.Z < m_timestep) pValue.Z = m_timestep;
 
                     m_angularFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
@@ -367,9 +360,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.BodyEnable(rootPrim.Body);
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
-                    if (pValue.X < timestep) pValue.X = timestep;
-                    if (pValue.Y < timestep) pValue.Y = timestep;
-                    if (pValue.Z < timestep) pValue.Z = timestep;
+                    if (pValue.X < m_timestep) pValue.X = m_timestep;
+                    if (pValue.Y < m_timestep) pValue.Y = m_timestep;
+                    if (pValue.Z < m_timestep) pValue.Z = m_timestep;
                     m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
@@ -422,7 +415,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void ProcessTypeChange(Vehicle pType)
         {
-            float invtimestep = _pParentScene.ODE_STEPSIZE;
             m_lmEfect = 0;
             m_amEfect = 0;
             m_ffactor = 1f;
@@ -444,9 +436,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearFrictionTimescale = new Vector3(1000, 1000, 1000);
                     m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
                     m_linearMotorTimescale = 1000;
-                    m_linearMotorDecayTimescale = 120 * invtimestep;
+                    m_linearMotorDecayTimescale = 120 * m_invtimestep;
                     m_angularMotorTimescale = 1000;
-                    m_angularMotorDecayTimescale = 1000  * invtimestep;
+                    m_angularMotorDecayTimescale = 1000  * m_invtimestep;
                     m_VhoverHeight = 0;
                     m_VhoverEfficiency = 1;
                     m_VhoverTimescale = 1000;
@@ -468,9 +460,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearFrictionTimescale = new Vector3(30, 1, 1000);
                     m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
                     m_linearMotorTimescale = 1000;
-                    m_linearMotorDecayTimescale = 120 * invtimestep;
+                    m_linearMotorDecayTimescale = 120 * m_invtimestep;
                     m_angularMotorTimescale = 1000;
-                    m_angularMotorDecayTimescale = 120 * invtimestep;
+                    m_angularMotorDecayTimescale = 120 * m_invtimestep;
                     m_VhoverHeight = 0;
                     m_VhoverEfficiency = 1;
                     m_VhoverTimescale = 10;
@@ -491,9 +483,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearFrictionTimescale = new Vector3(100, 2, 1000);
                     m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
                     m_linearMotorTimescale = 1;
-                    m_linearMotorDecayTimescale = 60 * invtimestep;
+                    m_linearMotorDecayTimescale = 60 * m_invtimestep;
                     m_angularMotorTimescale = 1;
-                    m_angularMotorDecayTimescale = 0.8f * invtimestep;
+                    m_angularMotorDecayTimescale = 0.8f * m_invtimestep;
                     m_VhoverHeight = 0;
                     m_VhoverEfficiency = 0;
                     m_VhoverTimescale = 1000;
@@ -515,9 +507,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearFrictionTimescale = new Vector3(10, 3, 2);
                     m_angularFrictionTimescale = new Vector3(10, 10, 10);
                     m_linearMotorTimescale = 5;
-                    m_linearMotorDecayTimescale = 60 * invtimestep;
+                    m_linearMotorDecayTimescale = 60 * m_invtimestep;
                     m_angularMotorTimescale = 4;
-                    m_angularMotorDecayTimescale = 4 * invtimestep;
+                    m_angularMotorDecayTimescale = 4 * m_invtimestep;
                     m_VhoverHeight = 0;
                     m_VhoverEfficiency = 0.5f;
                     m_VhoverTimescale = 2;
@@ -543,9 +535,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearFrictionTimescale = new Vector3(200, 10, 5);
                     m_angularFrictionTimescale = new Vector3(20, 20, 20);
                     m_linearMotorTimescale = 2;
-                    m_linearMotorDecayTimescale = 60 * invtimestep;
+                    m_linearMotorDecayTimescale = 60 * m_invtimestep;
                     m_angularMotorTimescale = 4;
-                    m_angularMotorDecayTimescale = 8 * invtimestep;
+                    m_angularMotorDecayTimescale = 8 * m_invtimestep;
                     m_VhoverHeight = 0;
                     m_VhoverEfficiency = 0.5f;
                     m_VhoverTimescale = 1000;
@@ -571,15 +563,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearFrictionTimescale = new Vector3(5, 5, 5);
                     m_angularFrictionTimescale = new Vector3(10, 10, 10);
                     m_linearMotorTimescale = 5;
-                    m_linearMotorDecayTimescale = 60 * invtimestep;
+                    m_linearMotorDecayTimescale = 60 * m_invtimestep;
                     m_angularMotorTimescale = 6;
-                    m_angularMotorDecayTimescale = 10 * invtimestep;
+                    m_angularMotorDecayTimescale = 10 * m_invtimestep;
                     m_VhoverHeight = 5;
                     m_VhoverEfficiency = 0.8f;
                     m_VhoverTimescale = 10;
                     m_VehicleBuoyancy = 1;
                     m_linearDeflectionEfficiency = 0;
-                    m_linearDeflectionTimescale = 5 * invtimestep;
+                    m_linearDeflectionTimescale = 5 * m_invtimestep;
                     m_angularDeflectionEfficiency = 0;
                     m_angularDeflectionTimescale = 5;
                     m_verticalAttractionEfficiency = 0f;
@@ -701,7 +693,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             return ;
         }        
         
-        internal void Step()//float pTimestep)
+        internal void Step()
         {
             IntPtr Body = rootPrim.Body;
 
@@ -780,38 +772,44 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 d.Vector3 pos = d.BodyGetPosition(Body);
 
-                // default to global
-                float perr = m_VhoverHeight - pos.Z;;
-                
-                if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
-                {
-                    perr += _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y);
-                }
-                else if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
-                {
-                    perr += _pParentScene.GetWaterLevel();
-                }
-                else if ((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) == 0)
-                {
-                    float t = _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y);
-                    float w = _pParentScene.GetWaterLevel();
-                    if (t > w)
-                        perr += t;
-                    else
-                        perr += w;
-                }
+                float t = _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y);
 
-                if ((m_flags & VehicleFlag.HOVER_UP_ONLY) == 0 || perr > 0)
+                if (t < m_VhoverHeight) // don't go underground
                 {
-                    force.Z += (perr / m_VhoverTimescale / m_VhoverTimescale - curVel.Z * m_VhoverEfficiency) / _pParentScene.ODE_STEPSIZE;
-                    force.Z += _pParentScene.gravityz * (1f - m_VehicleBuoyancy);
+                    // default to global
+                    float perr = m_VhoverHeight - pos.Z; ;
+
+                    if ((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) == 0)
+                    {
+                        if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
+                        {
+                            perr += _pParentScene.GetWaterLevel();
+                        }
+                        else if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
+                        {
+                            perr += t;
+                        }
+                        else
+                        {
+                            float w = _pParentScene.GetWaterLevel();
+                            if (t > w)
+                                perr += t;
+                            else
+                                perr += w;
+                        }
+                    }
+                    if ((m_flags & VehicleFlag.HOVER_UP_ONLY) == 0 || perr > 0)
+                    {
+                        force.Z += (perr / m_VhoverTimescale / m_VhoverTimescale - curVel.Z * m_VhoverEfficiency) / m_timestep;
+                        force.Z += _pParentScene.gravityz * (1f - m_VehicleBuoyancy);
+                    }
+                    else // no buoyancy
+                        force.Z += _pParentScene.gravityz;
                 }
-                else // no buoyancy
-                    force.Z += _pParentScene.gravityz;
             }
             else
             {
-                // default gravity and buoancy
+                // default gravity and Buoyancy
                 force.Z += _pParentScene.gravityz * (1f - m_VehicleBuoyancy);
             }
 
@@ -819,24 +817,31 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_linearDeflectionEfficiency > 0)
             {
                 float len = curVel.Length();
-                Vector3 atAxis;
-                atAxis = Xrot(rotq); // where are we pointing to
-                atAxis *= len; // make it same size as world velocity vector
-                tmpV = -atAxis; // oposite direction
-                atAxis -= curVel; // error to one direction
-                len = atAxis.LengthSquared();
-                tmpV -= curVel; // error to oposite
-                float lens = tmpV.LengthSquared();
-                if (len > 0.01 || lens > 0.01) // do nothing if close enougth
+                if (len > 0.01) // if moving
                 {
-                    if (len < lens)
-                        tmpV = atAxis;
 
-                    tmpV *= (m_linearDeflectionEfficiency / m_linearDeflectionTimescale); // error to correct in this timestep
-                    force.X += tmpV.X;
-                    force.Y += tmpV.Y;
-                    if ((m_flags & VehicleFlag.NO_DEFLECTION_UP) == 0)
-                        force.Z += tmpV.Z;
+                    Vector3 atAxis;
+                    atAxis = Xrot(rotq); // where are we pointing to
+                    atAxis *= len; // make it same size as world velocity vector
+
+                    tmpV = -atAxis; // oposite direction
+                    atAxis -= curVel; // error to one direction
+                    len = atAxis.LengthSquared();
+
+                    tmpV -= curVel; // error to oposite
+                    float lens = tmpV.LengthSquared();
+
+                    if (len > 0.01 || lens > 0.01) // do nothing if close enougth
+                    {
+                        if (len < lens)
+                            tmpV = atAxis;
+
+                        tmpV *= (m_linearDeflectionEfficiency / m_linearDeflectionTimescale); // error to correct in this timestep
+                        force.X += tmpV.X;
+                        force.Y += tmpV.Y;
+                        if ((m_flags & VehicleFlag.NO_DEFLECTION_UP) == 0)
+                            force.Z += tmpV.Z;
+                    }
                 }
             }
 
@@ -900,10 +905,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 GetRollPitch(irotq, out roll, out pitch);
 
-                float ftmp = 1.0f / m_verticalAttractionTimescale / m_verticalAttractionTimescale / _pParentScene.ODE_STEPSIZE;
+                float ftmp = 1.0f / m_verticalAttractionTimescale / m_verticalAttractionTimescale * m_invtimestep;
                 float ftmp2;
                 if (m_bankingEfficiency == 0)
-                    ftmp2 = m_verticalAttractionEfficiency / _pParentScene.ODE_STEPSIZE;
+                    ftmp2 = m_verticalAttractionEfficiency * m_invtimestep;
                 else
                     ftmp2 = 0;
 
@@ -985,7 +990,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (torque.X != 0 || torque.Y != 0 || torque.Z != 0)
             {
                 torque *= m_referenceFrame; // to object frame
-                dtorque.X = torque.X;
+                dtorque.X = torque.X ;
                 dtorque.Y = torque.Y;
                 dtorque.Z = torque.Z;
 
