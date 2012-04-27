@@ -1099,6 +1099,28 @@ namespace OpenSim.Region.Framework.Scenes
             SendTerseUpdateToAllClients();
         }
 
+        public void avnLocalTeleport(Vector3 newpos, Quaternion? newrot, bool Stopped)
+        {
+            CheckLandingPoint(ref newpos);
+            AbsolutePosition = newpos;
+
+            if (newrot.HasValue)
+            {
+                // TODO
+            }
+
+            if (Stopped)
+            {
+                if (PhysicsActor != null) // speed up physics stop
+                    PhysicsActor.SetMomentum(Vector3.Zero);
+                Velocity = Vector3.Zero;
+            }
+
+            SendTerseUpdateToAllClients();
+        }
+
+
+
         public void StopFlying()
         {
             ControllingClient.StopFlying(this);
