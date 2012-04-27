@@ -225,7 +225,7 @@ namespace OpenSim
         /// </summary>
         private void RegisterConsoleCommands()
         {
-            m_console.Commands.AddCommand("Regions", false, "force update",
+            m_console.Commands.AddCommand("Objects", false, "force update",
                                           "force update",
                                           "Force the update of all objects on clients",
                                           HandleForceUpdate);
@@ -306,7 +306,7 @@ namespace OpenSim
                                           + " If this is not given then the oar is saved to region.oar in the current directory.",
                                           SaveOar);
 
-            m_console.Commands.AddCommand("Regions", false, "edit scale",
+            m_console.Commands.AddCommand("Objects", false, "edit scale",
                                           "edit scale <name> <x> <y> <z>",
                                           "Change the scale of a named prim", HandleEditScale);
 
@@ -349,7 +349,7 @@ namespace OpenSim
                                           "show ratings",
                                           "Show rating data", HandleShow);
 
-            m_console.Commands.AddCommand("Regions", false, "backup",
+            m_console.Commands.AddCommand("Objects", false, "backup",
                                           "backup",
                                           "Persist currently unsaved object changes immediately instead of waiting for the normal persistence call.", RunCommand);
 
@@ -410,7 +410,7 @@ namespace OpenSim
                                           "modules unload <name>",
                                           "Unload a module", HandleModules);
 
-            m_console.Commands.AddCommand("Regions", false, "kill uuid",
+            m_console.Commands.AddCommand("Objects", false, "kill uuid",
                                           "kill uuid <UUID>",
                                           "Kill an object by UUID", KillUUID);
         }

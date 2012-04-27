@@ -78,45 +78,49 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_scene = scene;
             m_console = MainConsole.Instance;
 
-            m_console.Commands.AddCommand("Regions", false, "delete object owner",
+            m_console.Commands.AddCommand("Objects", false, "delete object owner",
                                           "delete object owner <UUID>",
                                           "Delete a scene object by owner", HandleDeleteObject);
-            m_console.Commands.AddCommand("Regions", false, "delete object creator",
+
+            m_console.Commands.AddCommand("Objects", false, "delete object creator",
                                           "delete object creator <UUID>",
                                           "Delete a scene object by creator", HandleDeleteObject);
-            m_console.Commands.AddCommand("Regions", false, "delete object uuid",
+
+            m_console.Commands.AddCommand("Objects", false, "delete object uuid",
                                           "delete object uuid <UUID>",
                                           "Delete a scene object by uuid", HandleDeleteObject);
-            m_console.Commands.AddCommand("Regions", false, "delete object name",
+
+            m_console.Commands.AddCommand("Objects", false, "delete object name",
                                           "delete object name <name>",
                                           "Delete a scene object by name", HandleDeleteObject);
-            m_console.Commands.AddCommand("Regions", false, "delete object outside",
+
+            m_console.Commands.AddCommand("Objects", false, "delete object outside",
                                           "delete object outside",
                                           "Delete all scene objects outside region boundaries", HandleDeleteObject);
 
             m_console.Commands.AddCommand(
-                "Regions",
+                "Objects",
                 false,
                 "show object uuid",
                 "show object uuid <UUID>",
                 "Show details of a scene object with the given UUID", HandleShowObjectByUuid);
 
             m_console.Commands.AddCommand(
-                "Regions",
+                "Objects",
                 false,
                 "show object name",
                 "show object name <name>",
                 "Show details of scene objects with the given name", HandleShowObjectByName);
 
             m_console.Commands.AddCommand(
-                "Regions",
+                "Objects",
                 false,
                 "show part uuid",
                 "show part uuid <UUID>",
                 "Show details of a scene object parts with the given UUID", HandleShowPartByUuid);
 
             m_console.Commands.AddCommand(
-                "Regions",
+                "Objects",
                 false,
                 "show part name",
                 "show part name <name>",
