@@ -379,24 +379,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return _position; }
             set
             {
-                if (Body == IntPtr.Zero || Shell == IntPtr.Zero)
+                if (value.IsFinite())
                 {
-                    if (value.IsFinite())
+                    if (value.Z > 9999999f)
                     {
-                        if (value.Z > 9999999f)
-                        {
-                            value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
-                        }
-                        if (value.Z < -100f)
-                        {
-                            value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
-                        }
-                        AddChange(changes.Position, value);
+                        value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
                     }
-                    else
+                    if (value.Z < -100f)
                     {
-                        m_log.Warn("[PHYSICS]: Got a NaN Position from Scene on a Character");
+                        value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
                     }
+                    AddChange(changes.Position, value);
+                }
+                else
+                {
+                    m_log.Warn("[PHYSICS]: Got a NaN Position from Scene on a Character");
                 }
             }
         }
@@ -1248,6 +1245,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.BodySetPosition(Body, newPos.X, newPos.Y, newPos.Z);
                 _position = newPos;
                 m_pidControllerActive = true;
+                m_log.DebugFormat("[ode character new position] {0}", newPos);
             }
 
         private void changeOrientation(Quaternion newOri)
