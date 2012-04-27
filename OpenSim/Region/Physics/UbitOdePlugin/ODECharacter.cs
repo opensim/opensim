@@ -901,7 +901,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             bool tviszero = (_target_velocity.X == 0.0f && _target_velocity.Y == 0.0f && _target_velocity.Z == 0.0f);
 
-            if(!tviszero || !m_iscolliding)
+            if(!tviszero || m_iscolliding)
                 m_freemove = false;
 
             if (!m_freemove)
