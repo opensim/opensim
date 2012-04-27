@@ -222,7 +222,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             // Is the sensor type is AGENT and not SCRIPTED then include agents
             if ((ts.type & (AGENT | AGENT_BY_USERNAME | NPC)) != 0 && (ts.type & SCRIPTED) == 0)
             {
-               sensedEntities.AddRange(doAgentSensor(ts));
+                sensedEntities.AddRange(doAgentSensor(ts));
             }
 
             // If SCRIPTED or PASSIVE or ACTIVE check objects
@@ -333,8 +333,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // Position of a sensor in a child prim attached to an avatar
                 // will be still wrong. 
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
-                q = avatar.Rotation*q;
+                q = avatar.Rotation * q;
             }
+
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
             LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
             double mag_fwd = LSL_Types.Vector3.Mag(forward_dir);
@@ -462,7 +463,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // Position of a sensor in a child prim attached to an avatar
                 // will be still wrong. 
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
-                q = avatar.Rotation*q;
+                q = avatar.Rotation * q;
             }
 
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
