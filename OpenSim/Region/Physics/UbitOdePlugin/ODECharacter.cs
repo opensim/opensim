@@ -1273,7 +1273,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void changeMomentum(Vector3 newmomentum)
         {
             _velocity = newmomentum;
-            _target_velocity = newmomentum;
+            _target_velocity = Vector3.Zero;
             m_pidControllerActive = true;
             m_colliderfilter = 0;
             m_colliderObjectfilter = 0;

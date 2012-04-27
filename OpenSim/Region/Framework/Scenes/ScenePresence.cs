@@ -1113,7 +1113,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (PhysicsActor != null)
                     PhysicsActor.SetMomentum((Vector3)v);
-                m_velocity = (Vector3)v;
+//                m_velocity = (Vector3)v;
             }
             else if (Stopit)
             {
