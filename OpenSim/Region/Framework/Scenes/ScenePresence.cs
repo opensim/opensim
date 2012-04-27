@@ -1099,7 +1099,7 @@ namespace OpenSim.Region.Framework.Scenes
             SendTerseUpdateToAllClients();
         }
 
-        public void avnLocalTeleport(Vector3 newpos, Quaternion? newrot, bool Stopped)
+        public void avnLocalTeleport(Vector3 newpos, Quaternion? newrot,Vector3? v, bool Stopit)
         {
             CheckLandingPoint(ref newpos);
             AbsolutePosition = newpos;
@@ -1109,11 +1109,16 @@ namespace OpenSim.Region.Framework.Scenes
                 // TODO
             }
 
-            if (Stopped)
+            if (v.HasValue)
             {
-                if (PhysicsActor != null) // speed up physics stop
+                if (PhysicsActor != null)
+                    PhysicsActor.SetMomentum((Vector3)v);
+            }
+            else if (Stopit)
+            {
+                if (PhysicsActor != null) // speedup
                     PhysicsActor.SetMomentum(Vector3.Zero);
-                Velocity = Vector3.Zero;
+                Velocity = Vector3.Zero; // zero any velocity request
             }
 
             SendTerseUpdateToAllClients();
