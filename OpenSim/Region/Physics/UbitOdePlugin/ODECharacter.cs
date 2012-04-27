@@ -103,6 +103,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private float m_buoyancy = 0f;
 
+        private bool m_freemove = false;
         // private CollisionLocker ode;
 
         private string m_name = String.Empty;
@@ -687,6 +688,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _zeroFlag = false;
             m_pidControllerActive = true;
+            m_freemove = false;
 
             d.BodySetAutoDisableFlag(Body, false);
             d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
@@ -789,7 +791,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             qtmp.Z = 0;
             d.BodySetQuaternion(Body, ref qtmp);
 
-            if (m_pidControllerActive == false)
+            if (m_pidControllerActive == false && !m_freemove)
             {
                 _zeroPosition = localpos;
             }
@@ -861,6 +863,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float terrainheight = _parent_scene.GetTerrainHeightAtXY(posch.X, posch.Y);
             if (chrminZ < terrainheight)
             {
+                m_freemove = false;
                 float depth = terrainheight - chrminZ;
                 if (!flying)
                 {
@@ -896,77 +899,86 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             //******************************************
 
-            //  if velocity is zero, use position control; otherwise, velocity control
-            if (_target_velocity.X == 0.0f && _target_velocity.Y == 0.0f && _target_velocity.Z == 0.0f
-                && m_iscolliding)
-            {
-                //  keep track of where we stopped.  No more slippin' & slidin'
-                if (!_zeroFlag)
-                {
-                    _zeroFlag = true;
-                    _zeroPosition = localpos;
-                }
-                if (m_pidControllerActive)
-                {
-                    // We only want to deactivate the PID Controller if we think we want to have our surrogate
-                    // react to the physics scene by moving it's position.
-                    // Avatar to Avatar collisions
-                    // Prim to avatar collisions
+            bool tviszero = (_target_velocity.X == 0.0f && _target_velocity.Y == 0.0f && _target_velocity.Z == 0.0f);
 
-                    vec.X = -vel.X * PID_D + (_zeroPosition.X - localpos.X) * (PID_P * 2);
-                    vec.Y = -vel.Y * PID_D + (_zeroPosition.Y - localpos.Y) * (PID_P * 2);
-                    if (flying)
+            if(!tviszero || !m_iscolliding)
+                m_freemove = false;
+
+            if (!m_freemove)
+            {
+
+                //  if velocity is zero, use position control; otherwise, velocity control
+                if (tviszero && m_iscolliding)
+                {
+                    //  keep track of where we stopped.  No more slippin' & slidin'
+                    if (!_zeroFlag)
                     {
-                        vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P;
+                        _zeroFlag = true;
+                        _zeroPosition = localpos;
                     }
-                }
-                //PidStatus = true;
-            }
-            else
-            {
-                m_pidControllerActive = true;
-                _zeroFlag = false;
-
-                if (m_iscolliding)
-                {
-                    if (!flying)
+                    if (m_pidControllerActive)
                     {
-                        if (_target_velocity.Z > 0.0f)
+                        // We only want to deactivate the PID Controller if we think we want to have our surrogate
+                        // react to the physics scene by moving it's position.
+                        // Avatar to Avatar collisions
+                        // Prim to avatar collisions
+
+                        vec.X = -vel.X * PID_D + (_zeroPosition.X - localpos.X) * (PID_P * 2);
+                        vec.Y = -vel.Y * PID_D + (_zeroPosition.Y - localpos.Y) * (PID_P * 2);
+                        if (flying)
                         {
-                            // We're colliding with something and we're not flying but we're moving
-                            // This means we're walking or running. JUMPING
-                            vec.Z += (_target_velocity.Z - vel.Z) * PID_D * 1.2f;// +(_zeroPosition.Z - localpos.Z) * PID_P;
+                            vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P;
                         }
-                        // We're standing on something
-                        vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D);
-                        vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D);
                     }
-                    else
-                    {
-                        // We're flying and colliding with something
-                        vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D * 0.0625f);
-                        vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D * 0.0625f);
-                        vec.Z += (_target_velocity.Z - vel.Z) * (PID_D);
-                    }
+                    //PidStatus = true;
                 }
-                else // ie not colliding
+                else
                 {
-                    if (flying) //(!m_iscolliding && flying)
+                    m_freemove = false;
+                    m_pidControllerActive = true;
+                    _zeroFlag = false;
+
+                    if (m_iscolliding)
                     {
-                        // we're in mid air suspended
-                        vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D * 1.667f);
-                        vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D * 1.667f);
-                        vec.Z += (_target_velocity.Z - vel.Z) * (PID_D);
+                        if (!flying)
+                        {
+                            if (_target_velocity.Z > 0.0f)
+                            {
+                                // We're colliding with something and we're not flying but we're moving
+                                // This means we're walking or running. JUMPING
+                                vec.Z += (_target_velocity.Z - vel.Z) * PID_D * 1.2f;// +(_zeroPosition.Z - localpos.Z) * PID_P;
+                            }
+                            // We're standing on something
+                            vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D);
+                            vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D);
+                        }
+                        else
+                        {
+                            // We're flying and colliding with something
+                            vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D * 0.0625f);
+                            vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D * 0.0625f);
+                            vec.Z += (_target_velocity.Z - vel.Z) * (PID_D);
+                        }
                     }
-
-                    else
+                    else // ie not colliding
                     {
-                        // we're not colliding and we're not flying so that means we're falling!
-                        // m_iscolliding includes collisions with the ground.
+                        if (flying) //(!m_iscolliding && flying)
+                        {
+                            // we're in mid air suspended
+                            vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D * 1.667f);
+                            vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D * 1.667f);
+                            vec.Z += (_target_velocity.Z - vel.Z) * (PID_D);
+                        }
 
-                        // d.Vector3 pos = d.BodyGetPosition(Body);
-                        vec.X = (_target_velocity.X - vel.X) * PID_D * 0.833f;
-                        vec.Y = (_target_velocity.Y - vel.Y) * PID_D * 0.833f;
+                        else
+                        {
+                            // we're not colliding and we're not flying so that means we're falling!
+                            // m_iscolliding includes collisions with the ground.
+
+                            // d.Vector3 pos = d.BodyGetPosition(Body);
+                            vec.X = (_target_velocity.X - vel.X) * PID_D * 0.833f;
+                            vec.Y = (_target_velocity.Y - vel.Y) * PID_D * 0.833f;
+                        }
                     }
                 }
             }
@@ -1274,6 +1286,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             _velocity = newmomentum;
             _target_velocity = Vector3.Zero;
+            m_freemove = true;
             m_pidControllerActive = true;
             m_colliderfilter = 0;
             m_colliderObjectfilter = 0;
