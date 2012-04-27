@@ -1104,9 +1104,6 @@ namespace OpenSim.Region.Framework.Scenes
             CheckLandingPoint(ref newpos);
             AbsolutePosition = newpos;
 
-
-            m_log.DebugFormat("[avnLocalTeleport] to {0} {1} init rotation {2}", newpos, rotateToVelXY,Rotation);
-
             if (newvel.HasValue)
             {
                 if ((Vector3)newvel == Vector3.Zero)

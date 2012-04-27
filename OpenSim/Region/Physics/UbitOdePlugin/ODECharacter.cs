@@ -1004,13 +1004,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                breakfactor = 5f * m_mass;
+                breakfactor = m_mass;
                 vec.X -= breakfactor * vel.X;
                 vec.Y -= breakfactor * vel.Y;
                 if (flying)
                     vec.Z -= breakfactor * vel.Z;
                 else
-                    vec.Z -= 2f* m_mass * vel.Z;
+                    vec.Z -= .5f* m_mass * vel.Z;
             }
 
             if (flying)
