@@ -880,7 +880,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         m_iscolliding = true;
                         m_colliderfilter = 2;
-                        m_colliderGroundfilter = 2;
+
+                        if (m_colliderGroundfilter > 10)
+                        {
+                            m_colliderGroundfilter = 10;
+                            m_freemove = false;
+                        }
+
                         m_iscollidingGround = true;
 
                         ContactPoint contact = new ContactPoint();
