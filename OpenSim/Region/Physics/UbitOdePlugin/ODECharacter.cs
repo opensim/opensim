@@ -1244,8 +1244,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (Body != IntPtr.Zero)
                     d.BodySetPosition(Body, newPos.X, newPos.Y, newPos.Z);
                 _position = newPos;
-                m_pidControllerActive = true;
-                m_log.DebugFormat("[ode character new position] {0}", newPos);
+                m_pidControllerActive = true;               
             }
 
         private void changeOrientation(Quaternion newOri)

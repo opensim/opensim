@@ -1105,11 +1105,11 @@ namespace OpenSim.Region.Framework.Scenes
             AbsolutePosition = newpos;
 
 
-            m_log.DebugFormat("[avnLocalTeleport] {0} {1}", newpos, rotateToVelXY);
+            m_log.DebugFormat("[avnLocalTeleport] to {0} {1} init rotation {3}", newpos, rotateToVelXY,Rotation);
 
             if (newvel.HasValue)
             {
-                if (newvel == Vector3.Zero)
+                if ((Vector3)newvel == Vector3.Zero)
                 {
                     if (PhysicsActor != null)
                         PhysicsActor.SetMomentum(Vector3.Zero);
@@ -1126,6 +1126,7 @@ namespace OpenSim.Region.Framework.Scenes
                         y = (float)Math.Cos(x);
                         x = (float)Math.Sin(x);
                         Rotation = new Quaternion(0f, 0f, x, y);
+                        m_log.DebugFormat("[avnLocalTeleport] final rotation {0}", Rotation);
                     }
 
                     if (PhysicsActor != null)
