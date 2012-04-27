@@ -773,39 +773,40 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.Vector3 pos = d.BodyGetPosition(Body);
 
                 float t = _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y);
+                float perr;
 
-                if (t < m_VhoverHeight) // don't go underground
+                // default to global but don't go underground
+                if (t < m_VhoverHeight)
+                    perr = m_VhoverHeight - pos.Z;
+                else
+                    perr = t - pos.Z; ;
+
+                if ((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) == 0)
                 {
-                    // default to global
-                    float perr = m_VhoverHeight - pos.Z; ;
-
-                    if ((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) == 0)
+                    if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
                     {
-                        if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
-                        {
-                            perr += _pParentScene.GetWaterLevel();
-                        }
-                        else if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
-                        {
+                        perr += _pParentScene.GetWaterLevel();
+                    }
+                    else if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
+                    {
+                        perr += t;
+                    }
+                    else
+                    {
+                        float w = _pParentScene.GetWaterLevel();
+                        if (t > w)
                             perr += t;
-                        }
                         else
-                        {
-                            float w = _pParentScene.GetWaterLevel();
-                            if (t > w)
-                                perr += t;
-                            else
-                                perr += w;
-                        }
+                            perr += w;
                     }
-                    if ((m_flags & VehicleFlag.HOVER_UP_ONLY) == 0 || perr > 0)
-                    {
-                        force.Z += (perr / m_VhoverTimescale / m_VhoverTimescale - curVel.Z * m_VhoverEfficiency) / m_timestep;
-                        force.Z += _pParentScene.gravityz * (1f - m_VehicleBuoyancy);
-                    }
-                    else // no buoyancy
-                        force.Z += _pParentScene.gravityz;
                 }
+                if ((m_flags & VehicleFlag.HOVER_UP_ONLY) == 0 || perr > 0)
+                {
+                    force.Z += (perr / m_VhoverTimescale / m_VhoverTimescale - curVel.Z * m_VhoverEfficiency) / m_timestep;
+                    force.Z += _pParentScene.gravityz * (1f - m_VehicleBuoyancy);
+                }
+                else // no buoyancy
+                    force.Z += _pParentScene.gravityz;
             }
             else
             {
