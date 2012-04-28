@@ -450,7 +450,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             get
             {
                 d.Vector3 dtmp;
-                if (IsPhysical && !childPrim && Body != IntPtr.Zero)
+                if (!childPrim && Body != IntPtr.Zero)
                 {
                     dtmp = d.BodyGetPosition(Body);
                     return new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
@@ -465,12 +465,38 @@ namespace OpenSim.Region.Physics.OdePlugin
                     q.Z = dq.Z;
                     q.W = dq.W;
 
-                    Vector3 vtmp = primOOBoffset * q;
+                    Vector3 Ptot = primOOBoffset * q;
                     dtmp = d.GeomGetPosition(prim_geom);
-                    return new Vector3(dtmp.X + vtmp.X, dtmp.Y + vtmp.Y, dtmp.Z + vtmp.Z);
+                    Ptot.X += dtmp.X;
+                    Ptot.Y += dtmp.Y;
+                    Ptot.Z += dtmp.Z;
+
+//                    if(childPrim)  we only know about physical linksets
+                        return Ptot;
+/*
+                    float tmass = _mass;
+                    Ptot *= tmass;
+
+                    float m;
+
+                    foreach (OdePrim prm in childrenPrim)
+                    {
+                        m = prm._mass;
+                        Ptot += prm.CenterOfMass * m;
+                        tmass += m;
+                    }
+
+                    if (tmass == 0)
+                        tmass = 0;
+                    else
+                        tmass = 1.0f / tmass;
+
+                    Ptot *= tmass;
+                    return Ptot;
+ */
                 }
                 else
-                    return Vector3.Zero;
+                    return _position;
             }
         }
         /*
@@ -3490,7 +3516,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             d.BodySetPosition(Body, lpos.X, lpos.Y, m_targetHoverHeight);
                             d.BodySetLinearVel(Body, vel.X, vel.Y, 0);
-                            return;
                         }
                         else
                         {

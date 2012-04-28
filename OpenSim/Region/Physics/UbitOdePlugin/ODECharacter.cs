@@ -103,12 +103,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private float m_buoyancy = 0f;
 
+        private bool m_freemove = false;
         // private CollisionLocker ode;
 
         private string m_name = String.Empty;
         // other filter control
         int m_colliderfilter = 0;
-        //        int m_colliderGroundfilter = 0;
+        int m_colliderGroundfilter = 0;
         int m_colliderObjectfilter = 0;
 
         // Default we're a Character
@@ -280,7 +281,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_iscolliding = false;
                 else
                 {
-//                    SetPidStatus(false);
                     m_pidControllerActive = true;
                     m_iscolliding = true;
                 }
@@ -379,24 +379,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return _position; }
             set
             {
-                if (Body == IntPtr.Zero || Shell == IntPtr.Zero)
+                if (value.IsFinite())
                 {
-                    if (value.IsFinite())
+                    if (value.Z > 9999999f)
                     {
-                        if (value.Z > 9999999f)
-                        {
-                            value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
-                        }
-                        if (value.Z < -100f)
-                        {
-                            value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
-                        }
-                        AddChange(changes.Position, value);
+                        value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
                     }
-                    else
+                    if (value.Z < -100f)
                     {
-                        m_log.Warn("[PHYSICS]: Got a NaN Position from Scene on a Character");
+                        value.Z = _parent_scene.GetTerrainHeightAtXY(127, 127) + 5;
                     }
+                    AddChange(changes.Position, value);
+                }
+                else
+                {
+                    m_log.Warn("[PHYSICS]: Got a NaN Position from Scene on a Character");
                 }
             }
         }
@@ -616,7 +613,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (pushforce)
                 {
-                    AddChange(changes.Force, force * m_density / _parent_scene.ODE_STEPSIZE / 28f);
+                    AddChange(changes.Force, force * m_density / (_parent_scene.ODE_STEPSIZE * 28f));
                 }
                 else
                 {
@@ -687,6 +684,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _zeroFlag = false;
             m_pidControllerActive = true;
+            m_freemove = false;
 
             d.BodySetAutoDisableFlag(Body, false);
             d.BodySetPosition(Body, npositionX, npositionY, npositionZ);
@@ -828,11 +826,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                 localpos.Y = _parent_scene.WorldExtents.Y - 0.1f;
             }
             if (fixbody)
+            {
+                m_freemove = false;
                 d.BodySetPosition(Body, localpos.X, localpos.Y, localpos.Z);
+            }
+
+            float breakfactor;
 
             Vector3 vec = Vector3.Zero;
             dtmp = d.BodyGetLinearVel(Body);
             Vector3 vel = new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
+            float velLengthSquared = vel.LengthSquared();
 
             float movementdivisor = 1f;
             //Ubit change divisions into multiplications below
@@ -871,104 +875,148 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (depth < 0.1f)
                 {
-                    m_iscolliding = true;
-                    m_colliderfilter = 2;
-                    m_iscollidingGround = true;
+                    m_colliderGroundfilter++;
+                    if (m_colliderGroundfilter > 2)
+                    {
+                        m_iscolliding = true;
+                        m_colliderfilter = 2;
 
-                    ContactPoint contact = new ContactPoint();
-                    contact.PenetrationDepth = depth;
-                    contact.Position.X = localpos.X;
-                    contact.Position.Y = localpos.Y;
-                    contact.Position.Z = chrminZ;
-                    contact.SurfaceNormal.X = 0f;
-                    contact.SurfaceNormal.Y = 0f;
-                    contact.SurfaceNormal.Z = -1f;
-                    AddCollisionEvent(0, contact);
+                        if (m_colliderGroundfilter > 10)
+                        {
+                            m_colliderGroundfilter = 10;
+                            m_freemove = false;
+                        }
 
-                    vec.Z *= 0.5f;
+                        m_iscollidingGround = true;
+
+                        ContactPoint contact = new ContactPoint();
+                        contact.PenetrationDepth = depth;
+                        contact.Position.X = localpos.X;
+                        contact.Position.Y = localpos.Y;
+                        contact.Position.Z = chrminZ;
+                        contact.SurfaceNormal.X = 0f;
+                        contact.SurfaceNormal.Y = 0f;
+                        contact.SurfaceNormal.Z = -1f;
+                        AddCollisionEvent(0, contact);
+
+                        vec.Z *= 0.5f;
+                    }
                 }
 
                 else
+                {
+                    m_colliderGroundfilter = 0;
                     m_iscollidingGround = false;
+                }
             }
             else
+            {
+                m_colliderGroundfilter = 0;
                 m_iscollidingGround = false;
+            }
 
             //******************************************
 
-            //  if velocity is zero, use position control; otherwise, velocity control
-            if (_target_velocity.X == 0.0f && _target_velocity.Y == 0.0f && _target_velocity.Z == 0.0f
-                && m_iscolliding)
-            {
-                //  keep track of where we stopped.  No more slippin' & slidin'
-                if (!_zeroFlag)
-                {
-                    _zeroFlag = true;
-                    _zeroPosition = localpos;
-                }
-                if (m_pidControllerActive)
-                {
-                    // We only want to deactivate the PID Controller if we think we want to have our surrogate
-                    // react to the physics scene by moving it's position.
-                    // Avatar to Avatar collisions
-                    // Prim to avatar collisions
+            bool tviszero = (_target_velocity.X == 0.0f && _target_velocity.Y == 0.0f && _target_velocity.Z == 0.0f);
 
-                    vec.X = -vel.X * PID_D + (_zeroPosition.X - localpos.X) * (PID_P * 2);
-                    vec.Y = -vel.Y * PID_D + (_zeroPosition.Y - localpos.Y) * (PID_P * 2);
-                    if (flying)
+            //            if (!tviszero || m_iscolliding || velLengthSquared <0.01)
+            if (!tviszero)
+                m_freemove = false;
+
+            if (!m_freemove)
+            {
+
+                //  if velocity is zero, use position control; otherwise, velocity control
+                if (tviszero && m_iscolliding)
+                {
+                    //  keep track of where we stopped.  No more slippin' & slidin'
+                    if (!_zeroFlag)
                     {
-                        vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P;
+                        _zeroFlag = true;
+                        _zeroPosition = localpos;
+                    }
+                    if (m_pidControllerActive)
+                    {
+                        // We only want to deactivate the PID Controller if we think we want to have our surrogate
+                        // react to the physics scene by moving it's position.
+                        // Avatar to Avatar collisions
+                        // Prim to avatar collisions
+
+                        vec.X = -vel.X * PID_D + (_zeroPosition.X - localpos.X) * (PID_P * 2);
+                        vec.Y = -vel.Y * PID_D + (_zeroPosition.Y - localpos.Y) * (PID_P * 2);
+                        if (flying)
+                        {
+                            vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P;
+                        }
+                    }
+                    //PidStatus = true;
+                }
+                else
+                {
+                    m_pidControllerActive = true;
+                    _zeroFlag = false;
+
+                    if (m_iscolliding)
+                    {
+                        if (!flying)
+                        {
+                            if (_target_velocity.Z > 0.0f)
+                            {
+                                // We're colliding with something and we're not flying but we're moving
+                                // This means we're walking or running. JUMPING
+                                vec.Z += (_target_velocity.Z - vel.Z) * PID_D * 1.2f;// +(_zeroPosition.Z - localpos.Z) * PID_P;
+                            }
+                            // We're standing on something
+                            vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D);
+                            vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D);
+                        }
+                        else
+                        {
+                            // We're flying and colliding with something
+                            vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D * 0.0625f);
+                            vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D * 0.0625f);
+                            vec.Z += (_target_velocity.Z - vel.Z) * (PID_D);
+                        }
+                    }
+                    else // ie not colliding
+                    {
+                        if (flying) //(!m_iscolliding && flying)
+                        {
+                            // we're in mid air suspended
+                            vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D * 1.667f);
+                            vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D * 1.667f);
+                            vec.Z += (_target_velocity.Z - vel.Z) * (PID_D);
+                        }
+
+                        else
+                        {
+                            // we're not colliding and we're not flying so that means we're falling!
+                            // m_iscolliding includes collisions with the ground.
+
+                            // d.Vector3 pos = d.BodyGetPosition(Body);
+                            vec.X = (_target_velocity.X - vel.X) * PID_D * 0.833f;
+                            vec.Y = (_target_velocity.Y - vel.Y) * PID_D * 0.833f;
+                        }
                     }
                 }
-                //PidStatus = true;
+
+                if (velLengthSquared > 2500.0f) // 50m/s apply breaks
+                {
+                    breakfactor = 0.16f * m_mass;
+                    vec.X -= breakfactor * vel.X;
+                    vec.Y -= breakfactor * vel.Y;
+                    vec.Z -= breakfactor * vel.Z;
+                }
             }
             else
             {
-                m_pidControllerActive = true;
-                _zeroFlag = false;
-
-                if (m_iscolliding)
-                {
-                    if (!flying)
-                    {
-                        if (_target_velocity.Z > 0.0f)
-                        {
-                            // We're colliding with something and we're not flying but we're moving
-                            // This means we're walking or running. JUMPING
-                            vec.Z += (_target_velocity.Z - vel.Z) * PID_D * 1.2f;// +(_zeroPosition.Z - localpos.Z) * PID_P;
-                        }
-                        // We're standing on something
-                        vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D);
-                        vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D);
-                    }
-                    else
-                    {
-                        // We're flying and colliding with something
-                        vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D * 0.0625f);
-                        vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D * 0.0625f);
-                        vec.Z += (_target_velocity.Z - vel.Z) * (PID_D);
-                    }
-                }
-                else // ie not colliding
-                {
-                    if (flying) //(!m_iscolliding && flying)
-                    {
-                        // we're in mid air suspended
-                        vec.X = ((_target_velocity.X * movementdivisor) - vel.X) * (PID_D * 1.667f);
-                        vec.Y = ((_target_velocity.Y * movementdivisor) - vel.Y) * (PID_D * 1.667f);
-                        vec.Z += (_target_velocity.Z - vel.Z) * (PID_D);
-                    }
-
-                    else
-                    {
-                        // we're not colliding and we're not flying so that means we're falling!
-                        // m_iscolliding includes collisions with the ground.
-
-                        // d.Vector3 pos = d.BodyGetPosition(Body);
-                        vec.X = (_target_velocity.X - vel.X) * PID_D * 0.833f;
-                        vec.Y = (_target_velocity.Y - vel.Y) * PID_D * 0.833f;
-                    }
-                }
+                breakfactor = m_mass;
+                vec.X -= breakfactor * vel.X;
+                vec.Y -= breakfactor * vel.Y;
+                if (flying)
+                    vec.Z -= breakfactor * vel.Z;
+                else
+                    vec.Z -= .5f* m_mass * vel.Z;
             }
 
             if (flying)
@@ -983,14 +1031,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     vec.Z += (target_altitude - localpos.Z) * PID_P * 5.0f;
                 }
                 // end add Kitto Flora
-            }
-
-            if (vel.X * vel.X + vel.Y * vel.Y + vel.Z * vel.Z > 2500.0f) // 50m/s apply breaks
-            {
-                float breakfactor = 0.16f * m_mass; // will give aprox 60m/s terminal velocity at free fall
-                vec.X -= breakfactor * vel.X;
-                vec.Y -= breakfactor * vel.Y;
-                vec.Z -= breakfactor * vel.Z;
             }
 
             if (vec.IsFinite())
@@ -1210,6 +1250,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (Body != IntPtr.Zero)
                     d.BodySetPosition(Body, newPos.X, newPos.Y, newPos.Z);
                 _position = newPos;
+                m_pidControllerActive = true;               
             }
 
         private void changeOrientation(Quaternion newOri)
@@ -1256,11 +1297,30 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changeBuilding(bool arg)
         {
-        }                                 
+        }
+
+        private void setFreeMove()
+        {
+            m_pidControllerActive = true;
+            _zeroFlag = false;
+            _target_velocity = Vector3.Zero;
+            m_freemove = true;
+            m_colliderfilter = -2;
+            m_colliderObjectfilter = -2;
+            m_colliderGroundfilter = -2;
+
+            m_iscolliding = false;
+            m_iscollidingGround = false;
+            m_iscollidingObj = false;
+
+            CollisionEventsThisFrame = new CollisionEventUpdate();
+            m_eventsubscription = 0;
+        }
 
         private void changeForce(Vector3 newForce)
         {
-            m_pidControllerActive = false;
+            setFreeMove();
+
             if (Body != IntPtr.Zero)
             {
                 if (newForce.X != 0f || newForce.Y != 0f || newForce.Z != 0)
@@ -1272,8 +1332,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void changeMomentum(Vector3 newmomentum)
         {
             _velocity = newmomentum;
-            _target_velocity = newmomentum;
-            m_pidControllerActive = true;
+            setFreeMove();
+
             if (Body != IntPtr.Zero)
                 d.BodySetLinearVel(Body, newmomentum.X, newmomentum.Y, newmomentum.Z);
         }

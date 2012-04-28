@@ -1865,7 +1865,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if ((!isPhantom || isPhysical || _VolumeDetectActive) && !ParentGroup.IsAttachment
                                                 && !(Shape.PathCurve == (byte)Extrusion.Flexible))
-                    AddToPhysics(isPhysical, isPhantom, building, true);
+                    AddToPhysics(isPhysical, isPhantom, building, isPhysical);
                 else
                     PhysActor = null; // just to be sure
             }
@@ -2311,7 +2311,7 @@ namespace OpenSim.Region.Framework.Scenes
              */
         }
 
-         public float GetMass()
+        public float GetMass()
         {
             PhysicsActor pa = PhysActor;
 
@@ -2320,6 +2320,40 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 return 0;
         }
+
+        public Vector3 GetCenterOfMass()
+        {
+            if (ParentGroup.RootPart == this)
+            {
+                if (ParentGroup.IsDeleted)
+                    return AbsolutePosition;
+                return ParentGroup.GetCenterOfMass();
+            }
+
+            PhysicsActor pa = PhysActor;
+
+            if (pa != null)
+            {
+                Vector3 tmp = pa.CenterOfMass;
+                return tmp;
+            }
+            else
+                return AbsolutePosition;
+        }
+
+        public Vector3 GetPartCenterOfMass()
+        {
+            PhysicsActor pa = PhysActor;
+
+            if (pa != null)
+            {
+                Vector3 tmp = pa.CenterOfMass;
+                return tmp;
+            }
+            else
+                return AbsolutePosition;
+        }
+
 
         public Vector3 GetForce()
         {
@@ -4804,7 +4838,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     Velocity = velocity;
                     AngularVelocity = rotationalVelocity;
-                    pa.Velocity = velocity;
+//                    pa.Velocity = velocity;
                     pa.RotationalVelocity = rotationalVelocity;
 
                     // if not vehicle and root part apply force and torque

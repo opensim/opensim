@@ -2671,11 +2671,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 axPos = linkPart.OffsetPosition;
             Quaternion parentRot = m_rootPart.RotationOffset;
-            axPos *= Quaternion.Inverse(parentRot);
+            axPos *= Quaternion.Conjugate(parentRot);
             linkPart.OffsetPosition = axPos;
 
             Quaternion oldRot = linkPart.RotationOffset;
-            Quaternion newRot = Quaternion.Inverse(parentRot) * oldRot;
+            Quaternion newRot = Quaternion.Conjugate(parentRot) * oldRot;
             linkPart.RotationOffset = newRot;
 
 //            linkPart.ParentID = m_rootPart.LocalId; done above
@@ -2943,12 +2943,12 @@ namespace OpenSim.Region.Framework.Scenes
             Quaternion rootRotation = m_rootPart.RotationOffset;
 
             Vector3 pos = part.OffsetPosition;
-            pos *= Quaternion.Inverse(rootRotation);
+            pos *= Quaternion.Conjugate(rootRotation);
             part.OffsetPosition = pos;
 
             parentRot = m_rootPart.RotationOffset;
             oldRot = part.RotationOffset;
-            Quaternion newRot = Quaternion.Inverse(parentRot) * worldRot;
+            Quaternion newRot = Quaternion.Conjugate(parentRot) * worldRot;
             part.RotationOffset = newRot;
 
             part.UpdatePrimFlags(UsesPhysics, IsTemporary, IsPhantom, IsVolumeDetect, false);
@@ -3548,13 +3548,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public void UpdateGroupRotationR(Quaternion rot)
         {
+            m_rootPart.UpdateRotation(rot);
+        
+/* this is done by rootpart RotationOffset set called by UpdateRotation
             PhysicsActor actor = m_rootPart.PhysActor;
             if (actor != null)
             {
                 actor.Orientation = m_rootPart.RotationOffset;
                 m_scene.PhysicsScene.AddPhysicsActorTaint(actor);
             }
-
+*/
             HasGroupChanged = true;
             ScheduleGroupForTerseUpdate();
         }
@@ -4061,6 +4064,39 @@ namespace OpenSim.Region.Framework.Scenes
                 retmass += parts[i].GetMass();
 
             return retmass;
+        }
+
+        // center of mass of full object
+        public Vector3 GetCenterOfMass()
+        {
+            PhysicsActor pa = RootPart.PhysActor;
+
+            if(((RootPart.Flags & PrimFlags.Physics) !=0) && pa !=null)
+            {
+                // physics knows better about center of mass of physical prims
+                Vector3 tmp = pa.CenterOfMass;
+                return tmp;
+            }
+            
+            Vector3 Ptot = Vector3.Zero;
+            float totmass = 0f;
+            float m;
+
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+            {
+                m = parts[i].GetMass();
+                Ptot += parts[i].GetPartCenterOfMass() * m;
+                totmass += m;
+            }
+
+            if (totmass == 0)
+                totmass = 0;
+            else
+                totmass = 1 / totmass;
+            Ptot *= totmass;
+
+            return Ptot;
         }
 
         /// <summary>

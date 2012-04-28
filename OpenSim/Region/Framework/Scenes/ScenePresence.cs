@@ -1088,6 +1088,41 @@ namespace OpenSim.Region.Framework.Scenes
             SendTerseUpdateToAllClients();
         }
 
+        public void avnLocalTeleport(Vector3 newpos, Vector3? newvel, bool rotateToVelXY)
+        {
+            CheckLandingPoint(ref newpos);
+            AbsolutePosition = newpos;
+
+            if (newvel.HasValue)
+            {
+                if ((Vector3)newvel == Vector3.Zero)
+                {
+                    if (PhysicsActor != null)
+                        PhysicsActor.SetMomentum(Vector3.Zero);
+                    m_velocity = Vector3.Zero;
+                }
+                else
+                {
+                    if (PhysicsActor != null)
+                        PhysicsActor.SetMomentum((Vector3)newvel);
+                    m_velocity = (Vector3)newvel;
+
+                    if (rotateToVelXY)
+                    {
+                        Vector3 lookAt = (Vector3)newvel;
+                        lookAt.Z = 0;
+                        lookAt.Normalize();
+                        ControllingClient.SendLocalTeleport(newpos, lookAt, (uint)TeleportFlags.ViaLocation);
+                        return;
+                    }
+                }
+            }
+
+            SendTerseUpdateToAllClients();
+        }
+
+
+
         public void StopFlying()
         {
             ControllingClient.StopFlying(this);
