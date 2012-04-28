@@ -1336,6 +1336,7 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsActor actor = PhysicsActor;
             if (actor == null)
             {
+                SafeSendControlsToScripts(flagsForScripts);
                 return;
             }
 
@@ -1512,18 +1513,23 @@ namespace OpenSim.Region.Framework.Scenes
                 if (update_movementflag && ParentID == 0)
                     Animator.UpdateMovementAnimations();
 
-                lock (scriptedcontrols)
-                {
-                    if (scriptedcontrols.Count > 0)
-                    {
-                        // Notify the scripts only after calling UpdateMovementAnimations(), so that if a script
-                        // (e.g., a walking script) checks which animation is active it will be the correct animation.
-                        SendControlToScripts(flagsForScripts);
-                    }
-                }
+                SafeSendControlsToScripts(flagsForScripts);
             }
 
             m_scene.EventManager.TriggerOnClientMovement(this);
+        }
+
+        private void SafeSendControlsToScripts(uint flagsForScripts)
+        {
+            lock (scriptedcontrols)
+            {
+                if (scriptedcontrols.Count > 0)
+                {
+                    // Notify the scripts only after calling UpdateMovementAnimations(), so that if a script
+                    // (e.g., a walking script) checks which animation is active it will be the correct animation.
+                    SendControlToScripts(flagsForScripts);
+                }
+            }
         }
 
         /// <summary>
