@@ -4041,6 +4041,39 @@ namespace OpenSim.Region.Framework.Scenes
             return retmass;
         }
 
+        // center of mass of full object
+        public Vector3 GetCenterOfMass()
+        {
+            PhysicsActor pa = RootPart.PhysActor;
+
+            if(((RootPart.Flags & PrimFlags.Physics) !=0) && pa !=null)
+            {
+                // physics knows better about center of mass of physical prims
+                Vector3 tmp = pa.CenterOfMass;
+                return tmp;
+            }
+            
+            Vector3 Ptot = Vector3.Zero;
+            float totmass = 0f;
+            float m;
+
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+            {
+                m = parts[i].GetMass();
+                Ptot += parts[i].GetPartCenterOfMass() * m;
+                totmass += m;
+            }
+
+            if (totmass == 0)
+                totmass = 0;
+            else
+                totmass = 1 / totmass;
+            Ptot *= totmass;
+
+            return Ptot;
+        }
+
         /// <summary>
         /// If the object is a sculpt/mesh, retrieve the mesh data for each part and reinsert it into each shape so that
         /// the physics engine can use it.
