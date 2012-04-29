@@ -8527,7 +8527,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Vector llGetGeometricCenter()
         {
-            return new LSL_Vector(m_host.GetGeometricCenter().X, m_host.GetGeometricCenter().Y, m_host.GetGeometricCenter().Z);
+            Vector3 tmp = m_host.GetGeometricCenter();
+            return new LSL_Vector(tmp.X, tmp.Y, tmp.Z);
         }
 
         public LSL_List llGetPrimitiveParams(LSL_List rules)
