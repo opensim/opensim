@@ -301,7 +301,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         // split static geometry collision into a grid as before
         private IntPtr[,] staticPrimspace;
 
-        private Object OdeLock;
+        public Object OdeLock;
         private static Object SimulationLock;
 
         public IMesher mesher;
@@ -746,8 +746,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         );
             // do volume detection case
             if (
-                (p1 is OdePrim) && (((OdePrim)p1).m_isVolumeDetect) ||
-                                (p2 is OdePrim) && (((OdePrim)p2).m_isVolumeDetect))
+                (p1.IsVolumeDtc || p2.IsVolumeDtc))
             {
                 collision_accounting_events(p1, p2, maxDepthContact);
                 return;
@@ -1024,9 +1023,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             bool p1events = p1.SubscribedEvents();
             bool p2events = p2.SubscribedEvents();
 
-            if (p1 is OdePrim && p1.IsVolumeDtc)
+            if (p1.IsVolumeDtc)
                 p2events = false;
-            if (p2 is OdePrim && p2.IsVolumeDtc)
+            if (p2.IsVolumeDtc)
                 p1events = false;
 
             if (!(p2events || p1events))
@@ -1725,6 +1724,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //            checkThread();
 
             lock (SimulationLock)
+                lock(OdeLock)
             {
                 // adjust number of iterations per step
                 try
