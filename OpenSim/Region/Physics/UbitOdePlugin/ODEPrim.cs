@@ -843,7 +843,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (force.IsFinite())
             {
-                AddChange(changes.AddAngForce, force * m_invTimeStep);
+                AddChange(changes.AddAngForce, force);
             }
             else
             {
@@ -3217,7 +3217,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changeAddImpulse(Vector3 impulse)
         {
-            m_forceacc += impulse * m_invTimeStep;
+            m_forceacc += impulse *m_invTimeStep;
             if (!m_isSelected)
             {
                 lock (this)
