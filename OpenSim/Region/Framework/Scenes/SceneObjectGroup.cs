@@ -3527,14 +3527,15 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateGroupRotationR(Quaternion rot)
         {
             m_rootPart.UpdateRotation(rot);
-
+        
+/* this is done by rootpart RotationOffset set called by UpdateRotation
             PhysicsActor actor = m_rootPart.PhysActor;
             if (actor != null)
             {
                 actor.Orientation = m_rootPart.RotationOffset;
                 m_scene.PhysicsScene.AddPhysicsActorTaint(actor);
             }
-
+*/
             HasGroupChanged = true;
             ScheduleGroupForTerseUpdate();
         }
