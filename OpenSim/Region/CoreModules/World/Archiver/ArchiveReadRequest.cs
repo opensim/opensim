@@ -200,8 +200,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat(
-                    "[ARCHIVER]: Aborting load with error in archive file {0}.  {1}", filePath, e);
+                m_log.Error(
+                    String.Format("[ARCHIVER]: Aborting load with error in archive file {0} ", filePath), e);
                 m_errorMessage += e.ToString();
                 m_scene.EventManager.TriggerOarFileLoaded(m_requestId, m_errorMessage);
                 return;
@@ -219,6 +219,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     m_log.ErrorFormat("[ARCHIVER]: Failed to load {0} assets", failedAssetRestores);
                     m_errorMessage += String.Format("Failed to load {0} assets", failedAssetRestores);
+                    // Continue, because we allow the OAR to be loaded even if some assets fail
                 }
             }
 
@@ -228,8 +229,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_scene.DeleteAllSceneObjects();
             }
 
-            LoadParcels(serialisedParcels);
-            LoadObjects(serialisedSceneObjects);
+            try
+            {
+                LoadParcels(serialisedParcels);
+                LoadObjects(serialisedSceneObjects);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[ARCHIVER]: Error loading parcels or objects ", e);
+                m_errorMessage += e.ToString();
+                m_scene.EventManager.TriggerOarFileLoaded(m_requestId, m_errorMessage);
+                return;
+            }
+
 
             m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
 
