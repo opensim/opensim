@@ -105,6 +105,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
        LSL_Integer llFloor(double f);
               void llForceMouselook(int mouselook);
          LSL_Float llFrand(double mag);
+           LSL_Key llGenerateKey();
         LSL_Vector llGetAccel();
        LSL_Integer llGetAgentInfo(string id);
         LSL_String llGetAgentLanguage(string id);

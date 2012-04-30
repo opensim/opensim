@@ -38,7 +38,8 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
-using System.Threading;
+using System.IO;
+using System.Text;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {

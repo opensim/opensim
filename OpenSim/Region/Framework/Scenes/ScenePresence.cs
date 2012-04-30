@@ -1456,6 +1456,7 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsActor actor = PhysicsActor;
             if (actor == null)
             {
+                SendControlsToScripts(flagsForScripts);
                 return;
             }
 
@@ -1632,15 +1633,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (update_movementflag && ParentID == 0)
                     Animator.UpdateMovementAnimations();
 
-                lock (scriptedcontrols)
-                {
-                    if (scriptedcontrols.Count > 0)
-                    {
-                        // Notify the scripts only after calling UpdateMovementAnimations(), so that if a script
-                        // (e.g., a walking script) checks which animation is active it will be the correct animation.
-                        SendControlToScripts(flagsForScripts);
-                    }
-                }
+                SendControlsToScripts(flagsForScripts);
             }
 
             m_scene.EventManager.TriggerOnClientMovement(this);
@@ -3830,77 +3823,92 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        internal void SendControlToScripts(uint flags)
+        private void SendControlsToScripts(uint flags)
         {
-            ScriptControlled allflags = ScriptControlled.CONTROL_ZERO;
-
-            if (MouseDown)
+            // Notify the scripts only after calling UpdateMovementAnimations(), so that if a script
+            // (e.g., a walking script) checks which animation is active it will be the correct animation.
+            lock (scriptedcontrols)
             {
-                allflags = LastCommands & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON);
-                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP) != 0 || (flags & unchecked((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_UP)) != 0)
+                if (scriptedcontrols.Count <= 0)
+                    return;
+
+                ScriptControlled allflags = ScriptControlled.CONTROL_ZERO;
+    
+                if (MouseDown)
                 {
-                    allflags = ScriptControlled.CONTROL_ZERO;
+                    allflags = LastCommands & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON);
+                    if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP) != 0 || (flags & unchecked((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_UP)) != 0)
+                    {
+                        allflags = ScriptControlled.CONTROL_ZERO;
+                        MouseDown = true;
+                    }
+                }
+    
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN) != 0)
+                {
+                    allflags |= ScriptControlled.CONTROL_ML_LBUTTON;
                     MouseDown = true;
                 }
-            }
+    
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0)
+                {
+                    allflags |= ScriptControlled.CONTROL_LBUTTON;
+                    MouseDown = true;
+                }
+    
+                // find all activated controls, whether the scripts are interested in them or not
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS) != 0)
+                {
+                    allflags |= ScriptControlled.CONTROL_FWD;
+                }
+    
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG) != 0)
+                {
+                    allflags |= ScriptControlled.CONTROL_BACK;
+                }
+    
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS) != 0)
+                {
+                    allflags |= ScriptControlled.CONTROL_UP;
+                }
+    
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0)
+                {
+                    allflags |= ScriptControlled.CONTROL_DOWN;
+                }
 
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN) != 0)
-            {
-                allflags |= ScriptControlled.CONTROL_ML_LBUTTON;
-                MouseDown = true;
-            }
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0)
-            {
-                allflags |= ScriptControlled.CONTROL_LBUTTON;
-                MouseDown = true;
-            }
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS) != 0)
+                {
+                    allflags |= ScriptControlled.CONTROL_LEFT;
+                }
+    
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG) != 0)
+                {
+                    allflags |= ScriptControlled.CONTROL_RIGHT;
+                }
+    
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
+                {
+                    allflags |= ScriptControlled.CONTROL_ROT_RIGHT;
+                }
+    
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
+                {
+                    allflags |= ScriptControlled.CONTROL_ROT_LEFT;
+                }
 
-            // find all activated controls, whether the scripts are interested in them or not
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS) != 0)
-            {
-                allflags |= ScriptControlled.CONTROL_FWD;
-            }
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG) != 0)
-            {
-                allflags |= ScriptControlled.CONTROL_BACK;
-            }
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS) != 0)
-            {
-                allflags |= ScriptControlled.CONTROL_UP;
-            }
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0)
-            {
-                allflags |= ScriptControlled.CONTROL_DOWN;
-            }
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS) != 0)
-            {
-                allflags |= ScriptControlled.CONTROL_LEFT;
-            }
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG) != 0)
-            {
-                allflags |= ScriptControlled.CONTROL_RIGHT;
-            }
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
-            {
-                allflags |= ScriptControlled.CONTROL_ROT_RIGHT;
-            }
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
-            {
-                allflags |= ScriptControlled.CONTROL_ROT_LEFT;
-            }
-            // optimization; we have to check per script, but if nothing is pressed and nothing changed, we can skip that
-            if (allflags != ScriptControlled.CONTROL_ZERO || allflags != LastCommands)
-            {
-                lock (scriptedcontrols)
+                // optimization; we have to check per script, but if nothing is pressed and nothing changed, we can skip that
+                if (allflags != ScriptControlled.CONTROL_ZERO || allflags != LastCommands)
                 {
                     foreach (KeyValuePair<UUID, ScriptControllers> kvp in scriptedcontrols)
                     {
                         UUID scriptUUID = kvp.Key;
                         ScriptControllers scriptControlData = kvp.Value;
-
+    
                         ScriptControlled localHeld = allflags & scriptControlData.eventControls;     // the flags interesting for us
                         ScriptControlled localLast = LastCommands & scriptControlData.eventControls; // the activated controls in the last cycle
                         ScriptControlled localChange = localHeld ^ localLast;                        // the changed bits
+
                         if (localHeld != ScriptControlled.CONTROL_ZERO || localChange != ScriptControlled.CONTROL_ZERO)
                         {
                             // only send if still pressed or just changed
@@ -3908,9 +3916,9 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
+    
+                LastCommands = allflags;
             }
-
-            LastCommands = allflags;
         }
 
         internal static AgentManager.ControlFlags RemoveIgnoredControls(AgentManager.ControlFlags flags, ScriptControlled ignored)
