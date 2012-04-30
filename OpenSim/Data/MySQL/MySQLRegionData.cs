@@ -329,11 +329,12 @@ namespace OpenSim.Data.MySQL
             if (scopeID != UUID.Zero)
                 command += " and ScopeID = ?scopeID";
 
-            MySqlCommand cmd = new MySqlCommand(command);
-
-            cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
-
-            return RunCommand(cmd);
+            using (MySqlCommand cmd = new MySqlCommand(command))
+            {
+                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+    
+                return RunCommand(cmd);
+            }
         }
     }
 }
