@@ -1800,15 +1800,15 @@ namespace OpenSim.Data.MySQL
             {
                 RemoveItems(primID);
 
+                if (items.Count == 0)
+                    return;
+
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
 
                     using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        if (items.Count == 0)
-                            return;
-    
                         cmd.CommandText = "insert into primitems (" +
                                 "invType, assetType, name, " +
                                 "description, creationDate, nextPermissions, " +
