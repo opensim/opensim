@@ -371,14 +371,19 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                  : objectGroup.AbsolutePosition.Y,
                              objectGroup.AbsolutePosition.Z);
 
+                Quaternion inventoryStoredRotation = objectGroup.GroupRotation;
                 originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
 
                 // Restore attachment data after trip through the sim
                 if (objectGroup.RootPart.AttachPoint > 0)
+                {
                     inventoryStoredPosition = objectGroup.RootPart.AttachOffset;
+                    inventoryStoredRotation = objectGroup.RootPart.AttachRotation;
+                }
                 objectGroup.RootPart.Shape.State = objectGroup.RootPart.AttachPoint;
 
                 objectGroup.AbsolutePosition = inventoryStoredPosition;
+                objectGroup.RootPart.RotationOffset = inventoryStoredRotation;
 
                 // Make sure all bits but the ones we want are clear
                 // on take.
@@ -768,6 +773,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     g.RootPart.AttachPoint = g.RootPart.Shape.State;
                     g.RootPart.AttachOffset = g.AbsolutePosition;
+                    g.RootPart.AttachRotation = g.GroupRotation;
                     g.RootPart.Shape.State = 0;
                 }
 
@@ -801,6 +807,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
                     g.RootPart.AttachPoint = g.RootPart.Shape.State;
                     g.RootPart.AttachOffset = g.AbsolutePosition;
+                    g.RootPart.AttachRotation = g.GroupRotation;
                     g.RootPart.Shape.State = 0;
 
                     objlist.Add(g);

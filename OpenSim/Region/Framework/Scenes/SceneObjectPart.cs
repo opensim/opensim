@@ -197,6 +197,9 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 AttachOffset = Vector3.Zero;
 
         [XmlIgnore]
+        public Quaternion AttachRotation = Quaternion.Identity;
+
+        [XmlIgnore]
         public int STATUS_ROTATE_X;
 
         public int STATUS_ROTATE_Y;
