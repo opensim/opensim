@@ -595,7 +595,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
                 {
-                    Thread.Sleep(5000);
+//                    Thread.Sleep(5000);
                     sp.Close();
                     sp.Scene.IncomingCloseAgent(sp.UUID);
                 }
