@@ -33,8 +33,9 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.CoreModules.Framework.EntityTransfer;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.CoreModules.Framework;
+using OpenSim.Region.CoreModules.Framework.EntityTransfer;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
@@ -49,6 +50,22 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     [TestFixture]
     public class ScenePresenceTeleportTests
     {
+        [TestFixtureSetUp]
+        public void FixtureInit()
+        {
+            // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
+            Util.FireAndForgetMethod = FireAndForgetMethod.RegressionTest;
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
+            // threads.  Possibly, later tests should be rewritten so none of them require async stuff (which regression
+            // tests really shouldn't).
+            Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
+        }
+
         [Test]
         public void TestSameRegionTeleport()
         {
@@ -96,10 +113,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
 
             IConfigSource config = new IniConfigSource();
-            config.AddConfig("Modules");
-            // Not strictly necessary since FriendsModule assumes it is the default (!)
-            config.Configs["Modules"].Set("EntityTransferModule", etm.Name);
-            config.Configs["Modules"].Set("SimulationServices", lscm.Name);
+            IConfig modulesConfig = config.AddConfig("Modules");
+            modulesConfig.Set("EntityTransferModule", etm.Name);
+            modulesConfig.Set("SimulationServices", lscm.Name);
+            IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
+
+            // In order to run a single threaded regression test we do not want the entity transfer module waiting
+            // for a callback from the destination scene before removing its avatar data.
+            entityTransferConfig.Set("wait_for_callback", false);
 
             SceneHelpers sh = new SceneHelpers();
             TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
@@ -110,12 +131,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 teleportPosition = new Vector3(10, 11, 12);
             Vector3 teleportLookAt = new Vector3(20, 21, 22);
 
-            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId);
+            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId, sh.SceneManager);
             sp.AbsolutePosition = new Vector3(30, 31, 32);
 
             // XXX: A very nasty hack to tell the client about the destination scene without having to crank the whole
             // UDP stack (?)
-            ((TestClient)sp.ControllingClient).TeleportTargetScene = sceneB;
+//            ((TestClient)sp.ControllingClient).TeleportTargetScene = sceneB;
 
             sceneA.RequestTeleportLocation(
                 sp.ControllingClient,
@@ -123,6 +144,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 teleportPosition,
                 teleportLookAt,
                 (uint)TeleportFlags.ViaLocation);
+
+            ((TestClient)sp.ControllingClient).CompleteTeleportClientSide();
 
             Assert.That(sceneA.GetScenePresence(userId), Is.Null);
 
@@ -136,6 +159,81 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Lookat is sent to the client only - sp.Lookat does not yield the same thing (calculation from camera
             // position instead).
 //            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
+        }
+
+        [Test]
+        public void TestSameSimulatorNeighbouringRegionsTeleport()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+
+            EntityTransferModule etm = new EntityTransferModule();
+            LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
+
+            IConfigSource config = new IniConfigSource();
+            IConfig modulesConfig = config.AddConfig("Modules");
+            modulesConfig.Set("EntityTransferModule", etm.Name);
+            modulesConfig.Set("SimulationServices", lscm.Name);
+            IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
+
+            // In order to run a single threaded regression test we do not want the entity transfer module waiting
+            // for a callback from the destination scene before removing its avatar data.
+            entityTransferConfig.Set("wait_for_callback", false);
+
+            SceneHelpers sh = new SceneHelpers();
+            TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
+            TestScene sceneB = sh.SetupScene("sceneB", TestHelpers.ParseTail(0x200), 1001, 1000);
+
+            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, etm, lscm);
+            SceneHelpers.SetupSceneModules(sceneA, new CapabilitiesModule());
+            SceneHelpers.SetupSceneModules(sceneB, new CapabilitiesModule());
+
+            Vector3 teleportPosition = new Vector3(10, 11, 12);
+            Vector3 teleportLookAt = new Vector3(20, 21, 22);
+
+            ScenePresence originalSp = SceneHelpers.AddScenePresence(sceneA, userId, sh.SceneManager);
+            originalSp.AbsolutePosition = new Vector3(30, 31, 32);
+
+            ScenePresence beforeSceneASp = sceneA.GetScenePresence(userId);
+            Assert.That(beforeSceneASp, Is.Not.Null);
+            Assert.That(beforeSceneASp.IsChildAgent, Is.False);
+
+            ScenePresence beforeSceneBSp = sceneB.GetScenePresence(userId);
+            Assert.That(beforeSceneBSp, Is.Not.Null);
+            Assert.That(beforeSceneBSp.IsChildAgent, Is.True);
+
+            // XXX: A very nasty hack to tell the client about the destination scene without having to crank the whole
+            // UDP stack (?)
+//            ((TestClient)beforeSceneASp.ControllingClient).TeleportTargetScene = sceneB;
+
+            sceneA.RequestTeleportLocation(
+                beforeSceneASp.ControllingClient,
+                sceneB.RegionInfo.RegionHandle,
+                teleportPosition,
+                teleportLookAt,
+                (uint)TeleportFlags.ViaLocation);
+
+            ((TestClient)beforeSceneASp.ControllingClient).CompleteTeleportClientSide();
+
+            ScenePresence afterSceneASp = sceneA.GetScenePresence(userId);
+            Assert.That(afterSceneASp, Is.Not.Null);
+            Assert.That(afterSceneASp.IsChildAgent, Is.True);
+
+            ScenePresence afterSceneBSp = sceneB.GetScenePresence(userId);
+            Assert.That(afterSceneBSp, Is.Not.Null);
+            Assert.That(afterSceneBSp.IsChildAgent, Is.False);
+            Assert.That(afterSceneBSp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneB.RegionInfo.RegionName));
+            Assert.That(afterSceneBSp.AbsolutePosition, Is.EqualTo(teleportPosition));
+
+            // TODO: Add assertions to check correct circuit details in both scenes.
+
+            // Lookat is sent to the client only - sp.Lookat does not yield the same thing (calculation from camera
+            // position instead).
+//            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
+
+//            TestHelpers.DisableLogging();
         }
     }
 }

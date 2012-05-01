@@ -2895,8 +2895,8 @@ namespace OpenSim.Region.Framework.Scenes
                     x = x / Constants.RegionSize;
                     y = y / Constants.RegionSize;
 
-                    //m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
-                    //m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
+//                    m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
+//                    m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
                     if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY))
                     {
                         byebyeRegions.Add(handle);

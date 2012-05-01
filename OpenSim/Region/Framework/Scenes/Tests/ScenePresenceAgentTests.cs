@@ -128,7 +128,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             IConfig config = configSource.AddConfig("Modules");
             config.Set("SimulationServices", "LocalSimulationConnectorModule");
 
-            TestScene scene = new SceneHelpers().SetupScene();
+            SceneHelpers sceneHelpers = new SceneHelpers();
+            TestScene scene = sceneHelpers.SetupScene();
             SceneHelpers.SetupSceneModules(scene, configSource, lsc);
 
             UUID agentId = TestHelpers.ParseTail(0x01);

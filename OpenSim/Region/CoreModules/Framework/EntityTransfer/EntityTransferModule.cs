@@ -52,11 +52,19 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public const int DefaultMaxTransferDistance = 4095;
+        public const bool EnableWaitForCallbackFromTeleportDestDefault = true;
+
 
         /// <summary>
         /// The maximum distance, in standard region units (256m) that an agent is allowed to transfer.
         /// </summary>
         public int MaxTransferDistance { get; set; }
+
+        /// <summary>
+        /// If true then on a teleport, the source region waits for a callback from the destination region.  If
+        /// a callback fails to arrive within a set time then the user is pulled back into the source region.
+        /// </summary>
+        public bool EnableWaitForCallbackFromTeleportDest { get; set; }
 
         protected bool m_Enabled = false;
         protected Scene m_aScene;
@@ -99,9 +107,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             IConfig transferConfig = source.Configs["EntityTransfer"];
             if (transferConfig != null)
+            {
+                EnableWaitForCallbackFromTeleportDest
+                    = transferConfig.GetBoolean("wait_for_callback", EnableWaitForCallbackFromTeleportDestDefault);
+                
                 MaxTransferDistance = transferConfig.GetInt("max_distance", DefaultMaxTransferDistance);
+            }
             else
+            {
                 MaxTransferDistance = DefaultMaxTransferDistance;
+            }
 
             m_agentsInTransit = new List<UUID>();
             m_Enabled = true;
@@ -499,6 +514,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
                 else
                 {
+                    ICapabilitiesModule capModule = sp.Scene.CapsModule;
+                    ulong regionHandle = reg.RegionHandle;
+                    capModule.GetChildSeed(UUID.Zero, regionHandle);
                     agentCircuit.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, reg.RegionHandle);
                     capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
                 }
@@ -527,7 +545,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.ControllingClient.SendTeleportProgress(teleportFlags | (uint)TeleportFlags.DisableCancel, "sending_dest");
 
                 m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, sp.UUID);
+                    "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} from {1} to {2}",
+                    capsPath, sp.Scene.RegionInfo.RegionName, sp.Name);
 
                 if (eq != null)
                 {
@@ -546,7 +565,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
                 // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
                 // that the client contacted the destination before we close things here.
-                if (!WaitForCallback(sp.UUID))
+                if (EnableWaitForCallbackFromTeleportDest && !WaitForCallback(sp.UUID))
                 {
                     m_log.WarnFormat(
                         "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} failed due to no callback from destination region.  Returning avatar to source region.", 
@@ -1286,7 +1305,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 if (neighbour.RegionHandle != sp.Scene.RegionInfo.RegionHandle)
                 {
-
                     AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
                     AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
                     agent.BaseFolder = UUID.Zero;
@@ -1311,7 +1329,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         seeds.Add(neighbour.RegionHandle, agent.CapsPath);
                     }
                     else
+                    {
                         agent.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, neighbour.RegionHandle);
+                    }
 
                     cagents.Add(agent);
                 }
@@ -1926,7 +1946,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             int count = 200;
             while (m_agentsInTransit.Contains(id) && count-- > 0)
             {
-                //m_log.Debug("  >>> Waiting... " + count);
+//                m_log.Debug("  >>> Waiting... " + count);
                 Thread.Sleep(100);
             }
 
@@ -1934,6 +1954,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return true;
             else
                 return false;
+
+            return true;
         }
 
         protected void SetInTransit(UUID id)
