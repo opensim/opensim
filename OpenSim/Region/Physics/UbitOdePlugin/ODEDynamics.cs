@@ -470,15 +470,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearDeflectionEfficiency = 1;
                     m_linearDeflectionTimescale = 1;
                     m_angularDeflectionEfficiency = 0;
-                    m_angularDeflectionTimescale = 1000;
+                    m_angularDeflectionTimescale = 10;
+                    m_verticalAttractionEfficiency = 1;
+                    m_verticalAttractionTimescale = 1000;
                     m_bankingEfficiency = 0;
                     m_bankingMix = 1;
                     m_bankingTimescale = 10;
                     m_flags &=
                          ~(VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY |
                            VehicleFlag.HOVER_GLOBAL_HEIGHT | VehicleFlag.HOVER_UP_ONLY);
-                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.LIMIT_ROLL_ONLY | VehicleFlag.LIMIT_MOTOR_UP);
+                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP |
+                        VehicleFlag.LIMIT_ROLL_ONLY |
+                        VehicleFlag.LIMIT_MOTOR_UP);
                     break;
+
                 case Vehicle.TYPE_CAR:
                     m_linearFrictionTimescale = new Vector3(100, 2, 1000);
                     m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
@@ -499,9 +504,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_bankingEfficiency = -0.2f;
                     m_bankingMix = 1;
                     m_bankingTimescale = 1;
-                    m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT);
-                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.LIMIT_ROLL_ONLY |
-                                VehicleFlag.LIMIT_MOTOR_UP | VehicleFlag.HOVER_UP_ONLY);
+                    m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY |
+                                VehicleFlag.HOVER_TERRAIN_ONLY |
+                                VehicleFlag.HOVER_GLOBAL_HEIGHT);
+                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP |
+                                VehicleFlag.LIMIT_ROLL_ONLY |
+                                VehicleFlag.LIMIT_MOTOR_UP |
+                                VehicleFlag.HOVER_UP_ONLY);
                     break;
                 case Vehicle.TYPE_BOAT:
                     m_linearFrictionTimescale = new Vector3(10, 3, 2);
@@ -525,12 +534,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_bankingTimescale = 1;
                     m_flags &= ~(VehicleFlag.HOVER_TERRAIN_ONLY |
                             VehicleFlag.HOVER_GLOBAL_HEIGHT |
-                            VehicleFlag.HOVER_UP_ONLY |
-                            VehicleFlag.LIMIT_ROLL_ONLY);
+                            VehicleFlag.HOVER_UP_ONLY); // |
+//                            VehicleFlag.LIMIT_ROLL_ONLY);
                     m_flags |= (VehicleFlag.NO_DEFLECTION_UP |
                                 VehicleFlag.LIMIT_MOTOR_UP |
+                                VehicleFlag.HOVER_UP_ONLY |  // new sl
                                 VehicleFlag.HOVER_WATER_ONLY);
                     break;
+
                 case Vehicle.TYPE_AIRPLANE:
                     m_linearFrictionTimescale = new Vector3(200, 10, 5);
                     m_angularFrictionTimescale = new Vector3(20, 20, 20);
@@ -559,6 +570,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         VehicleFlag.LIMIT_MOTOR_UP);
                     m_flags |= (VehicleFlag.LIMIT_ROLL_ONLY);
                     break;
+
                 case Vehicle.TYPE_BALLOON:
                     m_linearFrictionTimescale = new Vector3(5, 5, 5);
                     m_angularFrictionTimescale = new Vector3(10, 10, 10);
@@ -574,7 +586,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearDeflectionTimescale = 5 * m_invtimestep;
                     m_angularDeflectionEfficiency = 0;
                     m_angularDeflectionTimescale = 5;
-                    m_verticalAttractionEfficiency = 0f;
+                    m_verticalAttractionEfficiency = 1f;
                     m_verticalAttractionTimescale = 1000f;
                     m_bankingEfficiency = 0;
                     m_bankingMix = 0.7f;
@@ -583,9 +595,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                         VehicleFlag.HOVER_TERRAIN_ONLY |
                         VehicleFlag.HOVER_UP_ONLY |
                         VehicleFlag.NO_DEFLECTION_UP |
-                        VehicleFlag.LIMIT_MOTOR_UP);
-                    m_flags |= (VehicleFlag.LIMIT_ROLL_ONLY |
-                        VehicleFlag.HOVER_GLOBAL_HEIGHT);
+                        VehicleFlag.LIMIT_MOTOR_UP  | //);
+                        VehicleFlag.LIMIT_ROLL_ONLY | // new sl
+                        VehicleFlag.HOVER_GLOBAL_HEIGHT); // new sl
+
+//                    m_flags |= (VehicleFlag.LIMIT_ROLL_ONLY |
+//                        VehicleFlag.HOVER_GLOBAL_HEIGHT);
                     break;
             }
 
@@ -768,9 +783,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             // hover
-            if (m_VhoverTimescale < 300)
+            if (m_VhoverTimescale < 300 && rootPrim.prim_geom != IntPtr.Zero)
             {
-                d.Vector3 pos = d.BodyGetPosition(Body);
+                //                d.Vector3 pos = d.BodyGetPosition(Body);
+                d.Vector3 pos = d.GeomGetPosition(rootPrim.prim_geom);
+                pos.Z -= 0.21f; // minor offset that seems to be always there in sl
 
                 float t = _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y);
                 float perr;

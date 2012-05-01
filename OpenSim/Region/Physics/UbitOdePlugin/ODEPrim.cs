@@ -449,54 +449,57 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get
             {
-                d.Vector3 dtmp;
-                if (!childPrim && Body != IntPtr.Zero)
+                lock (_parent_scene.OdeLock)
                 {
-                    dtmp = d.BodyGetPosition(Body);
-                    return new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
-                }
-                else if (prim_geom != IntPtr.Zero)
-                {
-                    d.Quaternion dq;
-                    d.GeomCopyQuaternion(prim_geom, out dq);
-                    Quaternion q;
-                    q.X = dq.X;
-                    q.Y = dq.Y;
-                    q.Z = dq.Z;
-                    q.W = dq.W;
-
-                    Vector3 Ptot = primOOBoffset * q;
-                    dtmp = d.GeomGetPosition(prim_geom);
-                    Ptot.X += dtmp.X;
-                    Ptot.Y += dtmp.Y;
-                    Ptot.Z += dtmp.Z;
-
-//                    if(childPrim)  we only know about physical linksets
-                        return Ptot;
-/*
-                    float tmass = _mass;
-                    Ptot *= tmass;
-
-                    float m;
-
-                    foreach (OdePrim prm in childrenPrim)
+                    d.Vector3 dtmp;
+                    if (!childPrim && Body != IntPtr.Zero)
                     {
-                        m = prm._mass;
-                        Ptot += prm.CenterOfMass * m;
-                        tmass += m;
+                        dtmp = d.BodyGetPosition(Body);
+                        return new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
                     }
+                    else if (prim_geom != IntPtr.Zero)
+                    {
+                        d.Quaternion dq;
+                        d.GeomCopyQuaternion(prim_geom, out dq);
+                        Quaternion q;
+                        q.X = dq.X;
+                        q.Y = dq.Y;
+                        q.Z = dq.Z;
+                        q.W = dq.W;
 
-                    if (tmass == 0)
-                        tmass = 0;
+                        Vector3 Ptot = primOOBoffset * q;
+                        dtmp = d.GeomGetPosition(prim_geom);
+                        Ptot.X += dtmp.X;
+                        Ptot.Y += dtmp.Y;
+                        Ptot.Z += dtmp.Z;
+
+                        //                    if(childPrim)  we only know about physical linksets
+                        return Ptot;
+                        /*
+                                            float tmass = _mass;
+                                            Ptot *= tmass;
+
+                                            float m;
+
+                                            foreach (OdePrim prm in childrenPrim)
+                                            {
+                                                m = prm._mass;
+                                                Ptot += prm.CenterOfMass * m;
+                                                tmass += m;
+                                            }
+
+                                            if (tmass == 0)
+                                                tmass = 0;
+                                            else
+                                                tmass = 1.0f / tmass;
+
+                                            Ptot *= tmass;
+                                            return Ptot;
+                         */
+                    }
                     else
-                        tmass = 1.0f / tmass;
-
-                    Ptot *= tmass;
-                    return Ptot;
- */
+                        return _position;
                 }
-                else
-                    return _position;
             }
         }
         /*
@@ -840,7 +843,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (force.IsFinite())
             {
-                AddChange(changes.AddAngForce, force * m_invTimeStep);
+                AddChange(changes.AddAngForce, force);
             }
             else
             {
@@ -1511,7 +1514,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             Body = IntPtr.Zero;
             hasOOBoffsetFromMesh = false;
-            CalcPrimBodyData();
         }
 /*
         private void ChildSetGeom(OdePrim odePrim)
@@ -1601,7 +1603,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             Body = d.BodyCreate(_parent_scene.world);
 
-            DMassDup(ref primdMass, out objdmass);
+            objdmass = primdMass;
 
             // rotate inertia
             myrot.X = _orientation.X;
@@ -1623,9 +1625,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.Mass tmpdmass = new d.Mass { };
                 Vector3 rcm;
 
-                rcm.X = _position.X + objdmass.c.X;
-                rcm.Y = _position.Y + objdmass.c.Y;
-                rcm.Z = _position.Z + objdmass.c.Z;
+                rcm.X = _position.X;
+                rcm.Y = _position.Y;
+                rcm.Z = _position.Z;
 
                 lock (childrenPrim)
                 {
@@ -1637,7 +1639,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             continue;
                         }
 
-                        DMassCopy(ref prm.primdMass, ref tmpdmass);
+                        tmpdmass = prm.primdMass;
 
                         // apply prim current rotation to inertia
                         quat.X = prm._orientation.X;
@@ -1648,10 +1650,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.MassRotate(ref tmpdmass, ref mat);
 
                         Vector3 ppos = prm._position;
-                        ppos.X += tmpdmass.c.X - rcm.X;
-                        ppos.Y += tmpdmass.c.Y - rcm.Y;
-                        ppos.Z += tmpdmass.c.Z - rcm.Z;
-
+                        ppos.X -= rcm.X;
+                        ppos.Y -= rcm.Y;
+                        ppos.Z -= rcm.Z;
                         // refer inertia to root prim center of mass position
                         d.MassTranslate(ref tmpdmass,
                             ppos.X,
@@ -1683,9 +1684,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomSetOffsetWorldPosition(prim_geom, _position.X, _position.Y, _position.Z);
 
             d.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
-            myrot.W = -myrot.W;
+            myrot.X = -myrot.X;
+            myrot.Y = -myrot.Y;
+            myrot.Z = -myrot.Z;
+
             d.RfromQ(out mymat, ref myrot);
             d.MassRotate(ref objdmass, ref mymat);
+
             d.BodySetMass(Body, ref objdmass);
             _mass = objdmass.mass;
 
@@ -2237,7 +2242,33 @@ namespace OpenSim.Region.Physics.OdePlugin
                 case ProfileShape.HalfCircle:
                     if (_pbs.PathCurve == (byte)Extrusion.Curve1)
                     {
-                        volume *= 0.52359877559829887307710723054658f;
+                        volume *= 0.5236f;
+
+                        if (hollowAmount > 0.0)
+                        {
+                            hollowVolume *= hollowAmount;
+
+                            switch (_pbs.HollowShape)
+                            {
+                                case HollowShape.Circle:
+                                case HollowShape.Triangle:  // diference in sl is minor and odd
+                                case HollowShape.Same:
+                                    break;
+
+                                case HollowShape.Square:
+                                    hollowVolume *= 0.909f;
+                                    break;
+
+                                //                                case HollowShape.Triangle:
+                                //                                    hollowVolume *= .827f;
+                                //                                    break;
+                                default:
+                                    hollowVolume = 0;
+                                    break;
+                            }
+                            volume *= (1.0f - hollowVolume);
+                        }
+
                     }
                     break;
 
@@ -3186,7 +3217,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changeAddImpulse(Vector3 impulse)
         {
-            m_forceacc += impulse * m_invTimeStep;
+            m_forceacc += impulse *m_invTimeStep;
             if (!m_isSelected)
             {
                 lock (this)
@@ -3704,24 +3735,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             return true;
         }
 
-        internal static void DMassCopy(ref d.Mass src, ref d.Mass dst)
-        {
-            dst.c.W = src.c.W;
-            dst.c.X = src.c.X;
-            dst.c.Y = src.c.Y;
-            dst.c.Z = src.c.Z;
-            dst.mass = src.mass;
-            dst.I.M00 = src.I.M00;
-            dst.I.M01 = src.I.M01;
-            dst.I.M02 = src.I.M02;
-            dst.I.M10 = src.I.M10;
-            dst.I.M11 = src.I.M11;
-            dst.I.M12 = src.I.M12;
-            dst.I.M20 = src.I.M20;
-            dst.I.M21 = src.I.M21;
-            dst.I.M22 = src.I.M22;
-        }
-
         internal static void DMassSubPartFromObj(ref d.Mass part, ref d.Mass theobj)
         {
             // assumes object center of mass is zero
@@ -3745,25 +3758,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             theobj.I.M22 -= part.I.M22;
         }
 
-        private static void DMassDup(ref d.Mass src, out d.Mass dst)
-        {
-            dst = new d.Mass { };
-
-            dst.c.W = src.c.W;
-            dst.c.X = src.c.X;
-            dst.c.Y = src.c.Y;
-            dst.c.Z = src.c.Z;
-            dst.mass = src.mass;
-            dst.I.M00 = src.I.M00;
-            dst.I.M01 = src.I.M01;
-            dst.I.M02 = src.I.M02;
-            dst.I.M10 = src.I.M10;
-            dst.I.M11 = src.I.M11;
-            dst.I.M12 = src.I.M12;
-            dst.I.M20 = src.I.M20;
-            dst.I.M21 = src.I.M21;
-            dst.I.M22 = src.I.M22;
-        }
         private void donullchange()
         {
         }
