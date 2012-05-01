@@ -4024,13 +4024,25 @@ namespace OpenSim.Region.Framework.Scenes
             if (nparts <= 1)
                 return gc;
 
+            Quaternion parentRot = RootPart.RotationOffset;
+            Vector3 pPos;
+
             // average all parts positions
             for (int i = 0; i < nparts; i++)
-                gc += parts[i].GetWorldPosition();
+            {
+                // do it directly
+                //                gc += parts[i].GetWorldPosition();
+                if (parts[i] != RootPart)
+                {
+                    pPos = parts[i].OffsetPosition;
+                    gc += pPos;
+                }
+
+            }
             gc /= nparts;
 
             // relative to root:
-            gc -= AbsolutePosition;
+//            gc -= AbsolutePosition;
             return gc;
         }
 
