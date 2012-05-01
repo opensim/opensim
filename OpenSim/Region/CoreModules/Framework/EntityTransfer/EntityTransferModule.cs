@@ -514,9 +514,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
                 else
                 {
-                    ICapabilitiesModule capModule = sp.Scene.CapsModule;
-                    ulong regionHandle = reg.RegionHandle;
-                    capModule.GetChildSeed(UUID.Zero, regionHandle);
                     agentCircuit.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, reg.RegionHandle);
                     capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
                 }
