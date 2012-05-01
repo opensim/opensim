@@ -242,13 +242,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
             GridRegion homeGatekeeper = MakeRegion(aCircuit);
             
             m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: teleporting user {0} {1} home to {2} via {3}:{4}",
                 aCircuit.firstname, aCircuit.lastname, finalDestination.RegionName, homeGatekeeper.ServerURI, homeGatekeeper.RegionName);
 
-            DoTeleport(sp, homeGatekeeper, finalDestination, position, lookAt, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome), eq);
+            DoTeleport(
+                sp, homeGatekeeper, finalDestination,
+                position, lookAt, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome));
         }
 
         /// <summary>
@@ -288,17 +289,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     ScenePresence sp = scene.GetScenePresence(remoteClient.AgentId);
                     IEntityTransferModule transferMod = scene.RequestModuleInterface<IEntityTransferModule>();
-                    IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
-                    if (transferMod != null && sp != null && eq != null)
-                        transferMod.DoTeleport(sp, gatekeeper, finalDestination, lm.Position,
-                            Vector3.UnitX, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark), eq);
+
+                    if (transferMod != null && sp != null)
+                        transferMod.DoTeleport(
+                            sp, gatekeeper, finalDestination, lm.Position, Vector3.UnitX,
+                            (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
                 }
 
             }
 
             // can't find the region: Tell viewer and abort
             remoteClient.SendTeleportFailed("The teleport destination could not be found.");
-
         }
 
         #endregion
