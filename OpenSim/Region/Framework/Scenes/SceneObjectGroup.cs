@@ -3722,7 +3722,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         if ((change & ObjectChangeType.Position) != 0)
                         {
-                            group.AbsolutePosition = data.position;
+                            UpdateGroupPosition(data.position);
                             updateType = updatetype.groupterse;
                         }
                         else

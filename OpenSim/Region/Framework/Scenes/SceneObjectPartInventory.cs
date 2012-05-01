@@ -801,6 +801,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             group.RootPart.AttachPoint = group.RootPart.Shape.State;
             group.RootPart.AttachOffset = group.AbsolutePosition;
+            group.RootPart.AttachRotation = group.GroupRotation;
 
             group.ResetIDs();
 
