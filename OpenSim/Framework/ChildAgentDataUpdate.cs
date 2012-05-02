@@ -229,12 +229,14 @@ namespace OpenSim.Framework
 
     public class ControllerData
     {
+        public UUID ObjectID;
         public UUID ItemID;
         public uint IgnoreControls;
         public uint EventControls;
 
-        public ControllerData(UUID item, uint ignore, uint ev)
+        public ControllerData(UUID obj, UUID item, uint ignore, uint ev)
         {
+            ObjectID = obj;
             ItemID = item;
             IgnoreControls = ignore;
             EventControls = ev;
@@ -248,6 +250,7 @@ namespace OpenSim.Framework
         public OSDMap PackUpdateMessage()
         {
             OSDMap controldata = new OSDMap();
+            controldata["object"] = OSD.FromUUID(ObjectID);
             controldata["item"] = OSD.FromUUID(ItemID);
             controldata["ignore"] = OSD.FromInteger(IgnoreControls);
             controldata["event"] = OSD.FromInteger(EventControls);
@@ -258,6 +261,8 @@ namespace OpenSim.Framework
 
         public void UnpackUpdateMessage(OSDMap args)
         {
+            if (args["object"] != null)
+                ObjectID = args["object"].AsUUID();
             if (args["item"] != null)
                 ItemID = args["item"].AsUUID();
             if (args["ignore"] != null)
