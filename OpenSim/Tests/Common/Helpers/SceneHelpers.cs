@@ -58,6 +58,11 @@ namespace OpenSim.Tests.Common
     /// </summary>
     public class SceneHelpers
     {
+        /// <summary>
+        /// We need a scene manager so that test clients can retrieve a scene when performing teleport tests.
+        /// </summary>
+        public SceneManager SceneManager { get; private set; }
+
         private AgentCircuitManager m_acm = new AgentCircuitManager();
         private ISimulationDataService m_simDataService
             = OpenSim.Server.Base.ServerUtils.LoadPlugin<ISimulationDataService>("OpenSim.Tests.Common.dll", null);
@@ -76,6 +81,8 @@ namespace OpenSim.Tests.Common
 
         public SceneHelpers(CoreAssetCache cache)
         {
+            SceneManager = new SceneManager();
+
             m_assetService          = StartAssetService(cache);
             m_authenticationService = StartAuthenticationService();
             m_inventoryService      = StartInventoryService();
@@ -185,6 +192,8 @@ namespace OpenSim.Tests.Common
             testScene.RegionInfo.EstateSettings = new EstateSettings();
             testScene.LoginsDisabled = false;
             testScene.RegisterRegionWithGrid();
+
+            SceneManager.Add(testScene);
 
             return testScene;
         }
@@ -350,6 +359,7 @@ namespace OpenSim.Tests.Common
             List<IRegionModuleBase> newModules = new List<IRegionModuleBase>();
             foreach (object module in modules)
             {
+//                Console.WriteLine("MODULE RAW {0}", module);
                 if (module is IRegionModule)
                 {
                     IRegionModule m = (IRegionModule)module;
@@ -367,6 +377,7 @@ namespace OpenSim.Tests.Common
                     // for the new system, everything has to be initialised first,
                     // shared modules have to be post-initialised, then all get an AddRegion with the scene
                     IRegionModuleBase m = (IRegionModuleBase)module;
+//                    Console.WriteLine("MODULE {0}", m.Name);
                     m.Initialise(config);
                     newModules.Add(m);
                 }
@@ -426,12 +437,28 @@ namespace OpenSim.Tests.Common
         /// <summary>
         /// Add a root agent where the details of the agent connection (apart from the id) are unimportant for the test
         /// </summary>
+        /// <remarks>
+        /// This can be used for tests where there is only one region or where there are multiple non-neighbour regions
+        /// and teleport doesn't take place.
+        /// </remarks>
         /// <param name="scene"></param>
         /// <param name="agentId"></param>
         /// <returns></returns>
         public static ScenePresence AddScenePresence(Scene scene, UUID agentId)
         {
             return AddScenePresence(scene, GenerateAgentData(agentId));
+        }
+
+        /// <summary>
+        /// Add a root agent where the details of the agent connection (apart from the id) are unimportant for the test
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="agentId"></param>
+        /// <param name="sceneManager"></param>
+        /// <returns></returns>
+        public static ScenePresence AddScenePresence(Scene scene, UUID agentId, SceneManager sceneManager)
+        {
+            return AddScenePresence(scene, GenerateAgentData(agentId), sceneManager);
         }
 
         /// <summary>
@@ -454,6 +481,30 @@ namespace OpenSim.Tests.Common
         /// <returns></returns>
         public static ScenePresence AddScenePresence(Scene scene, AgentCircuitData agentData)
         {
+            return AddScenePresence(scene, agentData, null);
+        }
+
+        /// <summary>
+        /// Add a root agent.
+        /// </summary>
+        /// <remarks>
+        /// This function
+        ///
+        /// 1)  Tells the scene that an agent is coming.  Normally, the login service (local if standalone, from the
+        /// userserver if grid) would give initial login data back to the client and separately tell the scene that the
+        /// agent was coming.
+        ///
+        /// 2)  Connects the agent with the scene
+        ///
+        /// This function performs actions equivalent with notifying the scene that an agent is
+        /// coming and then actually connecting the agent to the scene.  The one step missed out is the very first
+        /// </remarks>
+        /// <param name="scene"></param>
+        /// <param name="agentData"></param>
+        /// <param name="sceneManager"></param>
+        /// <returns></returns>
+        public static ScenePresence AddScenePresence(Scene scene, AgentCircuitData agentData, SceneManager sceneManager)
+        {
             // We emulate the proper login sequence here by doing things in four stages
 
             // Stage 0: login
@@ -463,7 +514,7 @@ namespace OpenSim.Tests.Common
             lpsc.m_PresenceService.LoginAgent(agentData.AgentID.ToString(), agentData.SessionID, agentData.SecureSessionID);
 
             // Stages 1 & 2
-            ScenePresence sp = IntroduceClientToScene(scene, agentData, TeleportFlags.ViaLogin);
+            ScenePresence sp = IntroduceClientToScene(scene, sceneManager, agentData, TeleportFlags.ViaLogin);
 
             // Stage 3: Complete the entrance into the region.  This converts the child agent into a root agent.
             sp.CompleteMovement(sp.ControllingClient, true);
@@ -471,7 +522,20 @@ namespace OpenSim.Tests.Common
             return sp;
         }
 
-        private static ScenePresence IntroduceClientToScene(Scene scene, AgentCircuitData agentData, TeleportFlags tf)
+        /// <summary>
+        /// Introduce an agent into the scene by adding a new client.
+        /// </summary>
+        /// <returns>The scene presence added</returns>
+        /// <param name='sceneManager'>
+        /// Scene manager.  Can be null if there is only one region in the test or multiple regions that are not
+        /// neighbours and where no teleporting takes place.
+        /// </param>
+        /// <param name='scene'></param>
+        /// <param name='sceneManager></param>
+        /// <param name='agentData'></param>
+        /// <param name='tf'></param>
+        private static ScenePresence IntroduceClientToScene(
+            Scene scene, SceneManager sceneManager, AgentCircuitData agentData, TeleportFlags tf)
         {
             string reason;
 
@@ -480,7 +544,7 @@ namespace OpenSim.Tests.Common
                 Console.WriteLine("NewUserConnection failed: " + reason);
 
             // Stage 2: add the new client as a child agent to the scene
-            TestClient client = new TestClient(agentData, scene);
+            TestClient client = new TestClient(agentData, scene, sceneManager);
             scene.AddNewClient(client, PresenceType.User);
 
             return scene.GetScenePresence(agentData.AgentID);
@@ -492,7 +556,7 @@ namespace OpenSim.Tests.Common
             acd.child = true;
 
             // XXX: ViaLogin may not be correct for child agents
-            return IntroduceClientToScene(scene, acd, TeleportFlags.ViaLogin);
+            return IntroduceClientToScene(scene, null, acd, TeleportFlags.ViaLogin);
         }
 
         /// <summary>

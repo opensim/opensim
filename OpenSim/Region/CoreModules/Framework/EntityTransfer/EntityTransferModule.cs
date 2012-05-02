@@ -51,15 +51,20 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public const int DefaultMaxTransferDistance = 4095;
+        public const bool EnableWaitForCallbackFromTeleportDestDefault = true;
+
+
         /// <summary>
         /// The maximum distance, in standard region units (256m) that an agent is allowed to transfer.
         /// </summary>
-        private int m_MaxTransferDistance = 4095;
-        public int MaxTransferDistance
-        {
-            get { return m_MaxTransferDistance; }
-            set { m_MaxTransferDistance = value; }
-        }
+        public int MaxTransferDistance { get; set; }
+
+        /// <summary>
+        /// If true then on a teleport, the source region waits for a callback from the destination region.  If
+        /// a callback fails to arrive within a set time then the user is pulled back into the source region.
+        /// </summary>
+        public bool EnableWaitForCallbackFromTeleportDest { get; set; }
 
         protected bool m_Enabled = false;
         protected Scene m_aScene;
@@ -103,7 +108,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             IConfig transferConfig = source.Configs["EntityTransfer"];
             if (transferConfig != null)
             {
-                MaxTransferDistance = transferConfig.GetInt("max_distance", 4095);
+                EnableWaitForCallbackFromTeleportDest
+                    = transferConfig.GetBoolean("wait_for_callback", EnableWaitForCallbackFromTeleportDestDefault);
+                
+                MaxTransferDistance = transferConfig.GetInt("max_distance", DefaultMaxTransferDistance);
+            }
+            else
+            {
+                MaxTransferDistance = DefaultMaxTransferDistance;
             }
 
             m_agentsInTransit = new List<UUID>();
@@ -170,8 +182,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (!sp.Scene.Permissions.CanTeleport(sp.UUID))
                 return;
 
-            IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
-
             // Reset animations; the viewer does that in teleports.
             sp.Animator.ResetAnimations();
 
@@ -183,131 +193,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     destinationRegionName = sp.Scene.RegionInfo.RegionName;
 
-                    m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: Teleport for {0} to {1} within {2}",
-                        sp.Name, position, destinationRegionName);
-
-                    // Teleport within the same region
-                    if (IsOutsideRegion(sp.Scene, position) || position.Z < 0)
-                    {
-                        Vector3 emergencyPos = new Vector3(128, 128, 128);
-
-                        m_log.WarnFormat(
-                            "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
-                            position, sp.Name, sp.UUID, emergencyPos);
-
-                        position = emergencyPos;
-                    }
-
-                    // TODO: Get proper AVG Height
-                    float localAVHeight = 1.56f;
-                    float posZLimit = 22;
-
-                    // TODO: Check other Scene HeightField
-                    if (position.X > 0 && position.X <= (int)Constants.RegionSize && position.Y > 0 && position.Y <= (int)Constants.RegionSize)
-                    {
-                        posZLimit = (float)sp.Scene.Heightmap[(int)position.X, (int)position.Y];
-                    }
-
-                    float newPosZ = posZLimit + localAVHeight;
-                    if (posZLimit >= (position.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
-                    {
-                        position.Z = newPosZ;
-                    }
-
-                    sp.ControllingClient.SendTeleportStart(teleportFlags);
-
-                    sp.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
-                    sp.TeleportFlags = (Constants.TeleportFlags)teleportFlags;
-                    sp.Velocity = Vector3.Zero;
-                    sp.Teleport(position);
-
-                    foreach (SceneObjectGroup grp in sp.GetAttachments())
-                    {
-                        sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
-                    }
+                    TeleportAgentWithinRegion(sp, position, lookAt, teleportFlags);
                 }
                 else // Another region possibly in another simulator
                 {
-                    uint x = 0, y = 0;
-                    Utils.LongToUInts(regionHandle, out x, out y);
-                    GridRegion reg = m_aScene.GridService.GetRegionByPosition(sp.Scene.RegionInfo.ScopeID, (int)x, (int)y);
+                    GridRegion finalDestination;
+                    TeleportAgentToDifferentRegion(
+                        sp, regionHandle, position, lookAt, teleportFlags, out finalDestination);
 
-                    if (reg != null)
-                    {
-                        GridRegion finalDestination = GetFinalDestination(reg);
-                        if (finalDestination == null)
-                        {
-                            m_log.WarnFormat(
-                                "[ENTITY TRANSFER MODULE]: Final destination is having problems. Unable to teleport {0} {1}",
-                                sp.Name, sp.UUID);
-
-                            sp.ControllingClient.SendTeleportFailed("Problem at destination");
-                            return;
-                        }
-
+                    if (finalDestination != null)
                         destinationRegionName = finalDestination.RegionName;
-
-                        uint curX = 0, curY = 0;
-                        Utils.LongToUInts(sp.Scene.RegionInfo.RegionHandle, out curX, out curY);
-                        int curCellX = (int)(curX / Constants.RegionSize);
-                        int curCellY = (int)(curY / Constants.RegionSize);
-                        int destCellX = (int)(finalDestination.RegionLocX / Constants.RegionSize);
-                        int destCellY = (int)(finalDestination.RegionLocY / Constants.RegionSize);
-
-//                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Source co-ords are x={0} y={1}", curRegionX, curRegionY);
-//
-//                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final dest is x={0} y={1} {2}@{3}",
-//                            destRegionX, destRegionY, finalDestination.RegionID, finalDestination.ServerURI);
-
-                        // Check that these are not the same coordinates
-                        if (finalDestination.RegionLocX == sp.Scene.RegionInfo.RegionLocX &&
-                            finalDestination.RegionLocY == sp.Scene.RegionInfo.RegionLocY)
-                        {
-                            // Can't do. Viewer crashes
-                            sp.ControllingClient.SendTeleportFailed("Space warp! You would crash. Move to a different region and try again.");
-                            return;
-                        }
-
-                        if (Math.Abs(curCellX - destCellX) > MaxTransferDistance || Math.Abs(curCellY - destCellY) > MaxTransferDistance)
-                        {
-                            sp.ControllingClient.SendTeleportFailed(
-                                string.Format(
-                                  "Can't teleport to {0} ({1},{2}) from {3} ({4},{5}), destination is more than {6} regions way",
-                                  finalDestination.RegionName, destCellX, destCellY,
-                                  sp.Scene.RegionInfo.RegionName, curCellX, curCellY,
-                                  MaxTransferDistance));
-
-                            return;
-                        }
-
-                        //
-                        // This is it
-                        //
-                        DoTeleport(sp, reg, finalDestination, position, lookAt, teleportFlags, eq);
-                        //
-                        //
-                        //
-                    }
-                    else
-                    {
-                        // TP to a place that doesn't exist (anymore)
-                        // Inform the viewer about that
-                        sp.ControllingClient.SendTeleportFailed("The region you tried to teleport to doesn't exist anymore");
-
-                        // and set the map-tile to '(Offline)'
-                        uint regX, regY;
-                        Utils.LongToUInts(regionHandle, out regX, out regY);
-
-                        MapBlockData block = new MapBlockData();
-                        block.X = (ushort)(regX / Constants.RegionSize);
-                        block.Y = (ushort)(regY / Constants.RegionSize);
-                        block.Access = 254; // == not there
-
-                        List<MapBlockData> blocks = new List<MapBlockData>();
-                        blocks.Add(block);
-                        sp.ControllingClient.SendMapBlock(blocks, 0);
-                    }
                 }
             }
             catch (Exception e)
@@ -321,8 +216,171 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
-        public void DoTeleport(ScenePresence sp, GridRegion reg, GridRegion finalDestination, Vector3 position, Vector3 lookAt, uint teleportFlags, IEventQueue eq)
+        /// <summary>
+        /// Teleports the agent within its current region.
+        /// </summary>
+        /// <param name="sp"></param>
+        /// <param name="position"></param>
+        /// <param name="lookAt"></param>
+        /// <param name="teleportFlags"></param
+        private void TeleportAgentWithinRegion(ScenePresence sp, Vector3 position, Vector3 lookAt, uint teleportFlags)
         {
+            m_log.DebugFormat(
+                "[ENTITY TRANSFER MODULE]: Teleport for {0} to {1} within {2}",
+                sp.Name, position, sp.Scene.RegionInfo.RegionName);
+
+            // Teleport within the same region
+            if (IsOutsideRegion(sp.Scene, position) || position.Z < 0)
+            {
+                Vector3 emergencyPos = new Vector3(128, 128, 128);
+
+                m_log.WarnFormat(
+                    "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
+                    position, sp.Name, sp.UUID, emergencyPos);
+
+                position = emergencyPos;
+            }
+
+            // TODO: Get proper AVG Height
+            float localAVHeight = 1.56f;
+            float posZLimit = 22;
+
+            // TODO: Check other Scene HeightField
+            if (position.X > 0 && position.X <= (int)Constants.RegionSize && position.Y > 0 && position.Y <= (int)Constants.RegionSize)
+            {
+                posZLimit = (float)sp.Scene.Heightmap[(int)position.X, (int)position.Y];
+            }
+
+            float newPosZ = posZLimit + localAVHeight;
+            if (posZLimit >= (position.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
+            {
+                position.Z = newPosZ;
+            }
+
+            sp.ControllingClient.SendTeleportStart(teleportFlags);
+
+            sp.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
+            sp.TeleportFlags = (Constants.TeleportFlags)teleportFlags;
+            sp.Velocity = Vector3.Zero;
+            sp.Teleport(position);
+
+            foreach (SceneObjectGroup grp in sp.GetAttachments())
+            {
+                sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
+            }
+        }
+
+        /// <summary>
+        /// Teleports the agent to a different region.
+        /// </summary>
+        /// <param name='sp'></param>
+        /// <param name='regionHandle'>/param>
+        /// <param name='position'></param>
+        /// <param name='lookAt'></param>
+        /// <param name='teleportFlags'></param>
+        /// <param name='finalDestination'></param>
+        private void TeleportAgentToDifferentRegion(
+            ScenePresence sp, ulong regionHandle, Vector3 position,
+            Vector3 lookAt, uint teleportFlags, out GridRegion finalDestination)
+        {
+            uint x = 0, y = 0;
+            Utils.LongToUInts(regionHandle, out x, out y);
+            GridRegion reg = m_aScene.GridService.GetRegionByPosition(sp.Scene.RegionInfo.ScopeID, (int)x, (int)y);
+
+            if (reg != null)
+            {
+                finalDestination = GetFinalDestination(reg);
+
+                if (finalDestination == null)
+                {
+                    m_log.WarnFormat(
+                        "[ENTITY TRANSFER MODULE]: Final destination is having problems. Unable to teleport {0} {1}",
+                        sp.Name, sp.UUID);
+
+                    sp.ControllingClient.SendTeleportFailed("Problem at destination");
+                    return;
+                }
+
+                // Check that these are not the same coordinates
+                if (finalDestination.RegionLocX == sp.Scene.RegionInfo.RegionLocX &&
+                    finalDestination.RegionLocY == sp.Scene.RegionInfo.RegionLocY)
+                {
+                    // Can't do. Viewer crashes
+                    sp.ControllingClient.SendTeleportFailed("Space warp! You would crash. Move to a different region and try again.");
+                    return;
+                }
+
+                //
+                // This is it
+                //
+                DoTeleport(sp, reg, finalDestination, position, lookAt, teleportFlags);
+                //
+                //
+                //
+            }
+            else
+            {
+                finalDestination = null;
+
+                // TP to a place that doesn't exist (anymore)
+                // Inform the viewer about that
+                sp.ControllingClient.SendTeleportFailed("The region you tried to teleport to doesn't exist anymore");
+
+                // and set the map-tile to '(Offline)'
+                uint regX, regY;
+                Utils.LongToUInts(regionHandle, out regX, out regY);
+
+                MapBlockData block = new MapBlockData();
+                block.X = (ushort)(regX / Constants.RegionSize);
+                block.Y = (ushort)(regY / Constants.RegionSize);
+                block.Access = 254; // == not there
+
+                List<MapBlockData> blocks = new List<MapBlockData>();
+                blocks.Add(block);
+                sp.ControllingClient.SendMapBlock(blocks, 0);
+            }
+        }
+
+        /// <summary>
+        /// Determines whether this instance is within the max transfer distance.
+        /// </summary>
+        /// <param name="sourceRegion"></param>
+        /// <param name="destRegion"></param>
+        /// <returns>
+        /// <c>true</c> if this instance is within max transfer distance; otherwise, <c>false</c>.
+        /// </returns>
+        private bool IsWithinMaxTeleportDistance(RegionInfo sourceRegion, GridRegion destRegion)
+        {
+//                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Source co-ords are x={0} y={1}", curRegionX, curRegionY);
+//
+//                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final dest is x={0} y={1} {2}@{3}",
+//                            destRegionX, destRegionY, finalDestination.RegionID, finalDestination.ServerURI);
+
+            // Insanely, RegionLoc on RegionInfo is the 256m map co-ord whilst GridRegion.RegionLoc is the raw meters position.
+            return Math.Abs(sourceRegion.RegionLocX - destRegion.RegionCoordX) <= MaxTransferDistance
+                && Math.Abs(sourceRegion.RegionLocY - destRegion.RegionCoordY) <= MaxTransferDistance;
+        }
+
+        public void DoTeleport(
+            ScenePresence sp, GridRegion reg, GridRegion finalDestination,
+            Vector3 position, Vector3 lookAt, uint teleportFlags)
+        {
+            RegionInfo sourceRegion = sp.Scene.RegionInfo;
+
+            if (!IsWithinMaxTeleportDistance(sourceRegion, finalDestination))
+            {
+                sp.ControllingClient.SendTeleportFailed(
+                    string.Format(
+                      "Can't teleport to {0} ({1},{2}) from {3} ({4},{5}), destination is more than {6} regions way",
+                      finalDestination.RegionName, finalDestination.RegionCoordX, finalDestination.RegionCoordY,
+                      sourceRegion.RegionName, sourceRegion.RegionLocX, sourceRegion.RegionLocY,
+                      MaxTransferDistance));
+
+                return;
+            }
+
+            IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
+
             if (reg == null || finalDestination == null)
             {
                 sp.ControllingClient.SendTeleportFailed("Unable to locate destination");
@@ -485,7 +543,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.ControllingClient.SendTeleportProgress(teleportFlags | (uint)TeleportFlags.DisableCancel, "sending_dest");
 
                 m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, sp.UUID);
+                    "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} from {1} to {2}",
+                    capsPath, sp.Scene.RegionInfo.RegionName, sp.Name);
 
                 if (eq != null)
                 {
@@ -504,7 +563,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
                 // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
                 // that the client contacted the destination before we close things here.
-                if (!WaitForCallback(sp.UUID))
+                if (EnableWaitForCallbackFromTeleportDest && !WaitForCallback(sp.UUID))
                 {
                     m_log.WarnFormat(
                         "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} failed due to no callback from destination region.  Returning avatar to source region.", 
@@ -537,7 +596,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
                 {
-                    Thread.Sleep(5000);
+//                    Thread.Sleep(5000);
                     sp.Close();
                     sp.Scene.IncomingCloseAgent(sp.UUID);
                 }
@@ -630,7 +689,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual bool IsOutsideRegion(Scene s, Vector3 pos)
         {
-
             if (s.TestBorderCross(pos, Cardinals.N))
                 return true;
             if (s.TestBorderCross(pos, Cardinals.S))
@@ -752,7 +810,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 neighbourx--;
                 newpos.X = Constants.RegionSize - enterDistance;
-
             }
             else if (scene.TestBorderCross(pos + eastCross, Cardinals.E))
             {
@@ -1202,7 +1259,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 if (neighbour.RegionHandle != sp.Scene.RegionInfo.RegionHandle)
                 {
-
                     AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
                     AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
                     agent.BaseFolder = UUID.Zero;
@@ -1227,7 +1283,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         seeds.Add(neighbour.RegionHandle, agent.CapsPath);
                     }
                     else
+                    {
                         agent.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, neighbour.RegionHandle);
+                    }
 
                     cagents.Add(agent);
                 }
@@ -1851,7 +1909,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             int count = 200;
             while (m_agentsInTransit.Contains(id) && count-- > 0)
             {
-                //m_log.Debug("  >>> Waiting... " + count);
+//                m_log.Debug("  >>> Waiting... " + count);
                 Thread.Sleep(100);
             }
 
@@ -1859,6 +1917,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return true;
             else
                 return false;
+
+            return true;
         }
 
         protected void SetInTransit(UUID id)

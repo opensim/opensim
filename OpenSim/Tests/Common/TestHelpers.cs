@@ -46,7 +46,8 @@ namespace OpenSim.Tests.Common
     <!-- A1 uses PatternLayout -->
     <layout type=""log4net.Layout.PatternLayout"">
     <!-- Print the date in ISO 8601 format -->
-      <conversionPattern value=""%date [%thread] %-5level %logger %ndc - %message%newline"" />
+      <!-- <conversionPattern value=""%date [%thread] %-5level %logger %ndc - %message%newline"" /> -->
+      <conversionPattern value=""%date %message%newline"" />
       </layout>
   </appender>
 
@@ -62,9 +63,9 @@ namespace OpenSim.Tests.Common
                 Encoding.UTF8.GetBytes(
                     //    "<?xml version=\"1.0\" encoding=\"utf-8\" ?><configuration><log4net><root><level value=\"OFF\"/><appender-ref ref=\"A1\"/></root></log4net></configuration>")));
                     //"<?xml version=\"1.0\" encoding=\"utf-8\" ?><configuration><log4net><root><level value=\"OFF\"/></root></log4net></configuration>")));
-                    //"<configuration><log4net><root><level value=\"OFF\"/></root></log4net></configuration>")));
-                    //"<configuration><log4net><root></root></log4net></configuration>")));
-                    //"<configuration><log4net><root/></log4net></configuration>")));
+//                    "<configuration><log4net><root><level value=\"OFF\"/></root></log4net></configuration>"));
+//                    "<configuration><log4net><root></root></log4net></configuration>")));
+//                    "<configuration><log4net><root/></log4net></configuration>"));
                     "<log4net><root/></log4net>"));
 
         public static bool AssertThisDelegateCausesArgumentException(TestDelegate d)

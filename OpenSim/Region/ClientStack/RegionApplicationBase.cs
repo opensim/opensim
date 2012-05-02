@@ -111,7 +111,7 @@ namespace OpenSim.Region.ClientStack
                     server.Start();
                 }
             }
-
+            
             base.StartupSpecific();
         }
 
