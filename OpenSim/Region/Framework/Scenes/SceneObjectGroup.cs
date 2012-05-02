@@ -634,10 +634,18 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence agent = icon.EndInvoke(iar);
 
             //// If the cross was successful, this agent is a child agent
-            //if (agent.IsChildAgent)
-            //    agent.Reset();
-            //else // Not successful
-            //    agent.RestoreInCurrentScene();
+            if (agent.IsChildAgent)
+            {
+                if (agent.ParentUUID != UUID.Zero)
+                {
+                    agent.ParentPart = null;
+                    agent.ParentPosition = Vector3.Zero;
+                }
+            }
+
+//                agent.Reset();
+//            else // Not successful
+//                agent.RestoreInCurrentScene();
 
             // In any case
             agent.IsInTransit = false;

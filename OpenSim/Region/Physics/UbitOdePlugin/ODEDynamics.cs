@@ -793,10 +793,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 float perr;
 
                 // default to global but don't go underground
-                if (t < m_VhoverHeight)
-                    perr = m_VhoverHeight - pos.Z;
-                else
-                    perr = t - pos.Z; ;
+                perr = m_VhoverHeight - pos.Z;
 
                 if ((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) == 0)
                 {
@@ -817,9 +814,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                             perr += w;
                     }
                 }
+                else if (t > m_VhoverHeight)
+                        perr = t - pos.Z; ;
+
                 if ((m_flags & VehicleFlag.HOVER_UP_ONLY) == 0 || perr > 0)
                 {
-                    force.Z += (perr / m_VhoverTimescale / m_VhoverTimescale - curVel.Z * m_VhoverEfficiency) / m_timestep;
+                    //                    force.Z += (perr / m_VhoverTimescale / m_VhoverTimescale - curVel.Z * m_VhoverEfficiency) / m_timestep;
+                    force.Z += (perr / m_VhoverTimescale - curVel.Z * m_VhoverEfficiency);// * m_invtimestep);
                     force.Z += _pParentScene.gravityz * (1f - m_VehicleBuoyancy);
                 }
                 else // no buoyancy
