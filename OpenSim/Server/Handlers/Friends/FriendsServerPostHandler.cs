@@ -95,7 +95,8 @@ namespace OpenSim.Server.Handlers.Friends
                         return DeleteFriendString(request);
 
                 }
-                m_log.DebugFormat("[FRIENDS HANDLER]: unknown method {0} request {1}", method.Length, method);
+
+                m_log.DebugFormat("[FRIENDS HANDLER]: unknown method request {0}", method);
             }
             catch (Exception e)
             {
@@ -103,7 +104,6 @@ namespace OpenSim.Server.Handlers.Friends
             }
 
             return FailureResult();
-
         }
 
         #region Method-specific handlers

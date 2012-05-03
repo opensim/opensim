@@ -122,7 +122,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
                         return GrantRights(request);
                         */
                 }
-                m_log.DebugFormat("[HGFRIENDS HANDLER]: unknown method {0} request {1}", method.Length, method);
+                
+                m_log.DebugFormat("[HGFRIENDS HANDLER]: unknown method {0}", method);
             }
             catch (Exception e)
             {
