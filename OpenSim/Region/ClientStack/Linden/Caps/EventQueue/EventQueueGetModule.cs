@@ -351,14 +351,18 @@ namespace OpenSim.Region.ClientStack.Linden
             // EventQueueGet when it receive capability information, but then we replace the rest handler immediately
             // afterwards with the poll service.  So for now, we'll pass a null instead to simplify code reading, but
             // really it should be possible to directly register the poll handler as a capability.
-            caps.RegisterHandler("EventQueueGet",
-                                 new RestHTTPHandler("POST", capsBase + EventQueueGetUUID.ToString() + "/", null));
+            caps.RegisterHandler(
+                "EventQueueGet",
+                new RestHTTPHandler(
+                    "POST", capsBase + EventQueueGetUUID.ToString() + "/", null));
+
 //                                                       delegate(Hashtable m_dhttpMethod)
 //                                                       {
 //                                                           return ProcessQueue(m_dhttpMethod, agentID, caps);
 //                                                       }));
 
             // This will persist this beyond the expiry of the caps handlers
+            // TODO: Add EventQueueGet name/description for diagnostics
             MainServer.Instance.AddPollServiceHTTPHandler(
                 capsBase + EventQueueGetUUID.ToString() + "/",
                 new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID));

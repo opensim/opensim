@@ -156,7 +156,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
-        public List<string>  GetStreamHandlerKeys()
+        public List<string> GetStreamHandlerKeys()
         {
             lock (m_streamHandlers)
                 return new List<string>(m_streamHandlers.Keys);
@@ -410,6 +410,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 //            string reqnum = "unknown";
             int tickstart = Environment.TickCount;
 
+            IRequestHandler requestHandler = null;
+
             try
             {
                 // OpenSim.Framework.WebUtil.OSHeaderRequestID
@@ -437,8 +439,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 //response.KeepAlive = true;
                 response.SendChunked = false;
-
-                IRequestHandler requestHandler;
 
                 string path = request.RawUrl;
                 string handlerKey = GetHandlerKey(request.HttpMethod, path);
@@ -675,8 +675,16 @@ namespace OpenSim.Framework.Servers.HttpServer
                 // since its just for reporting, tickdiff limit can be adjusted
                 int tickdiff = Environment.TickCount - tickstart;
                 if (tickdiff > 3000)
+                {
                     m_log.InfoFormat(
-                        "[BASE HTTP SERVER]: slow {0} request for {1} from {2} took {3} ms", requestMethod, uriString, request.RemoteIPEndPoint.ToString(), tickdiff);
+                        "[BASE HTTP SERVER]: slow {0} for {1} {2} {3} from {4} took {5} ms",
+                        requestMethod,
+                        uriString,
+                        requestHandler != null ? requestHandler.Name : "",
+                        requestHandler != null ? requestHandler.Description : "",
+                        request.RemoteIPEndPoint.ToString(),
+                        tickdiff);
+                }
             }
         }
 

@@ -36,6 +36,15 @@ namespace OpenSim.Framework.Servers.HttpServer
     {
         private BinaryMethod m_method;
 
+        public BinaryStreamHandler(string httpMethod, string path, BinaryMethod binaryMethod)
+            : this(httpMethod, path, binaryMethod, null, null) {}
+
+        public BinaryStreamHandler(string httpMethod, string path, BinaryMethod binaryMethod, string name, string description)
+            : base(httpMethod, path, name, description)
+        {
+            m_method = binaryMethod;
+        }
+
         public override byte[] Handle(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             byte[] data = ReadFully(request);
@@ -43,12 +52,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             string responseString = m_method(data, path, param);
 
             return Encoding.UTF8.GetBytes(responseString);
-        }
-
-        public BinaryStreamHandler(string httpMethod, string path, BinaryMethod binaryMethod)
-            : base(httpMethod, path)
-        {
-            m_method = binaryMethod;
         }
 
         private static byte[] ReadFully(Stream stream)

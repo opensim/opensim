@@ -63,7 +63,8 @@ namespace OpenSim.Capabilities.Handlers
 
             FetchInventory2Handler fiHandler = new FetchInventory2Handler(m_InventoryService);
             IRequestHandler reqHandler
-                = new RestStreamHandler("POST", "/CAPS/FetchInventory/", fiHandler.FetchInventoryRequest);
+                = new RestStreamHandler(
+                    "POST", "/CAPS/FetchInventory/", fiHandler.FetchInventoryRequest, "FetchInventory", null);
             server.AddStreamHandler(reqHandler);
         }
     }

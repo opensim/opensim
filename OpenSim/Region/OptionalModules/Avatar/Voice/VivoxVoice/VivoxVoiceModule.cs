@@ -406,30 +406,36 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             m_log.DebugFormat("[VivoxVoice] OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
 
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
-            caps.RegisterHandler("ProvisionVoiceAccountRequest",
-                                 new RestStreamHandler("POST", capsBase + m_provisionVoiceAccountRequestPath,
-                                                       delegate(string request, string path, string param,
-                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-                                                       {
-                                                           return ProvisionVoiceAccountRequest(scene, request, path, param,
-                                                                                               agentID, caps);
-                                                       }));
-            caps.RegisterHandler("ParcelVoiceInfoRequest",
-                                 new RestStreamHandler("POST", capsBase + m_parcelVoiceInfoRequestPath,
-                                                       delegate(string request, string path, string param,
-                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-                                                       {
-                                                           return ParcelVoiceInfoRequest(scene, request, path, param,
-                                                                                         agentID, caps);
-                                                       }));
-            caps.RegisterHandler("ChatSessionRequest",
-                                 new RestStreamHandler("POST", capsBase + m_chatSessionRequestPath,
-                                                       delegate(string request, string path, string param,
-                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-                                                       {
-                                                           return ChatSessionRequest(scene, request, path, param,
-                                                                                     agentID, caps);
-                                                       }));
+
+            caps.RegisterHandler(
+                "ProvisionVoiceAccountRequest",
+                 new RestStreamHandler(
+                    "POST",
+                    capsBase + m_provisionVoiceAccountRequestPath,
+                    (request, path, param, httpRequest, httpResponse)
+                        => ProvisionVoiceAccountRequest(scene, request, path, param, agentID, caps),
+                    "ProvisionVoiceAccountRequest",
+                    agentID.ToString()));
+
+            caps.RegisterHandler(
+                "ParcelVoiceInfoRequest",
+                 new RestStreamHandler(
+                    "POST",
+                    capsBase + m_parcelVoiceInfoRequestPath,
+                    (request, path, param, httpRequest, httpResponse)
+                        => ParcelVoiceInfoRequest(scene, request, path, param, agentID, caps),
+                    "ParcelVoiceInfoRequest",
+                    agentID.ToString()));
+
+            caps.RegisterHandler(
+                "ChatSessionRequest",
+                 new RestStreamHandler(
+                    "POST",
+                    capsBase + m_chatSessionRequestPath,
+                    (request, path, param, httpRequest, httpResponse)
+                        => ChatSessionRequest(scene, request, path, param, agentID, caps),
+                    "ChatSessionRequest",
+                    agentID.ToString()));
         }
 
         /// <summary>

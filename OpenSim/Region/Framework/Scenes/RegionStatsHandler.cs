@@ -48,16 +48,19 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public class RegionStatsHandler : IStreamedRequestHandler
     {
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private string osRXStatsURI = String.Empty;
         private string osXStatsURI = String.Empty;
         //private string osSecret = String.Empty;
         private OpenSim.Framework.RegionInfo regionInfo;
         public string localZone = TimeZone.CurrentTimeZone.StandardName;
         public TimeSpan utcOffset = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now);
-        
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public RegionStatsHandler(OpenSim.Framework.RegionInfo region_info)
+        public string Name { get { return "RegionStats"; } }
+        public string Description { get { return "Region Statistics"; } }
+
+        public RegionStatsHandler(RegionInfo region_info)
         {
             regionInfo = region_info;
             osRXStatsURI = Util.SHA1Hash(regionInfo.regionSecret);

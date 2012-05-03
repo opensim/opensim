@@ -39,7 +39,11 @@ namespace OpenSim.Framework.Capabilities
         private LLSDMethod<TRequest, TResponse> m_method;
 
         public LLSDStreamhandler(string httpMethod, string path, LLSDMethod<TRequest, TResponse> method)
-            : base(httpMethod, path)
+            : this(httpMethod, path, method, null, null) {}
+
+        public LLSDStreamhandler(
+            string httpMethod, string path, LLSDMethod<TRequest, TResponse> method, string name, string description)
+            : base(httpMethod, path, name, description)
         {
             m_method = method;
         }

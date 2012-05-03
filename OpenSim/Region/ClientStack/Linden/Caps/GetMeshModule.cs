@@ -120,11 +120,13 @@ namespace OpenSim.Region.ClientStack.Linden
             {
 //                m_log.DebugFormat("[GETMESH]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
                 GetMeshHandler gmeshHandler = new GetMeshHandler(m_AssetService);
-                IRequestHandler reqHandler = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(),
-                                                           delegate(Hashtable m_dhttpMethod)
-                                                           {
-                                                               return gmeshHandler.ProcessGetMesh(m_dhttpMethod, UUID.Zero, null);
-                                                           });
+                IRequestHandler reqHandler
+                    = new RestHTTPHandler(
+                        "GET",
+                        "/CAPS/" + UUID.Random(),
+                        httpMethod => gmeshHandler.ProcessGetMesh(httpMethod, UUID.Zero, null),
+                        "GetMesh",
+                        agentID.ToString());
 
                 caps.RegisterHandler("GetMesh", reqHandler);
             }

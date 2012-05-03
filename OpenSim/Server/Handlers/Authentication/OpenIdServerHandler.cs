@@ -191,6 +191,8 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
 
         #endregion HTML
 
+        public string Name { get { return "OpenId"; } }
+        public string Description { get { return null; } }
         public string ContentType { get { return m_contentType; } }
         public string HttpMethod { get { return m_httpMethod; } }
         public string Path { get { return m_path; } }

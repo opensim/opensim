@@ -132,7 +132,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 capUrl = "/CAPS/" + UUID.Random();
 
                 IRequestHandler reqHandler
-                    = new RestStreamHandler("POST", capUrl, m_fetchHandler.FetchInventoryRequest);
+                    = new RestStreamHandler(
+                        "POST", capUrl, m_fetchHandler.FetchInventoryRequest, capName, agentID.ToString());
 
                 caps.RegisterHandler(capName, reqHandler);
             }

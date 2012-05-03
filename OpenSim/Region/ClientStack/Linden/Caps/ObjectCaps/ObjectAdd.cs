@@ -66,12 +66,14 @@ namespace OpenSim.Region.ClientStack.Linden
             
 //            m_log.InfoFormat("[OBJECTADD]: {0}", "/CAPS/OA/" + capuuid + "/");
 
-            caps.RegisterHandler("ObjectAdd",
-                                 new RestHTTPHandler("POST", "/CAPS/OA/" + capuuid + "/",
-                                                       delegate(Hashtable m_dhttpMethod)
-                                                       {
-                                                           return ProcessAdd(m_dhttpMethod, agentID, caps);
-                                                       }));
+            caps.RegisterHandler(
+                "ObjectAdd",
+                new RestHTTPHandler(
+                    "POST",
+                    "/CAPS/OA/" + capuuid + "/",
+                    httpMethod => ProcessAdd(httpMethod, agentID, caps),
+                    "ObjectAdd",
+                    agentID.ToString()));;
         }
 
         public Hashtable ProcessAdd(Hashtable request, UUID AgentId, Caps cap)

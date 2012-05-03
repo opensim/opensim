@@ -32,6 +32,25 @@ namespace OpenSim.Framework.Servers.HttpServer
 {
     public interface IRequestHandler
     {
+
+        /// <summary>
+        /// Name for this handler.
+        /// </summary>
+        /// <remarks>
+        /// Used for diagnostics.  The path doesn't always describe what the handler does.  Can be null if none
+        /// specified.
+        /// </remarks>
+        string Name { get; }
+
+        /// <summary>
+        /// Description for this handler.
+        /// </summary>
+        /// <remarks>
+        /// Used for diagnostics.  The path doesn't always describe what the handler does.  Can be null if none
+        /// specified.
+        /// </remarks>
+        string Description { get; }
+
         // Return response content type
         string ContentType { get; }
 
