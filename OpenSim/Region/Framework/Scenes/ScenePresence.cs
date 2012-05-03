@@ -1140,9 +1140,19 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
             MakeRootAgent(AbsolutePosition, flying);
+            ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
+
+//            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
 
             if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
             {
+                // We cannot sleep here since this would hold up the inbound packet processing thread, as
+                // CompleteMovement() is executed synchronously.  However, it might be better to delay the release
+                // here until we know for sure that the agent is active in this region.  Sending AgentMovementComplete
+                // is not enough for Imprudence clients - there appears to be a small delay (<200ms, <500ms) until they regard this
+                // region as the current region, meaning that a close sent before then will fail the teleport.
+//                System.Threading.Thread.Sleep(2000);
+
                 m_log.DebugFormat(
                     "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
                     client.Name, client.AgentId, m_callbackURI);
@@ -1151,9 +1161,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_callbackURI = null;
             }
 
-//            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
-
-            ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
             ValidateAndSendAppearanceAndAgentData();
 
             // Create child agents in neighbouring regions
@@ -1167,7 +1174,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (friendsModule != null)
                     friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
             }
-
 
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
