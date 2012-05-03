@@ -756,7 +756,13 @@ namespace OpenSim.Region.Framework.Scenes
                 m_movementAnimationUpdateCounter = 0;
                 if (Animator != null)
                 {
-                    if(ParentID == 0 && !SitGround) // skip it if sitting
+                    // If the parentID == 0 we are not sitting
+                    // if !SitGournd then we are not sitting on the ground
+                    // Fairly straightforward, now here comes the twist
+                    // if ParentUUID is NOT UUID.Zero, we are looking to
+                    // be sat on an object that isn't there yet. Should
+                    // be treated as if sat.
+                    if(ParentID == 0 && !SitGround && ParentUUID == UUID.Zero) // skip it if sitting
                         Animator.UpdateMovementAnimations();
                 }
                 else
