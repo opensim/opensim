@@ -1947,12 +1947,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 Thread.Sleep(100);
             }
 
-            if (count > 0)
-                return true;
-            else
-                return false;
-
-            return true;
+            return count > 0;
         }
 
         protected void SetInTransit(UUID id)
