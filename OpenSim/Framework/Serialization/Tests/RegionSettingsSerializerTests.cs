@@ -78,6 +78,10 @@ namespace OpenSim.Framework.Serialization.Tests
     <FixedSun>true</FixedSun>
     <SunPosition>12</SunPosition>
   </Terrain>
+  <Telehub>
+    <TelehubObject>00000000-0000-0000-0000-111111111111</TelehubObject>
+    <SpawnPoint>1,-2,0.33</SpawnPoint>
+  </Telehub>
 </RegionSettings>";
 
         private RegionSettings m_rs;
@@ -116,6 +120,8 @@ namespace OpenSim.Framework.Serialization.Tests
             m_rs.TerrainTexture4 = UUID.Parse("00000000-0000-0000-0000-000000000080");
             m_rs.UseEstateSun = true;
             m_rs.WaterHeight = 23;
+            m_rs.TelehubObject = UUID.Parse("00000000-0000-0000-0000-111111111111");
+            m_rs.AddSpawnPoint(SpawnPoint.Parse("1,-2,0.33"));
         }
 
         [Test]
@@ -129,6 +135,8 @@ namespace OpenSim.Framework.Serialization.Tests
             Assert.That(deserRs.TerrainTexture2, Is.EqualTo(m_rs.TerrainTexture2));
             Assert.That(deserRs.DisablePhysics, Is.EqualTo(m_rs.DisablePhysics));
             Assert.That(deserRs.TerrainLowerLimit, Is.EqualTo(m_rs.TerrainLowerLimit));
+            Assert.That(deserRs.TelehubObject, Is.EqualTo(m_rs.TelehubObject));
+            Assert.That(deserRs.SpawnPoints()[0].ToString(), Is.EqualTo(m_rs.SpawnPoints()[0].ToString()));
         }
     }
 }
