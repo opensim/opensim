@@ -527,9 +527,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         private void AttachToAgent(
             IScenePresence sp, SceneObjectGroup so, uint attachmentpoint, Vector3 attachOffset, bool silent)
         {
-            //            m_log.DebugFormat(
-            //                "[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} in pt {2} pos {3} {4}",
-            //                so.Name, avatar.Name, attachmentpoint, attachOffset, so.RootPart.AttachedPos);
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} in pt {2} pos {3} {4}",
+//                so.Name, sp.Name, attachmentpoint, attachOffset, so.RootPart.AttachedPos);
 
             so.DetachFromBackup();
 
@@ -788,9 +788,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="att"></param>
         private void ShowAttachInUserInventory(IScenePresence sp, uint AttachmentPt, UUID itemID, SceneObjectGroup att)
         {
-            //            m_log.DebugFormat(
-            //                "[USER INVENTORY]: Updating attachment {0} for {1} at {2} using item ID {3}",
-            //                att.Name, sp.Name, AttachmentPt, itemID);
+//            m_log.DebugFormat(
+//                "[USER INVENTORY]: Updating attachment {0} for {1} at {2} using item ID {3}",
+//                att.Name, sp.Name, AttachmentPt, itemID);
 
             if (UUID.Zero == itemID)
             {
@@ -853,9 +853,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         private void Client_OnObjectAttach(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent)
         {
-            //            m_log.DebugFormat(
-            //                "[ATTACHMENTS MODULE]: Attaching object local id {0} to {1} point {2} from ground (silent = {3})",
-            //                objectLocalID, remoteClient.Name, AttachmentPt, silent);
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: Attaching object local id {0} to {1} point {2} from ground (silent = {3})",
+//                objectLocalID, remoteClient.Name, AttachmentPt, silent);
 
             if (!Enabled)
                 return;

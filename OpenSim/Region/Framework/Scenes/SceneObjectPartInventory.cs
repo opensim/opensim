@@ -1219,10 +1219,16 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (engine != null)
                     {
+//                        m_log.DebugFormat(
+//                            "[PRIM INVENTORY]: Resuming script {0} {1} for {2}, OwnerChanged {3}",
+//                            item.Name, item.ItemID, item.OwnerID, item.OwnerChanged);
+
+                        engine.ResumeScript(item.ItemID);
+
                         if (item.OwnerChanged)
                             engine.PostScriptEvent(item.ItemID, "changed", new Object[] { (int)Changed.OWNER });
+
                         item.OwnerChanged = false;
-                        engine.ResumeScript(item.ItemID);
                     }
                 }
             }

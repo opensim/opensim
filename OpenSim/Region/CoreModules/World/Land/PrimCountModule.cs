@@ -126,7 +126,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 //                    m_log.DebugFormat(
 //                        "[PRIM COUNT MODULE]: Ignoring OnParcelPrimCountAdd() for {0} on {1} since count is tainted", 
 //                        obj.Name, m_Scene.RegionInfo.RegionName);
-                    
             }
         }
 
