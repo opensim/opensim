@@ -261,10 +261,14 @@ namespace Flotsam.RegionModules.AssetCache
 
             try
             {
-                // If the file is already cached, don't cache it, just touch it so access time is updated
+                // If the file is already cached just update access time.
                 if (File.Exists(filename))
                 {
-                    File.SetLastAccessTime(filename, DateTime.Now);
+                    lock (m_CurrentlyWriting)
+                    {
+                        if (!m_CurrentlyWriting.Contains(filename))
+                            File.SetLastAccessTime(filename, DateTime.Now);
+                    }
                 }
                 else
                 {
