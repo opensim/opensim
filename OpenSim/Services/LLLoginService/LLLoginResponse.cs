@@ -275,7 +275,7 @@ namespace OpenSim.Services.LLLoginService
                         {
                             dstTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tzName);
                         }
-                        catch (Exception e)
+                        catch
                         {
                             continue;
                         }
