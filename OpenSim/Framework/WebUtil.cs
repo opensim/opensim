@@ -68,7 +68,7 @@ namespace OpenSim.Framework
         /// Number of milliseconds a call can take before it is considered
         /// a "long" call for warning & debugging purposes
         /// </summary>
-        public const int LongCallTime = 500;
+        public const int LongCallTime = 3000;
 
         /// <summary>
         /// The maximum length of any data logged because of a long request time.
