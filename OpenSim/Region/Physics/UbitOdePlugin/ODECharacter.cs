@@ -1184,7 +1184,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // destroy avatar capsule and related ODE data
                     AvatarGeomAndBodyDestroy();
                 }
-
+                m_freemove = false;
                 m_isPhysical = NewStatus;
             }
         }
@@ -1236,7 +1236,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             + (Amotor == IntPtr.Zero ? "Amotor " : ""));
                     }
                 }
-
+                m_freemove = false;
                 m_pidControllerActive = true;
             }
             else
@@ -1250,6 +1250,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (Body != IntPtr.Zero)
                     d.BodySetPosition(Body, newPos.X, newPos.Y, newPos.Z);
                 _position = newPos;
+                m_freemove = false;
                 m_pidControllerActive = true;               
             }
 
@@ -1260,6 +1261,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void changeVelocity(Vector3 newVel)
         {
             m_pidControllerActive = true;
+            m_freemove = false;
             _target_velocity = newVel;
         }
 
