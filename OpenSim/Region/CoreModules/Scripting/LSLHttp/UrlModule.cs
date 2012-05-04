@@ -146,6 +146,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public void Close()
         {
         }
+
         public UUID RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID)
         {
             UUID urlcode = UUID.Random();
@@ -174,6 +175,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 m_HttpServer.AddPollServiceHTTPHandler(
                     uri,
                     new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, urlcode));
+
+                m_log.DebugFormat(
+                    "[URL MODULE]: Set up incoming request url {0} for {1} in {2} {3}",
+                    uri, itemID, host.Name, host.LocalId);
 
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }
@@ -217,6 +222,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     uri,
                     new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, urlcode));
 
+                m_log.DebugFormat(
+                    "[URL MODULE]: Set up incoming secure request url {0} for {1} in {2} {3}",
+                    uri, itemID, host.Name, host.LocalId);
+
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }
 
@@ -236,6 +245,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                 foreach (UUID req in data.requests.Keys)
                     m_RequestMap.Remove(req);
+
+                m_log.DebugFormat(
+                    "[URL MODULE]: Releasing url {0} for {1} in {2}",
+                    url, data.itemID, data.hostID);
 
                 RemoveUrl(data);
                 m_UrlMap.Remove(url);
