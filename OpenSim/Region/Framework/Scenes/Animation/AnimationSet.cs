@@ -168,10 +168,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public OpenSim.Framework.Animation[] ToArray()
         {
-            OpenSim.Framework.Animation[] theArray = new OpenSim.Framework.Animation[m_animations.Count];
+            OpenSim.Framework.Animation[] theArray = new OpenSim.Framework.Animation[m_animations.Count + 1];
             uint i = 0;
             try
             {
+                theArray[i++] = m_defaultAnimation;
                 foreach (OpenSim.Framework.Animation anim in m_animations)
                     theArray[i++] = anim;
             }
@@ -184,8 +185,14 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public void FromArray(OpenSim.Framework.Animation[] theArray)
         {
-            foreach (OpenSim.Framework.Animation anim in theArray)
-                m_animations.Add(anim);
+//            foreach (OpenSim.Framework.Animation anim in theArray)
+//                m_animations.Add(anim);
+            if (theArray.Length > 0)
+            {
+                m_defaultAnimation = theArray[0];
+                for (int i = 1; i < theArray.Length; i++)
+                    m_animations.Add(theArray[i]);
+            }
         }
     }
 }
