@@ -677,7 +677,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if (tickdiff > 3000)
                 {
                     m_log.InfoFormat(
-                        "[BASE HTTP SERVER]: slow {0} for {1} {2} {3} from {4} took {5} ms",
+                        "[BASE HTTP SERVER]: Slow handling of {0} {1} {2} {3} from {4} took {5}ms",
                         requestMethod,
                         uriString,
                         requestHandler != null ? requestHandler.Name : "",
