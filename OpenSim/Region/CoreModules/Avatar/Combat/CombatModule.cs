@@ -96,6 +96,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             ScenePresence killingAvatar = null;
 //            string killingAvatarMessage;
 
+            // check to see if it is an NPC and just remove it
+            INPCModule NPCmodule = deadAvatar.Scene.RequestModuleInterface<INPCModule>();
+            if (NPCmodule != null && NPCmodule.DeleteNPC(deadAvatar.UUID, deadAvatar.Scene))
+            {
+                return;
+            }
+
             if (killerObjectLocalID == 0)
                 deadAvatarMessage = "You committed suicide!";
             else
@@ -145,7 +152,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             catch (InvalidOperationException)
             { }
 
-            deadAvatar.Health = 100;
+            deadAvatar.setHealthWithUpdate(100.0f);
             deadAvatar.Scene.TeleportClientHome(deadAvatar.UUID, deadAvatar.ControllingClient);
         }
 
@@ -154,14 +161,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             try
             {
                 ILandObject obj = avatar.Scene.LandChannel.GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
-                
-                if ((obj.LandData.Flags & (uint)ParcelFlags.AllowDamage) != 0)
+                if ((obj.LandData.Flags & (uint)ParcelFlags.AllowDamage) != 0
+                    || avatar.Scene.RegionInfo.RegionSettings.AllowDamage)
                 {
                     avatar.Invulnerable = false;
                 }
                 else
                 {
                     avatar.Invulnerable = true;
+                    if (avatar.Health < 100.0f)
+                    {
+                        avatar.setHealthWithUpdate(100.0f);
+                    }
                 }
             }
             catch (Exception)

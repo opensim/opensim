@@ -3312,22 +3312,52 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (Invulnerable)
+            // Gods do not take damage and Invulnerable is set depending on parcel/region flags
+            if (Invulnerable || GodLevel > 0)
                 return;
-            
+
+            // The following may be better in the ICombatModule
+            // probably tweaking of the values for ground and normal prim collisions will be needed
             float starthealth = Health;
             uint killerObj = 0;
+            SceneObjectPart part = null;
             foreach (uint localid in coldata.Keys)
             {
-                SceneObjectPart part = Scene.GetSceneObjectPart(localid);
-
-                if (part != null && part.ParentGroup.Damage != -1.0f)
-                    Health -= part.ParentGroup.Damage;
+                if (localid == 0)
+                {
+                    part = null;
+                }
                 else
                 {
-                    if (coldata[localid].PenetrationDepth >= 0.10f)
+                    part = Scene.GetSceneObjectPart(localid);
+                }
+                if (part != null)
+                {
+                    // Ignore if it has been deleted or volume detect
+                    if (!part.ParentGroup.IsDeleted && !part.ParentGroup.IsVolumeDetect)
+                    {
+                        if (part.ParentGroup.Damage > 0.0f)
+                        {
+                            // Something with damage...
+                            Health -= part.ParentGroup.Damage;
+                            part.ParentGroup.Scene.DeleteSceneObject(part.ParentGroup, false);
+                        }
+                        else
+                        {
+                            // An ordinary prim
+                            if (coldata[localid].PenetrationDepth >= 0.10f)
+                                Health -= coldata[localid].PenetrationDepth * 5.0f;
+                        }
+                    }
+                }
+                else
+                {
+                    // 0 is the ground
+                    // what about collisions with other avatars?
+                    if (localid == 0 && coldata[localid].PenetrationDepth >= 0.10f)
                         Health -= coldata[localid].PenetrationDepth * 5.0f;
                 }
+
 
                 if (Health <= 0.0f)
                 {
@@ -3344,7 +3374,16 @@ namespace OpenSim.Region.Framework.Scenes
                     ControllingClient.SendHealth(Health);
                 }
                 if (Health <= 0)
+                {
                     m_scene.EventManager.TriggerAvatarKill(killerObj, this);
+                }
+                if (starthealth == Health && Health < 100.0f)
+                {
+                    Health += 0.03f;
+                    if (Health > 100.0f)
+                        Health = 100.0f;
+                    ControllingClient.SendHealth(Health);
+                }
             }
         }
 
