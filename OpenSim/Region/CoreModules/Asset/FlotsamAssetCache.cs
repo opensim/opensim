@@ -83,7 +83,7 @@ namespace Flotsam.RegionModules.AssetCache
         private Dictionary<string, ManualResetEvent> m_CurrentlyWriting = new Dictionary<string, ManualResetEvent>();
         private int m_WaitOnInprogressTimeout = 3000;
 #else
-        private List<string> m_CurrentlyWriting = new List<string>();
+        private HashSet<string> m_CurrentlyWriting = new HashSet<string>();
 #endif
 
         private bool m_FileCacheEnabled = true;
