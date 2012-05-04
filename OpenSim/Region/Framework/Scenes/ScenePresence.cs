@@ -866,7 +866,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 IsChildAgent = false;
 
-//                Animator.TryFixMovementAnimation("SIT");
+                Animator.TrySetMovementAnimation("SIT");
             }
             else
             {
@@ -929,15 +929,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 AbsolutePosition = pos;
 
-                if (m_teleportFlags == TeleportFlags.Default)
-                {
-                    Vector3 vel = Velocity;
-                    AddToPhysicalScene(isFlying);
-                    if (PhysicsActor != null)
-                        PhysicsActor.SetMomentum(vel);
-                }
-                else
-                    AddToPhysicalScene(isFlying);
+                AddToPhysicalScene(isFlying);
 
                 if (ForceFly)
                 {
@@ -951,8 +943,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
             // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
             // elsewhere anyway
-//            Animator.SendAnimPack();
-            
+            // Animator.SendAnimPack();
 
             m_scene.SwapRootAgentCount(false);
 
@@ -989,7 +980,6 @@ namespace OpenSim.Region.Framework.Scenes
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
             // recorded, which stops the input from being processed.
-
             MovementFlag = 0;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
@@ -1030,8 +1020,6 @@ namespace OpenSim.Region.Framework.Scenes
             // as teleporting back
             TeleportFlags = TeleportFlags.Default;
 
-            MovementFlag = 0;
-
             // It looks like Animator is set to null somewhere, and MakeChild
             // is called after that. Probably in aborted teleports.
             if (Animator == null)
@@ -1039,7 +1027,6 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 Animator.ResetAnimations();
 
-            
 //            m_log.DebugFormat(
 //                 "[SCENE PRESENCE]: Downgrading root agent {0}, {1} to a child agent in {2}",
 //                 Name, UUID, m_scene.RegionInfo.RegionName);
@@ -1066,9 +1053,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
 //                PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
                 PhysicsActor.OnOutOfBounds -= OutOfBoundsCall;
-                PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
-                PhysicsActor.UnSubscribeEvents();
                 m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
+                PhysicsActor.UnSubscribeEvents();
+                PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
                 PhysicsActor = null;
             }
 //            else
