@@ -602,7 +602,14 @@ namespace OpenSim.Framework
 
             if (args["default_animation"] != null)
             {
-                DefaultAnim = new Animation((OSDMap)args["default_animation"]);
+                try
+                {
+                    DefaultAnim = new Animation((OSDMap)args["default_animation"]);
+                }
+                catch
+                {
+                    DefaultAnim = null;
+                }
             }
 
             //if ((args["agent_textures"] != null) && (args["agent_textures"]).Type == OSDType.Array)
