@@ -226,7 +226,8 @@ namespace OpenSim.Services.LLLoginService
         public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, GridUserInfo pinfo,
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
-            GridRegion home, IPEndPoint clientIP, string mapTileURL, string profileURL, string openIDURL, string searchURL, string currency)
+            GridRegion home, IPEndPoint clientIP, string mapTileURL, string profileURL, string openIDURL, string searchURL, string currency,
+            string DSTZone)
             : this()
         {
             FillOutInventoryData(invSkel, libService);
@@ -255,7 +256,45 @@ namespace OpenSim.Services.LLLoginService
             FillOutRegionData(destination);
 
             FillOutSeedCap(aCircuit, destination, clientIP);
-            
+
+            switch (DSTZone)
+            {
+                case "none":
+                    DST = "N";
+                    break;
+                case "local":
+                    DST = TimeZone.CurrentTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+                    break;
+                default:
+                    TimeZoneInfo dstTimeZone = null;
+                    string[] tzList = DSTZone.Split(';');
+
+                    foreach (string tzName in tzList)
+                    {
+                        try
+                        {
+                            dstTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tzName);
+                        }
+                        catch (Exception e)
+                        {
+                            continue;
+                        }
+                        break;
+                    }
+
+                    if (dstTimeZone == null)
+                    {
+                        m_log.WarnFormat(
+                            "[LLOGIN RESPONSE]: No valid timezone found for DST in {0}, falling back to system time.", tzList);
+                        DST = TimeZone.CurrentTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+                    }
+                    else
+                    {
+                        DST = dstTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+                    }
+                
+                    break;
+            }
         }
 
         private void FillOutInventoryData(List<InventoryFolderBase> invSkel, ILibraryService libService)

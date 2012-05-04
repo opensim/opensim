@@ -82,6 +82,8 @@ namespace OpenSim.Services.LLLoginService
         protected string m_AllowedClients;
         protected string m_DeniedClients;
 
+        protected string m_DSTZone;
+
         IConfig m_LoginServerConfig;
 //        IConfig m_ClientsConfig;
 
@@ -117,6 +119,8 @@ namespace OpenSim.Services.LLLoginService
 
             m_AllowedClients = m_LoginServerConfig.GetString("AllowedClients", string.Empty);
             m_DeniedClients = m_LoginServerConfig.GetString("DeniedClients", string.Empty);
+
+            m_DSTZone = m_LoginServerConfig.GetString("DSTZone", "America/Los_Angeles;Pacific Standard Time");
 
             // Clean up some of these vars
             if (m_MapTileURL != String.Empty)
@@ -240,6 +244,7 @@ namespace OpenSim.Services.LLLoginService
 
             m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7}",
                 firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0);
+            
             try
             {
                 //
@@ -416,8 +421,11 @@ namespace OpenSim.Services.LLLoginService
                 //
                 // Finally, fill out the response and return it
                 //
-                LLLoginResponse response = new LLLoginResponse(account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
-                    where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP, m_MapTileURL, m_ProfileURL, m_OpenIDURL, m_SearchURL, m_Currency);
+                LLLoginResponse response
+                    = new LLLoginResponse(
+                        account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
+                        where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP,
+                        m_MapTileURL, m_ProfileURL, m_OpenIDURL, m_SearchURL, m_Currency, m_DSTZone);
 
                 m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to client.");
                 return response;
@@ -431,7 +439,10 @@ namespace OpenSim.Services.LLLoginService
             }
         }
 
-        protected GridRegion FindDestination(UserAccount account, UUID scopeID, GridUserInfo pinfo, UUID sessionID, string startLocation, GridRegion home, out GridRegion gatekeeper, out string where, out Vector3 position, out Vector3 lookAt, out TeleportFlags flags)
+        protected GridRegion FindDestination(
+            UserAccount account, UUID scopeID, GridUserInfo pinfo, UUID sessionID, string startLocation,
+            GridRegion home, out GridRegion gatekeeper,
+            out string where, out Vector3 position, out Vector3 lookAt, out TeleportFlags flags)
         {
             flags = TeleportFlags.ViaLogin;
 
