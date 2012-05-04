@@ -929,7 +929,15 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 AbsolutePosition = pos;
 
-                AddToPhysicalScene(isFlying);
+                if (m_teleportFlags == TeleportFlags.Default)
+                {
+                    Vector3 vel = Velocity;
+                    AddToPhysicalScene(isFlying);
+                    if (PhysicsActor != null)
+                        PhysicsActor.SetMomentum(vel);
+                }
+                else
+                    AddToPhysicalScene(isFlying);
 
                 if (ForceFly)
                 {
@@ -980,6 +988,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
             // recorded, which stops the input from being processed.
+
             MovementFlag = 0;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
@@ -1020,6 +1029,8 @@ namespace OpenSim.Region.Framework.Scenes
             // as teleporting back
             TeleportFlags = TeleportFlags.Default;
 
+            MovementFlag = 0;
+
             // It looks like Animator is set to null somewhere, and MakeChild
             // is called after that. Probably in aborted teleports.
             if (Animator == null)
@@ -1027,6 +1038,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 Animator.ResetAnimations();
 
+            
 //            m_log.DebugFormat(
 //                 "[SCENE PRESENCE]: Downgrading root agent {0}, {1} to a child agent in {2}",
 //                 Name, UUID, m_scene.RegionInfo.RegionName);
