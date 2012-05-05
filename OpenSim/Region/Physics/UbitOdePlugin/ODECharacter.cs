@@ -168,6 +168,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_density = density;
             m_mass = 80f; // sure we have a default
 
+            // force lower density for testing
+            m_density = 3.0f;
+
+
             mu = parent_scene.AvatarFriction;
 
             walkDivisor = walk_divisor;
