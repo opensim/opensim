@@ -63,6 +63,7 @@ namespace OpenSim.Region.Framework.Scenes
 
     struct ScriptControllers
     {
+        public UUID objectID;
         public UUID itemID;
         public ScriptControlled ignoreControls;
         public ScriptControlled eventControls;
@@ -756,7 +757,13 @@ namespace OpenSim.Region.Framework.Scenes
                 m_movementAnimationUpdateCounter = 0;
                 if (Animator != null)
                 {
-                    if(ParentID == 0 && !SitGround) // skip it if sitting
+                    // If the parentID == 0 we are not sitting
+                    // if !SitGournd then we are not sitting on the ground
+                    // Fairly straightforward, now here comes the twist
+                    // if ParentUUID is NOT UUID.Zero, we are looking to
+                    // be sat on an object that isn't there yet. Should
+                    // be treated as if sat.
+                    if(ParentID == 0 && !SitGround && ParentUUID == UUID.Zero) // skip it if sitting
                         Animator.UpdateMovementAnimations();
                 }
                 else
@@ -923,7 +930,15 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 AbsolutePosition = pos;
 
-                AddToPhysicalScene(isFlying);
+                if (m_teleportFlags == TeleportFlags.Default)
+                {
+                    Vector3 vel = Velocity;
+                    AddToPhysicalScene(isFlying);
+                    if (PhysicsActor != null)
+                        PhysicsActor.SetMomentum(vel);
+                }
+                else
+                    AddToPhysicalScene(isFlying);
 
                 if (ForceFly)
                 {
@@ -974,6 +989,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
             // recorded, which stops the input from being processed.
+
             MovementFlag = 0;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
@@ -1014,6 +1030,8 @@ namespace OpenSim.Region.Framework.Scenes
             // as teleporting back
             TeleportFlags = TeleportFlags.Default;
 
+            MovementFlag = 0;
+
             // It looks like Animator is set to null somewhere, and MakeChild
             // is called after that. Probably in aborted teleports.
             if (Animator == null)
@@ -1021,6 +1039,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 Animator.ResetAnimations();
 
+            
 //            m_log.DebugFormat(
 //                 "[SCENE PRESENCE]: Downgrading root agent {0}, {1} to a child agent in {2}",
 //                 Name, UUID, m_scene.RegionInfo.RegionName);
@@ -1047,9 +1066,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
 //                PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
                 PhysicsActor.OnOutOfBounds -= OutOfBoundsCall;
-                m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
-                PhysicsActor.UnSubscribeEvents();
                 PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
+                PhysicsActor.UnSubscribeEvents();
+                m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
                 PhysicsActor = null;
             }
 //            else
@@ -1885,6 +1904,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentID != 0)
             {
                 SceneObjectPart part = ParentPart;
+                UnRegisterSeatControls(part.ParentGroup.UUID);
+
                 TaskInventoryDictionary taskIDict = part.TaskInventory;
                 if (taskIDict != null)
                 {
@@ -3212,7 +3233,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 foreach (ScriptControllers c in scriptedcontrols.Values)
                 {
-                    controls[i++] = new ControllerData(c.itemID, (uint)c.ignoreControls, (uint)c.eventControls);
+                    controls[i++] = new ControllerData(c.objectID, c.itemID, (uint)c.ignoreControls, (uint)c.eventControls);
                 }
                 cAgent.Controllers = controls;
             }
@@ -3223,6 +3244,7 @@ namespace OpenSim.Region.Framework.Scenes
                 cAgent.Anims = Animator.Animations.ToArray();
             }
             catch { }
+            cAgent.DefaultAnim = Animator.Animations.DefaultAnimation;
 
             // Attachment objects
             List<SceneObjectGroup> attachments = GetAttachments();
@@ -3302,6 +3324,7 @@ namespace OpenSim.Region.Framework.Scenes
                         foreach (ControllerData c in cAgent.Controllers)
                         {
                             ScriptControllers sc = new ScriptControllers();
+                            sc.objectID = c.ObjectID;
                             sc.itemID = c.ItemID;
                             sc.ignoreControls = (ScriptControlled)c.IgnoreControls;
                             sc.eventControls = (ScriptControlled)c.EventControls;
@@ -3316,6 +3339,8 @@ namespace OpenSim.Region.Framework.Scenes
             // FIXME: Why is this null check necessary?  Where are the cases where we get a null Anims object?
             if (cAgent.Anims != null)
                 Animator.Animations.FromArray(cAgent.Anims);
+            if (cAgent.DefaultAnim != null)
+                Animator.Animations.SetDefaultAnimation(cAgent.DefaultAnim.AnimID, cAgent.DefaultAnim.SequenceNum, UUID.Zero);
 
             if (cAgent.AttachmentObjects != null && cAgent.AttachmentObjects.Count > 0)
             {
@@ -3791,10 +3816,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void RegisterControlEventsToScript(int controls, int accept, int pass_on, uint Obj_localID, UUID Script_item_UUID)
         {
+            SceneObjectPart p = m_scene.GetSceneObjectPart(Obj_localID);
+            if (p == null)
+                return;
+
             ScriptControllers obj = new ScriptControllers();
             obj.ignoreControls = ScriptControlled.CONTROL_ZERO;
             obj.eventControls = ScriptControlled.CONTROL_ZERO;
 
+            obj.objectID = p.ParentGroup.UUID;
             obj.itemID = Script_item_UUID;
             if (pass_on == 0 && accept == 0)
             {
@@ -3841,6 +3871,21 @@ namespace OpenSim.Region.Framework.Scenes
                 scriptedcontrols.Clear();
             }
             ControllingClient.SendTakeControls(int.MaxValue, false, false);
+        }
+
+        private void UnRegisterSeatControls(UUID obj)
+        {
+            List<UUID> takers = new List<UUID>();
+
+            foreach (ScriptControllers c in scriptedcontrols.Values)
+            {
+                if (c.objectID == obj)
+                    takers.Add(c.itemID);
+            }
+            foreach (UUID t in takers)
+            {
+                UnRegisterControlEventsToScript(0, t);
+            }
         }
 
         public void UnRegisterControlEventsToScript(uint Obj_localID, UUID Script_item_UUID)

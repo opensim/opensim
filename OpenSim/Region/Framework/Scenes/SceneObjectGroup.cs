@@ -465,7 +465,15 @@ namespace OpenSim.Region.Framework.Scenes
         {
             return (IsAttachment || (m_rootPart.Shape.PCode == 9 && m_rootPart.Shape.State != 0));
         }
-        
+
+
+
+        private struct avtocrossInfo
+        {
+            public ScenePresence av;
+            public uint ParentID;
+        }
+
         /// <summary>
         /// The absolute position of this scene object in the scene
         /// </summary>
@@ -517,15 +525,24 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             // We unparent the SP quietly so that it won't
                             // be made to stand up
+
+                            List<avtocrossInfo> avsToCross = new List<avtocrossInfo>();
+
                             foreach (ScenePresence av in m_linkedAvatars)
                             {
+                                avtocrossInfo avinfo = new avtocrossInfo();
                                 SceneObjectPart parentPart = m_scene.GetSceneObjectPart(av.ParentID);
                                 if (parentPart != null)
                                     av.ParentUUID = parentPart.UUID;
 
+                                avinfo.av = av;
+                                avinfo.ParentID = av.ParentID;
+                                avsToCross.Add(avinfo);
+
                                 av.ParentID = 0;
                             }
 
+//                            m_linkedAvatars.Clear();
                             m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
 
                             // Normalize
@@ -541,18 +558,37 @@ namespace OpenSim.Region.Framework.Scenes
                             // If it's deleted, crossing was successful
                             if (IsDeleted)
                             {
-                                foreach (ScenePresence av in m_linkedAvatars)
+                                //                                foreach (ScenePresence av in m_linkedAvatars)
+                                foreach (avtocrossInfo avinfo in avsToCross)
                                 {
-                                    m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar {0} to {1}", av.Name, val);
+                                    ScenePresence av = avinfo.av;
+                                    if (!av.IsInTransit) // just in case...
+                                    {
+                                        m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar {0} to {1}", av.Name, val);
 
-                                    av.IsInTransit = true;
+                                        av.IsInTransit = true;
 
-                                    CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
-                                    d.BeginInvoke(av, val, x, y, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
+                                        CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
+                                        d.BeginInvoke(av, val, x, y, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
+                                    }
+                                    else
+                                        m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar alreasy in transit {0} to {1}", av.Name, val);
                                 }
-
+                                avsToCross.Clear();
                                 return;
                             }
+                            else // cross failed, put avas back ??
+                            {
+                                foreach (avtocrossInfo avinfo in avsToCross)
+                                {
+                                    ScenePresence av = avinfo.av;
+                                    av.ParentUUID = UUID.Zero;
+                                    av.ParentID = avinfo.ParentID;
+//                                    m_linkedAvatars.Add(av);
+                                }
+                            }
+                            avsToCross.Clear();
+
                         }
                         else if (RootPart.PhysActor != null)
                         {
@@ -565,6 +601,7 @@ namespace OpenSim.Region.Framework.Scenes
                         val.Z = Util.Clamp<float>(oldp.Z, 0.5f, 4096.0f);
                     }
                 }
+
 /* don't see the need but worse don't see where is restored to false if things stay in
                 foreach (SceneObjectPart part in m_parts.GetArray())
                 {
@@ -640,8 +677,11 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     agent.ParentPart = null;
                     agent.ParentPosition = Vector3.Zero;
+                    //                    agent.ParentUUID = UUID.Zero;
                 }
             }
+
+            agent.ParentUUID = UUID.Zero;
 
 //                agent.Reset();
 //            else // Not successful
@@ -1779,15 +1819,14 @@ namespace OpenSim.Region.Framework.Scenes
                         part.ClearUpdateSchedule();
                         if (part == m_rootPart)
                         {
-                            if (!IsAttachment || (AttachedAvatar == avatar.ControllingClient.AgentId) || 
+                            if (!IsAttachment || (AttachedAvatar == avatar.ControllingClient.AgentId) ||
                                 (AttachmentPoint < 31) || (AttachmentPoint > 38))
                                 avatar.ControllingClient.SendKillObject(m_regionHandle, new List<uint> { part.LocalId });
                         }
                     }
                 });
             }
-            
-          
+
         }
 
         public void AddScriptLPS(int count)
@@ -2068,6 +2107,9 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
             dupe.m_isBackedUp = false;
             dupe.m_parts = new MapAndArray<OpenMetaverse.UUID, SceneObjectPart>();
+
+            // new group as no sitting avatars            
+            dupe.m_linkedAvatars = new List<ScenePresence>();
 
             // Warning, The following code related to previousAttachmentStatus is needed so that clones of 
             // attachments do not bordercross while they're being duplicated.  This is hacktastic!

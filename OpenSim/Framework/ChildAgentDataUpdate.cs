@@ -229,12 +229,14 @@ namespace OpenSim.Framework
 
     public class ControllerData
     {
+        public UUID ObjectID;
         public UUID ItemID;
         public uint IgnoreControls;
         public uint EventControls;
 
-        public ControllerData(UUID item, uint ignore, uint ev)
+        public ControllerData(UUID obj, UUID item, uint ignore, uint ev)
         {
+            ObjectID = obj;
             ItemID = item;
             IgnoreControls = ignore;
             EventControls = ev;
@@ -248,6 +250,7 @@ namespace OpenSim.Framework
         public OSDMap PackUpdateMessage()
         {
             OSDMap controldata = new OSDMap();
+            controldata["object"] = OSD.FromUUID(ObjectID);
             controldata["item"] = OSD.FromUUID(ItemID);
             controldata["ignore"] = OSD.FromInteger(IgnoreControls);
             controldata["event"] = OSD.FromInteger(EventControls);
@@ -258,6 +261,8 @@ namespace OpenSim.Framework
 
         public void UnpackUpdateMessage(OSDMap args)
         {
+            if (args["object"] != null)
+                ObjectID = args["object"].AsUUID();
             if (args["item"] != null)
                 ItemID = args["item"].AsUUID();
             if (args["ignore"] != null)
@@ -306,6 +311,7 @@ namespace OpenSim.Framework
 
         public AgentGroupData[] Groups;
         public Animation[] Anims;
+        public Animation DefaultAnim = null;
 
         public UUID GranterID;
         public UUID ParentPart;
@@ -390,6 +396,11 @@ namespace OpenSim.Framework
                 foreach (Animation aanim in Anims)
                     anims.Add(aanim.PackUpdateMessage());
                 args["animations"] = anims;
+            }
+
+            if (DefaultAnim != null)
+            {
+                args["default_animation"] = DefaultAnim.PackUpdateMessage();
             }
 
             if (Appearance != null)
@@ -586,6 +597,18 @@ namespace OpenSim.Framework
                     {
                         Anims[i++] = new Animation((OSDMap)o);
                     }
+                }
+            }
+
+            if (args["default_animation"] != null)
+            {
+                try
+                {
+                    DefaultAnim = new Animation((OSDMap)args["default_animation"]);
+                }
+                catch
+                {
+                    DefaultAnim = null;
                 }
             }
 
