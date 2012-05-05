@@ -52,6 +52,7 @@ namespace OpenSim.Services.InventoryService
             : this(config, "InventoryService")
         {
         }
+
         public XInventoryService(IConfigSource config, string configName) : base(config)
         {
             if (configName != string.Empty)
@@ -364,6 +365,11 @@ namespace OpenSim.Services.InventoryService
         //
         public virtual bool DeleteFolders(UUID principalID, List<UUID> folderIDs)
         {
+            return DeleteFolders(principalID, folderIDs, true);
+        }
+
+        public virtual bool DeleteFolders(UUID principalID, List<UUID> folderIDs, bool onlyIfTrash)
+        {
             if (!m_AllowDelete)
                 return false;
 
@@ -371,11 +377,12 @@ namespace OpenSim.Services.InventoryService
             //
             foreach (UUID id in folderIDs)
             {
-                if (!ParentIsTrash(id))
+                if (onlyIfTrash && !ParentIsTrash(id))
                     continue;
+                //m_log.InfoFormat("[XINVENTORY SERVICE]: Delete folder {0}", id);
                 InventoryFolderBase f = new InventoryFolderBase();
                 f.ID = id;
-                PurgeFolder(f);
+                PurgeFolder(f, onlyIfTrash);
                 m_Database.DeleteFolders("folderID", id.ToString());
             }
 
@@ -384,10 +391,15 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool PurgeFolder(InventoryFolderBase folder)
         {
+            return PurgeFolder(folder, true);
+        }
+
+        public virtual bool PurgeFolder(InventoryFolderBase folder, bool onlyIfTrash)
+        {
             if (!m_AllowDelete)
                 return false;
 
-            if (!ParentIsTrash(folder.ID))
+            if (onlyIfTrash && !ParentIsTrash(folder.ID))
                 return false;
 
             XInventoryFolder[] subFolders = m_Database.GetFolders(
@@ -396,7 +408,7 @@ namespace OpenSim.Services.InventoryService
 
             foreach (XInventoryFolder x in subFolders)
             {
-                PurgeFolder(ConvertToOpenSim(x));
+                PurgeFolder(ConvertToOpenSim(x), onlyIfTrash);
                 m_Database.DeleteFolders("folderID", x.folderID.ToString());
             }
 

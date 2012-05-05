@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Threading;
-
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Client;
@@ -596,7 +595,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
                 {
-//                    Thread.Sleep(5000);
+                    // We need to delay here because Imprudence viewers, unlike v1 or v3, have a short (<200ms, <500ms) delay before
+                    // they regard the new region as the current region after receiving the AgentMovementComplete
+                    // response.  If close is sent before then, it will cause the viewer to quit instead.
+                    // However, if this delay is longer, then a viewer can teleport back to this region and experience
+                    // a failure because the old ScenePresence has not yet been cleaned up.
+                    Thread.Sleep(2000);
+
                     sp.Close();
                     sp.Scene.IncomingCloseAgent(sp.UUID);
                 }
@@ -1913,12 +1918,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 Thread.Sleep(100);
             }
 
-            if (count > 0)
-                return true;
-            else
-                return false;
-
-            return true;
+            return count > 0;
         }
 
         protected void SetInTransit(UUID id)

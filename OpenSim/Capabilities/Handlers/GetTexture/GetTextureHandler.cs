@@ -58,8 +58,8 @@ namespace OpenSim.Capabilities.Handlers
         // TODO: Change this to a config option
         const string REDIRECT_URL = null;
 
-        public GetTextureHandler(string path, IAssetService assService) :
-                base("GET", path)
+        public GetTextureHandler(string path, IAssetService assService, string name, string description)
+            : base("GET", path, name, description)
         {
             m_assetService = assService;
         }

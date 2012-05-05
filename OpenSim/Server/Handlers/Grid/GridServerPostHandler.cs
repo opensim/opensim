@@ -116,7 +116,7 @@ namespace OpenSim.Server.Handlers.Grid
                         return GetRegionFlags(request);
                 }
                 
-                m_log.DebugFormat("[GRID HANDLER]: unknown method {0} request {1}", method.Length, method);
+                m_log.DebugFormat("[GRID HANDLER]: unknown method request {0}", method);
             }
             catch (Exception e)
             {

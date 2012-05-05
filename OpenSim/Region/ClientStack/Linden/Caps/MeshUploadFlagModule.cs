@@ -117,7 +117,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            IRequestHandler reqHandler = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(), MeshUploadFlag);
+            IRequestHandler reqHandler
+                = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(), MeshUploadFlag, "MeshUploadFlag", agentID.ToString());
+
             caps.RegisterHandler("MeshUploadFlag", reqHandler);
 	        m_agentID = agentID;
         }

@@ -154,7 +154,9 @@ namespace OpenSim.Region.ClientStack.Linden
         public void RegisterCaps(UUID agentID, Caps caps)
         {
             IRequestHandler reqHandler
-                = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(), HandleSimulatorFeaturesRequest);
+                = new RestHTTPHandler(
+                    "GET", "/CAPS/" + UUID.Random(),
+                    HandleSimulatorFeaturesRequest, "SimulatorFeatures", agentID.ToString());
 
             caps.RegisterHandler("SimulatorFeatures", reqHandler);
         }

@@ -7938,7 +7938,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return;
                             face = (int)rules.GetLSLIntegerItem(idx++);
                             int shiny = (int)rules.GetLSLIntegerItem(idx++);
-                            Bumpiness bump = (Bumpiness)Convert.ToByte((int)rules.GetLSLIntegerItem(idx++));
+                            Bumpiness bump = (Bumpiness)(int)rules.GetLSLIntegerItem(idx++);
 
                             SetShiny(part, face, shiny, bump);
 

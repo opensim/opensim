@@ -282,14 +282,15 @@ namespace OpenSim.Region.UserStatistics
 //            m_log.DebugFormat("[WEB STATS MODULE]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
 
             string capsPath = "/CAPS/VS/" + UUID.Random();
-            caps.RegisterHandler("ViewerStats",
-                                 new RestStreamHandler("POST", capsPath,
-                                                       delegate(string request, string path, string param,
-                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-                                                       {
-                                                           return ViewerStatsReport(request, path, param,
-                                                                                  agentID, caps);
-                                                       }));
+            caps.RegisterHandler(
+                "ViewerStats",
+                new RestStreamHandler(
+                    "POST",
+                    capsPath,
+                    (request, path, param, httpRequest, httpResponse)
+                        => ViewerStatsReport(request, path, param, agentID, caps),
+                    "ViewerStats",
+                    agentID.ToString()));
         }
 
         private void OnDeRegisterCaps(UUID agentID, Caps caps)

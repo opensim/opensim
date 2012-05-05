@@ -190,14 +190,15 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             //m_log.DebugFormat("[WORLD MAP]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
-            caps.RegisterHandler("MapLayer",
-                                 new RestStreamHandler("POST", capsBase + m_mapLayerPath,
-                                                       delegate(string request, string path, string param,
-                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-                                                           {
-                                                               return MapLayerRequest(request, path, param,
-                                                                                      agentID, caps);
-                                                           }));
+            caps.RegisterHandler(
+                "MapLayer",
+                new RestStreamHandler(
+                    "POST",
+                    capsBase + m_mapLayerPath,
+                    (request, path, param, httpRequest, httpResponse)
+                        => MapLayerRequest(request, path, param, agentID, caps),
+                    "MapLayer",
+                    agentID.ToString()));
         }
 
         /// <summary>

@@ -39,7 +39,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         private RestDeserialiseMethod<TRequest, TResponse> m_method;
 
         public RestDeserialiseHandler(string httpMethod, string path, RestDeserialiseMethod<TRequest, TResponse> method)
-            : base(httpMethod, path)
+            : this(httpMethod, path, method, null, null) {}
+
+        public RestDeserialiseHandler(
+            string httpMethod, string path, RestDeserialiseMethod<TRequest, TResponse> method, string name, string description)
+            : base(httpMethod, path, name, description)
         {
             m_method = method;
         }

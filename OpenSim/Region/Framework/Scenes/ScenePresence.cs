@@ -1250,9 +1250,19 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
             MakeRootAgent(AbsolutePosition, flying);
+            ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
+
+//            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
 
             if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
             {
+                // We cannot sleep here since this would hold up the inbound packet processing thread, as
+                // CompleteMovement() is executed synchronously.  However, it might be better to delay the release
+                // here until we know for sure that the agent is active in this region.  Sending AgentMovementComplete
+                // is not enough for Imprudence clients - there appears to be a small delay (<200ms, <500ms) until they regard this
+                // region as the current region, meaning that a close sent before then will fail the teleport.
+//                System.Threading.Thread.Sleep(2000);
+
                 m_log.DebugFormat(
                     "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
                     client.Name, client.AgentId, m_callbackURI);
@@ -1261,9 +1271,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_callbackURI = null;
             }
 
-//            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
-
-            ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
             ValidateAndSendAppearanceAndAgentData();
 
             // Create child agents in neighbouring regions
@@ -1277,7 +1284,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (friendsModule != null)
                     friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
             }
-
 
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
@@ -3453,24 +3459,52 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            RaiseCollisionScriptEvents(coldata);
-
-            if (Invulnerable)
+            // Gods do not take damage and Invulnerable is set depending on parcel/region flags
+            if (Invulnerable || GodLevel > 0)
                 return;
-            
+
+            // The following may be better in the ICombatModule
+            // probably tweaking of the values for ground and normal prim collisions will be needed
             float starthealth = Health;
             uint killerObj = 0;
+            SceneObjectPart part = null;
             foreach (uint localid in coldata.Keys)
             {
-                SceneObjectPart part = Scene.GetSceneObjectPart(localid);
-
-                if (part != null && part.ParentGroup.Damage != -1.0f)
-                    Health -= part.ParentGroup.Damage;
+                if (localid == 0)
+                {
+                    part = null;
+                }
                 else
                 {
-                    if (coldata[localid].PenetrationDepth >= 0.10f)
+                    part = Scene.GetSceneObjectPart(localid);
+                }
+                if (part != null)
+                {
+                    // Ignore if it has been deleted or volume detect
+                    if (!part.ParentGroup.IsDeleted && !part.ParentGroup.IsVolumeDetect)
+                    {
+                        if (part.ParentGroup.Damage > 0.0f)
+                        {
+                            // Something with damage...
+                            Health -= part.ParentGroup.Damage;
+                            part.ParentGroup.Scene.DeleteSceneObject(part.ParentGroup, false);
+                        }
+                        else
+                        {
+                            // An ordinary prim
+                            if (coldata[localid].PenetrationDepth >= 0.10f)
+                                Health -= coldata[localid].PenetrationDepth * 5.0f;
+                        }
+                    }
+                }
+                else
+                {
+                    // 0 is the ground
+                    // what about collisions with other avatars?
+                    if (localid == 0 && coldata[localid].PenetrationDepth >= 0.10f)
                         Health -= coldata[localid].PenetrationDepth * 5.0f;
                 }
+
 
                 if (Health <= 0.0f)
                 {
@@ -3487,7 +3521,16 @@ namespace OpenSim.Region.Framework.Scenes
                     ControllingClient.SendHealth(Health);
                 }
                 if (Health <= 0)
+                {
                     m_scene.EventManager.TriggerAvatarKill(killerObj, this);
+                }
+                if (starthealth == Health && Health < 100.0f)
+                {
+                    Health += 0.03f;
+                    if (Health > 100.0f)
+                        Health = 100.0f;
+                    ControllingClient.SendHealth(Health);
+                }
             }
         }
 
