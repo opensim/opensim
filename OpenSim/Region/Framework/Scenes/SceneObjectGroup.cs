@@ -2276,7 +2276,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (pa != null)
                 {
-                    pa.AddForce(impulse, true);
+                    // false to be applied as a impulse 
+                    pa.AddForce(impulse, false);
                     m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
                 }
             }
@@ -2290,7 +2291,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (!IsAttachment)
                 {
-                    pa.AddAngularForce(impulse, true);
+                    // false to be applied as a impulse
+                    pa.AddAngularForce(impulse, false);
                     m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
                 }
             }
