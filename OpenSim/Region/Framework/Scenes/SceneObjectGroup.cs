@@ -2771,7 +2771,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             //we need to do a terse update even if the move wasn't allowed
             // so that the position is reset in the client (the object snaps back)
-            ScheduleGroupForTerseUpdate();
+            RootPart.ScheduleTerseUpdate();
         }
 
         /// <summary>
