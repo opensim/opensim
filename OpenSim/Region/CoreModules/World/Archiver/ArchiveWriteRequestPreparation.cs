@@ -124,9 +124,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (options.ContainsKey("noassets") && (bool)options["noassets"])
                 SaveAssets = false;
 
-            // Whether someone else (i.e., ReceivedAllAssets()) is responsible for calling TriggerOarFileSaved() when we're done
-            bool eventHandled = false;
-
             try
             {
                 Dictionary<UUID, AssetType> assetUuids = new Dictionary<UUID, AssetType>();
@@ -233,21 +230,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                             m_scene.RegionInfo.ScopeID, options, awre.ReceivedAllAssets);
 
                     Util.FireAndForget(o => ar.Execute());
-                    eventHandled = true;
                 }
                 else
                 {
                     awre.ReceivedAllAssets(new List<UUID>(), new List<UUID>());
-                    eventHandled = true;
                 }
             }
-            catch (Exception e)
+            catch (Exception) 
             {
                 m_saveStream.Close();
-                
-                if (!eventHandled)
-                    m_scene.EventManager.TriggerOarFileSaved(m_requestId, e.ToString());
-                
                 throw;
             }    
         }

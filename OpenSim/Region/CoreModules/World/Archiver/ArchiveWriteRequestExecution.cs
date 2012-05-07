@@ -87,11 +87,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 Save(assetsFoundUuids, assetsNotFoundUuids);
             }
-            catch (Exception e)
-            {
-                m_scene.EventManager.TriggerOarFileSaved(m_requestId, e.ToString());
-                throw;
-            }
             finally
             {
                 m_archiveWriter.Close();
