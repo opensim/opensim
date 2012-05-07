@@ -128,6 +128,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public const string GridInfoServiceConfigSectionName = "GridInfoService";
+
         internal IScriptEngine m_ScriptEngine;
         internal ILSL_Api m_LSL_Api = null; // get a reference to the LSL API so we can call methods housed there
         internal SceneObjectPart m_host;
@@ -2032,8 +2034,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             string nick = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
 
-            if (config.Configs["GridInfo"] != null)
-                nick = config.Configs["GridInfo"].GetString("gridnick", nick);
+            if (config.Configs[GridInfoServiceConfigSectionName] != null)
+                nick = config.Configs[GridInfoServiceConfigSectionName].GetString("gridnick", nick);
 
             if (String.IsNullOrEmpty(nick))
                 nick = GridUserInfo(InfoType.Nick);
@@ -2049,8 +2051,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             string name = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
 
-            if (config.Configs["GridInfo"] != null)
-                name = config.Configs["GridInfo"].GetString("gridname", name);
+            if (config.Configs[GridInfoServiceConfigSectionName] != null)
+                name = config.Configs[GridInfoServiceConfigSectionName].GetString("gridname", name);
 
             if (String.IsNullOrEmpty(name))
                 name = GridUserInfo(InfoType.Name);
@@ -2066,8 +2068,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             string loginURI = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
 
-            if (config.Configs["GridInfo"] != null)
-                loginURI = config.Configs["GridInfo"].GetString("login", loginURI);
+            if (config.Configs[GridInfoServiceConfigSectionName] != null)
+                loginURI = config.Configs[GridInfoServiceConfigSectionName].GetString("login", loginURI);
 
             if (String.IsNullOrEmpty(loginURI))
                 loginURI = GridUserInfo(InfoType.Login);
@@ -2114,8 +2116,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             string retval = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
 
-            if (config.Configs["GridInfo"] != null)
-                retval = config.Configs["GridInfo"].GetString(key, retval);
+            if (config.Configs[GridInfoServiceConfigSectionName] != null)
+                retval = config.Configs[GridInfoServiceConfigSectionName].GetString(key, retval);
 
             if (String.IsNullOrEmpty(retval))
                 retval = GridUserInfo(InfoType.Custom, key);
