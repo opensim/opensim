@@ -11631,8 +11631,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                                     udata.scale = new Vector3(block.Data, 0);
 
-                                    //                                    udata.change = ObjectChangeType.groupS;
-                                    udata.change = ObjectChangeType.primS; // to conform to current SL
+                                    udata.change = ObjectChangeType.groupS;
                                     updatehandler(localId, udata, this);
 
                                     break;
@@ -11643,8 +11642,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     udata.position = new Vector3(block.Data, 0);
                                     udata.scale = new Vector3(block.Data, 12);
 
-                                    //                                    udata.change = ObjectChangeType.groupPS;
-                                    udata.change = ObjectChangeType.primPS; // to conform to current SL
+                                    udata.change = ObjectChangeType.groupPS;
                                     updatehandler(localId, udata, this);
                                     break;
 
