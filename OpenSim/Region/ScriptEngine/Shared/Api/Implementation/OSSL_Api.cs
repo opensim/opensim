@@ -2479,7 +2479,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 
                 Vector3 pos = new Vector3((float) position.x, (float) position.y, (float) position.z);
-                module.MoveToTarget(npcId, World, pos, false, true);
+                module.MoveToTarget(npcId, World, pos, false, true, false);
             }
         }
 
@@ -2504,7 +2504,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     World,
                     pos,
                     (options & ScriptBaseClass.OS_NPC_NO_FLY) != 0,
-                    (options & ScriptBaseClass.OS_NPC_LAND_AT_TARGET) != 0);
+                    (options & ScriptBaseClass.OS_NPC_LAND_AT_TARGET) != 0,
+                    (options & ScriptBaseClass.OS_NPC_RUNNING) != 0);
             }
         }
 

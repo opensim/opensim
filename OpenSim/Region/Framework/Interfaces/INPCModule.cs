@@ -113,9 +113,11 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         /// <param name="landAtTarget">
         /// If true and the avatar is flying when it reaches the target, land.
-        /// </param>
+        /// </param> name="running">
+        /// If true, NPC moves with running speed.
         /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
-        bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget);
+        /// 
+        bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget, bool running);
 
         /// <summary>
         /// Stop the NPC's current movement.

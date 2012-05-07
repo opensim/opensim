@@ -170,7 +170,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return npcAvatar.AgentId;
         }
 
-        public bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget)
+        public bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget, bool running)
         {
             lock (m_avatars)
             {
@@ -184,6 +184,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                         sp.Name, pos, scene.RegionInfo.RegionName, noFly, landAtTarget);
 
                     sp.MoveToTarget(pos, noFly, landAtTarget);
+                    sp.SetAlwaysRun = running;
 
                     return true;
                 }
