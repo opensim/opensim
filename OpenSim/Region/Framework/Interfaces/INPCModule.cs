@@ -117,7 +117,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// If true, NPC moves with running speed.
         /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
         /// 
-        bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget, bool running = false);
+        bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget, bool running);
 
         /// <summary>
         /// Stop the NPC's current movement.

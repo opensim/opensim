@@ -2449,7 +2449,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 
                 Vector3 pos = new Vector3((float) position.x, (float) position.y, (float) position.z);
-                module.MoveToTarget(npcId, World, pos, false, true);
+                module.MoveToTarget(npcId, World, pos, false, true, false);
             }
         }
 

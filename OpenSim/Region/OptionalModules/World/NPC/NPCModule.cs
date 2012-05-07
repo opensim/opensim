@@ -169,7 +169,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             }
         }
 
-        public bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget, bool running = false)
+        public bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget, bool running)
         {
             lock (m_avatars)
             {

@@ -242,7 +242,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 
             Vector3 targetPos = startPos + new Vector3(0, 10, 0);
-            m_npcMod.MoveToTarget(npc.UUID, m_scene, targetPos, false, false);
+            m_npcMod.MoveToTarget(npc.UUID, m_scene, targetPos, false, false, false);
 
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
             //Assert.That(npc.Rotation, Is.EqualTo(new Quaternion(0, 0, 0.7071068f, 0.7071068f)));
@@ -267,7 +267,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             // Try a second movement
             startPos = npc.AbsolutePosition;
             targetPos = startPos + new Vector3(10, 0, 0);
-            m_npcMod.MoveToTarget(npc.UUID, m_scene, targetPos, false, false);
+            m_npcMod.MoveToTarget(npc.UUID, m_scene, targetPos, false, false, false);
 
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 //            Assert.That(npc.Rotation, Is.EqualTo(new Quaternion(0, 0, 0, 1)));
