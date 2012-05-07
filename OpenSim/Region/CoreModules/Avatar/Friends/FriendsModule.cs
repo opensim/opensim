@@ -498,7 +498,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 Util.FireAndForget(
                     delegate
                     {
-                        m_log.DebugFormat("[FRIENDS MODULE]: Notifying {0} friends", friendList.Count);
+                        m_log.DebugFormat(
+                            "[FRIENDS MODULE]: Notifying {0} friends of {1} of online status {2}",
+                            friendList.Count, agentID, online);
+
                         // Notify about this user status
                         StatusNotify(friendList, agentID, online);
                     }
@@ -515,7 +518,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 {
                     // Try local
                     if (LocalStatusNotification(userID, friendID, online))
-                        return;
+                        continue;
 
                     // The friend is not here [as root]. Let's forward.
                     PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
@@ -523,11 +526,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     {
                         PresenceInfo friendSession = null;
                         foreach (PresenceInfo pinfo in friendSessions)
+                        {
                             if (pinfo.RegionID != UUID.Zero) // let's guard against sessions-gone-bad
                             {
                                 friendSession = pinfo;
                                 break;
                             }
+                        }
 
                         if (friendSession != null)
                         {
