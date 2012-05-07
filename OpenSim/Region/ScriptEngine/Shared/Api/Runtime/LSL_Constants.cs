@@ -626,6 +626,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OS_NPC_FLY = 0;
         public const int OS_NPC_NO_FLY = 1;
         public const int OS_NPC_LAND_AT_TARGET = 2;
+        public const int OS_NPC_RUNNING = 4;
 
         public const int OS_NPC_SIT_NOW = 0;
 
