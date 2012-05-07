@@ -1273,8 +1273,35 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (m_parentScene.Permissions.CanEditObject(grp.UUID, remoteClient.AgentId))
                     {
+                        // These two are exceptions SL makes in the interpretation
+                        // of the change flags. Must check them here because otherwise
+                        // the group flag (see below) would be lost
+                        if (data.change == ObjectChangeType.groupS)
+                            data.change = ObjectChangeType.primS;
+                        if (data.change == ObjectChangeType.groupPS)
+                            data.change = ObjectChangeType.primPS;
                         part.StoreUndoState(data.change); // lets test only saving what we changed
                         grp.doChangeObject(part, (ObjectChangeData)data);
+                    }
+                    else
+                    {
+                        // Is this any kind of group operation?
+                        if ((data.change & ObjectChangeType.Group) != 0)
+                        {
+                            // Is a move and/or rotation requested?
+                            if ((data.change & (ObjectChangeType.Position | ObjectChangeType.Rotation)) != 0)
+                            {
+                                // Are we allowed to move it?
+                                if (m_parentScene.Permissions.CanMoveObject(grp.UUID, remoteClient.AgentId))
+                                {
+                                    // Strip all but move and rotation from request
+                                    data.change &= (ObjectChangeType.Group | ObjectChangeType.Position | ObjectChangeType.Rotation);
+
+                                    part.StoreUndoState(data.change);
+                                    grp.doChangeObject(part, (ObjectChangeData)data);
+                                }
+                            }
+                        }
                     }
                 }
             }
