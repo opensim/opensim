@@ -830,7 +830,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (force.IsFinite())
             {
-                AddChange(changes.AddForce, force * m_invTimeStep);
+                if(pushforce)
+                    AddChange(changes.AddForce, force);
+                else // a impulse
+                    AddChange(changes.AddForce, force * m_invTimeStep);
             }
             else
             {
@@ -843,7 +846,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (force.IsFinite())
             {
-                AddChange(changes.AddAngForce, force);
+//                if(pushforce)  for now applyrotationimpulse seems more happy applied as a force
+                    AddChange(changes.AddAngForce, force);
+//                else // a impulse
+//                    AddChange(changes.AddAngForce, force * m_invTimeStep);
             }
             else
             {
@@ -3375,8 +3381,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.BodyEnable(Body);
                 }
 
-                // check outside region
                 d.Vector3 lpos = d.GeomGetPosition(prim_geom); // root position that is seem by rest of simulator
+
+/*  moved down to UpdateMove... where it belongs again
+
+                // check outside region
 
                 if (lpos.Z < -100 || lpos.Z > 100000f)
                 {
@@ -3453,7 +3462,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     base.RequestPhysicsterseUpdate();
                     return;
                 }
-
+*/
                 if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
                 {
                     // 'VEHICLES' are dealt with in ODEDynamics.cs
@@ -3507,6 +3516,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         fx = (_target_velocity.X - vel.X) * m_invTimeStep;
                         fy = (_target_velocity.Y - vel.Y) * m_invTimeStep;
                         fz = (_target_velocity.Z - vel.Z) * m_invTimeStep;
+//                        d.BodySetLinearVel(Body, _target_velocity.X, _target_velocity.Y, _target_velocity.Z);
                     }
                 }        // end if (m_usePID)
 
@@ -3621,6 +3631,83 @@ namespace OpenSim.Region.Physics.OdePlugin
                     bool lastZeroFlag = _zeroFlag;
 
                     d.Vector3 lpos = d.GeomGetPosition(prim_geom);
+
+                    // check outside region
+                    if (lpos.Z < -100 || lpos.Z > 100000f)
+                    {
+                        m_outbounds = true;
+
+                        lpos.Z = Util.Clip(lpos.Z, -100f, 100000f);
+                        _acceleration.X = 0;
+                        _acceleration.Y = 0;
+                        _acceleration.Z = 0;
+
+                        _velocity.X = 0;
+                        _velocity.Y = 0;
+                        _velocity.Z = 0;
+                        m_rotationalVelocity.X = 0;
+                        m_rotationalVelocity.Y = 0;
+                        m_rotationalVelocity.Z = 0;
+
+                        d.BodySetLinearVel(Body, 0, 0, 0); // stop it
+                        d.BodySetAngularVel(Body, 0, 0, 0); // stop it
+                        d.BodySetPosition(Body, lpos.X, lpos.Y, lpos.Z); // put it somewhere 
+                        m_lastposition = _position;
+                        m_lastorientation = _orientation;
+
+                        base.RequestPhysicsterseUpdate();
+
+                        throttleCounter = 0;
+                        _zeroFlag = true;
+
+                        disableBodySoft(); // disable it and colisions
+                        base.RaiseOutOfBounds(_position);
+                        return;
+                    }
+
+                    if (lpos.X < 0f)
+                    {
+                        _position.X = Util.Clip(lpos.X, -2f, -0.1f);
+                        m_outbounds = true;
+                    }
+                    else if (lpos.X > _parent_scene.WorldExtents.X)
+                    {
+                        _position.X = Util.Clip(lpos.X, _parent_scene.WorldExtents.X + 0.1f, _parent_scene.WorldExtents.X + 2f);
+                        m_outbounds = true;
+                    }
+                    if (lpos.Y < 0f)
+                    {
+                        _position.Y = Util.Clip(lpos.Y, -2f, -0.1f);
+                        m_outbounds = true;
+                    }
+                    else if (lpos.Y > _parent_scene.WorldExtents.Y)
+                    {
+                        _position.Y = Util.Clip(lpos.Y, _parent_scene.WorldExtents.Y + 0.1f, _parent_scene.WorldExtents.Y + 2f);
+                        m_outbounds = true;
+                    }
+
+                    if (m_outbounds)
+                    {
+                        m_lastposition = _position;
+                        m_lastorientation = _orientation;
+
+                        d.Vector3 dtmp = d.BodyGetAngularVel(Body);
+                        m_rotationalVelocity.X = dtmp.X;
+                        m_rotationalVelocity.Y = dtmp.Y;
+                        m_rotationalVelocity.Z = dtmp.Z;
+
+                        dtmp = d.BodyGetLinearVel(Body);
+                        _velocity.X = dtmp.X;
+                        _velocity.Y = dtmp.Y;
+                        _velocity.Z = dtmp.Z;
+
+                        d.BodySetLinearVel(Body, 0, 0, 0); // stop it
+                        d.BodySetAngularVel(Body, 0, 0, 0);
+                        d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                        disableBodySoft(); // stop collisions
+                        base.RequestPhysicsterseUpdate();
+                        return;
+                    }
 
                     d.Quaternion ori;
                     d.GeomCopyQuaternion(prim_geom, out ori);

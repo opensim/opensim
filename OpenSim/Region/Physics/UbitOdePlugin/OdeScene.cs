@@ -178,7 +178,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         const float minERP = 0.1f;
         const float comumContactCFM = 0.0001f;
         
-        float frictionMovementMult = 0.3f;
+        float frictionMovementMult = 0.8f;
 
         float TerrainBounce = 0.1f;
         float TerrainFriction = 0.3f;
@@ -820,18 +820,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                     switch (p2.PhysicsActorType)
                     {
                         case (int)ActorTypes.Agent:
-//                            p1.getContactData(ref contactdata1);
-//                            p2.getContactData(ref contactdata2);
+                            //                            p1.getContactData(ref contactdata1);
+                            //                            p2.getContactData(ref contactdata2);
 
                             bounce = 0;
                             mu = 0;
                             cfm = 0.0001f;
-/*
-                            mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
+                            /*
+                                                        mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
 
-                            if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
-                                mu *= frictionMovementMult;
-*/
+                                                        if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
+                                                            mu *= frictionMovementMult;
+                            */
                             dop2foot = true;
                             if (p1.Velocity.LengthSquared() > 0.0f)
                                 p1.CollidingObj = true;
@@ -850,14 +850,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                             cfm = p1.Mass;
                             if (cfm > p2.Mass)
                                 cfm = p2.Mass;
-            dscale = 10 / cfm;
-            dscale = (float)Math.Sqrt(dscale);
-            if (dscale > 1.0f)
-                dscale = 1.0f;
-            erpscale = cfm * 0.01f;
-            cfm = 0.0001f / cfm;
-            if (cfm > 0.01f)
-                cfm = 0.01f;
+                            dscale = 10 / cfm;
+                            dscale = (float)Math.Sqrt(dscale);
+                            if (dscale > 1.0f)
+                                dscale = 1.0f;
+                            erpscale = cfm * 0.01f;
+                            cfm = 0.0001f / cfm;
+                            if (cfm > 0.01f)
+                                cfm = 0.01f;
 
                             if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
                                 mu *= frictionMovementMult;
@@ -898,7 +898,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 }
                             }
                             else
-                                ignore=true;
+                                ignore = true;
                             break;
                     }
                     break;
