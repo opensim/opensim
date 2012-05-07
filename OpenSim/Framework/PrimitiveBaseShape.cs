@@ -241,10 +241,14 @@ namespace OpenSim.Framework
 
             m_textureEntry = prim.Textures.GetBytes();
 
-            SculptEntry = (prim.Sculpt.Type != OpenMetaverse.SculptType.None);
-            SculptData = prim.Sculpt.GetBytes();
-            SculptTexture = prim.Sculpt.SculptTexture;
-            SculptType = (byte)prim.Sculpt.Type;
+            if (prim.Sculpt != null)
+            {
+                SculptEntry = (prim.Sculpt.Type != OpenMetaverse.SculptType.None);
+                SculptData = prim.Sculpt.GetBytes();
+                SculptTexture = prim.Sculpt.SculptTexture;
+                SculptType = (byte)prim.Sculpt.Type;
+            }
+            else SculptType = (byte)OpenMetaverse.SculptType.None;
         }
 
         [XmlIgnore]
