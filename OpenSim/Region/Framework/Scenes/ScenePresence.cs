@@ -996,6 +996,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TeleportWithMomentum(Vector3 pos, Vector3? v)
         {
+            if (ParentID != (uint)0)
+                StandUp();
             bool isFlying = Flying;
             Vector3 vel = Velocity;
             RemoveFromPhysicalScene();
