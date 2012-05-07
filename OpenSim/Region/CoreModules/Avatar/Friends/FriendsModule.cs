@@ -449,29 +449,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         /// </summary>
         public IClientAPI LocateClientObject(UUID agentID)
         {
-            Scene scene = GetClientScene(agentID);
-            if (scene != null)
-            {
-                ScenePresence presence = scene.GetScenePresence(agentID);
-                if (presence != null)
-                    return presence.ControllingClient;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Find the scene for an agent
-        /// </summary>
-        private Scene GetClientScene(UUID agentId)
-        {
             lock (m_Scenes)
             {
                 foreach (Scene scene in m_Scenes)
                 {
-                    ScenePresence presence = scene.GetScenePresence(agentId);
+                    ScenePresence presence = scene.GetScenePresence(agentID);
                     if (presence != null && !presence.IsChildAgent)
-                        return scene;
+                        return presence.ControllingClient;
                 }
             }
 
