@@ -27,17 +27,22 @@
 
 using System;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
-
 
 namespace OpenSim.Region.ScriptEngine.Interfaces
 {
     public interface IScriptApi
     {
-        //
-        // Each API has an identifier, which is used to load the
-        // proper runtime assembly at load time.
-        //
-        void Initialize(IScriptEngine engine, SceneObjectPart part, uint localID, UUID item);
+        /// <summary>
+        /// Initialize the API
+        /// </summary>
+        /// <remarks>
+        /// Each API has an identifier, which is used to load the
+        /// proper runtime assembly at load time.
+        /// <param name='engine'>/param>
+        /// <param name='part'></param>
+        /// <param name='item'></param>
+        void Initialize(IScriptEngine engine, SceneObjectPart part, TaskInventoryItem item);
     }
 }

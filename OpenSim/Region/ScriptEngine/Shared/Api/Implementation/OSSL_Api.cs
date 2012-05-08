@@ -133,8 +133,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal IScriptEngine m_ScriptEngine;
         internal ILSL_Api m_LSL_Api = null; // get a reference to the LSL API so we can call methods housed there
         internal SceneObjectPart m_host;
-        internal uint m_localID;
-        internal UUID m_itemID;
+        internal TaskInventoryItem m_item;
         internal bool m_OSFunctionsEnabled = false;
         internal ThreatLevel m_MaxThreatLevel = ThreatLevel.VeryLow;
         internal float m_ScriptDelayFactor = 1.0f;
@@ -142,12 +141,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal bool m_debuggerSafe = false;
         internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
+        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;
-            m_localID = localID;
-            m_itemID = itemID;
+            m_item = item;
             m_debuggerSafe = m_ScriptEngine.Config.GetBoolean("DebuggerSafe", false);
 
             if (m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
@@ -233,7 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_LSL_Api != null)
                 return;
 
-            m_LSL_Api = (ILSL_Api)m_ScriptEngine.GetApi(m_itemID, "LSL");
+            m_LSL_Api = (ILSL_Api)m_ScriptEngine.GetApi(m_item.ItemID, "LSL");
         }
 
         //
@@ -352,22 +350,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
                     }
 
-                    TaskInventoryItem ti = m_host.Inventory.GetInventoryItem(m_itemID);
-                    if (ti == null)
-                    {
-                        OSSLError(
-                            String.Format("{0} permission error. Can't find script in prim inventory.",
-                            function));
-                    }
-
-                    UUID ownerID = ti.OwnerID;
+                    UUID ownerID = m_item.OwnerID;
 
                     //OSSL only may be used if object is in the same group as the parcel
                     if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_GROUP_MEMBER"))
                     {
                         ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
 
-                        if (land.LandData.GroupID == ti.GroupID && land.LandData.GroupID != UUID.Zero)
+                        if (land.LandData.GroupID == m_item.GroupID && land.LandData.GroupID != UUID.Zero)
                         {
                             return;
                         }
@@ -403,13 +393,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                     }
 
-                    if (!m_FunctionPerms[function].AllowedCreators.Contains(ti.CreatorID))
+                    if (!m_FunctionPerms[function].AllowedCreators.Contains(m_item.CreatorID))
                         OSSLError(
                             String.Format("{0} permission denied. Script creator is not in the list of users allowed to execute this function and prim owner also has no permission.",
                             function));
-                    if (ti.CreatorID != ownerID)
+
+                    if (m_item.CreatorID != ownerID)
                     {
-                        if ((ti.CurrentPermissions & (uint)PermissionMask.Modify) != 0)
+                        if ((m_item.CurrentPermissions & (uint)PermissionMask.Modify) != 0)
                             OSSLError(
                                 String.Format("{0} permission denied. Script permissions error.",
                                 function));
@@ -1190,7 +1181,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osSetStateEvents");
             m_host.AddScriptLPS(1);
 
-            m_host.SetScriptEvents(m_itemID, events);
+            m_host.SetScriptEvents(m_item.ItemID, events);
         }
 
         public void osSetRegionWaterHeight(double height)

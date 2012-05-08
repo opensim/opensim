@@ -59,16 +59,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     {
         internal IScriptEngine m_ScriptEngine;
         internal SceneObjectPart m_host;
-        internal uint m_localID;
-        internal UUID m_itemID;
+        internal TaskInventoryItem m_item;
         internal bool m_CMFunctionsEnabled = false;
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
+        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;
-            m_localID = localID;
-            m_itemID = itemID;
+            m_item = item;
 
             if (m_ScriptEngine.Config.GetBoolean("AllowCareminsterFunctions", false))
                 m_CMFunctionsEnabled = true;
@@ -95,7 +93,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string cmDetectedCountry(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
             if (detectedParams == null)
                 return String.Empty;
             return detectedParams.Country;

@@ -3835,7 +3835,6 @@ namespace OpenSim.Region.Framework.Scenes
             hasProfileCut = hasDimple; // is it the same thing?
         }
         
-
         public void SetGroup(UUID groupID, IClientAPI client)
         {
             // Scene.AddNewPrims() calls with client == null so can't use this.
@@ -3865,10 +3864,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetPhysicsAxisRotation()
         {
-            if (PhysActor != null)
+            PhysicsActor pa = PhysActor;
+
+            if (pa != null)
             {
-                PhysActor.LockAngularMotion(RotationAxis);
-                ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                pa.LockAngularMotion(RotationAxis);
+                ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
             }
         }
 

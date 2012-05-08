@@ -102,8 +102,12 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal Dictionary<uint, SceneObjectGroup> SceneObjectGroupsByLocalPartID = new Dictionary<uint, SceneObjectGroup>();        
 
         /// <summary>
-        /// Lock to prevent object group update, linking and delinking operations from running concurrently.
+        /// Lock to prevent object group update, linking, delinking and duplication operations from running concurrently.
         /// </summary>
+        /// <remarks>
+        /// These operations rely on the parts composition of the object.  If allowed to run concurrently then race
+        /// conditions can occur.
+        /// </remarks>
         private Object m_updateLock = new Object();
 
         #endregion
@@ -2067,12 +2071,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="AgentID"></param>
         /// <param name="GroupID"></param>
         /// <param name="rot"></param>
+        /// <returns>null if duplication fails, otherwise the duplicated object</returns>
+        /// <summary>
         public SceneObjectGroup DuplicateObject(uint originalPrimID, Vector3 offset, uint flags, UUID AgentID, UUID GroupID, Quaternion rot)
         {
 //            m_log.DebugFormat(
 //                "[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", 
 //                originalPrimID, offset, AgentID);
-            
+
             SceneObjectGroup original = GetGroupByPrim(originalPrimID);
             if (original != null)
             {
@@ -2102,25 +2108,25 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // FIXME: This section needs to be refactored so that it just calls AddSceneObject()
                     Entities.Add(copy);
-                    
+
                     lock (SceneObjectGroupsByFullID)
                         SceneObjectGroupsByFullID[copy.UUID] = copy;
-                    
+
                     SceneObjectPart[] children = copy.Parts;
-                    
+
                     lock (SceneObjectGroupsByFullPartID)
                     {
                         SceneObjectGroupsByFullPartID[copy.UUID] = copy;
                         foreach (SceneObjectPart part in children)
                             SceneObjectGroupsByFullPartID[part.UUID] = copy;
                     }
-        
+
                     lock (SceneObjectGroupsByLocalPartID)
                     {
                         SceneObjectGroupsByLocalPartID[copy.LocalId] = copy;
                         foreach (SceneObjectPart part in children)
                             SceneObjectGroupsByLocalPartID[part.LocalId] = copy;
-                    }   
+                    }
                     // PROBABLE END OF FIXME
 
                     // Since we copy from a source group that is in selected
@@ -2152,11 +2158,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.WarnFormat("[SCENE]: Attempted to duplicate nonexistant prim id {0}", GroupID);
             }
-            
+
             return null;
         }
-        
-        /// <summary>
+
         /// Calculates the distance between two Vector3s
         /// </summary>
         /// <param name="v1"></param>

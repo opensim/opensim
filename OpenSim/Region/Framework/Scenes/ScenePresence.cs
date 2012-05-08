@@ -77,6 +77,11 @@ namespace OpenSim.Region.Framework.Scenes
 //        {
 //            m_log.Debug("[SCENE PRESENCE] Destructor called");
 //        }
+        private void TriggerScenePresenceUpdated()
+        {
+            if (m_scene != null)
+                m_scene.EventManager.TriggerScenePresenceUpdated(this);
+        }
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -498,6 +503,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //m_log.DebugFormat(
                 //    "[ENTITY BASE]: In {0} set AbsolutePosition of {1} to {2}",
                 //    Scene.RegionInfo.RegionName, Name, m_pos);
+                TriggerScenePresenceUpdated();
             }
         }
 
@@ -517,6 +523,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
 
                 m_pos = value;
+                TriggerScenePresenceUpdated();
             }
         }
 
@@ -1090,6 +1097,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TeleportWithMomentum(Vector3 pos, Vector3? v)
         {
+            if (ParentID != (uint)0)
+                StandUp();
             bool isFlying = Flying;
             Vector3 vel = Velocity;
             RemoveFromPhysicalScene();
@@ -1662,6 +1671,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_scene.EventManager.TriggerOnClientMovement(this);
+            TriggerScenePresenceUpdated();
         }
 
         /// <summary>
@@ -2594,6 +2604,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_scene.ForEachClient(SendTerseUpdateToClient);
             }
+            TriggerScenePresenceUpdated();
         }
 
         public void SendCoarseLocations(List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
@@ -3379,6 +3390,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Velocity = force;
 
                 m_forceToApply = null;
+                TriggerScenePresenceUpdated();
             }
         }
 

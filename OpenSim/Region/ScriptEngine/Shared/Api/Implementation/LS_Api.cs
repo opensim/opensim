@@ -58,17 +58,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     {
         internal IScriptEngine m_ScriptEngine;
         internal SceneObjectPart m_host;
-        internal uint m_localID;
-        internal UUID m_itemID;
         internal bool m_LSFunctionsEnabled = false;
         internal IScriptModuleComms m_comms = null;
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
+        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;
-            m_localID = localID;
-            m_itemID = itemID;
 
             if (m_ScriptEngine.Config.GetBoolean("AllowLightShareFunctions", false))
                 m_LSFunctionsEnabled = true;
