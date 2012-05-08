@@ -95,7 +95,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_scene.AddSceneObject(so);
 
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(m_engine, part, part.LocalId, null);
+            osslApi.Initialize(m_engine, part, null);
 
             string notecardName = "appearanceNc";
             osslApi.osOwnerSaveAppearance(notecardName);
@@ -130,7 +130,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_scene.AddSceneObject(so);
 
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(m_engine, part, part.LocalId, null);
+            osslApi.Initialize(m_engine, part, null);
 
             string notecardName = "appearanceNc";
             osslApi.osOwnerSaveAppearance(notecardName);
@@ -161,7 +161,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_scene.AddSceneObject(so);
 
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(m_engine, part, part.LocalId, null);
+            osslApi.Initialize(m_engine, part, null);
 
             string notecardName = "appearanceNc";
 
@@ -202,7 +202,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_scene.AddSceneObject(so);
 
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(m_engine, part, part.LocalId, null);
+            osslApi.Initialize(m_engine, part, null);
 
             string notecardName = "appearanceNc";
 

@@ -84,7 +84,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
-        protected uint m_localID;
 
         /// <summary>
         /// The item that hosts this script
@@ -108,11 +107,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache =
                 new Dictionary<UUID, UserInfoCacheEntry>();
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, TaskInventoryItem item)
+        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;
-            m_localID = localID;
             m_item = item;
 
             m_ScriptDelayFactor =
@@ -843,7 +841,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID.TryParse(ID, out keyID);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if (wComm != null)
-                return wComm.Listen(m_localID, m_item.ItemID, m_host.UUID, channelID, name, keyID, msg);
+                return wComm.Listen(m_host.LocalId, m_item.ItemID, m_host.UUID, channelID, name, keyID, msg);
             else
                 return -1;
         }
@@ -870,7 +868,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID keyID = UUID.Zero;
             UUID.TryParse(id, out keyID);
 
-            AsyncCommands.SensorRepeatPlugin.SenseOnce(m_localID, m_item.ItemID, name, keyID, type, range, arc, m_host);
+            AsyncCommands.SensorRepeatPlugin.SenseOnce(m_host.LocalId, m_item.ItemID, name, keyID, type, range, arc, m_host);
        }
 
         public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate)
@@ -879,13 +877,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID keyID = UUID.Zero;
             UUID.TryParse(id, out keyID);
 
-            AsyncCommands.SensorRepeatPlugin.SetSenseRepeatEvent(m_localID, m_item.ItemID, name, keyID, type, range, arc, rate, m_host);
+            AsyncCommands.SensorRepeatPlugin.SetSenseRepeatEvent(m_host.LocalId, m_item.ItemID, name, keyID, type, range, arc, rate, m_host);
         }
 
         public void llSensorRemove()
         {
             m_host.AddScriptLPS(1);
-            AsyncCommands.SensorRepeatPlugin.UnSetSenseRepeaterEvents(m_localID, m_item.ItemID);
+            AsyncCommands.SensorRepeatPlugin.UnSetSenseRepeaterEvents(m_host.LocalId, m_item.ItemID);
         }
 
         public string resolveName(UUID objecUUID)
@@ -2874,7 +2872,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 sec = m_MinTimerInterval;
             m_host.AddScriptLPS(1);
             // Setting timer repeat
-            AsyncCommands.TimerPlugin.SetTimerEvent(m_localID, m_item.ItemID, sec);
+            AsyncCommands.TimerPlugin.SetTimerEvent(m_host.LocalId, m_item.ItemID, sec);
         }
 
         public virtual void llSleep(double sec)
@@ -2937,7 +2935,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                     {
-                        presence.RegisterControlEventsToScript(controls, accept, pass_on, m_localID, m_item.ItemID);
+                        presence.RegisterControlEventsToScript(controls, accept, pass_on, m_host.LocalId, m_item.ItemID);
                     }
                 }
             }
@@ -2958,7 +2956,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                     {
                         // Unregister controls from Presence
-                        presence.UnRegisterControlEventsToScript(m_localID, m_item.ItemID);
+                        presence.UnRegisterControlEventsToScript(m_host.LocalId, m_item.ItemID);
                         // Remove Take Control permission.
                         m_item.PermsMask &= ~ScriptBaseClass.PERMISSION_TAKE_CONTROLS;
                     }
@@ -4089,7 +4087,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID rq = UUID.Random();
 
             UUID tid = AsyncCommands.
-                DataserverPlugin.RegisterRequest(m_localID,
+                DataserverPlugin.RegisterRequest(m_host.LocalId,
                                              m_item.ItemID, rq.ToString());
 
             AsyncCommands.
@@ -4110,7 +4108,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (item.Type == 3 && item.Name == name)
                 {
                     UUID tid = AsyncCommands.
-                        DataserverPlugin.RegisterRequest(m_localID,
+                        DataserverPlugin.RegisterRequest(m_host.LocalId,
                                                      m_item.ItemID, item.AssetID.ToString());
 
                     Vector3 region = new Vector3(
@@ -6564,7 +6562,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             if (xmlrpcMod.IsEnabled())
             {
-                UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_item.ItemID, UUID.Zero);
+                UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_host.LocalId, m_item.ItemID, UUID.Zero);
                 IXmlRpcRouter xmlRpcRouter = m_ScriptEngine.World.RequestModuleInterface<IXmlRpcRouter>();
                 if (xmlRpcRouter != null)
                 {
@@ -6594,7 +6592,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             ScriptSleep(3000);
-            return (xmlrpcMod.SendRemoteData(m_localID, m_item.ItemID, channel, dest, idata, sdata)).ToString();
+            return (xmlrpcMod.SendRemoteData(m_host.LocalId, m_item.ItemID, channel, dest, idata, sdata)).ToString();
         }
 
         public void llRemoteDataReply(string channel, string message_id, string sdata, int idata)
@@ -9083,7 +9081,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 UUID rq = UUID.Random();
 
                 UUID tid = AsyncCommands.
-                    DataserverPlugin.RegisterRequest(m_localID, m_item.ItemID, rq.ToString());
+                    DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, rq.ToString());
 
                 AsyncCommands.
                     DataserverPlugin.DataserverReply(rq.ToString(), reply);
@@ -9982,8 +9980,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
-            UUID reqID = httpScriptMod.
-                StartHttpRequest(m_localID, m_item.ItemID, url, param, httpHeaders, body);
+            UUID reqID
+                = httpScriptMod.StartHttpRequest(m_host.LocalId, m_item.ItemID, url, param, httpHeaders, body);
 
             if (reqID != UUID.Zero)
                 return reqID.ToString();
@@ -10413,7 +10411,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // was: UUID tid = tid = AsyncCommands.
-            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_item.ItemID, assetID.ToString());
+            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, assetID.ToString());
 
             if (NotecardCache.IsCached(assetID))
             {
@@ -10475,7 +10473,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // was: UUID tid = tid = AsyncCommands.
-            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_item.ItemID, assetID.ToString());
+            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, assetID.ToString());
 
             if (NotecardCache.IsCached(assetID))
             {
@@ -10561,7 +10559,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID rq = UUID.Random();
 
-            AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_item.ItemID, rq.ToString());
+            AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, rq.ToString());
 
             AsyncCommands.DataserverPlugin.DataserverReply(rq.ToString(), Name2Username(llKey2Name(id)));
 
@@ -10577,7 +10575,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID rq = UUID.Random();
 
-            AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_item.ItemID, rq.ToString());
+            AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, rq.ToString());
 
             AsyncCommands.DataserverPlugin.DataserverReply(rq.ToString(), llKey2Name(id));
 

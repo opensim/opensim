@@ -42,8 +42,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// proper runtime assembly at load time.
         /// <param name='engine'>/param>
         /// <param name='part'></param>
-        /// <param name='localID'></param>
         /// <param name='item'></param>
-        void Initialize(IScriptEngine engine, SceneObjectPart part, uint localID, TaskInventoryItem item);
+        void Initialize(IScriptEngine engine, SceneObjectPart part, TaskInventoryItem item);
     }
 }
