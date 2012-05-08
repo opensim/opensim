@@ -92,8 +92,12 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal Dictionary<uint, SceneObjectGroup> SceneObjectGroupsByLocalPartID = new Dictionary<uint, SceneObjectGroup>();        
 
         /// <summary>
-        /// Lock to prevent object group update, linking and delinking operations from running concurrently.
+        /// Lock to prevent object group update, linking, delinking and duplication operations from running concurrently.
         /// </summary>
+        /// <remarks>
+        /// These operations rely on the parts composition of the object.  If allowed to run concurrently then race
+        /// conditions can occur.
+        /// </remarks>
         private Object m_updateLock = new Object();
 
         #endregion
@@ -1844,96 +1848,106 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="AgentID"></param>
         /// <param name="GroupID"></param>
         /// <param name="rot"></param>
-        public SceneObjectGroup DuplicateObject(uint originalPrimID, Vector3 offset, uint flags, UUID AgentID, UUID GroupID, Quaternion rot)
+        /// <returns>null if duplication fails, otherwise the duplicated object</returns>
+        public SceneObjectGroup DuplicateObject(
+            uint originalPrimID, Vector3 offset, uint flags, UUID AgentID, UUID GroupID, Quaternion rot)
         {
-//            m_log.DebugFormat(
-//                "[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", 
-//                originalPrimID, offset, AgentID);
-            
-            SceneObjectGroup original = GetGroupByPrim(originalPrimID);
-            if (original != null)
+            Monitor.Enter(m_updateLock);
+
+            try
             {
-                if (m_parentScene.Permissions.CanDuplicateObject(
-                    original.PrimCount, original.UUID, AgentID, original.AbsolutePosition))
+    //            m_log.DebugFormat(
+    //                "[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}",
+    //                originalPrimID, offset, AgentID);
+
+                SceneObjectGroup original = GetGroupByPrim(originalPrimID);
+                if (original == null)
                 {
-                    SceneObjectGroup copy = original.Copy(true);
-                    copy.AbsolutePosition = copy.AbsolutePosition + offset;
+                    m_log.WarnFormat(
+                        "[SCENEGRAPH]: Attempt to duplicate nonexistant prim id {0} by {1}", originalPrimID, AgentID);
 
-                    if (original.OwnerID != AgentID)
-                    {
-                        copy.SetOwnerId(AgentID);
-                        copy.SetRootPartOwner(copy.RootPart, AgentID, GroupID);
-
-                        SceneObjectPart[] partList = copy.Parts;
-
-                        if (m_parentScene.Permissions.PropagatePermissions())
-                        {
-                            foreach (SceneObjectPart child in partList)
-                            {
-                                child.Inventory.ChangeInventoryOwner(AgentID);
-                                child.TriggerScriptChangedEvent(Changed.OWNER);
-                                child.ApplyNextOwnerPermissions();
-                            }
-                        }
-
-                        copy.RootPart.ObjectSaleType = 0;
-                        copy.RootPart.SalePrice = 10;
-                    }
-
-                    // FIXME: This section needs to be refactored so that it just calls AddSceneObject()
-                    Entities.Add(copy);
-                    
-                    lock (SceneObjectGroupsByFullID)
-                        SceneObjectGroupsByFullID[copy.UUID] = copy;
-                    
-                    SceneObjectPart[] children = copy.Parts;
-                    
-                    lock (SceneObjectGroupsByFullPartID)
-                    {
-                        SceneObjectGroupsByFullPartID[copy.UUID] = copy;
-                        foreach (SceneObjectPart part in children)
-                            SceneObjectGroupsByFullPartID[part.UUID] = copy;
-                    }
-        
-                    lock (SceneObjectGroupsByLocalPartID)
-                    {
-                        SceneObjectGroupsByLocalPartID[copy.LocalId] = copy;
-                        foreach (SceneObjectPart part in children)
-                            SceneObjectGroupsByLocalPartID[part.LocalId] = copy;
-                    }   
-                    // PROBABLE END OF FIXME
-
-                    // Since we copy from a source group that is in selected
-                    // state, but the copy is shown deselected in the viewer,
-                    // We need to clear the selection flag here, else that
-                    // prim never gets persisted at all. The client doesn't
-                    // think it's selected, so it will never send a deselect...
-                    copy.IsSelected = false;
-
-                    m_numPrim += copy.Parts.Length;
-
-                    if (rot != Quaternion.Identity)
-                    {
-                        copy.UpdateGroupRotationR(rot);
-                    }
-
-                    copy.CreateScriptInstances(0, false, m_parentScene.DefaultScriptEngine, 1);
-                    copy.HasGroupChanged = true;
-                    copy.ScheduleGroupForFullUpdate();
-                    copy.ResumeScripts();
-
-                    // required for physics to update it's position
-                    copy.AbsolutePosition = copy.AbsolutePosition;
-
-                    return copy;
+                    return null;
                 }
+
+                if (!m_parentScene.Permissions.CanDuplicateObject(
+                    original.PrimCount, original.UUID, AgentID, original.AbsolutePosition))
+                    return null;
+
+                SceneObjectGroup copy = original.Copy(true);
+                copy.AbsolutePosition = copy.AbsolutePosition + offset;
+
+                if (original.OwnerID != AgentID)
+                {
+                    copy.SetOwnerId(AgentID);
+                    copy.SetRootPartOwner(copy.RootPart, AgentID, GroupID);
+
+                    SceneObjectPart[] partList = copy.Parts;
+
+                    if (m_parentScene.Permissions.PropagatePermissions())
+                    {
+                        foreach (SceneObjectPart child in partList)
+                        {
+                            child.Inventory.ChangeInventoryOwner(AgentID);
+                            child.TriggerScriptChangedEvent(Changed.OWNER);
+                            child.ApplyNextOwnerPermissions();
+                        }
+                    }
+
+                    copy.RootPart.ObjectSaleType = 0;
+                    copy.RootPart.SalePrice = 10;
+                }
+
+                // FIXME: This section needs to be refactored so that it just calls AddSceneObject()
+                Entities.Add(copy);
+                
+                lock (SceneObjectGroupsByFullID)
+                    SceneObjectGroupsByFullID[copy.UUID] = copy;
+                
+                SceneObjectPart[] children = copy.Parts;
+                
+                lock (SceneObjectGroupsByFullPartID)
+                {
+                    SceneObjectGroupsByFullPartID[copy.UUID] = copy;
+                    foreach (SceneObjectPart part in children)
+                        SceneObjectGroupsByFullPartID[part.UUID] = copy;
+                }
+    
+                lock (SceneObjectGroupsByLocalPartID)
+                {
+                    SceneObjectGroupsByLocalPartID[copy.LocalId] = copy;
+                    foreach (SceneObjectPart part in children)
+                        SceneObjectGroupsByLocalPartID[part.LocalId] = copy;
+                }   
+                // PROBABLE END OF FIXME
+
+                // Since we copy from a source group that is in selected
+                // state, but the copy is shown deselected in the viewer,
+                // We need to clear the selection flag here, else that
+                // prim never gets persisted at all. The client doesn't
+                // think it's selected, so it will never send a deselect...
+                copy.IsSelected = false;
+
+                m_numPrim += copy.Parts.Length;
+
+                if (rot != Quaternion.Identity)
+                {
+                    copy.UpdateGroupRotationR(rot);
+                }
+
+                copy.CreateScriptInstances(0, false, m_parentScene.DefaultScriptEngine, 1);
+                copy.HasGroupChanged = true;
+                copy.ScheduleGroupForFullUpdate();
+                copy.ResumeScripts();
+
+                // required for physics to update it's position
+                copy.AbsolutePosition = copy.AbsolutePosition;
+
+                return copy;
             }
-            else
+            finally
             {
-                m_log.WarnFormat("[SCENE]: Attempted to duplicate nonexistant prim id {0}", GroupID);
+                Monitor.Exit(m_updateLock);
             }
-            
-            return null;
         }
         
         /// <summary>
