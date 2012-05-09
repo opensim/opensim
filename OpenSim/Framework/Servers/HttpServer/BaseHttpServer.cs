@@ -447,8 +447,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     if (DebugLevel >= 1)
                         m_log.DebugFormat(
-                            "[BASE HTTP SERVER]: Found stream handler for {0} {1}",
-                            request.HttpMethod, request.Url.PathAndQuery);
+                            "[BASE HTTP SERVER]: Found stream handler for {0} {1} {2} {3}",
+                            request.HttpMethod, request.Url.PathAndQuery, requestHandler.Name, requestHandler.Description);
 
                     // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
                     byte[] buffer = null;
