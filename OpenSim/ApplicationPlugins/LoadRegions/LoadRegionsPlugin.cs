@@ -122,9 +122,10 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                             Thread.CurrentThread.ManagedThreadId.ToString() +
                             ")");
                 
-                m_openSim.PopulateRegionEstateInfo(regionsToLoad[i]);
+                bool changed = m_openSim.PopulateRegionEstateInfo(regionsToLoad[i]);
                 m_openSim.CreateRegion(regionsToLoad[i], true, out scene);
-                regionsToLoad[i].EstateSettings.Save();
+                if (changed)
+		  regionsToLoad[i].EstateSettings.Save();
                 
                 if (scene != null)
                 {
