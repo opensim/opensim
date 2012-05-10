@@ -53,6 +53,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event ClientMovement OnClientMovement;
 
+        public delegate void OnTerrainTaintedDelegate();
+
+        public event OnTerrainTaintedDelegate OnTerrainTainted;
+
         public delegate void OnTerrainTickDelegate();
 
         public event OnTerrainTickDelegate OnTerrainTick;
@@ -908,6 +912,27 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerTerrainTick failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerTerrainTainted()
+        {
+            OnTerrainTaintedDelegate handlerTerrainTainted = OnTerrainTainted;
+            if (handlerTerrainTainted != null)
+            {
+                foreach (OnTerrainTickDelegate d in handlerTerrainTainted.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerTerrainTainted failed - continuing.  {0} {1}",
                             e.Message, e.StackTrace);
                     }
                 }

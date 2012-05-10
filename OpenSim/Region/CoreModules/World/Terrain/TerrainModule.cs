@@ -722,6 +722,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
             if (shouldTaint)
             {
+                m_scene.EventManager.TriggerTerrainTainted();
                 m_tainted = true;
             }
         }
