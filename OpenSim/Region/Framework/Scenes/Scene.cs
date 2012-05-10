@@ -1353,6 +1353,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 try
                 {
+                    // Apply taints in terrain module to terrain in physics scene
+                    if (Frame % m_update_terrain == 0)
+                    {
+                        terMS = Util.EnvironmentTickCount();
+                        UpdateTerrain();
+                        terrainMS = Util.EnvironmentTickCountSubtract(terMS);
+                    }
+
                     tmpPhysicsMS2 = Util.EnvironmentTickCount();
                     if ((Frame % m_update_physics == 0) && m_physics_enabled)
                         m_sceneGraph.UpdatePreparePhysics();
@@ -1415,13 +1423,6 @@ namespace OpenSim.Region.Framework.Scenes
                         backMS = Util.EnvironmentTickCount();
                         UpdateStorageBackup();
                         backupMS = Util.EnvironmentTickCountSubtract(backMS);
-                    }
-    
-                    if (Frame % m_update_terrain == 0)
-                    {
-                        terMS = Util.EnvironmentTickCount();
-                        UpdateTerrain();
-                        terrainMS = Util.EnvironmentTickCountSubtract(terMS);
                     }
     
                     //if (Frame % m_update_land == 0)
