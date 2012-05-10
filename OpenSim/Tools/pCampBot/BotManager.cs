@@ -302,9 +302,11 @@ namespace pCampBot
             {
                 foreach (Bot pb in m_lBot)
                 {
+                    Simulator currentSim = pb.Client.Network.CurrentSim;
+
                     MainConsole.Instance.OutputFormat(
                         outputFormat,
-                        pb.Name, pb.Client.Network.CurrentSim.Name, pb.IsConnected ? "Connected" : "Disconnected");
+                        pb.Name, currentSim != null ? currentSim.Name : "(none)", pb.IsConnected ? "Connected" : "Disconnected");
                 }
             }
         }
