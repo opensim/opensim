@@ -117,13 +117,22 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
         // auxiliar
-        private float m_lmEfect = 0;                                            // current linear motor eficiency
-        private float m_lmDecay = 1.0f;
+        private float m_lmEfect = 0f;                                            // current linear motor eficiency
+        private float m_lmDecay = 0f;                                            // current linear decay
+
         private float m_amEfect = 0;                                            // current angular motor eficiency
+        private float m_amDecay = 0f;                                            // current linear decay
+
         private float m_ffactor = 1.0f;
 
         private float m_timestep = 0.02f;
         private float m_invtimestep = 50;
+
+
+        float m_ampwr;
+        float m_amdampX;
+        float m_amdampY;
+        float m_amdampZ;
 
         public float FrictionFactor
         {
@@ -146,6 +155,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_type = vd.m_type;
             m_flags = vd.m_flags;
 
+            
             // Linear properties
             m_linearMotorDirection = vd.m_linearMotorDirection;
 
@@ -309,7 +319,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     len = m_angularMotorDirection.Length();
                     if (len > 12.566f)
                         m_angularMotorDirection *= (12.566f / len);
-                    m_amEfect = 1.0f; // turn it on
+
+                    m_amEfect = 1.0f / m_angularMotorTimescale; // turn it on
+                    m_amDecay = 1.0f - 1.0f / m_angularMotorDecayTimescale;
+
                     if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
                             && !rootPrim.m_isSelected && !rootPrim.m_disabled)
                         d.BodyEnable(rootPrim.Body);
@@ -323,8 +336,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     len = m_linearMotorDirection.Length();
                     if (len > 100.0f)
                         m_linearMotorDirection *= (100.0f / len);
+
                     m_lmDecay = 1.0f - 1.0f / m_linearMotorDecayTimescale;
                     m_lmEfect = 1.0f / m_linearMotorTimescale; // turn it on
+
                     m_ffactor = 0.01f;
                     if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
                             && !rootPrim.m_isSelected && !rootPrim.m_disabled)
@@ -358,7 +373,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     len = m_angularMotorDirection.Length();
                     if (len > 12.566f)
                         m_angularMotorDirection *= (12.566f / len);
-                    m_amEfect = 1.0f; // turn it on
+
+                    m_amEfect = 1.0f / m_angularMotorTimescale; // turn it on
+                    m_amDecay = 1.0f - 1.0f / m_angularMotorDecayTimescale;
+
                     if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
                             && !rootPrim.m_isSelected && !rootPrim.m_disabled)
                         d.BodyEnable(rootPrim.Body);
@@ -374,8 +392,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     len = m_linearMotorDirection.Length();
                     if (len > 100.0f)
                         m_linearMotorDirection *= (100.0f / len);
-                    m_lmDecay = 1.0f - 1.0f / m_linearMotorDecayTimescale;
+
                     m_lmEfect = 1.0f / m_linearMotorTimescale; // turn it on
+                    m_lmDecay = 1.0f - 1.0f / m_linearMotorDecayTimescale;
+
+
+
                     m_ffactor = 0.01f;
                     if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
                             && !rootPrim.m_isSelected && !rootPrim.m_disabled)
@@ -421,6 +443,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal void ProcessTypeChange(Vehicle pType)
         {
             m_lmEfect = 0;
+
             m_amEfect = 0;
             m_ffactor = 1f;
 
@@ -607,15 +630,20 @@ namespace OpenSim.Region.Physics.OdePlugin
 //                    m_flags |= (VehicleFlag.LIMIT_ROLL_ONLY |
 //                        VehicleFlag.HOVER_GLOBAL_HEIGHT);
                     break;
+
             }
+
             m_lmDecay = (1.0f - 1.0f / m_linearMotorDecayTimescale);
+            m_amDecay = 1.0f - 1.0f / m_angularMotorDecayTimescale;
+
         }//end SetDefaultsForType
 
         internal void Stop()
         {
             m_lmEfect = 0;
-            m_lmDecay = 1.0f;
+            m_lmDecay = 0f;
             m_amEfect = 0;
+            m_amDecay = 0;
             m_ffactor = 1f;
         }
 
@@ -642,6 +670,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private const float pi = (float)Math.PI;
         private const float halfpi = 0.5f * (float)Math.PI;
+        private const float twopi = 2.0f * pi;
 
         public static Vector3 ubitRot2Euler(Quaternion rot)
         {
@@ -744,6 +773,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             curAngVel.Z = dvtmp.Z;
             Vector3 curLocalAngVel = curAngVel * irotq; // current angular velocity in  local
 
+            float ldampZ = 0;
+            
             // linear motor
             if (m_lmEfect > 0.001 && m_linearMotorTimescale < 1000)
             {
@@ -766,26 +797,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                     force.Y += tmpV.Y;
                     force.Z += tmpV.Z;
                 }
+
                 m_lmEfect *= m_lmDecay;
 
-                m_ffactor = 0.01f + 1e-4f * curVel.LengthSquared();
+                //                m_ffactor = 0.01f + 1e-4f * curVel.LengthSquared();
+                m_ffactor = 0;
             }
             else
             {
                 m_lmEfect = 0;
                 m_ffactor = 1f;
-            }
-
-            // friction
-            if (curLocalVel.X != 0 || curLocalVel.Y != 0 || curLocalVel.Z != 0)
-            {
-                tmpV.X = -curLocalVel.X / m_linearFrictionTimescale.X;
-                tmpV.Y = -curLocalVel.Y / m_linearFrictionTimescale.Y;
-                tmpV.Z = -curLocalVel.Z / m_linearFrictionTimescale.Z;
-                tmpV *= rotq; // to world
-                force.X += tmpV.X;
-                force.Y += tmpV.Y;
-                force.Z += tmpV.Z;
             }
 
             // hover
@@ -823,10 +844,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else if (t > m_VhoverHeight)
                         perr = t - pos.Z; ;
 
-                if ((m_flags & VehicleFlag.HOVER_UP_ONLY) == 0 || perr > 0)
+                if ((m_flags & VehicleFlag.HOVER_UP_ONLY) == 0 || perr > -0.1)
                 {
-                    //                    force.Z += (perr / m_VhoverTimescale / m_VhoverTimescale - curVel.Z * m_VhoverEfficiency) / m_timestep;
-                    force.Z += (perr / m_VhoverTimescale - curVel.Z * m_VhoverEfficiency);// * m_invtimestep);
+                    ldampZ = m_VhoverEfficiency * m_invtimestep;
+
+                    perr *= (1.0f + ldampZ) / m_VhoverTimescale;
+
+                    //                    force.Z += perr - curVel.Z * tmp;
+                    force.Z += perr;
+                    ldampZ *= -curVel.Z;
+
                     force.Z += _pParentScene.gravityz * (1f - m_VehicleBuoyancy);
                 }
                 else // no buoyancy
@@ -844,7 +871,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 float len = curVel.Length();
                 if (len > 0.01) // if moving
                 {
-
                     Vector3 atAxis;
                     atAxis = Xrot(rotq); // where are we pointing to
                     atAxis *= len; // make it same size as world velocity vector
@@ -870,26 +896,126 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
+            // linear friction/damping
+            if (curLocalVel.X != 0 || curLocalVel.Y != 0 || curLocalVel.Z != 0)
+            {
+                tmpV.X = -curLocalVel.X / m_linearFrictionTimescale.X;
+                tmpV.Y = -curLocalVel.Y / m_linearFrictionTimescale.Y;
+                tmpV.Z = -curLocalVel.Z / m_linearFrictionTimescale.Z;
+                tmpV *= rotq; // to world
+
+                if(ldampZ != 0 && Math.Abs(ldampZ) > Math.Abs(tmpV.Z))
+                    tmpV.Z = ldampZ;
+                force.X += tmpV.X;
+                force.Y += tmpV.Y;
+                force.Z += tmpV.Z;
+            }
+
+            // vertical atractor
+            if (m_verticalAttractionTimescale < 300)
+            {
+                float roll;
+                float pitch;
+
+
+
+                float ftmp = m_invtimestep / m_verticalAttractionTimescale / m_verticalAttractionTimescale;
+
+                float ftmp2;
+                ftmp2 = 0.5f * m_verticalAttractionEfficiency * m_invtimestep;
+                m_amdampX = ftmp2;
+
+                m_ampwr = 1.0f - 0.8f * m_verticalAttractionEfficiency;
+
+                GetRollPitch(irotq, out roll, out pitch);
+
+                if (roll > halfpi)
+                    roll = pi - roll;
+                else if (roll < -halfpi)
+                    roll = -pi - roll;
+
+                float effroll = pitch / halfpi;
+                effroll *= effroll;
+                effroll = 1 - effroll;
+                effroll *= roll;
+
+
+                torque.X += effroll * ftmp;
+
+                if ((m_flags & VehicleFlag.LIMIT_ROLL_ONLY) == 0)
+                {
+                    float effpitch = roll / halfpi;
+                    effpitch *= effpitch;
+                    effpitch = 1 - effpitch;
+                    effpitch *= pitch;
+
+                    torque.Y += effpitch * ftmp;
+                }
+
+                if (m_bankingEfficiency != 0 && Math.Abs(effroll) > 0.01)
+                {
+
+                    float broll = effroll;
+                    /*
+                                        if (broll > halfpi)
+                                            broll = pi - broll;
+                                        else if (broll < -halfpi)
+                                            broll = -pi - broll;                           
+                    */
+                    broll *= m_bankingEfficiency;
+                    if (m_bankingMix != 0)
+                    {
+                        float vfact = Math.Abs(curLocalVel.X) / 10.0f;
+                        if (vfact > 1.0f) vfact = 1.0f;
+
+                        if (curLocalVel.X >= 0)
+                            broll *= (1 + (vfact - 1) * m_bankingMix);
+                        else
+                            broll *= -(1 + (vfact - 1) * m_bankingMix);
+                    }
+                    // make z rot be in world Z not local as seems to be in sl
+
+                    broll = broll / m_bankingTimescale;
+
+
+                    tmpV = Zrot(irotq);
+                    tmpV *= broll;
+
+                    torque.X += tmpV.X;
+                    torque.Y += tmpV.Y;
+                    torque.Z += tmpV.Z;
+
+                    m_amdampZ = Math.Abs(m_bankingEfficiency) / m_bankingTimescale;
+                    m_amdampY = m_amdampZ;
+
+                }
+                else
+                {
+                    m_amdampZ = 1 / m_angularFrictionTimescale.Z;
+                    m_amdampY = m_amdampX;
+                }
+            }
+            else
+            {
+                m_ampwr = 1.0f;
+                m_amdampX = 1 / m_angularFrictionTimescale.X;
+                m_amdampY = 1 / m_angularFrictionTimescale.Y;
+                m_amdampZ = 1 / m_angularFrictionTimescale.Z;
+            }
+
             // angular motor
             if (m_amEfect > 0.01 && m_angularMotorTimescale < 1000)
             {
                 tmpV = m_angularMotorDirection - curLocalAngVel; // velocity error
-                tmpV *= m_amEfect / m_angularMotorTimescale; // error to correct in this timestep
-                torque.X += tmpV.X;
-                torque.Y += tmpV.Y;
+                tmpV *= m_amEfect; // error to correct in this timestep
+                torque.X += tmpV.X * m_ampwr;
+                torque.Y += tmpV.Y * m_ampwr;
                 torque.Z += tmpV.Z;
-                m_amEfect *= (1 - 1.0f / m_angularMotorDecayTimescale);
+
+                m_amEfect *= m_amDecay;
             }
             else
                 m_amEfect = 0;
-
-            // angular friction
-            if (curLocalAngVel.X != 0 || curLocalAngVel.Y != 0 || curLocalAngVel.Z != 0)
-            {
-                torque.X -= curLocalAngVel.X / m_angularFrictionTimescale.X;
-                torque.Y -= curLocalAngVel.Y / m_angularFrictionTimescale.Y;
-                torque.Z -= curLocalAngVel.Z / m_angularFrictionTimescale.Z;
-            }
 
             // angular deflection
             if (m_angularDeflectionEfficiency > 0)
@@ -922,86 +1048,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            // vertical atractor
-            if (m_verticalAttractionTimescale < 300)
+            // angular friction
+            if (curLocalAngVel.X != 0 || curLocalAngVel.Y != 0 || curLocalAngVel.Z != 0)
             {
-                float roll;
-                float pitch;
-
-                GetRollPitch(irotq, out roll, out pitch);
-
-                float ftmp = 1.0f / m_verticalAttractionTimescale / m_verticalAttractionTimescale * m_invtimestep;
-                float ftmp2;
-                if (m_bankingEfficiency == 0)
-                    ftmp2 = m_verticalAttractionEfficiency * m_invtimestep;
-                else
-                    ftmp2 = 0;
-
-                if (roll > halfpi)
-                    roll = pi - roll;
-                else if (roll < -halfpi)
-                    roll = -pi - roll;                           
-
-                float effroll = pitch / halfpi;
-                effroll *= effroll;
-                effroll = 1 - effroll;
-                effroll *= roll;
-
-                if (Math.Abs(effroll) > 0.01) // roll
-                {
-                    torque.X -= -effroll * ftmp + curLocalAngVel.X * ftmp2;
-                }
-
-                if ((m_flags & VehicleFlag.LIMIT_ROLL_ONLY) == 0)
-                {
-                    float effpitch = roll / halfpi;
-                    effpitch *= effpitch;
-                    effpitch = 1 - effpitch;
-                    effpitch *= pitch;
-                    
-                    if (Math.Abs(effpitch) > 0.01) // pitch
-                    {
-                        torque.Y -= -effpitch * ftmp + curLocalAngVel.Y * ftmp2;
-                    }
-                }
-
-                if (m_bankingEfficiency != 0 && Math.Abs(effroll) > 0.01)
-                {
-
-                    float broll = effroll;
-/*
-                    if (broll > halfpi)
-                        broll = pi - broll;
-                    else if (broll < -halfpi)
-                        broll = -pi - broll;                           
-*/                    
-                    broll *= m_bankingEfficiency; 
-                    if (m_bankingMix != 0)
-                    {
-                        float vfact = Math.Abs(curLocalVel.X) / 10.0f;
-                        if (vfact > 1.0f) vfact = 1.0f;
-
-                        if (curLocalVel.X >= 0)
-                            broll *= (1 + (vfact - 1) * m_bankingMix);
-                        else
-                            broll *= -(1 + (vfact - 1) * m_bankingMix);                      
-                    }
-                    // make z rot be in world Z not local as seems to be in sl
-
-                    broll = broll / m_bankingTimescale;
-
-                    ftmp = -Math.Abs(m_bankingEfficiency) / m_bankingTimescale;
-
-                    tmpV.X = ftmp * curAngVel.X;
-                    tmpV.Y = ftmp * curAngVel.Y;
-                    tmpV.Z = broll + ftmp * curAngVel.Z;
-                    tmpV *= irotq;
-
-                    torque.X += tmpV.X;
-                    torque.Y += tmpV.Y;
-                    torque.Z += tmpV.Z;
-                }
+                torque.X -= curLocalAngVel.X * m_amdampX;
+                torque.Y -= curLocalAngVel.Y * m_amdampY;
+                torque.Z -= curLocalAngVel.Z * m_amdampZ;
             }
+
             
             d.Mass dmass;
             d.BodyGetMass(Body,out dmass);
