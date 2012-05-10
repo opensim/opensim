@@ -53,7 +53,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
         private List<Scene> m_scenes = new List<Scene>();
 //        private IAvatarFactoryModule m_avatarFactory;
-        
+
         public string Name { get { return "Attachments Command Module"; } }
         
         public Type ReplaceableInterface { get { return null; } }
@@ -145,9 +145,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         {
             sb.AppendFormat("Attachments for {0}\n", sp.Name);
 
-            sb.AppendFormat(
-                "  {0,-36}  {1,-10}  {2,-36}  {3,-14}  {4,-15}\n",
-                "Attachment Name", "Local ID", "Item ID", "Attach Point", "Position");
+            ConsoleTable ct = new ConsoleTable() { Indent = 2 };
+            ct.Columns.Add(new ConsoleTableColumn("Attachment Name", 36));
+            ct.Columns.Add(new ConsoleTableColumn("Local ID", 10));
+            ct.Columns.Add(new ConsoleTableColumn("Item ID", 36));
+            ct.Columns.Add(new ConsoleTableColumn("Attach Point", 14));
+            ct.Columns.Add(new ConsoleTableColumn("Position", 15));
+
+//            sb.AppendFormat(
+//                "  {0,-36}  {1,-10}  {2,-36}  {3,-14}  {4,-15}\n",
+//                "Attachment Name", "Local ID", "Item ID", "Attach Point", "Position");
 
             List<SceneObjectGroup> attachmentObjects = sp.GetAttachments();
             foreach (SceneObjectGroup attachmentObject in attachmentObjects)
@@ -164,13 +171,24 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 //                }
 //                else
 //                {
-                    sb.AppendFormat(
-                        "  {0,-36}  {1,-10}  {2,-36}  {3,-14}  {4,-15}\n",
-                        attachmentObject.Name, attachmentObject.LocalId, attachmentObject.FromItemID,
-                        (AttachmentPoint)attachmentObject.AttachmentPoint, attachmentObject.RootPart.AttachedPos);
+//                    sb.AppendFormat(
+//                        "  {0,-36}  {1,-10}  {2,-36}  {3,-14}  {4,-15}\n",
+//                        attachmentObject.Name, attachmentObject.LocalId, attachmentObject.FromItemID,
+//                        (AttachmentPoint)attachmentObject.AttachmentPoint, attachmentObject.RootPart.AttachedPos);
+                    ct.Rows.Add(
+                        new ConsoleTableRow(
+                            new List<string>()
+                            {
+                                attachmentObject.Name,
+                                attachmentObject.LocalId.ToString(),
+                                attachmentObject.FromItemID.ToString(),
+                                ((AttachmentPoint)attachmentObject.AttachmentPoint).ToString(),
+                                attachmentObject.RootPart.AttachedPos.ToString()
+                            }));
 //                }
             }
 
+            ct.AddToStringBuilder(sb);
             sb.Append("\n");
         }
     }
