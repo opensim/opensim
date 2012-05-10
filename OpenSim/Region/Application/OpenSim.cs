@@ -618,10 +618,11 @@ namespace OpenSim
                 return;
             }
 
-            PopulateRegionEstateInfo(regInfo);
+            bool changed = PopulateRegionEstateInfo(regInfo);
             IScene scene;
             CreateRegion(regInfo, true, out scene);
-            regInfo.EstateSettings.Save();
+            if (changed)
+	      regInfo.EstateSettings.Save();
         }
 
         /// <summary>
