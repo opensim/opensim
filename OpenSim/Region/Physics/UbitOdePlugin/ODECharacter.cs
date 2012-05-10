@@ -734,9 +734,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.JointSetAMotorParam(Amotor, (int)d.JointParam.Vel2, 0);
             d.JointSetAMotorParam(Amotor, (int)d.JointParam.Vel3, 0);
 
-            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, 5e6f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.FMax2, 5e6f);
-            d.JointSetAMotorParam(Amotor, (int)dParam.FMax3, 5e6f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, 5e8f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax2, 5e8f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax3, 5e8f);
         }
 
         /// <summary>
@@ -784,6 +784,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             // the Amotor still lets avatar rotation to drift during colisions
             // so force it back to identity
             
+
+
             d.Quaternion qtmp;
             qtmp.W = 1;
             qtmp.X = 0;
@@ -1004,9 +1006,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
-                if (velLengthSquared > 2500.0f) // 50m/s apply breaks
+                if (velLengthSquared > 625.0f) // 25m/s apply breaks
                 {
-                    breakfactor = 0.16f * m_mass;
+                    breakfactor = 0.31f * m_mass;
                     vec.X -= breakfactor * vel.X;
                     vec.Y -= breakfactor * vel.Y;
                     vec.Z -= breakfactor * vel.Z;
