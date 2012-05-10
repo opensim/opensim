@@ -242,7 +242,7 @@ namespace pCampBot
 
                     lock (m_lBot)
                     {
-                        if (m_lBot.TrueForAll(b => !b.IsConnected))
+                        if (m_lBot.TrueForAll(b => b.ConnectionState == ConnectionState.Disconnected))
                             Environment.Exit(0);
 
                         break;
@@ -306,7 +306,7 @@ namespace pCampBot
 
                     MainConsole.Instance.OutputFormat(
                         outputFormat,
-                        pb.Name, currentSim != null ? currentSim.Name : "(none)", pb.IsConnected ? "Connected" : "Disconnected");
+                        pb.Name, currentSim != null ? currentSim.Name : "(none)", pb.ConnectionState);
                 }
             }
         }
