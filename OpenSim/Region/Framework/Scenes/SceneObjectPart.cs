@@ -3321,10 +3321,10 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void SetVehicleFlags(int param, bool remove)
         {
-            if (PhysActor != null)
-            {
-                PhysActor.VehicleFlags(param, remove);
-            }
+            PhysicsActor pa = PhysActor;
+
+            if (pa != null)
+                pa.VehicleFlags(param, remove);
         }
 
         public void SetGroup(UUID groupID, IClientAPI client)
@@ -3356,10 +3356,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetPhysicsAxisRotation()
         {
-            if (PhysActor != null)
+            PhysicsActor pa = PhysActor;
+
+            if (pa != null)
             {
-                PhysActor.LockAngularMotion(RotationAxis);
-                ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                pa.LockAngularMotion(RotationAxis);
+                ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
             }
         }
 

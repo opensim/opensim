@@ -11955,21 +11955,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected void MakeAssetRequest(TransferRequestPacket transferRequest, UUID taskID)
         {
             UUID requestID = UUID.Zero;
-            if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset)
+            int sourceType = transferRequest.TransferInfo.SourceType;
+
+            if (sourceType == (int)SourceType.Asset)
             {
                 requestID = new UUID(transferRequest.TransferInfo.Params, 0);
             }
-            else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem)
+            else if (sourceType == (int)SourceType.SimInventoryItem)
             {
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
             }
-            else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimEstate)
+            else if (sourceType == (int)SourceType.SimEstate)
             {
                 requestID = taskID;
             }
 
-
-//            m_log.DebugFormat("[CLIENT]: {0} requesting asset {1}", Name, requestID);
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Received transfer request for {0} in {1} type {2} by {3}",
+//                requestID, taskID, (SourceType)sourceType, Name);
 
             m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived);
         }

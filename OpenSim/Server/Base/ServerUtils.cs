@@ -268,7 +268,7 @@ namespace OpenSim.Server.Base
                     continue;
 
                 XmlElement elem = parent.OwnerDocument.CreateElement("",
-                        kvp.Key, "");
+                        XmlConvert.EncodeLocalName(kvp.Key), "");
 
                 if (kvp.Value is Dictionary<string, object>)
                 {
@@ -323,11 +323,11 @@ namespace OpenSim.Server.Base
                 XmlNode type = part.Attributes.GetNamedItem("type");
                 if (type == null || type.Value != "List")
                 {
-                    ret[part.Name] = part.InnerText;
+                    ret[XmlConvert.DecodeName(part.Name)] = part.InnerText;
                 }
                 else
                 {
-                    ret[part.Name] = ParseElement(part);
+                    ret[XmlConvert.DecodeName(part.Name)] = ParseElement(part);
                 }
             }
 

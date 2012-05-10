@@ -309,7 +309,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 m_HostCapsObj.HttpListener.AddStreamHandler(
                     new BinaryStreamHandler(
-                        "POST", capsBase + uploaderPath, uploader.uploaderCaps, "BunchOfCaps", null));
+                        "POST", capsBase + uploaderPath, uploader.uploaderCaps, "TaskInventoryScriptUpdater", null));
 
                 string protocol = "http://";
 

@@ -300,6 +300,10 @@ namespace OpenSim.Region.Framework.Scenes
             AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data, remoteClient.AgentId);
             AssetService.Store(asset);
 
+//            m_log.DebugFormat(
+//                "[PRIM INVENTORY]: Stored asset {0} when updating item {1} in prim {2} for {3}",
+//                asset.ID, item.Name, part.Name, remoteClient.Name);
+
             if (isScriptRunning)
             {
                 part.Inventory.RemoveScriptInstance(item.ItemID, false);
