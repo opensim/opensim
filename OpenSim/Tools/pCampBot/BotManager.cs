@@ -251,13 +251,21 @@ namespace pCampBot
         }
 
         /// <summary>
-        /// Shutting down all bots
+        /// Shut down all bots
         /// </summary>
+        /// <remarks>
+        /// We launch each shutdown on its own thread so that a slow shutting down bot doesn't hold up all the others.
+        /// </remarks>
         public void doBotShutdown()
         {
             lock (m_lBot)
-                foreach (Bot pb in m_lBot)
-                    pb.shutdown();
+            {
+                foreach (Bot bot in m_lBot)
+                {
+                    Bot thisBot = bot;
+                    Util.FireAndForget(o => thisBot.shutdown());
+                }
+            }
         }
 
         /// <summary>
@@ -271,11 +279,8 @@ namespace pCampBot
 
         private void HandleShutdown(string module, string[] cmd)
         {
-            Util.FireAndForget(o =>
-            {
-                m_log.Warn("[BOTMANAGER]: Shutting down bots");
-                doBotShutdown();
-            });
+            m_log.Info("[BOTMANAGER]: Shutting down bots");
+            doBotShutdown();
         }
 
         private void HandleShowRegions(string module, string[] cmd)
