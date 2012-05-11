@@ -222,6 +222,7 @@ namespace pCampBot
             Thread pbThread = new Thread(pb.startup);
             pbThread.Name = pb.Name;
             pbThread.IsBackground = true;
+
             pbThread.Start();
         }
 
