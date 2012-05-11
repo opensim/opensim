@@ -1006,9 +1006,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
-                if (velLengthSquared > 625.0f) // 25m/s apply breaks
+                if (velLengthSquared > 2500.0f) // 50m/s apply breaks
                 {
-                    breakfactor = 0.31f * m_mass;
+                    breakfactor = 0.16f * m_mass;
                     vec.X -= breakfactor * vel.X;
                     vec.Y -= breakfactor * vel.Y;
                     vec.Z -= breakfactor * vel.Z;
