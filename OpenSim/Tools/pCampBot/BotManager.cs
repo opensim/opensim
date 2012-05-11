@@ -49,6 +49,14 @@ namespace pCampBot
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public const int DefaultLoginDelay = 5000;
+
+        /// <summary>
+        /// Delay between logins of multiple bots.
+        /// </summary>
+        /// <remarks>TODO: This value needs to be configurable by a command line argument.</remarks>
+        public int LoginDelay { get; set; }
+
         /// <summary>
         /// Command console
         /// </summary>
@@ -84,6 +92,8 @@ namespace pCampBot
         /// </summary>
         public BotManager()
         {
+            LoginDelay = DefaultLoginDelay;
+
             Rng = new Random(Environment.TickCount);
             AssetsReceived = new Dictionary<UUID, bool>();
             RegionsKnown = new Dictionary<ulong, GridRegion>();
@@ -224,6 +234,9 @@ namespace pCampBot
             pbThread.IsBackground = true;
 
             pbThread.Start();
+
+            // Stagger logins
+            Thread.Sleep(LoginDelay);
         }
 
         /// <summary>
