@@ -161,28 +161,34 @@ namespace pCampBot
             Array.ForEach<string>(
                 cs.GetString("behaviours", "p").Split(new char[] { ',' }), b => behaviourSwitches.Add(b));
 
+            MainConsole.Instance.OutputFormat(
+                "[BOT MANAGER]: Starting {0} bots connecting to {1}, named {2} {3}_<n>",
+                botcount,
+                loginUri,
+                firstName,
+                lastNameStem);
+
+            MainConsole.Instance.OutputFormat("[BOT MANAGER]: Delay between logins is {0}ms", LoginDelay);
+
             for (int i = 0; i < botcount; i++)
             {
                 string lastName = string.Format("{0}_{1}", lastNameStem, i);
 
+                // We must give each bot its own list of instantiated behaviours since they store state.
                 List<IBehaviour> behaviours = new List<IBehaviour>();
-        
+    
                 // Hard-coded for now
                 if (behaviourSwitches.Contains("p"))
                     behaviours.Add(new PhysicsBehaviour());
-        
+    
                 if (behaviourSwitches.Contains("g"))
                     behaviours.Add(new GrabbingBehaviour());
-        
+    
                 if (behaviourSwitches.Contains("t"))
                     behaviours.Add(new TeleportBehaviour());
-        
+    
                 if (behaviourSwitches.Contains("c"))
                     behaviours.Add(new CrossBehaviour());
-        
-                MainConsole.Instance.OutputFormat(
-                    "[BOT MANAGER]: Bot {0} {1} configured for behaviours {2}",
-                    firstName, lastName, string.Join(",", behaviours.ConvertAll<string>(b => b.Name).ToArray()));
 
                 StartBot(this, behaviours, firstName, lastName, password, loginUri);
             }
@@ -221,6 +227,10 @@ namespace pCampBot
              BotManager bm, List<IBehaviour> behaviours,
              string firstName, string lastName, string password, string loginUri)
         {
+            MainConsole.Instance.OutputFormat(
+                "[BOT MANAGER]: Starting bot {0} {1}, behaviours are {2}",
+                firstName, lastName, string.Join(",", behaviours.ConvertAll<string>(b => b.Name).ToArray()));
+
             Bot pb = new Bot(bm, behaviours, firstName, lastName, password, loginUri);
 
             pb.OnConnected += handlebotEvent;
