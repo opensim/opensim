@@ -6132,6 +6132,91 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             return "en-us";
         }
+        /// <summary>
+        /// http://wiki.secondlife.com/wiki/LlGetAgentList
+        /// The list of options is currently not used in SL
+        /// scope is one of:-
+        /// AGENT_LIST_REGION - all in the region
+        /// AGENT_LIST_PARCEL - all in the same parcel as the scripted object
+        /// AGENT_LIST_PARCEL_OWNER - all in any parcel owned by the owner of the
+        /// current parcel.
+        /// </summary>
+        public LSL_List llGetAgentList(LSL_Integer scope, LSL_List options)
+        {
+            m_host.AddScriptLPS(1);
+
+            // the constants are 1, 2 and 4 so bits are being set, but you
+            // get an error "INVALID_SCOPE" if it is anything but 1, 2 and 4
+            bool regionWide = scope == ScriptBaseClass.AGENT_LIST_REGION;
+            bool parcelOwned = scope == ScriptBaseClass.AGENT_LIST_PARCEL_OWNER;
+            bool parcel = scope == ScriptBaseClass.AGENT_LIST_PARCEL;
+
+            LSL_List result = new LSL_List();
+
+            if (!regionWide && !parcelOwned && !parcel)
+            {
+                result.Add("INVALID_SCOPE");
+                return result;
+            }
+
+            ILandObject land;
+            Vector3 pos;
+            UUID id = UUID.Zero;
+            if (parcel || parcelOwned)
+            {
+                pos = m_host.ParentGroup.RootPart.GetWorldPosition();
+                land = World.LandChannel.GetLandObject(pos.X, pos.Y);
+                if (land == null)
+                {
+                    id = UUID.Zero;
+                }
+                else
+                {
+                    if (parcelOwned)
+                    {
+                        id = land.LandData.OwnerID;
+                    }
+                    else
+                    {
+                        id = land.LandData.GlobalID;
+                    }
+                }
+            }
+            List<UUID> presenceIds = new List<UUID>();
+
+            World.ForEachRootScenePresence(
+                delegate (ScenePresence ssp)
+                {
+                    // Gods are not listed in SL
+                    if (!ssp.IsDeleted && ssp.GodLevel == 0.0 && !ssp.IsChildAgent)
+                    {
+                        if (!regionWide)
+                        {
+                            pos = ssp.AbsolutePosition;
+                            land = World.LandChannel.GetLandObject(pos.X, pos.Y);
+                            if (land != null)
+                            {
+                                if (parcelOwned && land.LandData.OwnerID == id ||
+                                    parcel && land.LandData.GlobalID == id)
+                                {
+                                    result.Add(ssp.UUID.ToString());
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result.Add(ssp.UUID.ToString());
+                        }
+                    }
+                    // Maximum of 100 results
+                    if (result.Length > 99)
+                    {
+                        return;
+                    }
+                }
+            );
+            return result;
+        }
 
         public void llAdjustSoundVolume(double volume)
         {
