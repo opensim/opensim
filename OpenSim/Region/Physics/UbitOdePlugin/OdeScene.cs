@@ -537,7 +537,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // Essentially Steps * m_physicsiterations
             d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
 
-            d.WorldSetContactMaxCorrectingVel(world, 100.0f);
+            d.WorldSetContactMaxCorrectingVel(world, 60.0f);
 
             spacesPerMeter = 1 / metersInSpace;
             spaceGridMaxX = (int)(WorldExtents.X * spacesPerMeter);
