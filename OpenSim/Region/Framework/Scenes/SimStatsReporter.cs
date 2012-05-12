@@ -264,8 +264,12 @@ namespace OpenSim.Region.Framework.Scenes
                 float targetframetime = 1100.0f / (float)m_nominalReportedFps;
 
                 float sparetime;
-                if (TotalFrameTime > targetframetime )
+                float sleeptime;
+                if (TotalFrameTime > targetframetime)
+                {
                     sparetime = 0;
+                    sleeptime = 0;
+                }
                 else
                 {
                     sparetime = m_frameMS - m_physicsMS - m_agentMS;
@@ -274,6 +278,7 @@ namespace OpenSim.Region.Framework.Scenes
                         sparetime = 0;
                     else if (sparetime > TotalFrameTime)
                         sparetime = TotalFrameTime;
+                    sleeptime = m_sleeptimeMS * perframe;
                 }
                 
                 // other MS is actually simulation time
@@ -363,7 +368,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[21].StatValue = sparetime;
 
                 sb[22].StatID = (uint)Stats.SimSleepTime;
-                sb[22].StatValue = m_sleeptimeMS * perframe;
+                sb[22].StatValue = sleeptime;
                
                 for (int i = 0; i < 23; i++)
                 {
