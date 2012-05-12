@@ -88,6 +88,7 @@ namespace OpenSim.Tests.Common.Mock
         public event ObjectDrop OnObjectDrop;
         public event StartAnim OnStartAnim;
         public event StopAnim OnStopAnim;
+        public event ChangeAnim OnChangeAnim;
         public event LinkObjects OnLinkObjects;
         public event DelinkObjects OnDelinkObjects;
         public event RequestMapBlocks OnRequestMapBlocks;

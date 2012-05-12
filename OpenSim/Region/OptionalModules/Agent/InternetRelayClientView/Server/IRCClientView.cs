@@ -669,6 +669,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event ObjectDrop OnObjectDrop;
         public event StartAnim OnStartAnim;
         public event StopAnim OnStopAnim;
+        public event ChangeAnim OnChangeAnim;
         public event LinkObjects OnLinkObjects;
         public event DelinkObjects OnDelinkObjects;
         public event RequestMapBlocks OnRequestMapBlocks;
