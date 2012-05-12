@@ -79,13 +79,13 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             m_scenePresence = sp;
             CurrentMovementAnimation = "CROUCH";
         }
-        
+
         public void AddAnimation(UUID animID, UUID objectID)
         {
             if (m_scenePresence.IsChildAgent)
                 return;
 
-//            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Adding animation {0} for {1}", animID, m_scenePresence.Name);
+            //            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Adding animation {0} for {1}", animID, m_scenePresence.Name);
 
             if (m_animations.Add(animID, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, objectID))
                 SendAnimPack();
@@ -114,6 +114,22 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 return;
 
             if (m_animations.Remove(animID))
+                SendAnimPack();
+        }
+
+        public void avnChangeAnim(UUID animID, bool addRemove, bool sendPack)
+        {
+            if (m_scenePresence.IsChildAgent)
+                return;
+
+            if (animID != UUID.Zero)
+            {
+                if (addRemove)
+                    m_animations.Add(animID, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, UUID.Zero);
+                else
+                    m_animations.Remove(animID);
+            }
+            if(sendPack)
                 SendAnimPack();
         }
 

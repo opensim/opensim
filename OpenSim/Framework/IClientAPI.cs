@@ -70,6 +70,8 @@ namespace OpenSim.Framework
 
     public delegate void StopAnim(IClientAPI remoteClient, UUID animID);
 
+    public delegate void ChangeAnim(UUID animID, bool addOrRemove, bool sendPack);
+
     public delegate void LinkObjects(IClientAPI remoteClient, uint parent, List<uint> children);
 
     public delegate void DelinkObjects(List<uint> primIds, IClientAPI client);
@@ -791,6 +793,7 @@ namespace OpenSim.Framework
         event ObjectDrop OnObjectDrop;
         event StartAnim OnStartAnim;
         event StopAnim OnStopAnim;
+        event ChangeAnim OnChangeAnim;
         event LinkObjects OnLinkObjects;
         event DelinkObjects OnDelinkObjects;
         event RequestMapBlocks OnRequestMapBlocks;
