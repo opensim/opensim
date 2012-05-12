@@ -63,6 +63,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private OdeScene _pParentScene;
 
         // Vehicle properties
+        // WARNING this are working copies for internel use
+        // their values may not be the corresponding parameter
+
         private Quaternion m_referenceFrame = Quaternion.Identity;      // Axis modifier
         private Quaternion m_RollreferenceFrame = Quaternion.Identity;  // what hell is this ?
 
@@ -244,6 +247,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (pValue < m_timestep) pValue = m_timestep;
                     else if (pValue > 120) pValue = 120;
                     m_angularMotorDecayTimescale = pValue * m_invtimestep;
+                    m_amDecay = 1.0f - 1.0f / m_angularMotorDecayTimescale;
                     break;
                 case Vehicle.ANGULAR_MOTOR_TIMESCALE:
                     if (pValue < m_timestep) pValue = m_timestep;
@@ -293,6 +297,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (pValue < m_timestep) pValue = m_timestep;
                     else if (pValue > 120) pValue = 120;
                     m_linearMotorDecayTimescale = (0.2f +pValue) * m_invtimestep;
+                    m_lmDecay = (1.0f - 1.0f / m_linearMotorDecayTimescale);
                     break;
                 case Vehicle.LINEAR_MOTOR_TIMESCALE:
                     if (pValue < m_timestep) pValue = m_timestep;
@@ -320,7 +325,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (len > 12.566f)
                         m_angularMotorDirection *= (12.566f / len);
 
-                    m_amEfect = 1.0f / m_angularMotorTimescale; // turn it on
+                    m_amEfect = 1.0f ; // turn it on
                     m_amDecay = 1.0f - 1.0f / m_angularMotorDecayTimescale;
 
                     if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
@@ -338,7 +343,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_linearMotorDirection *= (100.0f / len);
 
                     m_lmDecay = 1.0f - 1.0f / m_linearMotorDecayTimescale;
-                    m_lmEfect = 1.0f / m_linearMotorTimescale; // turn it on
+                    m_lmEfect = 1.0f; // turn it on
 
                     m_ffactor = 0.01f;
                     if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
@@ -374,7 +379,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (len > 12.566f)
                         m_angularMotorDirection *= (12.566f / len);
 
-                    m_amEfect = 1.0f / m_angularMotorTimescale; // turn it on
+                    m_amEfect = 1.0f; // turn it on
                     m_amDecay = 1.0f - 1.0f / m_angularMotorDecayTimescale;
 
                     if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
@@ -393,10 +398,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (len > 100.0f)
                         m_linearMotorDirection *= (100.0f / len);
 
-                    m_lmEfect = 1.0f / m_linearMotorTimescale; // turn it on
+                    m_lmEfect = 1.0f; // turn it on
                     m_lmDecay = 1.0f - 1.0f / m_linearMotorDecayTimescale;
-
-
 
                     m_ffactor = 0.01f;
                     if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
@@ -776,10 +779,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             float ldampZ = 0;
             
             // linear motor
-            if (m_lmEfect > 0.001 && m_linearMotorTimescale < 1000)
+            if (m_lmEfect > 0.01 && m_linearMotorTimescale < 1000)
             {
                 tmpV = m_linearMotorDirection - curLocalVel; // velocity error
-                tmpV *= m_lmEfect; // error to correct in this timestep
+                tmpV *= m_lmEfect / m_linearMotorTimescale; // error to correct in this timestep
                 tmpV *= rotq; // to world
 
                 if ((m_flags & VehicleFlag.LIMIT_MOTOR_UP) != 0)
@@ -799,9 +802,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
                 m_lmEfect *= m_lmDecay;
-
-                //                m_ffactor = 0.01f + 1e-4f * curVel.LengthSquared();
-                m_ffactor = 0;
+                m_ffactor = 0.01f + 1e-4f * curVel.LengthSquared();
             }
             else
             {
@@ -1007,7 +1008,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_amEfect > 0.01 && m_angularMotorTimescale < 1000)
             {
                 tmpV = m_angularMotorDirection - curLocalAngVel; // velocity error
-                tmpV *= m_amEfect; // error to correct in this timestep
+                tmpV *= m_amEfect / m_angularMotorTimescale; // error to correct in this timestep
                 torque.X += tmpV.X * m_ampwr;
                 torque.Y += tmpV.Y * m_ampwr;
                 torque.Z += tmpV.Z;
