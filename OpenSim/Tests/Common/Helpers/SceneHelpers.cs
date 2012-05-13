@@ -66,7 +66,7 @@ namespace OpenSim.Tests.Common
         private AgentCircuitManager m_acm = new AgentCircuitManager();
         private ISimulationDataService m_simDataService
             = OpenSim.Server.Base.ServerUtils.LoadPlugin<ISimulationDataService>("OpenSim.Tests.Common.dll", null);
-        private IEstateDataService m_estateDataService;
+        private IEstateDataService m_estateDataService = null;
 
         private LocalAssetServicesConnector m_assetService;
         private LocalAuthenticationServicesConnector m_authenticationService;
