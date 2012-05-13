@@ -750,6 +750,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             IntPtr Body = rootPrim.Body;
 
+            d.Mass dmass;
+            d.BodyGetMass(Body, out dmass);
+
             d.Quaternion rot = d.BodyGetQuaternion(Body);
             Quaternion objrotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);    // rotq = rotation of object
             Quaternion rotq = objrotq;    // rotq = rotation of object
@@ -791,7 +794,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_linearMotorOffset.X != 0 || m_linearMotorOffset.Y != 0 || m_linearMotorOffset.Z != 0)
                 {
                     // have offset, do it now
-                    tmpV *= rootPrim.Mass;
+                    tmpV *= dmass.mass;
                     d.BodyAddForceAtRelPos(Body, tmpV.X, tmpV.Y, tmpV.Z, m_linearMotorOffset.X, m_linearMotorOffset.Y, m_linearMotorOffset.Z);
                 }
                 else
@@ -1058,13 +1061,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             
-            d.Mass dmass;
-            d.BodyGetMass(Body,out dmass);
 
             if (force.X != 0 || force.Y != 0 || force.Z != 0)
             {
                 force *= dmass.mass;
-                d.BodySetForce(Body, force.X, force.Y, force.Z);
+                d.BodyAddForce(Body, force.X, force.Y, force.Z);
             }
 
             if (torque.X != 0 || torque.Y != 0 || torque.Z != 0)
