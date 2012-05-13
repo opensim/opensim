@@ -789,6 +789,7 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnSetAlwaysRun += HandleSetAlwaysRun;
             ControllingClient.OnStartAnim += HandleStartAnim;
             ControllingClient.OnStopAnim += HandleStopAnim;
+            ControllingClient.OnChangeAnim += avnHandleChangeAnim;
             ControllingClient.OnForceReleaseControls += HandleForceReleaseControls;
             ControllingClient.OnAutoPilotGo += MoveToTarget;
 
@@ -2436,6 +2437,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Animator.RemoveAnimation(animID);
         }
+
+        public void avnHandleChangeAnim(UUID animID, bool addRemove,bool sendPack)
+        {
+            Animator.avnChangeAnim(animID, addRemove, sendPack);
+        }
+
+
 
         /// <summary>
         /// Rotate the avatar to the given rotation and apply a movement in the given relative vector

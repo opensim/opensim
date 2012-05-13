@@ -98,6 +98,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event AvatarPickerRequest OnAvatarPickerRequest;
         public event StartAnim OnStartAnim;
         public event StopAnim OnStopAnim;
+        public event ChangeAnim OnChangeAnim;
         public event Action<IClientAPI> OnRequestAvatarsData;
         public event LinkObjects OnLinkObjects;
         public event DelinkObjects OnDelinkObjects;
@@ -6386,7 +6387,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return true;
             }
             #endregion
-
+/*
             StartAnim handlerStartAnim = null;
             StopAnim handlerStopAnim = null;
 
@@ -6409,6 +6410,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
             }
+            return true;
+*/
+            ChangeAnim handlerChangeAnim = null;
+
+            for (int i = 0; i < AgentAni.AnimationList.Length; i++)
+            {
+                handlerChangeAnim = OnChangeAnim;
+                if (handlerChangeAnim != null)
+                {
+                    handlerChangeAnim(AgentAni.AnimationList[i].AnimID, AgentAni.AnimationList[i].StartAnim, false);
+                }
+            }
+
+            handlerChangeAnim = OnChangeAnim;
+            if (handlerChangeAnim != null)
+            {
+                handlerChangeAnim(UUID.Zero, false, true);
+            }
+
             return true;
         }
 

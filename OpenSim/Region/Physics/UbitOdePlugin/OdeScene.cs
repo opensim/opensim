@@ -537,7 +537,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // Essentially Steps * m_physicsiterations
             d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
 
-            d.WorldSetContactMaxCorrectingVel(world, 50.0f);
+            d.WorldSetContactMaxCorrectingVel(world, 60.0f);
 
             spacesPerMeter = 1 / metersInSpace;
             spaceGridMaxX = (int)(WorldExtents.X * spacesPerMeter);
@@ -754,14 +754,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             // big messy collision analises
+
+            Vector3 normoverride = Vector3.Zero; //damm c#
+
             float mu = 0;
             float bounce = 0;
             float cfm = 0.0001f;
-            float erp = 0.1f;
             float erpscale = 1.0f;
             float dscale = 1.0f;
             bool IgnoreNegSides = false;
-          
 
             ContactData contactdata1 = new ContactData(0, 0, false);
             ContactData contactdata2 = new ContactData(0, 0, false);
@@ -770,14 +771,30 @@ namespace OpenSim.Region.Physics.OdePlugin
             bool dop1foot = false;
             bool dop2foot = false;
             bool ignore = false;
+            bool AvanormOverride = false;
 
             switch (p1.PhysicsActorType)
             {
                 case (int)ActorTypes.Agent:
                     {
-                        bounce = 0;
-                        mu = 0;
-                        cfm = 0.0001f;
+                        AvanormOverride = true;
+                        Vector3 tmp = p2.Position - p1.Position;
+                        normoverride = p2.Velocity - p1.Velocity;
+                        mu = normoverride.LengthSquared();
+
+                        if (mu > 1e-6)
+                        {
+                            mu = 1.0f / (float)Math.Sqrt(mu);
+                            normoverride *= mu;
+                            mu = Vector3.Dot(tmp, normoverride);
+                            if (mu > 0)
+                                normoverride *= -1;
+                        }
+                        else
+                        {
+                            tmp.Normalize();
+                            normoverride = -tmp;
+                        }
 
                         switch (p2.PhysicsActorType)
                         {
@@ -823,6 +840,25 @@ namespace OpenSim.Region.Physics.OdePlugin
                         case (int)ActorTypes.Agent:
                             //                            p1.getContactData(ref contactdata1);
                             //                            p2.getContactData(ref contactdata2);
+
+                            AvanormOverride = true;
+
+                            Vector3 tmp = p2.Position - p1.Position;
+                            normoverride = p2.Velocity - p1.Velocity;
+                            mu = normoverride.LengthSquared();
+                            if (mu > 1e-6)
+                            {
+                                mu = 1.0f / (float)Math.Sqrt(mu);
+                                normoverride *= mu;
+                                mu = Vector3.Dot(tmp, normoverride);
+                                if (mu > 0)
+                                    normoverride *= -1;
+                            }
+                            else
+                            {
+                                tmp.Normalize();
+                                normoverride = -tmp;
+                            }
 
                             bounce = 0;
                             mu = 0;
@@ -973,6 +1009,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                         p1.IsColliding = true;
                     if (dop2foot && (p2.Position.Z - curContact.pos.Z) > (p2.Size.Z - avCapRadius) * 0.5f)
                         p2.IsColliding = true;
+
+                    if (AvanormOverride && curContact.depth > 0.3f)
+                    {
+                        curContact.normal.X = normoverride.X;
+                        curContact.normal.Y = normoverride.Y;
+                        curContact.normal.Z = normoverride.Z;
+                    }
 
                     Joint = CreateContacJoint(ref curContact, mu, bounce, cfm, erpscale, dscale);
                     d.JointAttach(Joint, b1, b2);
