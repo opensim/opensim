@@ -3752,7 +3752,8 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         if ((change & ObjectChangeType.Position) != 0)
                         {
-                            UpdateGroupPosition(data.position);
+                            if (m_scene.Permissions.CanObjectEntry(group.UUID, false, data.position))
+                                UpdateGroupPosition(data.position);
                             updateType = updatetype.groupterse;
                         }
                         else
