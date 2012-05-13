@@ -569,6 +569,15 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_sceneGraph.Entities; }
         }
 
+        // can be closest/random/sequence
+        private string m_SpawnPointRouting = "closest";
+        // used in sequence see: SpawnPoint()
+        private int m_SpawnPoint;
+        public string SpawnPointRouting
+        {
+            get { return m_SpawnPointRouting; }
+        }
+
         #endregion Properties
 
         #region Constructors
@@ -586,7 +595,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Random random = new Random();
 
-            m_lastAllocatedLocalId = (uint)(random.NextDouble() * (double)(uint.MaxValue/2))+(uint)(uint.MaxValue/4);
+            m_lastAllocatedLocalId = (uint)(random.NextDouble() * (double)(uint.MaxValue / 2)) + (uint)(uint.MaxValue / 4);
             m_moduleLoader = moduleLoader;
             m_authenticateHandler = authen;
             m_sceneGridService = sceneGridService;
@@ -678,7 +687,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 IConfig startupConfig = m_config.Configs["Startup"];
 
-                m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
+                m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance", m_defaultDrawDistance);
                 m_useBackup = startupConfig.GetBoolean("UseSceneBackup", m_useBackup);
                 if (!m_useBackup)
                     m_log.InfoFormat("[SCENE]: Backup has been disabled for {0}", RegionInfo.RegionName);
@@ -711,7 +720,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_clampPrimSize = true;
                 }
 
-                m_useTrashOnDelete = startupConfig.GetBoolean("UseTrashOnDelete",m_useTrashOnDelete);
+                m_useTrashOnDelete = startupConfig.GetBoolean("UseTrashOnDelete", m_useTrashOnDelete);
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
                 m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
                 m_dontPersistBefore =
@@ -722,6 +731,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_persistAfter *= 10000000;
 
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "XEngine");
+
+                m_SpawnPointRouting = startupConfig.GetString("SpawnPointRouting", "closest");
 
                 IConfig packetConfig = m_config.Configs["PacketPool"];
                 if (packetConfig != null)
@@ -3389,7 +3400,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool NewUserConnection(AgentCircuitData agent, uint teleportFlags, out string reason, bool requirePresenceLookup)
         {
             bool vialogin = ((teleportFlags & (uint)TPFlags.ViaLogin) != 0 ||
-                             (teleportFlags & (uint)TPFlags.ViaHGLogin) != 0);
+                (teleportFlags & (uint)TPFlags.ViaHGLogin) != 0);
             bool viahome = ((teleportFlags & (uint)TPFlags.ViaHome) != 0);
             bool godlike = ((teleportFlags & (uint)TPFlags.Godlike) != 0);
 
@@ -3405,8 +3416,17 @@ namespace OpenSim.Region.Framework.Scenes
             // Don't disable this log message - it's too helpful
             m_log.DebugFormat(
                 "[SCENE]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, IP {6}, viewer {7}, teleportflags ({8}), position {9})",
-                RegionInfo.RegionName, (agent.child ? "child" : "root"),agent.firstname, agent.lastname,
-                agent.AgentID, agent.circuitcode, agent.IPAddress, agent.Viewer, ((TPFlags)teleportFlags).ToString(), agent.startpos);
+                RegionInfo.RegionName,
+                (agent.child ? "child" : "root"),
+                agent.firstname,
+                agent.lastname,
+                agent.AgentID,
+                agent.circuitcode,
+                agent.IPAddress,
+                agent.Viewer,
+                ((TPFlags)teleportFlags).ToString(),
+                agent.startpos
+            );
 
             if (LoginsDisabled)
             {
@@ -3421,7 +3441,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // We have a zombie from a crashed session. 
                 // Or the same user is trying to be root twice here, won't work.
                 // Kill it.
-                m_log.DebugFormat("[SCENE]: Zombie scene presence detected for {0} in {1}", agent.AgentID, RegionInfo.RegionName);
+                m_log.DebugFormat(
+                    "[SCENE]: Zombie scene presence detected for {0} in {1}",
+                    agent.AgentID,
+                    RegionInfo.RegionName
+                );
                 sp.ControllingClient.Close();
                 sp = null;
             }
@@ -3445,8 +3469,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (!VerifyUserPresence(agent, out reason))
                             return false;
-                    }
-                    catch (Exception e)
+                    } catch (Exception e)
                     {
                         m_log.ErrorFormat(
                             "[SCENE]: Exception verifying presence {0}{1}", e.Message, e.StackTrace);
@@ -3458,8 +3481,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (!AuthorizeUser(agent, out reason))
                         return false;
-                }
-                catch (Exception e)
+                } catch (Exception e)
                 {
                     m_log.ErrorFormat(
                         "[SCENE]: Exception authorizing user {0}{1}", e.Message, e.StackTrace);
@@ -3476,8 +3498,7 @@ namespace OpenSim.Region.Framework.Scenes
                     CapsModule.SetAgentCapsSeeds(agent);
                     CapsModule.CreateCaps(agent.AgentID);
                 }
-            }
-            else
+            } else
             {
                 // Let the SP know how we got here. This has a lot of interesting
                 // uses down the line.
@@ -3500,7 +3521,7 @@ namespace OpenSim.Region.Framework.Scenes
             agent.teleportFlags = teleportFlags;
             m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
 
-            if (vialogin) 
+            if (vialogin)
             {
 //                CleanDroppedAttachments();
 
@@ -3541,8 +3562,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 agent.startpos.Z = 720;
                         }
                     }
-                }
-                else
+                } else
                 {
                     if (agent.startpos.X > EastBorders[0].BorderLine.Z)
                     {
@@ -3568,10 +3588,19 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectGroup telehub = GetSceneObjectGroup(RegionInfo.RegionSettings.TelehubObject);
                     // Can have multiple SpawnPoints
                     List<SpawnPoint> spawnpoints = RegionInfo.RegionSettings.SpawnPoints();
-                    if ( spawnpoints.Count  > 1)
+                    if (spawnpoints.Count > 1)
                     {
-                        // We have multiple SpawnPoints, Route the agent to a random one
-                        agent.startpos =  spawnpoints[Util.RandomClass.Next(spawnpoints.Count)].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                        // We have multiple SpawnPoints, Route the agent to a random or sequential one
+                        if (SpawnPointRouting == "random")
+                            agent.startpos = spawnpoints[Util.RandomClass.Next(spawnpoints.Count) - 1].GetLocation(
+                                telehub.AbsolutePosition,
+                                telehub.GroupRotation
+                            );
+                        else
+                            agent.startpos = spawnpoints[SpawnPoint()].GetLocation(
+                                telehub.AbsolutePosition,
+                                telehub.GroupRotation
+                            );
                     }
                     else
                     {
@@ -5256,6 +5285,20 @@ namespace OpenSim.Region.Framework.Scenes
                     presence.AddNewMovement(agent_control_v3);
                 }
             }
+        }
+
+        // manage and select spawn points in sequence
+        public int SpawnPoint()
+        {
+            int spawnpoints = RegionInfo.RegionSettings.SpawnPoints().Count;
+
+            if (spawnpoints == 0)
+                return 0;
+
+            m_SpawnPoint++;
+            if (m_SpawnPoint > spawnpoints)
+                m_SpawnPoint = 1;
+            return m_SpawnPoint - 1;
         }
     }
 }
