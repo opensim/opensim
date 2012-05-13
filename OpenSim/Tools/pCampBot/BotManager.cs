@@ -49,6 +49,14 @@ namespace pCampBot
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public const int DefaultLoginDelay = 5000;
+
+        /// <summary>
+        /// Delay between logins of multiple bots.
+        /// </summary>
+        /// <remarks>TODO: This value needs to be configurable by a command line argument.</remarks>
+        public int LoginDelay { get; set; }
+
         /// <summary>
         /// Command console
         /// </summary>
@@ -84,6 +92,8 @@ namespace pCampBot
         /// </summary>
         public BotManager()
         {
+            LoginDelay = DefaultLoginDelay;
+
             Rng = new Random(Environment.TickCount);
             AssetsReceived = new Dictionary<UUID, bool>();
             RegionsKnown = new Dictionary<ulong, GridRegion>();
@@ -151,28 +161,34 @@ namespace pCampBot
             Array.ForEach<string>(
                 cs.GetString("behaviours", "p").Split(new char[] { ',' }), b => behaviourSwitches.Add(b));
 
+            MainConsole.Instance.OutputFormat(
+                "[BOT MANAGER]: Starting {0} bots connecting to {1}, named {2} {3}_<n>",
+                botcount,
+                loginUri,
+                firstName,
+                lastNameStem);
+
+            MainConsole.Instance.OutputFormat("[BOT MANAGER]: Delay between logins is {0}ms", LoginDelay);
+
             for (int i = 0; i < botcount; i++)
             {
                 string lastName = string.Format("{0}_{1}", lastNameStem, i);
 
+                // We must give each bot its own list of instantiated behaviours since they store state.
                 List<IBehaviour> behaviours = new List<IBehaviour>();
-        
+    
                 // Hard-coded for now
                 if (behaviourSwitches.Contains("p"))
                     behaviours.Add(new PhysicsBehaviour());
-        
+    
                 if (behaviourSwitches.Contains("g"))
                     behaviours.Add(new GrabbingBehaviour());
-        
+    
                 if (behaviourSwitches.Contains("t"))
                     behaviours.Add(new TeleportBehaviour());
-        
+    
                 if (behaviourSwitches.Contains("c"))
                     behaviours.Add(new CrossBehaviour());
-        
-                MainConsole.Instance.OutputFormat(
-                    "[BOT MANAGER]: Bot {0} {1} configured for behaviours {2}",
-                    firstName, lastName, string.Join(",", behaviours.ConvertAll<string>(b => b.Name).ToArray()));
 
                 StartBot(this, behaviours, firstName, lastName, password, loginUri);
             }
@@ -211,6 +227,10 @@ namespace pCampBot
              BotManager bm, List<IBehaviour> behaviours,
              string firstName, string lastName, string password, string loginUri)
         {
+            MainConsole.Instance.OutputFormat(
+                "[BOT MANAGER]: Starting bot {0} {1}, behaviours are {2}",
+                firstName, lastName, string.Join(",", behaviours.ConvertAll<string>(b => b.Name).ToArray()));
+
             Bot pb = new Bot(bm, behaviours, firstName, lastName, password, loginUri);
 
             pb.OnConnected += handlebotEvent;
@@ -222,7 +242,11 @@ namespace pCampBot
             Thread pbThread = new Thread(pb.startup);
             pbThread.Name = pb.Name;
             pbThread.IsBackground = true;
+
             pbThread.Start();
+
+            // Stagger logins
+            Thread.Sleep(LoginDelay);
         }
 
         /// <summary>
@@ -242,7 +266,7 @@ namespace pCampBot
 
                     lock (m_lBot)
                     {
-                        if (m_lBot.TrueForAll(b => !b.IsConnected))
+                        if (m_lBot.TrueForAll(b => b.ConnectionState == ConnectionState.Disconnected))
                             Environment.Exit(0);
 
                         break;
@@ -251,13 +275,21 @@ namespace pCampBot
         }
 
         /// <summary>
-        /// Shutting down all bots
+        /// Shut down all bots
         /// </summary>
+        /// <remarks>
+        /// We launch each shutdown on its own thread so that a slow shutting down bot doesn't hold up all the others.
+        /// </remarks>
         public void doBotShutdown()
         {
             lock (m_lBot)
-                foreach (Bot pb in m_lBot)
-                    pb.shutdown();
+            {
+                foreach (Bot bot in m_lBot)
+                {
+                    Bot thisBot = bot;
+                    Util.FireAndForget(o => thisBot.shutdown());
+                }
+            }
         }
 
         /// <summary>
@@ -271,11 +303,8 @@ namespace pCampBot
 
         private void HandleShutdown(string module, string[] cmd)
         {
-            Util.FireAndForget(o =>
-            {
-                m_log.Warn("[BOTMANAGER]: Shutting down bots");
-                doBotShutdown();
-            });
+            m_log.Info("[BOTMANAGER]: Shutting down bots");
+            doBotShutdown();
         }
 
         private void HandleShowRegions(string module, string[] cmd)
@@ -302,9 +331,11 @@ namespace pCampBot
             {
                 foreach (Bot pb in m_lBot)
                 {
+                    Simulator currentSim = pb.Client.Network.CurrentSim;
+
                     MainConsole.Instance.OutputFormat(
                         outputFormat,
-                        pb.Name, pb.Client.Network.CurrentSim.Name, pb.IsConnected ? "Connected" : "Disconnected");
+                        pb.Name, currentSim != null ? currentSim.Name : "(none)", pb.ConnectionState);
                 }
             }
         }
