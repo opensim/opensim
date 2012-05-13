@@ -64,6 +64,8 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         private TimeSpan m_QueueTimeout = new TimeSpan(2, 0, 0); // 2 hours without llGetNextEmail drops the queue
         private string m_InterObjectHostname = "lsl.opensim.local";
 
+        private int m_MaxEmailSize = 4096;  // largest email allowed by default, as per lsl docs.
+
         // Scenes by Region Handle
         private Dictionary<ulong, Scene> m_Scenes =
             new Dictionary<ulong, Scene>();
@@ -127,6 +129,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 SMTP_SERVER_PORT = SMTPConfig.GetInt("SMTP_SERVER_PORT", SMTP_SERVER_PORT);
                 SMTP_SERVER_LOGIN = SMTPConfig.GetString("SMTP_SERVER_LOGIN", SMTP_SERVER_LOGIN);
                 SMTP_SERVER_PASSWORD = SMTPConfig.GetString("SMTP_SERVER_PASSWORD", SMTP_SERVER_PASSWORD);
+		m_MaxEmailSize = SMTPConfig.GetInt("email_max_size", m_MaxEmailSize); 
             }
             catch (Exception e)
             {
@@ -174,18 +177,6 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         public bool IsSharedModule
         {
             get { return true; }
-        }
-
-        /// <summary>
-        /// Delay function using thread in seconds
-        /// </summary>
-        /// <param name="seconds"></param>
-        private void DelayInSeconds(int delay)
-        {
-            delay = (int)((float)delay * 1000);
-            if (delay == 0)
-                return;
-            System.Threading.Thread.Sleep(delay);
         }
 
         private bool IsLocal(UUID objectID)
@@ -267,10 +258,9 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 m_log.Error("[EMAIL] REGEX Problem in EMail Address: "+address);
                 return;
             }
-            //FIXME:Check if subject + body = 4096 Byte
-            if ((subject.Length + body.Length) > 1024)
+            if ((subject.Length + body.Length) > m_MaxEmailSize)
             {
-                m_log.Error("[EMAIL] subject + body > 1024 Byte");
+                m_log.Error("[EMAIL] subject + body larger than limit of " + m_MaxEmailSize + " bytes");
                 return;
             }
 
@@ -345,10 +335,6 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     // TODO FIX
                 }
             }
-
-            //DONE: Message as Second Life style
-            //20 second delay - AntiSpam System - for now only 10 seconds
-            DelayInSeconds(10);
         }
 
         /// <summary>
