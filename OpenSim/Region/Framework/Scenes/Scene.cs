@@ -2576,10 +2576,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     SceneObjectGroup grp = sceneObject;
 
-                    m_log.DebugFormat(
-                        "[ATTACHMENT]: Received attachment {0}, inworld asset id {1}", grp.FromItemID, grp.UUID);
-                    m_log.DebugFormat(
-                        "[ATTACHMENT]: Attach to avatar {0} at position {1}", sp.UUID, grp.AbsolutePosition);
+//                    m_log.DebugFormat(
+//                        "[ATTACHMENT]: Received attachment {0}, inworld asset id {1}", grp.FromItemID, grp.UUID);
+//                    m_log.DebugFormat(
+//                        "[ATTACHMENT]: Attach to avatar {0} at position {1}", sp.UUID, grp.AbsolutePosition);
 
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                     
