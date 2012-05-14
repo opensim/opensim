@@ -307,6 +307,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("Name", ProcessName);
             m_SOPXmlProcessors.Add("Material", ProcessMaterial);
             m_SOPXmlProcessors.Add("PassTouches", ProcessPassTouches);
+            m_SOPXmlProcessors.Add("PassCollisions", ProcessPassCollisions);
             m_SOPXmlProcessors.Add("RegionHandle", ProcessRegionHandle);
             m_SOPXmlProcessors.Add("ScriptAccessPin", ProcessScriptAccessPin);
             m_SOPXmlProcessors.Add("GroupPosition", ProcessGroupPosition);
@@ -504,6 +505,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessPassTouches(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.PassTouches = Util.ReadBoolean(reader);
+        }
+
+        private static void ProcessPassCollisions(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.PassCollisions = Util.ReadBoolean(reader);
         }
 
         private static void ProcessRegionHandle(SceneObjectPart obj, XmlTextReader reader)
@@ -1246,6 +1252,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("Name", sop.Name);
             writer.WriteElementString("Material", sop.Material.ToString());
             writer.WriteElementString("PassTouches", sop.PassTouches.ToString().ToLower());
+            writer.WriteElementString("PassCollisions", sop.PassCollisions.ToString().ToLower());
             writer.WriteElementString("RegionHandle", sop.RegionHandle.ToString());
             writer.WriteElementString("ScriptAccessPin", sop.ScriptAccessPin.ToString());
 
