@@ -755,17 +755,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return true; }
         }
         
-        private bool m_passCollision;
-        public bool PassCollision
-        {
-            get { return m_passCollision; }
-            set
-            {
-                m_passCollision = value;
-                HasGroupChanged = true;
-            }
-        }
-
         public bool IsSelected
         {
             get { return m_isSelected; }
@@ -3774,7 +3763,8 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         if ((change & ObjectChangeType.Position) != 0)
                         {
-                            UpdateGroupPosition(data.position);
+                            if (m_scene.Permissions.CanObjectEntry(group.UUID, false, data.position))
+                                UpdateGroupPosition(data.position);
                             updateType = updatetype.groupterse;
                         }
                         else

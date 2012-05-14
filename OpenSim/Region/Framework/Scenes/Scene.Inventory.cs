@@ -2342,7 +2342,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    if (!Permissions.CanEditObject(sog.UUID, remoteClient.AgentId))
+                    if (!Permissions.IsGod(remoteClient.AgentId) && sog.OwnerID != remoteClient.AgentId)
+                        continue;
+
+                    if (!Permissions.CanTransferObject(sog.UUID, groupID))
                         continue;
 
                     if (sog.GroupID != groupID)
