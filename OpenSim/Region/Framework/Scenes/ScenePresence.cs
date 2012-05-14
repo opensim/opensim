@@ -4134,28 +4134,93 @@ namespace OpenSim.Region.Framework.Scenes
                     if (spawnPoints.Length == 0)
                         return;
 
-                    float distance = 9999;
-                    int closest = -1;
+                    int index;
+                    bool selected = false;
 
-                    for (int i = 0 ; i < spawnPoints.Length ; i++)
+                    switch (m_scene.SpawnPointRouting)
                     {
-                        Vector3 spawnPosition = spawnPoints[i].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
-                        Vector3 offset = spawnPosition - pos;
-                        float d = Vector3.Mag(offset);
-                        if (d >= distance)
-                            continue;
-                        ILandObject land = m_scene.LandChannel.GetLandObject(spawnPosition.X, spawnPosition.Y);
-                        if (land == null)
-                            continue;
-                        if (land.IsEitherBannedOrRestricted(UUID))
-                            continue;
-                        distance = d;
-                        closest = i;
-                    }
-                    if (closest == -1)
-                        return;
+                        case "closest":
 
-                    pos = spawnPoints[closest].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                            float distance = 9999;
+                            int closest = -1;
+        
+                            for (int i = 0; i < spawnPoints.Length; i++)
+                            {
+                                Vector3 spawnPosition = spawnPoints[i].GetLocation(
+                                    telehub.AbsolutePosition,
+                                    telehub.GroupRotation
+                                );
+                                Vector3 offset = spawnPosition - pos;
+                                float d = Vector3.Mag(offset);
+                                if (d >= distance)
+                                    continue;
+                                ILandObject land = m_scene.LandChannel.GetLandObject(spawnPosition.X, spawnPosition.Y);
+                                if (land == null)
+                                    continue;
+                                if (land.IsEitherBannedOrRestricted(UUID))
+                                    continue;
+                                distance = d;
+                                closest = i;
+                            }
+                            if (closest == -1)
+                                return;
+                            
+                            pos = spawnPoints[closest].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                            return;
+
+                        case "random":
+
+                            do
+                            {
+                                index = Util.RandomClass.Next(spawnPoints.Length - 1);
+                                
+                                Vector3 spawnPosition = spawnPoints[index].GetLocation(
+                                    telehub.AbsolutePosition,
+                                    telehub.GroupRotation
+                                );
+                                // SpawnPoint sp = spawnPoints[index];
+
+                                ILandObject land = m_scene.LandChannel.GetLandObject(spawnPosition.X, spawnPosition.Y);
+                                if (land == null || land.IsEitherBannedOrRestricted(UUID))
+                                    selected = false;
+                                else
+                                    selected = true;
+
+                            } while ( selected == false);
+
+                            pos = spawnPoints[index].GetLocation(
+                                telehub.AbsolutePosition,
+                                telehub.GroupRotation
+                            );
+                            return;
+
+                        case "sequence":
+
+                            do
+                            {
+                                index = m_scene.SpawnPoint();
+                                
+                                Vector3 spawnPosition = spawnPoints[index].GetLocation(
+                                    telehub.AbsolutePosition,
+                                    telehub.GroupRotation
+                                );
+                                // SpawnPoint sp = spawnPoints[index];
+
+                                ILandObject land = m_scene.LandChannel.GetLandObject(spawnPosition.X, spawnPosition.Y);
+                                if (land == null || land.IsEitherBannedOrRestricted(UUID))
+                                    selected = false;
+                                else
+                                    selected = true;
+
+                            } while (selected == false);
+
+                            pos = spawnPoints[index].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
+                            ;
+                            return;
+
+                        default:
+                            return;
+                    }
                 }
             }
         }

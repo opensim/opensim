@@ -371,11 +371,21 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (missingTexturesOnly)
                 {
                     if (m_scene.AssetService.Get(face.TextureID.ToString()) != null)
+                    {
                         continue;
+                    }
                     else
+                    {
+                        // On inter-simulator teleports, this occurs if baked textures are not being stored by the
+                        // grid asset service (which means that they are not available to the new region and so have
+                        // to be re-requested from the client).
+                        //
+                        // The only available core OpenSimulator behaviour right now
+                        // is not to store these textures, temporarily or otherwise.
                         m_log.DebugFormat(
                             "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
                             face.TextureID, idx, sp.Name);
+                    }
                 }
                 else
                 {

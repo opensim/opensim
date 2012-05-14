@@ -53,7 +53,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public const int DefaultMaxTransferDistance = 4095;
         public const bool EnableWaitForCallbackFromTeleportDestDefault = true;
 
-
         /// <summary>
         /// The maximum distance, in standard region units (256m) that an agent is allowed to transfer.
         /// </summary>
@@ -210,6 +209,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "[ENTITY TRANSFER MODULE]: Exception on teleport of {0} from {1}@{2} to {3}@{4}: {5}{6}",
                     sp.Name, sp.AbsolutePosition, sp.Scene.RegionInfo.RegionName, position, destinationRegionName,
                     e.Message, e.StackTrace);
+
+                // Make sure that we clear the in-transit flag so that future teleport attempts don't always fail.
+                ResetFromTransit(sp.UUID);
 
                 sp.ControllingClient.SendTeleportFailed("Internal error");
             }
@@ -386,7 +388,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            if (IsInTransit(sp.UUID)) // Avie is already on the way. Caller shouldn't do this.
+            if (!SetInTransit(sp.UUID)) // Avie is already on the way. Caller shouldn't do this.
             {
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Ignoring teleport request of {0} {1} to {2} ({3}) {4}/{5} - agent is already in transit.",
@@ -434,8 +436,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (!m_aScene.SimulationService.QueryAccess(finalDestination, sp.ControllingClient.AgentId, Vector3.Zero, out version, out reason))
                 {
                     sp.ControllingClient.SendTeleportFailed("Teleport failed: " + reason);
+                    ResetFromTransit(sp.UUID);
+
                     return;
                 }
+
                 m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Destination is running version {0}", version);
 
                 sp.ControllingClient.SendTeleportStart(teleportFlags);
@@ -475,13 +480,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 bool logout = false;
                 if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout))
                 {
-                    sp.ControllingClient.SendTeleportFailed(String.Format("Teleport refused: {0}",
-                                                                              reason));
+                    sp.ControllingClient.SendTeleportFailed(
+                        String.Format("Teleport refused: {0}", reason));
+                    ResetFromTransit(sp.UUID);
+
                     return;
                 }
 
                 // OK, it got this agent. Let's close some child agents
                 sp.CloseChildAgents(newRegionX, newRegionY);
+
                 IClientIPEndpoint ipepClient;  
                 if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
                 {
@@ -518,8 +526,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
                 }
 
-                SetInTransit(sp.UUID);
-
                 // Let's send a full update of the agent. This is a synchronous call.
                 AgentData agent = new AgentData();
                 sp.CopyTo(agent);
@@ -532,8 +538,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     // Region doesn't take it
                     m_log.WarnFormat(
-                        "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1}.  Returning avatar to source region.", 
-                        sp.Name, finalDestination.RegionName);
+                        "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1} from {2}.  Returning avatar to source region.",
+                        sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
                     
                     Fail(sp, finalDestination, logout);
                     return;
@@ -565,8 +571,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (EnableWaitForCallbackFromTeleportDest && !WaitForCallback(sp.UUID))
                 {
                     m_log.WarnFormat(
-                        "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} failed due to no callback from destination region.  Returning avatar to source region.", 
-                        sp.Name, finalDestination.RegionName);
+                        "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} from {2} failed due to no callback from destination region.  Returning avatar to source region.",
+                        sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
                     
                     Fail(sp, finalDestination, logout);                   
                     return;
@@ -662,8 +668,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual void SetCallbackURL(AgentData agent, RegionInfo region)
         {
             agent.CallbackURI = region.ServerURI + "agent/" + agent.AgentID.ToString() + "/" + region.RegionID.ToString() + "/release/";
-            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Set callback URL to {0}", agent.CallbackURI);
 
+            m_log.DebugFormat(
+                "[ENTITY TRANSFER MODULE]: Set release callback URL to {0} in {1}",
+                agent.CallbackURI, region.RegionName);
         }
 
         protected virtual void AgentHasMovedAway(ScenePresence sp, bool logout)
@@ -1921,25 +1929,43 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return count > 0;
         }
 
-        protected void SetInTransit(UUID id)
+        /// <summary>
+        /// Set that an agent is in the process of being teleported.
+        /// </summary>
+        /// <param name='id'>The ID of the agent being teleported</param>
+        /// <returns>true if the agent was not already in transit, false if it was</returns>
+        protected bool SetInTransit(UUID id)
         {
             lock (m_agentsInTransit)
             {
                 if (!m_agentsInTransit.Contains(id))
+                {
                     m_agentsInTransit.Add(id);
-            }
-        }
-
-        protected bool IsInTransit(UUID id)
-        {
-            lock (m_agentsInTransit)
-            {
-                if (m_agentsInTransit.Contains(id))
                     return true;
+                }
             }
+
             return false;
         }
 
+        /// <summary>
+        /// Show whether the given agent is being teleported.
+        /// </summary>
+        /// <returns>true if the agent is in the process of being teleported, false otherwise.</returns>
+        /// <param name='id'>The agent ID</para></param>
+        protected bool IsInTransit(UUID id)
+        {
+            lock (m_agentsInTransit)
+                return m_agentsInTransit.Contains(id);
+        }
+
+        /// <summary>
+        /// Set that an agent is no longer being teleported.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='id'>
+        /// true if the agent was flagged as being teleported when this method was called, false otherwise
+        /// </param>
         protected bool ResetFromTransit(UUID id)
         {
             lock (m_agentsInTransit)
@@ -1950,6 +1976,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return true;
                 }
             }
+
             return false;
         }
 
