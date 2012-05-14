@@ -10526,7 +10526,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return new LSL_Vector();
 
             m_host.TaskInventory.LockItemsForRead(true);
-            if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
+
+            UUID agentID = m_host.TaskInventory[invItemID].PermsGranter;
+
+//            if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
+            if (agentID == UUID.Zero)
             {
                 m_host.TaskInventory.LockItemsForRead(false);
                 return new LSL_Vector();
@@ -10540,7 +10544,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             m_host.TaskInventory.LockItemsForRead(false);
 
-            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+//            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+            ScenePresence presence = World.GetScenePresence(agentID);
             if (presence != null)
             {
                 LSL_Vector pos = new LSL_Vector(presence.CameraPosition.X, presence.CameraPosition.Y, presence.CameraPosition.Z);
@@ -10557,7 +10562,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return new LSL_Rotation();
 
             m_host.TaskInventory.LockItemsForRead(true);
-            if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
+
+            UUID agentID = m_host.TaskInventory[invItemID].PermsGranter;
+
+//            if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
+            if (agentID == UUID.Zero)
             {
                 m_host.TaskInventory.LockItemsForRead(false);
                 return new LSL_Rotation();
@@ -10570,7 +10579,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             m_host.TaskInventory.LockItemsForRead(false);
 
-            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+//            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+            ScenePresence presence = World.GetScenePresence(agentID);
             if (presence != null)
             {
                 return new LSL_Rotation(presence.CameraRotation.X, presence.CameraRotation.Y, presence.CameraRotation.Z, presence.CameraRotation.W);
