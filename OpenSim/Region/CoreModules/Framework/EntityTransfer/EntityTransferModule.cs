@@ -53,7 +53,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public const int DefaultMaxTransferDistance = 4095;
         public const bool EnableWaitForCallbackFromTeleportDestDefault = true;
 
-
         /// <summary>
         /// The maximum distance, in standard region units (256m) that an agent is allowed to transfer.
         /// </summary>
@@ -531,8 +530,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     // Region doesn't take it
                     m_log.WarnFormat(
-                        "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1}.  Returning avatar to source region.", 
-                        sp.Name, finalDestination.RegionName);
+                        "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1} from {2}.  Returning avatar to source region.",
+                        sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
                     
                     Fail(sp, finalDestination, logout);
                     return;
@@ -564,8 +563,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (EnableWaitForCallbackFromTeleportDest && !WaitForCallback(sp.UUID))
                 {
                     m_log.WarnFormat(
-                        "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} failed due to no callback from destination region.  Returning avatar to source region.", 
-                        sp.Name, finalDestination.RegionName);
+                        "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} from {2} failed due to no callback from destination region.  Returning avatar to source region.",
+                        sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
                     
                     Fail(sp, finalDestination, logout);                   
                     return;
@@ -661,8 +660,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual void SetCallbackURL(AgentData agent, RegionInfo region)
         {
             agent.CallbackURI = region.ServerURI + "agent/" + agent.AgentID.ToString() + "/" + region.RegionID.ToString() + "/release/";
-            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Set callback URL to {0}", agent.CallbackURI);
 
+            m_log.DebugFormat(
+                "[ENTITY TRANSFER MODULE]: Set release callback URL to {0} in {1}",
+                agent.CallbackURI, region.RegionName);
         }
 
         protected virtual void AgentHasMovedAway(ScenePresence sp, bool logout)
