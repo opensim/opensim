@@ -2564,7 +2564,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    if ((ParentGroup.RootPart.ScriptEvents & scriptEvents.collision_start) != 0)
+                    if ((ParentGroup.RootPart.ScriptEvents & ev) != 0)
                         sendToRoot = true;
                 }
                 if (sendToRoot && ParentGroup.RootPart != this)
