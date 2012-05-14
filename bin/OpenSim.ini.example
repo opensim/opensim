@@ -241,6 +241,14 @@
     ;; server to send mail through.
     ; emailmodule = DefaultEmailModule
 
+    ;# {SpawnPointRouting} {} {Set routing method for Telehub Spawnpoints} {closest random sequential} closest
+    ;; SpawnPointRouting adjusts the landing for incoming avatars.
+    ;; "closest" will place the avatar at the SpawnPoint located in the closest
+    ;; available spot to the destination (typically map click/landmark).
+    ;; "random" will place the avatar on a randomly selected spawnpoint;
+    ;; "sequential" will place the avatar on the next sequential SpawnPoint
+    ; SpawnPointRouting = closest
+
 [Estates]
     ; If these values are commented out then the user will be asked for estate details when required (this is the normal case).
   	; If these values are uncommented then they will be used to create a default estate as necessary.
@@ -273,6 +281,12 @@
     ;# {host_domain_header_from} {[Startup]emailmodule:DefaultEmailModule enabled:true} {From address to use in the sent email header?} {} 127.0.0.1
     ; host_domain_header_from = "127.0.0.1"
 
+    ;# {email_pause_time} {[Startup]emailmodule:DefaultEmailModule enabled:true} {Period in seconds to delay after an email is sent.} {} 20
+    ; email_pause_time = 20
+
+    ;# {email_max_size} {[Startup]emailmodule:DefaultEmailModule enabled:true} {Maximum total size of email in bytes.} {} 4096
+    ; email_max_size = 4096
+
     ;# {SMTP_SERVER_HOSTNAME} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP server name?} {} 127.0.0.1
     ; SMTP_SERVER_HOSTNAME = "127.0.0.1"
 
@@ -284,7 +298,6 @@
 
     ;# {SMTP_SERVER_PASSWORD} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP server password} {}
     ; SMTP_SERVER_PASSWORD = ""
-
 
 [Network]
     ;; Configure the remote console user here. This will not actually be used
@@ -677,7 +690,7 @@
     ;; Sets the multiplier for the scripting delays
     ; ScriptDelayFactor = 1.0
 
-    ;; The factor the 10 m distances llimits are multiplied by
+    ;; The factor the 10 m distances limits are multiplied by
     ; ScriptDistanceLimitFactor = 1.0
 
     ;; Maximum length of notecard line read
@@ -780,7 +793,7 @@
     ;; groups service if the service is using these keys
     ; XmlRpcServiceReadKey    = 1234
     ; XmlRpcServiceWriteKey   = 1234
-	
+
 [InterestManagement]
      ;# {UpdatePrioritizationScheme} {} {Update prioritization scheme?} {BestAvatarResponsiveness Time Distance SimpleAngularDistance FrontBack} BestAvatarResponsiveness
      ;; This section controls how state updates are prioritized for each client

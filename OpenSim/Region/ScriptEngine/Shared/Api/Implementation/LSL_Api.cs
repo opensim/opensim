@@ -106,6 +106,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IUrlModule m_UrlModule = null;
         protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache =
                 new Dictionary<UUID, UserInfoCacheEntry>();
+	protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
@@ -113,6 +114,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host = host;
             m_item = item;
 
+            LoadLimits();  // read script limits from config.
+
+            m_TransferModule =
+                    m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
+            m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
+
+            AsyncCommands = new AsyncCommandManager(ScriptEngine);
+        }
+
+        /* load configuration items that affect script, object and run-time behavior. */
+        private void LoadLimits()
+        {
             m_ScriptDelayFactor =
                 m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
             m_ScriptDistanceFactor =
@@ -125,12 +138,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_ScriptEngine.Config.GetInt("NotecardLineReadCharsMax", 255);
             if (m_notecardLineReadCharsMax > 65535)
                 m_notecardLineReadCharsMax = 65535;
-
-            m_TransferModule =
-                    m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
-            m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
-
-            AsyncCommands = new AsyncCommandManager(ScriptEngine);
+            // load limits for particular subsystems.
+            IConfig SMTPConfig;
+            if ((SMTPConfig = m_ScriptEngine.ConfigSource.Configs["SMTP"]) != null) {
+                // there's an smtp config, so load in the snooze time.
+                EMAIL_PAUSE_TIME = SMTPConfig.GetInt("email_pause_time", EMAIL_PAUSE_TIME);
+            }
         }
 
         public override Object InitializeLifetimeService()
@@ -2877,6 +2890,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public virtual void llSleep(double sec)
         {
+//            m_log.Info("llSleep snoozing " + sec + "s.");
             m_host.AddScriptLPS(1);
             Thread.Sleep((int)(sec * 1000));
         }
@@ -3130,7 +3144,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             emailModule.SendEmail(m_host.UUID, address, subject, message);
-            ScriptSleep(20000);
+            llSleep(EMAIL_PAUSE_TIME);
         }
 
         public void llGetNextEmail(string address, string subject)
