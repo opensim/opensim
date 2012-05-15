@@ -505,17 +505,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return true; }
         }
         
-        private bool m_passCollision;
-        public bool PassCollision
-        {
-            get { return m_passCollision; }
-            set
-            {
-                m_passCollision = value;
-                HasGroupChanged = true;
-            }
-        }
-
         public bool IsSelected
         {
             get { return m_isSelected; }
