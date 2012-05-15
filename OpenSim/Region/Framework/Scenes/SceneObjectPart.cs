@@ -2652,11 +2652,14 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastColliders.Remove(localID);
             }
             // play the sound.
-            if (startedColliders.Count > 0 && CollisionSound != UUID.Zero && CollisionSoundVolume > 0.0f && !ParentGroup.RootPart.VolumeDetectActive)
+
+            bool IsNotVolumeDtc = !VolumeDetectActive;
+
+            if (startedColliders.Count > 0 && CollisionSound != UUID.Zero && CollisionSoundVolume > 0.0f && IsNotVolumeDtc)
                 SendSound(CollisionSound.ToString(), CollisionSoundVolume, true, (byte)0, 0, false, false);
 
             SendCollisionEvent(scriptEvents.collision_start, startedColliders, ParentGroup.Scene.EventManager.TriggerScriptCollidingStart);
-            if(!ParentGroup.RootPart.VolumeDetectActive)
+            if (IsNotVolumeDtc)
                 SendCollisionEvent(scriptEvents.collision      , m_lastColliders , ParentGroup.Scene.EventManager.TriggerScriptColliding);
             SendCollisionEvent(scriptEvents.collision_end  , endedColliders  , ParentGroup.Scene.EventManager.TriggerScriptCollidingEnd);
 
