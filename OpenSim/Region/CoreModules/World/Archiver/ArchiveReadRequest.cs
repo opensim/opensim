@@ -267,8 +267,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
                 */
 
-                SceneObjectGroup sceneObject = SceneObjectSerializer.FromXml2Format(serialisedSceneObject);
-//                SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
+                SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
 
                 bool isTelehub = (sceneObject.UUID == oldTelehubUUID);
 
