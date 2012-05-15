@@ -170,6 +170,7 @@ namespace OpenSim.Data.MySQL
                                 "ParticleSystem, ClickAction, Material, " +
                                 "CollisionSound, CollisionSoundVolume, " +
                                 "PassTouches, " +
+                                "PassCollisions, " +
                                 "LinkNumber, MediaURL, KeyframeMotion, " +
                                 "PhysicsShapeType, Density, GravityModifier, " +
                                 "Friction, Restitution) values (" + "?UUID, " +
@@ -203,7 +204,7 @@ namespace OpenSim.Data.MySQL
                                 "?SaleType, ?ColorR, ?ColorG, " +
                                 "?ColorB, ?ColorA, ?ParticleSystem, " +
                                 "?ClickAction, ?Material, ?CollisionSound, " +
-                                "?CollisionSoundVolume, ?PassTouches, " +
+                                "?CollisionSoundVolume, ?PassTouches, ?PassCollisions, " +
                                 "?LinkNumber, ?MediaURL, ?KeyframeMotion, " +
                                 "?PhysicsShapeType, ?Density, ?GravityModifier, " +
                                 "?Friction, ?Restitution)";
@@ -1231,6 +1232,7 @@ namespace OpenSim.Data.MySQL
             prim.CollisionSoundVolume = (float)(double)row["CollisionSoundVolume"];
             
             prim.PassTouches = ((sbyte)row["PassTouches"] != 0);
+            prim.PassCollisions = ((sbyte)row["PassCollisions"] != 0);
             prim.LinkNum = (int)row["LinkNumber"];
             
             if (!(row["MediaURL"] is System.DBNull))
@@ -1604,6 +1606,11 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("PassTouches", 1);
             else
                 cmd.Parameters.AddWithValue("PassTouches", 0);
+
+            if (prim.PassCollisions)
+                cmd.Parameters.AddWithValue("PassCollisions", 1);
+            else
+                cmd.Parameters.AddWithValue("PassCollisions", 0);
 
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
