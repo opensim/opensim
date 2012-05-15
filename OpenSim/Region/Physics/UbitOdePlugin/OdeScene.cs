@@ -1898,7 +1898,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                                     case ActorTypes.Prim:
                                         OdePrim pobj = (OdePrim)obj;
-                                        pobj.SendCollisions();
+                                        if (pobj.Body == IntPtr.Zero || (d.BodyIsEnabled(pobj.Body) && !pobj.m_outbounds))
+                                        {
+                                            pobj.AddCollisionFrameTime((int)(ODE_STEPSIZE * 1000.0f));
+                                            pobj.SendCollisions();
+                                        }
                                         break;
                                 }
                             }
