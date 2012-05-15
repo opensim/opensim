@@ -4706,6 +4706,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void aggregateScriptEvents()
         {
+            if (ParentGroup == null || ParentGroup.RootPart == null)
+                return;
+
             AggregateScriptEvents = 0;
 
             // Aggregate script events
