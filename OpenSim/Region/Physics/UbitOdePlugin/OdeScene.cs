@@ -620,8 +620,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             return d.JointCreateContactPtr(world, contactgroup, contact);
         }
 
-
-
         private bool GetCurContactGeom(int index, ref d.ContactGeom newcontactgeom)
         {
             if (ContactgeomsArray == IntPtr.Zero || index >= contactsPerCollision)
@@ -1153,6 +1151,31 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                         }
                     break;
+                case ActorTypes.Ground:
+                case ActorTypes.Unknown:
+                default:
+                        switch ((ActorTypes)p2.PhysicsActorType)
+                        {
+                            case ActorTypes.Agent:
+                                if (p2 is OdeCharacter)
+                                {
+                                    cc2 = (OdeCharacter)p2;
+                                    obj2LocalID = cc2.m_localID;
+                                    if (p2events)
+                                        cc2.AddCollisionEvent(0, contact);
+                                }
+                                break;
+                            case ActorTypes.Prim:
+                                if (p2 is OdePrim)
+                                {
+                                    cp2 = (OdePrim)p2;
+                                    obj2LocalID = cp2.m_localID;
+                                    if (p2events)
+                                        cp2.AddCollisionEvent(0, contact);
+                                }
+                                break;
+                        }
+                        break;
                 }
             }
 
