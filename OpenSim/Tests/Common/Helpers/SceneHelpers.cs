@@ -624,7 +624,7 @@ namespace OpenSim.Tests.Common
         /// <param name="ownerId"></param>
         /// <param name="partNamePrefix">
         /// The prefix to be given to part names.  This will be suffixed with "Part<part no>"
-        /// (e.g. mynamePart0 for the root part)
+        /// (e.g. mynamePart1 for the root part)
         /// </param>
         /// <param name="uuidTail">
         /// The hexadecimal last part of the UUID for parts created.  A UUID of the form "00000000-0000-0000-0000-{0:XD12}"
@@ -637,14 +637,14 @@ namespace OpenSim.Tests.Common
             
             SceneObjectGroup sog 
                 = new SceneObjectGroup(
-                    CreateSceneObjectPart(string.Format("{0}Part0", partNamePrefix), new UUID(rawSogId), ownerId));
+                    CreateSceneObjectPart(string.Format("{0}Part1", partNamePrefix), new UUID(rawSogId), ownerId));
             
             if (parts > 1)
-                for (int i = 1; i < parts; i++)
+                for (int i = 2; i <= parts; i++)
                     sog.AddPart(
                         CreateSceneObjectPart(
                             string.Format("{0}Part{1}", partNamePrefix, i), 
-                            new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", uuidTail + i)), 
+                            new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", uuidTail + i - 1)),
                             ownerId));
             
             return sog;
