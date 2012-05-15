@@ -194,8 +194,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int givefakeori = 0;
         private Quaternion fakeori;
 
-        public int m_eventsubscription;
-        private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
+        private int m_eventsubscription;
+        private int m_cureventsubscription;
+        private CollisionEventUpdate CollisionEventsThisFrame = null;
+        private bool SentEmptyCollisionsEvent;
 
         public volatile bool childPrim;
 
@@ -931,12 +933,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void SubscribeEvents(int ms)
         {
             m_eventsubscription = ms;
+            m_cureventsubscription = 0;
+            if (CollisionEventsThisFrame == null)
+                CollisionEventsThisFrame = new CollisionEventUpdate();
+            SentEmptyCollisionsEvent = false;
             _parent_scene.AddCollisionEventReporting(this);
         }
 
         public override void UnSubscribeEvents()
         {
             _parent_scene.RemoveCollisionEventReporting(this);
+            if (CollisionEventsThisFrame != null)
+            {
+                CollisionEventsThisFrame.Clear();
+                CollisionEventsThisFrame = null;
+            }
             m_eventsubscription = 0;
         }
 
@@ -944,7 +955,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
-
             CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
         }
 
@@ -953,14 +963,34 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (CollisionEventsThisFrame == null)
                 return;
 
-            base.SendCollisionUpdate(CollisionEventsThisFrame);
+            if (m_cureventsubscription < m_eventsubscription)
+                return;
 
-            if (CollisionEventsThisFrame.m_objCollisionList.Count == 0)
-                CollisionEventsThisFrame = null;
-            else
-                CollisionEventsThisFrame = new CollisionEventUpdate();
+            m_cureventsubscription = 0;
+
+            int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
+
+            if (!SentEmptyCollisionsEvent || ncolisions > 0)
+            {
+                base.SendCollisionUpdate(CollisionEventsThisFrame);
+
+                if (ncolisions == 0)
+                    SentEmptyCollisionsEvent = true;
+                else
+                {
+                    SentEmptyCollisionsEvent = false;
+                    CollisionEventsThisFrame.Clear();
+                }
+            }           
         }
 
+        internal void AddCollisionFrameTime(int t)
+        {
+            // protect it from overflow crashing
+            if (m_cureventsubscription + t >= int.MaxValue)
+                m_cureventsubscription = 0;
+            m_cureventsubscription += t;
+        }
         public override bool SubscribedEvents()
         {
             if (m_eventsubscription > 0)

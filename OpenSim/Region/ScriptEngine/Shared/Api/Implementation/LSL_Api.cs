@@ -10366,7 +10366,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             m_host.TaskInventory.LockItemsForRead(false);
 
-            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+//            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+            ScenePresence presence = World.GetScenePresence(agentID);
             if (presence != null)
             {
                 LSL_Vector pos = new LSL_Vector(presence.CameraPosition.X, presence.CameraPosition.Y, presence.CameraPosition.Z);
@@ -10389,7 +10390,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             m_host.TaskInventory.LockItemsForRead(false);
 
-            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+//            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+            ScenePresence presence = World.GetScenePresence(agentID);
             if (presence != null)
             {
                 return new LSL_Rotation(presence.CameraRotation.X, presence.CameraRotation.Y, presence.CameraRotation.Z, presence.CameraRotation.W);
