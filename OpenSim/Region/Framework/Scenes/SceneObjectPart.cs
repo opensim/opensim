@@ -188,6 +188,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public double SoundRadius;
 
+
         public uint TimeStampFull;
 
         public uint TimeStampLastActivity; // Will be used for AutoReturn
@@ -332,6 +333,8 @@ namespace OpenSim.Region.Framework.Scenes
         private UUID m_collisionSound;
         private float m_collisionSoundVolume;
 
+        private DateTime LastColSoundSentTime; 
+
 
         private SOPVehicle m_vehicle = null;
 
@@ -371,6 +374,7 @@ namespace OpenSim.Region.Framework.Scenes
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
             // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
             m_inventory = new SceneObjectPartInventory(this);
+            LastColSoundSentTime = DateTime.UtcNow;
         }
 
         /// <summary>
@@ -2660,7 +2664,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsNotVolumeDtc && startedColliders.Count > 0 && CollisionSoundVolume > 0.0f && CollisionSound != invalidCollisionSoundUUID)
             {
                 if(CollisionSound != UUID.Zero)
-                    SendSound(CollisionSound.ToString(), CollisionSoundVolume, true, (byte)0, 0, false, false);
+                    SendCollisionSound(CollisionSound, CollisionSoundVolume);
                 else
                 {
                 // default sounds
@@ -3198,6 +3202,37 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+
+        public void SendCollisionSound(UUID soundID, double volume)
+        {
+            if (soundID == UUID.Zero)
+                return;
+
+
+            ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
+            if (soundModule == null)
+                return;
+
+            if (volume > 1)
+                volume = 1;
+            if (volume < 0)
+                volume = 0;
+
+            DateTime now = DateTime.UtcNow;
+            if((now - LastColSoundSentTime).Milliseconds < 200) // reduce rate to 5 per sec per part  ??
+                return;
+
+            LastColSoundSentTime = now;
+
+            UUID ownerID = OwnerID;
+            UUID objectID = ParentGroup.RootPart.UUID;
+            UUID parentID = ParentGroup.UUID;
+            Vector3 position = AbsolutePosition; // region local
+            ulong regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
+
+            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, 0);
+        }
+
 
         /// <summary>
         /// Send a terse update to all clients
