@@ -1336,11 +1336,13 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_sitAnimation = value; }
         }
 
+        public UUID invalidCollisionSoundUUID = new UUID("ffffffff-ffff-ffff-ffff-ffffffffffff");
+
         public UUID CollisionSound
         {
             get { return m_collisionSound; }
             set
-            {
+            {           
                 m_collisionSound = value;
                 aggregateScriptEvents();
             }
@@ -2655,8 +2657,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool IsNotVolumeDtc = !VolumeDetectActive;
 
-            if (startedColliders.Count > 0 && CollisionSound != UUID.Zero && CollisionSoundVolume > 0.0f && IsNotVolumeDtc)
-                SendSound(CollisionSound.ToString(), CollisionSoundVolume, true, (byte)0, 0, false, false);
+            if (IsNotVolumeDtc && startedColliders.Count > 0 && CollisionSoundVolume > 0.0f && CollisionSound != invalidCollisionSoundUUID)
+            {
+                if(CollisionSound != UUID.Zero)
+                    SendSound(CollisionSound.ToString(), CollisionSoundVolume, true, (byte)0, 0, false, false);
+                else
+                {
+                // default sounds
+                }
+            }
 
             SendCollisionEvent(scriptEvents.collision_start, startedColliders, ParentGroup.Scene.EventManager.TriggerScriptCollidingStart);
             if (IsNotVolumeDtc)
@@ -4743,7 +4752,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             pa.OnCollisionUpdate -= PhysicsCollision;
 
-            bool hassound = ( CollisionSound != UUID.Zero && CollisionSoundVolume > 0.0f);
+            bool hassound = ( CollisionSound != invalidCollisionSoundUUID);
             scriptEvents CombinedEvents = AggregateScriptEvents;
 
             // merge with root part

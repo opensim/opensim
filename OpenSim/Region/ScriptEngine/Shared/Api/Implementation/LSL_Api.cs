@@ -4779,7 +4779,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCollisionSound(string impact_sound, double impact_volume)
         {
             m_host.AddScriptLPS(1);
-            
+
+            if(impact_sound == "")
+            {
+                m_host.CollisionSoundVolume = (float)impact_volume;
+                m_host.CollisionSound = m_host.invalidCollisionSoundUUID;
+                return;
+            }
             // TODO: Parameter check logic required.
             UUID soundId = UUID.Zero;
             if (!UUID.TryParse(impact_sound, out soundId))
@@ -4795,8 +4801,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 m_host.TaskInventory.LockItemsForRead(false);
             }
-            m_host.CollisionSound = soundId;
             m_host.CollisionSoundVolume = (float)impact_volume;
+            m_host.CollisionSound = soundId;
         }
 
         public LSL_String llGetAnimation(string id)
