@@ -41,6 +41,7 @@ using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Archiver

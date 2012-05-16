@@ -1010,7 +1010,18 @@ namespace OpenSim.Region.Framework.Scenes
         public int LinkNum
         {
             get { return m_linkNum; }
-            set { m_linkNum = value; }
+            set
+            {
+//                if (ParentGroup != null)
+//                {
+//                    m_log.DebugFormat(
+//                        "[SCENE OBJECT PART]: Setting linknum of {0}@{1} to {2} from {3}",
+//                        Name, AbsolutePosition, value, m_linkNum);
+//                    Util.PrintCallStack();
+//                }
+
+                m_linkNum = value;
+            }
         }
 
         public byte ClickAction
