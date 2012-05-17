@@ -1274,7 +1274,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // Don't clear collision event reporting here.  This is called directly from scene code and so can lead
             // to a race condition with the simulate loop
-            
+
             m_requestedUpdateFrequency = 0;
             m_eventsubscription = 0;
         }
