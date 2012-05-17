@@ -61,7 +61,7 @@ namespace OpenSim.Tests.Common
         private static Stream DisableLoggingConfigStream
             = new MemoryStream(
                 Encoding.UTF8.GetBytes(
-                    //    "<?xml version=\"1.0\" encoding=\"utf-8\" ?><configuration><log4net><root><level value=\"OFF\"/><appender-ref ref=\"A1\"/></root></log4net></configuration>")));
+//                        "<?xml version=\"1.0\" encoding=\"utf-8\" ?><configuration><log4net><root><level value=\"OFF\"/><appender-ref ref=\"A1\"/></root></log4net></configuration>"));
                     //"<?xml version=\"1.0\" encoding=\"utf-8\" ?><configuration><log4net><root><level value=\"OFF\"/></root></log4net></configuration>")));
 //                    "<configuration><log4net><root><level value=\"OFF\"/></root></log4net></configuration>"));
 //                    "<configuration><log4net><root></root></log4net></configuration>")));
@@ -100,6 +100,12 @@ namespace OpenSim.Tests.Common
         /// <summary>
         /// Disable logging whilst running the tests.
         /// </summary>
+        /// <remarks>
+        /// Remember, if a regression test throws an exception before completing this will not be invoked if it's at
+        /// the end of the test.
+        /// TODO: Always invoke this after every test - probably need to make all test cases inherit from a common
+        /// TestCase class where this can be done.
+        /// </remarks>
         public static void DisableLogging()
         {
             log4net.Config.XmlConfigurator.Configure(DisableLoggingConfigStream);

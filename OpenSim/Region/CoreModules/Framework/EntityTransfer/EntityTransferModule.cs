@@ -433,10 +433,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 string reason;
                 string version;
-                if (!m_aScene.SimulationService.QueryAccess(finalDestination, sp.ControllingClient.AgentId, Vector3.Zero, out version, out reason))
+                if (!m_aScene.SimulationService.QueryAccess(
+                    finalDestination, sp.ControllingClient.AgentId, Vector3.Zero, out version, out reason))
                 {
-                    sp.ControllingClient.SendTeleportFailed("Teleport failed: " + reason);
+                    sp.ControllingClient.SendTeleportFailed(reason);
                     ResetFromTransit(sp.UUID);
+
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: {0} was stopped from teleporting from {1} to {2} because {3}",
+                        sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName, reason);
 
                     return;
                 }
@@ -480,9 +485,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 bool logout = false;
                 if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout))
                 {
-                    sp.ControllingClient.SendTeleportFailed(
-                        String.Format("Teleport refused: {0}", reason));
+                    sp.ControllingClient.SendTeleportFailed(String.Format("Teleport refused: {0}", reason));
                     ResetFromTransit(sp.UUID);
+
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: Teleport of {0} from {1} to {2} was refused because {3}",
+                        sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName, reason);
 
                     return;
                 }
