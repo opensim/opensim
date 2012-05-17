@@ -3432,7 +3432,7 @@ namespace OpenSim.Region.Framework.Scenes
             //PhysicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             PhysicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
             PhysicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
-            PhysicsActor.SubscribeEvents(500);
+            PhysicsActor.SubscribeEvents(100);
             PhysicsActor.LocalID = LocalId;
         }
 
@@ -4325,6 +4325,8 @@ namespace OpenSim.Region.Framework.Scenes
                     // do event notification
                     if (startedColliders.Count > 0)
                     {
+                        CollisionSounds.AvatarCollisionSound(this, startedColliders);
+
                         ColliderArgs StartCollidingMessage = new ColliderArgs();
                         List<DetectedObject> colliding = new List<DetectedObject>();
                         foreach (uint localId in startedColliders)

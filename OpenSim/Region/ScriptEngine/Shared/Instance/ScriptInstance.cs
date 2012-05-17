@@ -847,6 +847,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             SceneObjectPart part = Engine.World.GetSceneObjectPart(LocalID);
             part.Inventory.GetInventoryItem(ItemID).PermsMask = 0;
             part.Inventory.GetInventoryItem(ItemID).PermsGranter = UUID.Zero;
+            part.CollisionSound = UUID.Zero;
             AsyncCommandManager.RemoveScript(Engine, LocalID, ItemID);
             EventQueue.Clear();
             m_Script.ResetVars();
@@ -873,6 +874,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             SceneObjectPart part = Engine.World.GetSceneObjectPart(LocalID);
             part.Inventory.GetInventoryItem(ItemID).PermsMask = 0;
             part.Inventory.GetInventoryItem(ItemID).PermsGranter = UUID.Zero;
+            part.CollisionSound = UUID.Zero;
             AsyncCommandManager.RemoveScript(Engine, LocalID, ItemID);
 
             EventQueue.Clear();

@@ -329,6 +329,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Prioritizer m_prioritizer;
         private bool m_disableFacelights = false;
 
+        private const uint MaxTransferBytesPerPacket = 600;
+
+
         /// <value>
         /// List used in construction of data blocks for an object update packet.  This is to stop us having to
         /// continually recreate it.
@@ -2738,7 +2741,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
             {
                 int processedLength = 0;
-                int maxChunkSize = Settings.MAX_PACKET_SIZE - 100;
+//                int maxChunkSize = Settings.MAX_PACKET_SIZE - 100;
+
+                int maxChunkSize = (int) MaxTransferBytesPerPacket;
                 int packetNumber = 0;
 
                 while (processedLength < req.AssetInf.Data.Length)
@@ -12205,7 +12210,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns></returns>
         private static int CalculateNumPackets(byte[] data)
         {
-            const uint m_maxPacketSize = 600;
+//            const uint m_maxPacketSize = 600;
+            uint m_maxPacketSize = MaxTransferBytesPerPacket;
             int numPackets = 1;
 
             if (data == null)

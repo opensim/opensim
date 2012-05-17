@@ -188,6 +188,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public double SoundRadius;
 
+
         public uint TimeStampFull;
 
         public uint TimeStampLastActivity; // Will be used for AutoReturn
@@ -332,6 +333,8 @@ namespace OpenSim.Region.Framework.Scenes
         private UUID m_collisionSound;
         private float m_collisionSoundVolume;
 
+        private DateTime LastColSoundSentTime; 
+
 
         private SOPVehicle m_vehicle = null;
 
@@ -371,6 +374,7 @@ namespace OpenSim.Region.Framework.Scenes
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
             // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
             m_inventory = new SceneObjectPartInventory(this);
+            LastColSoundSentTime = DateTime.UtcNow;
         }
 
         /// <summary>
@@ -1347,11 +1351,13 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_sitAnimation = value; }
         }
 
+        public UUID invalidCollisionSoundUUID = new UUID("ffffffff-ffff-ffff-ffff-ffffffffffff");
+
         public UUID CollisionSound
         {
             get { return m_collisionSound; }
             set
-            {
+            {           
                 m_collisionSound = value;
                 aggregateScriptEvents();
             }
@@ -2640,7 +2646,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             else
             {
-
                 // calculate things that started colliding this time
                 // and build up list of colliders this time
                 foreach (uint localid in collissionswith.Keys)
@@ -2665,12 +2670,13 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (uint localID in endedColliders)
                     m_lastColliders.Remove(localID);
             }
+
             // play the sound.
 
             bool IsNotVolumeDtc = !VolumeDetectActive;
 
-            if (startedColliders.Count > 0 && CollisionSound != UUID.Zero && CollisionSoundVolume > 0.0f && IsNotVolumeDtc)
-                SendSound(CollisionSound.ToString(), CollisionSoundVolume, true, (byte)0, 0, false, false);
+            if (IsNotVolumeDtc && startedColliders.Count > 0 && CollisionSound != invalidCollisionSoundUUID)
+                CollisionSounds.PartCollisionSound(this, startedColliders);
 
             SendCollisionEvent(scriptEvents.collision_start, startedColliders, ParentGroup.Scene.EventManager.TriggerScriptCollidingStart);
             if (IsNotVolumeDtc)
@@ -3203,6 +3209,35 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+
+        public void SendCollisionSound(UUID soundID, double volume, Vector3 position)
+        {
+            if (soundID == UUID.Zero)
+                return;
+
+            ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
+            if (soundModule == null)
+                return;
+
+            if (volume > 1)
+                volume = 1;
+            if (volume < 0)
+                volume = 0;
+
+            DateTime now = DateTime.UtcNow;
+            if((now - LastColSoundSentTime).Milliseconds < 200) // reduce rate to 5 per sec per part  ??
+                return;
+
+            LastColSoundSentTime = now;
+
+            UUID ownerID = OwnerID;
+            UUID objectID = ParentGroup.RootPart.UUID;
+            UUID parentID = ParentGroup.UUID;
+            ulong regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
+
+            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, 0 );
+        }
+
 
         /// <summary>
         /// Send a terse update to all clients
@@ -4757,7 +4792,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             pa.OnCollisionUpdate -= PhysicsCollision;
 
-            bool hassound = ( CollisionSound != UUID.Zero && CollisionSoundVolume > 0.0f);
+            bool hassound = ( CollisionSound != invalidCollisionSoundUUID);
             scriptEvents CombinedEvents = AggregateScriptEvents;
 
             // merge with root part
