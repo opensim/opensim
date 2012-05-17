@@ -450,19 +450,17 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         }
 
         /// <summary>
-        /// Is the given user an administrator (in other words, a god)?
+        /// Is the user regarded as an administrator?
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
         protected bool IsAdministrator(UUID user)
         {
-            if (user == UUID.Zero) return false;
-        
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-            {
-                if (m_scene.RegionInfo.EstateSettings.EstateOwner == user && m_RegionOwnerIsGod)
-                    return true;
-            }
+            if (user == UUID.Zero)
+                return false;
+
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner == user && m_RegionOwnerIsGod)
+                return true;
             
             if (IsEstateManager(user) && m_RegionManagerIsGod)
                 return true;
