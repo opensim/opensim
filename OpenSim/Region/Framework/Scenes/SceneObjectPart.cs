@@ -2632,7 +2632,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             else
             {
-
                 // calculate things that started colliding this time
                 // and build up list of colliders this time
                 foreach (uint localid in collissionswith.Keys)
@@ -2657,22 +2656,13 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (uint localID in endedColliders)
                     m_lastColliders.Remove(localID);
             }
+
             // play the sound.
 
             bool IsNotVolumeDtc = !VolumeDetectActive;
 
             if (IsNotVolumeDtc && startedColliders.Count > 0 && CollisionSound != invalidCollisionSoundUUID)
-            {
-                if (CollisionSound != UUID.Zero)
-                {
-                    if (CollisionSoundVolume > 0.0f)
-                        SendCollisionSound(CollisionSound, CollisionSoundVolume);
-                }
-                else
-                {
-                    CollisionSounds.PartCollisionSound(this, startedColliders);
-                }
-            }
+                CollisionSounds.PartCollisionSound(this, startedColliders);
 
             SendCollisionEvent(scriptEvents.collision_start, startedColliders, ParentGroup.Scene.EventManager.TriggerScriptCollidingStart);
             if (IsNotVolumeDtc)
@@ -3206,11 +3196,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void SendCollisionSound(UUID soundID, double volume)
+        public void SendCollisionSound(UUID soundID, double volume, Vector3 position)
         {
             if (soundID == UUID.Zero)
                 return;
-
 
             ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
             if (soundModule == null)
@@ -3230,10 +3219,9 @@ namespace OpenSim.Region.Framework.Scenes
             UUID ownerID = OwnerID;
             UUID objectID = ParentGroup.RootPart.UUID;
             UUID parentID = ParentGroup.UUID;
-            Vector3 position = AbsolutePosition; // region local
             ulong regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
 
-            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, 0);
+            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, 0 );
         }
 
 
