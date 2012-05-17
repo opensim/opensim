@@ -237,6 +237,73 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            TestHelpers.DisableLogging();
         }
 
+        /// <summary>
+        /// Test teleport procedures when the target simulator returns false when queried about access.
+        /// </summary>
+        [Test]
+        public void TestSameSimulatorSeparatedRegionsCreateAgentFails()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            Vector3 preTeleportPosition = new Vector3(30, 31, 32);
+
+            EntityTransferModule etm = new EntityTransferModule();
+            LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
+
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("Modules");
+            config.Configs["Modules"].Set("EntityTransferModule", etm.Name);
+            config.Configs["Modules"].Set("SimulationServices", lscm.Name);
+
+            config.AddConfig("EntityTransfer");
+
+            // In order to run a single threaded regression test we do not want the entity transfer module waiting
+            // for a callback from the destination scene before removing its avatar data.
+            config.Configs["EntityTransfer"].Set("wait_for_callback", false);
+
+            SceneHelpers sh = new SceneHelpers();
+            TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
+            TestScene sceneB = sh.SetupScene("sceneB", TestHelpers.ParseTail(0x200), 1002, 1000);
+
+            // Shared scene modules
+            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, etm, lscm);
+
+            Vector3 teleportPosition = new Vector3(10, 11, 12);
+            Vector3 teleportLookAt = new Vector3(20, 21, 22);
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId, sh.SceneManager);
+            sp.AbsolutePosition = preTeleportPosition;
+
+            // Make sceneB refuse CreateAgent
+            sceneB.LoginsDisabled = true;
+
+            sceneA.RequestTeleportLocation(
+                sp.ControllingClient,
+                sceneB.RegionInfo.RegionHandle,
+                teleportPosition,
+                teleportLookAt,
+                (uint)TeleportFlags.ViaLocation);
+
+//            ((TestClient)sp.ControllingClient).CompleteTeleportClientSide();
+
+            Assert.That(sceneB.GetScenePresence(userId), Is.Null);
+
+            ScenePresence sceneASp = sceneA.GetScenePresence(userId);
+            Assert.That(sceneASp, Is.Not.Null);
+            Assert.That(sceneASp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneA.RegionInfo.RegionName));
+            Assert.That(sceneASp.AbsolutePosition, Is.EqualTo(preTeleportPosition));
+
+            // TODO: Add assertions to check correct circuit details in both scenes.
+
+            // Lookat is sent to the client only - sp.Lookat does not yield the same thing (calculation from camera
+            // position instead).
+//            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
+
+//            TestHelpers.DisableLogging();
+        }
+
         [Test]
         public void TestSameSimulatorNeighbouringRegionsTeleport()
         {
