@@ -2667,7 +2667,7 @@ namespace OpenSim.Region.Framework.Scenes
                     SendCollisionSound(CollisionSound, CollisionSoundVolume);
                 else
                 {
-                // default sounds
+                    CollisionSounds.PartCollisionSound(this, startedColliders);
                 }
             }
 

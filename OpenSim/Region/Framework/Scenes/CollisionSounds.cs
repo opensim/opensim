@@ -1,0 +1,204 @@
+﻿/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSimulator Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+// Ubit 2012
+
+using System;
+using System.Collections.Generic;
+using OpenMetaverse;
+using OpenSim.Framework;
+
+namespace OpenSim.Region.Framework.Scenes
+{
+    public static class CollisionSounds
+    {
+    // defines for cases
+    // only know one UUID for now (woodflesh)
+
+        private const int MaxMaterials = 7;
+        // part part
+        private static UUID  snd_StoneStone = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_StoneMetal = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_StoneGlass = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_StoneWood  = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_StoneFlesh = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_StonePlastic = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_StoneRubber = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+
+        private static UUID  snd_MetalStone = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_MetalMetal = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_MetalGlass = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_MetalWood  = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_MetalFlesh = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_MetalPlastic = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_MetalRubber = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+
+        private static UUID  snd_GlassStone = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_GlassMetal = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_GlassGlass = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_GlassWood  = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_GlassFlesh = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_GlassPlastic = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_GlassRubber = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+
+        private static UUID  snd_WoodStone = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_WoodMetal = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_WoodGlass = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_WoodWood  = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_WoodFlesh = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_WoodPlastic = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_WoodRubber = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+
+        private static UUID  snd_FleshStone = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_FleshMetal = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_FleshGlass = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_FleshWood  = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_FleshFlesh = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_FleshPlastic = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_FleshRubber = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+
+        private static UUID  snd_PlasticStone = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_PlasticMetal = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_PlasticGlass = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_PlasticWood  = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_PlasticFlesh = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_PlasticPlastic = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID  snd_PlasticRubber = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+
+        private static UUID snd_RubberStone = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID snd_RubberMetal = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID snd_RubberGlass = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID snd_RubberWood = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID snd_RubberFlesh = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID snd_RubberPlastic = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID snd_RubberRubber = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+
+        // terrain part
+        private static UUID snd_TerrainStone = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID snd_TerrainMetal = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID snd_TerrainGlass = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID snd_TerrainWood = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID snd_TerrainFlesh = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID snd_TerrainPlastic = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+        private static UUID snd_TerrainRubber = new UUID("be582e5d-b123-41a2-a150-454c39e961c8");
+
+        public static UUID[] m_TerrainPart = {
+            snd_TerrainStone,
+            snd_TerrainMetal,
+            snd_TerrainGlass,
+            snd_TerrainWood,
+            snd_TerrainFlesh,
+            snd_TerrainPlastic,
+            snd_TerrainRubber
+            };
+
+        public static UUID[] m_PartPart = {
+            snd_StoneStone, snd_StoneMetal, snd_StoneGlass, snd_StoneWood, snd_StoneFlesh, snd_StonePlastic, snd_StoneRubber,
+            snd_MetalStone, snd_MetalMetal, snd_MetalGlass, snd_MetalWood, snd_MetalFlesh, snd_MetalPlastic, snd_MetalRubber,
+            snd_GlassStone, snd_GlassMetal, snd_GlassGlass, snd_GlassWood, snd_GlassFlesh, snd_GlassPlastic, snd_GlassRubber,
+            snd_WoodStone, snd_WoodMetal, snd_WoodGlass, snd_WoodWood, snd_WoodFlesh, snd_WoodPlastic, snd_WoodRubber,
+            snd_FleshStone, snd_FleshMetal, snd_FleshGlass, snd_FleshWood, snd_FleshFlesh, snd_FleshPlastic, snd_FleshRubber,
+            snd_PlasticStone, snd_PlasticMetal, snd_PlasticGlass, snd_PlasticWood, snd_PlasticFlesh, snd_PlasticPlastic, snd_PlasticRubber,
+            snd_RubberStone, snd_RubberMetal, snd_RubberGlass, snd_RubberWood, snd_RubberFlesh, snd_RubberPlastic, snd_RubberRubber
+            };
+
+        public static void PartCollisionSound(SceneObjectPart part,List<uint> Colliders)
+        {
+            if(Colliders.Count == 0 || part == null)
+                return;
+
+            if ((part.Flags & PrimFlags.Physics) == 0) // let only active prims trigger sounds
+                return;
+
+            if (part.ParentGroup == null)
+                return;
+
+            if (part.CollisionSound == part.invalidCollisionSoundUUID)
+                return;
+
+            UUID soundID;
+            int otherMaterial;
+
+            int thisMaterial = (int) part.Material;
+            if (thisMaterial >= MaxMaterials)
+                thisMaterial = 3;
+
+            int thisMatScaled = thisMaterial * MaxMaterials;
+            int index;
+
+            bool doneownsound = false;
+
+            foreach (uint Id in Colliders)
+            {
+                if (Id == 0)
+                    {
+                        if (!doneownsound)
+                        {
+                            soundID = m_TerrainPart[thisMaterial];
+                            part.SendCollisionSound(soundID, 1.0);
+                            doneownsound = true;
+                        }
+                        continue;
+                    }
+
+                SceneObjectPart otherPart = part.ParentGroup.Scene.GetSceneObjectPart(Id);
+                if (otherPart != null)
+                {
+                    if (otherPart.CollisionSound == part.invalidCollisionSoundUUID)
+                        continue;
+                    if (otherPart.CollisionSound != UUID.Zero)
+                        otherPart.SendCollisionSound(otherPart.CollisionSound, otherPart.CollisionSoundVolume);
+                    else
+                    {
+                        otherMaterial = (int)otherPart.Material;
+                        if (otherMaterial >= MaxMaterials)
+                            otherMaterial = 3;
+                        index = thisMatScaled + otherMaterial;
+                        soundID = m_PartPart[index];
+                        if (doneownsound)
+                            otherPart.SendCollisionSound(soundID, 1.0);
+                        else
+                        {
+                            part.SendCollisionSound(soundID, 1.0);
+                            doneownsound = true;
+                        }
+                    }
+                }
+                else if (!doneownsound)
+                {
+                    ScenePresence av = part.ParentGroup.Scene.GetScenePresence(Id);
+                    if (av != null && (!av.IsChildAgent))
+                    {
+                        index = thisMatScaled + 4; // flesh
+                        soundID = m_PartPart[index];
+                        part.SendCollisionSound(soundID, 1.0);
+                        doneownsound = true;
+                    }
+                }
+            }
+        }
+    }
+}
