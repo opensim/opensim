@@ -61,7 +61,7 @@ namespace OpenSim.Tests.Common
         private static Stream DisableLoggingConfigStream
             = new MemoryStream(
                 Encoding.UTF8.GetBytes(
-                    //    "<?xml version=\"1.0\" encoding=\"utf-8\" ?><configuration><log4net><root><level value=\"OFF\"/><appender-ref ref=\"A1\"/></root></log4net></configuration>")));
+//                        "<?xml version=\"1.0\" encoding=\"utf-8\" ?><configuration><log4net><root><level value=\"OFF\"/><appender-ref ref=\"A1\"/></root></log4net></configuration>"));
                     //"<?xml version=\"1.0\" encoding=\"utf-8\" ?><configuration><log4net><root><level value=\"OFF\"/></root></log4net></configuration>")));
 //                    "<configuration><log4net><root><level value=\"OFF\"/></root></log4net></configuration>"));
 //                    "<configuration><log4net><root></root></log4net></configuration>")));
