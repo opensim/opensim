@@ -40,7 +40,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private const int MaxMaterials = 7;
         // part part
-        private static UUID snd_StoneStone = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
+        private static UUID  snd_StoneStone = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_StoneMetal = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_StoneGlass = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_StoneWood  = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
@@ -48,7 +48,6 @@ namespace OpenSim.Region.Framework.Scenes
         private static UUID  snd_StonePlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_StoneRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
-        private static UUID  snd_MetalStone = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_MetalMetal = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_MetalGlass = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_MetalWood  = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
@@ -56,44 +55,24 @@ namespace OpenSim.Region.Framework.Scenes
         private static UUID  snd_MetalPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_MetalRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
-        private static UUID  snd_GlassStone = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_GlassMetal = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_GlassGlass = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_GlassWood  = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_GlassFlesh = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_GlassPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_GlassRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
-        private static UUID  snd_WoodStone = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_WoodMetal = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_WoodGlass = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_WoodWood  = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_WoodFlesh = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_WoodPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_WoodRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
-        private static UUID  snd_FleshStone = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_FleshMetal = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_FleshGlass = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_FleshWood  = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_FleshFlesh = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_FleshPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_FleshRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
-        private static UUID  snd_PlasticStone = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_PlasticMetal = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_PlasticGlass = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_PlasticWood  = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_PlasticFlesh = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_PlasticPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_PlasticRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
-        private static UUID snd_RubberStone = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID snd_RubberMetal = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID snd_RubberGlass = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID snd_RubberWood = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID snd_RubberFlesh = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID snd_RubberPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID snd_RubberRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
         // terrain part
@@ -117,16 +96,17 @@ namespace OpenSim.Region.Framework.Scenes
 
         public static UUID[] m_PartPart = {
             snd_StoneStone, snd_StoneMetal, snd_StoneGlass, snd_StoneWood, snd_StoneFlesh, snd_StonePlastic, snd_StoneRubber,
-            snd_MetalStone, snd_MetalMetal, snd_MetalGlass, snd_MetalWood, snd_MetalFlesh, snd_MetalPlastic, snd_MetalRubber,
-            snd_GlassStone, snd_GlassMetal, snd_GlassGlass, snd_GlassWood, snd_GlassFlesh, snd_GlassPlastic, snd_GlassRubber,
-            snd_WoodStone, snd_WoodMetal, snd_WoodGlass, snd_WoodWood, snd_WoodFlesh, snd_WoodPlastic, snd_WoodRubber,
-            snd_FleshStone, snd_FleshMetal, snd_FleshGlass, snd_FleshWood, snd_FleshFlesh, snd_FleshPlastic, snd_FleshRubber,
-            snd_PlasticStone, snd_PlasticMetal, snd_PlasticGlass, snd_PlasticWood, snd_PlasticFlesh, snd_PlasticPlastic, snd_PlasticRubber,
-            snd_RubberStone, snd_RubberMetal, snd_RubberGlass, snd_RubberWood, snd_RubberFlesh, snd_RubberPlastic, snd_RubberRubber
+            snd_StoneMetal, snd_MetalMetal, snd_MetalGlass, snd_MetalWood, snd_MetalFlesh, snd_MetalPlastic, snd_MetalRubber,
+            snd_StoneGlass, snd_MetalGlass, snd_GlassGlass, snd_GlassWood, snd_GlassFlesh, snd_GlassPlastic, snd_GlassRubber,
+            snd_StoneWood, snd_MetalWood, snd_GlassWood, snd_WoodWood, snd_WoodFlesh, snd_WoodPlastic, snd_WoodRubber,
+            snd_StoneFlesh, snd_MetalFlesh, snd_GlassFlesh, snd_WoodFlesh, snd_FleshFlesh, snd_FleshPlastic, snd_FleshRubber,
+            snd_StonePlastic, snd_MetalPlastic, snd_GlassPlastic, snd_WoodPlastic, snd_FleshPlastic, snd_PlasticPlastic, snd_PlasticRubber,
+            snd_StoneRubber, snd_MetalRubber, snd_GlassRubber, snd_WoodRubber, snd_FleshRubber, snd_PlasticRubber, snd_RubberRubber
             };
 
         public static void PartCollisionSound(SceneObjectPart part,List<uint> Colliders)
         {
+            // temporary mute sounds
             return;
 
             if(Colliders.Count == 0 || part == null)
@@ -216,6 +196,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public static void AvatarCollisionSound(ScenePresence av, List<uint> Colliders)
         {
+            // temporary mute sounds
             return;
 
             if (Colliders.Count == 0 || av == null)
