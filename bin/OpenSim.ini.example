@@ -241,12 +241,12 @@
     ;; server to send mail through.
     ; emailmodule = DefaultEmailModule
 
-    ;# {SpawnPointRouting} {} {Set routing method for Telehub Spawnpoints} {closest random sequential} closest
+    ;# {SpawnPointRouting} {} {Set routing method for Telehub Spawnpoints} {closest random sequence} closest
     ;; SpawnPointRouting adjusts the landing for incoming avatars.
     ;; "closest" will place the avatar at the SpawnPoint located in the closest
     ;; available spot to the destination (typically map click/landmark).
     ;; "random" will place the avatar on a randomly selected spawnpoint;
-    ;; "sequential" will place the avatar on the next sequential SpawnPoint
+    ;; "sequence" will place the avatar on the next sequential SpawnPoint
     ; SpawnPointRouting = closest
 
 [Estates]
