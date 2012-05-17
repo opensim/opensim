@@ -167,7 +167,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart otherPart = part.ParentGroup.Scene.GetSceneObjectPart(Id);
                 if (otherPart != null)
                 {
-                    if (otherPart.CollisionSound == part.invalidCollisionSoundUUID)
+                    if (otherPart.CollisionSound == part.invalidCollisionSoundUUID || otherPart.VolumeDetectActive)
                         continue;
                     if (otherPart.CollisionSound != UUID.Zero)
                         otherPart.SendCollisionSound(otherPart.CollisionSound, otherPart.CollisionSoundVolume);
