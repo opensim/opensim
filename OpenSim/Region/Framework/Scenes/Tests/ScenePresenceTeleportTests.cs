@@ -238,7 +238,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         /// <summary>
-        /// Test teleport procedures when the target simulator returns false when queried about access.
+        /// Test teleport procedures when the target simulator create agent step is refused.
         /// </summary>
         [Test]
         public void TestSameSimulatorSeparatedRegionsCreateAgentFails()
