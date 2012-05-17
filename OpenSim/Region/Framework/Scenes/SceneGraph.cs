@@ -779,11 +779,6 @@ namespace OpenSim.Region.Framework.Scenes
             return m_scenePresenceArray;
         }
 
-        public int GetNumberOfScenePresences()
-        {
-            return m_scenePresenceArray.Count;
-        }
-
         /// <summary>
         /// Request a scene presence by UUID. Fast, indexed lookup.
         /// </summary>

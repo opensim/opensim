@@ -1169,6 +1169,12 @@ namespace OpenSim.Region.Framework.Scenes
                 Scene.SimulationService.ReleaseAgent(m_originRegionID, UUID, m_callbackURI);
                 m_callbackURI = null;
             }
+//            else
+//            {
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: No callback provided on CompleteMovement of {0} {1} to {2}",
+//                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
+//            }
 
             ValidateAndSendAppearanceAndAgentData();
 
@@ -2508,7 +2514,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we are using the the cached appearance then send it out to everyone
             if (cachedappearance)
             {
-                m_log.DebugFormat("[SCENEPRESENCE]: baked textures are in the cache for {0}", Name);
+                m_log.DebugFormat("[SCENE PRESENCE]: baked textures are in the cache for {0}", Name);
 
                 // If the avatars baked textures are all in the cache, then we have a 
                 // complete appearance... send it out, if not, then we'll send it when
@@ -2970,7 +2976,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ChildAgentDataUpdate(AgentData cAgentData)
         {
-            //m_log.Debug("   >>> ChildAgentDataUpdate <<< " + Scene.RegionInfo.RegionName);
+//            m_log.Debug("   >>> ChildAgentDataUpdate <<< " + Scene.RegionInfo.RegionName);
             if (!IsChildAgent)
                 return;
 
@@ -3110,6 +3116,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_originRegionID = cAgent.RegionID;
 
             m_callbackURI = cAgent.CallbackURI;
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Set callback for {0} in {1} to {2} in CopyFrom()",
+//                Name, m_scene.RegionInfo.RegionName, m_callbackURI);
 
             m_pos = cAgent.Position;
             m_velocity = cAgent.Velocity;
