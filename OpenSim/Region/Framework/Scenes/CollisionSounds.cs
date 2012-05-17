@@ -130,7 +130,7 @@ namespace OpenSim.Region.Framework.Scenes
             if(Colliders.Count == 0 || part == null)
                 return;
 
-            if ((part.Flags & PrimFlags.Physics) == 0) // let only active prims trigger sounds
+            if (part.VolumeDetectActive || (part.Flags & PrimFlags.Physics) == 0)
                 return;
 
             if (part.ParentGroup == null)
@@ -141,6 +141,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             UUID soundID;
             int otherMaterial;
+
+            Vector3 position = part.AbsolutePosition;
+
+            if (part.CollisionSound != UUID.Zero)
+            {
+                if (part.CollisionSoundVolume > 0.0f)
+                    part.SendCollisionSound(part.CollisionSound, part.CollisionSoundVolume, position);
+                return;
+            }
 
             int thisMaterial = (int) part.Material;
             if (thisMaterial >= MaxMaterials)
@@ -158,7 +167,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (!doneownsound)
                         {
                             soundID = m_TerrainPart[thisMaterial];
-                            part.SendCollisionSound(soundID, 1.0);
+                            part.SendCollisionSound(soundID, 1.0, position);
                             doneownsound = true;
                         }
                         continue;
@@ -170,7 +179,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (otherPart.CollisionSound == part.invalidCollisionSoundUUID || otherPart.VolumeDetectActive)
                         continue;
                     if (otherPart.CollisionSound != UUID.Zero)
-                        otherPart.SendCollisionSound(otherPart.CollisionSound, otherPart.CollisionSoundVolume);
+                        otherPart.SendCollisionSound(otherPart.CollisionSound, otherPart.CollisionSoundVolume, position);
                     else
                     {
                         otherMaterial = (int)otherPart.Material;
@@ -179,10 +188,10 @@ namespace OpenSim.Region.Framework.Scenes
                         index = thisMatScaled + otherMaterial;
                         soundID = m_PartPart[index];
                         if (doneownsound)
-                            otherPart.SendCollisionSound(soundID, 1.0);
+                            otherPart.SendCollisionSound(soundID, 1.0, position);
                         else
                         {
-                            part.SendCollisionSound(soundID, 1.0);
+                            part.SendCollisionSound(soundID, 1.0, position);
                             doneownsound = true;
                         }
                     }
@@ -217,6 +226,8 @@ namespace OpenSim.Region.Framework.Scenes
             int index;
 //            bool doneownsound = false;
 
+            Vector3 position = av.AbsolutePosition;
+
             foreach (uint Id in Colliders)
             {
                 if (Id == 0)
@@ -230,7 +241,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (otherPart.CollisionSound == otherPart.invalidCollisionSoundUUID)
                         continue;
                     if (otherPart.CollisionSound != UUID.Zero)
-                        otherPart.SendCollisionSound(otherPart.CollisionSound, otherPart.CollisionSoundVolume);
+                        otherPart.SendCollisionSound(otherPart.CollisionSound, otherPart.CollisionSoundVolume, position);
                     else
                     {
                         otherMaterial = (int)otherPart.Material;
@@ -238,7 +249,7 @@ namespace OpenSim.Region.Framework.Scenes
                             otherMaterial = 3;
                         index = thisMatScaled + otherMaterial;
                         soundID = m_PartPart[index];
-                        otherPart.SendCollisionSound(soundID, 1.0);
+                        otherPart.SendCollisionSound(soundID, 1.0, position);
                     }
                 }
 /*
