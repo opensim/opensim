@@ -2661,10 +2661,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool IsNotVolumeDtc = !VolumeDetectActive;
 
-            if (IsNotVolumeDtc && startedColliders.Count > 0 && CollisionSoundVolume > 0.0f && CollisionSound != invalidCollisionSoundUUID)
+            if (IsNotVolumeDtc && startedColliders.Count > 0 && CollisionSound != invalidCollisionSoundUUID)
             {
-                if(CollisionSound != UUID.Zero)
-                    SendCollisionSound(CollisionSound, CollisionSoundVolume);
+                if (CollisionSound != UUID.Zero)
+                {
+                    if (CollisionSoundVolume > 0.0f)
+                        SendCollisionSound(CollisionSound, CollisionSoundVolume);
+                }
                 else
                 {
                     CollisionSounds.PartCollisionSound(this, startedColliders);
