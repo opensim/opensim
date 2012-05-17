@@ -29,6 +29,7 @@ using System;
 using System.Reflection;
 using System.Threading;
 using log4net;
+using log4net.Config;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -52,6 +53,8 @@ namespace pCampBot
         [STAThread]
         public static void Main(string[] args)
         {
+            XmlConfigurator.Configure();
+
             IConfig config = ParseConfig(args);
             if (config.Get("help") != null || config.Get("loginuri") == null)
             {
