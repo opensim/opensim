@@ -4145,6 +4145,8 @@ namespace OpenSim.Region.Framework.Scenes
                     // do event notification
                     if (startedColliders.Count > 0)
                     {
+                        CollisionSounds.AvatarCollisionSound(this, startedColliders);
+
                         ColliderArgs StartCollidingMessage = new ColliderArgs();
                         List<DetectedObject> colliding = new List<DetectedObject>();
                         foreach (uint localId in startedColliders)
