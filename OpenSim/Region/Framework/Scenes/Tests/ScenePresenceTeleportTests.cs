@@ -169,7 +169,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestSameSimulatorSeparatedRegionsQueryAccessFails()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID userId = TestHelpers.ParseTail(0x1);
             Vector3 preTeleportPosition = new Vector3(30, 31, 32);
@@ -234,7 +234,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // position instead).
 //            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
 
-            TestHelpers.DisableLogging();
+//            TestHelpers.DisableLogging();
         }
 
         [Test]
