@@ -577,6 +577,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_SpawnPointRouting; }
         }
+        // allow landmarks to pass
+        private bool m_TelehubAllowLandmarks;
+        public bool TelehubAllowLandmarks
+        {
+            get { return m_TelehubAllowLandmarks; }
+        }
 
         #endregion Properties
 
@@ -733,6 +739,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "XEngine");
 
                 m_SpawnPointRouting = startupConfig.GetString("SpawnPointRouting", "closest");
+                m_TelehubAllowLandmarks = startupConfig.GetBoolean("TelehubAllowLandmark", false);
 
                 IConfig packetConfig = m_config.Configs["PacketPool"];
                 if (packetConfig != null)
