@@ -59,12 +59,14 @@ namespace OpenSim.Region.Physics.Manager
         public Vector3 Position;
         public Vector3 SurfaceNormal;
         public float PenetrationDepth;
+        public float RelativeSpeed;
 
         public ContactPoint(Vector3 position, Vector3 surfaceNormal, float penetrationDepth)
         {
             Position = position;
             SurfaceNormal = surfaceNormal;
             PenetrationDepth = penetrationDepth;
+            RelativeSpeed = 0f; // for now let this one be set explicity
         }
     }
 
