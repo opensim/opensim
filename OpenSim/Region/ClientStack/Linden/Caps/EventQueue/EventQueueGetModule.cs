@@ -110,10 +110,10 @@ namespace OpenSim.Region.ClientStack.Linden
                     false,
                     "debug eq",
                     "debug eq [0|1|2]",
-                    "Turn on event queue debugging",
-                    "<= 0 - turns off all event queue logging",
-                    ">= 1 - turns on outgoing event logging",
-                    ">= 2 - turns on poll notification",
+                    "Turn on event queue debugging"
+                        + "<= 0 - turns off all event queue logging"
+                        + ">= 1 - turns on outgoing event logging"
+                        + ">= 2 - turns on poll notification",
                     HandleDebugEq);
             }
             else
@@ -271,9 +271,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     string eqgPath = GenerateEqgCapPath(eventQueueGetUuid);
                     MainServer.Instance.RemovePollServiceHTTPHandler("", eqgPath);
 
-                    m_log.DebugFormat(
-                        "[EVENT QUEUE GET MODULE]: Removed EQG handler {0} for {1} in {2}",
-                        eqgPath, agentID, m_scene.RegionInfo.RegionName);
+//                    m_log.DebugFormat(
+//                        "[EVENT QUEUE GET MODULE]: Removed EQG handler {0} for {1} in {2}",
+//                        eqgPath, agentID, m_scene.RegionInfo.RegionName);
                 }
             }
 
@@ -379,9 +379,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 eventQueueGetPath,
                 new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID));
 
-            m_log.DebugFormat(
-                "[EVENT QUEUE GET MODULE]: Registered EQG handler {0} for {1} in {2}",
-                eventQueueGetPath, agentID, m_scene.RegionInfo.RegionName);
+//            m_log.DebugFormat(
+//                "[EVENT QUEUE GET MODULE]: Registered EQG handler {0} for {1} in {2}",
+//                eventQueueGetPath, agentID, m_scene.RegionInfo.RegionName);
 
             Random rnd = new Random(Environment.TickCount);
             lock (m_ids)
