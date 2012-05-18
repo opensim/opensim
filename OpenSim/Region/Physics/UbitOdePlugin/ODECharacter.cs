@@ -903,6 +903,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         contact.SurfaceNormal.X = 0f;
                         contact.SurfaceNormal.Y = 0f;
                         contact.SurfaceNormal.Z = -1f;
+                        contact.RelativeSpeed = -vel.Z;
                         AddCollisionEvent(0, contact);
 
                         vec.Z *= 0.5f;
