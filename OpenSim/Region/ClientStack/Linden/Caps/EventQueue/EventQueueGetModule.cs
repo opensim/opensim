@@ -109,10 +109,11 @@ namespace OpenSim.Region.ClientStack.Linden
                     "Comms",
                     false,
                     "debug eq",
-                    "debug eq [0|1]",
-                    "Turn on event queue debugging",                                   
-                    "debug eq 1 will turn on event queue debugging.  This will log all outgoing event queue messages to clients.\n"
-                        + "debug eq 0 will turn off event queue debugging.",
+                    "debug eq [0|1|2]",
+                    "Turn on event queue debugging",
+                    "<= 0 - turns off all event queue logging",
+                    ">= 1 - turns on outgoing event logging",
+                    ">= 2 - turns on poll notification",
                     HandleDebugEq);
             }
             else
@@ -270,7 +271,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     string eqgPath = GenerateEqgCapPath(eventQueueGetUuid);
                     MainServer.Instance.RemovePollServiceHTTPHandler("", eqgPath);
 
-//                    m_log.DebugFormat("[EVENT QUEUE GET MODULE]: Removed EQG handler {0} for {1}", eqgPath, agentID);
+                    m_log.DebugFormat(
+                        "[EVENT QUEUE GET MODULE]: Removed EQG handler {0} for {1} in {2}",
+                        eqgPath, agentID, m_scene.RegionInfo.RegionName);
                 }
             }
 
@@ -376,9 +379,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 eventQueueGetPath,
                 new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID));
 
-//            m_log.DebugFormat(
-//                "[EVENT QUEUE GET MODULE]: Registered EQG handler {0} for {1} in {2}",
-//                eventQueueGetPath, agentID, m_scene.RegionInfo.RegionName);
+            m_log.DebugFormat(
+                "[EVENT QUEUE GET MODULE]: Registered EQG handler {0} for {1} in {2}",
+                eventQueueGetPath, agentID, m_scene.RegionInfo.RegionName);
 
             Random rnd = new Random(Environment.TickCount);
             lock (m_ids)
@@ -401,9 +404,25 @@ namespace OpenSim.Region.ClientStack.Linden
             return false;
         }
 
+        /// <summary>
+        /// Logs a debug line for an outbound event queue message if appropriate.
+        /// </summary>
+        /// <param name='element'>Element containing message</param>
+        private void LogOutboundDebugMessage(OSD element, UUID agentId)
+        {
+            if (element is OSDMap)
+            {
+                OSDMap ev = (OSDMap)element;
+                m_log.DebugFormat(
+                    "Eq OUT {0,-30} to {1,-20} {2,-20}",
+                    ev["message"], m_scene.GetScenePresence(agentId).Name, m_scene.RegionInfo.RegionName);
+            }
+        }
+
         public Hashtable GetEvents(UUID requestID, UUID pAgentId, string request)
         {
-//            m_log.DebugFormat("[EVENT QUEUE GET MODULE]: Invoked GetEvents() for {0}", pAgentId);
+            if (DebugLevel >= 2)
+                m_log.DebugFormat("POLLED FOR EQ MESSAGES BY {0} in {1}", pAgentId, m_scene.RegionInfo.RegionName);
 
             Queue<OSD> queue = TryGetQueue(pAgentId);
             OSD element;
@@ -427,13 +446,8 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             else
             {
-                if (DebugLevel > 0 && element is OSDMap)
-                {
-                    OSDMap ev = (OSDMap)element;
-                    m_log.DebugFormat(
-                        "[EVENT QUEUE GET MODULE]: Eq OUT {0} to {1}",
-                        ev["message"], m_scene.GetScenePresence(pAgentId).Name);
-                }
+                if (DebugLevel > 0)
+                    LogOutboundDebugMessage(element, pAgentId);
 
                 array.Add(element);
 
@@ -443,13 +457,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         element = queue.Dequeue();
 
-                        if (DebugLevel > 0 && element is OSDMap)
-                        {
-                            OSDMap ev = (OSDMap)element;
-                            m_log.DebugFormat(
-                                "[EVENT QUEUE GET MODULE]: Eq OUT {0} to {1}",
-                                ev["message"], m_scene.GetScenePresence(pAgentId).Name);
-                        }
+                        if (DebugLevel > 0)
+                            LogOutboundDebugMessage(element, pAgentId);
 
                         array.Add(element);
                         thisID++;
