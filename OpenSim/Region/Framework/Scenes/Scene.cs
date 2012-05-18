@@ -569,21 +569,18 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_sceneGraph.Entities; }
         }
 
-        // can be closest/random/sequence
-        private string m_SpawnPointRouting = "closest";
+        
         // used in sequence see: SpawnPoint()
         private int m_SpawnPoint;
+        // can be closest/random/sequence
         public string SpawnPointRouting
         {
-            get { return m_SpawnPointRouting; }
-            private set { m_SpawnPointRouting = value; }
+            get; private set;
         }
         // allow landmarks to pass
-        private bool m_TelehubAllowLandmarks;
         public bool TelehubAllowLandmarks
         {
-            get { return m_TelehubAllowLandmarks; }
-            private set { m_TelehubAllowLandmarks = value; }
+            get; private set;
         }
 
         #endregion Properties
