@@ -595,9 +595,15 @@ namespace OpenSim.Region.RegionCombinerModule
                         ((conn.Y * (int)Constants.RegionSize)));
 
             Vector3 extents = Vector3.Zero;
-            extents.Y = regionConnections.YEnd + conn.YEnd;
-            extents.X = regionConnections.XEnd + conn.XEnd;
-            conn.UpdateExtents(extents);
+
+            // We do not want to inflate the extents for regions strictly to the NE of the root region, since this
+            // would double count regions strictly to the north and east that have already been added.
+//            extents.Y = regionConnections.YEnd + conn.YEnd;
+//            extents.X = regionConnections.XEnd + conn.XEnd;
+//            conn.UpdateExtents(extents);
+
+            extents.Y = conn.YEnd;
+            extents.X = conn.XEnd;
 
             scene.BordersLocked = true;
             conn.RegionScene.BordersLocked = true;
