@@ -113,10 +113,25 @@ namespace OpenSim.Region.RegionCombinerModule
             }
         }
 
-        public bool IsRootForMegaregion(UUID sceneId)
+        public bool IsRootForMegaregion(UUID regionId)
         {
             lock (m_regions)
-                return m_regions.ContainsKey(sceneId);
+                return m_regions.ContainsKey(regionId);
+        }
+
+        public Vector2 GetSizeOfMegaregion(UUID regionId)
+        {
+            lock (m_regions)
+            {
+                if (m_regions.ContainsKey(regionId))
+                {
+                    RegionConnections rootConn = m_regions[regionId];
+
+                    return new Vector2((float)rootConn.XEnd, (float)rootConn.YEnd);
+                }
+            }
+
+            throw new Exception(string.Format("Region with id {0} not found", regionId));
         }
 
         private void NewPresence(ScenePresence presence)
