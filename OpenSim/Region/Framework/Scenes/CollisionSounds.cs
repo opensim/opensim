@@ -33,14 +33,24 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+    public struct CollisionForSoundInfo
+    {
+        public uint colliderID;
+        public Vector3 position;
+        public float relativeVel;
+    }
+
     public static class CollisionSounds
     {
+
+        
+
     // defines for cases
     // only know one UUID for now (woodflesh)
 
         private const int MaxMaterials = 7;
         // part part
-        private static UUID  snd_StoneStone = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
+        private static UUID snd_StoneStone = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_StoneMetal = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_StoneGlass = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_StoneWood  = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
@@ -48,29 +58,29 @@ namespace OpenSim.Region.Framework.Scenes
         private static UUID  snd_StonePlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_StoneRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
-        private static UUID  snd_MetalMetal = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
+        private static UUID snd_MetalMetal = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_MetalGlass = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_MetalWood  = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_MetalFlesh = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_MetalPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_MetalRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
-        private static UUID  snd_GlassGlass = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
+        private static UUID snd_GlassGlass = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_GlassWood  = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_GlassFlesh = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_GlassPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_GlassRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
-        private static UUID  snd_WoodWood  = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_WoodFlesh = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_WoodPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
-        private static UUID  snd_WoodRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
+        private static UUID snd_WoodWood = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
+        private static UUID snd_WoodFlesh = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
+        private static UUID snd_WoodPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
+        private static UUID snd_WoodRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
-        private static UUID  snd_FleshFlesh = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
+        private static UUID snd_FleshFlesh = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_FleshPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_FleshRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
-        private static UUID  snd_PlasticPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
+        private static UUID snd_PlasticPlastic = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
         private static UUID  snd_PlasticRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
 
         private static UUID snd_RubberRubber = new UUID("c80260ba-41fd-8a46-768a-6bf236360e3a");
@@ -107,7 +117,7 @@ namespace OpenSim.Region.Framework.Scenes
         public static void PartCollisionSound(SceneObjectPart part,List<uint> Colliders)
         {
             // temporary mute sounds
-            return;
+//            return;
 
             if(Colliders.Count == 0 || part == null)
                 return;
@@ -178,28 +188,15 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-/* avatars get notification let them trigger the sound
-                else if (!doneownsound)
-                {
-                    ScenePresence av = part.ParentGroup.Scene.GetScenePresence(Id);
-                    if (av != null && (!av.IsChildAgent))
-                    {
-                        index = thisMatScaled + 4; // flesh
-                        soundID = m_PartPart[index];
-                        part.SendCollisionSound(soundID, 1.0);
-                        doneownsound = true;
-                    }
-                }
- */
             }
         }
 
-        public static void AvatarCollisionSound(ScenePresence av, List<uint> Colliders)
+        public static void AvatarCollisionSound(ScenePresence av, List<CollisionForSoundInfo> collidersinfolist)
         {
             // temporary mute sounds
-            return;
+//            return;
 
-            if (Colliders.Count == 0 || av == null)
+            if (collidersinfolist.Count == 0 || av == null)
                 return;
 
             UUID soundID;
@@ -211,30 +208,43 @@ namespace OpenSim.Region.Framework.Scenes
             int index;
 //            bool doneownsound = false;
 
-            Vector3 position = av.AbsolutePosition;
+            CollisionForSoundInfo colInfo;
+            uint id;
+            float volume;
 
-            foreach (uint Id in Colliders)
+            for(int i = 0; i< collidersinfolist.Count; i++)
             {
-                if (Id == 0)
+                colInfo = collidersinfolist[i];
+
+                volume = Math.Abs(colInfo.relativeVel);
+                if(volume < 0.2f)
+                    continue;
+
+                id = colInfo.colliderID;
+
+                if (id == 0) // no terrain collision sounds for now
                 {
                     continue;
                 }
 
-                SceneObjectPart otherPart = av.Scene.GetSceneObjectPart(Id);
+                SceneObjectPart otherPart = av.Scene.GetSceneObjectPart(id);
                 if (otherPart != null)
                 {
                     if (otherPart.CollisionSound == otherPart.invalidCollisionSoundUUID)
                         continue;
                     if (otherPart.CollisionSound != UUID.Zero)
-                        otherPart.SendCollisionSound(otherPart.CollisionSound, otherPart.CollisionSoundVolume, position);
+                        otherPart.SendCollisionSound(otherPart.CollisionSound, otherPart.CollisionSoundVolume, colInfo.position);
                     else
                     {
+                        volume *= volume * .0625f; // 4m/s == full volume
+                        if (volume > 1.0f)
+                            volume = 1.0f;
                         otherMaterial = (int)otherPart.Material;
                         if (otherMaterial >= MaxMaterials)
                             otherMaterial = 3;
                         index = thisMatScaled + otherMaterial;
                         soundID = m_PartPart[index];
-                        otherPart.SendCollisionSound(soundID, 1.0, position);
+                        otherPart.SendCollisionSound(soundID, volume, colInfo.position);
                     }
                 }
 /*
