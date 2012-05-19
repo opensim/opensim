@@ -229,8 +229,6 @@ namespace OpenSim.Region.RegionCombinerModule
             westBorder.CrossDirection = Cardinals.W;
             scene.WestBorders[0] = westBorder;
 
-
-
             RegionConnections regionConnections = new RegionConnections();
             regionConnections.ConnectedRegions = new List<RegionData>();
             regionConnections.RegionScene = scene;
@@ -475,7 +473,7 @@ namespace OpenSim.Region.RegionCombinerModule
             conn.UpdateExtents(extents);
 
             m_log.DebugFormat(
-                "[REGION COMBINER MODULE]: Scene {0} to the west of Scene {1}, Offset: {2}, Extents: {3}",
+                "[REGION COMBINER MODULE]: Root region {0} is to the west of region {1}, Offset: {2}, Extents: {3}",
                 conn.RegionScene.RegionInfo.RegionName,
                 regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
 
@@ -554,7 +552,7 @@ namespace OpenSim.Region.RegionCombinerModule
             conn.ConnectedRegions.Add(ConnectedRegion);
 
             m_log.DebugFormat(
-                "[REGION COMBINER MODULE]: Scene: {0} to the northeast of Scene {1}, Offset: {2}, Extents: {3}",
+                "[REGION COMBINER MODULE]: Root region {0} is to the south of region {1}, Offset: {2}, Extents: {3}",
                 conn.RegionScene.RegionInfo.RegionName,
                 regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
 
@@ -616,7 +614,7 @@ namespace OpenSim.Region.RegionCombinerModule
             conn.ConnectedRegions.Add(ConnectedRegion);
 
             m_log.DebugFormat(
-                "[REGION COMBINER MODULE]: Scene: {0} to the NorthEast of Scene {1}, Offset: {2}, Extents: {3}",
+                "[REGION COMBINER MODULE]: Region {0} is to the southwest of Scene {1}, Offset: {2}, Extents: {3}",
                 conn.RegionScene.RegionInfo.RegionName,
                 regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
 
