@@ -67,8 +67,22 @@ namespace OpenSim.Region.RegionCombinerModule
             }
         }
 
+        /// <summary>
+        /// This holds the root regions for the megaregions.
+        /// </summary>
+        /// <remarks>
+        /// At this point we can actually assume there is only ever one megaregion (and hence only one entry here).
+        /// </remarks>
         private Dictionary<UUID, RegionConnections> m_regions = new Dictionary<UUID, RegionConnections>();
+
+        /// <summary>
+        /// Is this module enabled?
+        /// </summary>
         private bool enabledYN = false;
+
+        /// <summary>
+        /// The scenes that comprise the megaregion.
+        /// </summary>
         private Dictionary<UUID, Scene> m_startingScenes = new Dictionary<UUID, Scene>();
 
         public void Initialise(IConfigSource source)
@@ -448,9 +462,9 @@ namespace OpenSim.Region.RegionCombinerModule
                 if (!connectedYN)
                 {
                     DoWorkForRootRegion(regionConnections, scene);
-
                 }
             }
+
             // Set up infinite borders around the entire AABB of the combined ConnectedRegions
             AdjustLargeRegionBounds();
         }
@@ -469,9 +483,10 @@ namespace OpenSim.Region.RegionCombinerModule
 
             conn.UpdateExtents(extents);
 
-            m_log.DebugFormat("Scene: {0} to the west of Scene{1} Offset: {2}. Extents:{3}",
-                              conn.RegionScene.RegionInfo.RegionName,
-                              regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
+            m_log.DebugFormat(
+                "[REGION COMBINER MODULE]: Scene {0} to the west of Scene {1}, Offset: {2}, Extents: {3}",
+                conn.RegionScene.RegionInfo.RegionName,
+                regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
 
             scene.BordersLocked = true;
             conn.RegionScene.BordersLocked = true;
@@ -547,9 +562,10 @@ namespace OpenSim.Region.RegionCombinerModule
             ConnectedRegion.RegionScene = scene;
             conn.ConnectedRegions.Add(ConnectedRegion);
 
-            m_log.DebugFormat("Scene: {0} to the northeast of Scene{1} Offset: {2}. Extents:{3}",
-                             conn.RegionScene.RegionInfo.RegionName,
-                             regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
+            m_log.DebugFormat(
+                "[REGION COMBINER MODULE]: Scene: {0} to the northeast of Scene {1}, Offset: {2}, Extents: {3}",
+                conn.RegionScene.RegionInfo.RegionName,
+                regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
 
             conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
             scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
@@ -602,9 +618,10 @@ namespace OpenSim.Region.RegionCombinerModule
 
             conn.ConnectedRegions.Add(ConnectedRegion);
 
-            m_log.DebugFormat("Scene: {0} to the NorthEast of Scene{1} Offset: {2}. Extents:{3}",
-                             conn.RegionScene.RegionInfo.RegionName,
-                             regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
+            m_log.DebugFormat(
+                "[REGION COMBINER MODULE]: Scene: {0} to the NorthEast of Scene {1}, Offset: {2}, Extents: {3}",
+                conn.RegionScene.RegionInfo.RegionName,
+                regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
 
             conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
             scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
@@ -681,6 +698,8 @@ namespace OpenSim.Region.RegionCombinerModule
 
         private void DoWorkForRootRegion(RegionConnections regionConnections, Scene scene)
         {
+            m_log.DebugFormat("[REGION COMBINER MODULE]: Adding root region {0}", scene.RegionInfo.RegionName);
+
             RegionData rdata = new RegionData();
             rdata.Offset = Vector3.Zero;
             rdata.RegionId = scene.RegionInfo.originRegionID;
