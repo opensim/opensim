@@ -408,11 +408,7 @@ namespace OpenSim.Region.RegionCombinerModule
                     //xxy
                     //xxx
 
-
-                    if ((((int)rootConn.X * (int)Constants.RegionSize) + rootConn.XEnd
-                        >= (newConn.X * (int)Constants.RegionSize))
-                        && (((int)rootConn.Y * (int)Constants.RegionSize)
-                        >= (newConn.Y * (int)Constants.RegionSize)))
+                    if (rootConn.PosX + rootConn.XEnd >= newConn.PosX && rootConn.PosY >= newConn.PosY)
                     {
                         connectedYN = DoWorkForOneRegionOverPlusXY(rootConn, newConn, scene);
                         break;
@@ -422,10 +418,7 @@ namespace OpenSim.Region.RegionCombinerModule
                     //xyx
                     //xxx
                     //xxx
-                    if ((((int)rootConn.X * (int)Constants.RegionSize)
-                        >= (newConn.X * (int)Constants.RegionSize))
-                        && (((int)rootConn.Y * (int)Constants.RegionSize) + rootConn.YEnd
-                        >= (newConn.Y * (int)Constants.RegionSize)))
+                    if (rootConn.PosX >= newConn.PosX && rootConn.PosY + rootConn.YEnd >= newConn.PosY)
                     {
                         connectedYN = DoWorkForOneRegionOverXPlusY(rootConn, newConn, scene);
                         break;
@@ -435,10 +428,7 @@ namespace OpenSim.Region.RegionCombinerModule
                     //xxy
                     //xxx
                     //xxx
-                    if ((((int)rootConn.X * (int)Constants.RegionSize) + rootConn.XEnd
-                        >= (newConn.X * (int)Constants.RegionSize))
-                        && (((int)rootConn.Y * (int)Constants.RegionSize) + rootConn.YEnd
-                        >= (newConn.Y * (int)Constants.RegionSize)))
+                    if (rootConn.PosX + rootConn.XEnd >= newConn.PosX && rootConn.PosY + rootConn.YEnd >= newConn.PosY)
                     {
                         connectedYN = DoWorkForOneRegionOverPlusXPlusY(rootConn, newConn, scene);
                         break;
@@ -460,10 +450,8 @@ namespace OpenSim.Region.RegionCombinerModule
         private bool DoWorkForOneRegionOverPlusXY(RegionConnections rootConn, RegionConnections newConn, Scene scene)
         {
             Vector3 offset = Vector3.Zero;
-            offset.X = (((newConn.X * (int)Constants.RegionSize)) -
-                        ((rootConn.X * (int)Constants.RegionSize)));
-            offset.Y = (((newConn.Y * (int)Constants.RegionSize)) -
-                        ((rootConn.Y * (int)Constants.RegionSize)));
+            offset.X = newConn.PosX - rootConn.PosX;
+            offset.Y = newConn.PosY - rootConn.PosY;
 
             Vector3 extents = Vector3.Zero;
             extents.Y = rootConn.YEnd;
@@ -529,10 +517,8 @@ namespace OpenSim.Region.RegionCombinerModule
         private bool DoWorkForOneRegionOverXPlusY(RegionConnections rootConn, RegionConnections newConn, Scene scene)
         {
             Vector3 offset = Vector3.Zero;
-            offset.X = (((newConn.X * (int)Constants.RegionSize)) -
-                        ((rootConn.X * (int)Constants.RegionSize)));
-            offset.Y = (((newConn.Y * (int)Constants.RegionSize)) -
-                        ((rootConn.Y * (int)Constants.RegionSize)));
+            offset.X = newConn.PosX - rootConn.PosX;
+            offset.Y = newConn.PosY - rootConn.PosY;
 
             Vector3 extents = Vector3.Zero;
             extents.Y = newConn.YEnd + rootConn.YEnd;
@@ -589,10 +575,8 @@ namespace OpenSim.Region.RegionCombinerModule
         private bool DoWorkForOneRegionOverPlusXPlusY(RegionConnections rootConn, RegionConnections newConn, Scene scene)
         {
             Vector3 offset = Vector3.Zero;
-            offset.X = (((newConn.X * (int)Constants.RegionSize)) -
-                        ((rootConn.X * (int)Constants.RegionSize)));
-            offset.Y = (((newConn.Y * (int)Constants.RegionSize)) -
-                        ((rootConn.Y * (int)Constants.RegionSize)));
+            offset.X = newConn.PosX - rootConn.PosX;
+            offset.Y = newConn.PosY - rootConn.PosY;
 
             Vector3 extents = Vector3.Zero;
 
@@ -622,7 +606,7 @@ namespace OpenSim.Region.RegionCombinerModule
 
             rootConn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
             scene.PhysicsScene.Combine(rootConn.RegionScene.PhysicsScene, offset, Vector3.Zero);
-            
+
             lock (rootConn.RegionScene.NorthBorders)
             {
                 if (rootConn.RegionScene.NorthBorders.Count == 1)// &&  2)
