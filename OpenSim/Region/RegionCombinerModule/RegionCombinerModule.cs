@@ -43,9 +43,8 @@ using Mono.Addins;
 [assembly: AddinDependency("OpenSim", "0.5")]
 namespace OpenSim.Region.RegionCombinerModule
 {
-
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class RegionCombinerModule : ISharedRegionModule
+    public class RegionCombinerModule : ISharedRegionModule, IRegionCombinerModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -59,6 +58,15 @@ namespace OpenSim.Region.RegionCombinerModule
             get { return null; }
         }
 
+        public bool IsMegaregion
+        {
+            get
+            {
+                lock (m_startingScenes)
+                    return m_startingScenes.Count > 1;
+            }
+        }
+
         private Dictionary<UUID, RegionConnections> m_regions = new Dictionary<UUID, RegionConnections>();
         private bool enabledYN = false;
         private Dictionary<UUID, Scene> m_startingScenes = new Dictionary<UUID, Scene>();
@@ -69,9 +77,11 @@ namespace OpenSim.Region.RegionCombinerModule
             enabledYN = myConfig.GetBoolean("CombineContiguousRegions", false);
 
             if (enabledYN)
+            {
                 MainConsole.Instance.Commands.AddCommand(
                     "RegionCombinerModule", false, "fix-phantoms", "fix-phantoms",
                     "Fixes phantom objects after an import to megaregions", FixPhantoms);
+            }
         }
 
         public void Close()
@@ -80,6 +90,8 @@ namespace OpenSim.Region.RegionCombinerModule
 
         public void AddRegion(Scene scene)
         {
+            if (enabledYN)
+                scene.RegisterModuleInterface<IRegionCombinerModule>(this);
         }
 
         public void RemoveRegion(Scene scene)
@@ -94,6 +106,12 @@ namespace OpenSim.Region.RegionCombinerModule
 
                 scene.EventManager.OnNewPresence += NewPresence;
             }
+        }
+
+        public bool IsRootRegion(UUID sceneId)
+        {
+            lock (m_regions)
+                return m_regions.ContainsKey(sceneId);
         }
 
         private void NewPresence(ScenePresence presence)
