@@ -591,13 +591,18 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_sceneGraph.Entities; }
         }
 
-        // can be closest/random/sequence
-        private string m_SpawnPointRouting = "closest";
+        
         // used in sequence see: SpawnPoint()
         private int m_SpawnPoint;
+        // can be closest/random/sequence
         public string SpawnPointRouting
         {
-            get { return m_SpawnPointRouting; }
+            get; private set;
+        }
+        // allow landmarks to pass
+        public bool TelehubAllowLandmarks
+        {
+            get; private set;
         }
 
         #endregion Properties
@@ -737,7 +742,8 @@ namespace OpenSim.Region.Framework.Scenes
                         m_maxPhys = RegionInfo.PhysPrimMax;
                     }
 
-                    m_SpawnPointRouting = startupConfig.GetString("SpawnPointRouting", "closest");
+                    SpawnPointRouting = startupConfig.GetString("SpawnPointRouting", "closest");
+                    TelehubAllowLandmarks = startupConfig.GetBoolean("TelehubAllowLandmark", false);
 
                     // Here, if clamping is requested in either global or
                     // local config, it will be used
@@ -2794,7 +2800,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (sp == null)
             {
                 m_log.DebugFormat(
-                    "[SCENE]: Adding new child scene presence {0} to scene {1} at pos {2}", client.Name, RegionInfo.RegionName, client.StartPos);
+                    "[SCENE]: Adding new child scene presence {0} {1} to scene {2} at pos {3}",
+                    client.Name, client.AgentId, RegionInfo.RegionName, client.StartPos);
 
                 m_clientManager.Add(client);
                 SubscribeToClientEvents(client);
@@ -4098,6 +4105,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
+            // TODO: This check should probably be in QueryAccess().
             ILandObject nearestParcel = GetNearestAllowedParcel(cAgentData.AgentID, Constants.RegionSize / 2, Constants.RegionSize / 2);
             if (nearestParcel == null)
             {
@@ -4108,14 +4116,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-            int num = m_sceneGraph.GetNumberOfScenePresences();
-
-            if (num >= RegionInfo.RegionSettings.AgentLimit)
-            {
-                if (!Permissions.IsAdministrator(cAgentData.AgentID))
-                    return false;
-            }
-
+            // We have to wait until the viewer contacts this region after receiving EAC.
+            // That calls AddNewClient, which finally creates the ScenePresence
             ScenePresence childAgentUpdate = WaitGetScenePresence(cAgentData.AgentID);
 
             if (childAgentUpdate != null)
@@ -4159,14 +4161,28 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        /// <summary>
+        /// Poll until the requested ScenePresence appears or we timeout.
+        /// </summary>
+        /// <returns>The scene presence is found, else null.</returns>
+        /// <param name='agentID'></param>
         protected virtual ScenePresence WaitGetScenePresence(UUID agentID)
         {
             int ntimes = 10;
-            ScenePresence childAgentUpdate = null;
-            while ((childAgentUpdate = GetScenePresence(agentID)) == null && (ntimes-- > 0))
+            ScenePresence sp = null;
+            while ((sp = GetScenePresence(agentID)) == null && (ntimes-- > 0))
                 Thread.Sleep(1000);
-            return childAgentUpdate;
 
+            if (sp == null)
+                m_log.WarnFormat(
+                    "[SCENE PRESENCE]: Did not find presence with id {0} in {1} before timeout",
+                    agentID, RegionInfo.RegionName);
+//            else
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: Found presence {0} {1} {2} in {3} after {4} waits",
+//                    sp.Name, sp.UUID, sp.IsChildAgent ? "child" : "root", RegionInfo.RegionName, 10 - ntimes);
+
+            return sp;
         }
 
         public virtual bool IncomingRetrieveRootAgent(UUID id, out IAgentData agent)
@@ -5493,13 +5509,22 @@ Environment.Exit(1);
                 return true;
             }
 
-            int num = m_sceneGraph.GetNumberOfScenePresences();
+            // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
+            // However, the long term fix is to make sure root agent count is always accurate.
+            m_sceneGraph.RecalculateStats();
+
+            int num = m_sceneGraph.GetRootAgentCount();
 
             if (num >= RegionInfo.RegionSettings.AgentLimit)
             {
                 if (!Permissions.IsAdministrator(agentID))
                 {
                     reason = "The region is full";
+
+                    m_log.DebugFormat(
+                        "[SCENE]: Denying presence with id {0} entry into {1} since region is at agent limit of {2}",
+                        agentID, RegionInfo.RegionName, RegionInfo.RegionSettings.AgentLimit);
+
                     return false;
                 }
             }

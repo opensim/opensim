@@ -1261,14 +1261,20 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_requestedUpdateFrequency = ms;
             m_eventsubscription = ms;
-            CollisionEventsThisFrame.Clear();
+
+            // Don't clear collision event reporting here.  This is called directly from scene code and so can lead
+            // to a race condition with the simulate loop
+
             _parent_scene.AddCollisionEventReporting(this);
         }
 
         public override void UnSubscribeEvents()
         {
             CollisionEventsThisFrame.Clear();
-            _parent_scene.RemoveCollisionEventReporting(this);
+
+            // Don't clear collision event reporting here.  This is called directly from scene code and so can lead
+            // to a race condition with the simulate loop
+
             m_requestedUpdateFrequency = 0;
             m_eventsubscription = 0;
         }

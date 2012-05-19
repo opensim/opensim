@@ -67,7 +67,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Determine whether this archive will save assets.  Default is true.
         /// </summary>
         public bool SaveAssets { get; set; }
-        
+
+        protected ArchiverModule m_module;
         protected Scene m_scene;
         protected Stream m_saveStream;
         protected Guid m_requestId;
@@ -75,13 +76,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="scene"></param>
+        /// <param name="module">Calling module</param>
         /// <param name="savePath">The path to which to save data.</param>
         /// <param name="requestId">The id associated with this request</param>
         /// <exception cref="System.IO.IOException">
         /// If there was a problem opening a stream for the file specified by the savePath
         /// </exception>
-        public ArchiveWriteRequestPreparation(Scene scene, string savePath, Guid requestId) : this(scene, requestId)
+        public ArchiveWriteRequestPreparation(ArchiverModule module, string savePath, Guid requestId) : this(module, requestId)
         {
             try
             {
@@ -99,17 +100,23 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="scene"></param>
+        /// <param name="module">Calling module</param>
         /// <param name="saveStream">The stream to which to save data.</param>
         /// <param name="requestId">The id associated with this request</param>
-        public ArchiveWriteRequestPreparation(Scene scene, Stream saveStream, Guid requestId) : this(scene, requestId)
+        public ArchiveWriteRequestPreparation(ArchiverModule module, Stream saveStream, Guid requestId) : this(module, requestId)
         {
             m_saveStream = saveStream;
         }
 
-        protected ArchiveWriteRequestPreparation(Scene scene, Guid requestId)
+        protected ArchiveWriteRequestPreparation(ArchiverModule module, Guid requestId)
         {
-            m_scene = scene;
+            m_module = module;
+
+            // FIXME: This is only here for regression test purposes since they do not supply a module.  Need to fix
+            // this.
+            if (m_module != null)
+                m_scene = m_module.Scene;
+
             m_requestId = requestId;
 
             SaveAssets = true;
@@ -364,32 +371,56 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             //if (majorVersion == 1)
             //{
             //    m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");
-            //}            
+            //}
+
+            String s;
             
-            StringWriter sw = new StringWriter();
-            XmlTextWriter xtw = new XmlTextWriter(sw);
-            xtw.Formatting = Formatting.Indented;
-            xtw.WriteStartDocument();
-            xtw.WriteStartElement("archive");
-            xtw.WriteAttributeString("major_version", majorVersion.ToString());
-            xtw.WriteAttributeString("minor_version", minorVersion.ToString());
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlTextWriter xtw = new XmlTextWriter(sw))
+                {
+                    xtw.Formatting = Formatting.Indented;
+                    xtw.WriteStartDocument();
+                    xtw.WriteStartElement("archive");
+                    xtw.WriteAttributeString("major_version", majorVersion.ToString());
+                    xtw.WriteAttributeString("minor_version", minorVersion.ToString());
+        
+                    xtw.WriteStartElement("creation_info");
+                    DateTime now = DateTime.UtcNow;
+                    TimeSpan t = now - new DateTime(1970, 1, 1);
+                    xtw.WriteElementString("datetime", ((int)t.TotalSeconds).ToString());
+                    xtw.WriteElementString("id", UUID.Random().ToString());
+                    xtw.WriteEndElement();
+        
+                    xtw.WriteElementString("assets_included", SaveAssets.ToString());
+        
+                    bool isMegaregion;
 
-            xtw.WriteStartElement("creation_info");
-            DateTime now = DateTime.UtcNow;
-            TimeSpan t = now - new DateTime(1970, 1, 1);
-            xtw.WriteElementString("datetime", ((int)t.TotalSeconds).ToString());
-            xtw.WriteElementString("id", UUID.Random().ToString());
-            xtw.WriteEndElement();
+                    // FIXME: This is only here for regression test purposes since they do not supply a module.  Need to fix
+                    // this, possibly by doing control file creation somewhere else.
+                    if (m_module != null && m_module.RegionCombinerModule != null)
+                    {
+                        IRegionCombinerModule mod = m_module.RegionCombinerModule;
+                        isMegaregion = mod.IsRootForMegaregion(m_scene.RegionInfo.RegionID);
+                    }
+                    else
+                    {
+                        isMegaregion = false;
+                    }
+        
+                    xtw.WriteElementString("is_megaregion", isMegaregion.ToString());
+        
+                    xtw.WriteEndElement();
+        
+                    xtw.Flush();
+                    xtw.Close();
+                }
 
-            xtw.WriteElementString("assets_included", SaveAssets.ToString());
+                s = sw.ToString();
+            }
 
-            xtw.WriteEndElement();
-
-            xtw.Flush();
-            xtw.Close();
-
-            String s = sw.ToString();
-            sw.Close();
+//            Console.WriteLine(
+//                "[ARCHIVE WRITE REQUEST PREPARATION]: Control file for {0} is: {1}", m_scene.RegionInfo.RegionName, s);
 
             return s;
         }

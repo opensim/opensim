@@ -249,6 +249,11 @@
     ;; "sequence" will place the avatar on the next sequential SpawnPoint
     ; SpawnPointRouting = closest
 
+    ;# {TelehubAllowLandmark} {} {Allow users with landmarks to override telehub routing} {true false} false
+    ;; TelehubAllowLandmark allows users with landmarks to override telehub routing and land at the landmark coordinates when set to true
+    ;; default is false
+    ; TelehubAllowLandmark = false
+
 [Estates]
     ; If these values are commented out then the user will be asked for estate details when required (this is the normal case).
   	; If these values are uncommented then they will be used to create a default estate as necessary.

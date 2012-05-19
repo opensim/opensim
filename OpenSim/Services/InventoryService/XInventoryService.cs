@@ -307,14 +307,20 @@ namespace OpenSim.Services.InventoryService
             if (check != null)
                 return false;
 
-            if (folder.Type == (short)AssetType.Folder || folder.Type == (short)AssetType.Unknown ||
-                GetFolderForType(folder.Owner, (AssetType)(folder.Type)) == null)
+            if (folder.Type == (short)AssetType.Folder
+                || folder.Type == (short)AssetType.Unknown
+                || folder.Type == (short)AssetType.OutfitFolder
+                || GetFolderForType(folder.Owner, (AssetType)(folder.Type)) == null)
             {
                 XInventoryFolder xFolder = ConvertFromOpenSim(folder);
                 return m_Database.StoreFolder(xFolder);
             }
             else
-                m_log.DebugFormat("[XINVENTORY]: Folder {0} of type {1} already exists", folder.Name, folder.Type);
+            {
+                m_log.WarnFormat(
+                    "[XINVENTORY]: Folder of type {0} already exists when tried to add {1} to {2} for {3}",
+                    folder.Type, folder.Name, folder.ParentID, folder.Owner);
+            }
 
             return false;
         }

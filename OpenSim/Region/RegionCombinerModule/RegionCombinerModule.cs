@@ -43,9 +43,8 @@ using Mono.Addins;
 [assembly: AddinDependency("OpenSim", "0.5")]
 namespace OpenSim.Region.RegionCombinerModule
 {
-
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class RegionCombinerModule : ISharedRegionModule
+    public class RegionCombinerModule : ISharedRegionModule, IRegionCombinerModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -59,8 +58,22 @@ namespace OpenSim.Region.RegionCombinerModule
             get { return null; }
         }
 
+        /// <summary>
+        /// This holds the root regions for the megaregions.
+        /// </summary>
+        /// <remarks>
+        /// Usually there is only ever one megaregion (and hence only one entry here).
+        /// </remarks>
         private Dictionary<UUID, RegionConnections> m_regions = new Dictionary<UUID, RegionConnections>();
+
+        /// <summary>
+        /// Is this module enabled?
+        /// </summary>
         private bool enabledYN = false;
+
+        /// <summary>
+        /// The scenes that comprise the megaregion.
+        /// </summary>
         private Dictionary<UUID, Scene> m_startingScenes = new Dictionary<UUID, Scene>();
 
         public void Initialise(IConfigSource source)
@@ -69,9 +82,11 @@ namespace OpenSim.Region.RegionCombinerModule
             enabledYN = myConfig.GetBoolean("CombineContiguousRegions", false);
 
             if (enabledYN)
+            {
                 MainConsole.Instance.Commands.AddCommand(
                     "RegionCombinerModule", false, "fix-phantoms", "fix-phantoms",
                     "Fixes phantom objects after an import to megaregions", FixPhantoms);
+            }
         }
 
         public void Close()
@@ -80,6 +95,8 @@ namespace OpenSim.Region.RegionCombinerModule
 
         public void AddRegion(Scene scene)
         {
+            if (enabledYN)
+                scene.RegisterModuleInterface<IRegionCombinerModule>(this);
         }
 
         public void RemoveRegion(Scene scene)
@@ -89,7 +106,95 @@ namespace OpenSim.Region.RegionCombinerModule
         public void RegionLoaded(Scene scene)
         {
             if (enabledYN)
+            {
                 RegionLoadedDoWork(scene);
+
+                scene.EventManager.OnNewPresence += NewPresence;
+            }
+        }
+
+        public bool IsRootForMegaregion(UUID sceneId)
+        {
+            lock (m_regions)
+                return m_regions.ContainsKey(sceneId);
+        }
+
+        private void NewPresence(ScenePresence presence)
+        {
+            if (presence.IsChildAgent)
+            {
+                byte[] throttleData;
+
+                try
+                {
+                    throttleData = presence.ControllingClient.GetThrottlesPacked(1);
+                } 
+                catch (NotImplementedException)
+                {
+                    return;
+                }
+
+                if (throttleData == null)
+                    return;
+
+                if (throttleData.Length == 0)
+                    return;
+
+                if (throttleData.Length != 28)
+                    return;
+
+                byte[] adjData;
+                int pos = 0;
+
+                if (!BitConverter.IsLittleEndian)
+                {
+                    byte[] newData = new byte[7 * 4];
+                    Buffer.BlockCopy(throttleData, 0, newData, 0, 7 * 4);
+
+                    for (int i = 0; i < 7; i++)
+                        Array.Reverse(newData, i * 4, 4);
+
+                    adjData = newData;
+                }
+                else
+                {
+                    adjData = throttleData;
+                }
+
+                // 0.125f converts from bits to bytes
+                int resend = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+                int land = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+                int wind = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+                int cloud = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+                int task = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+                int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+                int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
+                // State is a subcategory of task that we allocate a percentage to
+
+
+                //int total = resend + land + wind + cloud + task + texture + asset;
+
+                byte[] data = new byte[7 * 4];
+                int ii = 0;
+
+                Buffer.BlockCopy(Utils.FloatToBytes(resend), 0, data, ii, 4); ii += 4;
+                Buffer.BlockCopy(Utils.FloatToBytes(land * 50), 0, data, ii, 4); ii += 4;
+                Buffer.BlockCopy(Utils.FloatToBytes(wind), 0, data, ii, 4); ii += 4;
+                Buffer.BlockCopy(Utils.FloatToBytes(cloud), 0, data, ii, 4); ii += 4;
+                Buffer.BlockCopy(Utils.FloatToBytes(task), 0, data, ii, 4); ii += 4;
+                Buffer.BlockCopy(Utils.FloatToBytes(texture), 0, data, ii, 4); ii += 4;
+                Buffer.BlockCopy(Utils.FloatToBytes(asset), 0, data, ii, 4);
+
+                try
+                {
+                    presence.ControllingClient.SetChildAgentThrottle(data);
+                }
+                catch (NotImplementedException)
+                {
+                    return;
+                }
+
+            }
         }
 
         private void RegionLoadedDoWork(Scene scene)
@@ -348,9 +453,9 @@ namespace OpenSim.Region.RegionCombinerModule
                 if (!connectedYN)
                 {
                     DoWorkForRootRegion(regionConnections, scene);
-
                 }
             }
+
             // Set up infinite borders around the entire AABB of the combined ConnectedRegions
             AdjustLargeRegionBounds();
         }
@@ -369,9 +474,10 @@ namespace OpenSim.Region.RegionCombinerModule
 
             conn.UpdateExtents(extents);
 
-            m_log.DebugFormat("Scene: {0} to the west of Scene{1} Offset: {2}. Extents:{3}",
-                              conn.RegionScene.RegionInfo.RegionName,
-                              regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
+            m_log.DebugFormat(
+                "[REGION COMBINER MODULE]: Scene {0} to the west of Scene {1}, Offset: {2}, Extents: {3}",
+                conn.RegionScene.RegionInfo.RegionName,
+                regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
 
             scene.BordersLocked = true;
             conn.RegionScene.BordersLocked = true;
@@ -447,9 +553,10 @@ namespace OpenSim.Region.RegionCombinerModule
             ConnectedRegion.RegionScene = scene;
             conn.ConnectedRegions.Add(ConnectedRegion);
 
-            m_log.DebugFormat("Scene: {0} to the northeast of Scene{1} Offset: {2}. Extents:{3}",
-                             conn.RegionScene.RegionInfo.RegionName,
-                             regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
+            m_log.DebugFormat(
+                "[REGION COMBINER MODULE]: Scene: {0} to the northeast of Scene {1}, Offset: {2}, Extents: {3}",
+                conn.RegionScene.RegionInfo.RegionName,
+                regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
 
             conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
             scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
@@ -502,9 +609,10 @@ namespace OpenSim.Region.RegionCombinerModule
 
             conn.ConnectedRegions.Add(ConnectedRegion);
 
-            m_log.DebugFormat("Scene: {0} to the NorthEast of Scene{1} Offset: {2}. Extents:{3}",
-                             conn.RegionScene.RegionInfo.RegionName,
-                             regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
+            m_log.DebugFormat(
+                "[REGION COMBINER MODULE]: Scene: {0} to the NorthEast of Scene {1}, Offset: {2}, Extents: {3}",
+                conn.RegionScene.RegionInfo.RegionName,
+                regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
 
             conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
             scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
@@ -581,6 +689,8 @@ namespace OpenSim.Region.RegionCombinerModule
 
         private void DoWorkForRootRegion(RegionConnections regionConnections, Scene scene)
         {
+            m_log.DebugFormat("[REGION COMBINER MODULE]: Adding root region {0}", scene.RegionInfo.RegionName);
+
             RegionData rdata = new RegionData();
             rdata.Offset = Vector3.Zero;
             rdata.RegionId = scene.RegionInfo.originRegionID;
