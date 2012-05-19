@@ -239,7 +239,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override bool IsPhysical
         {
-            get { return false; }
+            get { return m_isPhysical; }
             set { return; }
         }
 
