@@ -59,17 +59,17 @@ namespace OpenSim.Region.RegionCombinerModule
         }
 
         /// <summary>
+        /// Is this module enabled?
+        /// </summary>
+        private bool enabledYN = false;
+
+        /// <summary>
         /// This holds the root regions for the megaregions.
         /// </summary>
         /// <remarks>
         /// Usually there is only ever one megaregion (and hence only one entry here).
         /// </remarks>
         private Dictionary<UUID, RegionConnections> m_regions = new Dictionary<UUID, RegionConnections>();
-
-        /// <summary>
-        /// Is this module enabled?
-        /// </summary>
-        private bool enabledYN = false;
 
         /// <summary>
         /// The scenes that comprise the megaregion.
@@ -717,16 +717,16 @@ namespace OpenSim.Region.RegionCombinerModule
                 {
                     ForwardPermissionRequests(rootConn, r.RegionScene);
                 }
+
+                // Create the root region's Client Event Forwarder
+                rootConn.ClientEventForwarder = new RegionCombinerClientEventForwarder(rootConn);
+    
+                // Sets up the CoarseLocationUpdate forwarder for this root region
+                scene.EventManager.OnNewPresence += SetCourseLocationDelegate;
+    
+                // Adds this root region to a dictionary of regions that are connectable
+                m_regions.Add(scene.RegionInfo.originRegionID, rootConn);
             }
-
-            // Create the root region's Client Event Forwarder
-            rootConn.ClientEventForwarder = new RegionCombinerClientEventForwarder(rootConn);
-
-            // Sets up the CoarseLocationUpdate forwarder for this root region
-            scene.EventManager.OnNewPresence += SetCourseLocationDelegate;
-
-            // Adds this root region to a dictionary of regions that are connectable
-            m_regions.Add(scene.RegionInfo.originRegionID, rootConn);
         }
 
         private void SetCourseLocationDelegate(ScenePresence presence)
@@ -983,6 +983,7 @@ namespace OpenSim.Region.RegionCombinerModule
                     return true;
                 }
             }
+
             oborder = null;
             return false;
         }
@@ -992,14 +993,19 @@ namespace OpenSim.Region.RegionCombinerModule
             pPosition = pPosition/(int) Constants.RegionSize;
             int OffsetX = (int) pPosition.X;
             int OffsetY = (int) pPosition.Y;
-            foreach (RegionConnections regConn in m_regions.Values)
+
+            lock (m_regions)
             {
-                foreach (RegionData reg in regConn.ConnectedRegions)
+                foreach (RegionConnections regConn in m_regions.Values)
                 {
-                    if (reg.Offset.X == OffsetX && reg.Offset.Y == OffsetY)
-                        return reg;
+                    foreach (RegionData reg in regConn.ConnectedRegions)
+                    {
+                        if (reg.Offset.X == OffsetX && reg.Offset.Y == OffsetY)
+                            return reg;
+                    }
                 }
             }
+
             return new RegionData();
         }
 
@@ -1055,18 +1061,17 @@ namespace OpenSim.Region.RegionCombinerModule
         }
 
         #region console commands
+
         public void FixPhantoms(string module, string[] cmdparams)
         {
-        List<Scene> scenes = new List<Scene>(m_startingScenes.Values);
+            List<Scene> scenes = new List<Scene>(m_startingScenes.Values);
+
             foreach (Scene s in scenes)
             {
-                s.ForEachSOG(delegate(SceneObjectGroup e)
-                {
-                    e.AbsolutePosition = e.AbsolutePosition;
-                }
-                );
+                s.ForEachSOG(so => so.AbsolutePosition = so.AbsolutePosition);
             }
         }
+
         #endregion
     }
 }
