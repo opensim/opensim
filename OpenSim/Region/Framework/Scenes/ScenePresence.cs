@@ -2032,7 +2032,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_log.DebugFormat("[SCENE PRESENCE]: {0} {1}", SitTargetisSet, SitTargetUnOccupied);
 
             if (PhysicsActor != null)
-                m_sitAvatarHeight = PhysicsActor.Size.Z;
+                m_sitAvatarHeight = PhysicsActor.Size.Z * 0.5f;
 
             bool canSit = false;
             pos = part.AbsolutePosition + offset;
