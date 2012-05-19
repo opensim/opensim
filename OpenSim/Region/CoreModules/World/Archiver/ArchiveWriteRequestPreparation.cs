@@ -391,36 +391,46 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     xtw.WriteElementString("datetime", ((int)t.TotalSeconds).ToString());
                     xtw.WriteElementString("id", UUID.Random().ToString());
                     xtw.WriteEndElement();
-        
-                    xtw.WriteElementString("assets_included", SaveAssets.ToString());
-        
+
+                    xtw.WriteStartElement("region_info");
+
                     bool isMegaregion;
+                    Vector2 size;
+                    IRegionCombinerModule rcMod = null;
 
                     // FIXME: This is only here for regression test purposes since they do not supply a module.  Need to fix
                     // this, possibly by doing control file creation somewhere else.
-                    if (m_module != null && m_module.RegionCombinerModule != null)
-                    {
-                        IRegionCombinerModule mod = m_module.RegionCombinerModule;
-                        isMegaregion = mod.IsRootForMegaregion(m_scene.RegionInfo.RegionID);
-                    }
+                    if (m_module != null)
+                        rcMod = m_module.RegionCombinerModule;
+
+                    if (rcMod != null)
+                        isMegaregion = rcMod.IsRootForMegaregion(m_scene.RegionInfo.RegionID);
                     else
-                    {
                         isMegaregion = false;
-                    }
-        
+
+                    if (isMegaregion)
+                        size = rcMod.GetSizeOfMegaregion(m_scene.RegionInfo.RegionID);
+                    else
+                        size = new Vector2((float)Constants.RegionSize, (float)Constants.RegionSize);
+
                     xtw.WriteElementString("is_megaregion", isMegaregion.ToString());
+                    xtw.WriteElementString("size_in_meters", string.Format("{0},{1}", size.X, size.Y));
+
+                    xtw.WriteEndElement();
         
+                    xtw.WriteElementString("assets_included", SaveAssets.ToString());
+
                     xtw.WriteEndElement();
         
                     xtw.Flush();
-                    xtw.Close();
                 }
 
                 s = sw.ToString();
             }
 
-//            Console.WriteLine(
-//                "[ARCHIVE WRITE REQUEST PREPARATION]: Control file for {0} is: {1}", m_scene.RegionInfo.RegionName, s);
+            if (m_scene != null)
+                Console.WriteLine(
+                    "[ARCHIVE WRITE REQUEST PREPARATION]: Control file for {0} is: {1}", m_scene.RegionInfo.RegionName, s);
 
             return s;
         }

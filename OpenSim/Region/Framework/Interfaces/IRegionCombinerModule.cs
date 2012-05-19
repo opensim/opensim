@@ -40,6 +40,20 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Does the given id belong to the root region of a megaregion?
         /// </summary>
-        bool IsRootForMegaregion(UUID sceneId);
+        bool IsRootForMegaregion(UUID regionId);
+
+        /// <summary>
+        /// Gets the size of megaregion.
+        /// </summary>
+        /// <remarks>
+        /// Returns size in meters.
+        /// Do not rely on this method remaining the same - this area is actively under development.
+        /// </remarks>
+        /// <param name="sceneId">
+        /// The id of the root region for a megaregion.
+        /// This may change in the future to allow any region id that makes up a megaregion.
+        /// Currently, will throw an exception if this does not match a root region.
+        /// </param>
+        Vector2 GetSizeOfMegaregion(UUID regionId);
     }
 }
