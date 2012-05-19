@@ -333,7 +333,7 @@ namespace OpenSim.Region.Framework.Scenes
         private UUID m_collisionSound;
         private float m_collisionSoundVolume;
 
-        private DateTime LastColSoundSentTime; 
+        private int LastColSoundSentTime; 
 
 
         private SOPVehicle m_vehicle = null;
@@ -374,7 +374,7 @@ namespace OpenSim.Region.Framework.Scenes
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
             // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
             m_inventory = new SceneObjectPartInventory(this);
-            LastColSoundSentTime = DateTime.UtcNow;
+            LastColSoundSentTime = Util.EnvironmentTickCount();
         }
 
         /// <summary>
@@ -2632,13 +2632,29 @@ namespace OpenSim.Region.Framework.Scenes
 
             else
             {
+                List<CollisionForSoundInfo> soundinfolist = new List<CollisionForSoundInfo>();
+                CollisionForSoundInfo soundinfo;
+                ContactPoint curcontact;
+
                 // calculate things that started colliding this time
                 // and build up list of colliders this time
-                foreach (uint localid in collissionswith.Keys)
+                foreach (uint id in collissionswith.Keys)
                 {
-                    thisHitColliders.Add(localid);
-                    if (!m_lastColliders.Contains(localid))
-                        startedColliders.Add(localid);
+                    thisHitColliders.Add(id);
+                    if (!m_lastColliders.Contains(id))
+                    {
+                        startedColliders.Add(id);
+
+                        curcontact = collissionswith[id];
+                        if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                        {
+                            soundinfo = new CollisionForSoundInfo();
+                            soundinfo.colliderID = id;
+                            soundinfo.position = curcontact.Position;
+                            soundinfo.relativeVel = curcontact.RelativeSpeed;
+                            soundinfolist.Add(soundinfo);
+                        }
+                    }
                 }
 
                 // calculate things that ended colliding
@@ -2655,17 +2671,14 @@ namespace OpenSim.Region.Framework.Scenes
                 // remove things that ended colliding from the last colliders list
                 foreach (uint localID in endedColliders)
                     m_lastColliders.Remove(localID);
+
+                // play sounds.
+                if (soundinfolist.Count > 0 && !VolumeDetectActive && CollisionSound != invalidCollisionSoundUUID)
+                    CollisionSounds.PartCollisionSound(this, soundinfolist);
             }
 
-            // play the sound.
-
-            bool IsNotVolumeDtc = !VolumeDetectActive;
-
-            if (IsNotVolumeDtc && startedColliders.Count > 0 && CollisionSound != invalidCollisionSoundUUID)
-                CollisionSounds.PartCollisionSound(this, startedColliders);
-
             SendCollisionEvent(scriptEvents.collision_start, startedColliders, ParentGroup.Scene.EventManager.TriggerScriptCollidingStart);
-            if (IsNotVolumeDtc)
+            if (!VolumeDetectActive)
                 SendCollisionEvent(scriptEvents.collision      , m_lastColliders , ParentGroup.Scene.EventManager.TriggerScriptColliding);
             SendCollisionEvent(scriptEvents.collision_end  , endedColliders  , ParentGroup.Scene.EventManager.TriggerScriptCollidingEnd);
 
@@ -3210,8 +3223,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (volume < 0)
                 volume = 0;
 
-            DateTime now = DateTime.UtcNow;
-            if((now - LastColSoundSentTime).Milliseconds < 200) // reduce rate to 5 per sec per part  ??
+            int now = Util.EnvironmentTickCount();
+            if(Util.EnvironmentTickCountSubtract(now,LastColSoundSentTime) <200)
                 return;
 
             LastColSoundSentTime = now;

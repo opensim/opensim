@@ -114,12 +114,9 @@ namespace OpenSim.Region.Framework.Scenes
             snd_StoneRubber, snd_MetalRubber, snd_GlassRubber, snd_WoodRubber, snd_FleshRubber, snd_PlasticRubber, snd_RubberRubber
             };
 
-        public static void PartCollisionSound(SceneObjectPart part,List<uint> Colliders)
+        public static void PartCollisionSound(SceneObjectPart part, List<CollisionForSoundInfo> collidersinfolist)
         {
-            // temporary mute sounds
-//            return;
-
-            if(Colliders.Count == 0 || part == null)
+            if (collidersinfolist.Count == 0 || part == null)
                 return;
 
             if (part.VolumeDetectActive || (part.Flags & PrimFlags.Physics) == 0)
@@ -128,19 +125,20 @@ namespace OpenSim.Region.Framework.Scenes
             if (part.ParentGroup == null)
                 return;
 
-            if (part.CollisionSound == part.invalidCollisionSoundUUID)
+            UUID soundID = part.CollisionSound;
+            if (soundID == part.invalidCollisionSoundUUID)
                 return;
 
-            UUID soundID;
+            float volume = 0.0f;
             int otherMaterial;
+            bool HaveSound = false;
 
-            Vector3 position = part.AbsolutePosition;
-
-            if (part.CollisionSound != UUID.Zero)
+            if (soundID != UUID.Zero)
             {
-                if (part.CollisionSoundVolume > 0.0f)
-                    part.SendCollisionSound(part.CollisionSound, part.CollisionSoundVolume, position);
-                return;
+                volume = part.CollisionSoundVolume;
+                if (volume == 0.0f)
+                    return;
+                HaveSound = true;
             }
 
             int thisMaterial = (int) part.Material;
@@ -152,40 +150,72 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool doneownsound = false;
 
-            foreach (uint Id in Colliders)
+            CollisionForSoundInfo colInfo;
+            uint id;
+
+            for(int i = 0; i< collidersinfolist.Count; i++)
             {
-                if (Id == 0)
+                colInfo = collidersinfolist[i];
+
+                if (!HaveSound)
+                {
+                    volume = Math.Abs(colInfo.relativeVel);
+                    if (volume < 0.2f)
+                        continue;
+                }
+
+                id = colInfo.colliderID;
+                if (id == 0)
                     {
                         if (!doneownsound)
                         {
-                            soundID = m_TerrainPart[thisMaterial];
-                            part.SendCollisionSound(soundID, 1.0, position);
+                            if (!HaveSound)
+                            {
+                                volume *= volume * .0625f; // 4m/s == full volume
+                                if (volume > 1.0f)
+                                    volume = 1.0f;
+                                soundID = m_TerrainPart[thisMaterial];
+                            }
+                            part.SendCollisionSound(soundID, volume, colInfo.position);
                             doneownsound = true;
                         }
                         continue;
                     }
 
-                SceneObjectPart otherPart = part.ParentGroup.Scene.GetSceneObjectPart(Id);
+                SceneObjectPart otherPart = part.ParentGroup.Scene.GetSceneObjectPart(id);
                 if (otherPart != null)
                 {
                     if (otherPart.CollisionSound == part.invalidCollisionSoundUUID || otherPart.VolumeDetectActive)
                         continue;
-                    if (otherPart.CollisionSound != UUID.Zero)
-                        otherPart.SendCollisionSound(otherPart.CollisionSound, otherPart.CollisionSoundVolume, position);
-                    else
+
+                    if (!HaveSound)
                     {
-                        otherMaterial = (int)otherPart.Material;
-                        if (otherMaterial >= MaxMaterials)
-                            otherMaterial = 3;
-                        index = thisMatScaled + otherMaterial;
-                        soundID = m_PartPart[index];
-                        if (doneownsound)
-                            otherPart.SendCollisionSound(soundID, 1.0, position);
+                        if (otherPart.CollisionSound != UUID.Zero)
+                        {
+                            soundID = otherPart.CollisionSound;
+                            volume = otherPart.CollisionSoundVolume;
+                            if (volume == 0.0f)
+                                continue;
+                        }
                         else
                         {
-                            part.SendCollisionSound(soundID, 1.0, position);
-                            doneownsound = true;
+                            volume *= volume * .0625f; // 4m/s == full volume
+                            if (volume > 1.0f)
+                                volume = 1.0f;
+                            otherMaterial = (int)otherPart.Material;
+                            if (otherMaterial >= MaxMaterials)
+                                otherMaterial = 3;
+                            index = thisMatScaled + otherMaterial;
+                            soundID = m_PartPart[index];
                         }
+                    }
+
+                    if (doneownsound)
+                        otherPart.SendCollisionSound(soundID, volume, colInfo.position);
+                    else
+                    {
+                        part.SendCollisionSound(soundID, volume, colInfo.position);
+                        doneownsound = true;
                     }
                 }
             }
