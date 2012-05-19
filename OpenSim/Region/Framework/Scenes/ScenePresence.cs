@@ -4098,6 +4098,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void RaiseCollisionScriptEvents(Dictionary<uint, ContactPoint> coldata)
         {
+            /*
             lock(m_collisionEventLock)
             {
                 if (m_collisionEventFlag)
@@ -4107,6 +4108,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Util.FireAndForget(delegate(object x)
             {
+        */
                 try
                 {
                     List<uint> thisHitColliders = new List<uint>();
@@ -4286,7 +4288,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_collisionEventFlag = false;
                 }
-            });
+//            });
         }
 
         private void TeleportFlagsDebug() {

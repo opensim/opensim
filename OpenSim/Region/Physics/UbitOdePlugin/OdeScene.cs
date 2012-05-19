@@ -247,6 +247,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// A list of actors that should receive collision events.
         /// </summary>
         private readonly List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
+        private readonly List<PhysicsActor> _collisionEventPrimRemove = new List<PhysicsActor>();
         
         private readonly HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
@@ -1073,6 +1074,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (!(p2events || p1events))
                 return;
 
+            if (p1events)
+                AddCollisionEventReporting(p1);
+
+            if (p2events)
+                AddCollisionEventReporting(p2);
+
             Vector3 vel = Vector3.Zero;
             if (p2 != null && p2.IsPhysical)
                 vel = p2.Velocity;
@@ -1255,20 +1262,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         #endregion
-
-
-
         /// <summary>
         /// Add actor to the list that should receive collision events in the simulate loop.
         /// </summary>
         /// <param name="obj"></param>
         public void AddCollisionEventReporting(PhysicsActor obj)
         {
-            lock (_collisionEventPrim)
-            {
-                if (!_collisionEventPrim.Contains(obj))
-                    _collisionEventPrim.Add(obj);
-            }
+            if (!_collisionEventPrim.Contains(obj))
+                _collisionEventPrim.Add(obj);
         }
 
         /// <summary>
@@ -1277,12 +1278,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="obj"></param>
         public void RemoveCollisionEventReporting(PhysicsActor obj)
         {
-            lock (_collisionEventPrim)
-            {
-                if (_collisionEventPrim.Contains(obj))
-                    _collisionEventPrim.Remove(obj);
-            }
+            if (_collisionEventPrim.Contains(obj) && !_collisionEventPrimRemove.Contains(obj))
+                _collisionEventPrimRemove.Add(obj);
         }
+
 
         #region Add/Remove Entities
 
@@ -1472,6 +1471,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
 //                lock (OdeLock)
                 {
+                    
                     OdePrim p = (OdePrim)prim;
                     p.setPrimForRemoval();
                 }
@@ -1890,32 +1890,34 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         collision_optimized();
 
-                        lock (_collisionEventPrim)
+                        foreach (PhysicsActor obj in _collisionEventPrim)
                         {
-                            foreach (PhysicsActor obj in _collisionEventPrim)
+                            if (obj == null)
+                                continue;
+
+                            switch ((ActorTypes)obj.PhysicsActorType)
                             {
-                                if (obj == null)
-                                    continue;
+                                case ActorTypes.Agent:
+                                    OdeCharacter cobj = (OdeCharacter)obj;
+                                    cobj.AddCollisionFrameTime((int)(ODE_STEPSIZE * 1000.0f));
+                                    cobj.SendCollisions();
+                                    break;
 
-                                switch ((ActorTypes)obj.PhysicsActorType)
-                                {
-                                    case ActorTypes.Agent:
-                                        OdeCharacter cobj = (OdeCharacter)obj;
-                                        cobj.AddCollisionFrameTime((int)(ODE_STEPSIZE*1000.0f));
-                                        cobj.SendCollisions();
-                                        break;
-
-                                    case ActorTypes.Prim:
-                                        OdePrim pobj = (OdePrim)obj;
-                                        if (pobj.Body == IntPtr.Zero || (d.BodyIsEnabled(pobj.Body) && !pobj.m_outbounds))
-                                        {
-                                            pobj.AddCollisionFrameTime((int)(ODE_STEPSIZE * 1000.0f));
-                                            pobj.SendCollisions();
-                                        }
-                                        break;
-                                }
+                                case ActorTypes.Prim:
+                                    OdePrim pobj = (OdePrim)obj;
+                                    if (pobj.Body == IntPtr.Zero || (d.BodyIsEnabled(pobj.Body) && !pobj.m_outbounds))
+                                    {
+                                        pobj.AddCollisionFrameTime((int)(ODE_STEPSIZE * 1000.0f));
+                                        pobj.SendCollisions();
+                                    }
+                                    break;
                             }
                         }
+
+                        foreach (PhysicsActor obj in _collisionEventPrimRemove)
+                            _collisionEventPrim.Remove(obj);
+
+                        _collisionEventPrimRemove.Clear();
 
                         // do a ode simulation step
                         d.WorldQuickStep(world, ODE_STEPSIZE);
