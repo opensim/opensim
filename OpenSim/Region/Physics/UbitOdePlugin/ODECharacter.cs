@@ -128,9 +128,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         public d.Mass ShellMass;
 //        public bool collidelock = false;
 
-        private bool m_haseventsubscription = false;
         public int m_eventsubscription = 0;
-        private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
+        private int m_cureventsubscription = 0;
+        private CollisionEventUpdate CollisionEventsThisFrame = null;
+        private bool SentEmptyCollisionsEvent;
 
         // unique UUID of this character object
         public UUID m_uuid;
@@ -1120,47 +1121,72 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void SubscribeEvents(int ms)
         {
-            m_requestedUpdateFrequency = ms;
             m_eventsubscription = ms;
-            _parent_scene.AddCollisionEventReporting(this);
-            m_haseventsubscription = true;
+            m_cureventsubscription = 0;
+            if (CollisionEventsThisFrame == null)
+                CollisionEventsThisFrame = new CollisionEventUpdate();
+            SentEmptyCollisionsEvent = false;
         }
 
         public override void UnSubscribeEvents()
         {
-            m_haseventsubscription = false;
-            _parent_scene.RemoveCollisionEventReporting(this);
-            m_requestedUpdateFrequency = 0;
+            if (CollisionEventsThisFrame != null)
+            {
+                CollisionEventsThisFrame.Clear();
+                CollisionEventsThisFrame = null;
+            }
             m_eventsubscription = 0;
         }
 
         public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
-            if (m_haseventsubscription)
-            {
-                //                m_log.DebugFormat(
-                //                    "[PHYSICS]: Adding collision event for {0}, collidedWith {1}, contact {2}", "", CollidedWith, contact);
-
-                CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
-            }
+            if (CollisionEventsThisFrame == null)
+                CollisionEventsThisFrame = new CollisionEventUpdate();
+            CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
         }
 
         public void SendCollisions()
         {
-            if (m_haseventsubscription && m_eventsubscription > m_requestedUpdateFrequency)
+            if (CollisionEventsThisFrame == null)
+                return;
+
+            if (m_cureventsubscription < m_eventsubscription)
+                return;
+
+            m_cureventsubscription = 0;
+
+            int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
+
+            if (!SentEmptyCollisionsEvent || ncolisions > 0)
             {
-                if (CollisionEventsThisFrame != null)
+                base.SendCollisionUpdate(CollisionEventsThisFrame);
+
+                if (ncolisions == 0)
                 {
-                    base.SendCollisionUpdate(CollisionEventsThisFrame);
+                    SentEmptyCollisionsEvent = true;
+                    _parent_scene.RemoveCollisionEventReporting(this);
                 }
-                CollisionEventsThisFrame = new CollisionEventUpdate();
-                m_eventsubscription = 0;
-            }
+                else
+                {
+                    SentEmptyCollisionsEvent = false;
+                    CollisionEventsThisFrame.Clear();
+                }
+            }           
+        }
+
+        internal void AddCollisionFrameTime(int t)
+        {
+            // protect it from overflow crashing
+            if (m_cureventsubscription + t >= int.MaxValue)
+                m_cureventsubscription = 0;
+            m_cureventsubscription += t;
         }
 
         public override bool SubscribedEvents()
         {
-            return m_haseventsubscription;
+            if (m_eventsubscription > 0)
+                return true;
+            return false;
         }
 
         private void changePhysicsStatus(bool NewStatus)
@@ -1465,15 +1491,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void AddChange(changes what, object arg)
         {
             _parent_scene.AddChange((PhysicsActor)this, what, arg);
-        }
-
-
-        internal void AddCollisionFrameTime(int p)
-        {
-            // protect it from overflow crashing
-            if (m_eventsubscription + p >= int.MaxValue)
-                m_eventsubscription = 0;
-            m_eventsubscription += p;
         }
     }
 }

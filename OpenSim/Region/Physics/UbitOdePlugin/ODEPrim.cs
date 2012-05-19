@@ -477,58 +477,58 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         //                    if(childPrim)  we only know about physical linksets
                         return Ptot;
-                        /*
-                                            float tmass = _mass;
-                                            Ptot *= tmass;
+/*
+                        float tmass = _mass;
+                        Ptot *= tmass;
 
-                                            float m;
+                        float m;
 
-                                            foreach (OdePrim prm in childrenPrim)
-                                            {
-                                                m = prm._mass;
-                                                Ptot += prm.CenterOfMass * m;
-                                                tmass += m;
-                                            }
+                        foreach (OdePrim prm in childrenPrim)
+                        {
+                            m = prm._mass;
+                            Ptot += prm.CenterOfMass * m;
+                            tmass += m;
+                        }
 
-                                            if (tmass == 0)
-                                                tmass = 0;
-                                            else
-                                                tmass = 1.0f / tmass;
+                        if (tmass == 0)
+                            tmass = 0;
+                        else
+                            tmass = 1.0f / tmass;
 
-                                            Ptot *= tmass;
-                                            return Ptot;
-                         */
+                        Ptot *= tmass;
+                        return Ptot;
+*/
                     }
                     else
                         return _position;
                 }
             }
         }
-        /*
-                public override Vector3 PrimOOBsize
-                    {
-                    get
-                        {
-                        return primOOBsize;
-                        }
-                    }
+/*
+        public override Vector3 PrimOOBsize
+            {
+            get
+                {
+                return primOOBsize;
+                }
+            }
 
-                public override Vector3 PrimOOBoffset
-                    {
-                    get
-                        {
-                        return primOOBoffset;
-                        }
-                    }
+        public override Vector3 PrimOOBoffset
+            {
+            get
+                {
+                return primOOBoffset;
+                }
+            }
 
-                public override float PrimOOBRadiusSQ
-                    {
-                    get
-                        {
-                        return primOOBradiusSQ;
-                        }
-                    }
-        */
+        public override float PrimOOBRadiusSQ
+            {
+            get
+                {
+                return primOOBradiusSQ;
+                }
+            }
+*/
         public override PrimitiveBaseShape Shape
         {
             set
@@ -582,7 +582,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (value.IsFinite())
                 {
                     AddChange(changes.Velocity, value);
-                    //                    _velocity = value;
+//                    _velocity = value;
 
                 }
                 else
@@ -937,12 +937,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
             SentEmptyCollisionsEvent = false;
-            _parent_scene.AddCollisionEventReporting(this);
         }
 
         public override void UnSubscribeEvents()
         {
-            _parent_scene.RemoveCollisionEventReporting(this);
             if (CollisionEventsThisFrame != null)
             {
                 CollisionEventsThisFrame.Clear();
@@ -975,7 +973,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 base.SendCollisionUpdate(CollisionEventsThisFrame);
 
                 if (ncolisions == 0)
+                {
                     SentEmptyCollisionsEvent = true;
+                    _parent_scene.RemoveCollisionEventReporting(this);
+                }
                 else
                 {
                     SentEmptyCollisionsEvent = false;
@@ -1735,8 +1736,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             d.BodySetAutoDisableFlag(Body, true);
             d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
-            //            d.BodySetLinearDampingThreshold(Body, 0.01f);
-            //            d.BodySetAngularDampingThreshold(Body, 0.001f);
+//            d.BodySetLinearDampingThreshold(Body, 0.01f);
+//            d.BodySetAngularDampingThreshold(Body, 0.001f);
             d.BodySetDamping(Body, .002f, .002f);
 
                 if (m_targetSpace != IntPtr.Zero)
@@ -2966,7 +2967,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             givefakepos--;
             if (givefakepos < 0)
                 givefakepos = 0;
-            //            changeSelectedStatus();
+//            changeSelectedStatus();
             resetCollisionAccounting();
         }
 
@@ -2981,14 +2982,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         _orientation = newOri;
                     }
-                    /*
-                                        else if (m_forcePosOrRotation && _orientation != newOri && Body != IntPtr.Zero)
-                                        {
-                                            FixInertia(_position, newOri);
-                                            if (!d.BodyIsEnabled(Body))
-                                                d.BodyEnable(Body);
-                                        }
-                    */
+/*
+                    else if (m_forcePosOrRotation && _orientation != newOri && Body != IntPtr.Zero)
+                    {
+                        FixInertia(_position, newOri);
+                        if (!d.BodyIsEnabled(Body))
+                            d.BodyEnable(Body);
+                    }
+*/
                 }
                 else
                 {
@@ -3939,12 +3940,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     changevelocity((Vector3)arg);
                     break;
 
-                //                case changes.Acceleration:
-                //                    changeacceleration((Vector3)arg);
-                //                    break;
-                //                case changes.AngVelocity:
-                //                    changeangvelocity((Vector3)arg);
-                //                    break;
+//                case changes.Acceleration:
+//                    changeacceleration((Vector3)arg);
+//                    break;
+//                case changes.AngVelocity:
+//                    changeangvelocity((Vector3)arg);
+//                    break;
 
                 case changes.Force:
                     changeForce((Vector3)arg);
