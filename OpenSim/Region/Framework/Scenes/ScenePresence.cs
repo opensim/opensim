@@ -3929,7 +3929,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)) ==
                 (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID) ||
-            // (m_teleportFlags & TeleportFlags.ViaLandmark) != 0 ||
                 (m_scene.TelehubAllowLandmarks == true ? false : ((m_teleportFlags & TeleportFlags.ViaLandmark) != 0 )) ||
                 (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
                 (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0)
