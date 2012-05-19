@@ -38,14 +38,8 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IRegionCombinerModule
     {
         /// <summary>
-        /// Is this simulator hosting a megaregion?
+        /// Does the given id belong to the root region of a megaregion?
         /// </summary>
-        /// <value></value>
-        bool IsMegaregion { get; }
-
-        /// <summary>
-        /// Does the given id belong to the root region of the megaregion?
-        /// </summary>
-        bool IsRootRegion(UUID sceneId);
+        bool IsRootForMegaregion(UUID sceneId);
     }
 }

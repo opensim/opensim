@@ -401,7 +401,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     if (m_module != null && m_module.RegionCombinerModule != null)
                     {
                         IRegionCombinerModule mod = m_module.RegionCombinerModule;
-                        isMegaregion = mod.IsMegaregion && mod.IsRootRegion(m_scene.RegionInfo.RegionID);
+                        isMegaregion = mod.IsRootForMegaregion(m_scene.RegionInfo.RegionID);
                     }
                     else
                     {

@@ -58,20 +58,11 @@ namespace OpenSim.Region.RegionCombinerModule
             get { return null; }
         }
 
-        public bool IsMegaregion
-        {
-            get
-            {
-                lock (m_startingScenes)
-                    return m_startingScenes.Count > 1;
-            }
-        }
-
         /// <summary>
         /// This holds the root regions for the megaregions.
         /// </summary>
         /// <remarks>
-        /// At this point we can actually assume there is only ever one megaregion (and hence only one entry here).
+        /// Usually there is only ever one megaregion (and hence only one entry here).
         /// </remarks>
         private Dictionary<UUID, RegionConnections> m_regions = new Dictionary<UUID, RegionConnections>();
 
@@ -122,7 +113,7 @@ namespace OpenSim.Region.RegionCombinerModule
             }
         }
 
-        public bool IsRootRegion(UUID sceneId)
+        public bool IsRootForMegaregion(UUID sceneId)
         {
             lock (m_regions)
                 return m_regions.ContainsKey(sceneId);
