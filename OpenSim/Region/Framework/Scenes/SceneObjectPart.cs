@@ -1604,7 +1604,10 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                     else if (PhysActor == null)
+                    {
                         ApplyPhysics((uint)Flags, VolumeDetectActive, false);
+                        UpdatePhysicsSubscribedEvents();
+                    }
                     else
                     {
                         PhysActor.PhysicsShapeType = m_physicsShapeType;
@@ -4664,7 +4667,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void RemoveFromPhysics()
         {
-            ParentGroup.Scene.PhysicsScene.RemovePrim(PhysActor);
+            PhysicsActor pa = PhysActor;
+            if (pa != null)
+            {
+                pa.OnCollisionUpdate -= PhysicsCollision;
+                pa.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
+                pa.OnOutOfBounds -= PhysicsOutOfBounds;
+
+                ParentGroup.Scene.PhysicsScene.RemovePrim(pa);
+            }
             PhysActor = null;
         }
 
