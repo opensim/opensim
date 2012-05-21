@@ -329,11 +329,13 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_cameraAtOffset;
         private bool m_forceMouselook;
 
-        // TODO: Collision sound should have default.
+
+        // 0 for default collision sounds, -1 for script disabled sound 1 for script defined sound
+        private sbyte m_collisionSoundType;
         private UUID m_collisionSound;
         private float m_collisionSoundVolume;
 
-        private DateTime LastColSoundSentTime; 
+        private int LastColSoundSentTime; 
 
 
         private SOPVehicle m_vehicle = null;
@@ -374,7 +376,7 @@ namespace OpenSim.Region.Framework.Scenes
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
             // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
             m_inventory = new SceneObjectPartInventory(this);
-            LastColSoundSentTime = DateTime.UtcNow;
+            LastColSoundSentTime = Util.EnvironmentTickCount();
         }
 
         /// <summary>
@@ -1342,12 +1344,39 @@ namespace OpenSim.Region.Framework.Scenes
 
         public UUID invalidCollisionSoundUUID = new UUID("ffffffff-ffff-ffff-ffff-ffffffffffff");
 
+        // 0 for default collision sounds, -1 for script disabled sound 1 for script defined sound
+        // runtime thing.. do not persist
+        [XmlIgnore]
+        public sbyte CollisionSoundType
+        {
+            get
+            {
+                return m_collisionSoundType;
+            }
+            set
+            {
+                m_collisionSoundType = value;
+                if (value == -1)
+                    m_collisionSound = invalidCollisionSoundUUID;
+                else if (value == 0)
+                    m_collisionSound = UUID.Zero;
+            }
+        }
+
         public UUID CollisionSound
         {
             get { return m_collisionSound; }
             set
             {           
                 m_collisionSound = value;
+
+                if (value == invalidCollisionSoundUUID)
+                    m_collisionSoundType = -1;
+                else if (value == UUID.Zero)
+                    m_collisionSoundType = 0;
+                else
+                    m_collisionSoundType = 1;
+
                 aggregateScriptEvents();
             }
         }
@@ -1575,7 +1604,10 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                     else if (PhysActor == null)
+                    {
                         ApplyPhysics((uint)Flags, VolumeDetectActive, false);
+                        UpdatePhysicsSubscribedEvents();
+                    }
                     else
                     {
                         PhysActor.PhysicsShapeType = m_physicsShapeType;
@@ -2632,13 +2664,42 @@ namespace OpenSim.Region.Framework.Scenes
 
             else
             {
+                List<CollisionForSoundInfo> soundinfolist = new List<CollisionForSoundInfo>();
+
                 // calculate things that started colliding this time
                 // and build up list of colliders this time
-                foreach (uint localid in collissionswith.Keys)
+                if (!VolumeDetectActive && CollisionSoundType >= 0)
                 {
-                    thisHitColliders.Add(localid);
-                    if (!m_lastColliders.Contains(localid))
-                        startedColliders.Add(localid);
+                    CollisionForSoundInfo soundinfo;
+                    ContactPoint curcontact;
+
+                    foreach (uint id in collissionswith.Keys)
+                    {
+                        thisHitColliders.Add(id);
+                        if (!m_lastColliders.Contains(id))
+                        {
+                            startedColliders.Add(id);
+
+                            curcontact = collissionswith[id];
+                            if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                            {
+                                soundinfo = new CollisionForSoundInfo();
+                                soundinfo.colliderID = id;
+                                soundinfo.position = curcontact.Position;
+                                soundinfo.relativeVel = curcontact.RelativeSpeed;
+                                soundinfolist.Add(soundinfo);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (uint id in collissionswith.Keys)
+                    {
+                        thisHitColliders.Add(id);
+                        if (!m_lastColliders.Contains(id))
+                            startedColliders.Add(id);
+                    }
                 }
 
                 // calculate things that ended colliding
@@ -2655,17 +2716,14 @@ namespace OpenSim.Region.Framework.Scenes
                 // remove things that ended colliding from the last colliders list
                 foreach (uint localID in endedColliders)
                     m_lastColliders.Remove(localID);
+
+                // play sounds.
+                if (soundinfolist.Count > 0)
+                    CollisionSounds.PartCollisionSound(this, soundinfolist);
             }
 
-            // play the sound.
-
-            bool IsNotVolumeDtc = !VolumeDetectActive;
-
-            if (IsNotVolumeDtc && startedColliders.Count > 0 && CollisionSound != invalidCollisionSoundUUID)
-                CollisionSounds.PartCollisionSound(this, startedColliders);
-
             SendCollisionEvent(scriptEvents.collision_start, startedColliders, ParentGroup.Scene.EventManager.TriggerScriptCollidingStart);
-            if (IsNotVolumeDtc)
+            if (!VolumeDetectActive)
                 SendCollisionEvent(scriptEvents.collision      , m_lastColliders , ParentGroup.Scene.EventManager.TriggerScriptColliding);
             SendCollisionEvent(scriptEvents.collision_end  , endedColliders  , ParentGroup.Scene.EventManager.TriggerScriptCollidingEnd);
 
@@ -3210,8 +3268,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (volume < 0)
                 volume = 0;
 
-            DateTime now = DateTime.UtcNow;
-            if((now - LastColSoundSentTime).Milliseconds < 200) // reduce rate to 5 per sec per part  ??
+            int now = Util.EnvironmentTickCount();
+            if(Util.EnvironmentTickCountSubtract(now,LastColSoundSentTime) <200)
                 return;
 
             LastColSoundSentTime = now;
@@ -4609,7 +4667,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void RemoveFromPhysics()
         {
-            ParentGroup.Scene.PhysicsScene.RemovePrim(PhysActor);
+            PhysicsActor pa = PhysActor;
+            if (pa != null)
+            {
+                pa.OnCollisionUpdate -= PhysicsCollision;
+                pa.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
+                pa.OnOutOfBounds -= PhysicsOutOfBounds;
+
+                ParentGroup.Scene.PhysicsScene.RemovePrim(pa);
+            }
             PhysActor = null;
         }
 
@@ -4778,7 +4844,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             pa.OnCollisionUpdate -= PhysicsCollision;
 
-            bool hassound = ( CollisionSound != invalidCollisionSoundUUID);
+            bool hassound = (CollisionSoundType >= 0 && !VolumeDetectActive);
+
             scriptEvents CombinedEvents = AggregateScriptEvents;
 
             // merge with root part
@@ -4787,10 +4854,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // submit to this part case
             if (VolumeDetectActive)
-            {
                 CombinedEvents &= PhyscicsVolumeDtcSubsEvents;
-                hassound = false;
-            }
             else if ((Flags & PrimFlags.Phantom) != 0)
                 CombinedEvents &= PhyscicsPhantonSubsEvents;
             else

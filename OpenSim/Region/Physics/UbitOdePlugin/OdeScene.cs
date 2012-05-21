@@ -190,6 +190,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public float ODE_STEPSIZE = 0.020f;
         public float HalfOdeStep = 0.01f;
+        public int odetimestepMS = 20; // rounded
         private float metersInSpace = 25.6f;
         private float m_timeDilation = 1.0f;
 
@@ -247,6 +248,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// A list of actors that should receive collision events.
         /// </summary>
         private readonly List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
+        private readonly List<PhysicsActor> _collisionEventPrimRemove = new List<PhysicsActor>();
         
         private readonly HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
@@ -489,6 +491,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             HalfOdeStep = ODE_STEPSIZE * 0.5f;
+            odetimestepMS = (int)(1000.0f * ODE_STEPSIZE +0.5f);
 
             ContactgeomsArray = Marshal.AllocHGlobal(contactsPerCollision * d.ContactGeom.unmanagedSizeOf);
             GlobalContactsArray = GlobalContactsArray = Marshal.AllocHGlobal(maxContactsbeforedeath * d.Contact.unmanagedSizeOf);
@@ -1064,7 +1067,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             obj2LocalID = 0;
             bool p1events = p1.SubscribedEvents();
             bool p2events = p2.SubscribedEvents();
-
+           
             if (p1.IsVolumeDtc)
                 p2events = false;
             if (p2.IsVolumeDtc)
@@ -1073,6 +1076,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (!(p2events || p1events))
                 return;
 
+            if (p1events)
+                AddCollisionEventReporting(p1);
+
+            if (p2events)
+                AddCollisionEventReporting(p2);
+
+            Vector3 vel = Vector3.Zero;
+            if (p2 != null && p2.IsPhysical)
+                vel = p2.Velocity;
+
+            if (p1 != null && p1.IsPhysical)
+                vel -= p1.Velocity;
+
+            contact.RelativeSpeed = Vector3.Dot(vel, contact.SurfaceNormal);
+             
             switch ((ActorTypes)p1.PhysicsActorType)
                 {
                 case ActorTypes.Agent:
@@ -1246,20 +1264,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         #endregion
-
-
-
         /// <summary>
         /// Add actor to the list that should receive collision events in the simulate loop.
         /// </summary>
         /// <param name="obj"></param>
         public void AddCollisionEventReporting(PhysicsActor obj)
         {
-            lock (_collisionEventPrim)
-            {
-                if (!_collisionEventPrim.Contains(obj))
-                    _collisionEventPrim.Add(obj);
-            }
+            if (!_collisionEventPrim.Contains(obj))
+                _collisionEventPrim.Add(obj);
         }
 
         /// <summary>
@@ -1268,12 +1280,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="obj"></param>
         public void RemoveCollisionEventReporting(PhysicsActor obj)
         {
-            lock (_collisionEventPrim)
-            {
-                if (_collisionEventPrim.Contains(obj))
-                    _collisionEventPrim.Remove(obj);
-            }
+            if (_collisionEventPrim.Contains(obj) && !_collisionEventPrimRemove.Contains(obj))
+                _collisionEventPrimRemove.Add(obj);
         }
+
 
         #region Add/Remove Entities
 
@@ -1463,6 +1473,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
 //                lock (OdeLock)
                 {
+                    
                     OdePrim p = (OdePrim)prim;
                     p.setPrimForRemoval();
                 }
@@ -1818,7 +1829,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             int ttmpstart = Util.EnvironmentTickCount();
                             int ttmp;
-                            int ttmp2;
 
                             while(ChangesQueue.Dequeue(out item))
                             {
@@ -1840,11 +1850,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 if (ttmp > 20)
                                     break;
                             }
-
-                            ttmp2 = Util.EnvironmentTickCountSubtract(ttmpstart);
-                            if (ttmp2 > 50)
-                                ttmp2 = 0;
-
                         }
 
                         // Move characters
@@ -1881,53 +1886,55 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         collision_optimized();
 
-                        lock (_collisionEventPrim)
+                        foreach (PhysicsActor obj in _collisionEventPrim)
                         {
-                            foreach (PhysicsActor obj in _collisionEventPrim)
+                            if (obj == null)
+                                continue;
+
+                            switch ((ActorTypes)obj.PhysicsActorType)
                             {
-                                if (obj == null)
-                                    continue;
+                                case ActorTypes.Agent:
+                                    OdeCharacter cobj = (OdeCharacter)obj;
+                                    cobj.AddCollisionFrameTime((int)(odetimestepMS));
+                                    cobj.SendCollisions();
+                                    break;
 
-                                switch ((ActorTypes)obj.PhysicsActorType)
-                                {
-                                    case ActorTypes.Agent:
-                                        OdeCharacter cobj = (OdeCharacter)obj;
-                                        cobj.AddCollisionFrameTime((int)(ODE_STEPSIZE*1000.0f));
-                                        cobj.SendCollisions();
-                                        break;
-
-                                    case ActorTypes.Prim:
-                                        OdePrim pobj = (OdePrim)obj;
-                                        if (pobj.Body == IntPtr.Zero || (d.BodyIsEnabled(pobj.Body) && !pobj.m_outbounds))
-                                        {
-                                            pobj.AddCollisionFrameTime((int)(ODE_STEPSIZE * 1000.0f));
-                                            pobj.SendCollisions();
-                                        }
-                                        break;
-                                }
+                                case ActorTypes.Prim:
+                                    OdePrim pobj = (OdePrim)obj;
+                                    if (pobj.Body == IntPtr.Zero || (d.BodyIsEnabled(pobj.Body) && !pobj.m_outbounds))
+                                    {
+                                        pobj.AddCollisionFrameTime((int)(odetimestepMS));
+                                        pobj.SendCollisions();
+                                    }
+                                    break;
                             }
                         }
+
+                        foreach (PhysicsActor obj in _collisionEventPrimRemove)
+                            _collisionEventPrim.Remove(obj);
+
+                        _collisionEventPrimRemove.Clear();
 
                         // do a ode simulation step
                         d.WorldQuickStep(world, ODE_STEPSIZE);
                         d.JointGroupEmpty(contactgroup);
 
                         // update managed ideia of physical data and do updates to core
-                        /*
-                                        lock (_characters)
-                                        {
-                                            foreach (OdeCharacter actor in _characters)
-                                            {
-                                                if (actor != null)
-                                                {
-                                                    if (actor.bad)
-                                                        m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
+        /*
+                        lock (_characters)
+                        {
+                            foreach (OdeCharacter actor in _characters)
+                            {
+                                if (actor != null)
+                                {
+                                    if (actor.bad)
+                                        m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
 
-                                                    actor.UpdatePositionAndVelocity();
-                                                }
-                                            }
-                                        }
-                        */
+                                    actor.UpdatePositionAndVelocity();
+                                }
+                            }
+                        }
+        */
 
                         lock (_activegroups)
                         {
