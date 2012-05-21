@@ -2562,10 +2562,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 d.Quaternion qtmp;
                 d.GeomCopyQuaternion(prim_geom, out qtmp);
-                _orientation.W = qtmp.W;
                 _orientation.X = qtmp.X;
                 _orientation.Y = qtmp.Y;
                 _orientation.Z = qtmp.Z;
+                _orientation.W = qtmp.W;
 
                 d.Vector3 lpos = d.GeomGetPosition(prim_geom);
                 _position.X = lpos.X;
