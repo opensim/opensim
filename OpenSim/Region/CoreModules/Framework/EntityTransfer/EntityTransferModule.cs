@@ -230,6 +230,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 "[ENTITY TRANSFER MODULE]: Teleport for {0} to {1} within {2}",
                 sp.Name, position, sp.Scene.RegionInfo.RegionName);
 
+            if (!SetInTransit(sp.UUID))
+            {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Ignoring within region teleport request of {0} {1} to {2} - agent is already in transit.",
+                    sp.Name, sp.UUID, position);
+            }
+
             // Teleport within the same region
             if (IsOutsideRegion(sp.Scene, position) || position.Z < 0)
             {
@@ -268,6 +275,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
             }
+
+            ResetFromTransit(sp.UUID);            
         }
 
         /// <summary>
