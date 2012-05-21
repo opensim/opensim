@@ -1482,6 +1482,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!haveMesh)
                     m_NoColide = true;
             }
+            else if(_pbs.SculptEntry)
+                m_NoColide = true; // also don't colide if is a sculp or mesh and meshing is off
 
             if (!haveMesh)
             {
