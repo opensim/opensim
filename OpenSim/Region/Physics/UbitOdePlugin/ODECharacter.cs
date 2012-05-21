@@ -784,8 +784,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // the Amotor still lets avatar rotation to drift during colisions
             // so force it back to identity
-            
-
 
             d.Quaternion qtmp;
             qtmp.W = 1;
@@ -1177,9 +1175,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal void AddCollisionFrameTime(int t)
         {
             // protect it from overflow crashing
-            if (m_cureventsubscription + t >= int.MaxValue)
-                m_cureventsubscription = 0;
-            m_cureventsubscription += t;
+            if (m_cureventsubscription < 50000)
+                m_cureventsubscription += t;
         }
 
         public override bool SubscribedEvents()

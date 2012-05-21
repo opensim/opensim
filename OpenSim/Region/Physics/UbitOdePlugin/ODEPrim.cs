@@ -987,11 +987,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void AddCollisionFrameTime(int t)
         {
-            // protect it from overflow crashing
-            if (m_cureventsubscription + t >= int.MaxValue)
-                m_cureventsubscription = 0;
-            m_cureventsubscription += t;
+            if (m_cureventsubscription < 50000)
+                m_cureventsubscription += t;
         }
+
         public override bool SubscribedEvents()
         {
             if (m_eventsubscription > 0)
@@ -2563,10 +2562,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 d.Quaternion qtmp;
                 d.GeomCopyQuaternion(prim_geom, out qtmp);
-                _orientation.W = qtmp.W;
                 _orientation.X = qtmp.X;
                 _orientation.Y = qtmp.Y;
                 _orientation.Z = qtmp.Z;
+                _orientation.W = qtmp.W;
 
                 d.Vector3 lpos = d.GeomGetPosition(prim_geom);
                 _position.X = lpos.X;

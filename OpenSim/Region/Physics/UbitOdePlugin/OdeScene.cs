@@ -190,6 +190,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public float ODE_STEPSIZE = 0.020f;
         public float HalfOdeStep = 0.01f;
+        public int odetimestepMS = 20; // rounded
         private float metersInSpace = 25.6f;
         private float m_timeDilation = 1.0f;
 
@@ -490,6 +491,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             HalfOdeStep = ODE_STEPSIZE * 0.5f;
+            odetimestepMS = (int)(1000.0f * ODE_STEPSIZE +0.5f);
 
             ContactgeomsArray = Marshal.AllocHGlobal(contactsPerCollision * d.ContactGeom.unmanagedSizeOf);
             GlobalContactsArray = GlobalContactsArray = Marshal.AllocHGlobal(maxContactsbeforedeath * d.Contact.unmanagedSizeOf);
@@ -1004,16 +1006,82 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
 
                 {
-                    if (dop1foot && (p1.Position.Z - curContact.pos.Z) > (p1.Size.Z - avCapRadius) * 0.5f)
-                        p1.IsColliding = true;
-                    if (dop2foot && (p2.Position.Z - curContact.pos.Z) > (p2.Size.Z - avCapRadius) * 0.5f)
-                        p2.IsColliding = true;
 
-                    if (AvanormOverride && curContact.depth > 0.3f)
+                    if (AvanormOverride)
                     {
-                        curContact.normal.X = normoverride.X;
-                        curContact.normal.Y = normoverride.Y;
-                        curContact.normal.Z = normoverride.Z;
+                        if (curContact.depth > 0.3f)
+                        {
+                            if (dop1foot && (p1.Position.Z - curContact.pos.Z) > (p1.Size.Z - avCapRadius) * 0.5f)
+                                p1.IsColliding = true;
+                            if (dop2foot && (p2.Position.Z - curContact.pos.Z) > (p2.Size.Z - avCapRadius) * 0.5f)
+                                p2.IsColliding = true;
+                            curContact.normal.X = normoverride.X;
+                            curContact.normal.Y = normoverride.Y;
+                            curContact.normal.Z = normoverride.Z;
+                        }
+
+                        else
+                        {
+                            if (dop1foot)
+                            {
+                                float sz = p1.Size.Z;
+                                Vector3 vtmp = p1.Position;
+                                float ppos = curContact.pos.Z - vtmp.Z + (sz - avCapRadius) * 0.5f;
+                                if (ppos > 0f)
+                                {
+                                    if (!p1.Flying)
+                                    {
+                                        d.AABB aabb;
+                                        d.GeomGetAABB(g2, out aabb);
+                                        float tmp = vtmp.Z - sz * .25f;
+
+                                        if (aabb.MaxZ < tmp)
+                                        {
+                                            vtmp.X = curContact.pos.X - vtmp.X;
+                                            vtmp.Y = curContact.pos.Y - vtmp.Y;
+                                            vtmp.Z = -0.2f;
+                                            vtmp.Normalize();
+                                            curContact.normal.X = vtmp.X;
+                                            curContact.normal.Y = vtmp.Y;
+                                            curContact.normal.Z = vtmp.Z;
+                                        }
+                                    }
+                                }
+                                else
+                                    p1.IsColliding = true;
+
+                            }
+
+                            if (dop2foot)
+                            {
+                                float sz = p2.Size.Z;
+                                Vector3 vtmp = p2.Position;
+                                float ppos = curContact.pos.Z - vtmp.Z + (sz - avCapRadius) * 0.5f;
+                                if (ppos > 0f)
+                                {
+                                    if (!p2.Flying)
+                                    {
+                                        d.AABB aabb;
+                                        d.GeomGetAABB(g1, out aabb);
+                                        float tmp = vtmp.Z - sz * .25f;
+
+                                        if (aabb.MaxZ < tmp)
+                                        {
+                                            vtmp.X = curContact.pos.X - vtmp.X;
+                                            vtmp.Y = curContact.pos.Y - vtmp.Y;
+                                            vtmp.Z = -0.2f;
+                                            vtmp.Normalize();
+                                            curContact.normal.X = vtmp.X;
+                                            curContact.normal.Y = vtmp.Y;
+                                            curContact.normal.Z = vtmp.Z;
+                                        }
+                                    }
+                                }
+                                else
+                                    p2.IsColliding = true;
+
+                            }
+                        }
                     }
 
                     Joint = CreateContacJoint(ref curContact, mu, bounce, cfm, erpscale, dscale);
@@ -1827,7 +1895,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             int ttmpstart = Util.EnvironmentTickCount();
                             int ttmp;
-                            int ttmp2;
 
                             while(ChangesQueue.Dequeue(out item))
                             {
@@ -1849,11 +1916,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 if (ttmp > 20)
                                     break;
                             }
-
-                            ttmp2 = Util.EnvironmentTickCountSubtract(ttmpstart);
-                            if (ttmp2 > 50)
-                                ttmp2 = 0;
-
                         }
 
                         // Move characters
@@ -1899,7 +1961,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 case ActorTypes.Agent:
                                     OdeCharacter cobj = (OdeCharacter)obj;
-                                    cobj.AddCollisionFrameTime((int)(ODE_STEPSIZE * 1000.0f));
+                                    cobj.AddCollisionFrameTime((int)(odetimestepMS));
                                     cobj.SendCollisions();
                                     break;
 
@@ -1907,7 +1969,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     OdePrim pobj = (OdePrim)obj;
                                     if (pobj.Body == IntPtr.Zero || (d.BodyIsEnabled(pobj.Body) && !pobj.m_outbounds))
                                     {
-                                        pobj.AddCollisionFrameTime((int)(ODE_STEPSIZE * 1000.0f));
+                                        pobj.AddCollisionFrameTime((int)(odetimestepMS));
                                         pobj.SendCollisions();
                                     }
                                     break;
@@ -1924,21 +1986,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.JointGroupEmpty(contactgroup);
 
                         // update managed ideia of physical data and do updates to core
-                        /*
-                                        lock (_characters)
-                                        {
-                                            foreach (OdeCharacter actor in _characters)
-                                            {
-                                                if (actor != null)
-                                                {
-                                                    if (actor.bad)
-                                                        m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
+        /*
+                        lock (_characters)
+                        {
+                            foreach (OdeCharacter actor in _characters)
+                            {
+                                if (actor != null)
+                                {
+                                    if (actor.bad)
+                                        m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
 
-                                                    actor.UpdatePositionAndVelocity();
-                                                }
-                                            }
-                                        }
-                        */
+                                    actor.UpdatePositionAndVelocity();
+                                }
+                            }
+                        }
+        */
 
                         lock (_activegroups)
                         {
