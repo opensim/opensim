@@ -302,7 +302,8 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool AddFolder(InventoryFolderBase folder)
         {
-            //m_log.DebugFormat("[XINVENTORY]: Add folder {0} type {1} in parent {2}", folder.Name, folder.Type, folder.ParentID);
+//            m_log.DebugFormat("[XINVENTORY]: Add folder {0} type {1} in parent {2}", folder.Name, folder.Type, folder.ParentID);
+
             InventoryFolderBase check = GetFolder(folder);
             if (check != null)
                 return false;
@@ -346,7 +347,7 @@ namespace OpenSim.Services.InventoryService
 
                 check.Version = (ushort)xFolder.version;
                 xFolder = ConvertFromOpenSim(check);
-                
+
 //                m_log.DebugFormat(
 //                    "[XINVENTORY]: Storing version only update to system folder {0} {1} {2}",
 //                    xFolder.folderName, xFolder.version, xFolder.type);
@@ -442,7 +443,6 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool UpdateItem(InventoryItemBase item)
         {
-//            throw new Exception("urrgh");
             if (!m_AllowDelete)
                 if (item.AssetType == (sbyte)AssetType.Link || item.AssetType == (sbyte)AssetType.LinkFolder)
                     return false;
