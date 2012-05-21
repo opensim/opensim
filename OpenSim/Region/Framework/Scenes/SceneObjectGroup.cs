@@ -3741,7 +3741,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         if ((change & ObjectChangeType.Position) != 0)
                         {
-                            if (m_scene.Permissions.CanObjectEntry(group.UUID, false, data.position))
+                            if (IsAttachment || m_scene.Permissions.CanObjectEntry(group.UUID, false, data.position))
                                 UpdateGroupPosition(data.position);
                             updateType = updatetype.groupterse;
                         }
