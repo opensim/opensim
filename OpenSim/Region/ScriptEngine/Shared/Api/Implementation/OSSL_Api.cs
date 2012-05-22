@@ -957,16 +957,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence target = (ScenePresence)World.Entities[avatarID];
                 if (target != null)
                 {
-                    UUID animID = UUID.Zero;
-                    lock (m_host.TaskInventory)
+                    UUID animID = new UUID();
+                    if (!UUID.TryParse(animation, out animID))
                     {
-                        foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                        animID = UUID.Zero;
+                        lock (m_host.TaskInventory)
                         {
-                            if (inv.Value.Name == animation)
+                            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
                             {
-                                if (inv.Value.Type == (int)AssetType.Animation)
-                                    animID = inv.Value.AssetID;
-                                continue;
+                                if (inv.Value.Name == animation)
+                                {
+                                    if (inv.Value.Type == (int)AssetType.Animation)
+                                        animID = inv.Value.AssetID;
+                                    continue;
+                                }
                             }
                         }
                     }
