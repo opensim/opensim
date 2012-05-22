@@ -3406,9 +3406,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             ScenePresence presence = World.GetScenePresence(agentID);
-
             if (presence != null)
             {
+                // If permissions are being requested from an NPC and were not implicitly granted above then
+                // auto grant all reuqested permissions if the script is owned by the NPC or the NPCs owner
+                INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
+                if (npcModule != null && npcModule.IsNPC(agentID, World))
+                {
+                    if (agentID == m_host.ParentGroup.OwnerID || npcModule.GetOwner(agentID) == m_host.ParentGroup.OwnerID)
+                    {
+                        lock (m_host.TaskInventory)
+                        {
+                            m_host.TaskInventory[m_item.ItemID].PermsGranter = agentID;
+                            m_host.TaskInventory[m_item.ItemID].PermsMask = perm;
+                        }
+
+                        m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                                "run_time_permissions", new Object[] {
+                            new LSL_Integer(perm) },
+                                new DetectParams[0]));
+                    }
+                    // it is an NPC, exit even if the permissions werent granted above, they are not going to answer
+                    // the question!
+                    return;
+                }
+
                 string ownerName = resolveName(m_host.ParentGroup.RootPart.OwnerID);
                 if (ownerName == String.Empty)
                     ownerName = "(hippos)";
