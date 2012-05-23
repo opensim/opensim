@@ -77,7 +77,12 @@ namespace OpenSim.Region.Framework.Scenes
         public bool DebugUpdates { get; private set; }
 
         public SynchronizeSceneHandler SynchronizeScene;
-        public SimStatsReporter StatsReporter;
+
+        /// <summary>
+        /// Statistical information for this scene.
+        /// </summary>
+        public SimStatsReporter StatsReporter { get; private set; }
+
         public List<Border> NorthBorders = new List<Border>();
         public List<Border> EastBorders = new List<Border>();
         public List<Border> SouthBorders = new List<Border>();
