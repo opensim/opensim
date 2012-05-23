@@ -74,6 +74,13 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name='client'></param>
         void TeleportHome(UUID id, IClientAPI client);
 
+        /// <summary>
+        /// Show whether the given agent is being teleported.
+        /// </summary>
+        /// <returns>true if the agent is in the process of being teleported, false otherwise.</returns>
+        /// <param name='id'>The agent ID</para></param>
+        bool IsInTransit(UUID id);        
+
         bool Cross(ScenePresence agent, bool isFlying);
 
         void AgentArrivedAtDestination(UUID agent);

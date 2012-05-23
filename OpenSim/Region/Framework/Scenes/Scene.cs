@@ -166,7 +166,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected IConfigSource m_config;
         protected IRegionSerialiserModule m_serialiser;
         protected IDialogModule m_dialogModule;
-        protected IEntityTransferModule m_teleportModule;
         protected ICapabilitiesModule m_capsModule;
         protected IGroupsModule m_groupsModule;
 
@@ -498,6 +497,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public IAttachmentsModule AttachmentsModule { get; set; }
+        public IEntityTransferModule EntityTransferModule { get; private set; }
 
         public IAvatarFactoryModule AvatarFactory
         {
@@ -924,8 +924,8 @@ namespace OpenSim.Region.Framework.Scenes
                             List<ulong> old = new List<ulong>();
                             old.Add(otherRegion.RegionHandle);
                             agent.DropOldNeighbours(old);
-                            if (m_teleportModule != null && agent.PresenceType != PresenceType.Npc)
-                                m_teleportModule.EnableChildAgent(agent, otherRegion);
+                            if (EntityTransferModule != null && agent.PresenceType != PresenceType.Npc)
+                                EntityTransferModule.EnableChildAgent(agent, otherRegion);
                         });
                     }
                     catch (NullReferenceException)
@@ -1062,8 +1062,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         ForEachRootScenePresence(delegate(ScenePresence agent)
                         {
-                            if (m_teleportModule != null && agent.PresenceType != PresenceType.Npc)
-                                m_teleportModule.EnableChildAgent(agent, r);
+                            if (EntityTransferModule != null && agent.PresenceType != PresenceType.Npc)
+                                EntityTransferModule.EnableChildAgent(agent, r);
                         });
                     }
                     catch (NullReferenceException)
@@ -1238,7 +1238,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_serialiser = RequestModuleInterface<IRegionSerialiserModule>();
             m_dialogModule = RequestModuleInterface<IDialogModule>();
             m_capsModule = RequestModuleInterface<ICapabilitiesModule>();
-            m_teleportModule = RequestModuleInterface<IEntityTransferModule>();
+            EntityTransferModule = RequestModuleInterface<IEntityTransferModule>();
             m_groupsModule = RequestModuleInterface<IGroupsModule>();
         }
 
@@ -2275,8 +2275,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            if (m_teleportModule != null)
-                m_teleportModule.Cross(grp, attemptedPosition, silent);
+            if (EntityTransferModule != null)
+                EntityTransferModule.Cross(grp, attemptedPosition, silent);
         }
 
         public Border GetCrossedBorder(Vector3 position, Cardinals gridline)
@@ -3078,8 +3078,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="client">The IClientAPI for the client</param>
         public virtual void TeleportClientHome(UUID agentId, IClientAPI client)
         {
-            if (m_teleportModule != null)
-                m_teleportModule.TeleportHome(agentId, client);
+            if (EntityTransferModule != null)
+            {
+                EntityTransferModule.TeleportHome(agentId, client);
+            }
             else
             {
                 m_log.DebugFormat("[SCENE]: Unable to teleport user home: no AgentTransferModule is active");
@@ -3638,7 +3640,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool TestLandRestrictions(AgentCircuitData agent, ILandObject land,  out string reason)
         {
-      
             bool banned = land.IsBannedFromLand(agent.AgentID);
             bool restricted = land.IsRestrictedFromLand(agent.AgentID);
 
@@ -4131,8 +4132,10 @@ namespace OpenSim.Region.Framework.Scenes
                     position.Y -= shifty;
                 }
 
-                if (m_teleportModule != null)
-                    m_teleportModule.Teleport(sp, regionHandle, position, lookAt, teleportFlags);
+                if (EntityTransferModule != null)
+                {
+                    EntityTransferModule.Teleport(sp, regionHandle, position, lookAt, teleportFlags);
+                }
                 else
                 {
                     m_log.DebugFormat("[SCENE]: Unable to perform teleports: no AgentTransferModule is active");
@@ -4143,8 +4146,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
         {
-            if (m_teleportModule != null)
-                return m_teleportModule.Cross(agent, isFlying);
+            if (EntityTransferModule != null)
+            {
+                return EntityTransferModule.Cross(agent, isFlying);
+            }
             else
             {
                 m_log.DebugFormat("[SCENE]: Unable to cross agent to neighbouring region, because there is no AgentTransferModule");
@@ -5188,14 +5193,34 @@ namespace OpenSim.Region.Framework.Scenes
                 throw new Exception(error);
         }
 
-        // This method is called across the simulation connector to
-        // determine if a given agent is allowed in this region
-        // AS A ROOT AGENT. Returning false here will prevent them
-        // from logging into the region, teleporting into the region
-        // or corssing the broder walking, but will NOT prevent
-        // child agent creation, thereby emulating the SL behavior.
+        /// <summary>
+        /// This method is called across the simulation connector to
+        /// determine if a given agent is allowed in this region
+        /// AS A ROOT AGENT
+        /// </summary>
+        /// <remarks>
+        /// Returning false here will prevent them
+        /// from logging into the region, teleporting into the region
+        /// or corssing the broder walking, but will NOT prevent
+        /// child agent creation, thereby emulating the SL behavior.
+        /// </remarks>
+        /// <param name='agentID'></param>
+        /// <param name='position'></param>
+        /// <param name='reason'></param>
+        /// <returns></returns>
         public bool QueryAccess(UUID agentID, Vector3 position, out string reason)
         {
+            if (EntityTransferModule.IsInTransit(agentID))
+            {
+                reason = "Agent is already in transit on this region";
+
+                m_log.DebugFormat(
+                    "[SCENE]: Denying agent {0} entry into {1} since region already has them registered as in transit",
+                    agentID, RegionInfo.RegionName);
+
+                return false;
+            }
+
             // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
             // However, the long term fix is to make sure root agent count is always accurate.
             m_sceneGraph.RecalculateStats();

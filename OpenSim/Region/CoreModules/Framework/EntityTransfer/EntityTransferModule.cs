@@ -46,7 +46,7 @@ using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 {
-    public class EntityTransferModule : ISharedRegionModule, IEntityTransferModule
+    public class EntityTransferModule : INonSharedRegionModule, IEntityTransferModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -65,9 +65,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public bool EnableWaitForCallbackFromTeleportDest { get; set; }
 
         protected bool m_Enabled = false;
-        protected Scene m_aScene;
-        protected List<Scene> m_Scenes = new List<Scene>();
+
+        protected Scene m_scene;
+
         protected List<UUID> m_agentsInTransit;
+
         private ExpiringCache<UUID, ExpiringCache<ulong, DateTime>> m_bannedRegions =
                 new ExpiringCache<UUID, ExpiringCache<ulong, DateTime>>();
 
@@ -129,10 +131,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (!m_Enabled)
                 return;
 
-            if (m_aScene == null)
-                m_aScene = scene;
+            m_scene = scene;
 
-            m_Scenes.Add(scene);
             scene.RegisterModuleInterface<IEntityTransferModule>(this);
             scene.EventManager.OnNewClient += OnNewClient;
         }
@@ -143,27 +143,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
         }
 
-        public virtual void Close()
-        {
-            if (!m_Enabled)
-                return;
-        }
+        public virtual void Close() {}
 
-        public virtual void RemoveRegion(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-            if (scene == m_aScene)
-                m_aScene = null;
+        public virtual void RemoveRegion(Scene scene) {}
 
-            m_Scenes.Remove(scene);
-        }
-
-        public virtual void RegionLoaded(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-        }
+        public virtual void RegionLoaded(Scene scene) {}
 
         #endregion
 
@@ -294,7 +278,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             uint x = 0, y = 0;
             Utils.LongToUInts(regionHandle, out x, out y);
-            GridRegion reg = m_aScene.GridService.GetRegionByPosition(sp.Scene.RegionInfo.ScopeID, (int)x, (int)y);
+            GridRegion reg = m_scene.GridService.GetRegionByPosition(sp.Scene.RegionInfo.ScopeID, (int)x, (int)y);
 
             if (reg != null)
             {
@@ -441,7 +425,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 string reason;
                 string version;
-                if (!m_aScene.SimulationService.QueryAccess(
+                if (!m_scene.SimulationService.QueryAccess(
                     finalDestination, sp.ControllingClient.AgentId, Vector3.Zero, out version, out reason))
                 {
                     sp.ControllingClient.SendTeleportFailed(reason);
@@ -660,7 +644,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             EnableChildAgents(sp);
 
             // Finally, kill the agent we just created at the destination.
-            m_aScene.SimulationService.CloseAgent(finalDestination, sp.UUID);
+            m_scene.SimulationService.CloseAgent(finalDestination, sp.UUID);
 
             sp.Scene.EventManager.TriggerTeleportFail(sp.ControllingClient, logout);
         }
@@ -668,7 +652,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason, out bool logout)
         {
             logout = false;
-            bool success = m_aScene.SimulationService.CreateAgent(finalDestination, agentCircuit, teleportFlags, out reason);
+            bool success = m_scene.SimulationService.CreateAgent(finalDestination, agentCircuit, teleportFlags, out reason);
 
             if (success)
                 sp.Scene.EventManager.TriggerTeleportStart(sp.ControllingClient, reg, finalDestination, teleportFlags, logout);
@@ -678,7 +662,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent)
         {
-            return m_aScene.SimulationService.UpdateAgent(finalDestination, agent);
+            return m_scene.SimulationService.UpdateAgent(finalDestination, agent);
         }
 
         protected virtual void SetCallbackURL(AgentData agent, RegionInfo region)
@@ -730,7 +714,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return false;
         }
 
-
         #endregion
 
         #region Landmark Teleport
@@ -742,7 +725,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="position"></param>
         public virtual void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm)
         {
-            GridRegion info = m_aScene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
+            GridRegion info = m_scene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
 
             if (info == null)
             {
@@ -763,12 +746,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.Name, client.AgentId);
 
-            //OpenSim.Services.Interfaces.PresenceInfo pinfo = m_aScene.PresenceService.GetAgent(client.SessionId);
-            GridUserInfo uinfo = m_aScene.GridUserService.GetGridUserInfo(client.AgentId.ToString());
+            //OpenSim.Services.Interfaces.PresenceInfo pinfo = m_scene.PresenceService.GetAgent(client.SessionId);
+            GridUserInfo uinfo = m_scene.GridUserService.GetGridUserInfo(client.AgentId.ToString());
 
             if (uinfo != null)
             {
-                GridRegion regionInfo = m_aScene.GridService.GetRegionByUUID(UUID.Zero, uinfo.HomeRegionID);
+                GridRegion regionInfo = m_scene.GridService.GetRegionByUUID(UUID.Zero, uinfo.HomeRegionID);
                 if (regionInfo == null)
                 {
                     // can't find the Home region: Tell viewer and abort
@@ -1625,7 +1608,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         #region Agent Arrived
         public void AgentArrivedAtDestination(UUID id)
         {
-            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Agent {0} released", id);
             ResetFromTransit(id);
         }
 
@@ -1896,8 +1878,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 //// And the new channel...
                 //if (m_interregionCommsOut != null)
                 //    successYN = m_interregionCommsOut.SendCreateObject(newRegionHandle, grp, true);
-                if (m_aScene.SimulationService != null)
-                    successYN = m_aScene.SimulationService.CreateObject(destination, newPosition, grp, true);
+                if (m_scene.SimulationService != null)
+                    successYN = m_scene.SimulationService.CreateObject(destination, newPosition, grp, true);
 
                 if (successYN)
                 {
@@ -2004,7 +1986,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </summary>
         /// <returns>true if the agent is in the process of being teleported, false otherwise.</returns>
         /// <param name='id'>The agent ID</para></param>
-        protected bool IsInTransit(UUID id)
+        public bool IsInTransit(UUID id)
         {
             lock (m_agentsInTransit)
                 return m_agentsInTransit.Contains(id);
@@ -2024,9 +2006,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (m_agentsInTransit.Contains(id))
                 {
                     m_agentsInTransit.Remove(id);
+
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: Agent {0} cleared from transit in {1}",
+                        id, m_scene.RegionInfo.RegionName);
+
                     return true;
                 }
             }
+
+            m_log.WarnFormat(
+                "[ENTITY TRANSFER MODULE]: Agent {0} requested to clear from transit in {1} but was already cleared.",
+                id, m_scene.RegionInfo.RegionName);
 
             return false;
         }
