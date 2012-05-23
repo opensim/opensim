@@ -175,7 +175,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                            sbyte assetType,
                                            byte wearableType, uint nextOwnerMask, int creationDate)
         {
-            m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item {0} in folder {1}", name, folderID);
+            m_log.DebugFormat("[INVENTORY ACCESS MODULE]: Received request to create inventory item {0} in folder {1}", name, folderID);
 
             if (!m_Scene.Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
@@ -210,7 +210,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 else
                 {
                     m_log.ErrorFormat(
-                        "ScenePresence for agent uuid {0} unexpectedly not found in CreateNewInventoryItem",
+                        "[INVENTORY ACCESS MODULE]: ScenePresence for agent uuid {0} unexpectedly not found in CreateNewInventoryItem",
                         remoteClient.AgentId);
                 }
             }
@@ -288,7 +288,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             else
             {
                 m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find item {0} for caps inventory update",
+                    "[INVENTORY ACCESS MODULE]: Could not find item {0} for caps inventory update",
                     itemID);
             }
 
@@ -605,7 +605,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (null == item)
                 {
                     m_log.DebugFormat(
-                        "[AGENT INVENTORY]: Object {0} {1} scheduled for save to inventory has already been deleted.",
+                        "[INVENTORY ACCESS MODULE]:  Object {0} {1} scheduled for save to inventory has already been deleted.",
                         so.Name, so.UUID);
                     
                     return null;
@@ -706,7 +706,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (item == null)
             {
                 m_log.WarnFormat(
-                    "[InventoryAccessModule]: Could not find item {0} for {1} in RezObject()",
+                    "[INVENTORY ACCESS MODULE]: Could not find item {0} for {1} in RezObject()",
                     itemID, remoteClient.Name);
 
                 return null;
@@ -738,7 +738,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 else
                 {
                     m_log.WarnFormat(
-                        "[InventoryAccessModule]: Could not find asset {0} for {1} in RezObject()",
+                        "[INVENTORY ACCESS MODULE]: Could not find asset {0} for {1} in RezObject()",
                         assetID, remoteClient.Name);
                 }
 
@@ -815,7 +815,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 group = objlist[i];
 
 //                m_log.DebugFormat(
-//                    "[InventoryAccessModule]: Preparing to rez {0} {1} {2} ownermask={3:X} nextownermask={4:X} groupmask={5:X} everyonemask={6:X} for {7}",
+//                    "[INVENTORY ACCESS MODULE]: Preparing to rez {0} {1} {2} ownermask={3:X} nextownermask={4:X} groupmask={5:X} everyonemask={6:X} for {7}",
 //                    group.Name, group.LocalId, group.UUID,
 //                    group.RootPart.OwnerMask, group.RootPart.NextOwnerMask, group.RootPart.GroupMask, group.RootPart.EveryoneMask,
 //                    remoteClient.Name);
@@ -823,7 +823,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                        Vector3 storedPosition = group.AbsolutePosition;
                 if (group.UUID == UUID.Zero)
                 {
-                    m_log.Debug("[InventoryAccessModule]: Object has UUID.Zero! Position 3");
+                    m_log.Debug("[INVENTORY ACCESS MODULE]: Object has UUID.Zero! Position 3");
                 }
 
                 foreach (SceneObjectPart part in group.Parts)
@@ -886,7 +886,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
 
 //                m_log.DebugFormat(
-//                    "[InventoryAccessModule]: Rezzed {0} {1} {2} ownermask={3:X} nextownermask={4:X} groupmask={5:X} everyonemask={6:X} for {7}",
+//                    "[INVENTORY ACCESS MODULE]:  Rezzed {0} {1} {2} ownermask={3:X} nextownermask={4:X} groupmask={5:X} everyonemask={6:X} for {7}",
 //                    group.Name, group.LocalId, group.UUID,
 //                    group.RootPart.OwnerMask, group.RootPart.NextOwnerMask, group.RootPart.GroupMask, group.RootPart.EveryoneMask,
 //                    remoteClient.Name);
@@ -1101,7 +1101,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (assetRequestItem.AssetID != requestID)
             {
                 m_log.WarnFormat(
-                    "[CLIENT]: {0} requested asset {1} from item {2} but this does not match item's asset {3}",
+                    "[INVENTORY ACCESS MODULE]:  {0} requested asset {1} from item {2} but this does not match item's asset {3}",
                     Name, requestID, itemID, assetRequestItem.AssetID);
 
                 return false;
