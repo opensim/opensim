@@ -58,22 +58,22 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         
         public void Initialise(IConfigSource source)
         {
-//            m_log.DebugFormat("[OBJECT COMMANDS MODULE]: INITIALIZED MODULE");
+//            m_log.DebugFormat("[REGION COMMANDS MODULE]: INITIALIZED MODULE");
         }
         
         public void PostInitialise()
         {
-//            m_log.DebugFormat("[OBJECT COMMANDS MODULE]: POST INITIALIZED MODULE");
+//            m_log.DebugFormat("[REGION COMMANDS MODULE]: POST INITIALIZED MODULE");
         }
         
         public void Close()
         {
-//            m_log.DebugFormat("[OBJECT COMMANDS MODULE]: CLOSED MODULE");
+//            m_log.DebugFormat("[REGION COMMANDS MODULE]: CLOSED MODULE");
         }
         
         public void AddRegion(Scene scene)
         {
-//            m_log.DebugFormat("[OBJECT COMMANDS MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[REGION COMMANDS MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
 
             m_scene = scene;
             m_console = MainConsole.Instance;
@@ -86,12 +86,12 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
         public void RemoveRegion(Scene scene)
         {
-//            m_log.DebugFormat("[OBJECTS COMMANDS MODULE]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[REGION COMMANDS MODULE]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
         }
 
         public void RegionLoaded(Scene scene)
         {
-//            m_log.DebugFormat("[OBJECTS COMMANDS MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[REGION COMMANDS MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
         }
 
         private void HandleShowScene(string module, string[] cmd)
