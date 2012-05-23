@@ -9098,7 +9098,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 GridRegion info;
 
-                if (m_ScriptEngine.World.RegionInfo.RegionName == simulator)
+                if (m_ScriptEngine.World.RegionInfo.RegionName == simulator) //Det data for this simulator?
+
                     info = new GridRegion(m_ScriptEngine.World.RegionInfo);
                 else
                     info = m_ScriptEngine.World.GridService.GetRegionByName(m_ScriptEngine.World.RegionInfo.ScopeID, simulator);
@@ -9111,10 +9112,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ScriptSleep(1000);
                             return UUID.Zero.ToString();
                         }
-                        reply = new LSL_Vector(
-                            info.RegionLocX,
-                            info.RegionLocY,
-                            0).ToString();
+                        if (m_ScriptEngine.World.RegionInfo.RegionName != simulator)
+                        {
+                            //Hypergrid Region co-ordinates
+                            uint rx = 0, ry = 0;
+                            Utils.LongToUInts(Convert.ToUInt64(info.RegionSecret), out rx, out ry);
+
+                            reply = new LSL_Vector(
+                                rx,
+                                ry,
+                                0).ToString();
+                        }
+                        else
+                        {
+                            //Local-cooridnates
+                            reply = new LSL_Vector(
+                                info.RegionLocX,
+                                info.RegionLocY,
+                                0).ToString();
+                        }
                         break;
                     case ScriptBaseClass.DATA_SIM_STATUS:
                         if (info != null)
