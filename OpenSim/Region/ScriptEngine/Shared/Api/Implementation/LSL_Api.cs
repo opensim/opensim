@@ -8743,7 +8743,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetSimulatorHostname()
         {
             m_host.AddScriptLPS(1);
-            return System.Environment.MachineName;
+            IUrlModule UrlModule = World.RequestModuleInterface<IUrlModule>();
+            return UrlModule.ExternalHostNameForLSL;
         }
 
         //  <summary>
