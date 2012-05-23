@@ -76,6 +76,24 @@ namespace OpenSim.Data.Null
             //This connector doesn't support the windlight module yet
         }
 
+        #region Environment Settings
+        public string LoadRegionEnvironmentSettings(UUID regionUUID)
+        {
+            //This connector doesn't support the Environment module yet
+            return string.Empty;
+        }
+
+        public void StoreRegionEnvironmentSettings(UUID regionUUID, string settings)
+        {
+            //This connector doesn't support the Environment module yet
+        }
+
+        public void RemoveRegionEnvironmentSettings(UUID regionUUID)
+        {
+            //This connector doesn't support the Environment module yet
+        }
+        #endregion
+
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             RegionSettings rs = new RegionSettings();
