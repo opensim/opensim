@@ -48,12 +48,12 @@ namespace OpenSim.Framework.Console
         /// <summary>
         /// Table columns.
         /// </summary>
-        public List<ConsoleTableColumn> Columns { get; private set; }
+        public List<ConsoleDisplayTableColumn> Columns { get; private set; }
 
         /// <summary>
         /// Table rows
         /// </summary>
-        public List<ConsoleTableRow> Rows { get; private set; }
+        public List<ConsoleDisplayTableRow> Rows { get; private set; }
 
         /// <summary>
         /// Number of spaces to indent the table.
@@ -68,8 +68,8 @@ namespace OpenSim.Framework.Console
         public ConsoleDisplayTable()
         {
             TableSpacing = DefaultTableSpacing;
-            Columns = new List<ConsoleTableColumn>();
-            Rows = new List<ConsoleTableRow>();
+            Columns = new List<ConsoleDisplayTableColumn>();
+            Rows = new List<ConsoleDisplayTableRow>();
         }
 
         public override string ToString()
@@ -88,7 +88,7 @@ namespace OpenSim.Framework.Console
             sb.AppendFormat(formatString, Columns.ConvertAll(c => c.Header).ToArray());
 
             // rows
-            foreach (ConsoleTableRow row in Rows)
+            foreach (ConsoleDisplayTableRow row in Rows)
                 sb.AppendFormat(formatString, row.Cells.ToArray());
         }
 
@@ -115,23 +115,23 @@ namespace OpenSim.Framework.Console
         }
     }
 
-    public struct ConsoleTableColumn
+    public struct ConsoleDisplayTableColumn
     {
         public string Header { get; set; }
         public int Width { get; set; }
 
-        public ConsoleTableColumn(string header, int width) : this()
+        public ConsoleDisplayTableColumn(string header, int width) : this()
         {
             Header = header;
             Width = width;
         }
     }
 
-    public struct ConsoleTableRow
+    public struct ConsoleDisplayTableRow
     {
         public List<string> Cells { get; private set; }
 
-        public ConsoleTableRow(List<string> cells) : this()
+        public ConsoleDisplayTableRow(List<string> cells) : this()
         {
             Cells = cells;
         }
