@@ -71,7 +71,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public void AddRegion(Scene scene)
         {
             m_scene = scene;
-            m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
             m_scene.RegisterModuleInterface<IAttachmentsModule>(this);
 
             if (Enabled)
@@ -90,6 +89,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         
         public void RegionLoaded(Scene scene)
         {
+            m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
             m_invAccessModule = m_scene.RequestModuleInterface<IInventoryAccessModule>();
         }
         
