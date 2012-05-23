@@ -145,7 +145,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         {
             sb.AppendFormat("Attachments for {0}\n", sp.Name);
 
-            ConsoleTable ct = new ConsoleTable() { Indent = 2 };
+            ConsoleDisplayTable ct = new ConsoleDisplayTable() { Indent = 2 };
             ct.Columns.Add(new ConsoleTableColumn("Attachment Name", 36));
             ct.Columns.Add(new ConsoleTableColumn("Local ID", 10));
             ct.Columns.Add(new ConsoleTableColumn("Item ID", 36));

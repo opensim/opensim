@@ -38,7 +38,7 @@ namespace OpenSim.Framework.Console
     /// <remarks>
     /// Currently subject to change.  If you use this, be prepared to change your code when this class changes.
     /// </remarks>
-    public class ConsoleTable
+    public class ConsoleDisplayTable
     {
         /// <summary>
         /// Default number of spaces between table columns.
@@ -65,7 +65,7 @@ namespace OpenSim.Framework.Console
         /// </summary>
         public int TableSpacing { get; set; }
 
-        public ConsoleTable()
+        public ConsoleDisplayTable()
         {
             TableSpacing = DefaultTableSpacing;
             Columns = new List<ConsoleTableColumn>();
