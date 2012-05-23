@@ -517,7 +517,7 @@ namespace OpenSim.Services.GridService
 
                 con.OutputFormat("{0,-11}: {1}", "Region Name", r.RegionName);
                 con.OutputFormat("{0,-11}: {1}", "Region ID", r.RegionID);
-                con.OutputFormat("{0,-11}: {1}", "Location", r.coordX, r.coordY);
+                con.OutputFormat("{0,-11}: {1},{2}", "Location", r.coordX, r.coordY);
                 con.OutputFormat("{0,-11}: {1}", "URI", r.Data["serverURI"]);
                 con.OutputFormat("{0,-11}: {1}", "Owner ID", r.Data["owner_uuid"]);
                 con.OutputFormat("{0,-11}: {1}", "Flags", flags);
