@@ -509,19 +509,21 @@ namespace OpenSim.Services.GridService
                 return;
             }
 
-            MainConsole.Instance.Output("Region Name          Region UUID");
-            MainConsole.Instance.Output("Location             URI");
-            MainConsole.Instance.Output("Owner ID                                Flags");
-            MainConsole.Instance.Output("-------------------------------------------------------------------------------");
+            ICommandConsole con = MainConsole.Instance;
+
             foreach (RegionData r in regions)
             {
                 OpenSim.Data.RegionFlags flags = (OpenSim.Data.RegionFlags)Convert.ToInt32(r.Data["flags"]);
-                MainConsole.Instance.Output(String.Format("{0,-20} {1}\n{2,-20} {3}\n{4,-39} {5}\n\n",
-                        r.RegionName, r.RegionID,
-                        String.Format("{0},{1}", r.posX / Constants.RegionSize, r.posY / Constants.RegionSize),
-                        r.Data["serverURI"],
-                        r.Data["owner_uuid"], flags));
+
+                con.OutputFormat("{0,-11}: {1}", "Region Name", r.RegionName);
+                con.OutputFormat("{0,-11}: {1}", "Region ID", r.RegionID);
+                con.OutputFormat("{0,-11}: {1}", "Location", r.coordX, r.coordY);
+                con.OutputFormat("{0,-11}: {1}", "URI", r.Data["serverURI"]);
+                con.OutputFormat("{0,-11}: {1}", "Owner ID", r.Data["owner_uuid"]);
+                con.OutputFormat("{0,-11}: {1}", "Flags", flags);
+                con.Output("\n");
             }
+
             return;
         }
 
