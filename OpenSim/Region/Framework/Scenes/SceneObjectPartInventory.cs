@@ -1027,10 +1027,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ApplyNextOwnerPermissions()
         {
+            Util.PrintCallStack();
+
             lock (m_items)
             {
                 foreach (TaskInventoryItem item in m_items.Values)
                 {
+//                    m_log.DebugFormat (
+//                        "[SCENE OBJECT PART INVENTORY]: Applying next permissions {0} to {1} in {2} with current {3}, base {4}, everyone {5}",
+//                        item.NextPermissions, item.Name, m_part.Name, item.CurrentPermissions, item.BasePermissions, item.EveryonePermissions);
+
                     if (item.InvType == (int)InventoryType.Object && (item.CurrentPermissions & 7) != 0)
                     {
                         if ((item.CurrentPermissions & ((uint)PermissionMask.Copy >> 13)) == 0)
@@ -1040,6 +1046,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if ((item.CurrentPermissions & ((uint)PermissionMask.Modify >> 13)) == 0)
                             item.CurrentPermissions &= ~(uint)PermissionMask.Modify;
                     }
+
                     item.CurrentPermissions &= item.NextPermissions;
                     item.BasePermissions &= item.NextPermissions;
                     item.EveryonePermissions &= item.NextPermissions;
