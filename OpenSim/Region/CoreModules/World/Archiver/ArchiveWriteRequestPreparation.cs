@@ -428,9 +428,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 s = sw.ToString();
             }
 
-            if (m_scene != null)
-                Console.WriteLine(
-                    "[ARCHIVE WRITE REQUEST PREPARATION]: Control file for {0} is: {1}", m_scene.RegionInfo.RegionName, s);
+//            if (m_scene != null)
+//                Console.WriteLine(
+//                    "[ARCHIVE WRITE REQUEST PREPARATION]: Control file for {0} is: {1}", m_scene.RegionInfo.RegionName, s);
 
             return s;
         }
