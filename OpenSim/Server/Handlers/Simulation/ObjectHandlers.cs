@@ -161,7 +161,7 @@ namespace OpenSim.Server.Handlers.Simulation
             if (args.ContainsKey("extra") && args["extra"] != null)
                 extraStr = args["extra"].AsString();
 
-            IScene s = m_SimulationService.GetScene(destination.RegionHandle);
+            IScene s = m_SimulationService.GetScene(destination.RegionID);
             ISceneObject sog = null;
             try
             {

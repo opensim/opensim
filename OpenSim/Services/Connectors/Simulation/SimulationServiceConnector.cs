@@ -62,7 +62,7 @@ namespace OpenSim.Services.Connectors.Simulation
             //m_Region = region;
         }
 
-        public IScene GetScene(ulong regionHandle)
+        public IScene GetScene(UUID regionId)
         {
             return null;
         }

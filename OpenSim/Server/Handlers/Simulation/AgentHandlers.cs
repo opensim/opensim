@@ -546,7 +546,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 AgentData agent = new AgentData();
                 try
                 {
-                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionHandle));
+                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionID));
                 }
                 catch (Exception ex)
                 {
@@ -566,7 +566,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 AgentPosition agent = new AgentPosition();
                 try
                 {
-                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionHandle));
+                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionID));
                 }
                 catch (Exception ex)
                 {

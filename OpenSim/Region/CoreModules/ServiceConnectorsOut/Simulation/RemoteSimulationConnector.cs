@@ -151,9 +151,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         #region IInterregionComms
 
-        public IScene GetScene(ulong handle)
+        public IScene GetScene(UUID regionId)
         {
-            return m_localBackend.GetScene(handle);
+            return m_localBackend.GetScene(regionId);
         }
 
         public ISimulationService GetInnerService()

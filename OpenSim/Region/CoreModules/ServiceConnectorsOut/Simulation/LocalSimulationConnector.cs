@@ -160,16 +160,24 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         #region ISimulation
 
-        public IScene GetScene(ulong regionhandle)
+        public IScene GetScene(UUID regionId)
         {
-            foreach (Scene s in m_scenes.Values)
+            if (m_scenes.ContainsKey(regionId))
             {
-                if (s.RegionInfo.RegionHandle == regionhandle)
-                    return s;
+                return m_scenes[regionId];
             }
+            else
+            {
+                // FIXME: This was pre-existing behaviour but possibly not a good idea, since it hides an error rather
+                // than making it obvious and fixable.  Need to see if the error message comes up in practice.
+                Scene s = m_scenes.Values.ToArray()[0];
 
-            // ? weird. should not happen
-            return m_scenes.Values.ToArray()[0];
+                m_log.ErrorFormat(
+                    "[LOCAL SIMULATION CONNECTOR]: Region with id {0} not found.  Returning {1} {2} instead",
+                    regionId, s.RegionInfo.RegionName, s.RegionInfo.RegionID);
+
+                return s;
+            }
         }
 
         public ISimulationService GetInnerService()
