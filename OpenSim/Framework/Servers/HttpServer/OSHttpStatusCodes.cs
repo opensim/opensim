@@ -28,9 +28,9 @@
 namespace OpenSim.Framework.Servers.HttpServer
 {
     /// <summary>
-    /// HTTP status codes (almost) as defined by W3C in http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+    /// HTTP status codes (almost) as defined by W3C in http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html and IETF in http://tools.ietf.org/html/rfc6585
     /// </summary>
-    public enum OSHttpStatusCode: int
+    public enum OSHttpStatusCode : int
     {
         #region 1xx Informational status codes providing a provisional response.
 
@@ -216,6 +216,21 @@ namespace OpenSim.Framework.Servers.HttpServer
         ClientErrorExpectationFailed = 417,
 
         /// <summary>
+        /// 428 Client error :The 428 status code indicates that the origin server requires the request to be conditional.
+        /// </summary>
+        ClientErrorPreconditionRequired = 428,
+
+        /// <summary>
+        /// 429 Client error: The 429 status code indicates that the user has sent too many requests in a given amount of time ("rate limiting").
+        /// </summary>
+        ClientErrorTooManyRequests = 429,
+
+        /// <summary>
+        /// 431 Client error: The 431 status code indicates that the server is unwilling to process the request because its header fields are too large.  The request MAY be resubmitted after reducing the size of the request header fields.
+        /// </summary>
+        ClientErrorRequestHeaderFieldsTooLarge = 431,
+
+        /// <summary>
         /// 499 Client error: Wildcard error.
         /// </summary>
         ClientErrorJoker = 499,
@@ -253,6 +268,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// 505 Server error: The server does not support the HTTP version conveyed in the client's request.
         /// </summary>
         ServerErrorHttpVersionNotSupported = 505,
+
+        /// <summary>
+        /// 511 Server error: The 511 status code indicates that the client needs to authenticate to gain network access.
+        /// </summary>
+        ServerErrorNetworkAuthenticationRequired = 511,
 
         #endregion
     }
