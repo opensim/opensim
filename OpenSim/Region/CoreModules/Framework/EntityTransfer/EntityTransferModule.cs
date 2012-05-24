@@ -227,6 +227,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Ignoring within region teleport request of {0} {1} to {2} - agent is already in transit.",
                     sp.Name, sp.UUID, position);
+
+                return;
             }
 
             // Teleport within the same region
