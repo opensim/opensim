@@ -5212,10 +5212,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (EntityTransferModule.IsInTransit(agentID))
             {
-                reason = "Agent is already in transit on this region";
+                reason = "Agent is still in transit from this region";
 
-                m_log.DebugFormat(
-                    "[SCENE]: Denying agent {0} entry into {1} since region already has them registered as in transit",
+                m_log.WarnFormat(
+                    "[SCENE]: Denying agent {0} entry into {1} since region still has them registered as in transit",
                     agentID, RegionInfo.RegionName);
 
                 return false;

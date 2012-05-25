@@ -77,8 +77,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Show whether the given agent is being teleported.
         /// </summary>
-        /// <returns>true if the agent is in the process of being teleported, false otherwise.</returns>
         /// <param name='id'>The agent ID</para></param>
+        /// <returns>true if the agent is in the process of being teleported, false otherwise.</returns>
         bool IsInTransit(UUID id);        
 
         bool Cross(ScenePresence agent, bool isFlying);
