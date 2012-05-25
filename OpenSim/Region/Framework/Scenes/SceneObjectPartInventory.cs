@@ -1027,8 +1027,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ApplyNextOwnerPermissions()
         {
-            Util.PrintCallStack();
-
             lock (m_items)
             {
                 foreach (TaskInventoryItem item in m_items.Values)
