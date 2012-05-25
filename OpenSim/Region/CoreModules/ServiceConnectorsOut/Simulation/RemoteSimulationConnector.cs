@@ -226,13 +226,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return m_remoteConnector.RetrieveAgent(destination, id, out agent);
 
             return false;
-
         }
 
         public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason)
         {
             reason = "Communications failure";
             version = "Unknown";
+
             if (destination == null)
                 return false;
 
@@ -245,7 +245,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return m_remoteConnector.QueryAccess(destination, id, position, out version, out reason);
 
             return false;
-
         }
 
         public bool ReleaseAgent(UUID origin, UUID id, string uri)
