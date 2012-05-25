@@ -144,13 +144,16 @@ namespace OpenSim.Server.Handlers.Simulation
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
 
-            OSDMap resp = new OSDMap(2);
+            OSDMap resp = new OSDMap(3);
 
             resp["success"] = OSD.FromBoolean(result);
             resp["reason"] = OSD.FromString(reason);
             resp["version"] = OSD.FromString(version);
 
-            responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp);
+            // We must preserve defaults here, otherwise a false "success" will not be put into the JSON map!
+            responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
+
+//            Console.WriteLine("str_response_string [{0}]", responsedata["str_response_string"]);
         }
 
         protected virtual void DoAgentGet(Hashtable request, Hashtable responsedata, UUID id, UUID regionID)

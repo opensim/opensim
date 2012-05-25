@@ -320,6 +320,10 @@ namespace OpenSim.Services.Connectors.Simulation
                 {
                     OSDMap data = (OSDMap)result["_Result"];
 
+                    // FIXME: If there is a _Result map then it's the success key here that indicates the true success
+                    // or failure, not the sibling result node.
+                    success = data["success"];
+
                     reason = data["reason"].AsString();
                     if (data["version"] != null && data["version"].AsString() != string.Empty)
                         version = data["version"].AsString();
