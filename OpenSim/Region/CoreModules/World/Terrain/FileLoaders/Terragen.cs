@@ -65,7 +65,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             bool eof = false;
 
             int fileXPoints = 0;
-            int fileYPoints = 0;
+//            int fileYPoints = 0;
 
             // Terragen file
             while (eof == false)
@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                 {
                     case "SIZE":
                         fileXPoints = bs.ReadInt16() + 1;
-                        fileYPoints = fileXPoints;
+//                        fileYPoints = fileXPoints;
                         bs.ReadInt16();
                         break;
                     case "XPTS":
@@ -83,7 +83,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                         bs.ReadInt16();
                         break;
                     case "YPTS":
-                        fileYPoints = bs.ReadInt16();
+//                        fileYPoints = bs.ReadInt16();
+                        bs.ReadInt16();
                         bs.ReadInt16();
                         break;
                     case "ALTW":
@@ -164,10 +165,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             bool eof = false;
             if (Encoding.ASCII.GetString(bs.ReadBytes(16)) == "TERRAGENTERRAIN ")
             {
-
-                int fileWidth = w;
-                int fileHeight = h;
-
+//                int fileWidth = w;
+//                int fileHeight = h;
 
                 // Terragen file
                 while (eof == false)
@@ -176,17 +175,22 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                     switch (tmp)
                     {
                         case "SIZE":
-                            int sztmp = bs.ReadInt16() + 1;
-                            fileWidth = sztmp;
-                            fileHeight = sztmp;
+//                            int sztmp = bs.ReadInt16() + 1;
+//                            fileWidth = sztmp;
+//                            fileHeight = sztmp;
+                            bs.ReadInt16();
+                            bs.ReadInt16();
+                            bs.ReadInt16();
                             bs.ReadInt16();
                             break;
                         case "XPTS":
-                            fileWidth = bs.ReadInt16();
+//                            fileWidth = bs.ReadInt16();
+                            bs.ReadInt16();
                             bs.ReadInt16();
                             break;
                         case "YPTS":
-                            fileHeight = bs.ReadInt16();
+//                            fileHeight = bs.ReadInt16();
+                            bs.ReadInt16();
                             bs.ReadInt16();
                             break;
                         case "ALTW":

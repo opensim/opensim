@@ -122,7 +122,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid
                 ISimulationService simService = scene.RequestModuleInterface<ISimulationService>();
                 IFriendsSimConnector friendsConn = scene.RequestModuleInterface<IFriendsSimConnector>();
                 Object[] args = new Object[] { m_Config };
-                IFriendsService friendsService = ServerUtils.LoadPlugin<IFriendsService>(m_LocalServiceDll, args);
+//                IFriendsService friendsService = ServerUtils.LoadPlugin<IFriendsService>(m_LocalServiceDll, args)
+                ServerUtils.LoadPlugin<IFriendsService>(m_LocalServiceDll, args);
 
                 m_HypergridHandler = new GatekeeperServiceInConnector(m_Config, MainServer.Instance, simService);
 

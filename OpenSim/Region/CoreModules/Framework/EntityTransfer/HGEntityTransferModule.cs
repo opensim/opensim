@@ -336,7 +336,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 // Let's find out if this is a foreign user or a local user
                 IUserManagement uMan = m_scene.RequestModuleInterface<IUserManagement>();
-                UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, obj.AgentId);
+//                UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, obj.AgentId);
                 if (uMan != null && uMan.IsLocalGridUser(obj.AgentId))
                 {
                     // local grid user

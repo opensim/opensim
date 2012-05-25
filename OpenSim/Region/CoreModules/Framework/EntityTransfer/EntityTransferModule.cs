@@ -1240,7 +1240,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             return agent;
         }
-
+         
         private void CrossAgentToNewRegionCompleted(IAsyncResult iar)
         {
             CrossAgentToNewRegionDelegate icon = (CrossAgentToNewRegionDelegate)iar.AsyncState;

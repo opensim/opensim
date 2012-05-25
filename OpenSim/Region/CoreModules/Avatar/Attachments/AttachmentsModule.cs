@@ -48,7 +48,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Scene m_scene;
-        private IDialogModule m_dialogModule;
         private IInventoryAccessModule m_invAccessModule;
 
         /// <summary>
@@ -89,7 +88,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         
         public void RegionLoaded(Scene scene)
         {
-            m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
             m_invAccessModule = m_scene.RequestModuleInterface<IInventoryAccessModule>();
         }
         
