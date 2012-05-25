@@ -582,14 +582,20 @@ namespace OpenSim.Region.Framework.Scenes
             return item;
         }
 
-        /// <summary>
-        /// Get inventory items by name.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns>
-        /// A list of inventory items with that name.
-        /// If no inventory item has that name then an empty list is returned.
-        /// </returns>
+        public TaskInventoryItem GetInventoryItem(string name)
+        {
+            lock (m_items)
+            {
+                foreach (TaskInventoryItem item in m_items.Values)
+                {
+                    if (item.Name == name)
+                        return item;
+                }
+            }
+
+            return null;
+        }
+
         public List<TaskInventoryItem> GetInventoryItems(string name)
         {
             List<TaskInventoryItem> items = new List<TaskInventoryItem>();

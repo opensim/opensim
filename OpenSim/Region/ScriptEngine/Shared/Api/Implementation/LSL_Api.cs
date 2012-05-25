@@ -104,9 +104,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected int m_scriptConsoleChannel = 0;
         protected bool m_scriptConsoleChannelEnabled = false;
         protected IUrlModule m_UrlModule = null;
-        protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache =
-                new Dictionary<UUID, UserInfoCacheEntry>();
-	protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
+        protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache = new Dictionary<UUID, UserInfoCacheEntry>();
+        protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
@@ -304,25 +303,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return UUID.Zero;
         }
 
-        protected UUID InventoryKey(string name)
-        {
-            m_host.AddScriptLPS(1);
-
-            lock (m_host.TaskInventory)
-            {
-                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-                {
-                    if (inv.Value.Name == name)
-                    {
-                        return inv.Value.AssetID;
-                    }
-                }
-            }
-
-            return UUID.Zero;
-        }
-
-
         /// <summary>
         /// accepts a valid UUID, -or- a name of an inventory item.
         /// Returns a valid UUID or UUID.Zero if key invalid and item not found
@@ -332,19 +312,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns></returns>
         protected UUID KeyOrName(string k)
         {
-            UUID key = UUID.Zero;
+            UUID key;
 
             // if we can parse the string as a key, use it.
-            if (UUID.TryParse(k, out key))
-            {
-                return key;
-            }
             // else try to locate the name in inventory of object. found returns key,
-            // not found returns UUID.Zero which will translate to the default particle texture
-            else
+            // not found returns UUID.Zero
+            if (!UUID.TryParse(k, out key))
             {
-                return InventoryKey(k);
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(k);
+
+                if (item != null)
+                    key = item.AssetID;
+                else
+                    key = UUID.Zero;
             }
+
+            return key;
         }
 
         // convert a LSL_Rotation to a Quaternion
@@ -3315,17 +3298,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
             {
-                UUID animID = new UUID();
-
-                if (!UUID.TryParse(anim, out animID))
-                {
-                    animID = InventoryKey(anim);
-                }
-
                 ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
 
                 if (presence != null)
                 {
+                    UUID animID = KeyOrName(anim);
+
                     if (animID == UUID.Zero)
                         presence.Animator.RemoveAnimation(anim);
                     else
