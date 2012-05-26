@@ -146,6 +146,7 @@ what it is today.
 * Stefan_Boom / stoehr
 * Strawberry Fride
 * Talun
+* TechplexEngineer (Blake Bourque)
 * TBG Renfold
 * tglion
 * tlaukkan/Tommil (Tommi S. E. Laukkanen, Bubble Cloud)
