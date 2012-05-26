@@ -284,23 +284,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected UUID InventoryKey(string name, int type)
         {
-            m_host.AddScriptLPS(1);
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
 
-            lock (m_host.TaskInventory)
-            {
-                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-                {
-                    if (inv.Value.Name == name)
-                    {
-                        if (inv.Value.Type != type)
-                            return UUID.Zero;
-
-                        return inv.Value.AssetID;
-                    }
-                }
-            }
-
-            return UUID.Zero;
+            if (item != null && item.Type == type)
+                return item.AssetID;
+            else
+                return UUID.Zero;
         }
 
         /// <summary>
@@ -1707,14 +1696,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 return rgb;
             }
+
             if (face >= 0 && face < GetNumberOfSides(part))
             {
                 texcolor = tex.GetFace((uint)face).RGBA;
                 rgb.x = texcolor.R;
                 rgb.y = texcolor.G;
                 rgb.z = texcolor.B;
+                
                 return rgb;
-
             }
             else
             {
