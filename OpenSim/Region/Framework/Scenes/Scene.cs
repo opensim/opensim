@@ -1032,13 +1032,13 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            m_log.Error("[REGION]: Closing");
+            Close();
+
             if (PhysicsScene != null)
             {
                 PhysicsScene.Dispose();
-            }
-
-            m_log.Error("[REGION]: Closing");
-            Close();
+            }            
 
             m_log.Error("[REGION]: Firing Region Restart Message");
 
