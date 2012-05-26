@@ -3421,11 +3421,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             m_host.TaskInventory[m_item.ItemID].PermsMask = perm;
                         }
 
-                        m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
-                                "run_time_permissions", new Object[] {
-                            new LSL_Integer(perm) },
-                                new DetectParams[0]));
+                        m_ScriptEngine.PostScriptEvent(
+                            m_item.ItemID,
+                            new EventParams(
+                                "run_time_permissions", new Object[] { new LSL_Integer(perm) }, new DetectParams[0]));
                     }
+
                     // it is an NPC, exit even if the permissions werent granted above, they are not going to answer
                     // the question!
                     return;
@@ -3454,10 +3455,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // Requested agent is not in range, refuse perms
-            m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
-                    "run_time_permissions", new Object[] {
-                    new LSL_Integer(0) },
-                    new DetectParams[0]));
+            m_ScriptEngine.PostScriptEvent(
+                m_item.ItemID,
+                new EventParams("run_time_permissions", new Object[] { new LSL_Integer(0) }, new DetectParams[0]));
         }
 
         void handleScriptAnswer(IClientAPI client, UUID taskID, UUID itemID, int answer)
@@ -3476,10 +3476,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.TaskInventory[m_item.ItemID].PermsMask = answer;
             }
 
-            m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
-                    "run_time_permissions", new Object[] {
-                    new LSL_Integer(answer) },
-                    new DetectParams[0]));
+            m_ScriptEngine.PostScriptEvent(
+                m_item.ItemID,
+                new EventParams("run_time_permissions", new Object[] { new LSL_Integer(answer) }, new DetectParams[0]));
         }
 
         public LSL_String llGetPermissionsKey()
