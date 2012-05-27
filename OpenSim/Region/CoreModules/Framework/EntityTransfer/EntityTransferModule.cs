@@ -46,7 +46,30 @@ using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 {
-    public class EntityTransferModule : ISharedRegionModule, IEntityTransferModule
+    /// <summary>
+    /// The possible states that an agent can be in when its being transferred between regions.
+    /// </summary>
+    /// <remarks>
+    /// This is a state machine.
+    ///
+    /// [Entry]               => Preparing
+    /// Preparing             => { Transferring || CleaningUp || [Exit] }
+    /// Transferring          => { ReceivedAtDestination || CleaningUp }
+    /// ReceivedAtDestination => CleaningUp
+    /// CleaningUp            => [Exit]
+    ///
+    /// In other words, agents normally travel throwing Preparing => Transferring => ReceivedAtDestination => CleaningUp
+    /// However, any state can transition to CleaningUp if the teleport has failed.
+    /// </remarks>
+    enum AgentTransferState
+    {
+        Preparing,              // The agent is being prepared for transfer
+        Transferring,           // The agent is in the process of being transferred to a destination
+        ReceivedAtDestination,  // The destination has notified us that the agent has been successfully received
+        CleaningUp              // The agent is being changed to child/removed after a transfer
+    }
+
+    public class EntityTransferModule : INonSharedRegionModule, IEntityTransferModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -65,11 +88,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public bool EnableWaitForCallbackFromTeleportDest { get; set; }
 
         protected bool m_Enabled = false;
-        protected Scene m_aScene;
-        protected List<Scene> m_Scenes = new List<Scene>();
-        protected List<UUID> m_agentsInTransit;
+
+        protected Scene m_scene;
+
+        private Dictionary<UUID, AgentTransferState> m_agentsInTransit;
+
         private ExpiringCache<UUID, ExpiringCache<ulong, DateTime>> m_bannedRegions =
                 new ExpiringCache<UUID, ExpiringCache<ulong, DateTime>>();
+
+        private IEventQueue m_eqModule;
 
         #region ISharedRegionModule
 
@@ -116,7 +143,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 MaxTransferDistance = DefaultMaxTransferDistance;
             }
 
-            m_agentsInTransit = new List<UUID>();
+            m_agentsInTransit = new Dictionary<UUID, AgentTransferState>();
             m_Enabled = true;
         }
 
@@ -129,10 +156,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (!m_Enabled)
                 return;
 
-            if (m_aScene == null)
-                m_aScene = scene;
+            m_scene = scene;
 
-            m_Scenes.Add(scene);
             scene.RegisterModuleInterface<IEntityTransferModule>(this);
             scene.EventManager.OnNewClient += OnNewClient;
         }
@@ -143,26 +168,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
         }
 
-        public virtual void Close()
-        {
-            if (!m_Enabled)
-                return;
-        }
+        public virtual void Close() {}
 
-        public virtual void RemoveRegion(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-            if (scene == m_aScene)
-                m_aScene = null;
-
-            m_Scenes.Remove(scene);
-        }
+        public virtual void RemoveRegion(Scene scene) {}
 
         public virtual void RegionLoaded(Scene scene)
         {
             if (!m_Enabled)
                 return;
+
+            m_eqModule = m_scene.RequestModuleInterface<IEventQueue>();
         }
 
         #endregion
@@ -230,6 +245,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 "[ENTITY TRANSFER MODULE]: Teleport for {0} to {1} within {2}",
                 sp.Name, position, sp.Scene.RegionInfo.RegionName);
 
+            if (!SetInTransit(sp.UUID))
+            {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Ignoring within region teleport request of {0} {1} to {2} - agent is already in transit.",
+                    sp.Name, sp.UUID, position);
+
+                return;
+            }
+
             // Teleport within the same region
             if (IsOutsideRegion(sp.Scene, position) || position.Z < 0)
             {
@@ -258,6 +282,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 position.Z = newPosZ;
             }
 
+            UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
+
             sp.ControllingClient.SendTeleportStart(teleportFlags);
 
             sp.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
@@ -265,10 +291,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             sp.Velocity = Vector3.Zero;
             sp.Teleport(position);
 
+            UpdateInTransit(sp.UUID, AgentTransferState.ReceivedAtDestination);
+
             foreach (SceneObjectGroup grp in sp.GetAttachments())
             {
                 sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
             }
+
+            UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
+            ResetFromTransit(sp.UUID);            
         }
 
         /// <summary>
@@ -286,7 +317,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             uint x = 0, y = 0;
             Utils.LongToUInts(regionHandle, out x, out y);
-            GridRegion reg = m_aScene.GridService.GetRegionByPosition(sp.Scene.RegionInfo.ScopeID, (int)x, (int)y);
+            GridRegion reg = m_scene.GridService.GetRegionByPosition(sp.Scene.RegionInfo.ScopeID, (int)x, (int)y);
 
             if (reg != null)
             {
@@ -366,6 +397,30 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             ScenePresence sp, GridRegion reg, GridRegion finalDestination,
             Vector3 position, Vector3 lookAt, uint teleportFlags)
         {
+            // Record that this agent is in transit so that we can prevent simultaneous requests and do later detection
+            // of whether the destination region completes the teleport.
+            if (!SetInTransit(sp.UUID))
+            {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Ignoring teleport request of {0} {1} to {2} ({3}) {4}/{5} - agent is already in transit.",
+                    sp.Name, sp.UUID, reg.ServerURI, finalDestination.ServerURI, finalDestination.RegionName, position);
+
+                return;
+            }
+
+            if (reg == null || finalDestination == null)
+            {
+                sp.ControllingClient.SendTeleportFailed("Unable to locate destination");
+                ResetFromTransit(sp.UUID);
+
+                return;
+            }
+
+            m_log.DebugFormat(
+                "[ENTITY TRANSFER MODULE]: Teleporting {0} {1} from {2} to {3} ({4}) {5}/{6}",
+                sp.Name, sp.UUID, sp.Scene.RegionInfo.RegionName,
+                reg.ServerURI, finalDestination.ServerURI, finalDestination.RegionName, position);
+
             RegionInfo sourceRegion = sp.Scene.RegionInfo;
 
             if (!IsWithinMaxTeleportDistance(sourceRegion, finalDestination))
@@ -377,30 +432,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                       sourceRegion.RegionName, sourceRegion.RegionLocX, sourceRegion.RegionLocY,
                       MaxTransferDistance));
 
-                return;
-            }
-
-            IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
-
-            if (reg == null || finalDestination == null)
-            {
-                sp.ControllingClient.SendTeleportFailed("Unable to locate destination");
-                return;
-            }
-
-            if (!SetInTransit(sp.UUID)) // Avie is already on the way. Caller shouldn't do this.
-            {
-                m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Ignoring teleport request of {0} {1} to {2} ({3}) {4}/{5} - agent is already in transit.",
-                    sp.Name, sp.UUID, reg.ServerURI, finalDestination.ServerURI, finalDestination.RegionName, position);
+                ResetFromTransit(sp.UUID);
 
                 return;
             }
-
-            m_log.DebugFormat(
-                "[ENTITY TRANSFER MODULE]: Teleporting {0} {1} from {2} to {3} ({4}) {5}/{6}",
-                sp.Name, sp.UUID, sp.Scene.RegionInfo.RegionName,
-                reg.ServerURI, finalDestination.ServerURI, finalDestination.RegionName, position);
 
             uint newRegionX = (uint)(reg.RegionHandle >> 40);
             uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
@@ -415,15 +450,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             IPEndPoint endPoint = finalDestination.ExternalEndPoint;
             if (endPoint != null && endPoint.Address != null)
             {
-                // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
-                // both regions
-                if (sp.ParentID != (uint)0)
-                    sp.StandUp();
+                sp.ControllingClient.SendTeleportFailed("Remote Region appears to be down");
+                ResetFromTransit(sp.UUID);
 
-                if (!sp.ValidateAttachments())
-                    m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: Failed validation of all attachments for teleport of {0} from {1} to {2}.  Continuing.",
-                        sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName);
+                return;
+            }
+
+            if (!sp.ValidateAttachments())
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Failed validation of all attachments for teleport of {0} from {1} to {2}.  Continuing.",
+                    sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName);
 
 //                if (!sp.ValidateAttachments())
 //                {
@@ -431,212 +467,219 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //                    return;
 //                }
 
-                string reason;
-                string version;
-                if (!m_aScene.SimulationService.QueryAccess(
-                    finalDestination, sp.ControllingClient.AgentId, Vector3.Zero, out version, out reason))
-                {
-                    sp.ControllingClient.SendTeleportFailed(reason);
-                    ResetFromTransit(sp.UUID);
-
-                    m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: {0} was stopped from teleporting from {1} to {2} because {3}",
-                        sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName, reason);
-
-                    return;
-                }
-
-                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Destination is running version {0}", version);
-
-                sp.ControllingClient.SendTeleportStart(teleportFlags);
-
-                // the avatar.Close below will clear the child region list. We need this below for (possibly)
-                // closing the child agents, so save it here (we need a copy as it is Clear()-ed).
-                //List<ulong> childRegions = avatar.KnownRegionHandles;
-                // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
-                // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
-                // once we reach here...
-                //avatar.Scene.RemoveCapsHandler(avatar.UUID);
-
-                string capsPath = String.Empty;
-
-                AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
-                AgentCircuitData agentCircuit = sp.ControllingClient.RequestClientInfo();
-                agentCircuit.startpos = position;
-                agentCircuit.child = true;
-                agentCircuit.Appearance = sp.Appearance;
-                if (currentAgentCircuit != null)
-                {
-                    agentCircuit.ServiceURLs = currentAgentCircuit.ServiceURLs;
-                    agentCircuit.IPAddress = currentAgentCircuit.IPAddress;
-                    agentCircuit.Viewer = currentAgentCircuit.Viewer;
-                    agentCircuit.Channel = currentAgentCircuit.Channel;
-                    agentCircuit.Mac = currentAgentCircuit.Mac;
-                    agentCircuit.Id0 = currentAgentCircuit.Id0;
-                }
-
-                if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
-                {
-                    // brand new agent, let's create a new caps seed
-                    agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
-                }
-
-                // Let's create an agent there if one doesn't exist yet. 
-                bool logout = false;
-                if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout))
-                {
-                    sp.ControllingClient.SendTeleportFailed(String.Format("Teleport refused: {0}", reason));
-                    ResetFromTransit(sp.UUID);
-
-                    m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: Teleport of {0} from {1} to {2} was refused because {3}",
-                        sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName, reason);
-
-                    return;
-                }
-
-                // OK, it got this agent. Let's close some child agents
-                sp.CloseChildAgents(newRegionX, newRegionY);
-
-                IClientIPEndpoint ipepClient;  
-                if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
-                {
-                    //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
-                    #region IP Translation for NAT
-                    // Uses ipepClient above
-                    if (sp.ClientView.TryGet(out ipepClient))
-                    {
-                        endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
-                    }
-                    #endregion
-                    capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
-
-                    if (eq != null)
-                    {
-                        eq.EnableSimulator(destinationHandle, endPoint, sp.UUID);
-
-                        // ES makes the client send a UseCircuitCode message to the destination, 
-                        // which triggers a bunch of things there.
-                        // So let's wait
-                        Thread.Sleep(200);
-
-                        eq.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
-
-                    }
-                    else
-                    {
-                        sp.ControllingClient.InformClientOfNeighbour(destinationHandle, endPoint);
-                    }
-                }
-                else
-                {
-                    agentCircuit.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, reg.RegionHandle);
-                    capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
-                }
-
-                // Let's send a full update of the agent. This is a synchronous call.
-                AgentData agent = new AgentData();
-                sp.CopyTo(agent);
-                agent.Position = position;
-                SetCallbackURL(agent, sp.Scene.RegionInfo);
-
-                //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Updating agent...");
-
-                if (!UpdateAgent(reg, finalDestination, agent))
-                {
-                    // Region doesn't take it
-                    m_log.WarnFormat(
-                        "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1} from {2}.  Returning avatar to source region.",
-                        sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
-                    
-                    Fail(sp, finalDestination, logout);
-                    return;
-                }
-
-                sp.ControllingClient.SendTeleportProgress(teleportFlags | (uint)TeleportFlags.DisableCancel, "sending_dest");
+            string reason;
+            string version;
+            if (!m_scene.SimulationService.QueryAccess(
+                finalDestination, sp.ControllingClient.AgentId, Vector3.Zero, out version, out reason))
+            {
+                sp.ControllingClient.SendTeleportFailed(reason);
+                ResetFromTransit(sp.UUID);
 
                 m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} from {1} to {2}",
-                    capsPath, sp.Scene.RegionInfo.RegionName, sp.Name);
+                    "[ENTITY TRANSFER MODULE]: {0} was stopped from teleporting from {1} to {2} because {3}",
+                    sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName, reason);
 
-                if (eq != null)
+                return;
+            }
+
+            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Destination is running version {0}", version);
+
+            // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
+            // both regions
+            if (sp.ParentID != (uint)0)
+                sp.StandUp();
+
+            sp.ControllingClient.SendTeleportStart(teleportFlags);
+
+            // the avatar.Close below will clear the child region list. We need this below for (possibly)
+            // closing the child agents, so save it here (we need a copy as it is Clear()-ed).
+            //List<ulong> childRegions = avatar.KnownRegionHandles;
+            // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
+            // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
+            // once we reach here...
+            //avatar.Scene.RemoveCapsHandler(avatar.UUID);
+
+            string capsPath = String.Empty;
+
+            AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
+            AgentCircuitData agentCircuit = sp.ControllingClient.RequestClientInfo();
+            agentCircuit.startpos = position;
+            agentCircuit.child = true;
+            agentCircuit.Appearance = sp.Appearance;
+            if (currentAgentCircuit != null)
+            {
+                agentCircuit.ServiceURLs = currentAgentCircuit.ServiceURLs;
+                agentCircuit.IPAddress = currentAgentCircuit.IPAddress;
+                agentCircuit.Viewer = currentAgentCircuit.Viewer;
+                agentCircuit.Channel = currentAgentCircuit.Channel;
+                agentCircuit.Mac = currentAgentCircuit.Mac;
+                agentCircuit.Id0 = currentAgentCircuit.Id0;
+            }
+
+            if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
+            {
+                // brand new agent, let's create a new caps seed
+                agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
+            }
+
+            // Let's create an agent there if one doesn't exist yet. 
+            bool logout = false;
+            if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout))
+            {
+                sp.ControllingClient.SendTeleportFailed(String.Format("Teleport refused: {0}", reason));
+                ResetFromTransit(sp.UUID);
+
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Teleport of {0} from {1} to {2} was refused because {3}",
+                    sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName, reason);
+
+                return;
+            }
+
+            // Past this point we have to attempt clean up if the teleport fails, so update transfer state.
+            UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
+
+            // OK, it got this agent. Let's close some child agents
+            sp.CloseChildAgents(newRegionX, newRegionY);
+
+            IClientIPEndpoint ipepClient;  
+            if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
+            {
+                //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
+                #region IP Translation for NAT
+                // Uses ipepClient above
+                if (sp.ClientView.TryGet(out ipepClient))
                 {
-                    eq.TeleportFinishEvent(destinationHandle, 13, endPoint,
-                                           0, teleportFlags, capsPath, sp.UUID);
+                    endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
+                }
+                #endregion
+                capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
+
+                if (m_eqModule != null)
+                {
+                    m_eqModule.EnableSimulator(destinationHandle, endPoint, sp.UUID);
+
+                    // ES makes the client send a UseCircuitCode message to the destination, 
+                    // which triggers a bunch of things there.
+                    // So let's wait
+                    Thread.Sleep(200);
+
+                    m_eqModule.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
+
                 }
                 else
                 {
-                    sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
-                                                                teleportFlags, capsPath);
-                }
-
-                // Let's set this to true tentatively. This does not trigger OnChildAgent
-                sp.IsChildAgent = true;
-
-                // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
-                // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
-                // that the client contacted the destination before we close things here.
-                if (EnableWaitForCallbackFromTeleportDest && !WaitForCallback(sp.UUID))
-                {
-                    m_log.WarnFormat(
-                        "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} from {2} failed due to no callback from destination region.  Returning avatar to source region.",
-                        sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
-                    
-                    Fail(sp, finalDestination, logout);                   
-                    return;
-                }
-
-                // For backwards compatibility
-                if (version == "Unknown" || version == string.Empty)
-                {
-                    // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Old simulator, sending attachments one by one...");
-                    CrossAttachmentsIntoNewRegion(finalDestination, sp, true);
-                }
-
-                // May need to logout or other cleanup
-                AgentHasMovedAway(sp, logout);
-
-                // Well, this is it. The agent is over there.
-                KillEntity(sp.Scene, sp.LocalId);
-
-                // Now let's make it officially a child agent
-                sp.MakeChildAgent();
-
-//                sp.Scene.CleanDroppedAttachments();
-
-                // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
-
-                if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
-                {
-                    // We need to delay here because Imprudence viewers, unlike v1 or v3, have a short (<200ms, <500ms) delay before
-                    // they regard the new region as the current region after receiving the AgentMovementComplete
-                    // response.  If close is sent before then, it will cause the viewer to quit instead.
-                    // However, if this delay is longer, then a viewer can teleport back to this region and experience
-                    // a failure because the old ScenePresence has not yet been cleaned up.
-                    Thread.Sleep(2000);
-
-                    sp.Close();
-                    sp.Scene.IncomingCloseAgent(sp.UUID);
-                }
-                else
-                {
-                    // now we have a child agent in this region. 
-                    sp.Reset();
-                }
-
-                // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
-                if (sp.Scene.NeedSceneCacheClear(sp.UUID))
-                {
-                    m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: User {0} is going to another region, profile cache removed",
-                        sp.UUID);
+                    sp.ControllingClient.InformClientOfNeighbour(destinationHandle, endPoint);
                 }
             }
             else
             {
-                sp.ControllingClient.SendTeleportFailed("Remote Region appears to be down");
+                agentCircuit.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, reg.RegionHandle);
+                capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
             }
+
+            // Let's send a full update of the agent. This is a synchronous call.
+            AgentData agent = new AgentData();
+            sp.CopyTo(agent);
+            agent.Position = position;
+            SetCallbackURL(agent, sp.Scene.RegionInfo);
+
+            //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Updating agent...");
+
+            if (!UpdateAgent(reg, finalDestination, agent))
+            {
+                // Region doesn't take it
+                m_log.WarnFormat(
+                    "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1} from {2}.  Returning avatar to source region.",
+                    sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
+                
+                Fail(sp, finalDestination, logout);
+                return;
+            }
+
+            sp.ControllingClient.SendTeleportProgress(teleportFlags | (uint)TeleportFlags.DisableCancel, "sending_dest");
+
+            m_log.DebugFormat(
+                "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} from {1} to {2}",
+                capsPath, sp.Scene.RegionInfo.RegionName, sp.Name);
+
+            if (m_eqModule != null)
+            {
+                m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
+            }
+            else
+            {
+                sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
+                                                            teleportFlags, capsPath);
+            }
+
+            // Let's set this to true tentatively. This does not trigger OnChildAgent
+            sp.IsChildAgent = true;
+
+            // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
+            // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
+            // that the client contacted the destination before we close things here.
+            if (EnableWaitForCallbackFromTeleportDest && !WaitForCallback(sp.UUID))
+            {
+                m_log.WarnFormat(
+                    "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} from {2} failed due to no callback from destination region.  Returning avatar to source region.",
+                    sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
+                
+                Fail(sp, finalDestination, logout);                   
+                return;
+            }
+
+            UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
+
+            // For backwards compatibility
+            if (version == "Unknown" || version == string.Empty)
+            {
+                // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Old simulator, sending attachments one by one...");
+                CrossAttachmentsIntoNewRegion(finalDestination, sp, true);
+            }
+
+            // May need to logout or other cleanup
+            AgentHasMovedAway(sp, logout);
+
+            // Well, this is it. The agent is over there.
+            KillEntity(sp.Scene, sp.LocalId);
+
+            // Now let's make it officially a child agent
+            sp.MakeChildAgent();
+
+//                sp.Scene.CleanDroppedAttachments();
+
+            // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
+
+            if (NeedsClosing(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
+            {
+                // We need to delay here because Imprudence viewers, unlike v1 or v3, have a short (<200ms, <500ms) delay before
+                // they regard the new region as the current region after receiving the AgentMovementComplete
+                // response.  If close is sent before then, it will cause the viewer to quit instead.
+                //
+                // This sleep can be increased if necessary.  However, whilst it's active,
+                // an agent cannot teleport back to this region if it has teleported away.
+                Thread.Sleep(2000);
+
+                sp.Close();
+                sp.Scene.IncomingCloseAgent(sp.UUID);
+            }
+            else
+            {
+                // now we have a child agent in this region. 
+                sp.Reset();
+            }
+
+            // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
+            if (sp.Scene.NeedSceneCacheClear(sp.UUID))
+            {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: User {0} is going to another region, profile cache removed",
+                    sp.UUID);
+            }
+
+            ResetFromTransit(sp.UUID);
         }
 
         protected virtual void Fail(ScenePresence sp, GridRegion finalDestination, bool logout)
@@ -652,7 +695,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             EnableChildAgents(sp);
 
             // Finally, kill the agent we just created at the destination.
-            m_aScene.SimulationService.CloseAgent(finalDestination, sp.UUID);
+            m_scene.SimulationService.CloseAgent(finalDestination, sp.UUID);
 
             sp.Scene.EventManager.TriggerTeleportFail(sp.ControllingClient, logout);
         }
@@ -660,7 +703,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason, out bool logout)
         {
             logout = false;
-            bool success = m_aScene.SimulationService.CreateAgent(finalDestination, agentCircuit, teleportFlags, out reason);
+            bool success = m_scene.SimulationService.CreateAgent(finalDestination, agentCircuit, teleportFlags, out reason);
 
             if (success)
                 sp.Scene.EventManager.TriggerTeleportStart(sp.ControllingClient, reg, finalDestination, teleportFlags, logout);
@@ -670,7 +713,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent)
         {
-            return m_aScene.SimulationService.UpdateAgent(finalDestination, agent);
+            return m_scene.SimulationService.UpdateAgent(finalDestination, agent);
         }
 
         protected virtual void SetCallbackURL(AgentData agent, RegionInfo region)
@@ -722,7 +765,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return false;
         }
 
-
         #endregion
 
         #region Landmark Teleport
@@ -734,7 +776,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="position"></param>
         public virtual void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm)
         {
-            GridRegion info = m_aScene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
+            GridRegion info = m_scene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
 
             if (info == null)
             {
@@ -760,8 +802,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.Name, client.AgentId);
 
-            //OpenSim.Services.Interfaces.PresenceInfo pinfo = m_aScene.PresenceService.GetAgent(client.SessionId);
-            GridUserInfo uinfo = m_aScene.GridUserService.GetGridUserInfo(client.AgentId.ToString());
+            //OpenSim.Services.Interfaces.PresenceInfo pinfo = m_scene.PresenceService.GetAgent(client.SessionId);
+            GridUserInfo uinfo = m_scene.GridUserService.GetGridUserInfo(client.AgentId.ToString());
 
             if (uinfo != null)
             {
@@ -771,7 +813,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     client.SendTeleportFailed("You don't have a home position set.");
                     return false;
                 }
-                GridRegion regionInfo = m_aScene.GridService.GetRegionByUUID(UUID.Zero, uinfo.HomeRegionID);
+                GridRegion regionInfo = m_scene.GridService.GetRegionByUUID(UUID.Zero, uinfo.HomeRegionID);
                 if (regionInfo == null)
                 {
                     // can't find the Home region: Tell viewer and abort
@@ -1016,107 +1058,123 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, GridRegion neighbourRegion,
             bool isFlying, string version)
         {
+            if (neighbourRegion == null)
+                return agent;
+
             try
             {
+                SetInTransit(agent.UUID);
+
                 ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
     
-                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} to {2}-{3} running version {4}", agent.Firstname, agent.Lastname, neighbourx, neighboury, version);
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} to {2}-{3} running version {4}",
+                    agent.Firstname, agent.Lastname, neighbourx, neighboury, version);
     
                 Scene m_scene = agent.Scene;
-    
-                if (neighbourRegion != null)
+
+                if (!agent.ValidateAttachments())
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: Failed validation of all attachments for region crossing of {0} from {1} to {2}.  Continuing.",
+                        agent.Name, agent.Scene.RegionInfo.RegionName, neighbourRegion.RegionName);
+
+                pos = pos + agent.Velocity;
+                Vector3 vel2 = new Vector3(agent.Velocity.X, agent.Velocity.Y, 0);
+
+                agent.RemoveFromPhysicalScene();
+
+                AgentData cAgent = new AgentData(); 
+                agent.CopyTo(cAgent);
+                cAgent.Position = pos;
+                if (isFlying)
+                    cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+
+                // We don't need the callback anymnore
+                cAgent.CallbackURI = String.Empty;
+
+                // Beyond this point, extra cleanup is needed beyond removing transit state
+                UpdateInTransit(agent.UUID, AgentTransferState.Transferring);
+
+                if (!m_scene.SimulationService.UpdateAgent(neighbourRegion, cAgent))
                 {
-                    if (!agent.ValidateAttachments())
-                        m_log.DebugFormat(
-                            "[ENTITY TRANSFER MODULE]: Failed validation of all attachments for region crossing of {0} from {1} to {2}.  Continuing.",
-                            agent.Name, agent.Scene.RegionInfo.RegionName, neighbourRegion.RegionName);
+                    // region doesn't take it
+                    UpdateInTransit(agent.UUID, AgentTransferState.CleaningUp);
 
-                    pos = pos + agent.Velocity;
-                    Vector3 vel2 = new Vector3(agent.Velocity.X, agent.Velocity.Y, 0);
-
-                    agent.RemoveFromPhysicalScene();
-                    SetInTransit(agent.UUID);
-
-                    AgentData cAgent = new AgentData(); 
-                    agent.CopyTo(cAgent);
-                    cAgent.Position = pos;
-                    if (isFlying)
-                        cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
-
-                    // We don't need the callback anymnore
-                    cAgent.CallbackURI = String.Empty;
-
-                    if (!m_scene.SimulationService.UpdateAgent(neighbourRegion, cAgent))
-                    {
-                        // region doesn't take it
-                        ReInstantiateScripts(agent);
-                        agent.AddToPhysicalScene(isFlying);
-                        ResetFromTransit(agent.UUID);
-                        return agent;
-                    }
-    
-                    //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
-                    agent.ControllingClient.RequestClientInfo();
-    
-                    //m_log.Debug("BEFORE CROSS");
-                    //Scene.DumpChildrenSeeds(UUID);
-                    //DumpKnownRegions();
-                    string agentcaps;
-                    if (!agent.KnownRegions.TryGetValue(neighbourRegion.RegionHandle, out agentcaps))
-                    {
-                        m_log.ErrorFormat("[ENTITY TRANSFER MODULE]: No ENTITY TRANSFER MODULE information for region handle {0}, exiting CrossToNewRegion.",
-                                         neighbourRegion.RegionHandle);
-                        return agent;
-                    }
-                    // No turning back
-                    agent.IsChildAgent = true;
-
-                    string capsPath = neighbourRegion.ServerURI + CapsUtil.GetCapsSeedPath(agentcaps);
-    
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
-
-                    IEventQueue eq = agent.Scene.RequestModuleInterface<IEventQueue>();
-                    if (eq != null)
-                    {
-                        eq.CrossRegion(neighbourHandle, pos, vel2 /* agent.Velocity */, neighbourRegion.ExternalEndPoint,
-                                       capsPath, agent.UUID, agent.ControllingClient.SessionId);
-                    }
-                    else
-                    {
-                        agent.ControllingClient.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
-                                                    capsPath);
-                    }
-
-                    // SUCCESS! 
-                    agent.MakeChildAgent();
+                    ReInstantiateScripts(agent);
+                    agent.AddToPhysicalScene(isFlying);
                     ResetFromTransit(agent.UUID);
 
-                    // now we have a child agent in this region. Request all interesting data about other (root) agents
-                    agent.SendOtherAgentsAvatarDataToMe();
-                    agent.SendOtherAgentsAppearanceToMe();
+                    return agent;
+                }
 
-                    // Backwards compatibility. Best effort
-                    if (version == "Unknown" || version == string.Empty)
-                    {
-                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: neighbor with old version, passing attachments one by one...");
-                        Thread.Sleep(3000); // wait a little now that we're not waiting for the callback
-                        CrossAttachmentsIntoNewRegion(neighbourRegion, agent, true);
-                    }
+                //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
+                agent.ControllingClient.RequestClientInfo();
 
+                //m_log.Debug("BEFORE CROSS");
+                //Scene.DumpChildrenSeeds(UUID);
+                //DumpKnownRegions();
+                string agentcaps;
+                if (!agent.KnownRegions.TryGetValue(neighbourRegion.RegionHandle, out agentcaps))
+                {
+                    m_log.ErrorFormat("[ENTITY TRANSFER MODULE]: No ENTITY TRANSFER MODULE information for region handle {0}, exiting CrossToNewRegion.",
+                                     neighbourRegion.RegionHandle);
+                    return agent;
+                }
+                // No turning back
+                agent.IsChildAgent = true;
 
-                    // Next, let's close the child agent connections that are too far away.
-                    agent.CloseChildAgents(neighbourx, neighboury);
-    
-                    AgentHasMovedAway(agent, false);
-    
-                    // the user may change their profile information in other region,
-                    // so the userinfo in UserProfileCache is not reliable any more, delete it
-                    // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
-                    if (agent.Scene.NeedSceneCacheClear(agent.UUID))
-                    {
-                        m_log.DebugFormat(
-                            "[ENTITY TRANSFER MODULE]: User {0} is going to another region", agent.UUID);
-                    }
+                string capsPath = neighbourRegion.ServerURI + CapsUtil.GetCapsSeedPath(agentcaps);
+
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
+
+                if (m_eqModule != null)
+                {
+                    m_eqModule.CrossRegion(
+                        neighbourHandle, pos, vel2 /* agent.Velocity */, neighbourRegion.ExternalEndPoint,
+                        capsPath, agent.UUID, agent.ControllingClient.SessionId);
+                }
+                else
+                {
+                    agent.ControllingClient.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
+                                                capsPath);
+                }
+
+                // SUCCESS!
+                UpdateInTransit(agent.UUID, AgentTransferState.ReceivedAtDestination);
+
+                // Unlike a teleport, here we do not wait for the destination region to confirm the receipt.
+                UpdateInTransit(agent.UUID, AgentTransferState.CleaningUp);
+
+                agent.MakeChildAgent();
+
+                // FIXME: Possibly this should occur lower down after other commands to close other agents,
+                // but not sure yet what the side effects would be.
+                ResetFromTransit(agent.UUID);
+
+                // now we have a child agent in this region. Request all interesting data about other (root) agents
+                agent.SendOtherAgentsAvatarDataToMe();
+                agent.SendOtherAgentsAppearanceToMe();
+
+                // Backwards compatibility. Best effort
+                if (version == "Unknown" || version == string.Empty)
+                {
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: neighbor with old version, passing attachments one by one...");
+                    Thread.Sleep(3000); // wait a little now that we're not waiting for the callback
+                    CrossAttachmentsIntoNewRegion(neighbourRegion, agent, true);
+                }
+
+                // Next, let's close the child agent connections that are too far away.
+                agent.CloseChildAgents(neighbourx, neighboury);
+
+                AgentHasMovedAway(agent, false);
+
+                // the user may change their profile information in other region,
+                // so the userinfo in UserProfileCache is not reliable any more, delete it
+                // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
+                if (agent.Scene.NeedSceneCacheClear(agent.UUID))
+                {
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: User {0} is going to another region", agent.UUID);
                 }
     
                 //m_log.Debug("AFTER CROSS");
@@ -1128,11 +1186,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.ErrorFormat(
                     "[ENTITY TRANSFER MODULE]: Problem crossing user {0} to new region {1} from {2}.  Exception {3}{4}",
                     agent.Name, neighbourRegion.RegionName, agent.Scene.RegionInfo.RegionName, e.Message, e.StackTrace);
+
+                // TODO: Might be worth attempting other restoration here such as reinstantiation of scripts, etc.
             }
 
             return agent;
         }
-
+         
         private void CrossAgentToNewRegionCompleted(IAsyncResult iar)
         {
             CrossAgentToNewRegionDelegate icon = (CrossAgentToNewRegionDelegate)iar.AsyncState;
@@ -1431,8 +1491,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (regionAccepted && newAgent)
             {
-                IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
-                if (eq != null)
+                if (m_eqModule != null)
                 {
                     #region IP Translation for NAT
                     IClientIPEndpoint ipepClient;
@@ -1446,8 +1505,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         "and EstablishAgentCommunication with seed cap {4}",
                         scene.RegionInfo.RegionName, sp.Name, reg.RegionName, reg.RegionHandle, capsPath);
 
-                    eq.EnableSimulator(reg.RegionHandle, endPoint, sp.UUID);
-                    eq.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
+                    m_eqModule.EnableSimulator(reg.RegionHandle, endPoint, sp.UUID);
+                    m_eqModule.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
                 }
                 else
                 {
@@ -1573,8 +1632,37 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         #region Agent Arrived
         public void AgentArrivedAtDestination(UUID id)
         {
-            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Agent {0} released", id);
-            ResetFromTransit(id);
+            lock (m_agentsInTransit)
+            {
+                if (!m_agentsInTransit.ContainsKey(id))
+                {
+                    m_log.WarnFormat(
+                        "[ENTITY TRANSFER MODULE]: Region {0} received notification of arrival in destination scene of agent {1} but no teleport request is active",
+                        m_scene.RegionInfo.RegionName, id);
+
+                    return;
+                }
+
+                AgentTransferState currentState = m_agentsInTransit[id];
+
+                if (currentState == AgentTransferState.ReceivedAtDestination)
+                {
+                    // An anomoly but don't make this an outright failure - destination region could be overzealous in sending notification.
+                    m_log.WarnFormat(
+                        "[ENTITY TRANSFER MODULE]: Region {0} received notification of arrival in destination scene of agent {1} but notification has already previously been received",
+                        m_scene.RegionInfo.RegionName, id);
+                }
+                else if (currentState != AgentTransferState.Transferring)
+                {
+                    m_log.ErrorFormat(
+                        "[ENTITY TRANSFER MODULE]: Region {0} received notification of arrival in destination scene of agent {1} but agent is in transfer state {2}",
+                        m_scene.RegionInfo.RegionName, id, currentState);
+
+                    return;
+                }
+
+                m_agentsInTransit[id] = AgentTransferState.ReceivedAtDestination;
+            }
         }
 
         #endregion
@@ -1845,8 +1933,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 //// And the new channel...
                 //if (m_interregionCommsOut != null)
                 //    successYN = m_interregionCommsOut.SendCreateObject(newRegionHandle, grp, true);
-                if (m_aScene.SimulationService != null)
-                    successYN = m_aScene.SimulationService.CreateObject(destination, newPosition, grp, true);
+                if (m_scene.SimulationService != null)
+                    successYN = m_scene.SimulationService.CreateObject(destination, newPosition, grp, true);
 
                 if (successYN)
                 {
@@ -1925,10 +2013,29 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #region Misc
 
-        protected bool WaitForCallback(UUID id)
+        private bool WaitForCallback(UUID id)
         {
+            lock (m_agentsInTransit)
+            {
+                if (!IsInTransit(id))
+                    throw new Exception(
+                        string.Format(
+                            "Asked to wait for destination callback for agent with ID {0} but it is not in transit"));
+
+                AgentTransferState currentState = m_agentsInTransit[id];
+
+                if (currentState != AgentTransferState.Transferring && currentState != AgentTransferState.ReceivedAtDestination)
+                    throw new Exception(
+                        string.Format(
+                            "Asked to wait for destination callback for agent with ID {0} but it is in state {1}",
+                            currentState));
+            }
+
             int count = 200;
-            while (m_agentsInTransit.Contains(id) && count-- > 0)
+
+            // There should be no race condition here since no other code should be removing the agent transfer or
+            // changing the state to another other than Transferring => ReceivedAtDestination.
+            while (m_agentsInTransit[id] != AgentTransferState.ReceivedAtDestination && count-- > 0)
             {
 //                m_log.Debug("  >>> Waiting... " + count);
                 Thread.Sleep(100);
@@ -1938,17 +2045,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         }
 
         /// <summary>
-        /// Set that an agent is in the process of being teleported.
+        /// Set that an agent is in transit.
         /// </summary>
         /// <param name='id'>The ID of the agent being teleported</param>
         /// <returns>true if the agent was not already in transit, false if it was</returns>
-        protected bool SetInTransit(UUID id)
+        private bool SetInTransit(UUID id)
         {
             lock (m_agentsInTransit)
             {
-                if (!m_agentsInTransit.Contains(id))
+                if (!m_agentsInTransit.ContainsKey(id))
                 {
-                    m_agentsInTransit.Add(id);
+                    m_agentsInTransit[id] = AgentTransferState.Preparing;
                     return true;
                 }
             }
@@ -1957,33 +2064,86 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         }
 
         /// <summary>
-        /// Show whether the given agent is being teleported.
+        /// Updates the state of an agent that is already in transit.
         /// </summary>
-        /// <returns>true if the agent is in the process of being teleported, false otherwise.</returns>
-        /// <param name='id'>The agent ID</para></param>
-        protected bool IsInTransit(UUID id)
-        {
-            lock (m_agentsInTransit)
-                return m_agentsInTransit.Contains(id);
-        }
-
-        /// <summary>
-        /// Set that an agent is no longer being teleported.
-        /// </summary>
+        /// <param name='id'></param>
+        /// <param name='newState'></param>
         /// <returns></returns>
-        /// <param name='id'>
-        /// true if the agent was flagged as being teleported when this method was called, false otherwise
-        /// </param>
-        protected bool ResetFromTransit(UUID id)
+        /// <exception cref='Exception'>Illegal transitions will throw an Exception</exception>
+        private void UpdateInTransit(UUID id, AgentTransferState newState)
         {
             lock (m_agentsInTransit)
             {
-                if (m_agentsInTransit.Contains(id))
+                // Illegal to try and update an agent that's not actually in transit.
+                if (!m_agentsInTransit.ContainsKey(id))
+                    throw new Exception(string.Format("Agent with ID {0} is not registered as in transit", id));
+
+                AgentTransferState oldState = m_agentsInTransit[id];
+
+                bool transitionOkay = false;
+
+                if (newState == AgentTransferState.CleaningUp && oldState != AgentTransferState.CleaningUp)
+                    transitionOkay = true;
+                else if (newState == AgentTransferState.Transferring && oldState == AgentTransferState.Preparing)
+                    transitionOkay = true;
+                else if (newState == AgentTransferState.ReceivedAtDestination && oldState == AgentTransferState.Transferring)
+                    transitionOkay = true;
+
+                if (transitionOkay)
+                    m_agentsInTransit[id] = newState;
+                else
+                    throw new Exception(
+                        string.Format(
+                            "Agent with ID {0} is not allowed to move from old transit state {1} to new state {2}",
+                            id, oldState, newState));
+            }
+        }
+
+        public bool IsInTransit(UUID id)
+        {
+            lock (m_agentsInTransit)
+                return m_agentsInTransit.ContainsKey(id);
+        }
+
+        /// <summary>
+        /// Removes an agent from the transit state machine.
+        /// </summary>
+        /// <param name='id'></param>
+        /// <returns>true if the agent was flagged as being teleported when this method was called, false otherwise</returns>
+        private bool ResetFromTransit(UUID id)
+        {
+            lock (m_agentsInTransit)
+            {
+                if (m_agentsInTransit.ContainsKey(id))
                 {
+                    AgentTransferState state = m_agentsInTransit[id];
+
+                    if (state == AgentTransferState.Transferring || state == AgentTransferState.ReceivedAtDestination)
+                    {
+                        // FIXME: For now, we allow exit from any state since a thrown exception in teleport is now guranteed
+                        // to be handled properly - ResetFromTransit() could be invoked at any step along the process
+                        m_log.WarnFormat(
+                            "[ENTITY TRANSFER MODULE]: Agent with ID should not exit directly from state {1}, should go to {2} state first",
+                            state, AgentTransferState.CleaningUp);
+
+//                        throw new Exception(
+//                            "Agent with ID {0} cannot exit directly from state {1}, it must go to {2} state first",
+//                            state, AgentTransferState.CleaningUp);
+                    }
+
                     m_agentsInTransit.Remove(id);
+
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: Agent {0} cleared from transit in {1}",
+                        id, m_scene.RegionInfo.RegionName);
+
                     return true;
                 }
             }
+
+            m_log.WarnFormat(
+                "[ENTITY TRANSFER MODULE]: Agent {0} requested to clear from transit in {1} but was already cleared.",
+                id, m_scene.RegionInfo.RegionName);
 
             return false;
         }

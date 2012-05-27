@@ -364,8 +364,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     {
                         m_log.DebugFormat("[HG INVENTORY ACCESS MODULE]: Changing root inventory for user {0}", client.Name);
                         InventoryCollection content = m_Scene.InventoryService.GetFolderContent(client.AgentId, root.ID);
-                        List<UUID> fids = new List<UUID>();
-                        List<UUID> iids = new List<UUID>();
+
                         List<InventoryFolderBase> keep = new List<InventoryFolderBase>();
 
                         foreach (InventoryFolderBase f in content.Folders)

@@ -145,12 +145,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         {
             sb.AppendFormat("Attachments for {0}\n", sp.Name);
 
-            ConsoleTable ct = new ConsoleTable() { Indent = 2 };
-            ct.Columns.Add(new ConsoleTableColumn("Attachment Name", 36));
-            ct.Columns.Add(new ConsoleTableColumn("Local ID", 10));
-            ct.Columns.Add(new ConsoleTableColumn("Item ID", 36));
-            ct.Columns.Add(new ConsoleTableColumn("Attach Point", 14));
-            ct.Columns.Add(new ConsoleTableColumn("Position", 15));
+            ConsoleDisplayTable ct = new ConsoleDisplayTable() { Indent = 2 };
+            ct.Columns.Add(new ConsoleDisplayTableColumn("Attachment Name", 36));
+            ct.Columns.Add(new ConsoleDisplayTableColumn("Local ID", 10));
+            ct.Columns.Add(new ConsoleDisplayTableColumn("Item ID", 36));
+            ct.Columns.Add(new ConsoleDisplayTableColumn("Attach Point", 14));
+            ct.Columns.Add(new ConsoleDisplayTableColumn("Position", 15));
 
 //            sb.AppendFormat(
 //                "  {0,-36}  {1,-10}  {2,-36}  {3,-14}  {4,-15}\n",
@@ -176,7 +176,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 //                        attachmentObject.Name, attachmentObject.LocalId, attachmentObject.FromItemID,
 //                        (AttachmentPoint)attachmentObject.AttachmentPoint, attachmentObject.RootPart.AttachedPos);
                     ct.Rows.Add(
-                        new ConsoleTableRow(
+                        new ConsoleDisplayTableRow(
                             new List<string>()
                             {
                                 attachmentObject.Name,

@@ -759,14 +759,22 @@ namespace OpenSim.Region.Framework.Scenes
             return item;
         }
 
-        /// <summary>
-        /// Get inventory items by name.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns>
-        /// A list of inventory items with that name.
-        /// If no inventory item has that name then an empty list is returned.
-        /// </returns>
+        public TaskInventoryItem GetInventoryItem(string name)
+        {
+            m_items.LockItemsForRead(true);
+            foreach (TaskInventoryItem item in m_items.Values)
+            {
+                if (item.Name == name)
+                {
+                    return item;
+                    m_items.LockItemsForRead(false);
+                }
+            }
+            m_items.LockItemsForRead(false);
+
+            return null;
+        }
+
         public List<TaskInventoryItem> GetInventoryItems(string name)
         {
             List<TaskInventoryItem> items = new List<TaskInventoryItem>();
@@ -1236,10 +1244,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if ((item.CurrentPermissions & ((uint)PermissionMask.Modify >> 13)) == 0)
                         item.CurrentPermissions &= ~(uint)PermissionMask.Modify;
                 }
-                item.OwnerChanged = true;
                 item.CurrentPermissions &= item.NextPermissions;
                 item.BasePermissions &= item.NextPermissions;
                 item.EveryonePermissions &= item.NextPermissions;
+                item.OwnerChanged = true;
                 item.PermsMask = 0;
                 item.PermsGranter = UUID.Zero;
             }

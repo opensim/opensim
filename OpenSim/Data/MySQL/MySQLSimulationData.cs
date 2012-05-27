@@ -994,6 +994,68 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        #region RegionEnvironmentSettings
+        public string LoadRegionEnvironmentSettings(UUID regionUUID)
+        {
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                string command = "select * from `regionenvironment` where region_id = ?region_id";
+
+                using (MySqlCommand cmd = new MySqlCommand(command))
+                {
+                    cmd.Connection = dbcon;
+
+                    cmd.Parameters.AddWithValue("?region_id", regionUUID.ToString());
+
+                    IDataReader result = ExecuteReader(cmd);
+                    if (!result.Read())
+                    {
+                        return String.Empty;
+                    }
+                    else
+                    {
+                        return Convert.ToString(result["llsd_settings"]);
+                    }
+                }
+            }
+        }
+
+        public void StoreRegionEnvironmentSettings(UUID regionUUID, string settings)
+        {
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                using (MySqlCommand cmd = dbcon.CreateCommand())
+                {
+                    cmd.CommandText = "REPLACE INTO `regionenvironment` (`region_id`, `llsd_settings`) VALUES (?region_id, ?llsd_settings)";
+
+                    cmd.Parameters.AddWithValue("region_id", regionUUID);
+                    cmd.Parameters.AddWithValue("llsd_settings", settings);
+
+                    ExecuteNonQuery(cmd);
+                }
+            }
+        }
+
+        public void RemoveRegionEnvironmentSettings(UUID regionUUID)
+        {
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                using (MySqlCommand cmd = dbcon.CreateCommand())
+                {
+                    cmd.CommandText = "delete from `regionenvironment` where region_id = ?region_id";
+                    cmd.Parameters.AddWithValue("?region_id", regionUUID.ToString());
+                    ExecuteNonQuery(cmd);
+                }
+            }
+        }
+        #endregion
+
         public virtual void StoreRegionSettings(RegionSettings rs)
         {
             lock (m_dbLock)

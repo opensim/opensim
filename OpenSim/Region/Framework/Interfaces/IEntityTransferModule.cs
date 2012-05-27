@@ -57,6 +57,13 @@ namespace OpenSim.Region.Framework.Interfaces
         void DoTeleport(ScenePresence sp, GridRegion reg, GridRegion finalDestination,
             Vector3 position, Vector3 lookAt, uint teleportFlags);
 
+        /// <summary>
+        /// Show whether the given agent is being teleported.
+        /// </summary>
+        /// <param name='id'>The agent ID</para></param>
+        /// <returns>true if the agent is in the process of being teleported, false otherwise.</returns>
+        bool IsInTransit(UUID id);        
+
         bool Cross(ScenePresence agent, bool isFlying);
 
         void AgentArrivedAtDestination(UUID agent);

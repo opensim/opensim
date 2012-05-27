@@ -954,8 +954,8 @@ namespace OpenSim.Region.Framework.Scenes
                                              sbyte invType, sbyte type, UUID olditemID)
         {
 //            m_log.DebugFormat(
-//                "[AGENT INVENTORY]: Received request from {0} to create inventory item link {1} in folder {2} pointing to {3}",
-//                remoteClient.Name, name, folderID, olditemID);
+//                "[AGENT INVENTORY]: Received request from {0} to create inventory item link {1} in folder {2} pointing to {3}, assetType {4}, inventoryType {5}",
+//                remoteClient.Name, name, folderID, olditemID, (AssetType)type, (InventoryType)invType);
 
             if (!Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
@@ -988,10 +988,10 @@ namespace OpenSim.Region.Framework.Scenes
                 asset.Type = type;
                 asset.Name = name;
                 asset.Description = description;
-                
+
                 CreateNewInventoryItem(
-                    remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID, name, 0, callbackID, asset, invType, 
-                    (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, 
+                    remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID, name, 0, callbackID, asset, invType,
+                    (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All,
                     (uint)PermissionMask.All, (uint)PermissionMask.All, Util.UnixTimeSinceEpoch());
             }
             else

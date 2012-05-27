@@ -99,12 +99,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         public void TestAddAttachmentFromGround()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
 
             AddPresence();
             string attName = "att";
 
-            SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, attName).ParentGroup;
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, attName, m_presence.UUID).ParentGroup;
 
             m_attMod.AttachObject(m_presence, so, (uint)AttachmentPoint.Chest, false);
 
@@ -123,6 +123,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(
                 m_presence.Appearance.GetAttachpoint(attSo.FromItemID),
                 Is.EqualTo((int)AttachmentPoint.Chest));
+
+            InventoryItemBase attachmentItem = scene.InventoryService.GetItem(new InventoryItemBase(attSo.FromItemID));
+            Assert.That(attachmentItem, Is.Not.Null);
+            Assert.That(attachmentItem.Name, Is.EqualTo(attName));
+
+            InventoryFolderBase targetFolder = scene.InventoryService.GetFolderForType(m_presence.UUID, AssetType.Object);
+            Assert.That(attachmentItem.Folder, Is.EqualTo(targetFolder.ID));
+
+//            TestHelpers.DisableLogging();
         }
 
         [Test]

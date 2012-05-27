@@ -960,21 +960,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID avatarID = (UUID)avatar;
 
             m_host.AddScriptLPS(1);
+
+            // FIXME: What we really want to do here is factor out the similar code in llStopAnimation() to a common
+            // method (though see that doesn't do the is animation check, which is probably a bug) and have both
+            // these functions call that common code.  However, this does mean navigating the brain-dead requirement
+            // of calling InitLSL()
             if (World.Entities.ContainsKey(avatarID) && World.Entities[avatarID] is ScenePresence)
             {
                 ScenePresence target = (ScenePresence)World.Entities[avatarID];
                 if (target != null)
                 {
-                    UUID animID = UUID.Zero;
-                    m_host.TaskInventory.LockItemsForRead(true);
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                    UUID animID;
+
+                    if (!UUID.TryParse(animation, out animID))
                     {
-                        if (inv.Value.Name == animation)
-                        {
-                            if (inv.Value.Type == (int)AssetType.Animation)
-                                animID = inv.Value.AssetID;
-                            continue;
-                        }
+                        TaskInventoryItem item = m_host.Inventory.GetInventoryItem(animation);
+                        if (item != null && item.Type == (int)AssetType.Animation)
+                            animID = item.AssetID;
+                        else
+                            animID = UUID.Zero;
                     }
                     m_host.TaskInventory.LockItemsForRead(false);
                     

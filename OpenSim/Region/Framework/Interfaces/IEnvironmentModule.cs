@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,24 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Collections.Generic;
 using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IUrlModule
+    public interface IEnvironmentModule
     {
-        string ExternalHostNameForLSL { get; }
-        UUID RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID);
-        UUID RequestSecureURL(IScriptModule engine, SceneObjectPart host, UUID itemID);
-        void ReleaseURL(string url);
-        void HttpResponse(UUID request, int status, string body);
-        string GetHttpHeader(UUID request, string header);
-        int GetFreeUrls();
-
-        void ScriptRemoved(UUID itemID);
-        void ObjectRemoved(UUID objectID);
+        void ResetEnvironmentSettings(UUID regionUUID);
     }
 }

@@ -302,7 +302,8 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool AddFolder(InventoryFolderBase folder)
         {
-            //m_log.DebugFormat("[XINVENTORY]: Add folder {0} type {1} in parent {2}", folder.Name, folder.Type, folder.ParentID);
+//            m_log.DebugFormat("[XINVENTORY]: Add folder {0} type {1} in parent {2}", folder.Name, folder.Type, folder.ParentID);
+
             InventoryFolderBase check = GetFolder(folder);
             if (check != null)
                 return false;
@@ -327,27 +328,36 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool UpdateFolder(InventoryFolderBase folder)
         {
-            //m_log.DebugFormat("[XINVENTORY]: Update folder {0} {1} ({2})", folder.Name, folder.Type, folder.ID);
+//            m_log.DebugFormat("[XINVENTORY]: Update folder {0} {1} ({2})", folder.Name, folder.Type, folder.ID);
+
             XInventoryFolder xFolder = ConvertFromOpenSim(folder);
             InventoryFolderBase check = GetFolder(folder);
+
             if (check == null)
                 return AddFolder(folder);
 
-            if (check.Type != -1 || xFolder.type != -1)
+            if ((check.Type != (short)AssetType.Unknown || xFolder.type != (short)AssetType.Unknown)
+                && (check.Type != (short)AssetType.OutfitFolder || xFolder.type != (short)AssetType.OutfitFolder))
             {
                 if (xFolder.version < check.Version)
                 {
-                    //m_log.DebugFormat("[XINVENTORY]: {0} < {1} can't do", xFolder.version, check.Version);
+//                    m_log.DebugFormat("[XINVENTORY]: {0} < {1} can't do", xFolder.version, check.Version);
                     return false;
                 }
+
                 check.Version = (ushort)xFolder.version;
                 xFolder = ConvertFromOpenSim(check);
-                //m_log.DebugFormat("[XINVENTORY]: Storing {0} {1} {2}", xFolder.folderName, xFolder.version, xFolder.type);
+
+//                m_log.DebugFormat(
+//                    "[XINVENTORY]: Storing version only update to system folder {0} {1} {2}",
+//                    xFolder.folderName, xFolder.version, xFolder.type);
+
                 return m_Database.StoreFolder(xFolder);
             }
 
             if (xFolder.version < check.Version)
                 xFolder.version = check.Version;
+
             xFolder.folderID = check.ID;
 
             return m_Database.StoreFolder(xFolder);
@@ -433,7 +443,6 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool UpdateItem(InventoryItemBase item)
         {
-//            throw new Exception("urrgh");
             if (!m_AllowDelete)
                 if (item.AssetType == (sbyte)AssetType.Link || item.AssetType == (sbyte)AssetType.LinkFolder)
                     return false;

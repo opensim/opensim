@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,24 +25,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Framework.Capabilities
 {
-    public interface IUrlModule
+    [OSDMap]
+    public class LLSDEnvironmentRequest
     {
-        string ExternalHostNameForLSL { get; }
-        UUID RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID);
-        UUID RequestSecureURL(IScriptModule engine, SceneObjectPart host, UUID itemID);
-        void ReleaseURL(string url);
-        void HttpResponse(UUID request, int status, string body);
-        string GetHttpHeader(UUID request, string header);
-        int GetFreeUrls();
-
-        void ScriptRemoved(UUID itemID);
-        void ObjectRemoved(UUID objectID);
+        public UUID messageID;
+        public UUID regionID;
     }
+
+    [OSDMap]
+    public class LLSDEnvironmentSetResponse
+    {
+        public UUID regionID;
+        public UUID messageID;
+        public Boolean success;
+        public String fail_reason;
+    }
+
+    public class EnvironmentSettings
+    {
+        /// <summary>
+        /// generates a empty llsd settings response for viewer
+        /// </summary>
+        /// <param name="messageID">the message UUID</param>
+        /// <param name="regionID">the region UUID</param>
+        public static string EmptySettings(UUID messageID, UUID regionID)
+        {
+            OSDArray arr = new OSDArray();
+            LLSDEnvironmentRequest msg = new LLSDEnvironmentRequest();
+            msg.messageID = messageID;
+            msg.regionID = regionID;
+            arr.Array.Add(msg);
+            return LLSDHelpers.SerialiseLLSDReply(arr);
+        }
+    }
+
 }

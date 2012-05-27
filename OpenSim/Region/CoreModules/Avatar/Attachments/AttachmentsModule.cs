@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Scene m_scene;
-        private IDialogModule m_dialogModule;
+        private IInventoryAccessModule m_invAccessModule;
 
         /// <summary>
         /// Are attachments enabled?
@@ -72,7 +72,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public void AddRegion(Scene scene)
         {
             m_scene = scene;
-            m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
             m_scene.RegisterModuleInterface<IAttachmentsModule>(this);
 
             if (Enabled)
@@ -89,7 +88,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 m_scene.EventManager.OnNewClient -= SubscribeToClientEvents;
         }
         
-        public void RegionLoaded(Scene scene) {}
+        public void RegionLoaded(Scene scene)
+        {
+            m_invAccessModule = m_scene.RequestModuleInterface<IInventoryAccessModule>();
+        }
         
         public void Close() 
         {
@@ -629,6 +631,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <returns>The user inventory item created that holds the attachment.</returns>
         private InventoryItemBase AddSceneObjectAsNewAttachmentInInv(IScenePresence sp, SceneObjectGroup grp)
         {
+            if (m_invAccessModule == null)
+                return null;
+
             //            m_log.DebugFormat(
             //                "[ATTACHMENTS MODULE]: Called AddSceneObjectAsAttachment for object {0} {1} for {2}",
             //                grp.Name, grp.LocalId, remoteClient.Name);
@@ -702,16 +707,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // sets itemID so client can show item as 'attached' in inventory
             grp.FromItemID = item.ID;
 
-            if (m_scene.AddInventoryItem(item))
-            {
-                sp.ControllingClient.SendInventoryItemCreateUpdate(item, 0);
-            }
-            else
-            {
-                if (m_dialogModule != null)
-                    m_dialogModule.SendAlertToUser(sp.ControllingClient, "Operation failed");
-            }
-
             return item;
         }
 
@@ -760,76 +755,75 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         protected SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
             IScenePresence sp, UUID itemID, UUID assetID, uint attachmentPt, XmlDocument doc)
         {
-            IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
-            if (invAccess != null)
+            if (m_invAccessModule == null)
+                return null;
+
+            lock (sp.AttachmentsSyncLock)
             {
-                lock (sp.AttachmentsSyncLock)
+                SceneObjectGroup objatt;
+
+                if (itemID != UUID.Zero)
+                    objatt = m_invAccessModule.RezObject(sp.ControllingClient,
+                        itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
+                        false, false, sp.UUID, true);
+                else
+                    objatt = m_invAccessModule.RezObject(sp.ControllingClient,
+                        null, assetID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
+                        false, false, sp.UUID, true);
+
+                //                m_log.DebugFormat(
+                //                    "[ATTACHMENTS MODULE]: Retrieved single object {0} for attachment to {1} on point {2}",
+                //                    objatt.Name, remoteClient.Name, AttachmentPt);
+
+                if (objatt != null)
                 {
-                    SceneObjectGroup objatt;
-    
-                    if (itemID != UUID.Zero)
-                        objatt = invAccess.RezObject(sp.ControllingClient,
-                            itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
-                            false, false, sp.UUID, true);
-                    else
-                        objatt = invAccess.RezObject(sp.ControllingClient,
-                            null, assetID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
-                            false, false, sp.UUID, true);
-    
-    //                m_log.DebugFormat(
-    //                    "[ATTACHMENTS MODULE]: Retrieved single object {0} for attachment to {1} on point {2}",
-    //                    objatt.Name, remoteClient.Name, AttachmentPt);
-                    
-                    if (objatt != null)
-                    {
-                        // HasGroupChanged is being set from within RezObject.  Ideally it would be set by the caller.
-                        objatt.HasGroupChanged = false;
-                        bool tainted = false;
-                        if (attachmentPt != 0 && attachmentPt != objatt.AttachmentPoint)
-                            tainted = true;
-    
-                        // This will throw if the attachment fails
-                        try
-                        {
-                            AttachObject(sp, objatt, attachmentPt, false);
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.ErrorFormat(
-                                "[ATTACHMENTS MODULE]: Failed to attach {0} {1} for {2}, exception {3}{4}",
-                                objatt.Name, objatt.UUID, sp.Name, e.Message, e.StackTrace);
-    
-                            // Make sure the object doesn't stick around and bail
-                            sp.RemoveAttachment(objatt);
-                            m_scene.DeleteSceneObject(objatt, false);
-                            return null;
-                        }
-                        
-                        if (tainted)
-                            objatt.HasGroupChanged = true;
-    
-                        if (doc != null)
-                        {
-                            objatt.LoadScriptState(doc);
-                            objatt.ResetOwnerChangeFlag();
-                        }
+                    // HasGroupChanged is being set from within RezObject.  Ideally it would be set by the caller.
+                    objatt.HasGroupChanged = false;
+                    bool tainted = false;
+                    if (attachmentPt != 0 && attachmentPt != objatt.AttachmentPoint)
+                        tainted = true;
 
-                        // Fire after attach, so we don't get messy perms dialogs
-                        // 4 == AttachedRez
-                        objatt.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 4);
-                        objatt.ResumeScripts();
-    
-                        // Do this last so that event listeners have access to all the effects of the attachment
-                        m_scene.EventManager.TriggerOnAttach(objatt.LocalId, itemID, sp.UUID);
-
-                        return objatt;
-                    }
-                    else
+                    // This will throw if the attachment fails
+                    try
                     {
-                        m_log.WarnFormat(
-                            "[ATTACHMENTS MODULE]: Could not retrieve item {0} for attaching to avatar {1} at point {2}",
-                            itemID, sp.Name, attachmentPt);
+                        AttachObject(sp, objatt, attachmentPt, false);
                     }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[ATTACHMENTS MODULE]: Failed to attach {0} {1} for {2}, exception {3}{4}",
+                            objatt.Name, objatt.UUID, sp.Name, e.Message, e.StackTrace);
+
+                        // Make sure the object doesn't stick around and bail
+                        sp.RemoveAttachment(objatt);
+                        m_scene.DeleteSceneObject(objatt, false);
+                        return null;
+                    }
+
+                    if (doc != null)
+                    {
+                        objatt.LoadScriptState(doc);
+                        objatt.ResetOwnerChangeFlag();
+                    }
+
+                    if (tainted)
+                        objatt.HasGroupChanged = true;
+
+                    // Fire after attach, so we don't get messy perms dialogs
+                    // 4 == AttachedRez
+                    objatt.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 4);
+                    objatt.ResumeScripts();
+
+                    // Do this last so that event listeners have access to all the effects of the attachment
+                    m_scene.EventManager.TriggerOnAttach(objatt.LocalId, itemID, sp.UUID);
+
+                    return objatt;
+                }
+                else
+                {
+                    m_log.WarnFormat(
+                        "[ATTACHMENTS MODULE]: Could not retrieve item {0} for attaching to avatar {1} at point {2}",
+                        itemID, sp.Name, attachmentPt);
                 }
             }
             

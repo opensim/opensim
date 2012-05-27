@@ -149,7 +149,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             
             m_aScene = scene;
 
-            scene.RegisterModuleInterface<IAssetService>(this);
+            m_aScene.RegisterModuleInterface<IAssetService>(this);
         }
 
         public void RemoveRegion(Scene scene)

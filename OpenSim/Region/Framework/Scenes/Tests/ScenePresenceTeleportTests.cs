@@ -110,12 +110,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             UUID userId = TestHelpers.ParseTail(0x1);
 
-            EntityTransferModule etm = new EntityTransferModule();
+            EntityTransferModule etmA = new EntityTransferModule();
+            EntityTransferModule etmB = new EntityTransferModule();
             LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
 
             IConfigSource config = new IniConfigSource();
             IConfig modulesConfig = config.AddConfig("Modules");
-            modulesConfig.Set("EntityTransferModule", etm.Name);
+            modulesConfig.Set("EntityTransferModule", etmA.Name);
             modulesConfig.Set("SimulationServices", lscm.Name);
             IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
 
@@ -127,7 +128,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
             TestScene sceneB = sh.SetupScene("sceneB", TestHelpers.ParseTail(0x200), 1002, 1000);
 
-            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, etm, lscm);
+            SceneHelpers.SetupSceneModules(sceneA, config, etmA);
+            SceneHelpers.SetupSceneModules(sceneB, config, etmB);
+            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
 
             Vector3 teleportPosition = new Vector3(10, 11, 12);
             Vector3 teleportLookAt = new Vector3(20, 21, 22);
@@ -174,12 +177,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             UUID userId = TestHelpers.ParseTail(0x1);
             Vector3 preTeleportPosition = new Vector3(30, 31, 32);
 
-            EntityTransferModule etm = new EntityTransferModule();
+            EntityTransferModule etmA = new EntityTransferModule();
+            EntityTransferModule etmB = new EntityTransferModule();
+
             LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
 
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
-            config.Configs["Modules"].Set("EntityTransferModule", etm.Name);
+            config.Configs["Modules"].Set("EntityTransferModule", etmA.Name);
             config.Configs["Modules"].Set("SimulationServices", lscm.Name);
 
             config.AddConfig("EntityTransfer");
@@ -195,13 +200,15 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
             TestScene sceneB = sh.SetupScene("sceneB", TestHelpers.ParseTail(0x200), 1002, 1000);
 
+            SceneHelpers.SetupSceneModules(sceneA, config, etmA );
+
             // We need to set up the permisions module on scene B so that our later use of agent limit to deny
             // QueryAccess won't succeed anyway because administrators are always allowed in and the default
             // IsAdministrator if no permissions module is present is true.
-            SceneHelpers.SetupSceneModules(sceneB, config, new object[] { new PermissionsModule() });
+            SceneHelpers.SetupSceneModules(sceneB, config, new object[] { new PermissionsModule(), etmB });
 
             // Shared scene modules
-            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, etm, lscm);
+            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
 
             Vector3 teleportPosition = new Vector3(10, 11, 12);
             Vector3 teleportLookAt = new Vector3(20, 21, 22);
@@ -249,12 +256,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             UUID userId = TestHelpers.ParseTail(0x1);
             Vector3 preTeleportPosition = new Vector3(30, 31, 32);
 
-            EntityTransferModule etm = new EntityTransferModule();
+            EntityTransferModule etmA = new EntityTransferModule();
+            EntityTransferModule etmB = new EntityTransferModule();
             LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
 
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
-            config.Configs["Modules"].Set("EntityTransferModule", etm.Name);
+            config.Configs["Modules"].Set("EntityTransferModule", etmA.Name);
             config.Configs["Modules"].Set("SimulationServices", lscm.Name);
 
             config.AddConfig("EntityTransfer");
@@ -267,8 +275,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
             TestScene sceneB = sh.SetupScene("sceneB", TestHelpers.ParseTail(0x200), 1002, 1000);
 
+            SceneHelpers.SetupSceneModules(sceneA, config, etmA);
+            SceneHelpers.SetupSceneModules(sceneB, config, etmB);
+
             // Shared scene modules
-            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, etm, lscm);
+            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
 
             Vector3 teleportPosition = new Vector3(10, 11, 12);
             Vector3 teleportLookAt = new Vector3(20, 21, 22);
@@ -312,12 +323,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             UUID userId = TestHelpers.ParseTail(0x1);
 
-            EntityTransferModule etm = new EntityTransferModule();
+            EntityTransferModule etmA = new EntityTransferModule();
+            EntityTransferModule etmB = new EntityTransferModule();
             LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
 
             IConfigSource config = new IniConfigSource();
             IConfig modulesConfig = config.AddConfig("Modules");
-            modulesConfig.Set("EntityTransferModule", etm.Name);
+            modulesConfig.Set("EntityTransferModule", etmA.Name);
             modulesConfig.Set("SimulationServices", lscm.Name);
             IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
 
@@ -329,9 +341,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
             TestScene sceneB = sh.SetupScene("sceneB", TestHelpers.ParseTail(0x200), 1001, 1000);
 
-            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, etm, lscm);
-            SceneHelpers.SetupSceneModules(sceneA, new CapabilitiesModule());
-            SceneHelpers.SetupSceneModules(sceneB, new CapabilitiesModule());
+            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
+            SceneHelpers.SetupSceneModules(sceneA, config, new CapabilitiesModule(), etmA);
+            SceneHelpers.SetupSceneModules(sceneB, config, new CapabilitiesModule(), etmB);
 
             Vector3 teleportPosition = new Vector3(10, 11, 12);
             Vector3 teleportLookAt = new Vector3(20, 21, 22);

@@ -38,38 +38,32 @@ namespace OpenSim.Framework.Console
     /// <remarks>
     /// Currently subject to change.  If you use this, be prepared to change your code when this class changes.
     /// </remarks>
-    public class ConsoleTable
+    public class ConsoleDisplayList
     {
         /// <summary>
-        /// Default number of spaces between table columns.
+        /// The default divider between key and value for a list item.
         /// </summary>
-        public const int DefaultTableSpacing = 2;
+        public const string DefaultKeyValueDivider = " : ";
 
         /// <summary>
-        /// Table columns.
+        /// The divider used between key and value for a list item.
         /// </summary>
-        public List<ConsoleTableColumn> Columns { get; private set; }
+        public string KeyValueDivider { get; set; }
 
         /// <summary>
         /// Table rows
         /// </summary>
-        public List<ConsoleTableRow> Rows { get; private set; }
+        public List<KeyValuePair<string, string>> Rows { get; private set; }
 
         /// <summary>
-        /// Number of spaces to indent the table.
+        /// Number of spaces to indent the list.
         /// </summary>
         public int Indent { get; set; }
 
-        /// <summary>
-        /// Spacing between table columns
-        /// </summary>
-        public int TableSpacing { get; set; }
-
-        public ConsoleTable()
+        public ConsoleDisplayList()
         {
-            TableSpacing = DefaultTableSpacing;
-            Columns = new List<ConsoleTableColumn>();
-            Rows = new List<ConsoleTableRow>();
+            Rows = new List<KeyValuePair<string, string>>();
+            KeyValueDivider = DefaultKeyValueDivider;
         }
 
         public override string ToString()
@@ -84,12 +78,9 @@ namespace OpenSim.Framework.Console
             string formatString = GetFormatString();
 //            System.Console.WriteLine("FORMAT STRING [{0}]", formatString);
 
-            // columns
-            sb.AppendFormat(formatString, Columns.ConvertAll(c => c.Header).ToArray());
-
             // rows
-            foreach (ConsoleTableRow row in Rows)
-                sb.AppendFormat(formatString, row.Cells.ToArray());
+            foreach (KeyValuePair<string, string> row in Rows)
+                sb.AppendFormat(formatString, row.Key, row.Value);
         }
 
         /// <summary>
@@ -99,41 +90,23 @@ namespace OpenSim.Framework.Console
         {
             StringBuilder formatSb = new StringBuilder();
 
+            int longestKey = -1;
+
+            foreach (KeyValuePair<string, string> row in Rows)
+                if (row.Key.Length > longestKey)
+                    longestKey = row.Key.Length;
+
             formatSb.Append(' ', Indent);
 
-            for (int i = 0; i < Columns.Count; i++)
-            {
-                formatSb.Append(' ', TableSpacing);
-
-                // Can only do left formatting for now
-                formatSb.AppendFormat("{{{0},-{1}}}", i, Columns[i].Width);
-            }
-
-            formatSb.Append('\n');
+            // Can only do left formatting for now
+            formatSb.AppendFormat("{{0,-{0}}}{1}{{1}}\n", longestKey, KeyValueDivider);
 
             return formatSb.ToString();
         }
-    }
 
-    public struct ConsoleTableColumn
-    {
-        public string Header { get; set; }
-        public int Width { get; set; }
-
-        public ConsoleTableColumn(string header, int width) : this()
+        public void AddRow(object key, object value)
         {
-            Header = header;
-            Width = width;
-        }
-    }
-
-    public struct ConsoleTableRow
-    {
-        public List<string> Cells { get; private set; }
-
-        public ConsoleTableRow(List<string> cells) : this()
-        {
-            Cells = cells;
+            Rows.Add(new KeyValuePair<string, string>(key.ToString(), value.ToString()));
         }
     }
 }

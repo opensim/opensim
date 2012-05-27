@@ -166,6 +166,19 @@ namespace OpenSim.Region.Framework.Interfaces
         List<TaskInventoryItem> GetInventoryItems();
 
         /// <summary>
+        /// Gets an inventory item by name
+        /// </summary>
+        /// <remarks>
+        /// This method returns the first inventory item that matches the given name.  In SL this is all you need
+        /// since each item in a prim inventory must have a unique name.
+        /// </remarks>
+        /// <param name='name'></param>
+        /// <returns>
+        /// The inventory item.  Null if no such item was found.
+        /// </returns>
+        TaskInventoryItem GetInventoryItem(string name);
+
+        /// <summary>
         /// Get inventory items by name.
         /// </summary>
         /// <param name="name"></param>

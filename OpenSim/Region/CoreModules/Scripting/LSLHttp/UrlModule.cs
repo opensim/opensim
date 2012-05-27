@@ -85,6 +85,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         private IHttpServer m_HttpsServer = null;
 
         private string m_ExternalHostNameForLSL = "";
+        public string ExternalHostNameForLSL
+        {
+            get { return m_ExternalHostNameForLSL; } 
+        }
 
         public Type ReplaceableInterface 
         {

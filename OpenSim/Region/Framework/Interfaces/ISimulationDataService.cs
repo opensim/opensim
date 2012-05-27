@@ -95,5 +95,26 @@ namespace OpenSim.Region.Framework.Interfaces
         RegionLightShareData LoadRegionWindlightSettings(UUID regionUUID);
         void StoreRegionWindlightSettings(RegionLightShareData wl);
         void RemoveRegionWindlightSettings(UUID regionID);
+
+        /// <summary>
+        /// Load Environment settings from region storage
+        /// </summary>
+        /// <param name="regionUUID">the region UUID</param>
+        /// <returns>LLSD string for viewer</returns>
+        string LoadRegionEnvironmentSettings(UUID regionUUID);
+
+        /// <summary>
+        /// Store Environment settings into region storage
+        /// </summary>
+        /// <param name="regionUUID">the region UUID</param>
+        /// <param name="settings">LLSD string from viewer</param>
+        void StoreRegionEnvironmentSettings(UUID regionUUID, string settings);
+
+        /// <summary>
+        /// Delete Environment settings from region storage
+        /// </summary>
+        /// <param name="regionUUID">the region UUID</param>
+        void RemoveRegionEnvironmentSettings(UUID regionUUID);
+
     }
 }
