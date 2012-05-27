@@ -504,8 +504,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
         }
-/*
-        public override Vector3 PrimOOBsize
+
+        public override Vector3 OOBsize
             {
             get
                 {
@@ -513,7 +513,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-        public override Vector3 PrimOOBoffset
+        public override Vector3 OOBoffset
             {
             get
                 {
@@ -521,14 +521,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-        public override float PrimOOBRadiusSQ
+        public override float OOBRadiusSQ
             {
             get
                 {
                 return primOOBradiusSQ;
                 }
             }
-*/
+
         public override PrimitiveBaseShape Shape
         {
             set

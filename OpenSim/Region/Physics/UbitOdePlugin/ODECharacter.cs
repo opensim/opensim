@@ -522,29 +522,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        //UBit mess
-        /* for later use
-                public override Vector3 PrimOOBsize
-                    {
-                    get
-                        {
-                        Vector3 s=Size;
-                        s.X *=0.5f;
-                        s.Y *=0.5f;
-                        s.Z *=0.5f;
-                        return s;
-                        }
-                    }
- 
-                public override Vector3 PrimOOBoffset
-                    {
-                    get
-                        {
-                        return Vector3.Zero;
-                        }
-                    }
-        */
-
         public override PrimitiveBaseShape Shape
         {
             set { return; }
