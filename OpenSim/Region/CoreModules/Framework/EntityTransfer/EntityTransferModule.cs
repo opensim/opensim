@@ -684,13 +684,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual void Fail(ScenePresence sp, GridRegion finalDestination, bool logout)
         {
+            UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
+
             // Client never contacted destination. Let's restore everything back
             sp.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
 
             // Fail. Reset it back
             sp.IsChildAgent = false;
             ReInstantiateScripts(sp);
-            ResetFromTransit(sp.UUID);
 
             EnableChildAgents(sp);
 
@@ -698,6 +699,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_scene.SimulationService.CloseAgent(finalDestination, sp.UUID);
 
             sp.Scene.EventManager.TriggerTeleportFail(sp.ControllingClient, logout);
+
+            ResetFromTransit(sp.UUID);
         }
 
         protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason, out bool logout)
@@ -2158,8 +2161,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         // FIXME: For now, we allow exit from any state since a thrown exception in teleport is now guranteed
                         // to be handled properly - ResetFromTransit() could be invoked at any step along the process
                         m_log.WarnFormat(
-                            "[ENTITY TRANSFER MODULE]: Agent with ID should not exit directly from state {1}, should go to {2} state first",
-                            state, AgentTransferState.CleaningUp);
+                            "[ENTITY TRANSFER MODULE]: Agent with ID {0} should not exit directly from state {1}, should go to {2} state first",
+                            id, state, AgentTransferState.CleaningUp);
 
 //                        throw new Exception(
 //                            "Agent with ID {0} cannot exit directly from state {1}, it must go to {2} state first",
