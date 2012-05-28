@@ -188,6 +188,9 @@ namespace OpenSim.Region.Framework.Scenes
         
         public static void PartCollisionSound(SceneObjectPart part, List<CollisionForSoundInfo> collidersinfolist)
         {
+            // disable for now
+            return;
+
             if (collidersinfolist.Count == 0 || part == null)
                 return;
 
@@ -296,7 +299,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public static void AvatarCollisionSound(ScenePresence av, List<CollisionForSoundInfo> collidersinfolist)
-        {
+         {
+             // disable for now
+             return;
+
             if (collidersinfolist.Count == 0 || av == null)
                 return;
 
