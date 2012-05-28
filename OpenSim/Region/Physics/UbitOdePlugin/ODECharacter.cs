@@ -1322,8 +1322,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_iscollidingGround = false;
             m_iscollidingObj = false;
 
-            CollisionEventsThisFrame = new CollisionEventUpdate();
-            m_eventsubscription = 0;
+            CollisionEventsThisFrame.Clear();
         }
 
         private void changeForce(Vector3 newForce)

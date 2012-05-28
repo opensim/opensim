@@ -1675,41 +1675,40 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns></returns>
         public bool needsMeshing(PrimitiveBaseShape pbs)
         {
-            // most of this is redundant now as the mesher will return null if it cant mesh a prim
-            // but we still need to check for sculptie meshing being enabled so this is the most
-            // convenient place to do it for now...
-
-        //    //if (pbs.PathCurve == (byte)Primitive.PathCurve.Circle && pbs.ProfileCurve == (byte)Primitive.ProfileCurve.Circle && pbs.PathScaleY <= 0.75f)
-        //    //m_log.Debug("needsMeshing: " + " pathCurve: " + pbs.PathCurve.ToString() + " profileCurve: " + pbs.ProfileCurve.ToString() + " pathScaleY: " + Primitive.UnpackPathScale(pbs.PathScaleY).ToString());
-            int iPropertiesNotSupportedDefault = 0;
-
+            // check sculpts or meshs 
             if (pbs.SculptEntry)
             {
-                if(!meshSculptedPrim)
-                    return false;
+                if (meshSculptedPrim)
+                    return true;
+
+                if (pbs.SculptType == (byte)SculptType.Mesh) // always do meshs
+                    return true;
+
+                return false;
             }
 
+            if (forceSimplePrimMeshing)
+                return true;
+
             // if it's a standard box or sphere with no cuts, hollows, twist or top shear, return false since ODE can use an internal representation for the prim
-            if (!forceSimplePrimMeshing && !pbs.SculptEntry)
-            {
-                if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
+
+            if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
                     || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
                     && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z))
-                {
+            {
 
-                    if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
-                        && pbs.ProfileHollow == 0
-                        && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
-                        && pbs.PathBegin == 0 && pbs.PathEnd == 0
-                        && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
-                        && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
-                        && pbs.PathShearX == 0 && pbs.PathShearY == 0)
-                    {
+                if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
+                    && pbs.ProfileHollow == 0
+                    && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
+                    && pbs.PathBegin == 0 && pbs.PathEnd == 0
+                    && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
+                    && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
+                    && pbs.PathShearX == 0 && pbs.PathShearY == 0)
+                {
 #if SPAM
-                    m_log.Warn("NonMesh");
+                m_log.Warn("NonMesh");
 #endif
-                        return false;
-                    }
+                    return false;
                 }
             }
 
@@ -1717,8 +1716,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // and it's odd..  so for now just return true if asked to force meshs
             // hopefully mesher will fail if doesn't suport so things still get basic boxes
 
-            if (forceSimplePrimMeshing)
-                return true;
+            int iPropertiesNotSupportedDefault = 0;
 
             if (pbs.ProfileHollow != 0)
                 iPropertiesNotSupportedDefault++;
@@ -1786,9 +1784,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     iPropertiesNotSupportedDefault++;
                 }
             }
-
-            if (pbs.SculptEntry && meshSculptedPrim)
-                iPropertiesNotSupportedDefault++;
 
             if (iPropertiesNotSupportedDefault == 0)
             {
