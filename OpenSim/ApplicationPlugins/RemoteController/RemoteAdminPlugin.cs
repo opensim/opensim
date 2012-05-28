@@ -1673,16 +1673,25 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             Hashtable responseData = (Hashtable)response.Value;
             Hashtable requestData = (Hashtable)request.Params[0];
 
+            int flags = 0;
+            string text = String.Empty;
+            int health = 0;
             responseData["success"] = true;
 
             CheckRegionParams(requestData, responseData);
 
             Scene scene = null;
-            GetSceneFromRegionParams(requestData, responseData, out scene);
+            try
+            {
+                GetSceneFromRegionParams(requestData, responseData, out scene);
+                health = scene.GetHealth(out flags, out text);
+            }
+            catch (Exception e)
+            {
+                responseData["error"] = null;
+            }
 
-            int flags;
-            string text;
-            int health = scene.GetHealth(out flags, out text);
+            responseData["success"] = true;
             responseData["health"] = health;
             responseData["flags"] = flags;
             responseData["message"] = text;
