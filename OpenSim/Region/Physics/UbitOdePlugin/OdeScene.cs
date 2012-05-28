@@ -1675,20 +1675,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns></returns>
         public bool needsMeshing(PrimitiveBaseShape pbs)
         {
-
             // check sculpts or meshs 
             if (pbs.SculptEntry)
             {
+                if (meshSculptedPrim)
+                    return true;
+
                 if (pbs.SculptType == (byte)SculptType.Mesh) // always do meshs
                     return true;
 
-                if (!meshSculptedPrim)
-                    return false;
-                else
-                    return true;
+                return false;
             }
-
-            int iPropertiesNotSupportedDefault = 0;
 
             if (forceSimplePrimMeshing)
                 return true;
@@ -1718,6 +1715,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             //  following code doesn't give meshs to boxes and spheres ever
             // and it's odd..  so for now just return true if asked to force meshs
             // hopefully mesher will fail if doesn't suport so things still get basic boxes
+
+            int iPropertiesNotSupportedDefault = 0;
 
             if (pbs.ProfileHollow != 0)
                 iPropertiesNotSupportedDefault++;
