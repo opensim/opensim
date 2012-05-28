@@ -504,8 +504,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
         }
-/*
-        public override Vector3 PrimOOBsize
+
+        public override Vector3 OOBsize
             {
             get
                 {
@@ -513,7 +513,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-        public override Vector3 PrimOOBoffset
+        public override Vector3 OOBoffset
             {
             get
                 {
@@ -521,14 +521,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-        public override float PrimOOBRadiusSQ
+        public override float OOBRadiusSQ
             {
             get
                 {
                 return primOOBradiusSQ;
                 }
             }
-*/
+
         public override PrimitiveBaseShape Shape
         {
             set
@@ -1482,6 +1482,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!haveMesh)
                     m_NoColide = true;
             }
+            else if(_pbs.SculptEntry)
+                m_NoColide = true; // also don't colide if is a sculp or mesh and meshing is off
 
             if (!haveMesh)
             {
@@ -2562,10 +2564,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 d.Quaternion qtmp;
                 d.GeomCopyQuaternion(prim_geom, out qtmp);
-                _orientation.W = qtmp.W;
                 _orientation.X = qtmp.X;
                 _orientation.Y = qtmp.Y;
                 _orientation.Z = qtmp.Z;
+                _orientation.W = qtmp.W;
 
                 d.Vector3 lpos = d.GeomGetPosition(prim_geom);
                 _position.X = lpos.X;

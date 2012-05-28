@@ -1006,16 +1006,82 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
 
                 {
-                    if (dop1foot && (p1.Position.Z - curContact.pos.Z) > (p1.Size.Z - avCapRadius) * 0.5f)
-                        p1.IsColliding = true;
-                    if (dop2foot && (p2.Position.Z - curContact.pos.Z) > (p2.Size.Z - avCapRadius) * 0.5f)
-                        p2.IsColliding = true;
 
-                    if (AvanormOverride && curContact.depth > 0.3f)
+                    if (AvanormOverride)
                     {
-                        curContact.normal.X = normoverride.X;
-                        curContact.normal.Y = normoverride.Y;
-                        curContact.normal.Z = normoverride.Z;
+                        if (curContact.depth > 0.3f)
+                        {
+                            if (dop1foot && (p1.Position.Z - curContact.pos.Z) > (p1.Size.Z - avCapRadius) * 0.5f)
+                                p1.IsColliding = true;
+                            if (dop2foot && (p2.Position.Z - curContact.pos.Z) > (p2.Size.Z - avCapRadius) * 0.5f)
+                                p2.IsColliding = true;
+                            curContact.normal.X = normoverride.X;
+                            curContact.normal.Y = normoverride.Y;
+                            curContact.normal.Z = normoverride.Z;
+                        }
+
+                        else
+                        {
+                            if (dop1foot)
+                            {
+                                float sz = p1.Size.Z;
+                                Vector3 vtmp = p1.Position;
+                                float ppos = curContact.pos.Z - vtmp.Z + (sz - avCapRadius) * 0.5f;
+                                if (ppos > 0f)
+                                {
+                                    if (!p1.Flying)
+                                    {
+                                        d.AABB aabb;
+                                        d.GeomGetAABB(g2, out aabb);
+                                        float tmp = vtmp.Z - sz * .25f;
+
+                                        if (aabb.MaxZ < tmp)
+                                        {
+                                            vtmp.X = curContact.pos.X - vtmp.X;
+                                            vtmp.Y = curContact.pos.Y - vtmp.Y;
+                                            vtmp.Z = -0.2f;
+                                            vtmp.Normalize();
+                                            curContact.normal.X = vtmp.X;
+                                            curContact.normal.Y = vtmp.Y;
+                                            curContact.normal.Z = vtmp.Z;
+                                        }
+                                    }
+                                }
+                                else
+                                    p1.IsColliding = true;
+
+                            }
+
+                            if (dop2foot)
+                            {
+                                float sz = p2.Size.Z;
+                                Vector3 vtmp = p2.Position;
+                                float ppos = curContact.pos.Z - vtmp.Z + (sz - avCapRadius) * 0.5f;
+                                if (ppos > 0f)
+                                {
+                                    if (!p2.Flying)
+                                    {
+                                        d.AABB aabb;
+                                        d.GeomGetAABB(g1, out aabb);
+                                        float tmp = vtmp.Z - sz * .25f;
+
+                                        if (aabb.MaxZ < tmp)
+                                        {
+                                            vtmp.X = curContact.pos.X - vtmp.X;
+                                            vtmp.Y = curContact.pos.Y - vtmp.Y;
+                                            vtmp.Z = -0.2f;
+                                            vtmp.Normalize();
+                                            curContact.normal.X = vtmp.X;
+                                            curContact.normal.Y = vtmp.Y;
+                                            curContact.normal.Z = vtmp.Z;
+                                        }
+                                    }
+                                }
+                                else
+                                    p2.IsColliding = true;
+
+                            }
+                        }
                     }
 
                     Joint = CreateContacJoint(ref curContact, mu, bounce, cfm, erpscale, dscale);
