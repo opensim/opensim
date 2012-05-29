@@ -3513,6 +3513,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            RaiseCollisionScriptEvents(coldata);
+
             // Gods do not take damage and Invulnerable is set depending on parcel/region flags
             if (Invulnerable || GodLevel > 0)
                 return;
