@@ -3499,7 +3499,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             RaiseCollisionScriptEvents(coldata);
 
-            if (Invulnerable)
+            if (Invulnerable || GodLevel >= 200)
                 return;
             
             float starthealth = Health;
@@ -4096,199 +4096,199 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private void RaiseCollisionScriptEvents(Dictionary<uint, ContactPoint> coldata)
+        private DetectedObject CreateDetObject(SceneObjectPart obj)
         {
-            /*
-            lock(m_collisionEventLock)
+            DetectedObject detobj = new DetectedObject();
+            detobj.keyUUID = obj.UUID;
+            detobj.nameStr = obj.Name;
+            detobj.ownerUUID = obj.OwnerID;
+            detobj.posVector = obj.AbsolutePosition;
+            detobj.rotQuat = obj.GetWorldRotation();
+            detobj.velVector = obj.Velocity;
+            detobj.colliderType = 0;
+            detobj.groupUUID = obj.GroupID;
+
+            return detobj;
+        }
+
+        private DetectedObject CreateDetObject(ScenePresence av)
+        {
+            DetectedObject detobj = new DetectedObject();
+            detobj.keyUUID = av.UUID;
+            detobj.nameStr = av.ControllingClient.Name;
+            detobj.ownerUUID = av.UUID;
+            detobj.posVector = av.AbsolutePosition;
+            detobj.rotQuat = av.Rotation;
+            detobj.velVector = av.Velocity;
+            detobj.colliderType = 0;
+            detobj.groupUUID = av.ControllingClient.ActiveGroupId;
+
+            return detobj;
+        }
+
+        private DetectedObject CreateDetObjectForGround()
+        {
+            DetectedObject detobj = new DetectedObject();
+            detobj.keyUUID = UUID.Zero;
+            detobj.nameStr = "";
+            detobj.ownerUUID = UUID.Zero;
+            detobj.posVector = AbsolutePosition;
+            detobj.rotQuat = Quaternion.Identity;
+            detobj.velVector = Vector3.Zero;
+            detobj.colliderType = 0;
+            detobj.groupUUID = UUID.Zero;
+
+            return detobj;
+        }
+
+        private ColliderArgs CreateColliderArgs(SceneObjectPart dest, List<uint> colliders)
+        {
+            ColliderArgs colliderArgs = new ColliderArgs();
+            List<DetectedObject> colliding = new List<DetectedObject>();
+            foreach (uint localId in colliders)
             {
-                if (m_collisionEventFlag)
-                    return;
-                m_collisionEventFlag = true;
+                if (localId == 0)
+                    continue;
+
+                SceneObjectPart obj = m_scene.GetSceneObjectPart(localId);
+                if (obj != null)
+                {
+                    if (!dest.CollisionFilteredOut(obj.UUID, obj.Name))
+                        colliding.Add(CreateDetObject(obj));
+                }
+                else
+                {
+                    ScenePresence av = m_scene.GetScenePresence(localId);
+                    if (av != null && (!av.IsChildAgent))
+                    {
+                        if (!dest.CollisionFilteredOut(av.UUID, av.Name))
+                            colliding.Add(CreateDetObject(av));
+                    }
+                }
             }
 
-            Util.FireAndForget(delegate(object x)
+            colliderArgs.Colliders = colliding;
+
+            return colliderArgs;
+        }
+
+        private delegate void ScriptCollidingNotification(uint localID, ColliderArgs message);
+
+        private void SendCollisionEvent(SceneObjectGroup dest, scriptEvents ev, List<uint> colliders, ScriptCollidingNotification notify)
+        {
+            ColliderArgs CollidingMessage;
+
+            if (colliders.Count > 0)
             {
-        */
-                try
+                if ((dest.RootPart.ScriptEvents & ev) != 0)
                 {
-                    List<uint> thisHitColliders = new List<uint>();
-                    List<uint> endedColliders = new List<uint>();
-                    List<uint> startedColliders = new List<uint>();
-                    List<CollisionForSoundInfo> soundinfolist = new List<CollisionForSoundInfo>();
-                    CollisionForSoundInfo soundinfo;
-                    ContactPoint curcontact;
+                    CollidingMessage = CreateColliderArgs(dest.RootPart, colliders);
 
-                    if (coldata.Count == 0)
+                    if (CollidingMessage.Colliders.Count > 0)
+                        notify(dest.RootPart.LocalId, CollidingMessage);
+                }
+            }
+        }
+
+        private void SendLandCollisionEvent(SceneObjectGroup dest, scriptEvents ev, ScriptCollidingNotification notify)
+        {
+            if ((dest.RootPart.ScriptEvents & ev) != 0)
+            {
+                ColliderArgs LandCollidingMessage = new ColliderArgs();
+                List<DetectedObject> colliding = new List<DetectedObject>();
+
+                colliding.Add(CreateDetObjectForGround());
+                LandCollidingMessage.Colliders = colliding;
+
+                notify(dest.RootPart.LocalId, LandCollidingMessage);
+            }
+        }
+
+        private void RaiseCollisionScriptEvents(Dictionary<uint, ContactPoint> coldata)
+        {
+            try
+            {
+                List<uint> thisHitColliders = new List<uint>();
+                List<uint> endedColliders = new List<uint>();
+                List<uint> startedColliders = new List<uint>();
+                List<CollisionForSoundInfo> soundinfolist = new List<CollisionForSoundInfo>();
+                CollisionForSoundInfo soundinfo;
+                ContactPoint curcontact;
+
+                if (coldata.Count == 0)
+                {
+                    if (m_lastColliders.Count == 0)
+                        return; // nothing to do
+
+                    foreach (uint localID in m_lastColliders)
                     {
-                        if (m_lastColliders.Count == 0)
-                            return; // nothing to do
+                        endedColliders.Add(localID);
+                    }
+                    m_lastColliders.Clear();
+                }
 
-                        foreach (uint localID in m_lastColliders)
+                else
+                {
+                    foreach (uint id in coldata.Keys)
+                    {
+                        thisHitColliders.Add(id);
+                        if (!m_lastColliders.Contains(id))
+                        {
+                            startedColliders.Add(id);
+                            curcontact = coldata[id];
+                            if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                            {
+                                soundinfo = new CollisionForSoundInfo();
+                                soundinfo.colliderID = id;
+                                soundinfo.position = curcontact.Position;
+                                soundinfo.relativeVel = curcontact.RelativeSpeed;
+                                soundinfolist.Add(soundinfo);
+                            }
+                        }
+                        //m_log.Debug("[SCENE PRESENCE]: Collided with:" + localid.ToString() + " at depth of: " + collissionswith[localid].ToString());
+                    }
+
+                    // calculate things that ended colliding
+                    foreach (uint localID in m_lastColliders)
+                    {
+                        if (!thisHitColliders.Contains(localID))
                         {
                             endedColliders.Add(localID);
                         }
-                        m_lastColliders.Clear();
                     }
-
-                    else
+                    //add the items that started colliding this time to the last colliders list.
+                    foreach (uint localID in startedColliders)
                     {
-                        foreach (uint id in coldata.Keys)
-                        {
-                            thisHitColliders.Add(id);
-                            if (!m_lastColliders.Contains(id))
-                            {
-                                startedColliders.Add(id);
-                                curcontact = coldata[id];
-                                if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
-                                {
-                                    soundinfo = new CollisionForSoundInfo();
-                                    soundinfo.colliderID = id;
-                                    soundinfo.position = curcontact.Position;
-                                    soundinfo.relativeVel = curcontact.RelativeSpeed;
-                                    soundinfolist.Add(soundinfo);
-                                }
-                            }
-                            //m_log.Debug("[SCENE PRESENCE]: Collided with:" + localid.ToString() + " at depth of: " + collissionswith[localid].ToString());
-                        }
-
-                        // calculate things that ended colliding
-                        foreach (uint localID in m_lastColliders)
-                        {
-                            if (!thisHitColliders.Contains(localID))
-                            {
-                                endedColliders.Add(localID);
-                            }
-                        }
-                        //add the items that started colliding this time to the last colliders list.
-                        foreach (uint localID in startedColliders)
-                        {
-                            m_lastColliders.Add(localID);
-                        }
-                        // remove things that ended colliding from the last colliders list
-                        foreach (uint localID in endedColliders)
-                        {
-                            m_lastColliders.Remove(localID);
-                        }
-
-                        if (soundinfolist.Count > 0)
-                            CollisionSounds.AvatarCollisionSound(this, soundinfolist);
-
-                        // do event notification
-                        if (startedColliders.Count > 0)
-                        {
-
-                            ColliderArgs StartCollidingMessage = new ColliderArgs();
-                            List<DetectedObject> colliding = new List<DetectedObject>();
-                            foreach (uint localId in startedColliders)
-                            {
-                                if (localId == 0)
-                                    continue;
-
-                                SceneObjectPart obj = Scene.GetSceneObjectPart(localId);
-                                string data = "";
-                                if (obj != null)
-                                {
-                                    DetectedObject detobj = new DetectedObject();
-                                    detobj.keyUUID = obj.UUID;
-                                    detobj.nameStr = obj.Name;
-                                    detobj.ownerUUID = obj.OwnerID;
-                                    detobj.posVector = obj.AbsolutePosition;
-                                    detobj.rotQuat = obj.GetWorldRotation();
-                                    detobj.velVector = obj.Velocity;
-                                    detobj.colliderType = 0;
-                                    detobj.groupUUID = obj.GroupID;
-                                    colliding.Add(detobj);
-                                }
-                            }
-
-                            if (colliding.Count > 0)
-                            {
-                                StartCollidingMessage.Colliders = colliding;
-
-                                foreach (SceneObjectGroup att in GetAttachments())
-                                    Scene.EventManager.TriggerScriptCollidingStart(att.LocalId, StartCollidingMessage);
-                            }
-                        }
+                        m_lastColliders.Add(localID);
                     }
-
-                    if (endedColliders.Count > 0)
+                    // remove things that ended colliding from the last colliders list
+                    foreach (uint localID in endedColliders)
                     {
-                        ColliderArgs EndCollidingMessage = new ColliderArgs();
-                        List<DetectedObject> colliding = new List<DetectedObject>();
-                        foreach (uint localId in endedColliders)
-                        {
-                            if (localId == 0)
-                                continue;
-
-                            SceneObjectPart obj = Scene.GetSceneObjectPart(localId);
-                            string data = "";
-                            if (obj != null)
-                            {
-                                DetectedObject detobj = new DetectedObject();
-                                detobj.keyUUID = obj.UUID;
-                                detobj.nameStr = obj.Name;
-                                detobj.ownerUUID = obj.OwnerID;
-                                detobj.posVector = obj.AbsolutePosition;
-                                detobj.rotQuat = obj.GetWorldRotation();
-                                detobj.velVector = obj.Velocity;
-                                detobj.colliderType = 0;
-                                detobj.groupUUID = obj.GroupID;
-                                colliding.Add(detobj);
-                            }
-                        }
-
-                        if (colliding.Count > 0)
-                        {
-                            EndCollidingMessage.Colliders = colliding;
-
-                            foreach (SceneObjectGroup att in GetAttachments())
-                                Scene.EventManager.TriggerScriptCollidingEnd(att.LocalId, EndCollidingMessage);
-                        }
+                        m_lastColliders.Remove(localID);
                     }
 
-                    if (thisHitColliders.Count > 0)
-                    {
-                        ColliderArgs CollidingMessage = new ColliderArgs();
-                        List<DetectedObject> colliding = new List<DetectedObject>();
-                        foreach (uint localId in thisHitColliders)
-                        {
-                            if (localId == 0)
-                                continue;
-
-                            SceneObjectPart obj = Scene.GetSceneObjectPart(localId);
-                            string data = "";
-                            if (obj != null)
-                            {
-                                DetectedObject detobj = new DetectedObject();
-                                detobj.keyUUID = obj.UUID;
-                                detobj.nameStr = obj.Name;
-                                detobj.ownerUUID = obj.OwnerID;
-                                detobj.posVector = obj.AbsolutePosition;
-                                detobj.rotQuat = obj.GetWorldRotation();
-                                detobj.velVector = obj.Velocity;
-                                detobj.colliderType = 0;
-                                detobj.groupUUID = obj.GroupID;
-                                colliding.Add(detobj);
-                            }
-                        }
-
-                        if (colliding.Count > 0)
-                        {
-                            CollidingMessage.Colliders = colliding;
-
-                            lock (m_attachments)
-                            {
-                                foreach (SceneObjectGroup att in m_attachments)
-                                    Scene.EventManager.TriggerScriptColliding(att.LocalId, CollidingMessage);
-                            }
-                        }
-                    }
+                    if (soundinfolist.Count > 0)
+                        CollisionSounds.AvatarCollisionSound(this, soundinfolist);
                 }
-                finally
+
+                foreach (SceneObjectGroup att in GetAttachments())
                 {
-                    m_collisionEventFlag = false;
+                    SendCollisionEvent(att, scriptEvents.collision_start, startedColliders, m_scene.EventManager.TriggerScriptCollidingStart);
+                    SendCollisionEvent(att, scriptEvents.collision      , m_lastColliders , m_scene.EventManager.TriggerScriptColliding);
+                    SendCollisionEvent(att, scriptEvents.collision_end  , endedColliders  , m_scene.EventManager.TriggerScriptCollidingEnd);
+
+                    if (startedColliders.Contains(0))
+                        SendLandCollisionEvent(att, scriptEvents.land_collision_start, m_scene.EventManager.TriggerScriptLandCollidingStart);
+                    if (m_lastColliders.Contains(0))
+                        SendLandCollisionEvent(att, scriptEvents.land_collision, m_scene.EventManager.TriggerScriptLandColliding);
+                    if (endedColliders.Contains(0))
+                        SendLandCollisionEvent(att, scriptEvents.land_collision_end, m_scene.EventManager.TriggerScriptLandCollidingEnd);
                 }
-//            });
+            }
+            finally
+            {
+                m_collisionEventFlag = false;
+            }
         }
 
         private void TeleportFlagsDebug() {
