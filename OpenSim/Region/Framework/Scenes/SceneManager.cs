@@ -53,12 +53,12 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_instance; } 
         }
 
-        private readonly List<Scene> m_localScenes = new List<Scene>();
+        private readonly DoubleDictionary<UUID, string, Scene> m_localScenes = new DoubleDictionary<UUID, string, Scene>();
         private Scene m_currentScene = null;
 
         public List<Scene> Scenes
         {
-            get { return new List<Scene>(m_localScenes); }
+            get { return new List<Scene>(m_localScenes.FindAll(delegate(Scene s) { return true; })); }
         }
 
         public Scene CurrentScene
@@ -72,13 +72,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_currentScene == null)
                 {
-                    lock (m_localScenes)
-                    {
-                        if (m_localScenes.Count > 0)
-                            return m_localScenes[0];
-                        else
-                            return null;
-                    }
+                    List<Scene> sceneList = Scenes;
+                    if (sceneList.Count == 0)
+                        return null;
+                    return sceneList[0];
                 }
                 else
                 {
@@ -90,7 +87,7 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneManager()
         {
             m_instance = this;
-            m_localScenes = new List<Scene>();
+            m_localScenes = new DoubleDictionary<UUID, string, Scene>();
         }
 
         public void Close()
@@ -98,20 +95,18 @@ namespace OpenSim.Region.Framework.Scenes
             // collect known shared modules in sharedModules
             Dictionary<string, IRegionModule> sharedModules = new Dictionary<string, IRegionModule>();
 
-            lock (m_localScenes)
+            List<Scene> sceneList = Scenes;
+            for (int i = 0; i < sceneList.Count; i++)
             {
-                for (int i = 0; i < m_localScenes.Count; i++)
+                // extract known shared modules from scene
+                foreach (string k in sceneList[i].Modules.Keys)
                 {
-                    // extract known shared modules from scene
-                    foreach (string k in m_localScenes[i].Modules.Keys)
-                    {
-                        if (m_localScenes[i].Modules[k].IsSharedModule &&
-                            !sharedModules.ContainsKey(k))
-                            sharedModules[k] = m_localScenes[i].Modules[k];
-                    }
-                    // close scene/region
-                    m_localScenes[i].Close();
+                    if (sceneList[i].Modules[k].IsSharedModule &&
+                        !sharedModules.ContainsKey(k))
+                        sharedModules[k] = sceneList[i].Modules[k];
                 }
+                // close scene/region
+                sceneList[i].Close();
             }
 
             // all regions/scenes are now closed, we can now safely
@@ -120,31 +115,22 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 mod.Close();
             }
+
+            m_localScenes.Clear();
         }
 
         public void Close(Scene cscene)
         {
-            lock (m_localScenes)
-            {
-                if (m_localScenes.Contains(cscene))
-                {
-                    for (int i = 0; i < m_localScenes.Count; i++)
-                    {
-                        if (m_localScenes[i].Equals(cscene))
-                        {
-                            m_localScenes[i].Close();
-                        }
-                    }
-                }
-            }
+            if (!m_localScenes.ContainsKey(cscene.RegionInfo.RegionID))
+                return;
+            cscene.Close();
         }
 
         public void Add(Scene scene)
         {
             scene.OnRestart += HandleRestart;
 
-            lock (m_localScenes)
-                m_localScenes.Add(scene);
+            m_localScenes.Add(scene.RegionInfo.RegionID, scene.RegionInfo.RegionName, scene);
         }
 
         public void HandleRestart(RegionInfo rdata)
@@ -152,24 +138,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.Error("[SCENEMANAGER]: Got Restart message for region:" + rdata.RegionName + " Sending up to main");
             int RegionSceneElement = -1;
 
-            lock (m_localScenes)
-            {
-                for (int i = 0; i < m_localScenes.Count; i++)
-                {
-                    if (rdata.RegionName == m_localScenes[i].RegionInfo.RegionName)
-                    {
-                        RegionSceneElement = i;
-                    }
-                }
-
-                // Now we make sure the region is no longer known about by the SceneManager
-                // Prevents duplicates.
-
-                if (RegionSceneElement >= 0)
-                {
-                    m_localScenes.RemoveAt(RegionSceneElement);
-                }
-            }
+            m_localScenes.Remove(rdata.RegionID);
 
             // Send signal to main that we're restarting this sim.
             OnRestartSim(rdata);
@@ -179,32 +148,29 @@ namespace OpenSim.Region.Framework.Scenes
         {
             RegionInfo Result = null;
 
-            lock (m_localScenes)
+            Scene s = m_localScenes.FindValue(delegate(Scene x)
+                    {
+                        if (x.RegionInfo.RegionHandle == regionHandle)
+                            return true;
+                        return false;
+                    });
+
+            if (s != null)
             {
-                for (int i = 0; i < m_localScenes.Count; i++)
+                List<Scene> sceneList = Scenes;
+
+                for (int i = 0; i < sceneList.Count; i++)
                 {
-                    if (m_localScenes[i].RegionInfo.RegionHandle == regionHandle)
+                    if (sceneList[i]!= s)
                     {
                         // Inform other regions to tell their avatar about me
-                        Result = m_localScenes[i].RegionInfo;
+                        //sceneList[i].OtherRegionUp(Result);
                     }
                 }
-
-                if (Result != null)
-                {
-                    for (int i = 0; i < m_localScenes.Count; i++)
-                    {
-                        if (m_localScenes[i].RegionInfo.RegionHandle != regionHandle)
-                        {
-                            // Inform other regions to tell their avatar about me
-                            //m_localScenes[i].OtherRegionUp(Result);
-                        }
-                    }
-                }
-                else
-                {
-                    m_log.Error("[REGION]: Unable to notify Other regions of this Region coming up");
-                }
+            }
+            else
+            {
+                m_log.Error("[REGION]: Unable to notify Other regions of this Region coming up");
             }
         }
 
@@ -308,8 +274,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_currentScene == null)
             {
-                lock (m_localScenes)
-                    m_localScenes.ForEach(func);
+                List<Scene> sceneList = Scenes;
+                sceneList.ForEach(func);
             }
             else
             {
@@ -338,16 +304,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                lock (m_localScenes)
+                Scene s;
+
+                if (m_localScenes.TryGetValue(regionName, out s))
                 {
-                    foreach (Scene scene in m_localScenes)
-                    {
-                        if (String.Compare(scene.RegionInfo.RegionName, regionName, true) == 0)
-                        {
-                            m_currentScene = scene;
-                            return true;
-                        }
-                    }
+                    m_currentScene = s;
+                    return true;
                 }
 
                 return false;
@@ -358,16 +320,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            m_log.Debug("Searching for Region: '" + regionID + "'");
 
-            lock (m_localScenes)
+            Scene s;
+
+            if (m_localScenes.TryGetValue(regionID, out s))
             {
-                foreach (Scene scene in m_localScenes)
-                {
-                    if (scene.RegionInfo.RegionID == regionID)
-                    {
-                        m_currentScene = scene;
-                        return true;
-                    }
-                }
+                m_currentScene = s;
+                return true;
             }
 
             return false;
@@ -375,52 +333,24 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TryGetScene(string regionName, out Scene scene)
         {
-            lock (m_localScenes)
-            {
-                foreach (Scene mscene in m_localScenes)
-                {
-                    if (String.Compare(mscene.RegionInfo.RegionName, regionName, true) == 0)
-                    {
-                        scene = mscene;
-                        return true;
-                    }
-                }
-            }
-
-            scene = null;
-            return false;
+            return m_localScenes.TryGetValue(regionName, out scene);
         }
 
         public bool TryGetScene(UUID regionID, out Scene scene)
         {
-            lock (m_localScenes)
-            {
-                foreach (Scene mscene in m_localScenes)
-                {
-                    if (mscene.RegionInfo.RegionID == regionID)
-                    {
-                        scene = mscene;
-                        return true;
-                    }
-                }
-            }
-            
-            scene = null;
-            return false;
+            return m_localScenes.TryGetValue(regionID, out scene);
         }
 
         public bool TryGetScene(uint locX, uint locY, out Scene scene)
         {
-            lock (m_localScenes)
+            List<Scene> sceneList = Scenes;
+            foreach (Scene mscene in sceneList)
             {
-                foreach (Scene mscene in m_localScenes)
+                if (mscene.RegionInfo.RegionLocX == locX &&
+                    mscene.RegionInfo.RegionLocY == locY)
                 {
-                    if (mscene.RegionInfo.RegionLocX == locX &&
-                        mscene.RegionInfo.RegionLocY == locY)
-                    {
-                        scene = mscene;
-                        return true;
-                    }
+                    scene = mscene;
+                    return true;
                 }
             }
             
@@ -430,16 +360,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TryGetScene(IPEndPoint ipEndPoint, out Scene scene)
         {
-            lock (m_localScenes)
+            List<Scene> sceneList = Scenes;
+            foreach (Scene mscene in sceneList)
             {
-                foreach (Scene mscene in m_localScenes)
+                if ((mscene.RegionInfo.InternalEndPoint.Equals(ipEndPoint.Address)) &&
+                    (mscene.RegionInfo.InternalEndPoint.Port == ipEndPoint.Port))
                 {
-                    if ((mscene.RegionInfo.InternalEndPoint.Equals(ipEndPoint.Address)) &&
-                        (mscene.RegionInfo.InternalEndPoint.Port == ipEndPoint.Port))
-                    {
-                        scene = mscene;
-                        return true;
-                    }
+                    scene = mscene;
+                    return true;
                 }
             }
             
@@ -504,15 +432,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public RegionInfo GetRegionInfo(UUID regionID)
         {
-            lock (m_localScenes)
+            Scene s;
+            if (m_localScenes.TryGetValue(regionID, out s))
             {
-                foreach (Scene scene in m_localScenes)
-                {
-                    if (scene.RegionInfo.RegionID == regionID)
-                    {
-                        return scene.RegionInfo;
-                    }
-                }
+                return s.RegionInfo;
             }
 
             return null;
@@ -530,14 +453,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TryGetScenePresence(UUID avatarId, out ScenePresence avatar)
         {
-            lock (m_localScenes)
+            List<Scene> sceneList = Scenes;
+            foreach (Scene scene in sceneList)
             {
-                foreach (Scene scene in m_localScenes)
+                if (scene.TryGetScenePresence(avatarId, out avatar))
                 {
-                    if (scene.TryGetScenePresence(avatarId, out avatar))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
@@ -547,15 +468,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TryGetRootScenePresence(UUID avatarId, out ScenePresence avatar)
         {
-            lock (m_localScenes)
+            List<Scene> sceneList = Scenes;
+            foreach (Scene scene in sceneList)
             {
-                foreach (Scene scene in m_localScenes)
-                {
-                    avatar = scene.GetScenePresence(avatarId);
+                avatar = scene.GetScenePresence(avatarId);
 
-                    if (avatar != null && !avatar.IsChildAgent)
-                        return true;
-                }
+                if (avatar != null && !avatar.IsChildAgent)
+                    return true;
             }
 
             avatar = null;
@@ -564,22 +483,19 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void CloseScene(Scene scene)
         {
-            lock (m_localScenes)
-                m_localScenes.Remove(scene);
+            m_localScenes.Remove(scene.RegionInfo.RegionID);
 
             scene.Close();
         }
 
         public bool TryGetAvatarByName(string avatarName, out ScenePresence avatar)
         {
-            lock (m_localScenes)
+            List<Scene> sceneList = Scenes;
+            foreach (Scene scene in sceneList)
             {
-                foreach (Scene scene in m_localScenes)
+                if (scene.TryGetAvatarByName(avatarName, out avatar))
                 {
-                    if (scene.TryGetAvatarByName(avatarName, out avatar))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
@@ -589,14 +505,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TryGetRootScenePresenceByName(string firstName, string lastName, out ScenePresence sp)
         {
-            lock (m_localScenes)
+            List<Scene> sceneList = Scenes;
+            foreach (Scene scene in sceneList)
             {
-                foreach (Scene scene in m_localScenes)
-                {
-                    sp = scene.GetScenePresence(firstName, lastName);
-                    if (sp != null && !sp.IsChildAgent)
-                        return true;
-                }
+                sp = scene.GetScenePresence(firstName, lastName);
+                if (sp != null && !sp.IsChildAgent)
+                    return true;
             }
 
             sp = null;
@@ -605,8 +519,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ForEachScene(Action<Scene> action)
         {
-            lock (m_localScenes)
-                m_localScenes.ForEach(action);
+            List<Scene> sceneList = Scenes;
+            sceneList.ForEach(action);
         }
     }
 }

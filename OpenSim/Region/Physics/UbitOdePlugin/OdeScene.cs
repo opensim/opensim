@@ -1006,16 +1006,82 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
 
                 {
-                    if (dop1foot && (p1.Position.Z - curContact.pos.Z) > (p1.Size.Z - avCapRadius) * 0.5f)
-                        p1.IsColliding = true;
-                    if (dop2foot && (p2.Position.Z - curContact.pos.Z) > (p2.Size.Z - avCapRadius) * 0.5f)
-                        p2.IsColliding = true;
 
-                    if (AvanormOverride && curContact.depth > 0.3f)
+                    if (AvanormOverride)
                     {
-                        curContact.normal.X = normoverride.X;
-                        curContact.normal.Y = normoverride.Y;
-                        curContact.normal.Z = normoverride.Z;
+                        if (curContact.depth > 0.3f)
+                        {
+                            if (dop1foot && (p1.Position.Z - curContact.pos.Z) > (p1.Size.Z - avCapRadius) * 0.5f)
+                                p1.IsColliding = true;
+                            if (dop2foot && (p2.Position.Z - curContact.pos.Z) > (p2.Size.Z - avCapRadius) * 0.5f)
+                                p2.IsColliding = true;
+                            curContact.normal.X = normoverride.X;
+                            curContact.normal.Y = normoverride.Y;
+                            curContact.normal.Z = normoverride.Z;
+                        }
+
+                        else
+                        {
+                            if (dop1foot)
+                            {
+                                float sz = p1.Size.Z;
+                                Vector3 vtmp = p1.Position;
+                                float ppos = curContact.pos.Z - vtmp.Z + (sz - avCapRadius) * 0.5f;
+                                if (ppos > 0f)
+                                {
+                                    if (!p1.Flying)
+                                    {
+                                        d.AABB aabb;
+                                        d.GeomGetAABB(g2, out aabb);
+                                        float tmp = vtmp.Z - sz * .25f;
+
+                                        if (aabb.MaxZ < tmp)
+                                        {
+                                            vtmp.X = curContact.pos.X - vtmp.X;
+                                            vtmp.Y = curContact.pos.Y - vtmp.Y;
+                                            vtmp.Z = -0.2f;
+                                            vtmp.Normalize();
+                                            curContact.normal.X = vtmp.X;
+                                            curContact.normal.Y = vtmp.Y;
+                                            curContact.normal.Z = vtmp.Z;
+                                        }
+                                    }
+                                }
+                                else
+                                    p1.IsColliding = true;
+
+                            }
+
+                            if (dop2foot)
+                            {
+                                float sz = p2.Size.Z;
+                                Vector3 vtmp = p2.Position;
+                                float ppos = curContact.pos.Z - vtmp.Z + (sz - avCapRadius) * 0.5f;
+                                if (ppos > 0f)
+                                {
+                                    if (!p2.Flying)
+                                    {
+                                        d.AABB aabb;
+                                        d.GeomGetAABB(g1, out aabb);
+                                        float tmp = vtmp.Z - sz * .25f;
+
+                                        if (aabb.MaxZ < tmp)
+                                        {
+                                            vtmp.X = curContact.pos.X - vtmp.X;
+                                            vtmp.Y = curContact.pos.Y - vtmp.Y;
+                                            vtmp.Z = -0.2f;
+                                            vtmp.Normalize();
+                                            curContact.normal.X = vtmp.X;
+                                            curContact.normal.Y = vtmp.Y;
+                                            curContact.normal.Z = vtmp.Z;
+                                        }
+                                    }
+                                }
+                                else
+                                    p2.IsColliding = true;
+
+                            }
+                        }
                     }
 
                     Joint = CreateContacJoint(ref curContact, mu, bounce, cfm, erpscale, dscale);
@@ -1609,41 +1675,40 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns></returns>
         public bool needsMeshing(PrimitiveBaseShape pbs)
         {
-            // most of this is redundant now as the mesher will return null if it cant mesh a prim
-            // but we still need to check for sculptie meshing being enabled so this is the most
-            // convenient place to do it for now...
-
-        //    //if (pbs.PathCurve == (byte)Primitive.PathCurve.Circle && pbs.ProfileCurve == (byte)Primitive.ProfileCurve.Circle && pbs.PathScaleY <= 0.75f)
-        //    //m_log.Debug("needsMeshing: " + " pathCurve: " + pbs.PathCurve.ToString() + " profileCurve: " + pbs.ProfileCurve.ToString() + " pathScaleY: " + Primitive.UnpackPathScale(pbs.PathScaleY).ToString());
-            int iPropertiesNotSupportedDefault = 0;
-
+            // check sculpts or meshs 
             if (pbs.SculptEntry)
             {
-                if(!meshSculptedPrim)
-                    return false;
+                if (meshSculptedPrim)
+                    return true;
+
+                if (pbs.SculptType == (byte)SculptType.Mesh) // always do meshs
+                    return true;
+
+                return false;
             }
 
+            if (forceSimplePrimMeshing)
+                return true;
+
             // if it's a standard box or sphere with no cuts, hollows, twist or top shear, return false since ODE can use an internal representation for the prim
-            if (!forceSimplePrimMeshing && !pbs.SculptEntry)
-            {
-                if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
+
+            if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
                     || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
                     && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z))
-                {
+            {
 
-                    if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
-                        && pbs.ProfileHollow == 0
-                        && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
-                        && pbs.PathBegin == 0 && pbs.PathEnd == 0
-                        && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
-                        && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
-                        && pbs.PathShearX == 0 && pbs.PathShearY == 0)
-                    {
+                if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
+                    && pbs.ProfileHollow == 0
+                    && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
+                    && pbs.PathBegin == 0 && pbs.PathEnd == 0
+                    && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
+                    && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
+                    && pbs.PathShearX == 0 && pbs.PathShearY == 0)
+                {
 #if SPAM
-                    m_log.Warn("NonMesh");
+                m_log.Warn("NonMesh");
 #endif
-                        return false;
-                    }
+                    return false;
                 }
             }
 
@@ -1651,8 +1716,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // and it's odd..  so for now just return true if asked to force meshs
             // hopefully mesher will fail if doesn't suport so things still get basic boxes
 
-            if (forceSimplePrimMeshing)
-                return true;
+            int iPropertiesNotSupportedDefault = 0;
 
             if (pbs.ProfileHollow != 0)
                 iPropertiesNotSupportedDefault++;
@@ -1720,9 +1784,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     iPropertiesNotSupportedDefault++;
                 }
             }
-
-            if (pbs.SculptEntry && meshSculptedPrim)
-                iPropertiesNotSupportedDefault++;
 
             if (iPropertiesNotSupportedDefault == 0)
             {
