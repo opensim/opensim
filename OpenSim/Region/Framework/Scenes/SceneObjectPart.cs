@@ -2495,21 +2495,21 @@ namespace OpenSim.Region.Framework.Scenes
         {
         }
 
-        private bool CollisionFilteredOut(SceneObjectPart dest, UUID objectID, string objectName)
+        public bool CollisionFilteredOut(UUID objectID, string objectName)
         {
-            if(dest.CollisionFilter.Count == 0)
+            if(CollisionFilter.Count == 0)
                 return false;
 
-            if (dest.CollisionFilter.ContainsValue(objectID.ToString()) ||
-                dest.CollisionFilter.ContainsValue(objectID.ToString() + objectName) ||
-                dest.CollisionFilter.ContainsValue(UUID.Zero.ToString() + objectName))
+            if (CollisionFilter.ContainsValue(objectID.ToString()) ||
+                CollisionFilter.ContainsValue(objectID.ToString() + objectName) ||
+                CollisionFilter.ContainsValue(UUID.Zero.ToString() + objectName))
             {
-                if (dest.CollisionFilter.ContainsKey(1))
+                if (CollisionFilter.ContainsKey(1))
                     return false;
                 return true;
             }
 
-            if (dest.CollisionFilter.ContainsKey(1))
+            if (CollisionFilter.ContainsKey(1))
                 return true;
 
             return false;
@@ -2572,7 +2572,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart obj = ParentGroup.Scene.GetSceneObjectPart(localId);
                 if (obj != null)
                 {
-                    if (!dest.CollisionFilteredOut(this, obj.UUID, obj.Name))
+                    if (!dest.CollisionFilteredOut(obj.UUID, obj.Name))
                         colliding.Add(CreateDetObject(obj));
                 }
                 else
@@ -2580,7 +2580,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ScenePresence av = ParentGroup.Scene.GetScenePresence(localId);
                     if (av != null && (!av.IsChildAgent))
                     {
-                        if (!dest.CollisionFilteredOut(this, av.UUID, av.Name))
+                        if (!dest.CollisionFilteredOut(av.UUID, av.Name))
                             colliding.Add(CreateDetObject(av));
                     }
                 }
@@ -2724,7 +2724,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             SendCollisionEvent(scriptEvents.collision_start, startedColliders, ParentGroup.Scene.EventManager.TriggerScriptCollidingStart);
             if (!VolumeDetectActive)
-                SendCollisionEvent(scriptEvents.collision      , m_lastColliders , ParentGroup.Scene.EventManager.TriggerScriptColliding);
+                SendCollisionEvent(scriptEvents.collision  , m_lastColliders , ParentGroup.Scene.EventManager.TriggerScriptColliding);
             SendCollisionEvent(scriptEvents.collision_end  , endedColliders  , ParentGroup.Scene.EventManager.TriggerScriptCollidingEnd);
 
             if (startedColliders.Contains(0))
