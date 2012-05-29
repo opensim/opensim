@@ -1118,6 +1118,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
             CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
+            _parent_scene.AddCollisionEventReporting(this);
         }
 
         public void SendCollisions()
