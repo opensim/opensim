@@ -3320,6 +3320,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         protected void changeBuilding(bool newbuilding)
         {
+            // Check if we need to do anything
+            if (newbuilding == m_building)
+                return;
+
             if ((bool)newbuilding)
             {
                 m_building = true;
