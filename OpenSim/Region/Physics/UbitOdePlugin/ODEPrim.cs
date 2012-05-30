@@ -1621,11 +1621,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (Body != IntPtr.Zero)
             {
-                d.BodyDestroy(Body);
-                Body = IntPtr.Zero;
+//                d.BodyDestroy(Body);
+//                Body = IntPtr.Zero;
+                // do a more complet destruction
+                DestroyBody();
                 m_log.Warn("[PHYSICS]: MakeBody called having a body");
             }
-
 
             if (d.GeomGetBody(prim_geom) != IntPtr.Zero)
             {
