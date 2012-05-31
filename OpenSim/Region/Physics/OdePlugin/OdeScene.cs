@@ -30,20 +30,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.IO;
-using System.Diagnostics;
 using log4net;
 using Nini.Config;
 using Ode.NET;
+using OpenMetaverse;
 #if USE_DRAWSTUFF
 using Drawstuff.NET;
 #endif 
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
-using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
@@ -3868,26 +3869,19 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override Dictionary<uint, float> GetTopColliders()
         {
-            Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
-            int cnt = 0;
+            Dictionary<uint, float> topColliders;
+
             lock (_prims)
             {
-                foreach (OdePrim prm in _prims)
-                {
-                    if (prm.CollisionScore > 0)
-                    {
-                        returncolliders.Add(prm.LocalID, prm.CollisionScore);
-                        cnt++;
-                        prm.CollisionScore = 0f;
-                        if (cnt > 25)
-                        {
-                            break;
-                        }
-                    }
-                }
+                List<OdePrim> orderedPrims = new List<OdePrim>(_prims);
+                orderedPrims.OrderByDescending(p => p.CollisionScore).Take(25);
+                topColliders = orderedPrims.ToDictionary(p => p.LocalID, p => p.CollisionScore);
+
+                foreach (OdePrim p in _prims)
+                    p.CollisionScore = 0;
             }
 
-            return returncolliders;
+            return topColliders;
         }
 
         public override bool SupportsRayCast()
