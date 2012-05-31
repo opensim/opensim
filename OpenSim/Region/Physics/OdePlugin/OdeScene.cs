@@ -148,6 +148,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         public const string ODENativeCollisionFrameMsStatName = "ODENativeCollisionFrameMS";
 
         /// <summary>
+        /// Stat name for the number of avatar collisions with another entity.
+        /// </summary>
+        public const string ODEAvatarCollisionsStatName = "ODEAvatarCollisions";
+
+        /// <summary>
+        /// Stat name for the number of prim collisions with another entity.
+        /// </summary>
+        public const string ODEPrimCollisionsStatName = "ODEPrimCollisions";
+
+        /// <summary>
         /// Used to hold tick numbers for stat collection purposes.
         /// </summary>
         private int m_nativeCollisionTickRecorder;
@@ -156,6 +166,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// A messy way to tell if we need to avoid adding a collision time because this was already done in the callback.
         /// </summary>
         private bool m_inCollisionTiming;
+
+        /// <summary>
+        /// A temporary holder for the number of avatar collisions in a frame, so we can work out how many object
+        /// collisions occured using the _perloopcontact if stats collection is enabled.
+        /// </summary>
+        private int m_tempAvatarCollisionsThisFrame;
 
         /// <summary>
         /// Used in calculating physics frame time dilation
@@ -473,7 +489,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         // Initialize the mesh plugin
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
-            m_stats[ODENativeCollisionFrameMsStatName] = 0;
+            InitializeExtraStats();
 
             mesher = meshmerizer;
             m_config = config;
@@ -1455,7 +1471,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 break;
                             }
                         }
-                        //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
+                        //m_log.DebugFormat("[Collision]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
                         //m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
                     }
                 }
@@ -1693,8 +1709,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //}
             }
 
-//            if (framecount % 55 == 0)
-//                m_log.DebugFormat("Processed {0} collisions", _perloopContact.Count);
+            if (CollectStats)
+            {
+                m_tempAvatarCollisionsThisFrame = _perloopContact.Count;
+                m_stats[ODEAvatarCollisionsStatName] += m_tempAvatarCollisionsThisFrame;
+            }
 
             List<OdePrim> removeprims = null;
             foreach (OdePrim chr in _activeprims)
@@ -1727,6 +1746,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
             }
+
+            if (CollectStats)
+                m_stats[ODEPrimCollisionsStatName] += _perloopContact.Count - m_tempAvatarCollisionsThisFrame;
 
             if (removeprims != null)
             {
@@ -4063,10 +4085,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 returnStats = new Dictionary<string, float>(m_stats);
 
-                m_stats[ODENativeCollisionFrameMsStatName] = 0;
+                InitializeExtraStats();
             }
 
             return returnStats;
+        }
+
+        private void InitializeExtraStats()
+        {
+            m_stats[ODENativeCollisionFrameMsStatName] = 0;
+            m_stats[ODEAvatarCollisionsStatName] = 0;
+            m_stats[ODEPrimCollisionsStatName] = 0;
         }
     }
 }
