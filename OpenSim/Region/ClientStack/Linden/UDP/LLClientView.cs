@@ -346,7 +346,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// All manipulation of this set has to occur under an m_entityUpdates.SyncRoot lock
         ///
         /// </value>
-        protected HashSet<uint> m_killRecord;
+//        protected HashSet<uint> m_killRecord;
 
 //        protected HashSet<uint> m_attachmentsSent;
 
@@ -472,7 +472,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_entityUpdates = new PriorityQueue(m_scene.Entities.Count);
             m_entityProps = new PriorityQueue(m_scene.Entities.Count);
             m_fullUpdateDataBlocksBuilder = new List<ObjectUpdatePacket.ObjectDataBlock>();
-            m_killRecord = new HashSet<uint>();
+//            m_killRecord = new HashSet<uint>();
 //            m_attachmentsSent = new HashSet<uint>();
 
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
@@ -1574,17 +1574,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // We MUST lock for both manipulating the kill record and sending the packet, in order to avoid a race
                 // condition where a kill can be processed before an out-of-date update for the same object.
                 // ProcessEntityUpdates() also takes the m_killRecord lock.
-                lock (m_killRecord)
-                {
-                    foreach (uint localID in localIDs)
-                        m_killRecord.Add(localID);
+//                lock (m_killRecord)
+//                {
+//                    foreach (uint localID in localIDs)
+//                        m_killRecord.Add(localID);
 
                     // The throttle queue used here must match that being used for updates.  Otherwise, there is a
                     // chance that a kill packet put on a separate queue will be sent to the client before an existing
                     // update packet on another queue.  Receiving updates after kills results in unowned and undeletable
                     // scene objects in a viewer until that viewer is relogged in.
                     OutPacket(kill, ThrottleOutPacketType.Task);
-                }
+//                }
             }
         }
 
@@ -3802,11 +3802,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // If the object is an attachment we don't want it to be in the kill
                         // record. Else attaching from inworld and subsequently dropping
                         // it will no longer work.
-                        lock (m_killRecord)
-                        {
-                            m_killRecord.Remove(part.LocalId);
-                            m_killRecord.Remove(part.ParentGroup.RootPart.LocalId);
-                        }
+//                        lock (m_killRecord)
+//                        {
+//                            m_killRecord.Remove(part.LocalId);
+//                            m_killRecord.Remove(part.ParentGroup.RootPart.LocalId);
+//                        }
                     }
                     else
                     {
@@ -3822,13 +3822,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // after the root prim has been deleted.
                         //
                         // We ignore this for attachments because attaching something from inworld breaks unless we do.
-                        lock (m_killRecord)
-                        {
-                            if (m_killRecord.Contains(part.LocalId))
-                                continue;
-                            if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
-                                continue;
-                        }
+//                        lock (m_killRecord)
+//                        {
+//                            if (m_killRecord.Contains(part.LocalId))
+//                                continue;
+//                            if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
+//                                continue;
+//                        }
                     }
 
                     if (part.ParentGroup.IsAttachment && m_disableFacelights)
