@@ -131,6 +131,41 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </remarks>
         internal static Object UniversalColliderSyncObject = new Object();
 
+        /// <summary>
+        /// Is stats collecting enabled for this ODE scene?
+        /// </summary>
+        public bool CollectStats { get; set; }
+
+        /// <summary>
+        /// Statistics for this scene.
+        /// </summary>
+        private Dictionary<string, float> m_stats = new Dictionary<string, float>();
+
+        /// <summary>
+        /// Stat name for recording the number of milliseconds that ODE spends in native collision code.
+        /// </summary>
+        public const string ODENativeCollisionFrameMsStatName = "ODENativeCollisionFrameMS";
+
+        /// <summary>
+        /// Used to hold tick numbers for stat collection purposes.
+        /// </summary>
+        private int m_nativeCollisionTickRecorder;
+
+        /// <summary>
+        /// A messy way to tell if we need to avoid adding a collision time because this was already done in the callback.
+        /// </summary>
+        private bool m_inCollisionTiming;
+
+        /// <summary>
+        /// Used in calculating physics frame time dilation
+        /// </summary>
+        private int tickCountFrameRun;
+
+        /// <summary>
+        /// Used in calculating physics frame time dilation
+        /// </summary>
+        private int latertickcount;
+
         private Random fluidRandomizer = new Random(Environment.TickCount);
 
         private const uint m_regionWidth = Constants.RegionSize;
@@ -345,9 +380,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private OdePrim cp1;
         private OdeCharacter cc2;
         private OdePrim cp2;
-        private int tickCountFrameRun;
-        
-        private int latertickcount=0;
         //private int cStartStop = 0;
         //private string cDictKey = "";
 
@@ -440,6 +472,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         // Initialize the mesh plugin
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
+            m_stats[ODENativeCollisionFrameMsStatName] = 0;
+
             mesher = meshmerizer;
             m_config = config;
             // Defaults
@@ -464,6 +498,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 IConfig physicsconfig = m_config.Configs["ODEPhysicsSettings"];
                 if (physicsconfig != null)
                 {
+                    CollectStats = physicsconfig.GetBoolean("collect_stats", false);
+
                     gravityx = physicsconfig.GetFloat("world_gravityx", 0f);
                     gravityy = physicsconfig.GetFloat("world_gravityy", 0f);
                     gravityz = physicsconfig.GetFloat("world_gravityz", -9.8f);
@@ -765,6 +801,62 @@ namespace OpenSim.Region.Physics.OdePlugin
         #region Collision Detection
 
         /// <summary>
+        /// Collides two geometries.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='geom1'></param>
+        /// <param name='geom2'>/param>
+        /// <param name='maxContacts'></param>
+        /// <param name='contactsArray'></param>
+        /// <param name='contactGeomSize'></param>
+        private int CollideGeoms(
+            IntPtr geom1, IntPtr geom2, int maxContacts, Ode.NET.d.ContactGeom[] contactsArray, int contactGeomSize)
+        {
+            int count;
+
+            lock (OdeScene.UniversalColliderSyncObject)
+            {
+                // We do this inside the lock so that we don't count any delay in acquiring it
+                if (CollectStats)
+                    m_nativeCollisionTickRecorder = Util.EnvironmentTickCount();
+
+                count = d.Collide(geom1, geom2, maxContacts, contactsArray, contactGeomSize);
+            }
+
+            // We do this outside the lock so that any waiting threads aren't held up, though the effect is probably
+            // negligable
+            if (CollectStats)
+                m_stats[ODENativeCollisionFrameMsStatName]
+                    += Util.EnvironmentTickCountSubtract(m_nativeCollisionTickRecorder);
+
+            return count;
+        }
+
+        /// <summary>
+        /// Collide two spaces or a space and a geometry.
+        /// </summary>
+        /// <param name='space1'></param>
+        /// <param name='space2'>/param>
+        /// <param name='data'></param>
+        private void CollideSpaces(IntPtr space1, IntPtr space2, IntPtr data)
+        {
+            if (CollectStats)
+            {
+                m_inCollisionTiming = true;
+                m_nativeCollisionTickRecorder = Util.EnvironmentTickCount();
+            }
+
+            d.SpaceCollide2(space1, space2, data, nearCallback);
+
+            if (CollectStats && m_inCollisionTiming)
+            {
+                m_stats[ODENativeCollisionFrameMsStatName]
+                    += Util.EnvironmentTickCountSubtract(m_nativeCollisionTickRecorder);
+                m_inCollisionTiming = false;
+            }
+        }
+
+        /// <summary>
         /// This is our near callback.  A geometry is near a body
         /// </summary>
         /// <param name="space">The space that contains the geoms.  Remember, spaces are also geoms</param>
@@ -772,6 +864,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="g2">another geometry or space</param>
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
+            if (CollectStats && m_inCollisionTiming)
+            {
+                m_stats[ODENativeCollisionFrameMsStatName]
+                    += Util.EnvironmentTickCountSubtract(m_nativeCollisionTickRecorder);
+                m_inCollisionTiming = false;
+            }
+
 //            m_log.DebugFormat("[PHYSICS]: Colliding {0} and {1} in {2}", g1, g2, space);
             //  no lock here!  It's invoked from within Simulate(), which is thread-locked
 
@@ -789,7 +888,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // contact points in the space
                 try
                 {
-                    d.SpaceCollide2(g1, g2, IntPtr.Zero, nearCallback);
+                    CollideSpaces(g1, g2, IntPtr.Zero);
                 }
                 catch (AccessViolationException)
                 {
@@ -832,6 +931,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // Figure out how many contact points we have
             int count = 0;
+
             try
             {
                 // Colliding Geom To Geom
@@ -843,8 +943,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
 
-                lock (OdeScene.UniversalColliderSyncObject)
-                    count = d.Collide(g1, g2, contacts.Length, contacts, d.ContactGeom.SizeOf);
+                count = CollideGeoms(g1, g2, contacts.Length, contacts, d.ContactGeom.SizeOf);
 
                 if (count > contacts.Length)
                     m_log.Error("[ODE SCENE]: Got " + count + " contacts when we asked for a maximum of " + contacts.Length);
@@ -1578,7 +1677,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // and we'll run it again on all of them.
                 try
                 {
-                    d.SpaceCollide2(space, chr.Shell, IntPtr.Zero, nearCallback);
+                    CollideSpaces(space, chr.Shell, IntPtr.Zero);
                 }
                 catch (AccessViolationException)
                 {
@@ -1593,6 +1692,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //}
             }
 
+//            if (framecount % 55 == 0)
+//                m_log.DebugFormat("Processed {0} collisions", _perloopContact.Count);
+
             List<OdePrim> removeprims = null;
             foreach (OdePrim chr in _activeprims)
             {
@@ -1604,7 +1706,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             if (space != IntPtr.Zero && chr.prim_geom != IntPtr.Zero && chr.m_taintremove == false)
                             {
-                                d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
+                                CollideSpaces(space, chr.prim_geom, IntPtr.Zero);
                             }
                             else
                             {
@@ -2689,7 +2791,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// It calls the methods that report back to the object owners.. (scenepresence, SceneObjectGroup)
         /// </summary>
         /// <param name="timeStep"></param>
-        /// <returns></returns>
+        /// <returns>The number of frames simulated over that period.</returns>
         public override float Simulate(float timeStep)
         {
             if (framecount >= int.MaxValue)
@@ -3190,7 +3292,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override bool IsThreaded
         {
             // for now we won't be multithreaded
-            get { return (false); }
+            get { return false; }
         }
 
         #region ODE Specific Terrain Fixes
@@ -3955,5 +4057,22 @@ namespace OpenSim.Region.Physics.OdePlugin
             ds.SetViewpoint(ref xyz, ref hpr);
         }
 #endif
+
+        public override Dictionary<string, float> GetStats()
+        {
+            if (!CollectStats)
+                return null;
+
+            Dictionary<string, float> returnStats;
+
+            lock (OdeLock)
+            {
+                returnStats = new Dictionary<string, float>(m_stats);
+
+                m_stats[ODENativeCollisionFrameMsStatName] = 0;
+            }
+
+            return returnStats;
+        }
     }
 }
