@@ -2738,7 +2738,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             SendCollisionEvent(scriptEvents.collision_start, startedColliders, ParentGroup.Scene.EventManager.TriggerScriptCollidingStart);
             if (!VolumeDetectActive)
-                SendCollisionEvent(scriptEvents.collision      , m_lastColliders , ParentGroup.Scene.EventManager.TriggerScriptColliding);
+                SendCollisionEvent(scriptEvents.collision  , m_lastColliders , ParentGroup.Scene.EventManager.TriggerScriptColliding);
             SendCollisionEvent(scriptEvents.collision_end  , endedColliders  , ParentGroup.Scene.EventManager.TriggerScriptCollidingEnd);
 
             if (startedColliders.Contains(0))

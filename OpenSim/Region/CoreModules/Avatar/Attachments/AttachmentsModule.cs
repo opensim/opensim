@@ -638,19 +638,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             //                "[ATTACHMENTS MODULE]: Called AddSceneObjectAsAttachment for object {0} {1} for {2}",
             //                grp.Name, grp.LocalId, remoteClient.Name);
 
-            Vector3 inventoryStoredPosition = new Vector3
-                   (((grp.AbsolutePosition.X > (int)Constants.RegionSize)
-                         ? (float)Constants.RegionSize - 6
-                         : grp.AbsolutePosition.X)
-                    ,
-                    (grp.AbsolutePosition.Y > (int)Constants.RegionSize)
-                        ? (float)Constants.RegionSize - 6
-                        : grp.AbsolutePosition.Y,
-                    grp.AbsolutePosition.Z);
-
-            Vector3 originalPosition = grp.AbsolutePosition;
-
-            grp.AbsolutePosition = inventoryStoredPosition;
+//            Vector3 inventoryStoredPosition = new Vector3
+//                   (((grp.AbsolutePosition.X > (int)Constants.RegionSize)
+//                         ? (float)Constants.RegionSize - 6
+//                         : grp.AbsolutePosition.X)
+//                    ,
+//                    (grp.AbsolutePosition.Y > (int)Constants.RegionSize)
+//                        ? (float)Constants.RegionSize - 6
+//                        : grp.AbsolutePosition.Y,
+//                    grp.AbsolutePosition.Z);
+//
+//            Vector3 originalPosition = grp.AbsolutePosition;
+//
+//            grp.AbsolutePosition = inventoryStoredPosition;
 
             // If we're being called from a script, then trying to serialize that same script's state will not complete
             // in any reasonable time period.  Therefore, we'll avoid it.  The worst that can happen is that if
@@ -658,7 +658,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // without state on relog.  Arguably, this is what we want anyway.
             string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, false);
 
-            grp.AbsolutePosition = originalPosition;
+//            grp.AbsolutePosition = originalPosition;
 
             AssetBase asset = m_scene.CreateAsset(
                 grp.GetPartName(grp.LocalId),
@@ -686,21 +686,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             else // oopsies
                 item.Folder = UUID.Zero;
 
+            // Nix the special bits we used to use for slam and the folded perms
+            uint allowablePermissionsMask = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move);
+
             if ((sp.UUID != grp.RootPart.OwnerID) && m_scene.Permissions.PropagatePermissions())
             {
-                item.BasePermissions = grp.RootPart.NextOwnerMask;
-                item.CurrentPermissions = grp.RootPart.NextOwnerMask;
-                item.NextPermissions = grp.RootPart.NextOwnerMask;
-                item.EveryOnePermissions = grp.RootPart.EveryoneMask & grp.RootPart.NextOwnerMask;
-                item.GroupPermissions = grp.RootPart.GroupMask & grp.RootPart.NextOwnerMask;
+                item.BasePermissions = grp.RootPart.BaseMask & grp.RootPart.NextOwnerMask & allowablePermissionsMask;
+                item.CurrentPermissions = grp.RootPart.BaseMask & grp.RootPart.NextOwnerMask & allowablePermissionsMask;
+                item.NextPermissions = grp.RootPart.NextOwnerMask & allowablePermissionsMask;
+                item.EveryOnePermissions = grp.RootPart.EveryoneMask & grp.RootPart.NextOwnerMask & allowablePermissionsMask;
+                item.GroupPermissions = grp.RootPart.GroupMask & grp.RootPart.NextOwnerMask & allowablePermissionsMask;
             }
             else
             {
-                item.BasePermissions = grp.RootPart.BaseMask;
-                item.CurrentPermissions = grp.RootPart.OwnerMask;
-                item.NextPermissions = grp.RootPart.NextOwnerMask;
-                item.EveryOnePermissions = grp.RootPart.EveryoneMask;
-                item.GroupPermissions = grp.RootPart.GroupMask;
+                item.BasePermissions = grp.RootPart.BaseMask & allowablePermissionsMask;
+                item.CurrentPermissions = grp.RootPart.OwnerMask & allowablePermissionsMask;
+                item.NextPermissions = grp.RootPart.NextOwnerMask & allowablePermissionsMask;
+                item.EveryOnePermissions = grp.RootPart.EveryoneMask & allowablePermissionsMask;
+                item.GroupPermissions = grp.RootPart.GroupMask & allowablePermissionsMask;
             }
             item.CreationDate = Util.UnixTimeSinceEpoch();
 

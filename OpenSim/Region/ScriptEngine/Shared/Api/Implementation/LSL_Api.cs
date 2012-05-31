@@ -1272,6 +1272,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (!allow)
                         return;
 
+                    if (m_host.ParentGroup.RootPart.PhysActor != null &&
+                        m_host.ParentGroup.RootPart.PhysActor.IsPhysical)
+                        return;
+
                     m_host.ScriptSetPhysicsStatus(true);
                 }
                 else

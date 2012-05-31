@@ -3761,24 +3761,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     SceneObjectPart part = (SceneObjectPart)update.Entity;
 
-                    // Please do not remove this unless you can demonstrate on the OpenSim mailing list that a client
-                    // will never receive an update after a prim kill.  Even then, keeping the kill record may be a good
-                    // safety measure.
-                    //
-                    // If a Linden Lab 1.23.5 client (and possibly later and earlier) receives an object update
-                    // after a kill, it will keep displaying the deleted object until relog.  OpenSim currently performs
-                    // updates and kills on different threads with different scheduling strategies, hence this protection.
-                    // 
-                    // This doesn't appear to apply to child prims - a client will happily ignore these updates
-                    // after the root prim has been deleted.
-                    lock (m_killRecord)
-                    {
-                        if (m_killRecord.Contains(part.LocalId))
-                            continue;
-                        if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
-                            continue;
-                    }
-
                     if (part.ParentGroup.IsDeleted)
                         continue;
 
@@ -3816,7 +3798,39 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // attachments until the avatar becomes root.
                         if (sp.IsChildAgent)
                             continue;
+
+                        // If the object is an attachment we don't want it to be in the kill
+                        // record. Else attaching from inworld and subsequently dropping
+                        // it will no longer work.
+                        lock (m_killRecord)
+                        {
+                            m_killRecord.Remove(part.LocalId);
+                            m_killRecord.Remove(part.ParentGroup.RootPart.LocalId);
+                        }
                     }
+                    else
+                    {
+                        // Please do not remove this unless you can demonstrate on the OpenSim mailing list that a client
+                        // will never receive an update after a prim kill.  Even then, keeping the kill record may be a good
+                        // safety measure.
+                        //
+                        // If a Linden Lab 1.23.5 client (and possibly later and earlier) receives an object update
+                        // after a kill, it will keep displaying the deleted object until relog.  OpenSim currently performs
+                        // updates and kills on different threads with different scheduling strategies, hence this protection.
+                        // 
+                        // This doesn't appear to apply to child prims - a client will happily ignore these updates
+                        // after the root prim has been deleted.
+                        //
+                        // We ignore this for attachments because attaching something from inworld breaks unless we do.
+                        lock (m_killRecord)
+                        {
+                            if (m_killRecord.Contains(part.LocalId))
+                                continue;
+                            if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
+                                continue;
+                        }
+                    }
+
                     if (part.ParentGroup.IsAttachment && m_disableFacelights)
                     {
                         if (part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.LeftHand &&
