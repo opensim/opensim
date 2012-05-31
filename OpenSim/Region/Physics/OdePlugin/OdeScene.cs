@@ -55,15 +55,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         End = 2
     }
 
-    public struct sCollisionData
-    {
-        public uint ColliderLocalId;
-        public uint CollidedWithLocalId;
-        public int NumberOfCollisions;
-        public int CollisionType;
-        public int StatusIndicator;
-        public int lastframe;
-    }
+//    public struct sCollisionData
+//    {
+//        public uint ColliderLocalId;
+//        public uint CollidedWithLocalId;
+//        public int NumberOfCollisions;
+//        public int CollisionType;
+//        public int StatusIndicator;
+//        public int lastframe;
+//    }
 
     [Flags]
     public enum CollisionCategories : int
