@@ -26,7 +26,7 @@
  */
 
 using System;
-//using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Timers;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -35,10 +35,18 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+    /// <summary>
+    /// Collect statistics from the scene to send to the client and for access by other monitoring tools.
+    /// </summary>
+    /// <remarks>
+    /// FIXME: This should be a monitoring region module
+    /// </remarks>
     public class SimStatsReporter
     {
-//        private static readonly log4net.ILog m_log
-//            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public const string LastReportedObjectUpdateStatName = "LastReportedObjectUpdates";
 
         public delegate void SendStatResult(SimStats stats);
 
@@ -112,6 +120,14 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return lastReportedSimStats; }
         }
+
+        /// <summary>
+        /// Extra sim statistics that are used by monitors but not sent to the client.
+        /// </summary>
+        /// <value>
+        /// The keys are the stat names.
+        /// </value>
+        private Dictionary<string, float> m_lastReportedExtraSimStats = new Dictionary<string, float>();
 
         // Sending a stats update every 3 seconds-
         private int statsUpdatesEveryMS = 3000;
@@ -387,7 +403,20 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 // Extra statistics that aren't currently sent to clients
-                LastReportedObjectUpdates = m_objectUpdates / statsUpdateFactor;
+                lock (m_lastReportedExtraSimStats)
+                {
+                    m_lastReportedExtraSimStats[LastReportedObjectUpdateStatName] = m_objectUpdates / statsUpdateFactor;
+
+                    Dictionary<string, float> physicsStats = m_scene.PhysicsScene.GetStats();
+    
+                    if (physicsStats != null)
+                    {
+                        foreach (KeyValuePair<string, float> tuple in physicsStats)
+                        {
+                            m_lastReportedExtraSimStats[tuple.Key] = tuple.Value / statsUpdateFactor;
+                        }
+                    }
+                }
 
                 resetvalues();
             }
@@ -546,7 +575,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void AddPendingDownloads(int count)
         {
             m_pendingDownloads += count;
-            if (m_pendingDownloads < 0) m_pendingDownloads = 0;
+
+            if (m_pendingDownloads < 0)
+                m_pendingDownloads = 0;
+
             //m_log.InfoFormat("[stats]: Adding {0} to pending downloads to make {1}", count, m_pendingDownloads);
         }
 
@@ -568,5 +600,11 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         #endregion
+
+        public Dictionary<string, float> GetExtraSimStats()
+        {
+            lock (m_lastReportedExtraSimStats)
+                return new Dictionary<string, float>(m_lastReportedExtraSimStats);
+        }
     }
 }
