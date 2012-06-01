@@ -171,6 +171,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public const string ODENativeGeomCollisionFrameMsStatName = "ODENativeGeomCollisionFrameMS";
 
         /// <summary>
+        /// Stat name for time spent notifying listeners of collisions
+        /// </summary>
+        public const string ODECollisionNotificationFrameMsStatName = "ODECollisionNotificationFrameMS";
+
+        /// <summary>
         /// Stat name for the milliseconds spent updating avatar position and velocity
         /// </summary>
         public const string ODEAvatarUpdateFrameMsStatName = "ODEAvatarUpdateFrameMS";
@@ -2998,6 +3003,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         collision_optimized();
 
+                        if (CollectStats)
+                            tempTick = Util.EnvironmentTickCount();
+
                         foreach (PhysicsActor obj in _collisionEventPrim.Values)
                         {
 //                                m_log.DebugFormat("[PHYSICS]: Assessing {0} {1} for collision events", obj.SOPName, obj.LocalID);
@@ -3024,7 +3032,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_global_contactcount = 0;
 
                         if (CollectStats)
+                        {
+                            m_stats[ODECollisionNotificationFrameMsStatName]
+                                += Util.EnvironmentTickCountSubtract(tempTick);
+                            
                             tempTick = Util.EnvironmentTickCount();
+                        }
 
                         d.WorldQuickStep(world, ODE_STEPSIZE);
 
@@ -4155,6 +4168,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_stats[ODENativeStepFrameMsStatName] = 0;
             m_stats[ODENativeSpaceCollisionFrameMsStatName] = 0;
             m_stats[ODENativeGeomCollisionFrameMsStatName] = 0;
+            m_stats[ODECollisionNotificationFrameMsStatName] = 0;
             m_stats[ODEAvatarContactsStatsName] = 0;
             m_stats[ODEPrimContactsStatName] = 0;
             m_stats[ODEAvatarUpdateFrameMsStatName] = 0;
