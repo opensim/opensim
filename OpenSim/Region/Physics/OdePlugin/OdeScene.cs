@@ -151,6 +151,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         public const string ODETotalFrameMsStatName = "ODETotalFrameMS";
 
         /// <summary>
+        /// Stat name for amount of time spent processing avatar taints per frame
+        /// </summary>
+        public const string ODEAvatarTaintMsStatName = "ODEAvatarTaintFrameMS";
+
+        /// <summary>
+        /// Stat name for amount of time spent processing prim taints per frame
+        /// </summary>
+        public const string ODEPrimTaintMsStatName = "ODEPrimTaintFrameMS";
+
+        /// <summary>
         /// Stat name for the amount of time spent in native code that actually steps through the simulation.
         /// </summary>
         public const string ODENativeStepFrameMsStatName = "ODENativeStepFrameMS";
@@ -2848,7 +2858,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override float Simulate(float timeStep)
         {
             int startFrameTick = CollectStats ? Util.EnvironmentTickCount() : 0;
-            int tempTick = 0;;
+            int tempTick = 0, tempTick2 = 0;
 
             if (framecount >= int.MaxValue)
                 framecount = 0;
@@ -2926,12 +2936,22 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     try
                     {
+                        if (CollectStats)
+                            tempTick = Util.EnvironmentTickCount();
+
                         lock (_taintedActors)
                         {
                             foreach (OdeCharacter character in _taintedActors)
                                 character.ProcessTaints();
 
                             _taintedActors.Clear();
+                        }
+
+                        if (CollectStats)
+                        {
+                            tempTick2 = Util.EnvironmentTickCount();
+                            m_stats[ODEAvatarTaintMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                            tempTick = tempTick2;
                         }
 
                         lock (_taintedPrims)
@@ -2962,6 +2982,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 SimulatePendingNINJAJoints();
 
                             _taintedPrims.Clear();
+                        }
+
+                        if (CollectStats)
+                        {
+                            tempTick2 = Util.EnvironmentTickCount();
+                            m_stats[ODEPrimTaintMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                            tempTick = tempTick2;
                         }
 
                         // Move characters
@@ -3028,10 +3055,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         if (CollectStats)
                         {
-                            m_stats[ODECollisionNotificationFrameMsStatName]
-                                += Util.EnvironmentTickCountSubtract(tempTick);
-
-                            tempTick = Util.EnvironmentTickCount();
+                            tempTick2 = Util.EnvironmentTickCount();
+                            m_stats[ODECollisionNotificationFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                            tempTick = tempTick2;
                         }
 
                         d.WorldQuickStep(world, ODE_STEPSIZE);
@@ -3077,8 +3103,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (CollectStats)
                 {
-                    m_stats[ODEAvatarUpdateFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick);
-                    tempTick = Util.EnvironmentTickCount();
+                    tempTick2 = Util.EnvironmentTickCount();
+                    m_stats[ODEAvatarUpdateFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                    tempTick = tempTick2;
                 }
 
                 //if (timeStep < 0.2f)
@@ -4153,6 +4180,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void InitializeExtraStats()
         {
             m_stats[ODETotalFrameMsStatName] = 0;
+            m_stats[ODEAvatarTaintMsStatName] = 0;
+            m_stats[ODEPrimTaintMsStatName] = 0;
             m_stats[ODENativeStepFrameMsStatName] = 0;
             m_stats[ODENativeSpaceCollisionFrameMsStatName] = 0;
             m_stats[ODENativeGeomCollisionFrameMsStatName] = 0;
