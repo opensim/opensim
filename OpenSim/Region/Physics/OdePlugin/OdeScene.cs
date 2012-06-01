@@ -148,6 +148,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         public const string ODENativeCollisionFrameMsStatName = "ODENativeCollisionFrameMS";
 
         /// <summary>
+        /// Stat name for recording the number of milliseconds that ODE spends in native space collision code.
+        /// </summary>
+        public const string ODENativeSpaceCollisionFrameMsStatName = "ODENativeSpaceCollisionFrameMS";
+
+        /// <summary>
+        /// Stat name for recording the number of milliseconds that ODE spends in native geom collision code.
+        /// </summary>
+        public const string ODENativeGeomCollisionFrameMsStatName = "ODENativeGeomCollisionFrameMS";
+
+        /// <summary>
         /// Stat name for the number of avatar collisions with another entity.
         /// </summary>
         public const string ODEAvatarContactsStatsName = "ODEAvatarContacts";
@@ -843,7 +853,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // We do this outside the lock so that any waiting threads aren't held up, though the effect is probably
             // negligable
             if (CollectStats)
-                m_stats[ODENativeCollisionFrameMsStatName]
+                m_stats[ODENativeGeomCollisionFrameMsStatName]
                     += Util.EnvironmentTickCountSubtract(m_nativeCollisionTickRecorder);
 
             return count;
@@ -867,7 +877,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (CollectStats && m_inCollisionTiming)
             {
-                m_stats[ODENativeCollisionFrameMsStatName]
+                m_stats[ODENativeSpaceCollisionFrameMsStatName]
                     += Util.EnvironmentTickCountSubtract(m_nativeCollisionTickRecorder);
                 m_inCollisionTiming = false;
             }
@@ -883,7 +893,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (CollectStats && m_inCollisionTiming)
             {
-                m_stats[ODENativeCollisionFrameMsStatName]
+                m_stats[ODENativeSpaceCollisionFrameMsStatName]
                     += Util.EnvironmentTickCountSubtract(m_nativeCollisionTickRecorder);
                 m_inCollisionTiming = false;
             }
@@ -4079,6 +4089,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             lock (OdeLock)
             {
                 returnStats = new Dictionary<string, float>(m_stats);
+                
+                returnStats[ODENativeCollisionFrameMsStatName]
+                    = returnStats[ODENativeSpaceCollisionFrameMsStatName]
+                        + returnStats[ODENativeGeomCollisionFrameMsStatName];
 
                 InitializeExtraStats();
             }
@@ -4088,7 +4102,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void InitializeExtraStats()
         {
-            m_stats[ODENativeCollisionFrameMsStatName] = 0;
+            // No need to zero since this is calculated by addition
+            // m_stats[ODENativeCollisionFrameMsStatName] = 0;
+
+            m_stats[ODENativeSpaceCollisionFrameMsStatName] = 0;
+            m_stats[ODENativeGeomCollisionFrameMsStatName] = 0;
             m_stats[ODEAvatarContactsStatsName] = 0;
             m_stats[ODEPrimContactsStatName] = 0;
         }
