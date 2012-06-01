@@ -151,6 +151,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public const string ODETotalFrameMsStatName = "ODETotalFrameMS";
 
         /// <summary>
+        /// The amount of time spent in native code that actually steps through the simulation.
+        /// </summary>
+        public const string ODENativeStepFrameMsStatName = "ODENativeStepFrameMS";
+
+        /// <summary>
         /// Stat name for recording the number of milliseconds that ODE spends in native collision code.
         /// </summary>
         public const string ODENativeCollisionFrameMsStatName = "ODENativeCollisionFrameMS";
@@ -2821,22 +2826,22 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         /// <summary>
         /// This is our main simulate loop
+        /// </summary>
+        /// <remarks>
         /// It's thread locked by a Mutex in the scene.
         /// It holds Collisions, it instructs ODE to step through the physical reactions
         /// It moves the objects around in memory
         /// It calls the methods that report back to the object owners.. (scenepresence, SceneObjectGroup)
-        /// </summary>
+        /// </remarks>
         /// <param name="timeStep"></param>
         /// <returns>The number of frames simulated over that period.</returns>
         public override float Simulate(float timeStep)
         {
-            int startFrameTick = Util.EnvironmentTickCount();
+            int startFrameTick = CollectStats ? Util.EnvironmentTickCount() : 0;
+            int quickStepTick = 0;
 
             if (framecount >= int.MaxValue)
                 framecount = 0;
-
-            //if (m_worldOffset != Vector3.Zero)
-            //    return 0;
 
             framecount++;
 
@@ -2845,7 +2850,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float timeLeft = timeStep;
 
             //m_log.Info(timeStep.ToString());
-//            step_time += timeStep;
+//            step_time += timeSte
 //            
 //            // If We're loaded down by something else,
 //            // or debugging with the Visual Studio project on pause
@@ -3007,8 +3012,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 //                                "[PHYSICS]: Collision contacts to process this frame = {0}", m_global_contactcount);
 
                         m_global_contactcount = 0;
-                        
+
+                        if (CollectStats)
+                            quickStepTick = Util.EnvironmentTickCount();
+
                         d.WorldQuickStep(world, ODE_STEPSIZE);
+
+                        if (CollectStats)
+                            m_stats[ODENativeStepFrameMsStatName] += Util.EnvironmentTickCountSubtract(quickStepTick);
 
                         d.JointGroupEmpty(contactgroup);
                     }
@@ -3077,7 +3088,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
                 }
 
-                latertickcount = Util.EnvironmentTickCount() - tickCountFrameRun;
+                latertickcount = Util.EnvironmentTickCountSubtract(tickCountFrameRun);
 
                 // OpenSimulator above does 10 fps.  10 fps = means that the main thread loop and physics
                 // has a max of 100 ms to run theoretically.
@@ -3098,7 +3109,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             if (CollectStats)
-                m_stats[ODETotalFrameMsStatName] += Util.EnvironmentTickCount() - startFrameTick;
+                m_stats[ODETotalFrameMsStatName] += Util.EnvironmentTickCountSubtract(startFrameTick);
 
             return fps;
         }
@@ -4119,6 +4130,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // m_stats[ODENativeCollisionFrameMsStatName] = 0;
 
             m_stats[ODETotalFrameMsStatName] = 0;
+            m_stats[ODENativeStepFrameMsStatName] = 0;
             m_stats[ODENativeSpaceCollisionFrameMsStatName] = 0;
             m_stats[ODENativeGeomCollisionFrameMsStatName] = 0;
             m_stats[ODEAvatarContactsStatsName] = 0;
