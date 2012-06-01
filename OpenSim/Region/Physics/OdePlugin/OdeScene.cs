@@ -143,6 +143,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Dictionary<string, float> m_stats = new Dictionary<string, float>();
 
         /// <summary>
+        /// Stat name for the total time spent in ODE frame processing.
+        /// </summary>
+        /// <remarks>
+        /// A sanity check for the main scene loop physics time.
+        /// </remarks>
+        public const string ODETotalFrameMsStatName = "ODETotalFrameMS";
+
+        /// <summary>
         /// Stat name for recording the number of milliseconds that ODE spends in native collision code.
         /// </summary>
         public const string ODENativeCollisionFrameMsStatName = "ODENativeCollisionFrameMS";
@@ -170,7 +178,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// Used to hold tick numbers for stat collection purposes.
         /// </summary>
-        private int m_nativeCollisionTickRecorder;
+        private int m_nativeCollisionStartTick;
 
         /// <summary>
         /// A messy way to tell if we need to avoid adding a collision time because this was already done in the callback.
@@ -845,7 +853,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 // We do this inside the lock so that we don't count any delay in acquiring it
                 if (CollectStats)
-                    m_nativeCollisionTickRecorder = Util.EnvironmentTickCount();
+                    m_nativeCollisionStartTick = Util.EnvironmentTickCount();
 
                 count = d.Collide(geom1, geom2, maxContacts, contactsArray, contactGeomSize);
             }
@@ -854,7 +862,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // negligable
             if (CollectStats)
                 m_stats[ODENativeGeomCollisionFrameMsStatName]
-                    += Util.EnvironmentTickCountSubtract(m_nativeCollisionTickRecorder);
+                    += Util.EnvironmentTickCountSubtract(m_nativeCollisionStartTick);
 
             return count;
         }
@@ -870,7 +878,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (CollectStats)
             {
                 m_inCollisionTiming = true;
-                m_nativeCollisionTickRecorder = Util.EnvironmentTickCount();
+                m_nativeCollisionStartTick = Util.EnvironmentTickCount();
             }
 
             d.SpaceCollide2(space1, space2, data, nearCallback);
@@ -878,7 +886,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (CollectStats && m_inCollisionTiming)
             {
                 m_stats[ODENativeSpaceCollisionFrameMsStatName]
-                    += Util.EnvironmentTickCountSubtract(m_nativeCollisionTickRecorder);
+                    += Util.EnvironmentTickCountSubtract(m_nativeCollisionStartTick);
                 m_inCollisionTiming = false;
             }
         }
@@ -894,7 +902,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (CollectStats && m_inCollisionTiming)
             {
                 m_stats[ODENativeSpaceCollisionFrameMsStatName]
-                    += Util.EnvironmentTickCountSubtract(m_nativeCollisionTickRecorder);
+                    += Util.EnvironmentTickCountSubtract(m_nativeCollisionStartTick);
                 m_inCollisionTiming = false;
             }
 
@@ -2822,6 +2830,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns>The number of frames simulated over that period.</returns>
         public override float Simulate(float timeStep)
         {
+            int startFrameTick = Util.EnvironmentTickCount();
+
             if (framecount >= int.MaxValue)
                 framecount = 0;
 
@@ -3086,6 +3096,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 tickCountFrameRun = Util.EnvironmentTickCount();
             }
+
+            if (CollectStats)
+                m_stats[ODETotalFrameMsStatName] += Util.EnvironmentTickCount() - startFrameTick;
 
             return fps;
         }
@@ -4089,7 +4102,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             lock (OdeLock)
             {
                 returnStats = new Dictionary<string, float>(m_stats);
-                
+
                 returnStats[ODENativeCollisionFrameMsStatName]
                     = returnStats[ODENativeSpaceCollisionFrameMsStatName]
                         + returnStats[ODENativeGeomCollisionFrameMsStatName];
@@ -4105,6 +4118,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // No need to zero since this is calculated by addition
             // m_stats[ODENativeCollisionFrameMsStatName] = 0;
 
+            m_stats[ODETotalFrameMsStatName] = 0;
             m_stats[ODENativeSpaceCollisionFrameMsStatName] = 0;
             m_stats[ODENativeGeomCollisionFrameMsStatName] = 0;
             m_stats[ODEAvatarContactsStatsName] = 0;
