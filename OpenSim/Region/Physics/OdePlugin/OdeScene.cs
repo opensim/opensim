@@ -156,11 +156,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public const string ODENativeStepFrameMsStatName = "ODENativeStepFrameMS";
 
         /// <summary>
-        /// Stat name for the number of milliseconds that ODE spends in native collision code.
-        /// </summary>
-        public const string ODENativeCollisionFrameMsStatName = "ODENativeCollisionFrameMS";
-
-        /// <summary>
         /// Stat name for the number of milliseconds that ODE spends in native space collision code.
         /// </summary>
         public const string ODENativeSpaceCollisionFrameMsStatName = "ODENativeSpaceCollisionFrameMS";
@@ -3035,7 +3030,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             m_stats[ODECollisionNotificationFrameMsStatName]
                                 += Util.EnvironmentTickCountSubtract(tempTick);
-                            
+
                             tempTick = Util.EnvironmentTickCount();
                         }
 
@@ -4149,10 +4144,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 returnStats = new Dictionary<string, float>(m_stats);
 
-                returnStats[ODENativeCollisionFrameMsStatName]
-                    = returnStats[ODENativeSpaceCollisionFrameMsStatName]
-                        + returnStats[ODENativeGeomCollisionFrameMsStatName];
-
                 InitializeExtraStats();
             }
 
@@ -4161,9 +4152,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void InitializeExtraStats()
         {
-            // No need to zero since this is calculated by addition
-            // m_stats[ODENativeCollisionFrameMsStatName] = 0;
-
             m_stats[ODETotalFrameMsStatName] = 0;
             m_stats[ODENativeStepFrameMsStatName] = 0;
             m_stats[ODENativeSpaceCollisionFrameMsStatName] = 0;
