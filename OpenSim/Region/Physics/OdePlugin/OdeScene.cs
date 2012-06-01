@@ -150,12 +150,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// Stat name for the number of avatar collisions with another entity.
         /// </summary>
-        public const string ODEAvatarCollisionsStatName = "ODEAvatarCollisions";
+        public const string ODEAvatarContactsStatsName = "ODEAvatarContacts";
 
         /// <summary>
         /// Stat name for the number of prim collisions with another entity.
         /// </summary>
-        public const string ODEPrimCollisionsStatName = "ODEPrimCollisions";
+        public const string ODEPrimContactsStatName = "ODEPrimContacts";
 
         /// <summary>
         /// Used to hold tick numbers for stat collection purposes.
@@ -1707,7 +1707,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (CollectStats)
             {
                 m_tempAvatarCollisionsThisFrame = _perloopContact.Count;
-                m_stats[ODEAvatarCollisionsStatName] += m_tempAvatarCollisionsThisFrame;
+                m_stats[ODEAvatarContactsStatsName] += m_tempAvatarCollisionsThisFrame;
             }
 
             List<OdePrim> removeprims = null;
@@ -1743,7 +1743,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             if (CollectStats)
-                m_stats[ODEPrimCollisionsStatName] += _perloopContact.Count - m_tempAvatarCollisionsThisFrame;
+                m_stats[ODEPrimContactsStatName] += _perloopContact.Count - m_tempAvatarCollisionsThisFrame;
 
             if (removeprims != null)
             {
@@ -4089,8 +4089,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void InitializeExtraStats()
         {
             m_stats[ODENativeCollisionFrameMsStatName] = 0;
-            m_stats[ODEAvatarCollisionsStatName] = 0;
-            m_stats[ODEPrimCollisionsStatName] = 0;
+            m_stats[ODEAvatarContactsStatsName] = 0;
+            m_stats[ODEPrimContactsStatName] = 0;
         }
     }
 }
