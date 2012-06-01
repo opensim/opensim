@@ -1025,6 +1025,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 count = CollideGeoms(g1, g2, contacts.Length, contacts, d.ContactGeom.SizeOf);
 
+                // All code after this is only relevant if we have any collisions
+                if (count <= 0)
+                    return;
+
                 if (count > contacts.Length)
                     m_log.Error("[ODE SCENE]: Got " + count + " contacts when we asked for a maximum of " + contacts.Length);
             }
