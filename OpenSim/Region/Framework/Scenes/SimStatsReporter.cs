@@ -207,6 +207,10 @@ namespace OpenSim.Region.Framework.Scenes
             m_report.Close();
         }
 
+        /// <summary>
+        /// Sets the number of milliseconds between stat updates.
+        /// </summary>
+        /// <param name='ms'></param>
         public void SetUpdateMS(int ms)
         {
             statsUpdatesEveryMS = ms;
@@ -254,6 +258,16 @@ namespace OpenSim.Region.Framework.Scenes
                     physfps = 0;
 
 #endregion
+
+                m_rootAgents = m_scene.SceneGraph.GetRootAgentCount();
+                m_childAgents = m_scene.SceneGraph.GetChildAgentCount();
+                m_numPrim = m_scene.SceneGraph.GetTotalObjectsCount();
+                m_activePrim = m_scene.SceneGraph.GetActiveObjectsCount();
+                m_activeScripts = m_scene.SceneGraph.GetActiveScriptsCount();
+
+                // FIXME: Checking for stat sanity is a complex approach.  What we really need to do is fix the code
+                // so that stat numbers are always consistent.
+                CheckStatSanity();
                 
                 //Our time dilation is 0.91 when we're running a full speed,
                 // therefore to make sure we get an appropriate range,
@@ -408,13 +422,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_timeDilation = td;
         }
 
-        public void SetRootAgents(int rootAgents)
-        {
-            m_rootAgents = rootAgents;
-            CheckStatSanity();
-
-        }
-
         internal void CheckStatSanity()
         {
             if (m_rootAgents < 0 || m_childAgents < 0)
@@ -429,22 +436,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_unAckedBytes = 0;
             }
-        }
-
-        public void SetChildAgents(int childAgents)
-        {
-            m_childAgents = childAgents;
-            CheckStatSanity();
-        }
-
-        public void SetObjects(int objects)
-        {
-            m_numPrim = objects;
-        }
-
-        public void SetActiveObjects(int objects)
-        {
-            m_activePrim = objects;
         }
 
         public void AddFPS(int frames)
@@ -526,11 +517,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void addScriptLines(int count)
         {
             m_scriptLinesPerSecond += count;
-        }
-
-        public void SetActiveScripts(int count)
-        {
-            m_activeScripts = count;
         }
 
         public void AddPacketsStats(int inPackets, int outPackets, int unAckedBytes)

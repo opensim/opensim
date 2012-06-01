@@ -1462,10 +1462,6 @@ namespace OpenSim.Region.Framework.Scenes
                     StatsReporter.AddPhysicsFPS(physicsFPS);
                     StatsReporter.AddTimeDilation(TimeDilation);
                     StatsReporter.AddFPS(1);
-                    StatsReporter.SetRootAgents(m_sceneGraph.GetRootAgentCount());
-                    StatsReporter.SetChildAgents(m_sceneGraph.GetChildAgentCount());
-                    StatsReporter.SetObjects(m_sceneGraph.GetTotalObjectsCount());
-                    StatsReporter.SetActiveObjects(m_sceneGraph.GetActiveObjectsCount());
 
                     // frameMS currently records work frame times, not total frame times (work + any required sleep to
                     // reach min frame time.
@@ -1474,7 +1470,6 @@ namespace OpenSim.Region.Framework.Scenes
                     StatsReporter.addAgentMS(agentMS);
                     StatsReporter.addPhysicsMS(physicsMS + physicsMS2);
                     StatsReporter.addOtherMS(otherMS);
-                    StatsReporter.SetActiveScripts(m_sceneGraph.GetActiveScriptsCount());
                     StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
     
                     if (LoginsDisabled && Frame == 20)
