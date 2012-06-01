@@ -143,6 +143,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Dictionary<string, float> m_stats = new Dictionary<string, float>();
 
         /// <summary>
+        /// Stat name for total number of avatars in this ODE scene.
+        /// </summary>
+        public const string ODETotalAvatarsStatName = "ODETotalAvatars";
+
+        /// <summary>
+        /// Stat name for total number of prims in this ODE scene.
+        /// </summary>
+        public const string ODETotalPrimsStatName = "ODETotalPrims";
+
+        /// <summary>
+        /// Stat name for total number of prims with active physics in this ODE scene.
+        /// </summary>
+        public const string ODEActivePrimsStatName = "ODEActivePrims";
+
+        /// <summary>
         /// Stat name for the total time spent in ODE frame processing.
         /// </summary>
         /// <remarks>
@@ -4219,6 +4234,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             lock (OdeLock)
             {
                 returnStats = new Dictionary<string, float>(m_stats);
+
+                // FIXME: This is a SUPER DUMB HACK until we can establish stats that aren't subject to a division by
+                // 3 from the SimStatsReporter.
+                returnStats[ODETotalAvatarsStatName] = _characters.Count * 3;
+                returnStats[ODETotalPrimsStatName] = _prims.Count * 3;
+                returnStats[ODEActivePrimsStatName] = _activeprims.Count * 3;
 
                 InitializeExtraStats();
             }
