@@ -1229,14 +1229,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     _perloopContact.Add(curContact);
 
-                    // If we're colliding against terrain
                     if (name1 == "Terrain" || name2 == "Terrain")
                     {
-                        // If we're moving
                         if ((p2.PhysicsActorType == (int) ActorTypes.Agent) &&
                             (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
                         {
-                            // Use the movement terrain contact
+                            // Avatar is moving on terrain, use the movement terrain contact
                             AvatarMovementTerrainContact.geom = curContact;
 
                             if (m_global_contactcount < maxContactsbeforedeath)
@@ -1249,7 +1247,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             if (p2.PhysicsActorType == (int)ActorTypes.Agent)
                             {
-                                // Use the non moving terrain contact
+                                // Avatar is standing on terrain, use the non moving terrain contact
                                 TerrainContact.geom = curContact;
 
                                 if (m_global_contactcount < maxContactsbeforedeath)
@@ -1344,13 +1342,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        // we're colliding with prim or avatar
-                        // check if we're moving
                         if ((p2.PhysicsActorType == (int)ActorTypes.Agent))
                         {
                             if ((Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
                             {
-                                // Use the Movement prim contact
+                                // Avatar is moving on a prim, use the Movement prim contact
                                 AvatarMovementprimContact.geom = curContact;
 
                                 if (m_global_contactcount < maxContactsbeforedeath)
@@ -1361,9 +1357,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             else
                             {
-                                // Use the non movement contact
+                                // Avatar is standing still on a prim, use the non movement contact
                                 contact.geom = curContact;
-                                _perloopContact.Add(curContact);
 
                                 if (m_global_contactcount < maxContactsbeforedeath)
                                 {
