@@ -151,24 +151,34 @@ namespace OpenSim.Region.Physics.OdePlugin
         public const string ODETotalFrameMsStatName = "ODETotalFrameMS";
 
         /// <summary>
-        /// The amount of time spent in native code that actually steps through the simulation.
+        /// Stat name for the amount of time spent in native code that actually steps through the simulation.
         /// </summary>
         public const string ODENativeStepFrameMsStatName = "ODENativeStepFrameMS";
 
         /// <summary>
-        /// Stat name for recording the number of milliseconds that ODE spends in native collision code.
+        /// Stat name for the number of milliseconds that ODE spends in native collision code.
         /// </summary>
         public const string ODENativeCollisionFrameMsStatName = "ODENativeCollisionFrameMS";
 
         /// <summary>
-        /// Stat name for recording the number of milliseconds that ODE spends in native space collision code.
+        /// Stat name for the number of milliseconds that ODE spends in native space collision code.
         /// </summary>
         public const string ODENativeSpaceCollisionFrameMsStatName = "ODENativeSpaceCollisionFrameMS";
 
         /// <summary>
-        /// Stat name for recording the number of milliseconds that ODE spends in native geom collision code.
+        /// Stat name for the number of milliseconds that ODE spends in native geom collision code.
         /// </summary>
         public const string ODENativeGeomCollisionFrameMsStatName = "ODENativeGeomCollisionFrameMS";
+
+        /// <summary>
+        /// Stat name for the milliseconds spent updating avatar position and velocity
+        /// </summary>
+        public const string ODEAvatarUpdateFrameMsStatName = "ODEAvatarUpdateFrameMS";
+
+        /// <summary>
+        /// Stat name for the milliseconds spent updating prim position and velocity
+        /// </summary>
+        public const string ODEPrimUpdateFrameMsStatName = "ODEPrimUpdateFrameMS";
 
         /// <summary>
         /// Stat name for the number of avatar collisions with another entity.
@@ -2838,7 +2848,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override float Simulate(float timeStep)
         {
             int startFrameTick = CollectStats ? Util.EnvironmentTickCount() : 0;
-            int quickStepTick = 0;
+            int tempTick = 0;;
 
             if (framecount >= int.MaxValue)
                 framecount = 0;
@@ -3014,12 +3024,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_global_contactcount = 0;
 
                         if (CollectStats)
-                            quickStepTick = Util.EnvironmentTickCount();
+                            tempTick = Util.EnvironmentTickCount();
 
                         d.WorldQuickStep(world, ODE_STEPSIZE);
 
                         if (CollectStats)
-                            m_stats[ODENativeStepFrameMsStatName] += Util.EnvironmentTickCountSubtract(quickStepTick);
+                            m_stats[ODENativeStepFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick);
 
                         d.JointGroupEmpty(contactgroup);
                     }
@@ -3030,6 +3040,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     timeLeft -= ODE_STEPSIZE;
                 }
+
+                if (CollectStats)
+                    tempTick = Util.EnvironmentTickCount();
 
                 foreach (OdeCharacter actor in _characters)
                 {
@@ -3054,6 +3067,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     defects.Clear();
                 }
 
+                if (CollectStats)
+                {
+                    m_stats[ODEAvatarUpdateFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick);
+                    tempTick = Util.EnvironmentTickCount();
+                }
+
                 //if (timeStep < 0.2f)
 
                 foreach (OdePrim prim in _activeprims)
@@ -3066,6 +3085,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                             SimulateActorPendingJoints(prim);
                     }
                 }
+
+                if (CollectStats)
+                    m_stats[ODEPrimUpdateFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick);
 
                 //DumpJointInfo();
 
@@ -4135,6 +4157,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_stats[ODENativeGeomCollisionFrameMsStatName] = 0;
             m_stats[ODEAvatarContactsStatsName] = 0;
             m_stats[ODEPrimContactsStatName] = 0;
+            m_stats[ODEAvatarUpdateFrameMsStatName] = 0;
+            m_stats[ODEPrimUpdateFrameMsStatName] = 0;
         }
     }
 }
