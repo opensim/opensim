@@ -191,6 +191,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public const string ODENativeGeomCollisionFrameMsStatName = "ODENativeGeomCollisionFrameMS";
 
         /// <summary>
+        /// Time spent in collision processing that is not spent in native space or geom collision code.
+        /// </summary>
+        public const string ODEOtherCollisionFrameMsStatName = "ODEOtherCollisionFrameMS";
+
+        /// <summary>
         /// Stat name for time spent notifying listeners of collisions
         /// </summary>
         public const string ODECollisionNotificationFrameMsStatName = "ODECollisionNotificationFrameMS";
@@ -3062,7 +3067,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                         collision_optimized();
 
                         if (CollectStats)
-                            tempTick = Util.EnvironmentTickCount();
+                        {
+                            tempTick2 = Util.EnvironmentTickCount();
+                            m_stats[ODEOtherCollisionFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick2, tempTick);
+                            tempTick = tempTick2;
+                        }
 
                         foreach (PhysicsActor obj in _collisionEventPrim.Values)
                         {
@@ -4210,6 +4219,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 InitializeExtraStats();
             }
 
+            returnStats[ODEOtherCollisionFrameMsStatName]
+                = returnStats[ODEOtherCollisionFrameMsStatName]
+                    - returnStats[ODENativeSpaceCollisionFrameMsStatName]
+                    - returnStats[ODENativeGeomCollisionFrameMsStatName];
+
             return returnStats;
         }
 
@@ -4224,6 +4238,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_stats[ODENativeStepFrameMsStatName] = 0;
             m_stats[ODENativeSpaceCollisionFrameMsStatName] = 0;
             m_stats[ODENativeGeomCollisionFrameMsStatName] = 0;
+            m_stats[ODEOtherCollisionFrameMsStatName] = 0;
             m_stats[ODECollisionNotificationFrameMsStatName] = 0;
             m_stats[ODEAvatarContactsStatsName] = 0;
             m_stats[ODEPrimContactsStatName] = 0;
