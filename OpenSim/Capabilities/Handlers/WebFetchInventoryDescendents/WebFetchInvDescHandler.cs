@@ -170,7 +170,7 @@ namespace OpenSim.Capabilities.Handlers
                     contents.categories.Array.Add(ConvertInventoryFolder(invFolder));
                 }
 
-                descendents += inv.Folders;
+                descendents += inv.Folders.Count;
             }
 
             if (inv != null && inv.Items != null)
