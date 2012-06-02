@@ -103,6 +103,8 @@ namespace OpenSim.Services.AuthenticationService
             if ((user.UserFlags & impersonateFlag) == 0)
                 return String.Empty;
 
+            m_log.DebugFormat("[PASS AUTH]: Attempting impersonation");
+
             List<UserAccount> accounts = m_UserAccountService.GetUserAccountsWhere(UUID.Zero, "UserLevel >= 200");
             if (accounts == null || accounts.Count == 0)
                 return String.Empty;
@@ -117,6 +119,8 @@ namespace OpenSim.Services.AuthenticationService
                     continue;
                 }
 
+//                m_log.DebugFormat("[PASS AUTH]: Trying {0}", data.PrincipalID);
+
                 hashed = Util.Md5Hash(password + ":" +
                         data.Data["passwordSalt"].ToString());
 
@@ -125,13 +129,12 @@ namespace OpenSim.Services.AuthenticationService
                     m_log.DebugFormat("[PASS AUTH]: {0} {1} impersonating {2}, proceeding with login", a.FirstName, a.LastName, principalID);
                     return GetToken(principalID, lifetime);
                 }
-                else
-                {
-                    m_log.DebugFormat(
-                        "[AUTH SERVICE]: Salted hash {0} of given password did not match salted hash of {1} for PrincipalID {2}.  Authentication failure.",
-                        hashed, data.Data["passwordHash"], principalID);
-                    return String.Empty;
-                }
+//                else
+//                {
+//                    m_log.DebugFormat(
+//                        "[AUTH SERVICE]: Salted hash {0} of given password did not match salted hash of {1} for PrincipalID {2}.  Authentication failure.",
+//                        hashed, data.Data["passwordHash"], data.PrincipalID);
+//                }
             }
 
             m_log.DebugFormat("[PASS AUTH]: Impersonation of {0} failed", principalID);

@@ -875,7 +875,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 IsChildAgent = false;
 
-                Animator.TrySetMovementAnimation("SIT");
+//                Animator.TrySetMovementAnimation("SIT");
             }
             else
             {

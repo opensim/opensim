@@ -116,6 +116,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected Timer m_ShoutSayTimer;
         protected int m_SayShoutCount = 0;
 
+        private Dictionary<string, string> MovementAnimationsForLSL =
+                new Dictionary<string, string> {
+                        {"FLY", "Flying"},
+                        {"FLYSLOW", "FlyingSlow"},
+                        {"HOVER_UP", "Hovering Up"},
+                        {"HOVER_DOWN", "Hovering Down"},
+                        {"HOVER", "Hovering"},
+                        {"LAND", "Landing"},
+                        {"FALLDOWN", "Falling Down"},
+                        {"PREJUMP", "PreJumping"},
+                        {"JUMP", "Jumping"},
+                        {"STANDUP", "Standing Up"},
+                        {"SOFT_LAND", "Soft Landing"},
+                        {"STAND", "Standing"},
+                        {"CROUCHWALK", "CrouchWalking"},
+                        {"RUN", "Running"},
+                        {"WALK", "Walking"},
+                        {"CROUCH", "Crouching"},
+                        {"TURNLEFT", "Turning Left"},
+                        {"TURNRIGHT", "Turning Right"}
+                };
+
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             m_ShoutSayTimer = new Timer(1000);
@@ -2485,7 +2507,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                vel = m_host.Velocity;
+                vel = m_host.ParentGroup.RootPart.Velocity;
             }
 
             return new LSL_Vector(vel.X, vel.Y, vel.Z);
@@ -4652,14 +4674,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_host.RegionHandle == presence.RegionHandle)
             {
-                Dictionary<UUID, string> animationstateNames = DefaultAvatarAnimations.AnimStateNames;
-
                 if (presence != null)
                 {
-                    AnimationSet currentAnims = presence.Animator.Animations;
-                    string currentAnimationState = String.Empty;
-                    if (animationstateNames.TryGetValue(currentAnims.DefaultAnimation.AnimID, out currentAnimationState))
-                        return currentAnimationState;
+                    if (presence.SitGround)
+                        return "Sitting on Ground";
+                    if (presence.ParentID != 0 || presence.ParentUUID != UUID.Zero)
+                        return "Sitting";
+
+                    string movementAnimation = presence.Animator.CurrentMovementAnimation;
+                    string lslMovementAnimation;
+                    
+                    if (MovementAnimationsForLSL.TryGetValue(movementAnimation, out lslMovementAnimation))
+                        return lslMovementAnimation;
                 }
             }
 
