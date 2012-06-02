@@ -260,7 +260,7 @@ namespace OpenSim.Capabilities.Handlers
                         // descendents must only include the links, not the linked items we add
                         descendents = originalItems.Count;
 
-                        // Second, add target items for links in this folder
+                        // Add target items for links in this folder before the links themselves.
                         foreach (InventoryItemBase item in originalItems)
                         {
                             if (item.AssetType == (int)AssetType.Link)
@@ -276,7 +276,7 @@ namespace OpenSim.Capabilities.Handlers
                             }
                         }
 
-                        // First, scan for folder links and add target items in those folders.
+                        // Now scan for folder links and insert the items they target and those links at the head of the return data
                         foreach (InventoryItemBase item in originalItems)
                         {
                             if (item.AssetType == (int)AssetType.LinkFolder)
@@ -284,10 +284,8 @@ namespace OpenSim.Capabilities.Handlers
                                 InventoryCollection linkedFolderContents = m_InventoryService.GetFolderContent(ownerID, item.AssetID);
                                 List<InventoryItemBase> links = linkedFolderContents.Items;
 
-                                // Second, insert the links contained in this linked folder.
                                 itemsToReturn.InsertRange(0, links);
 
-                                // Third, insert the real items linked by the links in this linked folder.
                                 foreach (InventoryItemBase link in linkedFolderContents.Items)
                                 {
                                     // Take care of genuinely broken links where the target doesn't exist
