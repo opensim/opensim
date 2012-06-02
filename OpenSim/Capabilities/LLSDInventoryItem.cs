@@ -37,8 +37,8 @@ namespace OpenSim.Framework.Capabilities
         public UUID asset_id;
         public UUID item_id;
         public LLSDPermissions permissions;
-        public string type;
-        public string inv_type;
+        public int type;
+        public int inv_type;
         public int flags;
 
         public LLSDSaleInfo sale_info;
@@ -65,7 +65,7 @@ namespace OpenSim.Framework.Capabilities
     public class LLSDSaleInfo
     {
         public int sale_price;
-        public string sale_type;
+        public int sale_type;
     }
 
     [OSDMap]
