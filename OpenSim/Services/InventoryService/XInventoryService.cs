@@ -436,7 +436,7 @@ namespace OpenSim.Services.InventoryService
         public virtual bool AddItem(InventoryItemBase item)
         {
 //            m_log.DebugFormat(
-//                "[XINVENTORY SERVICE]: Adding item {0} to folder {1} for {2}", item.ID, item.Folder, item.Owner);
+//                "[XINVENTORY SERVICE]: Adding item {0} {1} to folder {2} for {3}", item.Name, item.ID, item.Folder, item.Owner);
             
             return m_Database.StoreItem(ConvertFromOpenSim(item));
         }
