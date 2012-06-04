@@ -106,7 +106,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, attName).ParentGroup;
 
-            m_attMod.AttachObject(m_presence, so, (uint)AttachmentPoint.Chest, false);
+            m_attMod.AttachObject(m_presence, so, (uint)AttachmentPoint.Chest, false, false);
 
             // Check status on scene presence
             Assert.That(m_presence.HasAttachments(), Is.True);
