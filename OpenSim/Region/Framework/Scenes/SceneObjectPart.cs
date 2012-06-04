@@ -2634,7 +2634,7 @@ namespace OpenSim.Region.Framework.Scenes
                 colliding.Add(CreateDetObjectForGround());
                 LandCollidingMessage.Colliders = colliding;
 
-                notify(LocalId, LandCollidingMessage);
+                notify(ParentGroup.RootPart.LocalId, LandCollidingMessage);
             }
         }
 
