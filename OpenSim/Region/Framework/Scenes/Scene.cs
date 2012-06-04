@@ -219,6 +219,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int backupMS;
         private int terrainMS;
         private int landMS;
+        private int spareMS;
 
         /// <summary>
         /// Tick at which the last frame was processed.
@@ -1360,43 +1361,41 @@ namespace OpenSim.Region.Framework.Scenes
                 endFrame = Frame + frames;
 
             float physicsFPS = 0f;
-            int tmpPhysicsMS, tmpPhysicsMS2, tmpAgentMS, tmpTempOnRezMS, evMS, backMS, terMS;
-            int previousFrameTick;
-            int maintc;
+            int previousFrameTick, tmpMS;
+            int maintc = Util.EnvironmentTickCount();
 
             while (!m_shuttingDown && (endFrame == null || Frame < endFrame))
             {
-                maintc = Util.EnvironmentTickCount();
                 ++Frame;
 
 //            m_log.DebugFormat("[SCENE]: Processing frame {0} in {1}", Frame, RegionInfo.RegionName);
 
-                agentMS = tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
+                agentMS = tempOnRezMS = eventMS = backupMS = terrainMS = landMS = spareMS = 0;
 
                 try
                 {
                     // Apply taints in terrain module to terrain in physics scene
                     if (Frame % m_update_terrain == 0)
                     {
-                        terMS = Util.EnvironmentTickCount();
+                        tmpMS = Util.EnvironmentTickCount();
                         UpdateTerrain();
-                        terrainMS = Util.EnvironmentTickCountSubtract(terMS);
+                        terrainMS = Util.EnvironmentTickCountSubtract(tmpMS);
                     }
 
-                    tmpPhysicsMS2 = Util.EnvironmentTickCount();
+                    tmpMS = Util.EnvironmentTickCount();
                     if ((Frame % m_update_physics == 0) && m_physics_enabled)
                         m_sceneGraph.UpdatePreparePhysics();
-                    physicsMS2 = Util.EnvironmentTickCountSubtract(tmpPhysicsMS2);
+                    physicsMS2 = Util.EnvironmentTickCountSubtract(tmpMS);
     
                     // Apply any pending avatar force input to the avatar's velocity
-                    tmpAgentMS = Util.EnvironmentTickCount();
+                    tmpMS = Util.EnvironmentTickCount();
                     if (Frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
-                    agentMS = Util.EnvironmentTickCountSubtract(tmpAgentMS);
+                    agentMS = Util.EnvironmentTickCountSubtract(tmpMS);
     
                     // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
                     // velocity
-                    tmpPhysicsMS = Util.EnvironmentTickCount();
+                    tmpMS = Util.EnvironmentTickCount();
                     if (Frame % m_update_physics == 0)
                     {
                         if (m_physics_enabled)
@@ -1405,9 +1404,9 @@ namespace OpenSim.Region.Framework.Scenes
                         if (SynchronizeScene != null)
                             SynchronizeScene(this);
                     }
-                    physicsMS = Util.EnvironmentTickCountSubtract(tmpPhysicsMS);
+                    physicsMS = Util.EnvironmentTickCountSubtract(tmpMS);
 
-                    tmpAgentMS = Util.EnvironmentTickCount();
+                    tmpMS = Util.EnvironmentTickCount();
     
                     // Check if any objects have reached their targets
                     CheckAtTargets();
@@ -1422,29 +1421,29 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
     
-                    agentMS += Util.EnvironmentTickCountSubtract(tmpAgentMS);
+                    agentMS += Util.EnvironmentTickCountSubtract(tmpMS);
     
                     // Delete temp-on-rez stuff
                     if (Frame % m_update_temp_cleaning == 0 && !m_cleaningTemps)
                     {
-                        tmpTempOnRezMS = Util.EnvironmentTickCount();
+                        tmpMS = Util.EnvironmentTickCount();
                         m_cleaningTemps = true;
                         Util.FireAndForget(delegate { CleanTempObjects(); m_cleaningTemps = false;  });
-                        tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpTempOnRezMS);
+                        tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpMS);
                     }
     
                     if (Frame % m_update_events == 0)
                     {
-                        evMS = Util.EnvironmentTickCount();
+                        tmpMS = Util.EnvironmentTickCount();
                         UpdateEvents();
-                        eventMS = Util.EnvironmentTickCountSubtract(evMS);
+                        eventMS = Util.EnvironmentTickCountSubtract(tmpMS);
                     }
     
                     if (Frame % m_update_backup == 0)
                     {
-                        backMS = Util.EnvironmentTickCount();
+                        tmpMS = Util.EnvironmentTickCount();
                         UpdateStorageBackup();
-                        backupMS = Util.EnvironmentTickCountSubtract(backMS);
+                        backupMS = Util.EnvironmentTickCountSubtract(tmpMS);
                     }
     
                     //if (Frame % m_update_land == 0)
@@ -1453,24 +1452,6 @@ namespace OpenSim.Region.Framework.Scenes
                     //    UpdateLand();
                     //    landMS = Util.EnvironmentTickCountSubtract(ldMS);
                     //}
-
-                    frameMS = Util.EnvironmentTickCountSubtract(maintc);
-                    otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
-
-                    // if (Frame%m_update_avatars == 0)
-                    //   UpdateInWorldTime();
-                    StatsReporter.AddPhysicsFPS(physicsFPS);
-                    StatsReporter.AddTimeDilation(TimeDilation);
-                    StatsReporter.AddFPS(1);
-
-                    // frameMS currently records work frame times, not total frame times (work + any required sleep to
-                    // reach min frame time.
-                    StatsReporter.addFrameMS(frameMS);
-
-                    StatsReporter.addAgentMS(agentMS);
-                    StatsReporter.addPhysicsMS(physicsMS + physicsMS2);
-                    StatsReporter.addOtherMS(otherMS);
-                    StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
     
                     if (LoginsDisabled && Frame == 20)
                     {
@@ -1521,13 +1502,34 @@ namespace OpenSim.Region.Framework.Scenes
 
                 previousFrameTick = m_lastFrameTick;
                 m_lastFrameTick = Util.EnvironmentTickCount();
-                maintc = Util.EnvironmentTickCountSubtract(m_lastFrameTick, maintc);
-                maintc = (int)(MinFrameTime * 1000) - maintc;
+                tmpMS = Util.EnvironmentTickCountSubtract(m_lastFrameTick, maintc);
+                tmpMS = (int)(MinFrameTime * 1000) - tmpMS;
 
-                if (maintc > 0)
-                    Thread.Sleep(maintc);
+                if (tmpMS > 0)
+                {
+                    Thread.Sleep(tmpMS);
+                    spareMS += tmpMS;
+                }
 
-                // Optionally warn if a frame takes double the amount of time that it should.
+                frameMS = Util.EnvironmentTickCountSubtract(maintc);
+                maintc = Util.EnvironmentTickCount();
+
+                otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
+
+                // if (Frame%m_update_avatars == 0)
+                //   UpdateInWorldTime();
+                StatsReporter.AddPhysicsFPS(physicsFPS);
+                StatsReporter.AddTimeDilation(TimeDilation);
+                StatsReporter.AddFPS(1);
+
+                StatsReporter.addFrameMS(frameMS);
+                StatsReporter.addAgentMS(agentMS);
+                StatsReporter.addPhysicsMS(physicsMS + physicsMS2);
+                StatsReporter.addOtherMS(otherMS);
+                StatsReporter.AddSpareMS(spareMS);
+                StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
+
+               // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
                     && Util.EnvironmentTickCountSubtract(
                         m_lastFrameTick, previousFrameTick) > (int)(MinFrameTime * 1000 * 2))
