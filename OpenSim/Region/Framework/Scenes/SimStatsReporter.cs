@@ -320,7 +320,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // values to X-per-second values.
 
                 uint thisFrame = m_scene.Frame;
-                float framesUpdated = (float)(thisFrame - m_lastUpdateFrame);
+                float framesUpdated = (float)(thisFrame - m_lastUpdateFrame) * m_reportedFpsCorrectionFactor;
                 m_lastUpdateFrame = thisFrame;
 
                 // Avoid div-by-zero if somehow we've not updated any frames.
