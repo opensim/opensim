@@ -971,8 +971,7 @@ namespace OpenSim
                     if (showParams.Length > 1 && showParams[1] == "full")
                     {
                         agents = m_sceneManager.GetCurrentScenePresences();
-                    }
-                    else
+                    } else
                     {
                         agents = m_sceneManager.GetCurrentSceneAvatars();
                     }
@@ -981,7 +980,8 @@ namespace OpenSim
 
                     MainConsole.Instance.Output(
                         String.Format("{0,-16} {1,-16} {2,-37} {3,-11} {4,-16} {5,-30}", "Firstname", "Lastname",
-                                      "Agent ID", "Root/Child", "Region", "Position"));
+                                      "Agent ID", "Root/Child", "Region", "Position")
+                    );
 
                     foreach (ScenePresence presence in agents)
                     {
@@ -991,8 +991,7 @@ namespace OpenSim
                         if (regionInfo == null)
                         {
                             regionName = "Unresolvable";
-                        }
-                        else
+                        } else
                         {
                             regionName = regionInfo.RegionName;
                         }
@@ -1005,7 +1004,8 @@ namespace OpenSim
                                 presence.UUID,
                                 presence.IsChildAgent ? "Child" : "Root",
                                 regionName,
-                                presence.AbsolutePosition.ToString()));
+                                presence.AbsolutePosition.ToString())
+                        );
                     }
 
                     MainConsole.Instance.Output(String.Empty);
@@ -1014,16 +1014,20 @@ namespace OpenSim
                 case "connections":
                     System.Text.StringBuilder connections = new System.Text.StringBuilder("Connections:\n");
                     m_sceneManager.ForEachScene(
-                        delegate(Scene scene)
-                        {
-                            scene.ForEachClient(
-                                delegate(IClientAPI client)
-                                {
-                                    connections.AppendFormat("{0}: {1} ({2}) from {3} on circuit {4}\n",
-                                        scene.RegionInfo.RegionName, client.Name, client.AgentId, client.RemoteEndPoint, client.CircuitCode);
-                                }
+                        delegate(Scene scene) {
+                        scene.ForEachClient(
+                                delegate(IClientAPI client) {
+                            connections.AppendFormat(
+                                "{0}: {1} ({2}) from {3} on circuit {4}\n",
+                                scene.RegionInfo.RegionName,
+                                client.Name,
+                                client.AgentId,
+                                client.RemoteEndPoint,
+                                client.CircuitCode
                             );
                         }
+                        );
+                    }
                     );
 
                     MainConsole.Instance.Output(connections.ToString());
@@ -1032,13 +1036,17 @@ namespace OpenSim
                 case "circuits":
                     System.Text.StringBuilder acd = new System.Text.StringBuilder("Agent Circuits:\n");
                     m_sceneManager.ForEachScene(
-                        delegate(Scene scene)
-                        {
-                            //this.HttpServer.
-                            acd.AppendFormat("{0}:\n", scene.RegionInfo.RegionName);
-                            foreach (AgentCircuitData aCircuit in scene.AuthenticateHandler.GetAgentCircuits().Values)
-                                acd.AppendFormat("\t{0} {1} ({2})\n", aCircuit.firstname, aCircuit.lastname, (aCircuit.child ? "Child" : "Root"));
-                        }
+                        delegate(Scene scene) {
+                        //this.HttpServer.
+                        acd.AppendFormat("{0}:\n", scene.RegionInfo.RegionName);
+                        foreach (AgentCircuitData aCircuit in scene.AuthenticateHandler.GetAgentCircuits().Values)
+                            acd.AppendFormat(
+                                "\t{0} {1} ({2})\n",
+                                aCircuit.firstname,
+                                aCircuit.lastname,
+                                (aCircuit.child ? "Child" : "Root")
+                            );
+                    }
                     );
 
                     MainConsole.Instance.Output(acd.ToString());
@@ -1079,17 +1087,29 @@ namespace OpenSim
                     }
 
                     m_sceneManager.ForEachScene(
-                        delegate(Scene scene)
+                        delegate(Scene scene) {
+                        m_log.Error("The currently loaded modules in " + scene.RegionInfo.RegionName + " are:");
+                        foreach (IRegionModule module in scene.Modules.Values)
                         {
-                            m_log.Error("The currently loaded modules in " + scene.RegionInfo.RegionName + " are:");
-                            foreach (IRegionModule module in scene.Modules.Values)
+                            if (!module.IsSharedModule)
                             {
-                                if (!module.IsSharedModule)
-                                {
-                                    m_log.Error("Region Module: " + module.Name);
-                                }
+                                m_log.Error("Region Module: " + module.Name);
                             }
-                        });
+                        }
+                    }
+                    );
+
+                    m_sceneManager.ForEachScene(
+                        delegate(Scene scene) {
+                        MainConsole.Instance.Output("Loaded new region modules in" + scene.RegionInfo.RegionName + " are:");
+                        foreach (IRegionModuleBase module in scene.RegionModules.Values)
+                        {
+                            Type type = module.GetType().GetInterface("ISharedRegionModule");
+                            string module_type = type != null ? "Shared" : "Non-Shared";
+                            MainConsole.Instance.OutputFormat("New Region Module ({0}): {1}", module_type, module.Name);
+                        }
+                    }
+                    );
 
                     MainConsole.Instance.Output("");
                     break;
