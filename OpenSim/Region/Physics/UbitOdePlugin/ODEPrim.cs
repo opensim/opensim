@@ -3252,9 +3252,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
 
-        private void changeAddImpulse(Vector3 impulse)
+        private void changeAddForce(Vector3 theforce)
         {
-            m_forceacc += impulse *m_invTimeStep;
+            m_forceacc += theforce;
             if (!m_isSelected)
             {
                 lock (this)
@@ -3960,7 +3960,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
 
                 case changes.AddForce:
-                    changeAddImpulse((Vector3)arg);
+                    changeAddForce((Vector3)arg);
                     break;
 
                 case changes.AddAngForce:
