@@ -1066,6 +1066,8 @@ namespace OpenSim.Region.RegionCombinerModule
 
             foreach (Scene s in scenes)
             {
+                MainConsole.Instance.OutputFormat("Fixing phantoms for {0}", s.RegionInfo.RegionName);
+                
                 s.ForEachSOG(so => so.AbsolutePosition = so.AbsolutePosition);
             }
         }
