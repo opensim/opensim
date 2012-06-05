@@ -2626,14 +2626,24 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void SendLandCollisionEvent(scriptEvents ev, ScriptCollidingNotification notify)
         {
-            if ((ParentGroup.RootPart.ScriptEvents & ev) != 0)
-            {
-                ColliderArgs LandCollidingMessage = new ColliderArgs();
-                List<DetectedObject> colliding = new List<DetectedObject>();
-                    
-                colliding.Add(CreateDetObjectForGround());
-                LandCollidingMessage.Colliders = colliding;
+            bool sendToRoot = true;
 
+            ColliderArgs LandCollidingMessage = new ColliderArgs();
+            List<DetectedObject> colliding = new List<DetectedObject>();
+                
+            colliding.Add(CreateDetObjectForGround());
+            LandCollidingMessage.Colliders = colliding;
+
+            if (Inventory.ContainsScripts())
+            {
+                if (!PassCollisions)
+                    sendToRoot = false;
+            }
+            if ((ScriptEvents & ev) != 0)
+                notify(LocalId, LandCollidingMessage);
+
+            if ((ParentGroup.RootPart.ScriptEvents & ev) != 0 && sendToRoot)
+            {
                 notify(ParentGroup.RootPart.LocalId, LandCollidingMessage);
             }
         }
