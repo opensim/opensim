@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                "set terrain heights <corner> <min> <max> [<x>] [<y>]",
                                "Sets the terrain texture heights on corner #<corner> to <min>/<max>, if <x> or <y> are specified, it will only " +
                                "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
-                               " that coordinate. Corner # SW = 0, NW = 1, SE = 2, NE = 3.",
+                               " that coordinate. Corner # SW = 0, NW = 1, SE = 2, NE = 3, all corners = -1.",
                                consoleSetTerrainHeights);
 
             m_module.Scene.AddCommand(
@@ -143,6 +143,16 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                     switch (corner)
                     {
+                        case -1:
+                            m_module.Scene.RegionInfo.RegionSettings.Elevation1SW = lowValue;
+                            m_module.Scene.RegionInfo.RegionSettings.Elevation2SW = highValue;
+                            m_module.Scene.RegionInfo.RegionSettings.Elevation1NW = lowValue;
+                            m_module.Scene.RegionInfo.RegionSettings.Elevation2NW = highValue;
+                            m_module.Scene.RegionInfo.RegionSettings.Elevation1SE = lowValue;
+                            m_module.Scene.RegionInfo.RegionSettings.Elevation2SE = highValue;
+                            m_module.Scene.RegionInfo.RegionSettings.Elevation1NE = lowValue;
+                            m_module.Scene.RegionInfo.RegionSettings.Elevation2NE = highValue;
+                            break;
                         case 0:
                             m_module.Scene.RegionInfo.RegionSettings.Elevation1SW = lowValue;
                             m_module.Scene.RegionInfo.RegionSettings.Elevation2SW = highValue;
