@@ -180,8 +180,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 //                            fileHeight = sztmp;
                             bs.ReadInt16();
                             bs.ReadInt16();
-                            bs.ReadInt16();
-                            bs.ReadInt16();
                             break;
                         case "XPTS":
 //                            fileWidth = bs.ReadInt16();
