@@ -3079,7 +3079,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // need the magnitude later
                         // float velmag = (float)Util.GetMagnitude(llvel);
 
-                        SceneObjectGroup new_group = World.RezObject(m_host, inv.Value, llpos, Rot2Quaternion(rot), llvel, param);
+                        // rez with zero velocity so we can apply it here after resume scripts etc
+//                        SceneObjectGroup new_group = World.RezObject(m_host, inv.Value, llpos, Rot2Quaternion(rot), llvel, param);
+                        SceneObjectGroup new_group = World.RezObject(m_host, inv.Value, llpos, Rot2Quaternion(rot), Vector3.Zero, param);
 
                         // If either of these are null, then there was an unknown error.
                         if (new_group == null)
@@ -3102,7 +3104,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         if (pa != null && pa.IsPhysical && llvel != Vector3.Zero)
                         {
-                            //Recoil.
                             llApplyImpulse(new LSL_Vector(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
                         }
                         // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
