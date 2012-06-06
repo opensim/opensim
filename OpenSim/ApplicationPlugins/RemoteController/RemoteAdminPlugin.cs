@@ -258,10 +258,25 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 m_log.Info("[RADMIN]: Request to restart Region.");
 
-                CheckRegionParams(requestData, responseData);
-
                 Scene rebootedScene = null;
-                GetSceneFromRegionParams(requestData, responseData, out rebootedScene);
+                bool restartAll = false;
+
+                IConfig startupConfig = m_configSource.Configs["Startup"];
+                if (startupConfig != null)
+                {
+                    if (startupConfig.GetBoolean("InworldRestartShutsDown", false))
+                    {
+                        rebootedScene = m_application.SceneManager.CurrentOrFirstScene;
+                        restartAll = true;
+                    }
+                }
+
+                if (rebootedScene == null)
+                {
+                    CheckRegionParams(requestData, responseData);
+
+                    GetSceneFromRegionParams(requestData, responseData, out rebootedScene);
+                }
 
                 IRestartModule restartModule = rebootedScene.RequestModuleInterface<IRestartModule>();
 
@@ -324,11 +339,20 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     notice = false;
                 }
 
-                if (restartModule != null)
+                List<Scene> restartList;
+
+                if (restartAll)
+                    restartList = m_application.SceneManager.Scenes;
+                else
+                    restartList = new List<Scene>() { rebootedScene };
+
+                foreach (Scene s in m_application.SceneManager.Scenes)
                 {
-                    restartModule.ScheduleRestart(UUID.Zero, message, times.ToArray(), notice);
-                    responseData["success"] = true;
+                    restartModule = s.RequestModuleInterface<IRestartModule>();
+                    if (restartModule != null)
+                        restartModule.ScheduleRestart(UUID.Zero, message, times.ToArray(), notice);
                 }
+                responseData["success"] = true;
             }
             catch (Exception e)
             {

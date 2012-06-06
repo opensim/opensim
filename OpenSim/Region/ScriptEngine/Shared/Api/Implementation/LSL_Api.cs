@@ -3056,8 +3056,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         if (pa != null && pa.IsPhysical && llvel != Vector3.Zero)
                         {
-                            //Recoil.
-                            llApplyImpulse(new LSL_Vector(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
+                            // recoil                          
+                            llvel *= -groupmass;
+                            llApplyImpulse(new LSL_Vector(llvel.X, llvel.Y,llvel.Z), 0);
                         }
                         // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
                         return;
@@ -3249,7 +3250,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
 
             if (attachmentsModule != null)
-                return attachmentsModule.AttachObject(presence, grp, (uint)attachmentPoint, false);
+                return attachmentsModule.AttachObject(presence, grp, (uint)attachmentPoint, false, true);
             else
                 return false;
         }

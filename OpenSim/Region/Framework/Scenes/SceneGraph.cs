@@ -359,7 +359,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (pa != null && pa.IsPhysical && vel != Vector3.Zero)
             {
                 sceneObject.RootPart.ApplyImpulse((vel * sceneObject.GetMass()), false);
-                sceneObject.Velocity = vel;
             }
 
             return true;

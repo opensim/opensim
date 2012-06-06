@@ -231,7 +231,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             sp.ClearAttachments();
         }
         
-        public bool AttachObject(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent)
+        public bool AttachObject(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData)
         {
             lock (sp.AttachmentsSyncLock)
             {
@@ -277,9 +277,27 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     attachPos = Vector3.Zero;
                 }
     
+                if (useAttachData)
+                {
+                    group.RootPart.RotationOffset = group.RootPart.AttachRotation;
+                    attachPos = group.RootPart.AttachOffset;
+                    if (attachmentPt == 0)
+                    {
+                        attachmentPt = group.RootPart.AttachPoint;
+                        if (attachmentPt == 0)
+                        {
+                            attachmentPt = (uint)AttachmentPoint.LeftHand;
+                            attachPos = Vector3.Zero;
+                        }
+                    }
+                    else if (group.RootPart.AttachPoint != attachmentPt)
+                    {
+                        attachPos = Vector3.Zero;
+                    }
+                }
                 group.AttachmentPoint = attachmentPt;
                 group.AbsolutePosition = attachPos;
-    
+
                 // We also don't want to do any of the inventory operations for an NPC.
                 if (sp.PresenceType != PresenceType.Npc)
                 {
@@ -774,10 +792,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         null, assetID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
                         false, false, sp.UUID, true);
 
-                //                m_log.DebugFormat(
-                //                    "[ATTACHMENTS MODULE]: Retrieved single object {0} for attachment to {1} on point {2}",
-                //                    objatt.Name, remoteClient.Name, AttachmentPt);
-
+//                m_log.DebugFormat(
+//                    "[ATTACHMENTS MODULE]: Retrieved single object {0} for attachment to {1} on point {2}",
+//                    objatt.Name, remoteClient.Name, AttachmentPt);
+                
                 if (objatt != null)
                 {
                     // HasGroupChanged is being set from within RezObject.  Ideally it would be set by the caller.
@@ -789,7 +807,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // This will throw if the attachment fails
                     try
                     {
-                        AttachObject(sp, objatt, attachmentPt, false);
+                        AttachObject(sp, objatt, attachmentPt, false, false);
                     }
                     catch (Exception e)
                     {
@@ -802,15 +820,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         m_scene.DeleteSceneObject(objatt, false);
                         return null;
                     }
+                    
+                    if (tainted)
+                        objatt.HasGroupChanged = true;
 
                     if (doc != null)
                     {
                         objatt.LoadScriptState(doc);
                         objatt.ResetOwnerChangeFlag();
                     }
-
-                    if (tainted)
-                        objatt.HasGroupChanged = true;
 
                     // Fire after attach, so we don't get messy perms dialogs
                     // 4 == AttachedRez
@@ -943,7 +961,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 AttachmentPt &= 0x7f;
 
                 // Calls attach with a Zero position
-                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false))
+                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false, true))
                 {
 //                    m_log.Debug(
 //                        "[ATTACHMENTS MODULE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId
