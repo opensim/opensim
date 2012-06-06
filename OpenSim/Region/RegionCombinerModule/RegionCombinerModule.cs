@@ -61,7 +61,7 @@ namespace OpenSim.Region.RegionCombinerModule
         /// <summary>
         /// Is this module enabled?
         /// </summary>
-        private bool enabledYN = false;
+        private bool m_combineContiguousRegions = false;
 
         /// <summary>
         /// This holds the root regions for the megaregions.
@@ -79,14 +79,12 @@ namespace OpenSim.Region.RegionCombinerModule
         public void Initialise(IConfigSource source)
         {
             IConfig myConfig = source.Configs["Startup"];
-            enabledYN = myConfig.GetBoolean("CombineContiguousRegions", false);
+            m_combineContiguousRegions = myConfig.GetBoolean("CombineContiguousRegions", false);
 
-            if (enabledYN)
-            {
-                MainConsole.Instance.Commands.AddCommand(
-                    "RegionCombinerModule", false, "fix-phantoms", "fix-phantoms",
-                    "Fixes phantom objects after an import to megaregions", FixPhantoms);
-            }
+            MainConsole.Instance.Commands.AddCommand(
+                "RegionCombinerModule", false, "fix-phantoms", "fix-phantoms",
+                "Fixes phantom objects after an import to a megaregion or a change from a megaregion back to normal regions",
+                FixPhantoms);
         }
 
         public void Close()
@@ -95,7 +93,7 @@ namespace OpenSim.Region.RegionCombinerModule
 
         public void AddRegion(Scene scene)
         {
-            if (enabledYN)
+            if (m_combineContiguousRegions)
                 scene.RegisterModuleInterface<IRegionCombinerModule>(this);
         }
 
@@ -105,7 +103,10 @@ namespace OpenSim.Region.RegionCombinerModule
 
         public void RegionLoaded(Scene scene)
         {
-            if (enabledYN)
+            lock (m_startingScenes)
+                m_startingScenes.Add(scene.RegionInfo.originRegionID, scene);
+
+            if (m_combineContiguousRegions)
             {
                 RegionLoadedDoWork(scene);
 
@@ -208,7 +209,6 @@ namespace OpenSim.Region.RegionCombinerModule
                 {
                     return;
                 }
-
             }
         }
 
@@ -220,8 +220,6 @@ namespace OpenSim.Region.RegionCombinerModule
                 return;
             // 
 */
-            lock (m_startingScenes)
-                m_startingScenes.Add(scene.RegionInfo.originRegionID, scene);
 
             // Give each region a standard set of non-infinite borders
             Border northBorder = new Border();
@@ -1068,6 +1066,8 @@ namespace OpenSim.Region.RegionCombinerModule
 
             foreach (Scene s in scenes)
             {
+                MainConsole.Instance.OutputFormat("Fixing phantoms for {0}", s.RegionInfo.RegionName);
+                
                 s.ForEachSOG(so => so.AbsolutePosition = so.AbsolutePosition);
             }
         }

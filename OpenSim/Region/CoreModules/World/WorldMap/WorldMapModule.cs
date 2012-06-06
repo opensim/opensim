@@ -1343,13 +1343,13 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             if (terrain == null)
                 return;
 
+            m_log.DebugFormat("[WORLDMAP]: Generating map image for {0}", m_scene.RegionInfo.RegionName);
+
             byte[] data = terrain.WriteJpeg2000Image();
             if (data == null)
                 return;
 
             byte[] overlay = GenerateOverlay();
-
-            m_log.Debug("[WORLDMAP]: STORING MAPTILE IMAGE");
 
             UUID terrainImageID = UUID.Random();
             UUID parcelImageID = UUID.Zero;
@@ -1365,7 +1365,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             asset.Flags = AssetFlags.Maptile;
 
             // Store the new one
-            m_log.DebugFormat("[WORLDMAP]: Storing map tile {0}", asset.ID);
+            m_log.DebugFormat("[WORLDMAP]: Storing map tile {0} for {1}", asset.ID, m_scene.RegionInfo.RegionName);
+            
             m_scene.AssetService.Store(asset);
 
             if (overlay != null)

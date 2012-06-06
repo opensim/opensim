@@ -947,7 +947,7 @@ namespace OpenSim.Region.Framework.Scenes
             OnTerrainTaintedDelegate handlerTerrainTainted = OnTerrainTainted;
             if (handlerTerrainTainted != null)
             {
-                foreach (OnTerrainTickDelegate d in handlerTerrainTainted.GetInvocationList())
+                foreach (OnTerrainTaintedDelegate d in handlerTerrainTainted.GetInvocationList())
                 {
                     try
                     {

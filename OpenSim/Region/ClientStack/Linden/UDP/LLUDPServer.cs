@@ -155,7 +155,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private int m_defaultRTO = 0;
         private int m_maxRTO = 0;
-
+        private int m_ackTimeout = 0;
+        private int m_pausedAckTimeout = 0;
         private bool m_disableFacelights = false;
 
         public Socket Server { get { return null; } }
@@ -198,11 +199,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_defaultRTO = config.GetInt("DefaultRTO", 0);
                 m_maxRTO = config.GetInt("MaxRTO", 0);
                 m_disableFacelights = config.GetBoolean("DisableFacelights", false);
+                m_ackTimeout = 1000 * config.GetInt("AckTimeout", 60);
+                m_pausedAckTimeout = 1000 * config.GetInt("PausedAckTimeout", 300);
             }
             else
             {
                 PrimUpdatesPerCallback = 100;
                 TextureSendLimit = 20;
+                m_ackTimeout = 1000 * 60; // 1 minute
+                m_pausedAckTimeout = 1000 * 300; // 5 minutes
             }
 
             #region BinaryStats
@@ -491,8 +496,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             // Disconnect an agent if no packets are received for some time
-            //FIXME: Make 60 an .ini setting
-            if ((Environment.TickCount & Int32.MaxValue) - udpClient.TickLastPacketReceived > 1000 * 60)
+            int timeoutTicks = m_ackTimeout;
+
+            // Allow more slack if the client is "paused" eg file upload dialogue is open
+            // Some sort of limit is needed in case the client crashes, loses its network connection
+            // or some other disaster prevents it from sendung the AgentResume
+            if (udpClient.IsPaused)
+                timeoutTicks = m_pausedAckTimeout;
+
+            if ((Environment.TickCount & Int32.MaxValue) - udpClient.TickLastPacketReceived > timeoutTicks)
             {
                 m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + udpClient.AgentID);
                 StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
