@@ -2777,6 +2777,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        public void SendAssetNotFound(AssetRequestToClient req)
+        {
+            TransferInfoPacket Transfer = new TransferInfoPacket();
+            Transfer.TransferInfo.ChannelType = 2;
+            Transfer.TransferInfo.Status = -2;
+            Transfer.TransferInfo.TargetType = 0;
+            Transfer.TransferInfo.Params = req.Params;
+            Transfer.TransferInfo.Size = 0;
+            Transfer.TransferInfo.TransferID = req.TransferRequestID;
+            Transfer.Header.Zerocoded = true;
+            OutPacket(Transfer, ThrottleOutPacketType.Asset);
+        }
+
         public void SendTexture(AssetBase TextureAsset)
         {
 
@@ -12181,13 +12194,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="asset"></param>
         protected void AssetReceived(string id, Object sender, AssetBase asset)
         {
-            if (asset == null)
-                return;
-
             TransferRequestPacket transferRequest = (TransferRequestPacket)sender;
 
             UUID requestID = UUID.Zero;
             byte source = (byte)SourceType.Asset;
+
+            AssetRequestToClient req = new AssetRequestToClient();
+
+            if (asset == null)
+            {
+                req.AssetInf = null;
+                req.AssetRequestSource = source;
+                req.IsTextureRequest = false;
+                req.NumPackets = 0;
+                req.Params = transferRequest.TransferInfo.Params;
+                req.RequestAssetID = requestID;
+                req.TransferRequestID = transferRequest.TransferInfo.TransferID;
+
+                SendAssetNotFound(req);
+                return;
+            }
 
             if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset)
             {
@@ -12205,7 +12231,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             // The asset is known to exist and is in our cache, so add it to the AssetRequests list
-            AssetRequestToClient req = new AssetRequestToClient();
             req.AssetInf = asset;
             req.AssetRequestSource = source;
             req.IsTextureRequest = false;
