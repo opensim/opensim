@@ -430,7 +430,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // This may be a costly operation. The reg.ExternalEndPoint field is not a passive field,
             // it's actually doing a lot of work.
             IPEndPoint endPoint = finalDestination.ExternalEndPoint;
-            if (endPoint != null && endPoint.Address != null)
+            if (endPoint == null || endPoint.Address == null)
             {
                 sp.ControllingClient.SendTeleportFailed("Remote Region appears to be down");
                 m_entityTransferStateMachine.ResetFromTransit(sp.UUID);
