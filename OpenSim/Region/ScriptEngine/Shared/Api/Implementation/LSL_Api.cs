@@ -2536,12 +2536,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            Vector3 vel;
+            Vector3 vel = Vector3.Zero;
 
             if (m_host.ParentGroup.IsAttachment)
             {
                 ScenePresence avatar = m_host.ParentGroup.Scene.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
-                vel = avatar.Velocity;
+                if (avatar != null)
+                    vel = avatar.Velocity;
             }
             else
             {
