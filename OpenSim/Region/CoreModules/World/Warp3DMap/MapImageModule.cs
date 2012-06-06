@@ -204,7 +204,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             Bitmap bitmap = renderer.Scene.getImage();
 
             if (m_useAntiAliasing)
-                bitmap = ImageUtils.ResizeImage(bitmap, viewport.Width, viewport.Height);
+            {
+                using (Bitmap origBitmap = bitmap)
+                    bitmap = ImageUtils.ResizeImage(origBitmap, viewport.Width, viewport.Height);
+            }
 
             return bitmap;
         }
@@ -318,8 +321,17 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             uint globalX, globalY;
             Utils.LongToUInts(m_scene.RegionInfo.RegionHandle, out globalX, out globalY);
 
-            Bitmap image = TerrainSplat.Splat(heightmap, textureIDs, startHeights, heightRanges, new Vector3d(globalX, globalY, 0.0), m_scene.AssetService, textureTerrain);
-            warp_Texture texture = new warp_Texture(image);
+            warp_Texture texture;
+
+            using (
+                Bitmap image
+                    = TerrainSplat.Splat(
+                        heightmap, textureIDs, startHeights, heightRanges,
+                        new Vector3d(globalX, globalY, 0.0), m_scene.AssetService, textureTerrain))
+            {
+                texture = new warp_Texture(image);
+            }
+
             warp_Material material = new warp_Material(texture);
             material.setReflectivity(50);
             renderer.Scene.addMaterial("TerrainColor", material);
@@ -546,42 +558,46 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             {
                 try
                 {
-                    Bitmap bitmap = (Bitmap)J2kImage.FromStream(stream);
-                    width = bitmap.Width;
-                    height = bitmap.Height;
+                    int pixelBytes;
 
-                    BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
-                    int pixelBytes = (bitmap.PixelFormat == PixelFormat.Format24bppRgb) ? 3 : 4;
-
-                    // Sum up the individual channels
-                    unsafe
+                    using (Bitmap bitmap = (Bitmap)J2kImage.FromStream(stream))
                     {
-                        if (pixelBytes == 4)
+                        width = bitmap.Width;
+                        height = bitmap.Height;
+    
+                        BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
+                        pixelBytes = (bitmap.PixelFormat == PixelFormat.Format24bppRgb) ? 3 : 4;
+    
+                        // Sum up the individual channels
+                        unsafe
                         {
-                            for (int y = 0; y < height; y++)
+                            if (pixelBytes == 4)
                             {
-                                byte* row = (byte*)bitmapData.Scan0 + (y * bitmapData.Stride);
-
-                                for (int x = 0; x < width; x++)
+                                for (int y = 0; y < height; y++)
                                 {
-                                    b += row[x * pixelBytes + 0];
-                                    g += row[x * pixelBytes + 1];
-                                    r += row[x * pixelBytes + 2];
-                                    a += row[x * pixelBytes + 3];
+                                    byte* row = (byte*)bitmapData.Scan0 + (y * bitmapData.Stride);
+    
+                                    for (int x = 0; x < width; x++)
+                                    {
+                                        b += row[x * pixelBytes + 0];
+                                        g += row[x * pixelBytes + 1];
+                                        r += row[x * pixelBytes + 2];
+                                        a += row[x * pixelBytes + 3];
+                                    }
                                 }
                             }
-                        }
-                        else
-                        {
-                            for (int y = 0; y < height; y++)
+                            else
                             {
-                                byte* row = (byte*)bitmapData.Scan0 + (y * bitmapData.Stride);
-
-                                for (int x = 0; x < width; x++)
+                                for (int y = 0; y < height; y++)
                                 {
-                                    b += row[x * pixelBytes + 0];
-                                    g += row[x * pixelBytes + 1];
-                                    r += row[x * pixelBytes + 2];
+                                    byte* row = (byte*)bitmapData.Scan0 + (y * bitmapData.Stride);
+    
+                                    for (int x = 0; x < width; x++)
+                                    {
+                                        b += row[x * pixelBytes + 0];
+                                        g += row[x * pixelBytes + 1];
+                                        r += row[x * pixelBytes + 2];
+                                    }
                                 }
                             }
                         }

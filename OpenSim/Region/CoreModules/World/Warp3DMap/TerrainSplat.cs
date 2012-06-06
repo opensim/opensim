@@ -84,218 +84,234 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             Debug.Assert(heightRanges.Length == 4);
 
             Bitmap[] detailTexture = new Bitmap[4];
+            Bitmap output = null;
+            BitmapData outputData = null;
 
-            if (textureTerrain)
+            try
             {
-                // Swap empty terrain textureIDs with default IDs
-                for (int i = 0; i < textureIDs.Length; i++)
+                if (textureTerrain)
                 {
-                    if (textureIDs[i] == UUID.Zero)
-                        textureIDs[i] = DEFAULT_TERRAIN_DETAIL[i];
-                }
-
-                #region Texture Fetching
-
-                if (assetService != null)
-                {
-                    for (int i = 0; i < 4; i++)
+                    // Swap empty terrain textureIDs with default IDs
+                    for (int i = 0; i < textureIDs.Length; i++)
                     {
-                        AssetBase asset;
-                        UUID cacheID = UUID.Combine(TERRAIN_CACHE_MAGIC, textureIDs[i]);
-
-                        // Try to fetch a cached copy of the decoded/resized version of this texture
-                        asset = assetService.GetCached(cacheID.ToString());
-                        if (asset != null)
+                        if (textureIDs[i] == UUID.Zero)
+                            textureIDs[i] = DEFAULT_TERRAIN_DETAIL[i];
+                    }
+    
+                    #region Texture Fetching
+    
+                    if (assetService != null)
+                    {
+                        for (int i = 0; i < 4; i++)
                         {
-                            try
-                            {
-                                using (System.IO.MemoryStream stream = new System.IO.MemoryStream(asset.Data))
-                                    detailTexture[i] = (Bitmap)Image.FromStream(stream);
-                            }
-                            catch (Exception ex)
-                            {
-                                m_log.Warn("Failed to decode cached terrain texture " + cacheID +
-                                    " (textureID: " + textureIDs[i] + "): " + ex.Message);
-                            }
-                        }
-
-                        if (detailTexture[i] == null)
-                        {
-                            // Try to fetch the original JPEG2000 texture, resize if needed, and cache as PNG
-                            asset = assetService.Get(textureIDs[i].ToString());
+                            AssetBase asset;
+                            UUID cacheID = UUID.Combine(TERRAIN_CACHE_MAGIC, textureIDs[i]);
+    
+                            // Try to fetch a cached copy of the decoded/resized version of this texture
+                            asset = assetService.GetCached(cacheID.ToString());
                             if (asset != null)
                             {
-                                try { detailTexture[i] = (Bitmap)CSJ2K.J2kImage.FromBytes(asset.Data); }
+                                try
+                                {
+                                    using (System.IO.MemoryStream stream = new System.IO.MemoryStream(asset.Data))
+                                        detailTexture[i] = (Bitmap)Image.FromStream(stream);
+                                }
                                 catch (Exception ex)
                                 {
-                                    m_log.Warn("Failed to decode terrain texture " + asset.ID + ": " + ex.Message);
+                                    m_log.Warn("Failed to decode cached terrain texture " + cacheID +
+                                        " (textureID: " + textureIDs[i] + "): " + ex.Message);
                                 }
                             }
-
-                            if (detailTexture[i] != null)
+    
+                            if (detailTexture[i] == null)
                             {
-                                Bitmap bitmap = detailTexture[i];
-
-                                // Make sure this texture is the correct size, otherwise resize
-                                if (bitmap.Width != 256 || bitmap.Height != 256)
-                                    bitmap = ImageUtils.ResizeImage(bitmap, 256, 256);
-
-                                // Save the decoded and resized texture to the cache
-                                byte[] data;
-                                using (System.IO.MemoryStream stream = new System.IO.MemoryStream())
+                                // Try to fetch the original JPEG2000 texture, resize if needed, and cache as PNG
+                                asset = assetService.Get(textureIDs[i].ToString());
+                                if (asset != null)
                                 {
-                                    bitmap.Save(stream, ImageFormat.Png);
-                                    data = stream.ToArray();
+                                    try { detailTexture[i] = (Bitmap)CSJ2K.J2kImage.FromBytes(asset.Data); }
+                                    catch (Exception ex)
+                                    {
+                                        m_log.Warn("Failed to decode terrain texture " + asset.ID + ": " + ex.Message);
+                                    }
                                 }
-
-                                // Cache a PNG copy of this terrain texture
-                                AssetBase newAsset = new AssetBase
+    
+                                if (detailTexture[i] != null)
                                 {
-                                    Data = data,
-                                    Description = "PNG",
-                                    Flags = AssetFlags.Collectable,
-                                    FullID = cacheID,
-                                    ID = cacheID.ToString(),
-                                    Local = true,
-                                    Name = String.Empty,
-                                    Temporary = true,
-                                    Type = (sbyte)AssetType.Unknown
-                                };
-                                newAsset.Metadata.ContentType = "image/png";
-                                assetService.Store(newAsset);
+                                    Bitmap bitmap = detailTexture[i];
+    
+                                    // Make sure this texture is the correct size, otherwise resize
+                                    if (bitmap.Width != 256 || bitmap.Height != 256)
+                                    {
+                                        using (Bitmap origBitmap = bitmap)
+                                        {
+                                            bitmap = ImageUtils.ResizeImage(origBitmap, 256, 256);
+                                        }
+                                    }
+    
+                                    // Save the decoded and resized texture to the cache
+                                    byte[] data;
+                                    using (System.IO.MemoryStream stream = new System.IO.MemoryStream())
+                                    {
+                                        bitmap.Save(stream, ImageFormat.Png);
+                                        data = stream.ToArray();
+                                    }
+    
+                                    // Cache a PNG copy of this terrain texture
+                                    AssetBase newAsset = new AssetBase
+                                    {
+                                        Data = data,
+                                        Description = "PNG",
+                                        Flags = AssetFlags.Collectable,
+                                        FullID = cacheID,
+                                        ID = cacheID.ToString(),
+                                        Local = true,
+                                        Name = String.Empty,
+                                        Temporary = true,
+                                        Type = (sbyte)AssetType.Unknown
+                                    };
+                                    newAsset.Metadata.ContentType = "image/png";
+                                    assetService.Store(newAsset);
+                                }
                             }
                         }
                     }
+    
+                    #endregion Texture Fetching
                 }
-
-                #endregion Texture Fetching
-            }
-
-            // Fill in any missing textures with a solid color
-            for (int i = 0; i < 4; i++)
-            {
-                if (detailTexture[i] == null)
+    
+                // Fill in any missing textures with a solid color
+                for (int i = 0; i < 4; i++)
                 {
-                    // Create a solid color texture for this layer
-                    detailTexture[i] = new Bitmap(256, 256, PixelFormat.Format24bppRgb);
-                    using (Graphics gfx = Graphics.FromImage(detailTexture[i]))
+                    if (detailTexture[i] == null)
                     {
-                        using (SolidBrush brush = new SolidBrush(DEFAULT_TERRAIN_COLOR[i]))
-                            gfx.FillRectangle(brush, 0, 0, 256, 256);
+                        // Create a solid color texture for this layer
+                        detailTexture[i] = new Bitmap(256, 256, PixelFormat.Format24bppRgb);
+                        using (Graphics gfx = Graphics.FromImage(detailTexture[i]))
+                        {
+                            using (SolidBrush brush = new SolidBrush(DEFAULT_TERRAIN_COLOR[i]))
+                                gfx.FillRectangle(brush, 0, 0, 256, 256);
+                        }
                     }
                 }
-            }
-
-            #region Layer Map
-
-            float[] layermap = new float[256 * 256];
-
-            for (int y = 0; y < 256; y++)
-            {
-                for (int x = 0; x < 256; x++)
-                {
-                    float height = heightmap[y * 256 + x];
-
-                    float pctX = (float)x / 255f;
-                    float pctY = (float)y / 255f;
-
-                    // Use bilinear interpolation between the four corners of start height and 
-                    // height range to select the current values at this position
-                    float startHeight = ImageUtils.Bilinear(
-                        startHeights[0],
-                        startHeights[2],
-                        startHeights[1],
-                        startHeights[3],
-                        pctX, pctY);
-                    startHeight = Utils.Clamp(startHeight, 0f, 255f);
-
-                    float heightRange = ImageUtils.Bilinear(
-                        heightRanges[0],
-                        heightRanges[2],
-                        heightRanges[1],
-                        heightRanges[3],
-                        pctX, pctY);
-                    heightRange = Utils.Clamp(heightRange, 0f, 255f);
-
-                    // Generate two frequencies of perlin noise based on our global position
-                    // The magic values were taken from http://opensimulator.org/wiki/Terrain_Splatting
-                    Vector3 vec = new Vector3
-                    (
-                        ((float)regionPosition.X + x) * 0.20319f,
-                        ((float)regionPosition.Y + y) * 0.20319f,
-                        height * 0.25f
-                    );
-
-                    float lowFreq = Perlin.noise2(vec.X * 0.222222f, vec.Y * 0.222222f) * 6.5f;
-                    float highFreq = Perlin.turbulence2(vec.X, vec.Y, 2f) * 2.25f;
-                    float noise = (lowFreq + highFreq) * 2f;
-
-                    // Combine the current height, generated noise, start height, and height range parameters, then scale all of it 
-                    float layer = ((height + noise - startHeight) / heightRange) * 4f;
-                    if (Single.IsNaN(layer)) layer = 0f;
-                    layermap[y * 256 + x] = Utils.Clamp(layer, 0f, 3f);
-                }
-            }
-
-            #endregion Layer Map
-
-            #region Texture Compositing
-
-            Bitmap output = new Bitmap(256, 256, PixelFormat.Format24bppRgb);
-            BitmapData outputData = output.LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-
-            unsafe
-            {
-                // Get handles to all of the texture data arrays
-                BitmapData[] datas = new BitmapData[]
-                {
-                    detailTexture[0].LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.ReadOnly, detailTexture[0].PixelFormat),
-                    detailTexture[1].LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.ReadOnly, detailTexture[1].PixelFormat),
-                    detailTexture[2].LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.ReadOnly, detailTexture[2].PixelFormat),
-                    detailTexture[3].LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.ReadOnly, detailTexture[3].PixelFormat)
-                };
-
-                int[] comps = new int[]
-                {
-                    (datas[0].PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3,
-                    (datas[1].PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3,
-                    (datas[2].PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3,
-                    (datas[3].PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3
-                };
-
+    
+                #region Layer Map
+    
+                float[] layermap = new float[256 * 256];
+    
                 for (int y = 0; y < 256; y++)
                 {
                     for (int x = 0; x < 256; x++)
                     {
-                        float layer = layermap[y * 256 + x];
-
-                        // Select two textures
-                        int l0 = (int)Math.Floor(layer);
-                        int l1 = Math.Min(l0 + 1, 3);
-
-                        byte* ptrA = (byte*)datas[l0].Scan0 + y * datas[l0].Stride + x * comps[l0];
-                        byte* ptrB = (byte*)datas[l1].Scan0 + y * datas[l1].Stride + x * comps[l1];
-                        byte* ptrO = (byte*)outputData.Scan0 + y * outputData.Stride + x * 3;
-
-                        float aB = *(ptrA + 0);
-                        float aG = *(ptrA + 1);
-                        float aR = *(ptrA + 2);
-
-                        float bB = *(ptrB + 0);
-                        float bG = *(ptrB + 1);
-                        float bR = *(ptrB + 2);
-
-                        float layerDiff = layer - l0;
-
-                        // Interpolate between the two selected textures
-                        *(ptrO + 0) = (byte)Math.Floor(aB + layerDiff * (bB - aB));
-                        *(ptrO + 1) = (byte)Math.Floor(aG + layerDiff * (bG - aG));
-                        *(ptrO + 2) = (byte)Math.Floor(aR + layerDiff * (bR - aR));
+                        float height = heightmap[y * 256 + x];
+    
+                        float pctX = (float)x / 255f;
+                        float pctY = (float)y / 255f;
+    
+                        // Use bilinear interpolation between the four corners of start height and 
+                        // height range to select the current values at this position
+                        float startHeight = ImageUtils.Bilinear(
+                            startHeights[0],
+                            startHeights[2],
+                            startHeights[1],
+                            startHeights[3],
+                            pctX, pctY);
+                        startHeight = Utils.Clamp(startHeight, 0f, 255f);
+    
+                        float heightRange = ImageUtils.Bilinear(
+                            heightRanges[0],
+                            heightRanges[2],
+                            heightRanges[1],
+                            heightRanges[3],
+                            pctX, pctY);
+                        heightRange = Utils.Clamp(heightRange, 0f, 255f);
+    
+                        // Generate two frequencies of perlin noise based on our global position
+                        // The magic values were taken from http://opensimulator.org/wiki/Terrain_Splatting
+                        Vector3 vec = new Vector3
+                        (
+                            ((float)regionPosition.X + x) * 0.20319f,
+                            ((float)regionPosition.Y + y) * 0.20319f,
+                            height * 0.25f
+                        );
+    
+                        float lowFreq = Perlin.noise2(vec.X * 0.222222f, vec.Y * 0.222222f) * 6.5f;
+                        float highFreq = Perlin.turbulence2(vec.X, vec.Y, 2f) * 2.25f;
+                        float noise = (lowFreq + highFreq) * 2f;
+    
+                        // Combine the current height, generated noise, start height, and height range parameters, then scale all of it 
+                        float layer = ((height + noise - startHeight) / heightRange) * 4f;
+                        if (Single.IsNaN(layer)) layer = 0f;
+                        layermap[y * 256 + x] = Utils.Clamp(layer, 0f, 3f);
                     }
                 }
-
+    
+                #endregion Layer Map
+    
+                #region Texture Compositing
+    
+                output = new Bitmap(256, 256, PixelFormat.Format24bppRgb);
+                outputData = output.LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+    
+                unsafe
+                {
+                    // Get handles to all of the texture data arrays
+                    BitmapData[] datas = new BitmapData[]
+                    {
+                        detailTexture[0].LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.ReadOnly, detailTexture[0].PixelFormat),
+                        detailTexture[1].LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.ReadOnly, detailTexture[1].PixelFormat),
+                        detailTexture[2].LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.ReadOnly, detailTexture[2].PixelFormat),
+                        detailTexture[3].LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.ReadOnly, detailTexture[3].PixelFormat)
+                    };
+    
+                    int[] comps = new int[]
+                    {
+                        (datas[0].PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3,
+                        (datas[1].PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3,
+                        (datas[2].PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3,
+                        (datas[3].PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3
+                    };
+    
+                    for (int y = 0; y < 256; y++)
+                    {
+                        for (int x = 0; x < 256; x++)
+                        {
+                            float layer = layermap[y * 256 + x];
+    
+                            // Select two textures
+                            int l0 = (int)Math.Floor(layer);
+                            int l1 = Math.Min(l0 + 1, 3);
+    
+                            byte* ptrA = (byte*)datas[l0].Scan0 + y * datas[l0].Stride + x * comps[l0];
+                            byte* ptrB = (byte*)datas[l1].Scan0 + y * datas[l1].Stride + x * comps[l1];
+                            byte* ptrO = (byte*)outputData.Scan0 + y * outputData.Stride + x * 3;
+    
+                            float aB = *(ptrA + 0);
+                            float aG = *(ptrA + 1);
+                            float aR = *(ptrA + 2);
+    
+                            float bB = *(ptrB + 0);
+                            float bG = *(ptrB + 1);
+                            float bR = *(ptrB + 2);
+    
+                            float layerDiff = layer - l0;
+    
+                            // Interpolate between the two selected textures
+                            *(ptrO + 0) = (byte)Math.Floor(aB + layerDiff * (bB - aB));
+                            *(ptrO + 1) = (byte)Math.Floor(aG + layerDiff * (bG - aG));
+                            *(ptrO + 2) = (byte)Math.Floor(aR + layerDiff * (bR - aR));
+                        }
+                    }
+    
+                    for (int i = 0; i < 4; i++)
+                        detailTexture[i].UnlockBits(datas[i]);
+                }
+            }
+            finally
+            {
                 for (int i = 0; i < 4; i++)
-                    detailTexture[i].UnlockBits(datas[i]);
+                    if (detailTexture[i] != null)
+                        detailTexture[i].Dispose();
             }
 
             output.UnlockBits(outputData);
