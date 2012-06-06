@@ -2498,12 +2498,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            Vector3 vel;
+            Vector3 vel = Vector3.Zero;
 
             if (m_host.ParentGroup.IsAttachment)
             {
                 ScenePresence avatar = m_host.ParentGroup.Scene.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
-                vel = avatar.Velocity;
+                if (avatar != null)
+                    vel = avatar.Velocity;
             }
             else
             {
@@ -10401,7 +10402,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ShoutError("No permissions to track the camera");
                 return new LSL_Vector();
             }
-            m_host.TaskInventory.LockItemsForRead(false);
 
 //            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
             ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
@@ -10425,7 +10425,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ShoutError("No permissions to track the camera");
                 return new LSL_Rotation();
             }
-            m_host.TaskInventory.LockItemsForRead(false);
 
 //            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
             ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
