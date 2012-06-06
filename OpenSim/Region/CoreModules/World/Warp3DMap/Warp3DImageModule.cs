@@ -54,8 +54,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private static readonly UUID TEXTURE_METADATA_MAGIC = new UUID("802dc0e0-f080-4931-8b57-d1be8611c4f3");
         private static readonly Color4 WATER_COLOR = new Color4(29, 72, 96, 216);
 
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
         private IRendering m_primMesher;
@@ -88,11 +87,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             if (renderers.Count > 0)
             {
                 m_primMesher = RenderingLoader.LoadRenderer(renderers[0]);
-                m_log.Debug("[MAPTILE]: Loaded prim mesher " + m_primMesher.ToString());
+                m_log.DebugFormat("[WARP 3D IMAGE MODULE]: Loaded prim mesher {0}", m_primMesher);
             }
             else
             {
-                m_log.Debug("[MAPTILE]: No prim mesher loaded, prim rendering will be disabled");
+                m_log.Debug("[WARP 3D IMAGE MODULE]: No prim mesher loaded, prim rendering will be disabled");
             }
 
             m_scene.RegisterModuleInterface<IMapImageGenerator>(this);
@@ -150,7 +149,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             }
             catch
             {
-                m_log.Warn("[MAPTILE]: Failed to load StartupConfig");
+                m_log.Warn("[WARP 3D IMAGE MODULE]: Failed to load StartupConfig");
             }
 
             m_colors.Clear();
@@ -222,7 +221,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             catch (Exception e)
             {
                 // JPEG2000 encoder failed
-                m_log.Error("[MAPTILE]: Failed generating terrain map: " + e);
+                m_log.Error("[WARP 3D IMAGE MODULE]: Failed generating terrain map: ", e);
             }
 
             return null;
@@ -619,7 +618,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 }
                 catch (Exception ex)
                 {
-                    m_log.WarnFormat("[MAPTILE]: Error decoding JPEG2000 texture {0} ({1} bytes): {2}", textureID, j2kData.Length, ex.Message);
+                    m_log.WarnFormat(
+                        "[WARP 3D IMAGE MODULE]: Error decoding JPEG2000 texture {0} ({1} bytes): {2}",
+                        textureID, j2kData.Length, ex.Message);
+
                     width = 0;
                     height = 0;
                     return new Color4(0.5f, 0.5f, 0.5f, 1.0f);
