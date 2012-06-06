@@ -176,16 +176,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="ownerId"></param>
         public void ChangeInventoryOwner(UUID ownerId)
         {
-            m_items.LockItemsForWrite(true);
-            if (0 == Items.Count)
-            {
-                m_items.LockItemsForWrite(false);
-                return;
-            }
+            List<TaskInventoryItem> items = GetInventoryItems();
 
+            if (items.Count == 0)
+                return;
+
+            m_items.LockItemsForWrite(true);
             HasInventoryChanged = true;
             m_part.ParentGroup.HasGroupChanged = true;
-            List<TaskInventoryItem> items = GetInventoryItems();
             foreach (TaskInventoryItem item in items)
             {
                 if (ownerId != item.OwnerID)
@@ -766,8 +764,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (item.Name == name)
                 {
-                    return item;
                     m_items.LockItemsForRead(false);
+                    return item;
                 }
             }
             m_items.LockItemsForRead(false);
