@@ -782,12 +782,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int GetChildAgentCount()
         {
-            // some network situations come in where child agents get closed twice.
-            if (m_numChildAgents < 0)
-            {
-                m_numChildAgents = 0;
-            }
-
             return m_numChildAgents;
         }
 

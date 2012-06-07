@@ -486,7 +486,7 @@ namespace OpenSim
                     else
                         presence.ControllingClient.Kick("\nYou have been logged out by an administrator.\n");
 
-                    presence.ControllingClient.Close();
+                    presence.Scene.IncomingCloseAgent(presence.UUID);
                 }
             }
 

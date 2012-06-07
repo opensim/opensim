@@ -97,6 +97,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(sp.AbsolutePosition, Is.EqualTo(teleportPosition));
 
+            Assert.That(scene.GetRootAgentCount(), Is.EqualTo(1));
+            Assert.That(scene.GetChildAgentCount(), Is.EqualTo(0));
+
             // Lookat is sent to the client only - sp.Lookat does not yield the same thing (calculation from camera
             // position instead).
 //            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
@@ -157,6 +160,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(sceneBSp, Is.Not.Null);
             Assert.That(sceneBSp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneB.RegionInfo.RegionName));
             Assert.That(sceneBSp.AbsolutePosition, Is.EqualTo(teleportPosition));
+
+            Assert.That(sceneA.GetRootAgentCount(), Is.EqualTo(0));
+            Assert.That(sceneA.GetChildAgentCount(), Is.EqualTo(0));
+            Assert.That(sceneB.GetRootAgentCount(), Is.EqualTo(1));
+            Assert.That(sceneB.GetChildAgentCount(), Is.EqualTo(0));
 
             // TODO: Add assertions to check correct circuit details in both scenes.
 
@@ -235,6 +243,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(sceneASp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneA.RegionInfo.RegionName));
             Assert.That(sceneASp.AbsolutePosition, Is.EqualTo(preTeleportPosition));
 
+            Assert.That(sceneA.GetRootAgentCount(), Is.EqualTo(1));
+            Assert.That(sceneA.GetChildAgentCount(), Is.EqualTo(0));
+            Assert.That(sceneB.GetRootAgentCount(), Is.EqualTo(0));
+            Assert.That(sceneB.GetChildAgentCount(), Is.EqualTo(0));
+
             // TODO: Add assertions to check correct circuit details in both scenes.
 
             // Lookat is sent to the client only - sp.Lookat does not yield the same thing (calculation from camera
@@ -305,6 +318,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(sceneASp, Is.Not.Null);
             Assert.That(sceneASp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneA.RegionInfo.RegionName));
             Assert.That(sceneASp.AbsolutePosition, Is.EqualTo(preTeleportPosition));
+
+            Assert.That(sceneA.GetRootAgentCount(), Is.EqualTo(1));
+            Assert.That(sceneA.GetChildAgentCount(), Is.EqualTo(0));
+            Assert.That(sceneB.GetRootAgentCount(), Is.EqualTo(0));
+            Assert.That(sceneB.GetChildAgentCount(), Is.EqualTo(0));
 
             // TODO: Add assertions to check correct circuit details in both scenes.
 
@@ -381,6 +399,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(afterSceneBSp.IsChildAgent, Is.False);
             Assert.That(afterSceneBSp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneB.RegionInfo.RegionName));
             Assert.That(afterSceneBSp.AbsolutePosition, Is.EqualTo(teleportPosition));
+
+            Assert.That(sceneA.GetRootAgentCount(), Is.EqualTo(0));
+            Assert.That(sceneA.GetChildAgentCount(), Is.EqualTo(1));
+            Assert.That(sceneB.GetRootAgentCount(), Is.EqualTo(1));
+            Assert.That(sceneB.GetChildAgentCount(), Is.EqualTo(0));
 
             // TODO: Add assertions to check correct circuit details in both scenes.
 
