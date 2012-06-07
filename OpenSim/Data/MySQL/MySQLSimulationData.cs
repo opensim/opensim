@@ -119,8 +119,10 @@ namespace OpenSim.Data.MySQL
 
             // Eligibility check
             //
-            if ((flags & (uint)PrimFlags.Temporary) != 0)
-                return;
+            // PrimFlags.Temporary is not used in OpenSim code and cannot
+            // be guaranteed to always be clear. Don't check it.
+//            if ((flags & (uint)PrimFlags.Temporary) != 0)
+//                return;
             if ((flags & (uint)PrimFlags.TemporaryOnRez) != 0)
                 return;
 
@@ -1923,7 +1925,7 @@ namespace OpenSim.Data.MySQL
 
                     using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        cmd.CommandText = "select UUID prom prims where RegionUUID = ?RegionUUID";
+                        cmd.CommandText = "select UUID from prims where RegionUUID = ?RegionUUID";
                         cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
 
                         using (IDataReader reader = ExecuteReader(cmd))
