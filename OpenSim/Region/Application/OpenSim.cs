@@ -486,10 +486,10 @@ namespace OpenSim
                     else
                         presence.ControllingClient.Kick("\nThe OpenSim manager kicked you out.\n");
 
-                    // ...and close on our side
-                    presence.Scene.IncomingCloseAgent(presence.UUID);
+                    presence.ControllingClient.Close();
                 }
             }
+
             MainConsole.Instance.Output("");
         }
 
