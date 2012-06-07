@@ -216,7 +216,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             else
             {
-                IAgentAssetTransactions agentTransactions = m_Scene.RequestModuleInterface<IAgentAssetTransactions>();
+                IAgentAssetTransactions agentTransactions = m_Scene.AgentTransactionsModule;
                 if (agentTransactions != null)
                 {
                     agentTransactions.HandleItemCreationFromTransaction(
