@@ -50,6 +50,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         private bool[,] m_landBitmap = new bool[landArrayMax,landArrayMax];
 
         private int m_lastSeqId = 0;
+        private int m_expiryCounter = 0;
 
         protected LandData m_landData = new LandData();        
         protected Scene m_scene;
@@ -135,6 +136,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
                 LandData.GroupID = UUID.Zero;
             LandData.IsGroupOwned = is_group_owned;
+            
+            m_scene.EventManager.OnFrame += OnFrame;
         }
 
         #endregion
@@ -1199,6 +1202,17 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #endregion
 
+        private void OnFrame()
+        {
+            m_expiryCounter++;
+
+            if (m_expiryCounter >= 50)
+            {
+                ExpireAccessList();
+                m_expiryCounter = 0;
+            }
+        }
+
         private void ExpireAccessList()
         {
             List<LandAccessEntry> delete = new List<LandAccessEntry>();
@@ -1209,7 +1223,22 @@ namespace OpenSim.Region.CoreModules.World.Land
                     delete.Add(entry);
             }
             foreach (LandAccessEntry entry in delete)
+            {
                 LandData.ParcelAccessList.Remove(entry);
+                ScenePresence presence;
+                
+                if (m_scene.TryGetScenePresence(entry.AgentID, out presence) && (!presence.IsChildAgent))
+                {
+                    ILandObject land = m_scene.LandChannel.GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
+                    if (land.LandData.LocalID == LandData.LocalID)
+                    {
+                        Vector3 pos = m_scene.GetNearestAllowedPosition(presence, land);
+                        presence.TeleportWithMomentum(pos);
+                        presence.ControllingClient.SendAlertMessage("You have been ejected from this land");
+                    }
+                }
+                m_log.DebugFormat("[LAND]: Removing entry {0} because it has expired", entry.AgentID);
+            }
 
             if (delete.Count > 0)
                 m_scene.EventManager.TriggerLandObjectUpdated((uint)LandData.LocalID, this);

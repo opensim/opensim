@@ -4644,6 +4644,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 m_host.CollisionSoundVolume = (float)impact_volume;
                 m_host.CollisionSound = m_host.invalidCollisionSoundUUID;
+                m_host.CollisionSoundType = 0;
                 return;
             }
             // TODO: Parameter check logic required.
@@ -4663,6 +4664,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             m_host.CollisionSoundVolume = (float)impact_volume;
             m_host.CollisionSound = soundId;
+            m_host.CollisionSoundType = 1;
         }
 
         public LSL_String llGetAnimation(string id)

@@ -61,6 +61,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
         public event ChangeDelegate OnEstateInfoChange;
         public event MessageDelegate OnEstateMessage;
 
+        private int m_delayCount = 0;
+
         #region Packet Data Responders
 
         private void clientSendDetailedEstateData(IClientAPI remote_client, UUID invoice)
@@ -270,7 +272,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
             {
                 if (timeInSeconds == -1)
                 {
-                    restartModule.AbortRestart("Restart aborted by region manager");
+                    m_delayCount++;
+                    if (m_delayCount > 3)
+                        return;
+
+                    restartModule.DelayRestart(3600, "Restart delayed by region manager");
                     return;
                 }
 
