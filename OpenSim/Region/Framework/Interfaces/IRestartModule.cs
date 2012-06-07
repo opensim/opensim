@@ -35,5 +35,6 @@ namespace OpenSim.Region.Framework.Interfaces
         TimeSpan TimeUntilRestart { get; }
         void ScheduleRestart(UUID initiator, string message, int[] alerts, bool notice);
         void AbortRestart(string message);
+        void DelayRestart(int seconds, string message);
     }
 }
