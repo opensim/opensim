@@ -486,7 +486,7 @@ namespace OpenSim
                     else
                         presence.ControllingClient.Kick("\nThe OpenSim manager kicked you out.\n");
 
-                    presence.ControllingClient.Close();
+                    presence.Scene.IncomingCloseAgent(presence.UUID);
                 }
             }
 
