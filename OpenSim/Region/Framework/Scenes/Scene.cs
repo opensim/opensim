@@ -3274,26 +3274,29 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_eventManager.TriggerOnRemovePresence(agentID);
     
-                    if (AttachmentsModule != null && !isChildAgent && avatar.PresenceType != PresenceType.Npc)
+                    if (!isChildAgent)
                     {
-                        IUserManagement uMan = RequestModuleInterface<IUserManagement>(); 
-                        // Don't save attachments for HG visitors, it
-                        // messes up their inventory. When a HG visitor logs
-                        // out on a foreign grid, their attachments will be
-                        // reloaded in the state they were in when they left
-                        // the home grid. This is best anyway as the visited
-                        // grid may use an incompatible script engine.
-                        if (uMan == null || uMan.IsLocalGridUser(avatar.UUID))
-                            AttachmentsModule.SaveChangedAttachments(avatar, false);
-                    }
-    
-                    ForEachClient(
-                        delegate(IClientAPI client)
+                        if (AttachmentsModule != null && avatar.PresenceType != PresenceType.Npc)
                         {
-                            //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
-                            try { client.SendKillObject(avatar.RegionHandle, new List<uint> { avatar.LocalId }); }
-                            catch (NullReferenceException) { }
-                        });
+                            IUserManagement uMan = RequestModuleInterface<IUserManagement>();
+                            // Don't save attachments for HG visitors, it
+                            // messes up their inventory. When a HG visitor logs
+                            // out on a foreign grid, their attachments will be
+                            // reloaded in the state they were in when they left
+                            // the home grid. This is best anyway as the visited
+                            // grid may use an incompatible script engine.
+                            if (uMan == null || uMan.IsLocalGridUser(avatar.UUID))
+                                AttachmentsModule.SaveChangedAttachments(avatar, false);
+                        }
+
+                        ForEachClient(
+                            delegate(IClientAPI client)
+                            {
+                                //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
+                                try { client.SendKillObject(avatar.RegionHandle, new List<uint> { avatar.LocalId }); }
+                                catch (NullReferenceException) { }
+                            });
+                    }
     
                     IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
                     if (agentTransactions != null)
