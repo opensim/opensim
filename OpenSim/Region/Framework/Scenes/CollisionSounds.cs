@@ -266,9 +266,11 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                     {
                         volume = Math.Abs(colInfo.relativeVel);
-                        if (volume < 0.2f)
+                        // Most noral collisions (running into walls, stairs)
+                        // should never be heard.
+                        if (volume < 2.0f)
                             continue;
-                        m_log.DebugFormat("Collision speed was {0}", volume);
+//                        m_log.DebugFormat("Collision speed was {0}", volume);
 
                         // Cap to 0.2 times volume because climbing stairs should not be noisy
                         // Also changed scaling
