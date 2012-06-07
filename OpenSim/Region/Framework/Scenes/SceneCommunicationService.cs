@@ -84,16 +84,16 @@ namespace OpenSim.Region.Framework.Scenes
             if (neighbourService != null)
                 neighbour = neighbourService.HelloNeighbour(regionhandle, region);
             else
-                m_log.DebugFormat("[SCS]: No neighbour service provided for informing neigbhours of this region");
+                m_log.DebugFormat("[SCENE COMMUNICATION SERVICE]: No neighbour service provided for informing neigbhours of this region");
 
             if (neighbour != null)
             {
-              //  m_log.DebugFormat("[INTERGRID]: Successfully informed neighbour {0}-{1} that I'm here", x / Constants.RegionSize, y / Constants.RegionSize);
+                m_log.DebugFormat("[SCENE COMMUNICATION SERVICE]: Successfully informed neighbour {0}-{1} that I'm here", x / Constants.RegionSize, y / Constants.RegionSize);
                 m_scene.EventManager.TriggerOnRegionUp(neighbour);
             }
             else
             {
-                m_log.InfoFormat("[INTERGRID]: Failed to inform neighbour {0}-{1} that I'm here.", x / Constants.RegionSize, y / Constants.RegionSize);
+                m_log.InfoFormat("[SCENE COMMUNICATION SERVICE]: Failed to inform neighbour {0}-{1} that I'm here.", x / Constants.RegionSize, y / Constants.RegionSize);
             }
         }
 
@@ -102,7 +102,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
 
             List<GridRegion> neighbours = m_scene.GridService.GetNeighbours(m_scene.RegionInfo.ScopeID, m_scene.RegionInfo.RegionID);
-            //m_log.DebugFormat("[INTERGRID]: Informing {0} neighbours that this region is up", neighbours.Count);
+            m_log.DebugFormat("[SCENE COMMUNICATION SERVICE]: Informing {0} neighbours that this region is up", neighbours.Count);
             foreach (GridRegion n in neighbours)
             {
                 InformNeighbourThatRegionUpDelegate d = InformNeighboursThatRegionIsUpAsync;

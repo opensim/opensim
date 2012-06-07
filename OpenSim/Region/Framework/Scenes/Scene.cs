@@ -973,7 +973,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     m_log.InfoFormat(
-                        "[INTERGRID]: Got notice about far away Region: {0} at ({1}, {2})",
+                        "[SCENE]: Got notice about far away Region: {0} at ({1}, {2})",
                         otherRegion.RegionName, otherRegion.RegionLocX, otherRegion.RegionLocY);
                 }
             }
@@ -3388,6 +3388,22 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 isChildAgent = avatar.IsChildAgent;
 
+                // Don't do this to root agents, it's not nice for the viewer
+                if (closeChildAgents && isChildAgent)
+                {
+                    // Tell a single agent to disconnect from the region.
+                    IEventQueue eq = RequestModuleInterface<IEventQueue>();
+                    if (eq != null)
+                    {
+                        eq.DisableSimulator(RegionInfo.RegionHandle, avatar.UUID);
+                    }
+                    else
+                    {
+                        avatar.ControllingClient.SendShutdownConnectionNotice();
+                    }
+                }
+
+                // Only applies to root agents.
                 if (avatar.ParentID != 0)
                 {
                     avatar.StandUp();
@@ -4227,23 +4243,7 @@ namespace OpenSim.Region.Framework.Scenes
                    m_sceneGraph.removeUserCount(true);
                 }
 
-                // Don't do this to root agents on logout, it's not nice for the viewer
-                if (presence.IsChildAgent)
-                {
-                    // Tell a single agent to disconnect from the region.
-                    IEventQueue eq = RequestModuleInterface<IEventQueue>();
-                    if (eq != null)
-                    {
-                        eq.DisableSimulator(RegionInfo.RegionHandle, agentID);
-                    }
-                    else
-                        presence.ControllingClient.SendShutdownConnectionNotice();
-                    presence.ControllingClient.Close(false);
-                }
-                else if (!childOnly)
-                {
-                    presence.ControllingClient.Close(true);
-                }
+                presence.ControllingClient.Close();
                 return true;
             }
 

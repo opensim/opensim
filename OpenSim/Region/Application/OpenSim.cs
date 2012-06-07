@@ -486,10 +486,10 @@ namespace OpenSim
                     else
                         presence.ControllingClient.Kick("\nYou have been logged out by an administrator.\n");
 
-                    // ...and close on our side
-                    presence.Scene.IncomingCloseAgent(presence.UUID);
+                    presence.ControllingClient.Close();
                 }
             }
+
             MainConsole.Instance.Output("");
         }
 
