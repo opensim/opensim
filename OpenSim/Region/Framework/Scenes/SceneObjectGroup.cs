@@ -3926,10 +3926,11 @@ namespace OpenSim.Region.Framework.Scenes
                             scriptPosTarget target = m_targets[idx];
                             if (Util.GetDistanceTo(target.targetPos, m_rootPart.GroupPosition) <= target.tolerance)
                             {
+                                at_target = true;
+
                                 // trigger at_target
                                 if (m_scriptListens_atTarget)
                                 {
-                                    at_target = true;
                                     scriptPosTarget att = new scriptPosTarget();
                                     att.targetPos = target.targetPos;
                                     att.tolerance = target.tolerance;
