@@ -1911,6 +1911,37 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        public UUID[] GetObjectIDs(UUID regionID)
+        {
+            List<UUID> uuids = new List<UUID>();
+
+            lock (m_dbLock)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "select UUID prom prims where RegionUUID = ?RegionUUID";
+                        cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+
+                        using (IDataReader reader = ExecuteReader(cmd))
+                        {
+                            while (reader.Read())
+                            {
+                                UUID id = new UUID(reader["UUID"].ToString());
+
+                                uuids.Add(id);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return uuids.ToArray();
+        }
+
         private void LoadSpawnPoints(RegionSettings rs)
         {
             rs.ClearSpawnPoints();
