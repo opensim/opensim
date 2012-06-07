@@ -188,9 +188,6 @@ namespace OpenSim.Region.Framework.Scenes
         
         public static void PartCollisionSound(SceneObjectPart part, List<CollisionForSoundInfo> collidersinfolist)
         {
-            // disable for now
-            return;
-
             if (collidersinfolist.Count == 0 || part == null)
                 return;
 
@@ -238,17 +235,19 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (!HaveSound)
                             {
-                                volume = Math.Abs(colInfo.relativeVel);
-                                if (volume < 0.2f)
-                                    continue;
-
-                                volume *= volume * .0625f; // 4m/s == full volume
-                                if (volume > 1.0f)
-                                    volume = 1.0f;
-
-                                soundID = m_TerrainPart[thisMaterial];
+// TODO: Import real collision sounds and uncomment this
+//                                volume = Math.Abs(colInfo.relativeVel);
+//                                if (volume < 0.2f)
+//                                    continue;
+//
+//                                volume *= volume * .0625f; // 4m/s == full volume
+//                                if (volume > 1.0f)
+//                                    volume = 1.0f;
+//
+//                                soundID = m_TerrainPart[thisMaterial];
                             }
-                            part.SendCollisionSound(soundID, volume, colInfo.position);
+                            else // Remove this else when uncommenting the above
+                                part.SendCollisionSound(soundID, volume, colInfo.position);
                             doneownsound = true;
                         }
                         continue;
@@ -269,40 +268,41 @@ namespace OpenSim.Region.Framework.Scenes
                             if (volume == 0.0f)
                                 continue;
                         }
+// TODO: Import real collision sounds and uncomment this
+//                        else
+//                        {
+//                            volume = Math.Abs(colInfo.relativeVel);
+//                            if (volume < 0.2f)
+//                                continue;
+//
+//                            volume *= volume * .0625f; // 4m/s == full volume
+//                            if (volume > 1.0f)
+//                                volume = 1.0f;
+//
+//                            int otherMaterial = (int)otherPart.Material;
+//                            if (otherMaterial >= MaxMaterials)
+//                                otherMaterial = 3;
+//
+//                            soundID = m_PartPart[thisMatScaled + otherMaterial];
+//                        }
+                    }
+
+                    if (soundID != UUID.Zero) // Remove when sounds are there
+                    { // Remove when sounds are there
+                        if (doneownsound)
+                            otherPart.SendCollisionSound(soundID, volume, colInfo.position);
                         else
                         {
-                            volume = Math.Abs(colInfo.relativeVel);
-                            if (volume < 0.2f)
-                                continue;
-
-                            volume *= volume * .0625f; // 4m/s == full volume
-                            if (volume > 1.0f)
-                                volume = 1.0f;
-
-                            int otherMaterial = (int)otherPart.Material;
-                            if (otherMaterial >= MaxMaterials)
-                                otherMaterial = 3;
-
-                            soundID = m_PartPart[thisMatScaled + otherMaterial];
+                            part.SendCollisionSound(soundID, volume, colInfo.position);
+                            doneownsound = true;
                         }
-                    }
-
-                    if (doneownsound)
-                        otherPart.SendCollisionSound(soundID, volume, colInfo.position);
-                    else
-                    {
-                        part.SendCollisionSound(soundID, volume, colInfo.position);
-                        doneownsound = true;
-                    }
+                    } // Remove when sounds are there
                 }
             }
         }
 
         public static void AvatarCollisionSound(ScenePresence av, List<CollisionForSoundInfo> collidersinfolist)
          {
-             // disable for now
-             return;
-
             if (collidersinfolist.Count == 0 || av == null)
                 return;
 
@@ -341,22 +341,23 @@ namespace OpenSim.Region.Framework.Scenes
                         continue;
                     if (otherPart.CollisionSoundType > 0 && otherPart.CollisionSoundVolume > 0f)
                         otherPart.SendCollisionSound(otherPart.CollisionSound, otherPart.CollisionSoundVolume, colInfo.position);
-                    else
-                    {
-                        volume = Math.Abs(colInfo.relativeVel);
-                        if (volume < 0.2f)
-                            continue;
-
-                        volume *= volume * .0625f; // 4m/s == full volume
-                        if (volume > 1.0f)
-                            volume = 1.0f;
-                        otherMaterial = (int)otherPart.Material;
-                        if (otherMaterial >= MaxMaterials)
-                            otherMaterial = 3;
-
-                        soundID = m_PartPart[thisMatScaled + otherMaterial];
-                        otherPart.SendCollisionSound(soundID, volume, colInfo.position);
-                    }
+//TODO: uncomment below when sounds are uploaded
+//                    else
+//                    {
+//                        volume = Math.Abs(colInfo.relativeVel);
+//                        if (volume < 0.2f)
+//                            continue;
+//
+//                        volume *= volume * .0625f; // 4m/s == full volume
+//                        if (volume > 1.0f)
+//                            volume = 1.0f;
+//                        otherMaterial = (int)otherPart.Material;
+//                        if (otherMaterial >= MaxMaterials)
+//                            otherMaterial = 3;
+//
+//                        soundID = m_PartPart[thisMatScaled + otherMaterial];
+//                        otherPart.SendCollisionSound(soundID, volume, colInfo.position);
+//                    }
                     continue;
                 }
 /*
