@@ -438,12 +438,16 @@ namespace OpenSim
             }
         }
 
-        private void WatchdogTimeoutHandler(System.Threading.Thread thread, int lastTick)
+        private void WatchdogTimeoutHandler(Watchdog.ThreadWatchdogInfo twi)
         {
             int now = Environment.TickCount & Int32.MaxValue;
 
-            m_log.ErrorFormat("[WATCHDOG]: Timeout detected for thread \"{0}\". ThreadState={1}. Last tick was {2}ms ago",
-                thread.Name, thread.ThreadState, now - lastTick);
+            m_log.ErrorFormat(
+                "[WATCHDOG]: Timeout detected for thread \"{0}\". ThreadState={1}. Last tick was {2}ms ago.  {3}",
+                twi.Thread.Name,
+                twi.Thread.ThreadState,
+                now - twi.LastTick,
+                twi.AlarmMethod != null ? string.Format("Data: {0}", twi.AlarmMethod()) : "");
         }
 
         #region Console Commands

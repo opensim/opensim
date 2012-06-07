@@ -435,10 +435,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
-                    if (agentTransactions != null)
+                    if (AgentTransactionsModule != null)
                     {
-                        agentTransactions.HandleItemUpdateFromTransaction(remoteClient, transactionID, item);
+                        AgentTransactionsModule.HandleItemUpdateFromTransaction(remoteClient, transactionID, item);
                     }
                 }
             }
@@ -1566,21 +1565,17 @@ namespace OpenSim.Region.Framework.Scenes
                     // Only look for an uploaded updated asset if we are passed a transaction ID.  This is only the
                     // case for updates uploded through UDP.  Updates uploaded via a capability (e.g. a script update)
                     // will not pass in a transaction ID in the update message.
-                    if (transactionID != UUID.Zero)
+                    if (transactionID != UUID.Zero && AgentTransactionsModule != null)
                     {
-                        IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
-                        if (agentTransactions != null)
-                        {
-                            agentTransactions.HandleTaskItemUpdateFromTransaction(
-                                remoteClient, part, transactionID, currentItem);
-    
-//                            if ((InventoryType)itemInfo.InvType == InventoryType.Notecard)
-//                                remoteClient.SendAgentAlertMessage("Notecard saved", false);
-//                            else if ((InventoryType)itemInfo.InvType == InventoryType.LSL)
-//                                remoteClient.SendAgentAlertMessage("Script saved", false);
-//                            else
-//                                remoteClient.SendAgentAlertMessage("Item saved", false);
-                        }
+                        AgentTransactionsModule.HandleTaskItemUpdateFromTransaction(
+                            remoteClient, part, transactionID, currentItem);
+
+//                        if ((InventoryType)itemInfo.InvType == InventoryType.Notecard)
+//                            remoteClient.SendAgentAlertMessage("Notecard saved", false);
+//                        else if ((InventoryType)itemInfo.InvType == InventoryType.LSL)
+//                            remoteClient.SendAgentAlertMessage("Script saved", false);
+//                        else
+//                            remoteClient.SendAgentAlertMessage("Item saved", false);
                     }
 
                     // Base ALWAYS has move

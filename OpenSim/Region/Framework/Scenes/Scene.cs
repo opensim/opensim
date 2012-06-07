@@ -521,6 +521,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public IAttachmentsModule AttachmentsModule { get; set; }
         public IEntityTransferModule EntityTransferModule { get; private set; }
+        public IAgentAssetTransactions AgentTransactionsModule { get; private set; }
 
         public IAvatarFactoryModule AvatarFactory
         {
@@ -1289,6 +1290,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_capsModule = RequestModuleInterface<ICapabilitiesModule>();
             EntityTransferModule = RequestModuleInterface<IEntityTransferModule>();
             m_groupsModule = RequestModuleInterface<IGroupsModule>();
+            AgentTransactionsModule = RequestModuleInterface<IAgentAssetTransactions>();
         }
 
         #endregion
@@ -3428,32 +3430,33 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_eventManager.TriggerOnRemovePresence(agentID);
     
-                    if (AttachmentsModule != null && !isChildAgent && avatar.PresenceType != PresenceType.Npc)
+                    if (!isChildAgent)
                     {
-                        IUserManagement uMan = RequestModuleInterface<IUserManagement>(); 
-                        // Don't save attachments for HG visitors, it
-                        // messes up their inventory. When a HG visitor logs
-                        // out on a foreign grid, their attachments will be
-                        // reloaded in the state they were in when they left
-                        // the home grid. This is best anyway as the visited
-                        // grid may use an incompatible script engine.
-                        if (uMan == null || uMan.IsLocalGridUser(avatar.UUID))
-                            AttachmentsModule.SaveChangedAttachments(avatar, false);
-                    }
-    
-                    ForEachClient(
-                        delegate(IClientAPI client)
+                        if (AttachmentsModule != null && avatar.PresenceType != PresenceType.Npc)
                         {
-                            //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
-                            try { client.SendKillObject(avatar.RegionHandle, new List<uint> { avatar.LocalId }); }
-                            catch (NullReferenceException) { }
-                        });
-    
-                    IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
-                    if (agentTransactions != null)
-                    {
-                        agentTransactions.RemoveAgentAssetTransactions(agentID);
+                            IUserManagement uMan = RequestModuleInterface<IUserManagement>();
+                            // Don't save attachments for HG visitors, it
+                            // messes up their inventory. When a HG visitor logs
+                            // out on a foreign grid, their attachments will be
+                            // reloaded in the state they were in when they left
+                            // the home grid. This is best anyway as the visited
+                            // grid may use an incompatible script engine.
+                            if (uMan == null || uMan.IsLocalGridUser(avatar.UUID))
+                                AttachmentsModule.SaveChangedAttachments(avatar, false);
+                        }
+
+                        ForEachClient(
+                            delegate(IClientAPI client)
+                            {
+                                //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
+                                try { client.SendKillObject(avatar.RegionHandle, new List<uint> { avatar.LocalId }); }
+                                catch (NullReferenceException) { }
+                            });
                     }
+
+                    // It's possible for child agents to have transactions if changes are being made cross-border.
+                    if (AgentTransactionsModule != null)
+                        AgentTransactionsModule.RemoveAgentAssetTransactions(agentID);
                 }
                 finally
                 {

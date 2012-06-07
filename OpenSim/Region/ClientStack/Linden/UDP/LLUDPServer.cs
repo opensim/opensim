@@ -163,6 +163,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private int m_malformedCount = 0; // Guard against a spamming attack
 
+        /// <summary>
+        /// Record current outgoing client for monitoring purposes.
+        /// </summary>
+        private IClientAPI m_currentOutgoingClient;
+
+        /// <summary>
+        /// Recording current incoming client for monitoring purposes.
+        /// </summary>
+        private IClientAPI m_currentIncomingClient;
+
         public LLUDPServer(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager circuitManager)
             : base(listenIP, (int)port)
         {
@@ -244,17 +254,54 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_scene == null)
                 throw new InvalidOperationException("[LLUDPSERVER]: Cannot LLUDPServer.Start() without an IScene reference");
 
-            m_log.Info("[LLUDPSERVER]: Starting the LLUDP server in " + (m_asyncPacketHandling ? "asynchronous" : "synchronous") + " mode");
+            m_log.InfoFormat(
+                "[LLUDPSERVER]: Starting the LLUDP server in {0} mode",
+                m_asyncPacketHandling ? "asynchronous" : "synchronous");
 
             base.Start(m_recvBufferSize, m_asyncPacketHandling);
 
             // Start the packet processing threads
             Watchdog.StartThread(
-                IncomingPacketHandler, "Incoming Packets (" + m_scene.RegionInfo.RegionName + ")", ThreadPriority.Normal, false, true);
+                IncomingPacketHandler,
+                string.Format("Incoming Packets ({0})", m_scene.RegionInfo.RegionName),
+                ThreadPriority.Normal,
+                false,
+                true,
+                GetWatchdogIncomingAlarmData,
+                Watchdog.WATCHDOG_TIMEOUT_MS);
+
             Watchdog.StartThread(
-                OutgoingPacketHandler, "Outgoing Packets (" + m_scene.RegionInfo.RegionName + ")", ThreadPriority.Normal, false, true);
+                OutgoingPacketHandler,
+                string.Format("Outgoing Packets ({0})", m_scene.RegionInfo.RegionName),
+                ThreadPriority.Normal,
+                false,
+                true,
+                GetWatchdogOutgoingAlarmData,
+                Watchdog.WATCHDOG_TIMEOUT_MS);
 
             m_elapsedMSSinceLastStatReport = Environment.TickCount;
+        }
+
+        /// <summary>
+        /// If the outgoing UDP thread times out, then return client that was being processed to help with debugging.
+        /// </summary>
+        /// <returns></returns>
+        private string GetWatchdogIncomingAlarmData()
+        {
+            return string.Format(
+                "Client is {0}",
+                m_currentIncomingClient != null ? m_currentIncomingClient.Name : "none");
+        }
+
+        /// <summary>
+        /// If the outgoing UDP thread times out, then return client that was being processed to help with debugging.
+        /// </summary>
+        /// <returns></returns>
+        private string GetWatchdogOutgoingAlarmData()
+        {
+            return string.Format(
+                "Client is {0}",
+                m_currentOutgoingClient != null ? m_currentOutgoingClient.Name : "none");
         }
 
         public new void Stop()
@@ -1067,6 +1114,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 client.IsLoggingOut = true;
                 client.Close(false);
             }
+            else
+            {
+                m_log.WarnFormat(
+                    "[LLUDPSERVER]: Tried to remove client with id {0} but not such client in {1}",
+                    udpClient.AgentID, m_scene.RegionInfo.RegionName);
+            }
         }
 
         private void IncomingPacketHandler()
@@ -1175,6 +1228,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // client. m_packetSent will be set to true if a packet is sent
                     m_scene.ForEachClient(clientPacketHandler);
 
+                    m_currentOutgoingClient = null;
+
                     // If nothing was sent, sleep for the minimum amount of time before a
                     // token bucket could get more tokens
                     if (!m_packetSent)
@@ -1193,6 +1248,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void ClientOutgoingPacketHandler(IClientAPI client)
         {
+            m_currentOutgoingClient = client;
+
             try
             {
                 if (client is LLClientView)
@@ -1218,8 +1275,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (Exception ex)
             {
-                m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler iteration for " + client.Name +
-                    " threw an exception: " + ex.Message, ex);
+                m_log.Error(
+                    string.Format("[LLUDPSERVER]: OutgoingPacketHandler iteration for {0} threw ", client.Name), ex);
             }
         }
 
@@ -1245,6 +1302,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             nticks++;
             watch1.Start();
+            m_currentOutgoingClient = client;
+
             try
             {
                 if (client is LLClientView)
@@ -1346,6 +1405,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Make sure this client is still alive
             if (m_scene.TryGetClient(udpClient.AgentID, out client))
             {
+                m_currentIncomingClient = client;
+
                 try
                 {
                     // Process this packet
@@ -1362,6 +1423,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // Don't let a failure in an individual client thread crash the whole sim.
                     m_log.ErrorFormat("[LLUDPSERVER]: Client packet handler for {0} for packet {1} threw an exception", udpClient.AgentID, packet.Type);
                     m_log.Error(e.Message, e);
+                }
+                finally
+                {
+                    m_currentIncomingClient = null;
                 }
             }
             else

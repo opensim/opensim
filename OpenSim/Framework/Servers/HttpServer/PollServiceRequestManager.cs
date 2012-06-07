@@ -66,6 +66,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         ThreadPriority.Normal,
                         false,
                         true,
+                        null,
                         int.MaxValue);
             }
 
@@ -75,6 +76,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 ThreadPriority.Normal,
                 false,
                 true,
+                null,
                 1000 * 60 * 10);
         }
 
