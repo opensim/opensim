@@ -1114,6 +1114,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 client.IsLoggingOut = true;
                 client.Close();
             }
+            else
+            {
+                m_log.WarnFormat(
+                    "[LLUDPSERVER]: Tried to remove client with id {0} but not such client in {1}",
+                    udpClient.AgentID, m_scene.RegionInfo.RegionName);
+            }
         }
 
         private void IncomingPacketHandler()
