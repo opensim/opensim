@@ -7887,6 +7887,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
+                    case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                        {
+                            if (remain < 1)
+                                return;
+                            LSL_Vector v;
+                            v = rules.GetVector3Item(idx++);
+
+                            SceneObjectPart part = World.GetSceneObjectPart(av.ParentID);
+                            if (part == null)
+                                break;
+
+                            LSL_Vector sitOffset = (llRot2Up(new LSL_Rotation(av.Rotation.X, av.Rotation.Y, av.Rotation.Z, av.Rotation.W)) * av.Appearance.AvatarHeight * 0.02638f);
+
+                            v += 2 * sitOffset;
+
+                            av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
+                            av.SendAvatarDataToAllAgents();
+
+                        }
+                        break;
+
                     case (int)ScriptBaseClass.PRIM_ROTATION:
                         {
                             if (remain < 1)
@@ -7907,6 +7928,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             av.SendAvatarDataToAllAgents();
                         }
                         break;
+
+                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                        {
+                            if (remain < 1)
+                                return;
+
+                            LSL_Rotation r;
+                            r = rules.GetQuaternionItem(idx++);
+                            av.Rotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
+                            av.SendAvatarDataToAllAgents();
+                        }
+                        break;
+
                 }
             }
         }
@@ -7966,6 +8000,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             else
                             {
                                 // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
+                                // sounds like sl bug that we need to replicate
                                 SceneObjectPart rootPart = part.ParentGroup.RootPart;
                                 SetRot(part, rootPart.RotationOffset * Rot2Quaternion(q));
                             }
@@ -8335,6 +8370,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             finally
             {
+/*
                 if (positionChanged)
                 {
                     if (part.ParentGroup.RootPart == part)
@@ -8352,23 +8388,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         parent.ScheduleGroupForTerseUpdate();
                     }
                 }
+ */
             }
 
             if (positionChanged)
             {
-                if (part.ParentGroup.RootPart == part)
+                SceneObjectGroup parentgrp = part.ParentGroup;
+                if (parentgrp == null)
+                    return;
+
+                if (parentgrp.RootPart == part)
                 {
-                    SceneObjectGroup parent = part.ParentGroup;
+                    
                     Util.FireAndForget(delegate(object x) {
-                        parent.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
+                        parentgrp.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
                     });
                 }
                 else
                 {
                     part.OffsetPosition = new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z);
-                    SceneObjectGroup parent = part.ParentGroup;
-                    parent.HasGroupChanged = true;
-                    parent.ScheduleGroupForTerseUpdate();
+                    parentgrp.HasGroupChanged = true;
+                    parentgrp.ScheduleGroupForTerseUpdate();
                 }    
             }
         }
