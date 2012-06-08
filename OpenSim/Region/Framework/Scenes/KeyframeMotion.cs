@@ -64,6 +64,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         [NonSerialized()]
         protected Timer m_timer = new Timer();
+        [NonSerialized()]
+        protected bool m_frameHooked;
+        [NonSerialized()]
+        protected int frameCount = 0;
 
         [NonSerialized()]
         private SceneObjectGroup m_group;
@@ -162,6 +166,22 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_keyframes.Length > 0)
                 m_timer.Start();
             m_running = true;
+            if (!m_frameHooked)
+            {
+                m_group.Scene.EventManager.OnFrame += OnFrame;
+                m_frameHooked = true;
+            }
+        }
+
+        private void OnFrame()
+        {
+            frameCount++;
+            if (frameCount >= 30)
+            {
+                frameCount = 0;
+                if (m_running)
+                    Start();
+            }
         }
 
         public void Stop()
