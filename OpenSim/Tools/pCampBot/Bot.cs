@@ -480,6 +480,9 @@ namespace pCampBot
 
         public void Objects_NewPrim(object sender, PrimEventArgs args)
         {
+//            if (Name.EndsWith("4"))
+//                throw new Exception("Aaargh");
+
             Primitive prim = args.Prim;
 
             if (prim != null)

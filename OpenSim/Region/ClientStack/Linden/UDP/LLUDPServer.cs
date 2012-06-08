@@ -539,8 +539,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SendPacket(udpClient, completePing, ThrottleOutPacketType.Unknown, false, null);
         }
 
-        public void HandleUnacked(LLUDPClient udpClient)
+        public void HandleUnacked(LLClientView client)
         {
+            LLUDPClient udpClient = client.UDPClient;
+
             if (!udpClient.IsConnected)
                 return;
 
@@ -553,12 +555,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (udpClient.IsPaused)
                 timeoutTicks = m_pausedAckTimeout;
 
-            if ((Environment.TickCount & Int32.MaxValue) - udpClient.TickLastPacketReceived > timeoutTicks)
+            if (!client.IsLoggingOut &&
+                (Environment.TickCount & Int32.MaxValue) - udpClient.TickLastPacketReceived > timeoutTicks)
             {
                 m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + udpClient.AgentID);
                 StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
-
                 RemoveClient(udpClient);
+
                 return;
             }
 
@@ -1113,8 +1116,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IClientAPI client;
             if (m_scene.TryGetClient(udpClient.AgentID, out client))
             {
+                // We must set IsLoggingOut synchronously so that we can stop the packet loop reinvoking this method.
                 client.IsLoggingOut = true;
-                client.Close();
+
+                // Fire this out on a different thread so that we don't hold up outgoing packet processing for
+                // everybody else if this is being called due to an ack timeout.
+                // This is the same as processing as the async process of a logout request.
+                Util.FireAndForget(o => client.Close());
             }
             else
             {
@@ -1254,12 +1262,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (client is LLClientView)
                 {
-                    LLUDPClient udpClient = ((LLClientView)client).UDPClient;
+                    LLClientView llClient = (LLClientView)client;
+                    LLUDPClient udpClient = llClient.UDPClient;
 
                     if (udpClient.IsConnected)
                     {
                         if (m_resendUnacked)
-                            HandleUnacked(udpClient);
+                            HandleUnacked(llClient);
 
                         if (m_sendAcks)
                             SendAcks(udpClient);
@@ -1308,7 +1317,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (client is LLClientView)
                 {
-                    LLUDPClient udpClient = ((LLClientView)client).UDPClient;
+                    LLClientView llClient = (LLClientView)client;
+                    LLUDPClient udpClient = llClient.UDPClient;
 
                     if (udpClient.IsConnected)
                     {
@@ -1317,7 +1327,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             nticksUnack++;
                             watch2.Start();
 
-                            HandleUnacked(udpClient);
+                            HandleUnacked(llClient);
 
                             watch2.Stop();
                             avgResendUnackedTicks = (nticksUnack - 1)/(float)nticksUnack * avgResendUnackedTicks + (watch2.ElapsedTicks / (float)nticksUnack);

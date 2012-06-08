@@ -197,7 +197,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public void TestLogoutClientDueToAck()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             IniConfigSource ics = new IniConfigSource();
             IConfig config = ics.AddConfig("ClientStack.LindenUDP");
@@ -210,7 +210,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             ScenePresence spAfterAckTimeout = m_scene.GetScenePresence(sp.UUID);
             Assert.That(spAfterAckTimeout, Is.Null);
 
-            TestHelpers.DisableLogging();
+//            TestHelpers.DisableLogging();
         }
 
 //        /// <summary>
