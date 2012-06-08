@@ -494,10 +494,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "[CLIENT]: Close has been called for {0} attached to scene {1}",
                 Name, m_scene.RegionInfo.RegionName);
 
-            // Send the STOP packet
-            DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
-            OutPacket(disable, ThrottleOutPacketType.Unknown);
-
             IsActive = false;
 
             // Shutdown the image manager
