@@ -7843,7 +7843,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void SetPrimParams(ScenePresence av, LSL_List rules)
         {
             //This is a special version of SetPrimParams to deal with avatars which are sat on the linkset.
-            //We only support PRIM_POSITION and PRIM_ROTATION
 
             int idx = 0;
 
@@ -7878,7 +7877,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             v /= localRot;
 
                             LSL_Vector sitOffset = (llRot2Up(new LSL_Rotation(av.Rotation.X, av.Rotation.Y, av.Rotation.Z, av.Rotation.W)) * av.Appearance.AvatarHeight * 0.02638f);
-                            
+
                             v = v + 2 * sitOffset;
 
                             av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
@@ -7941,6 +7940,89 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
+                        // parse rest doing nothing but number of parameters error check
+                    case (int)ScriptBaseClass.PRIM_SIZE:
+                    case (int)ScriptBaseClass.PRIM_MATERIAL:
+                    case (int)ScriptBaseClass.PRIM_PHANTOM:
+                    case (int)ScriptBaseClass.PRIM_PHYSICS:
+                    case (int)ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
+                    case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
+                    case (int)ScriptBaseClass.PRIM_NAME:
+                    case (int)ScriptBaseClass.PRIM_DESC:
+                        if (remain < 1)
+                            return;
+                        idx++;
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_GLOW:
+                    case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
+                    case (int)ScriptBaseClass.PRIM_TEXGEN:
+                        if (remain < 2)
+                            return;
+                        idx += 2;
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TYPE:
+                        if (remain < 3)
+                            return;
+                        code = (int)rules.GetLSLIntegerItem(idx++);
+                        remain = rules.Length - idx;
+                        switch (code)
+                        {
+                            case (int)ScriptBaseClass.PRIM_TYPE_BOX:
+                            case (int)ScriptBaseClass.PRIM_TYPE_CYLINDER:
+                            case (int)ScriptBaseClass.PRIM_TYPE_PRISM:
+                                if (remain < 6)
+                                    return;
+                                idx += 6;
+                                break;
+
+                            case (int)ScriptBaseClass.PRIM_TYPE_SPHERE:
+                                if (remain < 5)
+                                    return;
+                                idx += 5;
+                                break;
+
+                            case (int)ScriptBaseClass.PRIM_TYPE_TORUS:
+                            case (int)ScriptBaseClass.PRIM_TYPE_TUBE:
+                            case (int)ScriptBaseClass.PRIM_TYPE_RING:
+                                if (remain < 11)
+                                    return;
+                                idx += 11;
+                                break;
+
+                            case (int)ScriptBaseClass.PRIM_TYPE_SCULPT:
+                                if (remain < 2)
+                                    return;
+                                idx += 2;
+                                break;
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_COLOR:
+                    case (int)ScriptBaseClass.PRIM_TEXT:
+                    case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
+                    case (int)ScriptBaseClass.PRIM_OMEGA:
+                    case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                        if (remain < 3)
+                            return;
+                        idx += 3;
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEXTURE:
+                    case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
+                    case (int)ScriptBaseClass.PRIM_PHYSICS_MATERIAL:
+                        if (remain < 5)
+                            return;
+                        idx += 5;
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_FLEXIBLE:
+                        if (remain < 7)
+                            return;
+
+                        idx += 7;
+                        break;
                 }
             }
         }
