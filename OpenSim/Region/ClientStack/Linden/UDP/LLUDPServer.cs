@@ -879,7 +879,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #endregion Ping Check Handling
 
             // Inbox insertion
-            packetInbox.Enqueue(new IncomingPacket(udpClient, packet));
+            packetInbox.Enqueue(new IncomingPacket((LLClientView)client, packet));
         }
 
         #region BinaryStats
@@ -1386,22 +1386,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion 
 
-        private void ProcessInPacket(object state)
+        private void ProcessInPacket(IncomingPacket incomingPacket)
         {
-            IncomingPacket incomingPacket = (IncomingPacket)state;
             Packet packet = incomingPacket.Packet;
-            LLUDPClient udpClient = incomingPacket.Client;
-            IClientAPI client;
+            LLClientView client = incomingPacket.Client;
 
             // Sanity check
-            if (packet == null || udpClient == null)
+            if (packet == null || client == null)
             {
-                m_log.WarnFormat("[LLUDPSERVER]: Processing a packet with incomplete state. Packet=\"{0}\", UDPClient=\"{1}\"",
-                    packet, udpClient);
+                m_log.WarnFormat("[LLUDPSERVER]: Processing a packet with incomplete state. Packet=\"{0}\", Client=\"{1}\"",
+                    packet, client);
             }
 
-            // Make sure this client is still alive
-            if (m_scene.TryGetClient(udpClient.AgentID, out client))
+            if (client.IsActive)
             {
                 m_currentIncomingClient = client;
 
@@ -1419,8 +1416,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 catch (Exception e)
                 {
                     // Don't let a failure in an individual client thread crash the whole sim.
-                    m_log.ErrorFormat("[LLUDPSERVER]: Client packet handler for {0} for packet {1} threw an exception", udpClient.AgentID, packet.Type);
-                    m_log.Error(e.Message, e);
+                    m_log.Error(
+                        string.Format(
+                            "[LLUDPSERVER]: Client packet handler for {0} for packet {1} threw ",
+                            client.Name, packet.Type),
+                        e);
                 }
                 finally
                 {
@@ -1431,7 +1431,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_log.DebugFormat(
                     "[LLUDPSERVER]: Dropped incoming {0} for dead client {1} in {2}",
-                    packet.Type, udpClient.AgentID, m_scene.RegionInfo.RegionName);
+                    packet.Type, client.Name, m_scene.RegionInfo.RegionName);
             }
         }
 
