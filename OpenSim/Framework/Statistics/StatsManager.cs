@@ -34,13 +34,11 @@ namespace OpenSim.Framework.Statistics
     {
         private static AssetStatsCollector assetStats;
         private static UserStatsCollector userStats;
-        private static SimExtraStatsCollector simExtraStats;
+        private static SimExtraStatsCollector simExtraStats = new SimExtraStatsCollector();
 
         public static AssetStatsCollector AssetStats { get { return assetStats; } }
         public static UserStatsCollector UserStats { get { return userStats; } }
         public static SimExtraStatsCollector SimExtraStats { get { return simExtraStats; } }
-
-        private StatsManager() {}
 
         /// <summary>
         /// Start collecting statistics related to assets.
@@ -62,17 +60,6 @@ namespace OpenSim.Framework.Statistics
             userStats = new UserStatsCollector();
 
             return userStats;
-        }
-
-        /// <summary>
-        /// Start collecting extra sim statistics apart from those collected for the client.
-        /// Should only be called once.
-        /// </summary>
-        public static SimExtraStatsCollector StartCollectingSimExtraStats()
-        {
-            simExtraStats = new SimExtraStatsCollector();
-
-            return simExtraStats;
         }
     }
 }

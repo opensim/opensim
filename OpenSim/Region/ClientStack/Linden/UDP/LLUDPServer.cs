@@ -147,11 +147,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_elapsed500MSOutgoingPacketHandler;
 
         /// <summary>Flag to signal when clients should check for resends</summary>
-        private bool m_resendUnacked;
+        protected bool m_resendUnacked;
+
         /// <summary>Flag to signal when clients should send ACKs</summary>
-        private bool m_sendAcks;
+        protected bool m_sendAcks;
+
         /// <summary>Flag to signal when clients should send pings</summary>
-        private bool m_sendPing;
+        protected bool m_sendPing;
 
         private int m_defaultRTO = 0;
         private int m_maxRTO = 0;
@@ -1244,7 +1246,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Watchdog.RemoveThread();
         }
 
-        private void ClientOutgoingPacketHandler(IClientAPI client)
+        protected void ClientOutgoingPacketHandler(IClientAPI client)
         {
             m_currentOutgoingClient = client;
 

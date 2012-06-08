@@ -223,8 +223,6 @@ namespace OpenSim
 
             base.StartupSpecific();
 
-            m_stats = StatsManager.StartCollectingSimExtraStats();
-
             // Create a ModuleLoader instance
             m_moduleLoader = new ModuleLoader(m_config.Source);
 
