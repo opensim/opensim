@@ -2536,12 +2536,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            Vector3 vel;
+            Vector3 vel = Vector3.Zero;
 
             if (m_host.ParentGroup.IsAttachment)
             {
                 ScenePresence avatar = m_host.ParentGroup.Scene.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
-                vel = avatar.Velocity;
+                if (avatar != null)
+                    vel = avatar.Velocity;
             }
             else
             {
@@ -4811,6 +4812,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 m_host.CollisionSoundVolume = (float)impact_volume;
                 m_host.CollisionSound = m_host.invalidCollisionSoundUUID;
+                m_host.CollisionSoundType = 0;
                 return;
             }
             // TODO: Parameter check logic required.
@@ -4830,6 +4832,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             m_host.CollisionSoundVolume = (float)impact_volume;
             m_host.CollisionSound = soundId;
+            m_host.CollisionSoundType = 1;
         }
 
         public LSL_String llGetAnimation(string id)
