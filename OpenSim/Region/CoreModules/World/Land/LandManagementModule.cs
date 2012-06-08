@@ -1101,8 +1101,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (!temp.Contains(currentParcel))
                         {
-                            currentParcel.ForceUpdateLandInfo();
-                            temp.Add(currentParcel);
+                            if (!currentParcel.IsEitherBannedOrRestricted(remote_client.AgentId))
+                            {
+                                currentParcel.ForceUpdateLandInfo();
+                                temp.Add(currentParcel);
+                            }
                         }
                     }
                 }

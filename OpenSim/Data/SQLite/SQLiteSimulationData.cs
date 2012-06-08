@@ -2791,5 +2791,9 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        public UUID[] GetObjectIDs(UUID regionID)
+        {
+            return new UUID[0];
+        }
     }
 }
