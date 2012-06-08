@@ -101,7 +101,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestCloseAgent()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
 
             TestScene scene = new SceneHelpers().SetupScene();
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
@@ -114,6 +114,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(scene.GetScenePresence(sp.UUID), Is.Null);
             Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(sp.UUID), Is.Null);
             Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(0));
+
+//            TestHelpers.DisableLogging();
         }
 
         [Test]

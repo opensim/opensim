@@ -3384,9 +3384,22 @@ namespace OpenSim.Region.Framework.Scenes
 //            CheckHeartbeat();
             bool isChildAgent = false;
             ScenePresence avatar = GetScenePresence(agentID);
-            if (avatar != null)
+
+            if (avatar == null)
+            {
+                m_log.WarnFormat(
+                    "[SCENE]: Called RemoveClient() with agent ID {0} but no such presence is in the scene.", agentID);
+
+                return;
+            }
+
+            try
             {
                 isChildAgent = avatar.IsChildAgent;
+
+                m_log.DebugFormat(
+                    "[SCENE]: Removing {0} agent {1} {2} from {3}",
+                    (isChildAgent ? "child" : "root"), avatar.Name, agentID, RegionInfo.RegionName);
 
                 // Don't do this to root agents, it's not nice for the viewer
                 if (closeChildAgents && isChildAgent)
@@ -3409,101 +3422,78 @@ namespace OpenSim.Region.Framework.Scenes
                     avatar.StandUp();
                 }
 
-                try
+                m_sceneGraph.removeUserCount(!isChildAgent);
+
+                // TODO: We shouldn't use closeChildAgents here - it's being used by the NPC module to stop
+                // unnecessary operations.  This should go away once NPCs have no accompanying IClientAPI
+                if (closeChildAgents && CapsModule != null)
+                    CapsModule.RemoveCaps(agentID);
+
+                // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
+                // this method is doing is HORRIBLE!!!
+                avatar.Scene.NeedSceneCacheClear(avatar.UUID);
+
+                if (closeChildAgents && !isChildAgent)
                 {
-                    m_log.DebugFormat(
-                        "[SCENE]: Removing {0} agent {1} {2} from region {3}",
-                        (isChildAgent ? "child" : "root"), avatar.Name, agentID, RegionInfo.RegionName);
+                    List<ulong> regions = avatar.KnownRegionHandles;
+                    regions.Remove(RegionInfo.RegionHandle);
+                    m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
+                }
 
-                    m_sceneGraph.removeUserCount(!isChildAgent);
+                m_eventManager.TriggerClientClosed(agentID, this);
+                m_eventManager.TriggerOnRemovePresence(agentID);
 
-                    // TODO: We shouldn't use closeChildAgents here - it's being used by the NPC module to stop
-                    // unnecessary operations.  This should go away once NPCs have no accompanying IClientAPI
-                    if (closeChildAgents && CapsModule != null)
-                        CapsModule.RemoveCaps(agentID);
-
-                    // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
-                    // this method is doing is HORRIBLE!!!
-                    avatar.Scene.NeedSceneCacheClear(avatar.UUID);
-
-                    if (closeChildAgents && !avatar.IsChildAgent)
+                if (!isChildAgent)
+                {
+                    if (AttachmentsModule != null && avatar.PresenceType != PresenceType.Npc)
                     {
-                        List<ulong> regions = avatar.KnownRegionHandles;
-                        regions.Remove(RegionInfo.RegionHandle);
-                        m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
+                        IUserManagement uMan = RequestModuleInterface<IUserManagement>();
+                        // Don't save attachments for HG visitors, it
+                        // messes up their inventory. When a HG visitor logs
+                        // out on a foreign grid, their attachments will be
+                        // reloaded in the state they were in when they left
+                        // the home grid. This is best anyway as the visited
+                        // grid may use an incompatible script engine.
+                        if (uMan == null || uMan.IsLocalGridUser(avatar.UUID))
+                            AttachmentsModule.SaveChangedAttachments(avatar, false);
                     }
-                    m_log.Debug("[Scene] Beginning ClientClosed");
-                    m_eventManager.TriggerClientClosed(agentID, this);
-                    m_log.Debug("[Scene] Finished ClientClosed");
-                }
-                catch (NullReferenceException)
-                {
-                    // We don't know which count to remove it from
-                    // Avatar is already disposed :/
-                }
 
-                try
-                {
-                    m_eventManager.TriggerOnRemovePresence(agentID);
-    
-                    if (!isChildAgent)
-                    {
-                        if (AttachmentsModule != null && avatar.PresenceType != PresenceType.Npc)
+                    ForEachClient(
+                        delegate(IClientAPI client)
                         {
-                            IUserManagement uMan = RequestModuleInterface<IUserManagement>();
-                            // Don't save attachments for HG visitors, it
-                            // messes up their inventory. When a HG visitor logs
-                            // out on a foreign grid, their attachments will be
-                            // reloaded in the state they were in when they left
-                            // the home grid. This is best anyway as the visited
-                            // grid may use an incompatible script engine.
-                            if (uMan == null || uMan.IsLocalGridUser(avatar.UUID))
-                                AttachmentsModule.SaveChangedAttachments(avatar, false);
-                        }
-
-                        ForEachClient(
-                            delegate(IClientAPI client)
-                            {
-                                //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
-                                try { client.SendKillObject(avatar.RegionHandle, new List<uint> { avatar.LocalId }); }
-                                catch (NullReferenceException) { }
-                            });
-                    }
-
-                    // It's possible for child agents to have transactions if changes are being made cross-border.
-                    if (AgentTransactionsModule != null)
-                        AgentTransactionsModule.RemoveAgentAssetTransactions(agentID);
-                }
-                finally
-                {
-                    // Always clean these structures up so that any failure above doesn't cause them to remain in the
-                    // scene with possibly bad effects (e.g. continually timing out on unacked packets and triggering
-                    // the same cleanup exception continually.
-                    // TODO: This should probably extend to the whole method, but we don't want to also catch the NRE
-                    // since this would hide the underlying failure and other associated problems.
-                    m_sceneGraph.RemoveScenePresence(agentID);
-                    m_clientManager.Remove(agentID);
+                            //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
+                            try { client.SendKillObject(avatar.RegionHandle, new List<uint> { avatar.LocalId }); }
+                            catch (NullReferenceException) { }
+                        });
                 }
 
-                try
-                {
-                    avatar.Close();
-                }
-                catch (NullReferenceException)
-                {
-                    //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("[SCENE] Scene.cs:RemoveClient exception {0}{1}", e.Message, e.StackTrace);
-                }
-                m_log.Debug("[Scene] Done. Firing RemoveCircuit");
+                // It's possible for child agents to have transactions if changes are being made cross-border.
+                if (AgentTransactionsModule != null)
+                    AgentTransactionsModule.RemoveAgentAssetTransactions(agentID);
+
+                avatar.Close();
+
                 m_authenticateHandler.RemoveCircuit(avatar.ControllingClient.CircuitCode);
-//                CleanDroppedAttachments();
                 m_log.Debug("[Scene] The avatar has left the building");
-                //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
-                //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));
             }
+            catch (Exception e)
+            {
+                m_log.Error(
+                    string.Format("[SCENE]: Exception removing {0} from {1}, ", avatar.Name, RegionInfo.RegionName), e);
+            }
+            finally
+            {
+                // Always clean these structures up so that any failure above doesn't cause them to remain in the
+                // scene with possibly bad effects (e.g. continually timing out on unacked packets and triggering
+                // the same cleanup exception continually.
+                // TODO: This should probably extend to the whole method, but we don't want to also catch the NRE
+                // since this would hide the underlying failure and other associated problems.
+                m_sceneGraph.RemoveScenePresence(agentID);
+                m_clientManager.Remove(agentID);
+            }
+
+            //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
+            //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));
         }
 
         /// <summary>

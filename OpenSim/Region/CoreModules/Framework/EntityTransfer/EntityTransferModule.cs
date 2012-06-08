@@ -644,7 +644,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // an agent cannot teleport back to this region if it has teleported away.
                 Thread.Sleep(2000);
 
-                sp.Close();
                 sp.Scene.IncomingCloseAgent(sp.UUID);
             }
             else
