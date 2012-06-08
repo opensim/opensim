@@ -560,7 +560,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + udpClient.AgentID);
                 StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
-                RemoveClient(udpClient);
+                RemoveClient(client);
 
                 return;
             }
@@ -1110,26 +1110,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return client;
         }
 
-        private void RemoveClient(LLUDPClient udpClient)
+        private void RemoveClient(IClientAPI client)
         {
-            // Remove this client from the scene
-            IClientAPI client;
-            if (m_scene.TryGetClient(udpClient.AgentID, out client))
-            {
-                // We must set IsLoggingOut synchronously so that we can stop the packet loop reinvoking this method.
-                client.IsLoggingOut = true;
+            // We must set IsLoggingOut synchronously so that we can stop the packet loop reinvoking this method.
+            client.IsLoggingOut = true;
 
-                // Fire this out on a different thread so that we don't hold up outgoing packet processing for
-                // everybody else if this is being called due to an ack timeout.
-                // This is the same as processing as the async process of a logout request.
-                Util.FireAndForget(o => client.Close());
-            }
-            else
-            {
-                m_log.WarnFormat(
-                    "[LLUDPSERVER]: Tried to remove client with id {0} but not such client in {1}",
-                    udpClient.AgentID, m_scene.RegionInfo.RegionName);
-            }
+            // Fire this out on a different thread so that we don't hold up outgoing packet processing for
+            // everybody else if this is being called due to an ack timeout.
+            // This is the same as processing as the async process of a logout request.
+            Util.FireAndForget(o => client.Close());
         }
 
         private void IncomingPacketHandler()
@@ -1443,8 +1432,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected void LogoutHandler(IClientAPI client)
         {
             client.SendLogoutPacket();
-            if (client.IsActive)
-                RemoveClient(((LLClientView)client).UDPClient);
+            if (!client.IsLoggingOut)
+                RemoveClient(client);
         }
     }
 }
