@@ -1391,13 +1391,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Packet packet = incomingPacket.Packet;
             LLClientView client = incomingPacket.Client;
 
-            // Sanity check
-            if (packet == null || client == null)
-            {
-                m_log.WarnFormat("[LLUDPSERVER]: Processing a packet with incomplete state. Packet=\"{0}\", Client=\"{1}\"",
-                    packet, client);
-            }
-
             if (client.IsActive)
             {
                 m_currentIncomingClient = client;
