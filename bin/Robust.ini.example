@@ -166,7 +166,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ;; This switch creates the minimum set of body parts and avatar entries for a viewer 2 
     ;; to show a default "Ruth" avatar rather than a cloud for a newly created user.
     ;; Default is false
-    ; CreateDefaultAvatarEntries = false
+    CreateDefaultAvatarEntries = true
 
     ;; Allow the service to process HTTP createuser calls.
     ;; Default is false.
