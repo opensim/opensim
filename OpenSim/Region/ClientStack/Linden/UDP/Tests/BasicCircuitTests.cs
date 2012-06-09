@@ -45,6 +45,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
     [TestFixture]
     public class BasicCircuitTests
     {
+        private Scene m_scene;
+        private TestLLUDPServer m_udpServer;
+
         [TestFixtureSetUp]
         public void FixtureInit()
         {
@@ -61,83 +64,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
         }
 
-//        /// <summary>
-//        /// Add a client for testing
-//        /// </summary>
-//        /// <param name="scene"></param>
-//        /// <param name="testLLUDPServer"></param>
-//        /// <param name="testPacketServer"></param>
-//        /// <param name="acm">Agent circuit manager used in setting up the stack</param>
-//        protected void SetupStack(
-//            IScene scene, out TestLLUDPServer testLLUDPServer, out TestLLPacketServer testPacketServer, 
-//            out AgentCircuitManager acm)
-//        {
-//            IConfigSource configSource = new IniConfigSource();
-//            ClientStackUserSettings userSettings = new ClientStackUserSettings();
-//            testLLUDPServer = new TestLLUDPServer();
-//            acm = new AgentCircuitManager();
-//                                    
-//            uint port = 666;
-//            testLLUDPServer.Initialise(null, ref port, 0, false, configSource, acm);
-//            testPacketServer = new TestLLPacketServer(testLLUDPServer, userSettings);
-//            testLLUDPServer.LocalScene = scene;
-//        }
-        
-//        /// <summary>
-//        /// Set up a client for tests which aren't concerned with this process itself and where only one client is being
-//        /// tested
-//        /// </summary>
-//        /// <param name="circuitCode"></param>
-//        /// <param name="epSender"></param>
-//        /// <param name="testLLUDPServer"></param>
-//        /// <param name="acm"></param>
-//        protected void AddClient(
-//            uint circuitCode, EndPoint epSender, TestLLUDPServer testLLUDPServer, AgentCircuitManager acm)
-//        {
-//            UUID myAgentUuid   = UUID.Parse("00000000-0000-0000-0000-000000000001");
-//            UUID mySessionUuid = UUID.Parse("00000000-0000-0000-0000-000000000002");
-//            
-//            AddClient(circuitCode, epSender, myAgentUuid, mySessionUuid, testLLUDPServer, acm);
-//        }
-        
-//        /// <summary>
-//        /// Set up a client for tests which aren't concerned with this process itself
-//        /// </summary>
-//        /// <param name="circuitCode"></param>
-//        /// <param name="epSender"></param>
-//        /// <param name="agentId"></param>
-//        /// <param name="sessionId"></param>
-//        /// <param name="testLLUDPServer"></param>
-//        /// <param name="acm"></param>
-//        protected void AddClient(
-//            uint circuitCode, EndPoint epSender, UUID agentId, UUID sessionId, 
-//            TestLLUDPServer testLLUDPServer, AgentCircuitManager acm)
-//        {
-//            AgentCircuitData acd = new AgentCircuitData();
-//            acd.AgentID = agentId;
-//            acd.SessionID = sessionId; 
-//            
-//            UseCircuitCodePacket uccp = new UseCircuitCodePacket();
-//            
-//            UseCircuitCodePacket.CircuitCodeBlock uccpCcBlock 
-//                = new UseCircuitCodePacket.CircuitCodeBlock();
-//            uccpCcBlock.Code = circuitCode;
-//            uccpCcBlock.ID = agentId;
-//            uccpCcBlock.SessionID = sessionId;
-//            uccp.CircuitCode = uccpCcBlock;
-//
-//            acm.AddNewCircuit(circuitCode, acd);
-//            
-//            testLLUDPServer.LoadReceive(uccp, epSender);
-//            testLLUDPServer.ReceiveData(null);
-//        }
+        [SetUp]
+        public void SetUp()
+        {
+            m_scene = new SceneHelpers().SetupScene();
+        }
         
         /// <summary>
         /// Build an object name packet for test purposes
         /// </summary>
         /// <param name="objectLocalId"></param>
         /// <param name="objectName"></param>
-        protected ObjectNamePacket BuildTestObjectNamePacket(uint objectLocalId, string objectName)
+        private ObjectNamePacket BuildTestObjectNamePacket(uint objectLocalId, string objectName)
         {
             ObjectNamePacket onp = new ObjectNamePacket();
             ObjectNamePacket.ObjectDataBlock odb = new ObjectNamePacket.ObjectDataBlock();
@@ -148,28 +86,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             
             return onp;
         }
-        
-        /// <summary>
-        /// Test adding a client to the stack
-        /// </summary>
-        [Test]
-        public void TestAddClient()
-        {
-            TestHelpers.InMethod();
-//            XmlConfigurator.Configure();
 
-            TestScene scene = new SceneHelpers().SetupScene();
-            uint myCircuitCode = 123456;
+        private void AddUdpServer()
+        {
+            AddUdpServer(new IniConfigSource());
+        }
+
+        private void AddUdpServer(IniConfigSource configSource)
+        {
+            uint port = 0;
+            AgentCircuitManager acm = m_scene.AuthenticateHandler;
+
+            m_udpServer = new TestLLUDPServer(IPAddress.Any, ref port, 0, false, configSource, acm);
+            m_udpServer.AddScene(m_scene);
+        }
+
+        /// <summary>
+        /// Used by tests that aren't testing this stage.
+        /// </summary>
+        private ScenePresence AddClient()
+        {
             UUID myAgentUuid   = TestHelpers.ParseTail(0x1);
             UUID mySessionUuid = TestHelpers.ParseTail(0x2);
+            uint myCircuitCode = 123456;
             IPEndPoint testEp = new IPEndPoint(IPAddress.Loopback, 999);
-
-            uint port = 0;
-            AgentCircuitManager acm = scene.AuthenticateHandler;
-
-            TestLLUDPServer llUdpServer
-                = new TestLLUDPServer(IPAddress.Any, ref port, 0, false, new IniConfigSource(), acm);
-            llUdpServer.AddScene(scene);
 
             UseCircuitCodePacket uccp = new UseCircuitCodePacket();
 
@@ -185,31 +125,92 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             upb.DataLength = uccpBytes.Length;  // God knows why this isn't set by the constructor.
             Buffer.BlockCopy(uccpBytes, 0, upb.Data, 0, uccpBytes.Length);
 
-            llUdpServer.PacketReceived(upb);
+            AgentCircuitData acd = new AgentCircuitData();
+            acd.AgentID = myAgentUuid;
+            acd.SessionID = mySessionUuid;
+
+            m_scene.AuthenticateHandler.AddNewCircuit(myCircuitCode, acd);
+
+            m_udpServer.PacketReceived(upb);
+
+            return m_scene.GetScenePresence(myAgentUuid);
+        }
+        
+        /// <summary>
+        /// Test adding a client to the stack
+        /// </summary>
+        [Test]
+        public void TestAddClient()
+        {
+            TestHelpers.InMethod();
+//            XmlConfigurator.Configure();
+
+            AddUdpServer();
+
+            UUID myAgentUuid   = TestHelpers.ParseTail(0x1);
+            UUID mySessionUuid = TestHelpers.ParseTail(0x2);
+            uint myCircuitCode = 123456;
+            IPEndPoint testEp = new IPEndPoint(IPAddress.Loopback, 999);
+
+            UseCircuitCodePacket uccp = new UseCircuitCodePacket();
+
+            UseCircuitCodePacket.CircuitCodeBlock uccpCcBlock
+                = new UseCircuitCodePacket.CircuitCodeBlock();
+            uccpCcBlock.Code = myCircuitCode;
+            uccpCcBlock.ID = myAgentUuid;
+            uccpCcBlock.SessionID = mySessionUuid;
+            uccp.CircuitCode = uccpCcBlock;
+
+            byte[] uccpBytes = uccp.ToBytes();
+            UDPPacketBuffer upb = new UDPPacketBuffer(testEp, uccpBytes.Length);
+            upb.DataLength = uccpBytes.Length;  // God knows why this isn't set by the constructor.
+            Buffer.BlockCopy(uccpBytes, 0, upb.Data, 0, uccpBytes.Length);
+
+            m_udpServer.PacketReceived(upb);
 
             // Presence shouldn't exist since the circuit manager doesn't know about this circuit for authentication yet
-            Assert.That(scene.GetScenePresence(myAgentUuid), Is.Null);
+            Assert.That(m_scene.GetScenePresence(myAgentUuid), Is.Null);
 
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = myAgentUuid;
             acd.SessionID = mySessionUuid;
 
-            acm.AddNewCircuit(myCircuitCode, acd);
+            m_scene.AuthenticateHandler.AddNewCircuit(myCircuitCode, acd);
 
-            llUdpServer.PacketReceived(upb);
+            m_udpServer.PacketReceived(upb);
 
             // Should succeed now
-            ScenePresence sp = scene.GetScenePresence(myAgentUuid);
+            ScenePresence sp = m_scene.GetScenePresence(myAgentUuid);
             Assert.That(sp.UUID, Is.EqualTo(myAgentUuid));
 
-            Assert.That(llUdpServer.PacketsSent.Count, Is.EqualTo(1));
+            Assert.That(m_udpServer.PacketsSent.Count, Is.EqualTo(1));
 
-            Packet packet = llUdpServer.PacketsSent[0];
+            Packet packet = m_udpServer.PacketsSent[0];
             Assert.That(packet, Is.InstanceOf(typeof(PacketAckPacket)));
 
             PacketAckPacket ackPacket = packet as PacketAckPacket;
             Assert.That(ackPacket.Packets.Length, Is.EqualTo(1));
             Assert.That(ackPacket.Packets[0].ID, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestLogoutClientDueToAck()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            IniConfigSource ics = new IniConfigSource();
+            IConfig config = ics.AddConfig("ClientStack.LindenUDP");
+            config.Set("AckTimeout", -1);
+            AddUdpServer(ics);
+
+            ScenePresence sp = AddClient();
+            m_udpServer.ClientOutgoingPacketHandler(sp.ControllingClient, true, false, false);
+
+            ScenePresence spAfterAckTimeout = m_scene.GetScenePresence(sp.UUID);
+            Assert.That(spAfterAckTimeout, Is.Null);
+
+//            TestHelpers.DisableLogging();
         }
 
 //        /// <summary>
