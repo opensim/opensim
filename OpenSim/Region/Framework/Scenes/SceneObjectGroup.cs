@@ -2992,10 +2992,14 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (!m_rootPart.BlockGrab)
                         {
-                            Vector3 llmoveforce = pos - AbsolutePosition;
+/*                            Vector3 llmoveforce = pos - AbsolutePosition;
                             Vector3 grabforce = llmoveforce;
                             grabforce = (grabforce / 10) * pa.Mass;
-                            pa.AddForce(grabforce, true);
+ */
+                            // empirically convert distance diference to a impulse
+                            Vector3 grabforce = pos - AbsolutePosition;
+                            grabforce = grabforce * (pa.Mass/ 10.0f);
+                            pa.AddForce(grabforce, false);
                             m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
                         }
                     }
