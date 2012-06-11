@@ -2202,5 +2202,10 @@ VALUES
                 }
             }
         }
+
+        public UUID[] GetObjectIDs(UUID regionID)
+        {
+            return new UUID[0];
+        }
     }
 }

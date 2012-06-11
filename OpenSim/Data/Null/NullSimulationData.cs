@@ -151,5 +151,10 @@ namespace OpenSim.Data.Null
         public void Shutdown()
         {
         }
+
+        public UUID[] GetObjectIDs(UUID regionID)
+        {
+            return new UUID[0];
+        }
     }
 }

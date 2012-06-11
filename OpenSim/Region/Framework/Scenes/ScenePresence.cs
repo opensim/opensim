@@ -1059,6 +1059,7 @@ namespace OpenSim.Region.Framework.Scenes
             IsChildAgent = true;
             m_scene.SwapRootAgentCount(true);
             RemoveFromPhysicalScene();
+            ParentID = 0; // Child agents can't be sitting
 
             // FIXME: Set RegionHandle to the region handle of the scene this agent is moving into
             
@@ -2102,6 +2103,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandleAgentRequestSit(IClientAPI remoteClient, UUID agentID, UUID targetID, Vector3 offset)
         {
+            if (IsChildAgent)
+                return;
+
             if (ParentID != 0)
             {
                 StandUp();
@@ -2905,8 +2909,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // If we don't have a PhysActor, we can't cross anyway
             // Also don't do this while sat, sitting avatars cross with the
-            // object they sit on.
-            if (ParentID != 0 || PhysicsActor == null)
+            // object they sit on. ParentUUID denoted a pending sit, don't
+            // interfere with it.
+            if (ParentID != 0 || PhysicsActor == null || ParentUUID != UUID.Zero)
                 return;
 
             if (!IsInTransit)

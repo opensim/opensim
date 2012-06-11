@@ -4564,10 +4564,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(5000);
         }
 
-        public void llTeleportAgent(string agent, string simname, LSL_Vector pos, LSL_Vector lookAt)
+        public void llTeleportAgent(string agent, string destination, LSL_Vector pos, LSL_Vector lookAt)
         {
             m_host.AddScriptLPS(1);
             UUID agentId = new UUID();
+
+            Vector3 targetPos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
+            Vector3 targetLookAt = new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z);
+
             if (UUID.TryParse(agent, out agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
@@ -4576,24 +4580,82 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // agent must not be a god
                     if (presence.GodLevel >= 200) return;
 
-                    if (simname == String.Empty)
-                        simname = World.RegionInfo.RegionName;
+                    if (destination == String.Empty)
+                        destination = World.RegionInfo.RegionName;
 
                     // agent must be over the owners land
                     if (m_host.OwnerID == World.LandChannel.GetLandObject(
                             presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
                     {
-                        World.RequestTeleportLocation(presence.ControllingClient, simname, new Vector3((float)pos.x, (float)pos.y, (float)pos.z), new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z), (uint)TeleportFlags.ViaLocation);
+                        DoLLTeleport(presence, destination, targetPos, targetLookAt);
                     }
                     else // or must be wearing the prim
                     {
                         if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID)
                         {
-                            World.RequestTeleportLocation(presence.ControllingClient, simname, new Vector3((float)pos.x, (float)pos.y, (float)pos.z), new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z), (uint)TeleportFlags.ViaLocation);
+                            DoLLTeleport(presence, destination, targetPos, targetLookAt);
                         }
                     }
                 }
             }
+        }
+
+        public void llTeleportAgentGlobalCoords(string agent, LSL_Vector global_coords, LSL_Vector pos, LSL_Vector lookAt)
+        {
+            m_host.AddScriptLPS(1);
+            UUID agentId = new UUID();
+
+            ulong regionHandle = Utils.UIntsToLong((uint)global_coords.x, (uint)global_coords.y);
+
+            Vector3 targetPos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
+            Vector3 targetLookAt = new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z);
+            if (UUID.TryParse(agent, out agentId))
+            {
+                ScenePresence presence = World.GetScenePresence(agentId);
+                if (presence != null && presence.PresenceType != PresenceType.Npc)
+                {
+                    // agent must not be a god
+                    if (presence.GodLevel >= 200) return;
+
+                    // agent must be over the owners land
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(
+                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
+                    {
+                        World.RequestTeleportLocation(presence.ControllingClient, regionHandle, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
+                    }
+                    else // or must be wearing the prim
+                    {
+                        if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID)
+                        {
+                            World.RequestTeleportLocation(presence.ControllingClient, regionHandle, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void DoLLTeleport(ScenePresence sp, string destination, Vector3 targetPos, Vector3 targetLookAt)
+        {
+            UUID assetID = KeyOrName(destination);
+
+            // The destinaion is not an asset ID and also doesn't name a landmark.
+            // Use it as a sim name
+            if (assetID == UUID.Zero)
+            {
+                World.RequestTeleportLocation(sp.ControllingClient, destination, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
+                return;
+            }
+
+            AssetBase lma = World.AssetService.Get(assetID.ToString());
+            if (lma == null)
+                return;
+
+            if (lma.Type != (sbyte)AssetType.Landmark)
+                return;
+
+            AssetLandmark lm = new AssetLandmark(lma);
+
+            World.RequestTeleportLocation(sp.ControllingClient, lm.RegionHandle, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
         }
 
         public void llTextBox(string agent, string message, int chatChannel)

@@ -127,6 +127,11 @@ namespace OpenSim.Data.Null
         {
             m_store.RemoveRegionEnvironmentSettings(regionUUID);
         }
+
+        public UUID[] GetObjectIDs(UUID regionID)
+        {
+            return new UUID[0];
+        }
     }
 
     /// <summary>
@@ -317,6 +322,11 @@ namespace OpenSim.Data.Null
 
         public void Shutdown()
         {
+        }
+
+        public UUID[] GetObjectIDs(UUID regionID)
+        {
+            return new UUID[0];
         }
     }
 }

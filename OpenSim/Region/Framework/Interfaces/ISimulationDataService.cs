@@ -116,5 +116,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="regionUUID">the region UUID</param>
         void RemoveRegionEnvironmentSettings(UUID regionUUID);
 
+        UUID[] GetObjectIDs(UUID regionID);
     }
 }

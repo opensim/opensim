@@ -119,8 +119,10 @@ namespace OpenSim.Data.MySQL
 
             // Eligibility check
             //
-            if ((flags & (uint)PrimFlags.Temporary) != 0)
-                return;
+            // PrimFlags.Temporary is not used in OpenSim code and cannot
+            // be guaranteed to always be clear. Don't check it.
+//            if ((flags & (uint)PrimFlags.Temporary) != 0)
+//                return;
             if ((flags & (uint)PrimFlags.TemporaryOnRez) != 0)
                 return;
 
@@ -1970,6 +1972,37 @@ namespace OpenSim.Data.MySQL
                     }
                 }
             }
+        }
+
+        public UUID[] GetObjectIDs(UUID regionID)
+        {
+            List<UUID> uuids = new List<UUID>();
+
+            lock (m_dbLock)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "select UUID from prims where RegionUUID = ?RegionUUID";
+                        cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+
+                        using (IDataReader reader = ExecuteReader(cmd))
+                        {
+                            while (reader.Read())
+                            {
+                                UUID id = new UUID(reader["UUID"].ToString());
+
+                                uuids.Add(id);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return uuids.ToArray();
         }
 
         private void LoadSpawnPoints(RegionSettings rs)

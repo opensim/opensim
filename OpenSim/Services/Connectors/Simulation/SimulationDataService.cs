@@ -164,5 +164,9 @@ namespace OpenSim.Services.Connectors
             m_database.RemoveRegionEnvironmentSettings(regionUUID);
         }
 
+        public UUID[] GetObjectIDs(UUID regionID)
+        {
+            return m_database.GetObjectIDs(regionID);
+        }
     }
 }
