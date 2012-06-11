@@ -341,6 +341,14 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[11],
                     m => string.Format("{0} ms", m.GetValue())));
 
+            m_staticMonitors.Add(
+                new GenericMonitor(
+                    m_scene,
+                    "SpareFrameTimeMonitor",
+                    "Spare Frame Time",
+                    m => m.Scene.StatsReporter.LastReportedSimStats[21],
+                    m => string.Format("{0} ms", m.GetValue())));
+
             m_alerts.Add(new DeadlockAlert(m_staticMonitors.Find(x => x is LastFrameTimeMonitor) as LastFrameTimeMonitor));
 
             foreach (IAlert alert in m_alerts)
