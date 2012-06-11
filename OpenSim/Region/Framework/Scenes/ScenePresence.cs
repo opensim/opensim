@@ -1899,9 +1899,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (SitTargetUnOccupied)
                 {
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Sitting {0} on {1} {2} because sit target is set and unoccupied",
-                        Name, part.Name, part.LocalId);
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: Sitting {0} on {1} {2} because sit target is set and unoccupied",
+//                        Name, part.Name, part.LocalId);
 
                     part.SitTargetAvatar = UUID;
                     offset = new Vector3(avSitOffSet.X, avSitOffSet.Y, avSitOffSet.Z);
@@ -1913,9 +1913,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (Util.GetDistanceTo(AbsolutePosition, pos) <= 10)
                 {
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Sitting {0} on {1} {2} because sit target is unset and within 10m",
-                        Name, part.Name, part.LocalId);
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: Sitting {0} on {1} {2} because sit target is unset and within 10m",
+//                        Name, part.Name, part.LocalId);
 
                     AbsolutePosition = pos + new Vector3(0.0f, 0.0f, m_sitAvatarHeight);
                     canSit = true;
