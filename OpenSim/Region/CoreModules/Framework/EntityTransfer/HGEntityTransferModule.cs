@@ -325,34 +325,30 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         void OnConnectionClosed(IClientAPI obj)
         {
-            if (obj.IsLoggingOut)
+            if (obj.SceneAgent.IsChildAgent)
+                return;
+
+            // Let's find out if this is a foreign user or a local user
+            IUserManagement uMan = Scene.RequestModuleInterface<IUserManagement>();
+//          UserAccount account = Scene.UserAccountService.GetUserAccount(Scene.RegionInfo.ScopeID, obj.AgentId);
+
+            if (uMan != null && uMan.IsLocalGridUser(obj.AgentId))
             {
-                object sp = null;
-                if (obj.Scene.TryGetScenePresence(obj.AgentId, out sp))
-                {
-                    if (((ScenePresence)sp).IsChildAgent)
-                        return;
-                }
+                // local grid user
+                return;
+            }
 
-                // Let's find out if this is a foreign user or a local user
-                IUserManagement uMan = Scene.RequestModuleInterface<IUserManagement>();
-//                UserAccount account = Scene.UserAccountService.GetUserAccount(Scene.RegionInfo.ScopeID, obj.AgentId);
-                if (uMan != null && uMan.IsLocalGridUser(obj.AgentId))
-                {
-                    // local grid user
-                    return;
-                }
+            AgentCircuitData aCircuit = ((Scene)(obj.Scene)).AuthenticateHandler.GetAgentCircuitData(obj.CircuitCode);
 
-                AgentCircuitData aCircuit = ((Scene)(obj.Scene)).AuthenticateHandler.GetAgentCircuitData(obj.CircuitCode);
-
-                if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
-                {
-                    string url = aCircuit.ServiceURLs["HomeURI"].ToString();
-                    IUserAgentService security = new UserAgentServiceConnector(url);
-                    security.LogoutAgent(obj.AgentId, obj.SessionId);
-                    //m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Sent logout call to UserAgentService @ {0}", url);
-                }
-                else
+            if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+            {
+                string url = aCircuit.ServiceURLs["HomeURI"].ToString();
+                IUserAgentService security = new UserAgentServiceConnector(url);
+                security.LogoutAgent(obj.AgentId, obj.SessionId);
+                //m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Sent logout call to UserAgentService @ {0}", url);
+            }
+            else
+            {
                     m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: HomeURI not found for agent {0} logout", obj.AgentId);
             }
         }
