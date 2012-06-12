@@ -8881,16 +8881,251 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
+            // acording to SL wiki this must indicate a single link number or link_root or link_this.
+            // keep other options as before
+
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
+            List<ScenePresence> avatars = GetLinkAvatars(linknumber);
 
             LSL_List res = new LSL_List();
 
-            foreach (var part in parts)
+            if (parts.Count > 0)
             {
-                LSL_List partRes = GetLinkPrimitiveParams(part, rules);
-                res += partRes;
+                foreach (var part in parts)
+                {
+                    LSL_List partRes = GetLinkPrimitiveParams(part, rules);
+                    res += partRes;
+                }
             }
+            if (avatars.Count > 0)
+            {
+                foreach (ScenePresence avatar in avatars)
+                {
+                    LSL_List avaRes = GetLinkPrimitiveParams(avatar, rules);
+                    res += avaRes;
+                }
+            }
+            return res;
+        }
 
+        public LSL_List GetLinkPrimitiveParams(ScenePresence avatar, LSL_List rules)
+        {
+            // avatars case
+            // replies as SL wiki
+
+            LSL_List res = new LSL_List();
+            int idx = 0;
+            while (idx < rules.Length)
+            {
+                int code = (int)rules.GetLSLIntegerItem(idx++);
+                int remain = rules.Length - idx;
+
+                switch (code)
+                {
+                    case (int)ScriptBaseClass.PRIM_MATERIAL:
+                        res.Add(new LSL_Integer((int)SOPMaterialData.SopMaterial.Flesh));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_PHYSICS:
+                            res.Add(new LSL_Integer(0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
+                            res.Add(new LSL_Integer(0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_PHANTOM:
+                            res.Add(new LSL_Integer(0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_POSITION:
+                        Vector3 pos = avatar.AbsolutePosition;
+                        res.Add(new LSL_Vector(pos.X,pos.Y,pos.Z));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_SIZE:
+                        // as in llGetAgentSize above
+                        res.Add(new LSL_Vector(0.45f, 0.6f, avatar.Appearance.AvatarHeight));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_ROTATION:
+                        Quaternion rot = avatar.WorldRotation;
+                        res.Add(new LSL_Rotation (rot.X, rot.Y, rot.Z, rot.W));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TYPE:
+                        res.Add(new LSL_Integer(ScriptBaseClass.PRIM_TYPE_BOX));
+                        res.Add(new LSL_Integer(ScriptBaseClass.PRIM_HOLE_DEFAULT));
+                        res.Add(new LSL_Vector(0f,1.0f,0f));
+                        res.Add(new LSL_Float(0.0f));
+                        res.Add(new LSL_Vector(0, 0, 0));
+                        res.Add(new LSL_Vector(1.0f,1.0f,0f));
+                        res.Add(new LSL_Vector(0, 0, 0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEXTURE:
+                        if (remain < 1)
+                            return res;
+
+                        int face = (int)rules.GetLSLIntegerItem(idx++);
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < 21; face++)
+                            {
+                                res.Add(new LSL_String(""));
+                                res.Add(new LSL_Vector(0,0,0));
+                                res.Add(new LSL_Vector(0,0,0));
+                                res.Add(new LSL_Float(0.0));
+                            }
+                        }
+                        else
+                        {
+                            if (face >= 0 && face < 21)
+                            {
+                                res.Add(new LSL_String(""));
+                                res.Add(new LSL_Vector(0,0,0));
+                                res.Add(new LSL_Vector(0,0,0));
+                                res.Add(new LSL_Float(0.0));
+                            }
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_COLOR:
+                        if (remain < 1)
+                            return res;
+
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < 21; face++)
+                            {
+                                res.Add(new LSL_Vector(0,0,0));
+                                res.Add(new LSL_Float(0));
+                            }
+                        }
+                        else
+                        {
+                                res.Add(new LSL_Vector(0,0,0));
+                                res.Add(new LSL_Float(0));
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
+                        if (remain < 1)
+                            return res;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < 21; face++)
+                            {
+                                res.Add(new LSL_Integer(ScriptBaseClass.PRIM_SHINY_NONE));
+                                res.Add(new LSL_Integer(ScriptBaseClass.PRIM_BUMP_NONE));
+                            }
+                        }
+                        else
+                        {
+                                res.Add(new LSL_Integer(ScriptBaseClass.PRIM_SHINY_NONE));
+                                res.Add(new LSL_Integer(ScriptBaseClass.PRIM_BUMP_NONE));
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
+                        if (remain < 1)
+                            return res;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+
+                        int fullbright;
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < 21; face++)
+                            {
+                                res.Add(new LSL_Integer(ScriptBaseClass.FALSE));
+                            }
+                        }
+                        else
+                        {
+                                res.Add(new LSL_Integer(ScriptBaseClass.FALSE));
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_FLEXIBLE:
+                        res.Add(new LSL_Integer(0));
+                        res.Add(new LSL_Integer(0));// softness
+                        res.Add(new LSL_Float(0.0f));   // gravity
+                        res.Add(new LSL_Float(0.0f));      // friction
+                        res.Add(new LSL_Float(0.0f));      // wind
+                        res.Add(new LSL_Float(0.0f));   // tension
+                        res.Add(new LSL_Vector(0f,0f,0f));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEXGEN:
+                        // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
+                        if (remain < 1)
+                            return res;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < 21; face++)
+                            {
+                                    res.Add(new LSL_Integer(ScriptBaseClass.PRIM_TEXGEN_DEFAULT));
+                            }
+                        }
+                        else
+                        {
+                                res.Add(new LSL_Integer(ScriptBaseClass.PRIM_TEXGEN_DEFAULT));
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
+                        res.Add(new LSL_Integer(0));
+                        res.Add(new LSL_Vector(0f,0f,0f));
+                        res.Add(new LSL_Float(0f)); // intensity
+                        res.Add(new LSL_Float(0f));    // radius
+                        res.Add(new LSL_Float(0f));   // falloff
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_GLOW:
+                        if (remain < 1)
+                            return res;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < 21; face++)
+                            {
+                                res.Add(new LSL_Float(0f));
+                            }
+                        }
+                        else
+                        {
+                                res.Add(new LSL_Float(0f));
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEXT:
+                        res.Add(new LSL_String(""));
+                        res.Add(new LSL_Vector(0f,0f,0f));
+                        res.Add(new LSL_Float(1.0f));
+                        break;
+                    case (int)ScriptBaseClass.PRIM_NAME:
+                        res.Add(new LSL_String(avatar.Name));
+                        break;
+                    case (int)ScriptBaseClass.PRIM_DESC:
+                        res.Add(new LSL_String(""));
+                        break;
+                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                        Quaternion lrot = avatar.OffsetRotationToSOGRoot;
+                        res.Add(new LSL_Rotation(lrot.X, lrot.Y, lrot.Z, lrot.W));
+                        break;
+                    case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                        Vector3 lpos = avatar.OffsetPositionToSOGRoot;
+                        res.Add(new LSL_Vector(lpos.X,lpos.Y,lpos.Z));
+                        break;
+                }
+            }
             return res;
         }
 
