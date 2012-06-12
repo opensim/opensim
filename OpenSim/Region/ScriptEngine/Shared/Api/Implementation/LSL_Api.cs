@@ -7983,9 +7983,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 LSL_Rotation r = rules.GetQuaternionItem(idx++);
                                 Quaternion rot = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s); // requested world rotation
 
-                                Quaternion srot = sitpart.GetWorldRotation();
-                                rot *= Quaternion.Conjugate(srot); // removed sit part world rotation
+// need to replicate SL bug
 
+                                SceneObjectGroup sitgrp = sitpart.ParentGroup;
+                                if (sitgrp != null && sitgrp.RootPart != sitpart)
+                                {
+                                    rot *= sitgrp.RootPart.RotationOffset;
+                                }
+
+                                Quaternion srot = sitpart.GetWorldRotation();
+                                rot = Quaternion.Conjugate(srot) * rot; // removed sit part world rotation
                                 av.Rotation = rot;
                                 av.SendAvatarDataToAllAgents();
                             }
@@ -8003,7 +8010,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 Quaternion rot = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s); // requested offset rotation
 
                                 Quaternion srot = sitpart.RotationOffset;
-                                rot *= Quaternion.Conjugate(srot); // remove sit part offset rotation
+                                rot = Quaternion.Conjugate(srot) * rot; // remove sit part offset rotation
 
                                 av.Rotation = rot;
                                 av.SendAvatarDataToAllAgents();
