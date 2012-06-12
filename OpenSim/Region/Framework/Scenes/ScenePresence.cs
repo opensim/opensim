@@ -519,6 +519,40 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        // returns offset position relative to root prim of object when siting
+        public Vector3 OffsetPositionToSOGRoot
+        {
+            get
+            {
+                if (ParentPart != null)
+                    return ParentPart.OffsetPosition + (m_pos * ParentPart.RotationOffset);
+                else
+                    return m_pos;
+            }
+        }
+
+        public Quaternion OffsetRotationToSOGRoot
+        {
+            get
+            {
+                if (ParentPart != null)
+                    return ParentPart.RotationOffset * Rotation;
+                else
+                    return Rotation;
+            }
+        }
+
+        public Quaternion WorldRotation
+        {
+            get
+            {
+                if (ParentPart != null)
+                    return ParentPart.GetWorldRotation() * Rotation;
+                else
+                    return Rotation;
+            }
+        }
+
         /// <summary>
         /// Current velocity of the avatar.
         /// </summary>
