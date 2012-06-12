@@ -740,14 +740,24 @@ namespace OpenSim.Framework
         /// </summary>
         string Name { get; }
 
-        /// <value>
-        /// Determines whether the client thread is doing anything or not.
-        /// </value>
+        /// <summary>
+        /// True if the client is active (sending and receiving new UDP messages).  False if the client is closing.
+        /// </summary>
         bool IsActive { get; set; }
 
-        /// <value>
-        /// Determines whether the client is or has been removed from a given scene
-        /// </value>
+        /// <summary>
+        /// Set if the client is closing due to a logout request or because of too much time since last ack.
+        /// </summary>
+        /// <remarks>
+        /// Do not use this flag if you want to know if the client is closing, since it will not be set in other
+        /// circumstances (e.g. if a child agent is closed or the agent is kicked off the simulator).  Use IsActive
+        /// instead.
+        ///
+        /// Only set for root agents.
+        ///
+        /// TODO: Too much time since last ack should probably be a separate property, or possibly part of a state
+        /// machine.
+        /// </remarks>
         bool IsLoggingOut { get; set; }
         
         bool SendLogoutPacketWhenClosing { set; }
