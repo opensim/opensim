@@ -8914,6 +8914,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // replies as SL wiki
 
             LSL_List res = new LSL_List();
+            SceneObjectPart sitPart = avatar.ParentPart; // most likelly it will be needed
             int idx = 0;
             while (idx < rules.Length)
             {
@@ -8949,7 +8950,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_ROTATION:
-                        Quaternion rot = avatar.WorldRotation;
+                        Quaternion rot = avatar.Rotation;
+                        if (sitPart != null)
+                        {
+                            rot = sitPart.GetWorldRotation() * rot; // apply sit part world rotation
+                        }
+
                         res.Add(new LSL_Rotation (rot.X, rot.Y, rot.Z, rot.W));
                         break;
 
@@ -9036,7 +9042,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return res;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
-                        int fullbright;
                         if (face == ScriptBaseClass.ALL_SIDES)
                         {
                             for (face = 0; face < 21; face++)
@@ -9110,18 +9115,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Vector(0f,0f,0f));
                         res.Add(new LSL_Float(1.0f));
                         break;
+
                     case (int)ScriptBaseClass.PRIM_NAME:
                         res.Add(new LSL_String(avatar.Name));
                         break;
+
                     case (int)ScriptBaseClass.PRIM_DESC:
                         res.Add(new LSL_String(""));
                         break;
-                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
-                        Quaternion lrot = avatar.OffsetRotationToSOGRoot;
+
+                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:                      
+                        Quaternion lrot = avatar.Rotation;
+                        if (sitPart != null)
+                        {
+                            lrot = sitPart.RotationOffset * lrot; // apply sit part rotation offset
+                        }
                         res.Add(new LSL_Rotation(lrot.X, lrot.Y, lrot.Z, lrot.W));
                         break;
+
                     case (int)ScriptBaseClass.PRIM_POS_LOCAL:
-                        Vector3 lpos = avatar.OffsetPositionToSOGRoot;
+                        Vector3 lpos = avatar.OffsetPosition; // pos relative to sit part
+                        if (sitPart != null)
+                        {
+                            lpos = sitPart.OffsetPosition + (lpos * sitPart.RotationOffset); // make it relative to root prim
+                        }
                         res.Add(new LSL_Vector(lpos.X,lpos.Y,lpos.Z));
                         break;
                 }
