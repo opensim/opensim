@@ -7902,196 +7902,223 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(200);
         }
 
+        // vector up using libomv (c&p from sop )
+        // vector up rotated by r
+        private Vector3 Zrot(Quaternion r)
+        {
+            double x, y, z, m;
+
+            m = r.X * r.X + r.Y * r.Y + r.Z * r.Z + r.W * r.W;
+            if (Math.Abs(1.0 - m) > 0.000001)
+            {
+                m = 1.0 / Math.Sqrt(m);
+                r.X *= (float)m;
+                r.Y *= (float)m;
+                r.Z *= (float)m;
+                r.W *= (float)m;
+            }
+
+            x = 2 * (r.X * r.Z + r.Y * r.W);
+            y = 2 * (-r.X * r.W + r.Y * r.Z);
+            z = -r.X * r.X - r.Y * r.Y + r.Z * r.Z + r.W * r.W;
+
+            return new Vector3((float)x, (float)y, (float)z);
+        }
+
         protected void SetPrimParams(ScenePresence av, LSL_List rules)
         {
             //This is a special version of SetPrimParams to deal with avatars which are sat on the linkset.
 
             int idx = 0;
+            SceneObjectPart sitpart = World.GetSceneObjectPart(av.ParentID); // betting this will be used
 
-            while (idx < rules.Length)
+            bool positionChanged = false;
+            Vector3 finalPos = Vector3.Zero;
+
+            try
             {
-                int code = rules.GetLSLIntegerItem(idx++);
-
-                int remain = rules.Length - idx;
-
-                switch (code)
+                while (idx < rules.Length)
                 {
-                    case (int)ScriptBaseClass.PRIM_POSITION:
-                        {
-                            if (remain < 1)
-                                return;
-                            LSL_Vector v;
-                            v = rules.GetVector3Item(idx++);
+                    int code = rules.GetLSLIntegerItem(idx++);
 
-                            SceneObjectPart part = World.GetSceneObjectPart(av.ParentID);
-                            if (part == null)
-                                break;
+                    int remain = rules.Length - idx;
 
-                            LSL_Rotation localRot = ScriptBaseClass.ZERO_ROTATION;
-                            LSL_Vector localPos = ScriptBaseClass.ZERO_VECTOR;
-                            if (llGetLinkNumber() > 1)
+                    switch (code)
+                    {
+                        // a avatar is a child 
+                        case (int)ScriptBaseClass.PRIM_POSITION:
+                        case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                             {
-                                localRot = llGetLocalRot();
-                                localPos = llGetLocalPos();
+                                if (remain < 1)
+                                    return;
+                                LSL_Vector v;
+                                v = rules.GetVector3Item(idx++);
+
+                                if (sitpart == null)
+                                    break;
+
+                                Vector3 pos = new Vector3((float)v.x, (float)v.y, (float)v.z); // requested absolute position
+
+                                pos -= sitpart.OffsetPosition; // remove sit part offset
+
+                                Quaternion rot = sitpart.RotationOffset;
+                                pos *= Quaternion.Conjugate(rot); // removed sit part rotation
+
+                                Vector3 sitOffset = (Zrot(av.Rotation)) * (av.Appearance.AvatarHeight * 0.02638f);
+                                pos += sitOffset;
+
+                                finalPos = pos;
+                                positionChanged = true;
                             }
+                            break;
 
-                            v -= localPos;
-                            v /= localRot;
-
-                            LSL_Vector sitOffset = (llRot2Up(new LSL_Rotation(av.Rotation.X, av.Rotation.Y, av.Rotation.Z, av.Rotation.W)) * av.Appearance.AvatarHeight * 0.02638f);
-
-                            v = v + 2 * sitOffset;
-
-                            av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
-                            av.SendAvatarDataToAllAgents();
-
-                        }
-                        break;
-
-                    case (int)ScriptBaseClass.PRIM_POS_LOCAL:
-                        {
-                            if (remain < 1)
-                                return;
-                            LSL_Vector v;
-                            v = rules.GetVector3Item(idx++);
-
-                            SceneObjectPart part = World.GetSceneObjectPart(av.ParentID);
-                            if (part == null)
-                                break;
-
-                            LSL_Vector sitOffset = (llRot2Up(new LSL_Rotation(av.Rotation.X, av.Rotation.Y, av.Rotation.Z, av.Rotation.W)) * av.Appearance.AvatarHeight * 0.02638f);
-
-                            v += 2 * sitOffset;
-
-                            av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
-                            av.SendAvatarDataToAllAgents();
-
-                        }
-                        break;
-
-                    case (int)ScriptBaseClass.PRIM_ROTATION:
-                        {
-                            if (remain < 1)
-                                return;
-
-                            LSL_Rotation localRot = ScriptBaseClass.ZERO_ROTATION;
-                            LSL_Vector localPos = ScriptBaseClass.ZERO_VECTOR;
-                            if (llGetLinkNumber() > 1)
+                        case (int)ScriptBaseClass.PRIM_ROTATION:
                             {
-                                localRot = llGetLocalRot();
-                                localPos = llGetLocalPos();
+                                if (remain < 1)
+                                    return;
+
+                                if (sitpart == null)
+                                    break;
+
+                                LSL_Rotation r = rules.GetQuaternionItem(idx++);
+                                Quaternion rot = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s); // requested world rotation
+
+                                Quaternion srot = sitpart.GetWorldRotation();
+                                rot *= Quaternion.Conjugate(srot); // removed sit part world rotation
+
+                                av.Rotation = rot;
+                                av.SendAvatarDataToAllAgents();
                             }
+                            break;
 
-                            LSL_Rotation r;
-                            r = rules.GetQuaternionItem(idx++);
-                            r = r * llGetRootRotation() / localRot;
-                            av.Rotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
-                            av.SendAvatarDataToAllAgents();
-                        }
-                        break;
+                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                            {
+                                if (remain < 1)
+                                    return;
 
-                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
-                        {
-                            if (remain < 1)
-                                return;
+                                if (sitpart == null)
+                                    break;
 
-                            LSL_Rotation r;
-                            r = rules.GetQuaternionItem(idx++);
-                            av.Rotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
-                            av.SendAvatarDataToAllAgents();
-                        }
-                        break;
+                                LSL_Rotation r = rules.GetQuaternionItem(idx++);
+                                Quaternion rot = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s); // requested offset rotation
+
+                                Quaternion srot = sitpart.RotationOffset;
+                                rot *= Quaternion.Conjugate(srot); // remove sit part offset rotation
+
+                                av.Rotation = rot;
+                                av.SendAvatarDataToAllAgents();
+                            }
+                            break;
 
                         // parse rest doing nothing but number of parameters error check
-                    case (int)ScriptBaseClass.PRIM_SIZE:
-                    case (int)ScriptBaseClass.PRIM_MATERIAL:
-                    case (int)ScriptBaseClass.PRIM_PHANTOM:
-                    case (int)ScriptBaseClass.PRIM_PHYSICS:
-                    case (int)ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
-                    case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
-                    case (int)ScriptBaseClass.PRIM_NAME:
-                    case (int)ScriptBaseClass.PRIM_DESC:
-                        if (remain < 1)
+                        case (int)ScriptBaseClass.PRIM_SIZE:
+                        case (int)ScriptBaseClass.PRIM_MATERIAL:
+                        case (int)ScriptBaseClass.PRIM_PHANTOM:
+                        case (int)ScriptBaseClass.PRIM_PHYSICS:
+                        case (int)ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
+                        case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
+                        case (int)ScriptBaseClass.PRIM_NAME:
+                        case (int)ScriptBaseClass.PRIM_DESC:
+                            if (remain < 1)
+                                return;
+                            idx++;
+                            break;
+
+                        case (int)ScriptBaseClass.PRIM_GLOW:
+                        case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
+                        case (int)ScriptBaseClass.PRIM_TEXGEN:
+                            if (remain < 2)
+                                return;
+                            idx += 2;
+                            break;
+
+                        case (int)ScriptBaseClass.PRIM_TYPE:
+                            if (remain < 3)
+                                return;
+                            code = (int)rules.GetLSLIntegerItem(idx++);
+                            remain = rules.Length - idx;
+                            switch (code)
+                            {
+                                case (int)ScriptBaseClass.PRIM_TYPE_BOX:
+                                case (int)ScriptBaseClass.PRIM_TYPE_CYLINDER:
+                                case (int)ScriptBaseClass.PRIM_TYPE_PRISM:
+                                    if (remain < 6)
+                                        return;
+                                    idx += 6;
+                                    break;
+
+                                case (int)ScriptBaseClass.PRIM_TYPE_SPHERE:
+                                    if (remain < 5)
+                                        return;
+                                    idx += 5;
+                                    break;
+
+                                case (int)ScriptBaseClass.PRIM_TYPE_TORUS:
+                                case (int)ScriptBaseClass.PRIM_TYPE_TUBE:
+                                case (int)ScriptBaseClass.PRIM_TYPE_RING:
+                                    if (remain < 11)
+                                        return;
+                                    idx += 11;
+                                    break;
+
+                                case (int)ScriptBaseClass.PRIM_TYPE_SCULPT:
+                                    if (remain < 2)
+                                        return;
+                                    idx += 2;
+                                    break;
+                            }
+                            break;
+
+                        case (int)ScriptBaseClass.PRIM_COLOR:
+                        case (int)ScriptBaseClass.PRIM_TEXT:
+                        case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
+                        case (int)ScriptBaseClass.PRIM_OMEGA:
+                            if (remain < 3)
+                                return;
+                            idx += 3;
+                            break;
+
+                        case (int)ScriptBaseClass.PRIM_TEXTURE:
+                        case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
+                        case (int)ScriptBaseClass.PRIM_PHYSICS_MATERIAL:
+                            if (remain < 5)
+                                return;
+                            idx += 5;
+                            break;
+
+                        case (int)ScriptBaseClass.PRIM_FLEXIBLE:
+                            if (remain < 7)
+                                return;
+
+                            idx += 7;
+                            break;
+
+                        case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                            if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
+                                return;
+
+                            if (positionChanged)
+                            {
+                                positionChanged = false;
+                                av.OffsetPosition = finalPos;
+                                av.SendAvatarDataToAllAgents();
+                            }
+
+                            LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
+                            LSL_List new_rules = rules.GetSublist(idx, -1);
+                            setLinkPrimParams((int)new_linknumber, new_rules);
                             return;
-                        idx++;
-                        break;
+                    }
+                }
+            }
 
-                    case (int)ScriptBaseClass.PRIM_GLOW:
-                    case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
-                    case (int)ScriptBaseClass.PRIM_TEXGEN:
-                        if (remain < 2)
-                            return;
-                        idx += 2;
-                        break;
-
-                    case (int)ScriptBaseClass.PRIM_TYPE:
-                        if (remain < 3)
-                            return;
-                        code = (int)rules.GetLSLIntegerItem(idx++);
-                        remain = rules.Length - idx;
-                        switch (code)
-                        {
-                            case (int)ScriptBaseClass.PRIM_TYPE_BOX:
-                            case (int)ScriptBaseClass.PRIM_TYPE_CYLINDER:
-                            case (int)ScriptBaseClass.PRIM_TYPE_PRISM:
-                                if (remain < 6)
-                                    return;
-                                idx += 6;
-                                break;
-
-                            case (int)ScriptBaseClass.PRIM_TYPE_SPHERE:
-                                if (remain < 5)
-                                    return;
-                                idx += 5;
-                                break;
-
-                            case (int)ScriptBaseClass.PRIM_TYPE_TORUS:
-                            case (int)ScriptBaseClass.PRIM_TYPE_TUBE:
-                            case (int)ScriptBaseClass.PRIM_TYPE_RING:
-                                if (remain < 11)
-                                    return;
-                                idx += 11;
-                                break;
-
-                            case (int)ScriptBaseClass.PRIM_TYPE_SCULPT:
-                                if (remain < 2)
-                                    return;
-                                idx += 2;
-                                break;
-                        }
-                        break;
-
-                    case (int)ScriptBaseClass.PRIM_COLOR:
-                    case (int)ScriptBaseClass.PRIM_TEXT:
-                    case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
-                    case (int)ScriptBaseClass.PRIM_OMEGA:
-                        if (remain < 3)
-                            return;
-                        idx += 3;
-                        break;
-
-                    case (int)ScriptBaseClass.PRIM_TEXTURE:
-                    case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
-                    case (int)ScriptBaseClass.PRIM_PHYSICS_MATERIAL:
-                        if (remain < 5)
-                            return;
-                        idx += 5;
-                        break;
-
-                    case (int)ScriptBaseClass.PRIM_FLEXIBLE:
-                        if (remain < 7)
-                            return;
-
-                        idx += 7;
-                        break;
-
-                    case (int)ScriptBaseClass.PRIM_LINK_TARGET:
-                        if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
-                            return;
-                        LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
-                        LSL_List new_rules = rules.GetSublist(idx, -1);
-                        setLinkPrimParams((int)new_linknumber, new_rules);
-                        return;
+            finally
+            {
+                if (positionChanged)
+                {
+                    av.OffsetPosition = finalPos;
+                    av.SendAvatarDataToAllAgents();
+                    positionChanged = false;
                 }
             }
         }
@@ -8127,8 +8154,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return;
 
                             v=rules.GetVector3Item(idx++);
-                            positionChanged = true;
                             currentPosition = GetSetPosTarget(part, v, currentPosition);
+                            positionChanged = true;
 
                             break;
                         case (int)ScriptBaseClass.PRIM_SIZE:
@@ -8510,13 +8537,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             LSL_Float gain = rules.GetLSLFloatItem(idx++);
                             TargetOmega(part, axis, (double)spinrate, (double)gain);
                             break;
+
                         case (int)ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
                                 return;
 
-                            // do a pending position change
+                            // do a pending position change before jumping to other part/avatar
                             if (positionChanged)
                             {
+                                positionChanged = false;
                                 if (parentgrp == null)
                                     return;
 
@@ -8545,7 +8574,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             finally
             {
-/*
                 if (positionChanged)
                 {
                     if (part.ParentGroup.RootPart == part)
@@ -8563,27 +8591,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         parent.ScheduleGroupForTerseUpdate();
                     }
                 }
- */
-            }
-
-            if (positionChanged)
-            {
-                if (parentgrp == null)
-                    return;
-
-                if (parentgrp.RootPart == part)
-                {
-                    
-                    Util.FireAndForget(delegate(object x) {
-                        parentgrp.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
-                    });
-                }
-                else
-                {
-                    part.OffsetPosition = new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z);
-                    parentgrp.HasGroupChanged = true;
-                    parentgrp.ScheduleGroupForTerseUpdate();
-                }    
             }
         }
 
@@ -8914,7 +8921,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // replies as SL wiki
 
             LSL_List res = new LSL_List();
-            SceneObjectPart sitPart = avatar.ParentPart; // most likelly it will be needed
+//            SceneObjectPart sitPart = avatar.ParentPart; // most likelly it will be needed
+            SceneObjectPart sitPart = World.GetSceneObjectPart(avatar.ParentID); // maybe better do this expensive search for it in case it's gone??
+
             int idx = 0;
             while (idx < rules.Length)
             {
@@ -8941,6 +8950,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_POSITION:
                         Vector3 pos = avatar.AbsolutePosition;
+                        Vector3 sitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f);
+                        pos -= sitOffset;
                         res.Add(new LSL_Vector(pos.X,pos.Y,pos.Z));
                         break;
 
@@ -9139,8 +9150,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             lpos = sitPart.OffsetPosition + (lpos * sitPart.RotationOffset); // make it relative to root prim
                         }
+                        Vector3 lsitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f);
+                        lpos -= lsitOffset;
                         res.Add(new LSL_Vector(lpos.X,lpos.Y,lpos.Z));
                         break;
+
+                    case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                        if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
+                            return res;
+                        LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
+                        LSL_List new_rules = rules.GetSublist(idx, -1);
+
+                        res += llGetLinkPrimitiveParams((int)new_linknumber, new_rules);
+                        return res;
                 }
             }
             return res;
@@ -9532,6 +9554,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             res.Add(new LSL_Float(primglow));
                         }
                         break;
+
                     case (int)ScriptBaseClass.PRIM_TEXT:
                         Color4 textColor = part.GetTextColor();
                         res.Add(new LSL_String(part.Text));
@@ -9540,18 +9563,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                                textColor.B));
                         res.Add(new LSL_Float(textColor.A));
                         break;
+
                     case (int)ScriptBaseClass.PRIM_NAME:
                         res.Add(new LSL_String(part.Name));
                         break;
+
                     case (int)ScriptBaseClass.PRIM_DESC:
                         res.Add(new LSL_String(part.Description));
                         break;
+
                     case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                         res.Add(new LSL_Rotation(part.RotationOffset.X, part.RotationOffset.Y, part.RotationOffset.Z, part.RotationOffset.W));
                         break;
+
                     case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                         res.Add(new LSL_Vector(GetPartLocalPos(part)));
                         break;
+
+                    case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                        if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
+                            return res;
+                        LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
+                        LSL_List new_rules = rules.GetSublist(idx, -1);
+                        LSL_List tres = llGetLinkPrimitiveParams((int)new_linknumber, new_rules);
+                        res += tres;
+                        return res;                       
                 }
             }
             return res;
