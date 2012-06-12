@@ -26,6 +26,7 @@
  */
 
 using System;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -71,5 +72,11 @@ namespace OpenSim.Framework
         /// This includes scene object data and the appearance data of other avatars.
         /// </remarks>
         void SendInitialDataToMe();
+
+        /// <summary>
+        /// Direction in which the scene presence is looking.
+        /// </summary>
+        /// <remarks>Will be Vector3.Zero for a child agent.</remarks>
+        Vector3 Lookat { get; }        
     }
 }

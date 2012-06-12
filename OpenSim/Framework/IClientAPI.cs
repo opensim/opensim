@@ -749,14 +749,21 @@ namespace OpenSim.Framework
         /// </summary>
         string Name { get; }
 
-        /// <value>
-        /// Determines whether the client thread is doing anything or not.
-        /// </value>
+        /// <summary>
+        /// True if the client is active (sending and receiving new UDP messages).  False if the client is being closed.
+        /// </summary>
         bool IsActive { get; set; }
 
-        /// <value>
-        /// Determines whether the client is or has been removed from a given scene
-        /// </value>
+        /// <summary>
+        /// Set if the client is closing due to a logout request
+        /// </summary>
+        /// <remarks>
+        /// Do not use this flag if you want to know if the client is closing, since it will not be set in other
+        /// circumstances (e.g. if a child agent is closed or the agent is kicked off the simulator).  Use IsActive
+        /// instead with a IClientAPI.SceneAgent.IsChildAgent check if necessary.
+        ///
+        /// Only set for root agents.
+        /// </remarks>
         bool IsLoggingOut { get; set; }
         
         bool SendLogoutPacketWhenClosing { set; }

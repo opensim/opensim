@@ -515,6 +515,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void Close(bool sendStop)
         {
+            IsActive = false;
+
             m_log.DebugFormat(
                 "[CLIENT]: Close has been called for {0} attached to scene {1}",
                 Name, m_scene.RegionInfo.RegionName);
