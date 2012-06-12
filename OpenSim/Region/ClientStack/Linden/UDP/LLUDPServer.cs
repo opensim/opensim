@@ -794,7 +794,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Interlocked.Increment(ref udpClient.PacketsReceived);
 
             int now = Environment.TickCount & Int32.MaxValue;
-//            udpClient.TickLastPacketReceived = now;
+            udpClient.TickLastPacketReceived = now;
 
             #region ACK Receiving
 
