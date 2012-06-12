@@ -558,9 +558,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!client.IsLoggingOut &&
                 (Environment.TickCount & Int32.MaxValue) - udpClient.TickLastPacketReceived > timeoutTicks)
             {
-                m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + udpClient.AgentID);
+                m_log.WarnFormat(
+                    "[LLUDPSERVER]: Ack timeout for {0} {1}, disconnecting",
+                    client.Name, client.AgentId);
+
                 StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
-                RemoveClient(client);
+                LogoutClientDueToTimeout(client);
 
                 return;
             }
@@ -1119,6 +1122,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // everybody else if this is being called due to an ack timeout.
             // This is the same as processing as the async process of a logout request.
             Util.FireAndForget(o => client.Close());
+        }
+
+        private void LogoutClientDueToTimeout(IClientAPI client)
+        {
+            // We must set IsLoggingOut synchronously so that we can stop the packet loop reinvoking this method.
+            client.IsLoggingOut = true;
+
+            // Fire this out on a different thread so that we don't hold up outgoing packet processing for
+            // everybody else if this is being called due to an ack timeout.
+            // This is the same as processing as the async process of a logout request.
+            Util.FireAndForget(
+                o =>
+                    { if (!client.SceneAgent.IsChildAgent)
+                        client.Kick("Simulator logged you out due to connection timeout");
+                      client.Close(); });
         }
 
         private void IncomingPacketHandler()
