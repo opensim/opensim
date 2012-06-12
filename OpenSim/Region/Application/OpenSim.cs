@@ -70,6 +70,7 @@ namespace OpenSim
         private Regex m_consolePromptRegex = new Regex(@"([^\\])\\(\w)", RegexOptions.Compiled);
 
         private string m_timedScript = "disabled";
+        private int m_timeInterval = 1200;
         private Timer m_scriptTimer;
 
         public OpenSim(IConfigSource configSource) : base(configSource)
@@ -99,6 +100,10 @@ namespace OpenSim
                     m_consolePort = (uint)networkConfig.GetInt("console_port", 0);
 
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
+                if (m_timedScript != "disabled")
+                {
+                    m_timeInterval = startupConfig.GetInt("timer_Interval", 1200);
+                }
 
                 if (m_logFileAppender != null)
                 {
@@ -216,7 +221,7 @@ namespace OpenSim
             {
                 m_scriptTimer = new Timer();
                 m_scriptTimer.Enabled = true;
-                m_scriptTimer.Interval = 1200*1000;
+                m_scriptTimer.Interval = m_timeInterval*1000;
                 m_scriptTimer.Elapsed += RunAutoTimerScript;
             }
         }
