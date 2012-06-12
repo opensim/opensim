@@ -90,15 +90,16 @@ namespace OpenSim.Framework.Servers.HttpServer
                         }
 
                         Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
-                        m_server.DoHTTPGruntWork(responsedata,
-                                                 new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request),req.HttpContext));
+                        DoHTTPGruntWork(m_server, req, responsedata);
                     }
                     else
                     {
                         if ((Environment.TickCount - req.RequestTime) > m_timeout)
                         {
-                            m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id),
-                                                     new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request),req.HttpContext));
+                            DoHTTPGruntWork(
+                                m_server,
+                                req,
+                                req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
                         }
                         else
                         {
@@ -118,6 +119,48 @@ namespace OpenSim.Framework.Servers.HttpServer
         internal void Enqueue(PollServiceHttpRequest pPollServiceHttpRequest)
         {
             m_request.Enqueue(pPollServiceHttpRequest);
+        }
+
+        /// <summary>
+        /// FIXME: This should be part of BaseHttpServer
+        /// </summary>
+        internal static void DoHTTPGruntWork(BaseHttpServer server, PollServiceHttpRequest req, Hashtable responsedata)
+        {
+            OSHttpResponse response
+                = new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext);
+
+            byte[] buffer
+                = server.DoHTTPGruntWork(
+                    responsedata, new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
+
+            response.SendChunked = false;
+            response.ContentLength64 = buffer.Length;
+            response.ContentEncoding = Encoding.UTF8;
+
+            try
+            {
+                response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
+            catch (Exception ex)
+            {
+                m_log.Warn(string.Format("[POLL SERVICE WORKER THREAD]: Error ", ex));
+            }
+            finally
+            {
+                //response.OutputStream.Close();
+                try
+                {
+                    response.OutputStream.Flush();
+                    response.Send();
+
+                    //if (!response.KeepAlive && response.ReuseContext)
+                    //    response.FreeContext();
+                }
+                catch (Exception e)
+                {
+                    m_log.Warn(String.Format("[POLL SERVICE WORKER THREAD]: Error ", e));
+                }
+            }
         }
     }
 }

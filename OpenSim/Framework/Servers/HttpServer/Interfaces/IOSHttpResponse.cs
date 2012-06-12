@@ -128,11 +128,5 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <param name="value">string containing the header field
         /// value</param>
         void AddHeader(string key, string value);
-
-        /// <summary>
-        /// Send the response back to the remote client
-        /// </summary>
-        void Send();
     }
 }
-
