@@ -12625,9 +12625,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         results.Add(r);
                 }
 
-            // bug: will not detect phantom unless they are physical
-            // don't use ObjectIntersection because its also bad
-
+                // TODO: Replace this with a better solution. ObjectIntersection can only
+                // detect nonphysical phantoms. They are detected by virtue of being
+                // nonphysical (e.g. no PhysActor) so will not conflict with detecting
+                // physicsl phantoms as done by the physics scene
+                // We don't want anything else but phantoms here.
+                if (detectPhantom)
+                {
+                    ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd, false, false, true);
+                    foreach (ContactResult r in objectHits)
+                        results.Add(r);
+                }
             }
             else
             {
