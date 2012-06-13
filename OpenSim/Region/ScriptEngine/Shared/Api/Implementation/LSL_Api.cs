@@ -7099,7 +7099,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             // LSL quaternions can normalize to 0, normal Quaternions can't.
             if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
-                rot.z = 1; // ZERO_ROTATION = 0,0,0,1
+                rot.s = 1; // ZERO_ROTATION = 0,0,0,1
 
             part.SitTargetPosition = new Vector3((float)offset.x, (float)offset.y, (float)offset.z);
             part.SitTargetOrientation = Rot2Quaternion(rot);
