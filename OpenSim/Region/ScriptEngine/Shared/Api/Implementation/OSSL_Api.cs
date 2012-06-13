@@ -1965,7 +1965,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             string retval = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
-            string url = config.Configs["GridInfo"].GetString("GridInfoURI", String.Empty);
+            string url = null;
+
+            IConfig gridInfoConfig = config.Configs["GridInfo"];
+
+            if (gridInfoConfig != null)
+                url = gridInfoConfig.GetString("GridInfoURI", String.Empty);
 
             if (String.IsNullOrEmpty(url))
                 return "Configuration Error!";
