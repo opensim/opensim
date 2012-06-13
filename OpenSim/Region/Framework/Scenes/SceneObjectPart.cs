@@ -3125,8 +3125,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup.IsDeleted)
                 return;
 
-            if (ParentGroup.IsAttachment && (ParentGroup.AttachedAvatar != remoteClient.AgentId) &&
-                (ParentGroup.AttachmentPoint >= 31) && (ParentGroup.AttachmentPoint <= 38))
+            if (ParentGroup.IsAttachment
+                && ParentGroup.AttachedAvatar != remoteClient.AgentId
+                && ParentGroup.HasPrivateAttachmentPoint)
                 return;
 
             if (remoteClient.AgentId == OwnerID)
