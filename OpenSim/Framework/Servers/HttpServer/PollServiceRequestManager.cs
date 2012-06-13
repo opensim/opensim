@@ -140,9 +140,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             foreach (object o in m_requests)
             {
                 PollServiceHttpRequest req = (PollServiceHttpRequest) o;
-                m_server.DoHTTPGruntWork(
-                    req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id),
-                    new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
+                PollServiceWorkerThread.DoHTTPGruntWork(
+                    m_server, req, req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
             }
 
             m_requests.Clear();
@@ -151,6 +150,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 t.Abort();
             }
+            
             m_running = false;
         }
     }

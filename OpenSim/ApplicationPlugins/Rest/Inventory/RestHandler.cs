@@ -539,7 +539,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// path has not already been registered, the method is added to the active
         /// handler table.
         /// </summary>
-
         public void AddStreamHandler(string httpMethod, string path, RestMethod method)
         {
             if (!IsEnabled)
