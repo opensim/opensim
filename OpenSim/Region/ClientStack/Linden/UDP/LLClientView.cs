@@ -11861,10 +11861,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return string.Empty;
         }
 
-        public void KillEndDone()
-        {
-        }
-
         #region IClientCore
 
         private readonly Dictionary<Type, object> m_clientInterfaces = new Dictionary<Type, object>();
