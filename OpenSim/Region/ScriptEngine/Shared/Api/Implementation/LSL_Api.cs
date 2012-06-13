@@ -11800,6 +11800,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_List ret = new LSL_List();
             UUID key = new UUID();
+            
+
             if (UUID.TryParse(id, out key))
             {
                 ScenePresence av = World.GetScenePresence(key);
@@ -11817,13 +11819,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_String(""));
                                 break;
                             case ScriptBaseClass.OBJECT_POS:
-                                ret.Add(new LSL_Vector((double)av.AbsolutePosition.X, (double)av.AbsolutePosition.Y, (double)av.AbsolutePosition.Z));
+                                Vector3 avpos = av.AbsolutePosition;
+                                ret.Add(new LSL_Vector((double)avpos.X, (double)avpos.Y, (double)avpos.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_ROT:
-                                ret.Add(new LSL_Rotation((double)av.Rotation.X, (double)av.Rotation.Y, (double)av.Rotation.Z, (double)av.Rotation.W));
+                                Quaternion avrot = av.Rotation;
+                                if(av.ParentID != 0 && av.ParentPart != null)
+                                {
+                                    avrot = av.ParentPart.GetWorldRotation() * avrot;
+                                }
+                                ret.Add(new LSL_Rotation((double)avrot.X, (double)avrot.Y, (double)avrot.Z, (double)avrot.W));
                                 break;
                             case ScriptBaseClass.OBJECT_VELOCITY:
-                                ret.Add(new LSL_Vector(av.Velocity.X, av.Velocity.Y, av.Velocity.Z));
+                                Vector3 avvel = av.Velocity;
+                                ret.Add(new LSL_Vector((double)avvel.X, (double)avvel.Y, (double)avvel.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_OWNER:
                                 ret.Add(new LSL_String(id));
@@ -11879,17 +11888,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.OBJECT_NAME:
                                 ret.Add(new LSL_String(obj.Name));
                                 break;
-                            case ScriptBaseClass.OBJECT_DESC:
+                            case ScriptBaseClass.OBJECT_DESC:                               
                                 ret.Add(new LSL_String(obj.Description));
                                 break;
                             case ScriptBaseClass.OBJECT_POS:
-                                ret.Add(new LSL_Vector(obj.AbsolutePosition.X, obj.AbsolutePosition.Y, obj.AbsolutePosition.Z));
+                                Vector3 opos = obj.AbsolutePosition;
+                                ret.Add(new LSL_Vector(opos.X, opos.Y, opos.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_ROT:
-                                ret.Add(new LSL_Rotation(obj.RotationOffset.X, obj.RotationOffset.Y, obj.RotationOffset.Z, obj.RotationOffset.W));
+                                Quaternion orot = obj.RotationOffset;
+                                ret.Add(new LSL_Rotation(orot.X, orot.Y, orot.Z, orot.W));
                                 break;
                             case ScriptBaseClass.OBJECT_VELOCITY:
-                                ret.Add(new LSL_Vector(obj.Velocity.X, obj.Velocity.Y, obj.Velocity.Z));
+                                Vector3 ovel = obj.Velocity;
+                                ret.Add(new LSL_Vector(ovel.X, ovel.Y, ovel.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_OWNER:
                                 ret.Add(new LSL_String(obj.OwnerID.ToString()));
@@ -11927,17 +11939,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 // The value returned in SL for normal prims is prim count
                                 ret.Add(new LSL_Integer(0));
                                 break;
+
+                            // costs below may need to be diferent for root parts, need to check
                             case ScriptBaseClass.OBJECT_SERVER_COST:
                                 // The value returned in SL for normal prims is prim count
                                 ret.Add(new LSL_Float(0));
                                 break;
                             case ScriptBaseClass.OBJECT_STREAMING_COST:
                                 // The value returned in SL for normal prims is prim count * 0.06
-                                ret.Add(new LSL_Float(0));
+                                ret.Add(new LSL_Float(obj.StreamingCost));
                                 break;
                             case ScriptBaseClass.OBJECT_PHYSICS_COST:
                                 // The value returned in SL for normal prims is prim count
-                                ret.Add(new LSL_Float(0));
+                                ret.Add(new LSL_Float(obj.PhysicsCost));
                                 break;
                             default:
                                 // Invalid or unhandled constant.
