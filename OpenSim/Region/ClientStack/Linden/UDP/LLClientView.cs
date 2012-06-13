@@ -3780,16 +3780,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                     if (!canUseImproved && !canUseCompressed)
                     {
+                        ObjectUpdatePacket.ObjectDataBlock updateBlock;
+
                         if (update.Entity is ScenePresence)
                         {
-                            objectUpdateBlocks.Value.Add(CreateAvatarUpdateBlock((ScenePresence)update.Entity));
-                            objectUpdates.Value.Add(update);
+                            updateBlock = CreateAvatarUpdateBlock((ScenePresence)update.Entity);
                         }
                         else
                         {
-                            objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId));
-                            objectUpdates.Value.Add(update);
+                            updateBlock = CreatePrimUpdateBlock((SceneObjectPart)update.Entity, AgentId);
                         }
+
+                        objectUpdateBlocks.Value.Add(updateBlock);
+                        objectUpdates.Value.Add(update);
                     }
                     else if (!canUseImproved)
                     {
@@ -3814,7 +3817,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                     #endregion Block Construction
                 }
-                
     
                 #region Packet Sending
                 ushort timeDilation = Utils.FloatToUInt16(avgTimeDilation, 0.0f, 1.0f);
