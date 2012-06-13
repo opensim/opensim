@@ -7959,13 +7959,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 Vector3 pos = new Vector3((float)v.x, (float)v.y, (float)v.z); // requested absolute position
 
-                                pos -= sitpart.OffsetPosition; // remove sit part offset
-
-                                Quaternion rot = sitpart.RotationOffset;
-                                pos *= Quaternion.Conjugate(rot); // removed sit part rotation
-
-//                                Vector3 sitOffset = (Zrot(av.Rotation)) * (av.Appearance.AvatarHeight * 0.02638f);
-//                                pos += sitOffset;
+                                if (sitpart != sitpart.ParentGroup.RootPart)
+                                {
+                                    pos -= sitpart.OffsetPosition; // remove sit part offset
+                                    Quaternion rot = sitpart.RotationOffset;
+                                    pos *= Quaternion.Conjugate(rot); // removed sit part rotation
+                                }
+                                Vector3 sitOffset = (Zrot(av.Rotation)) * (av.Appearance.AvatarHeight * 0.02638f * 2.0f);
+                                pos += sitOffset;
 
                                 finalPos = pos;
                                 positionChanged = true;
@@ -7990,8 +7991,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     rot = sitgrp.RootPart.RotationOffset * rot;
                                 }
 
-                                Quaternion srot = sitpart.GetWorldRotation();
-                                rot = Quaternion.Conjugate(srot) * rot; // removed sit part world rotation
+                                Quaternion srot = sitpart.RotationOffset;
+                                rot = Quaternion.Conjugate(srot) * rot; // removed sit part offset rotation
                                 av.Rotation = rot;
                                 av.SendAvatarDataToAllAgents();
                             }
@@ -8007,10 +8008,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 LSL_Rotation r = rules.GetQuaternionItem(idx++);
                                 Quaternion rot = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s); // requested offset rotation
-
-                                Quaternion srot = sitpart.RotationOffset;
-                                rot = Quaternion.Conjugate(srot) * rot; // remove sit part offset rotation
-
+                                if (sitpart != sitpart.ParentGroup.RootPart)
+                                {
+                                    Quaternion srot = sitpart.RotationOffset;
+                                    rot = Quaternion.Conjugate(srot) * rot; // remove sit part offset rotation
+                                }
                                 av.Rotation = rot;
                                 av.SendAvatarDataToAllAgents();
                             }
@@ -8956,12 +8958,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_POSITION:
 
-                        // can't use Abs pos to extract offset...
-//                        Vector3 pos = avatar.AbsolutePosition;
                         Vector3 pos = avatar.OffsetPosition;
 
-//                        Vector3 sitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f);
-//                        pos -= sitOffset;
+                        Vector3 sitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f *2.0f);
+                        pos -= sitOffset;
 
                         if( sitPart != null)
                             pos = sitPart.GetWorldPosition() + pos * sitPart.GetWorldRotation();
@@ -9151,7 +9151,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_ROT_LOCAL:                      
                         Quaternion lrot = avatar.Rotation;
-                        if (sitPart != null)
+
+                        if (sitPart != null && sitPart != sitPart.ParentGroup.RootPart)
                         {
                             lrot = sitPart.RotationOffset * lrot; // apply sit part rotation offset
                         }
@@ -9160,10 +9161,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                         Vector3 lpos = avatar.OffsetPosition; // pos relative to sit part
-//                        Vector3 lsitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f);
-//                        lpos -= lsitOffset;
+                        Vector3 lsitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f * 2.0f);
+                        lpos -= lsitOffset;
 
-                        if (sitPart != null)
+                        if (sitPart != null && sitPart != sitPart.ParentGroup.RootPart)
                         {
                             lpos = sitPart.OffsetPosition + (lpos * sitPart.RotationOffset); // make it relative to root prim
                         }
@@ -11819,12 +11820,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_String(""));
                                 break;
                             case ScriptBaseClass.OBJECT_POS:
-                                Vector3 avpos = av.AbsolutePosition;
+                                Vector3 avpos;
+
+                                if (av.ParentID != 0 && av.ParentPart != null)
+                                {
+                                    avpos = av.OffsetPosition;
+
+                                    Vector3 sitOffset = (Zrot(av.Rotation)) * (av.Appearance.AvatarHeight * 0.02638f *2.0f);
+                                    avpos -= sitOffset;
+
+                                    avpos = av.ParentPart.GetWorldPosition() + avpos * av.ParentPart.GetWorldRotation();
+                                }
+                                else
+                                    avpos = av.AbsolutePosition;
+                                
                                 ret.Add(new LSL_Vector((double)avpos.X, (double)avpos.Y, (double)avpos.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_ROT:
                                 Quaternion avrot = av.Rotation;
-                                if(av.ParentID != 0 && av.ParentPart != null)
+                                if (av.ParentID != 0 && av.ParentPart != null)
                                 {
                                     avrot = av.ParentPart.GetWorldRotation() * avrot;
                                 }
@@ -11896,8 +11910,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_Vector(opos.X, opos.Y, opos.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_ROT:
-                                Quaternion orot = obj.RotationOffset;
-                                ret.Add(new LSL_Rotation(orot.X, orot.Y, orot.Z, orot.W));
+//                                Quaternion orot = obj.RotationOffset;                               
+//                                ret.Add(new LSL_Rotation(orot.X, orot.Y, orot.Z, orot.W));
+
+                                LSL_Rotation objrot = GetPartRot(obj);
+                                ret.Add(objrot);
                                 break;
                             case ScriptBaseClass.OBJECT_VELOCITY:
                                 Vector3 ovel = obj.Velocity;
