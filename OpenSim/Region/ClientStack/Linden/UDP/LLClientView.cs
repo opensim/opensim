@@ -3904,7 +3904,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         canUseImproved = false;
                     }
                 }
-
+    
                 #endregion UpdateFlags to packet type conversion
 
                 #region Block Construction
@@ -11862,7 +11862,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (DebugPacketLevel <= 100 && (packet.Type == PacketType.AvatarAnimation || packet.Type == PacketType.ViewerEffect))
                     logPacket = false;
                 
-                if (DebugPacketLevel <= 50 && packet.Type == PacketType.ImprovedTerseObjectUpdate)
+                if (DebugPacketLevel <= 50
+                    & (packet.Type == PacketType.ImprovedTerseObjectUpdate || packet.Type == PacketType.ObjectUpdate))
                     logPacket = false;
 
                 if (DebugPacketLevel <= 25 && packet.Type == PacketType.ObjectPropertiesFamily)
@@ -12070,10 +12071,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
             }
             return string.Empty;
-        }
-
-        public void KillEndDone()
-        {
         }
 
         #region IClientCore

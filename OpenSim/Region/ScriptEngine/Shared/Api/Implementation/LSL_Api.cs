@@ -11737,7 +11737,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     Tri t1 = new Tri();
                     Tri t2 = new Tri();
-                    
+
                     Vector3 p1 = new Vector3(x-1, y-1, (float)heightfield[x-1, y-1]);
                     Vector3 p2 = new Vector3(x, y-1, (float)heightfield[x, y-1]);
                     Vector3 p3 = new Vector3(x, y, (float)heightfield[x, y]);
@@ -11778,7 +11778,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // sometimes
                 if (Math.Abs(b) < 0.000001)
                     continue;
-                
+
                 double r = a / b;
 
                 // ray points away from plane

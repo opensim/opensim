@@ -1131,10 +1131,6 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public void KillEndDone()
-        {
-        }
-
         public void SendEventInfoReply (EventData info)
         {
         }

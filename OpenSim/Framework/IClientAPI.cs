@@ -1430,8 +1430,6 @@ namespace OpenSim.Framework
 
         void SendGroupVoteHistory(UUID groupID, UUID transactionID, GroupVoteHistory[] Votes);
 
-        void KillEndDone();
-
         bool AddGenericPacketHandler(string MethodName, GenericMessage handler);
 
         void SendRebakeAvatarTextures(UUID textureID);

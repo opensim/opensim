@@ -85,6 +85,13 @@ namespace OpenSim.Services.GridService
                 if (MainConsole.Instance != null)
                 {
                     MainConsole.Instance.Commands.AddCommand("Regions", true,
+                            "deregister region",
+                            "deregister region <Region UUID>",
+                            "Deregister a region manually.",
+                            String.Empty,
+                            HandleDeregisterRegion);
+
+                    MainConsole.Instance.Commands.AddCommand("Regions", true,
                             "show region",
                             "show region <Region name>",
                             "Show details on a region",
@@ -493,6 +500,44 @@ namespace OpenSim.Services.GridService
             }
             else
                 return -1;
+        }
+
+        private void HandleDeregisterRegion(string module, string[] cmd)
+        {
+            if (cmd.Length != 3)
+            {
+                MainConsole.Instance.Output("Syntax: degregister region <Region UUID>");
+                return;
+            }
+
+            string rawRegionUuid = cmd[2];
+            UUID regionUuid;
+
+            if (!UUID.TryParse(rawRegionUuid, out regionUuid))
+            {
+                MainConsole.Instance.OutputFormat("{0} is not a valid region uuid", rawRegionUuid);
+                return;
+            }
+
+            GridRegion region = GetRegionByUUID(UUID.Zero, regionUuid);
+
+            if (region == null)
+            {
+                MainConsole.Instance.OutputFormat("No region with UUID {0}", regionUuid);
+                return;
+            }
+
+            if (DeregisterRegion(regionUuid))
+            {
+                MainConsole.Instance.OutputFormat("Deregistered {0} {1}", region.RegionName, regionUuid);
+            }
+            else
+            {
+                // I don't think this can ever occur if we know that the region exists.
+                MainConsole.Instance.OutputFormat("Error deregistering {0} {1}", region.RegionName, regionUuid);
+            }
+
+            return;
         }
 
         private void HandleShowRegion(string module, string[] cmd)

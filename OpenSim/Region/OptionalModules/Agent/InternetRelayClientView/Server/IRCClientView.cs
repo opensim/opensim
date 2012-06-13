@@ -1635,11 +1635,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void KillEndDone()
-        {
-            
-        }
-
         public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
         {
             return true;
