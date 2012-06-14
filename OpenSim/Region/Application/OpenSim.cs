@@ -250,10 +250,11 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("Comms", false, "debug http",
                                           "debug http <level>",
-                                          "Turn on inbound http request debugging for everything except the event queue (see debug eq).",
-                                            "If level >= 2 then the handler used to service the request is logged.\n"
-                                          + "If level >= 1 then incoming HTTP requests are logged.\n"
-                                          + "If level <= 0 then no extra http logging is done.\n",
+                                          "Turn on inbound non-poll http request debugging for everything except the event queue (see debug eq).",
+                                            "If level <= 0, then no extra logging is done.\n"
+                                          + "If level >= 1, then short warnings are logged when receiving bad input data.\n"
+                                          + "If level >= 2, then long warnings are logged when receiving bad input data.\n"
+                                          + "If level >= 3, then short notices about all incoming non-poll HTTP requests are logged.\n",
                                           Debug);
 
             m_console.Commands.AddCommand("Comms", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);

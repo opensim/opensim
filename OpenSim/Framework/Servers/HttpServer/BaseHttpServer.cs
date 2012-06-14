@@ -82,6 +82,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <summary>
         /// Control the printing of certain debug messages.
         /// </summary>
+        /// <remarks>
+        /// If DebugLevel >= 1, then short warnings are logged when receiving bad input data.
+        /// If DebugLevel >= 2, then long warnings are logged when receiving bad input data.
+        /// If DebugLevel >= 3, then short notices about all incoming non-poll HTTP requests are logged.
+        /// </remarks>
         public int DebugLevel { get; set; }
 
         public uint SSLPort
@@ -450,7 +455,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {
-                    if (DebugLevel >= 1)
+                    if (DebugLevel >= 3)
                         m_log.DebugFormat(
                             "[BASE HTTP SERVER]: Found stream handler for {0} {1} {2} {3}",
                             request.HttpMethod, request.Url.PathAndQuery, requestHandler.Name, requestHandler.Description);
@@ -531,7 +536,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         case null:
                         case "text/html":
     
-                            if (DebugLevel >= 1)
+                            if (DebugLevel >= 3)
                                 m_log.DebugFormat(
                                     "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
                                     request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
@@ -543,7 +548,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         case "application/xml+llsd":
                         case "application/llsd+json":
     
-                            if (DebugLevel >= 1)
+                            if (DebugLevel >= 3)
                                 m_log.DebugFormat(
                                     "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
                                     request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
@@ -564,7 +569,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             //m_log.Info("[Debug BASE HTTP SERVER]: Checking for LLSD Handler");
                             if (DoWeHaveALLSDHandler(request.RawUrl))
                             {
-                                if (DebugLevel >= 1)
+                                if (DebugLevel >= 3)
                                     m_log.DebugFormat(
                                         "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
                                         request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
@@ -574,7 +579,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     //                        m_log.DebugFormat("[BASE HTTP SERVER]: Checking for HTTP Handler for request {0}", request.RawUrl);
                             else if (DoWeHaveAHTTPHandler(request.RawUrl))
                             {
-                                if (DebugLevel >= 1)
+                                if (DebugLevel >= 3)
                                     m_log.DebugFormat(
                                         "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
                                         request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
@@ -583,8 +588,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             }
                             else
                             {
-    
-                                if (DebugLevel >= 1)
+                                if (DebugLevel >= 3)
                                     m_log.DebugFormat(
                                         "[BASE HTTP SERVER]: Assuming a generic XMLRPC request for {0} {1}",
                                         request.HttpMethod, request.Url.PathAndQuery);
@@ -793,8 +797,23 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 xmlRprcRequest = (XmlRpcRequest) (new XmlRpcRequestDeserializer()).Deserialize(requestBody);
             }
-            catch (XmlException)
+            catch (XmlException e)
             {
+                if (DebugLevel >= 1)
+                {
+                    if (DebugLevel >= 2)
+                        m_log.Warn(
+                            string.Format(
+                                "[BASE HTTP SERVER]: Got XMLRPC request with invalid XML from {0}.  XML was '{1}'.  Sending blank response.  Exception ",
+                                request.RemoteIPEndPoint, requestBody),
+                            e);
+                    else
+                    {
+                        m_log.WarnFormat(
+                            "[BASE HTTP SERVER]: Got XMLRPC request with invalid XML from {0}, length {1}.  Sending blank response.",
+                            request.RemoteIPEndPoint, requestBody.Length);
+                    }
+                }
             }
 
             if (xmlRprcRequest != null)
