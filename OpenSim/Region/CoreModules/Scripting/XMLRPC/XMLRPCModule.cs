@@ -131,11 +131,12 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             {
                 // Start http server
                 // Attach xmlrpc handlers
-                m_log.Info("[XML RPC MODULE]: " +
-                           "Starting up XMLRPC Server on port " + m_remoteDataPort + " for llRemoteData commands.");
-                BaseHttpServer httpServer = new BaseHttpServer((uint) m_remoteDataPort);
+//                m_log.InfoFormat(
+//                    "[XML RPC MODULE]: Starting up XMLRPC Server on port {0} for llRemoteData commands.",
+//                    m_remoteDataPort);
+
+                IHttpServer httpServer = MainServer.GetHttpServer((uint)m_remoteDataPort);
                 httpServer.AddXmlRPCHandler("llRemoteData", XmlRpcRemoteData);
-                httpServer.Start();
             }
         }
 
