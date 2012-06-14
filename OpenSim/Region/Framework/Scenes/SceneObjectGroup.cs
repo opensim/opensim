@@ -180,6 +180,22 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// If this scene object has an attachment point then indicate whether there is a point where
+        /// attachments are perceivable by avatars other than the avatar to which this object is attached.
+        /// </summary>
+        /// <remarks>
+        /// HUDs are not perceivable by other avatars.
+        /// </remarks>
+        public bool HasPrivateAttachmentPoint
+        {
+            get
+            {
+                return AttachmentPoint >= (uint)OpenMetaverse.AttachmentPoint.HUDCenter2
+                    && AttachmentPoint <= (uint)OpenMetaverse.AttachmentPoint.HUDBottomRight;
+            }
+        }
+
         public void ClearPartAttachmentData()
         {
             AttachmentPoint = 0;
