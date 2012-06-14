@@ -927,7 +927,7 @@ namespace OpenSim
                         }
                     }
 
-                    MainConsole.Instance.Output("Usage: debug http 0..2");
+                    MainConsole.Instance.Output("Usage: debug http 0..3");
                     break;
 
                 case "scene":
