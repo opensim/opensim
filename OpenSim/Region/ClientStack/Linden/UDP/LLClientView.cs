@@ -3828,9 +3828,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         else
                         {
-                            // Everything else goes here
-                            terseUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
+                            ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseUpdateBlock
+                                = CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures));
 
+                            // Everything else goes here
                             if (update.Entity is SceneObjectPart)
                             {
                                 SceneObjectPart part = (SceneObjectPart)update.Entity;
@@ -3843,6 +3844,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     continue;
                             }
 
+                            terseUpdateBlocks.Value.Add(terseUpdateBlock);
                             terseUpdates.Value.Add(update);
                         }
                     }
