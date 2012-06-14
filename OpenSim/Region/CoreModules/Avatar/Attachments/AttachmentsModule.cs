@@ -562,6 +562,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 {
                     m_scene.SendKillObject(new List<uint> { so.RootPart.LocalId });
                 }
+                else if (so.HasPrivateAttachmentPoint)
+                {
+//                    m_log.DebugFormat(
+//                        "[ATTACHMENTS MODULE]: Killing private HUD {0} for avatars other than {1} at attachment point {2}",
+//                        so.Name, sp.Name, so.AttachmentPoint);
+
+                    // Remove the client from everyone in the
+                    m_scene.ForEachClient(
+                        client =>
+                            { if (client.AgentId != so.AttachedAvatar)
+                                client.SendKillObject(m_scene.RegionInfo.RegionHandle, new List<uint>() { so.LocalId });
+                            });
+                }
 
                 so.IsSelected = false; // fudge....
                 so.ScheduleGroupForFullUpdate();
