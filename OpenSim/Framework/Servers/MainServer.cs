@@ -47,20 +47,43 @@ namespace OpenSim.Framework.Servers
             set { instance = value; }
         }
 
-        public static IHttpServer GetHttpServer(uint port)
-        {
-            return GetHttpServer(port,null);
-        }
-
+        /// <summary>
+        /// Add an already started HTTP server to the collection of known servers.
+        /// </summary>
+        /// <param name='server'></param>
         public static void AddHttpServer(BaseHttpServer server)
         {
             m_Servers.Add(server.Port, server);
         }
 
+        /// <summary>
+        /// Get the default http server or an http server for a specific port.
+        /// </summary>
+        /// <remarks>
+        /// If the requested HTTP server doesn't already exist then a new one is instantiated and started.
+        /// </remarks>
+        /// <returns></returns>
+        /// <param name='port'>If 0 then the default HTTP server is returned.</param>
+        public static IHttpServer GetHttpServer(uint port)
+        {
+            return GetHttpServer(port, null);
+        }
+
+        /// <summary>
+        /// Get the default http server, an http server for a specific port
+        /// and/or an http server bound to a specific address
+        /// </summary>
+        /// <remarks>
+        /// If the requested HTTP server doesn't already exist then a new one is instantiated and started.
+        /// </remarks>
+        /// <returns></returns>
+        /// <param name='port'>If 0 then the default HTTP server is returned.</param>
+        /// <param name='ipaddr'>A specific IP address to bind to.  If null then the default IP address is used.</param>
         public static IHttpServer GetHttpServer(uint port, IPAddress ipaddr)
         {
             if (port == 0)
                 return Instance;
+            
             if (instance != null && port == Instance.Port)
                 return Instance;
 
