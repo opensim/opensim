@@ -786,7 +786,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             requestStream.Close();
             //m_log.Debug(requestBody);
             requestBody = requestBody.Replace("<base64></base64>", "");
-            string responseString = null;
+            string responseString = String.Empty;
             XmlRpcRequest xmlRprcRequest = null;
 
             try
