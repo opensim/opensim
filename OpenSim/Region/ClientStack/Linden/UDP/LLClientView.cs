@@ -3848,6 +3848,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             terseUpdates.Value.Add(update);
                         }
                     }
+
+                    ++updatesThisCall;
     
                     #endregion Block Construction
                 }
@@ -3914,8 +3916,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // If any of the packets created from this call go unacknowledged, all of the updates will be resent
                     OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseUpdates.Value, oPacket); });
                 }
-
-                ++updatesThisCall;
             }
 
             #endregion Packet Sending
