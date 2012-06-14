@@ -568,7 +568,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 //                        "[ATTACHMENTS MODULE]: Killing private HUD {0} for avatars other than {1} at attachment point {2}",
 //                        so.Name, sp.Name, so.AttachmentPoint);
 
-                    // Remove the client from everyone in the
+                    // As this scene object can now only be seen by the attaching avatar, tell everybody else in the
+                    // scene that it's no longer in their awareness.
                     m_scene.ForEachClient(
                         client =>
                             { if (client.AgentId != so.AttachedAvatar)
