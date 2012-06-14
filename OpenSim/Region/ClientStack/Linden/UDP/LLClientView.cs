@@ -3722,8 +3722,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
     
-                    ++updatesThisCall;
-    
                     #region UpdateFlags to packet type conversion
     
                     PrimUpdateFlags updateFlags = (PrimUpdateFlags)update.Flags;
@@ -3788,7 +3786,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         else
                         {
-                            updateBlock = CreatePrimUpdateBlock((SceneObjectPart)update.Entity, AgentId);
+                            SceneObjectPart part = (SceneObjectPart)update.Entity;
+                            updateBlock = CreatePrimUpdateBlock(part, AgentId);
+
+                            // If the part has become a private hud since the update was scheduled then we do not
+                            // want to send it to other avatars.
+                            if (part.ParentGroup.IsAttachment
+                                && part.ParentGroup.HasPrivateAttachmentPoint
+                                && part.ParentGroup.AttachedAvatar != AgentId)
+                                continue;
                         }
 
                         objectUpdateBlocks.Value.Add(updateBlock);
@@ -3811,6 +3817,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             // Everything else goes here
                             terseUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
+
+                            if (update.Entity is SceneObjectPart)
+                            {
+                                SceneObjectPart part = (SceneObjectPart)update.Entity;
+
+                                // If the part has become a private hud since the update was scheduled then we do not
+                                // want to send it to other avatars.
+                                if (part.ParentGroup.IsAttachment
+                                    && part.ParentGroup.HasPrivateAttachmentPoint
+                                    && part.ParentGroup.AttachedAvatar != AgentId)
+                                    continue;
+                            }
+
                             terseUpdates.Value.Add(update);
                         }
                     }
@@ -3880,6 +3899,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // If any of the packets created from this call go unacknowledged, all of the updates will be resent
                     OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseUpdates.Value, oPacket); });
                 }
+
+                ++updatesThisCall;
             }
 
             #endregion Packet Sending
