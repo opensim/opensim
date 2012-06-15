@@ -660,18 +660,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             double x,y,z,s;
+            v.x *= 0.5;
+            v.y *= 0.5;
+            v.z *= 0.5;
+            double c1 = Math.Cos(v.x);
+            double c2 = Math.Cos(v.y);
+            double c1c2 = c1 * c2;
+            double s1 = Math.Sin(v.x);
+            double s2 = Math.Sin(v.y);
+            double s1s2 = s1 * s2;
+            double c1s2 = c1 * s2;
+            double s1c2 = s1 * c2;
+            double c3 = Math.Cos(v.z);
+            double s3 = Math.Sin(v.z);
 
-            double c1 = Math.Cos(v.x * 0.5);
-            double c2 = Math.Cos(v.y * 0.5);
-            double c3 = Math.Cos(v.z * 0.5);
-            double s1 = Math.Sin(v.x * 0.5);
-            double s2 = Math.Sin(v.y * 0.5);
-            double s3 = Math.Sin(v.z * 0.5);
-
-            x = s1 * c2 * c3 + c1 * s2 * s3;
-            y = c1 * s2 * c3 - s1 * c2 * s3;
-            z = s1 * s2 * c3 + c1 * c2 * s3;
-            s = c1 * c2 * c3 - s1 * s2 * s3;
+            x = s1c2 * c3 + c1s2 * s3;
+            y = c1s2 * c3 - s1c2 * s3;
+            z = s1s2 * c3 + c1c2 * s3;
+            s = c1c2 * c3 - s1s2 * s3;
 
             return new LSL_Rotation(x, y, z, s);
         }
@@ -1911,11 +1917,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Primitive.TextureEntry tex = part.Shape.Textures;
             Color4 texcolor;
             LSL_Vector rgb = new LSL_Vector();
+            int nsides = GetNumberOfSides(part);
+
             if (face == ScriptBaseClass.ALL_SIDES)
             {
                 int i;
-
-                for (i = 0 ; i < GetNumberOfSides(part); i++)
+                for (i = 0; i < nsides; i++)
                 {
                     texcolor = tex.GetFace((uint)i).RGBA;
                     rgb.x += texcolor.R;
@@ -1923,13 +1930,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     rgb.z += texcolor.B;
                 }
 
-                rgb.x /= (float)GetNumberOfSides(part);
-                rgb.y /= (float)GetNumberOfSides(part);
-                rgb.z /= (float)GetNumberOfSides(part);
+                float invnsides = 1.0f / (float)nsides;
+
+                rgb.x *= invnsides;
+                rgb.y *= invnsides;
+                rgb.z *= invnsides;
 
                 return rgb;
             }
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < nsides)
             {
                 texcolor = tex.GetFace((uint)face).RGBA;
                 rgb.x = texcolor.R;
@@ -2369,8 +2378,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // without the absoluteposition = absoluteposition happening, the doors do not move in the physics
             // scene
             PhysicsActor pa = part.PhysActor;
-
-            if (pa != null && !pa.IsPhysical)
+            // only root part rot changes positions
+            if (pa != null && !pa.IsPhysical && part == part.ParentGroup.RootPart)
             {
                 part.ParentGroup.ResetChildPrimPhysicsPositions();
             }
@@ -2422,7 +2431,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Rotation llGetLocalRot()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Rotation(m_host.RotationOffset.X, m_host.RotationOffset.Y, m_host.RotationOffset.Z, m_host.RotationOffset.W);
+            Quaternion rot = m_host.RotationOffset;
+            return new LSL_Rotation(rot.X, rot.Y, rot.Z, rot.W);
         }
 
         public void llSetForce(LSL_Vector force, int local)
