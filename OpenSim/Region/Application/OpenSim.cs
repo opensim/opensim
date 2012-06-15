@@ -238,7 +238,7 @@ namespace OpenSim
                                           "Force the update of all objects on clients",
                                           HandleForceUpdate);
 
-            m_console.Commands.AddCommand("Comms", false, "debug packet",
+            m_console.Commands.AddCommand("Debug", false, "debug packet",
                                           "debug packet <level> [<avatar-first-name> <avatar-last-name>]",
                                           "Turn on packet debugging",
                                             "If level >  255 then all incoming and outgoing packets are logged.\n"
@@ -250,9 +250,9 @@ namespace OpenSim
                                           + "If an avatar name is given then only packets from that avatar are logged",
                                           Debug);
 
-            m_console.Commands.AddCommand("Comms", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
+            m_console.Commands.AddCommand("Debug", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
 
-            m_console.Commands.AddCommand("Regions", false, "debug scene",
+            m_console.Commands.AddCommand("Debug", false, "debug scene",
                                           "debug scene <scripting> <collisions> <physics>",
                                           "Turn on scene debugging", Debug);
 
