@@ -611,7 +611,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool IsSelected
         {
-            get { return m_isSelected; }
+            get
+            {
+                return m_isSelected;
+            }
             set
             {
                 m_isSelected = value;
@@ -619,8 +622,23 @@ namespace OpenSim.Region.Framework.Scenes
                     ParentGroup.PartSelectChanged(value);
             }
         }
-        
-        
+
+        public bool IsPhysical
+        {
+            get
+            {
+                return ((Flags & PrimFlags.Physics) != 0);
+            }
+        }
+
+        public bool IsPhantom
+        {
+            get
+            {
+                return ((Flags & PrimFlags.Phantom) != 0);
+            }
+        }
+                    
         public Dictionary<int, string> CollisionFilter
         {
             get { return m_CollisionFilter; }
