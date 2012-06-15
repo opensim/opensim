@@ -986,8 +986,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 UseCircuitCodePacket uccp = (UseCircuitCodePacket)array[1];
 
                 m_log.DebugFormat(
-                    "[LLUDPSERVER]: Handling UseCircuitCode request for circuit {0} from {1}",
-                    uccp.CircuitCode.Code, buffer.RemoteEndPoint);
+                    "[LLUDPSERVER]: Handling UseCircuitCode request for circuit {0} to {1} from IP {2}",
+                    uccp.CircuitCode.Code, m_scene.RegionInfo.RegionName, buffer.RemoteEndPoint);
     
                 remoteEndPoint = (IPEndPoint)buffer.RemoteEndPoint;
     
@@ -1016,8 +1016,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     // Don't create clients for unauthorized requesters.
                     m_log.WarnFormat(
-                        "[LLUDPSERVER]: Connection request for client {0} connecting with unnotified circuit code {1} from {2}",
-                        uccp.CircuitCode.ID, uccp.CircuitCode.Code, remoteEndPoint);
+                        "[LLUDPSERVER]: Ignoring connection request for {0} to {1} with unknown circuit code {2} from IP {3}",
+                        uccp.CircuitCode.ID, m_scene.RegionInfo.RegionName, uccp.CircuitCode.Code, remoteEndPoint);
                 }
     
                 //            m_log.DebugFormat(
