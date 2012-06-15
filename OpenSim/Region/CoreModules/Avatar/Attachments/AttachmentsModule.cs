@@ -631,6 +631,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 {
                     m_scene.SendKillObject(new List<uint> { so.RootPart.LocalId });
                 }
+                else if (so.HasPrivateAttachmentPoint)
+                {
+//                    m_log.DebugFormat(
+//                        "[ATTACHMENTS MODULE]: Killing private HUD {0} for avatars other than {1} at attachment point {2}",
+//                        so.Name, sp.Name, so.AttachmentPoint);
+
+                    // As this scene object can now only be seen by the attaching avatar, tell everybody else in the
+                    // scene that it's no longer in their awareness.
+                    m_scene.ForEachClient(
+                        client =>
+                            { if (client.AgentId != so.AttachedAvatar)
+                                client.SendKillObject(m_scene.RegionInfo.RegionHandle, new List<uint>() { so.LocalId });
+                            });
+                }
 
                 so.IsSelected = false; // fudge....
                 so.ScheduleGroupForFullUpdate();
