@@ -2337,13 +2337,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // (root prim). ParentID may be nonzero in attachments and
                 // using it would cause attachments and HUDs to rotate
                 // to the wrong positions.
+                
                 SetRot(m_host, Rot2Quaternion(rot));
             }
             else
             {
                 // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
-                SceneObjectPart rootPart = m_host.ParentGroup.RootPart;
-                if (rootPart != null) // better safe than sorry
+                SceneObjectPart rootPart;// = m_host.ParentGroup.RootPart;
+                if (m_host.ParentGroup != null && ((rootPart = m_host.ParentGroup.RootPart) != null)) // better safe than sorry
                 {
                     SetRot(m_host, rootPart.RotationOffset * Rot2Quaternion(rot));
                 }
@@ -2355,6 +2356,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetLocalRot(LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
+
             SetRot(m_host, Rot2Quaternion(rot));
             ScriptSleep(200);
         }
@@ -2364,24 +2366,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
+            bool isroot = (part == part.ParentGroup.RootPart);
+
+            // SL doesn't let scripts rotate root of physical linksets
+            if (isroot && part.IsPhysical)
+                return;
+
             part.UpdateRotation(rot);
+
             // Update rotation does not move the object in the physics scene if it's a linkset.
-
-//KF:  Do NOT use this next line if using ODE physics engine. This need a switch based on .ini Phys Engine type
-//          part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition;
-
-            // So, after thinking about this for a bit, the issue with the part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition line
-            // is it isn't compatible with vehicles because it causes the vehicle body to have to be broken down and rebuilt
-            // It's perfectly okay when the object is not an active physical body though.
-            // So, part.ParentGroup.ResetChildPrimPhysicsPositions(); does the thing that Kitto is warning against
-            // but only if the object is not physial and active.   This is important for rotating doors.
-            // without the absoluteposition = absoluteposition happening, the doors do not move in the physics
-            // scene
-            PhysicsActor pa = part.PhysActor;
-            // only root part rot changes positions
-            if (pa != null && !pa.IsPhysical && part == part.ParentGroup.RootPart)
+            // so do a nasty update
+            // but only root part rotation changes positions and only needed if we have physics actor
+            if (isroot && part.PhysActor != null)
             {
                 part.ParentGroup.ResetChildPrimPhysicsPositions();
+            }
+            else // fix sitting avatars
+            {
+                List<ScenePresence> sittingavas = part.ParentGroup.GetLinkedAvatars();
+                if (sittingavas.Count > 0)
+                {
+                    foreach (ScenePresence av in sittingavas)
+                    {
+                        if (isroot || part.LocalId == av.ParentID)
+                            av.SendAvatarDataToAllAgents();
+                    }
+                }
             }
         }
 
@@ -8544,6 +8554,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                             if (remain < 1)
                                 return;
+
                             LSL_Rotation lr = rules.GetQuaternionItem(idx++);
                             SetRot(part, Rot2Quaternion(lr));
                             break;
