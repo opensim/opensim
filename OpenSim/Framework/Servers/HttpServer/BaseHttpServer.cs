@@ -1557,6 +1557,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private void StartHTTP()
         {
+            m_log.InfoFormat(
+                "[BASE HTTP SERVER]: Starting {0} server on port {1}", UseSSL ? "HTTPS" : "HTTP", Port);
+
             try
             {
                 //m_httpListener = new HttpListener();

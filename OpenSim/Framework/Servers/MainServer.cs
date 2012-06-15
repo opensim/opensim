@@ -30,13 +30,15 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Net;
 using log4net;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Framework.Servers
 {
     public class MainServer
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static BaseHttpServer instance = null;
         private static Dictionary<uint, BaseHttpServer> m_Servers = new Dictionary<uint, BaseHttpServer>();
@@ -84,6 +86,57 @@ namespace OpenSim.Framework.Servers
                         throw new Exception("HTTP server must already have been registered to be set as the main instance");
 
                 instance = value;
+            }
+        }
+
+        /// <summary>
+        /// Get all the registered servers.
+        /// </summary>
+        /// <remarks>
+        /// Returns a copy of the dictionary so this can be iterated through without locking.
+        /// </remarks>
+        /// <value></value>
+        public static Dictionary<uint, BaseHttpServer> Servers
+        {
+            get { return new Dictionary<uint, BaseHttpServer>(m_Servers); }
+        }
+
+
+        public static void RegisterHttpConsoleCommands(ICommandConsole console)
+        {
+            console.Commands.AddCommand(
+                "Comms", false, "debug http", "debug http [<level>]",
+                "Turn on inbound non-poll http request debugging.",
+                  "If level <= 0, then no extra logging is done.\n"
+                + "If level >= 1, then short warnings are logged when receiving bad input data.\n"
+                + "If level >= 2, then long warnings are logged when receiving bad input data.\n"
+                + "If level >= 3, then short notices about all incoming non-poll HTTP requests are logged.\n"
+                + "If no level is specified then the current level is returned.",
+                HandleDebugHttpCommand);
+        }
+
+        /// <summary>
+        /// Turn on some debugging values for OpenSim.
+        /// </summary>
+        /// <param name="args"></param>
+        private static void HandleDebugHttpCommand(string module, string[] args)
+        {
+            if (args.Length == 3)
+            {
+                int newDebug;
+                if (int.TryParse(args[2], out newDebug))
+                {
+                    MainServer.DebugLevel = newDebug;
+                    MainConsole.Instance.OutputFormat("Debug http level set to {0}", newDebug);
+                }
+            }
+            else if (args.Length == 2)
+            {
+                MainConsole.Instance.OutputFormat("Current debug http level is {0}", MainServer.DebugLevel);
+            }
+            else
+            {
+                MainConsole.Instance.Output("Usage: debug http 0..3");
             }
         }
 
@@ -171,11 +224,10 @@ namespace OpenSim.Framework.Servers
                 if (ipaddr != null)
                     m_Servers[port].ListenIPAddress = ipaddr;
 
-                m_log.InfoFormat("[MAIN HTTP SERVER]: Starting main http server on port {0}", port);
                 m_Servers[port].Start();
-            }
 
-            return m_Servers[port];
+                return m_Servers[port];
+            }
         }
     }
 }

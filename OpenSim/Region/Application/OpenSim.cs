@@ -231,6 +231,8 @@ namespace OpenSim
         /// </summary>
         private void RegisterConsoleCommands()
         {
+            MainServer.RegisterHttpConsoleCommands(m_console);
+
             m_console.Commands.AddCommand("Objects", false, "force update",
                                           "force update",
                                           "Force the update of all objects on clients",
@@ -246,16 +248,6 @@ namespace OpenSim
                                           + "If level <=  50 then outgoing ImprovedTerseObjectUpdate packets are not logged.\n"
                                           + "If level <= 0 then no packets are logged.\n"
                                           + "If an avatar name is given then only packets from that avatar are logged",
-                                          Debug);
-
-            m_console.Commands.AddCommand("Comms", false, "debug http",
-                                          "debug http [<level>]",
-                                          "Turn on inbound non-poll http request debugging for everything except the event queue (see debug eq).",
-                                            "If level <= 0, then no extra logging is done.\n"
-                                          + "If level >= 1, then short warnings are logged when receiving bad input data.\n"
-                                          + "If level >= 2, then long warnings are logged when receiving bad input data.\n"
-                                          + "If level >= 3, then short notices about all incoming non-poll HTTP requests are logged.\n"
-                                          + "If no level is specified then the current level is returned.",
                                           Debug);
 
             m_console.Commands.AddCommand("Comms", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
@@ -912,28 +904,6 @@ namespace OpenSim
                         {
                             MainConsole.Instance.Output("Usage: debug packet 0..255");
                         }
-                    }
-
-                    break;
-
-                case "http":
-                    if (args.Length == 3)
-                    {
-                        int newDebug;
-                        if (int.TryParse(args[2], out newDebug))
-                        {
-                            MainServer.DebugLevel = newDebug;
-                            MainConsole.Instance.OutputFormat("Debug http level set to {0}", newDebug);
-                            break;
-                        }
-                    }
-                    else if (args.Length == 2)
-                    {
-                        MainConsole.Instance.OutputFormat("Current debug http level is {0}", MainServer.DebugLevel);
-                    }
-                    else
-                    {
-                        MainConsole.Instance.Output("Usage: debug http 0..3");
                     }
 
                     break;
