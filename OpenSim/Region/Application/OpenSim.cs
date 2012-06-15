@@ -249,12 +249,13 @@ namespace OpenSim
                                           Debug);
 
             m_console.Commands.AddCommand("Comms", false, "debug http",
-                                          "debug http <level>",
+                                          "debug http [<level>]",
                                           "Turn on inbound non-poll http request debugging for everything except the event queue (see debug eq).",
                                             "If level <= 0, then no extra logging is done.\n"
                                           + "If level >= 1, then short warnings are logged when receiving bad input data.\n"
                                           + "If level >= 2, then long warnings are logged when receiving bad input data.\n"
-                                          + "If level >= 3, then short notices about all incoming non-poll HTTP requests are logged.\n",
+                                          + "If level >= 3, then short notices about all incoming non-poll HTTP requests are logged.\n"
+                                          + "If no level is specified then the current level is returned.",
                                           Debug);
 
             m_console.Commands.AddCommand("Comms", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
@@ -926,8 +927,15 @@ namespace OpenSim
                             break;
                         }
                     }
+                    else if (args.Length == 2)
+                    {
+                        MainConsole.Instance.OutputFormat("Current debug http level is {0}", MainServer.DebugLevel);
+                    }
+                    else
+                    {
+                        MainConsole.Instance.Output("Usage: debug http 0..3");
+                    }
 
-                    MainConsole.Instance.Output("Usage: debug http 0..3");
                     break;
 
                 case "scene":
