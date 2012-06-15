@@ -42,42 +42,9 @@ namespace OpenSim.Server.Base
     {
         // Logger
         //
-        private static readonly ILog m_Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType); 
+        private static readonly ILog m_Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // The http server instance
-        //
-        protected BaseHttpServer m_HttpServer = null;
-        protected uint m_Port = 0;
-        protected Dictionary<uint, BaseHttpServer> m_Servers =
-            new Dictionary<uint, BaseHttpServer>();
-        protected uint m_consolePort = 0;
-
-        public IHttpServer HttpServer
-        {
-            get { return m_HttpServer; }
-        }
-
-        public uint DefaultPort
-        {
-            get { return m_Port; }
-        }
-
-        public IHttpServer GetHttpServer(uint port)
-        {
-            m_Log.InfoFormat("[SERVER]: Requested port {0}", port);
-            if (port == m_Port)
-                return HttpServer;
-
-            if (m_Servers.ContainsKey(port))
-                return m_Servers[port];
-
-            m_Servers[port] = new BaseHttpServer(port);
-            
-            m_Log.InfoFormat("[SERVER]: Starting new HTTP server on port {0}", port);
-            m_Servers[port].Start();
-
-            return m_Servers[port];
-        }
+        private uint m_consolePort;
 
         // Handle all the automagical stuff
         //
@@ -94,19 +61,21 @@ namespace OpenSim.Server.Base
                 System.Console.WriteLine("Section 'Network' not found, server can't start");
                 Thread.CurrentThread.Abort();
             }
+
             uint port = (uint)networkConfig.GetInt("port", 0);
 
             if (port == 0)
             {
-
                 Thread.CurrentThread.Abort();
             }
-            //
+
             bool ssl_main = networkConfig.GetBoolean("https_main",false);
             bool ssl_listener = networkConfig.GetBoolean("https_listener",false);
 
             m_consolePort = (uint)networkConfig.GetInt("ConsolePort", 0);
-            m_Port = port;
+
+            BaseHttpServer httpServer = null;
+
             //
             // This is where to make the servers:
             //
@@ -118,8 +87,7 @@ namespace OpenSim.Server.Base
             //
             if ( !ssl_main )
             {
-                m_HttpServer = new BaseHttpServer(port);
-
+                httpServer = new BaseHttpServer(port);
             }
             else
             {
@@ -135,10 +103,12 @@ namespace OpenSim.Server.Base
                     System.Console.WriteLine("Password for X509 certificate is missing, server can't start.");
                     Thread.CurrentThread.Abort();
                 }
-                m_HttpServer = new BaseHttpServer(port, ssl_main, cert_path, cert_pass);
+
+                httpServer = new BaseHttpServer(port, ssl_main, cert_path, cert_pass);
             }
 
-            MainServer.Instance = m_HttpServer;
+            MainServer.AddHttpServer(httpServer);
+            MainServer.Instance = httpServer;
 
             // If https_listener = true, then add an ssl listener on the https_port...
             if ( ssl_listener == true ) {
@@ -157,43 +127,24 @@ namespace OpenSim.Server.Base
                     System.Console.WriteLine("Password for X509 certificate is missing, server can't start.");
                     Thread.CurrentThread.Abort();
                 }
-                // Add our https_server
-                BaseHttpServer server = null;
-                server = new BaseHttpServer(https_port, ssl_listener, cert_path, cert_pass);
-                if (server != null)
-                {
-                    m_Log.InfoFormat("[SERVER]: Starting HTTPS server on port {0}", https_port);
-                    m_Servers.Add(https_port,server);
-                }
-                else
-                    System.Console.WriteLine(String.Format("Failed to start HTTPS server on port {0}",https_port));
+
+                MainServer.AddHttpServer(new BaseHttpServer(https_port, ssl_listener, cert_path, cert_pass));
             }
         }
 
         protected override void Initialise()
         {
-            m_Log.InfoFormat("[SERVER]: Starting HTTP server on port {0}", m_HttpServer.Port);
-            m_HttpServer.Start();
+            foreach (BaseHttpServer s in MainServer.Servers.Values)
+                s.Start();
 
-            if (m_Servers.Count > 0)
-            {
-                foreach (BaseHttpServer s in m_Servers.Values)
-                {
-                    if (!s.UseSSL)
-                        m_Log.InfoFormat("[SERVER]: Starting HTTP server on port {0}", s.Port);
-                    else
-                        m_Log.InfoFormat("[SERVER]: Starting HTTPS server on port {0}", s.Port);
-
-                    s.Start();
-                }
-            }
+            MainServer.RegisterHttpConsoleCommands(MainConsole.Instance);
 
             if (MainConsole.Instance is RemoteConsole)
             {
                 if (m_consolePort == 0)
-                    ((RemoteConsole)MainConsole.Instance).SetServer(m_HttpServer);
+                    ((RemoteConsole)MainConsole.Instance).SetServer(MainServer.Instance);
                 else
-                    ((RemoteConsole)MainConsole.Instance).SetServer(GetHttpServer(m_consolePort));
+                    ((RemoteConsole)MainConsole.Instance).SetServer(MainServer.GetHttpServer(m_consolePort));
             }
         }
     }

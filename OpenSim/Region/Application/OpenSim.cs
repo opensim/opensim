@@ -231,6 +231,8 @@ namespace OpenSim
         /// </summary>
         private void RegisterConsoleCommands()
         {
+            MainServer.RegisterHttpConsoleCommands(m_console);
+
             m_console.Commands.AddCommand("Objects", false, "force update",
                                           "force update",
                                           "Force the update of all objects on clients",
@@ -246,14 +248,6 @@ namespace OpenSim
                                           + "If level <=  50 then outgoing ImprovedTerseObjectUpdate packets are not logged.\n"
                                           + "If level <= 0 then no packets are logged.\n"
                                           + "If an avatar name is given then only packets from that avatar are logged",
-                                          Debug);
-
-            m_console.Commands.AddCommand("Comms", false, "debug http",
-                                          "debug http <level>",
-                                          "Turn on inbound http request debugging for everything except the event queue (see debug eq).",
-                                            "If level >= 2 then the handler used to service the request is logged.\n"
-                                          + "If level >= 1 then incoming HTTP requests are logged.\n"
-                                          + "If level <= 0 then no extra http logging is done.\n",
                                           Debug);
 
             m_console.Commands.AddCommand("Comms", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
@@ -912,21 +906,6 @@ namespace OpenSim
                         }
                     }
 
-                    break;
-
-                case "http":
-                    if (args.Length == 3)
-                    {
-                        int newDebug;
-                        if (int.TryParse(args[2], out newDebug))
-                        {
-                            MainServer.Instance.DebugLevel = newDebug;
-                            MainConsole.Instance.OutputFormat("Debug http level set to {0}", newDebug);
-                            break;
-                        }
-                    }
-
-                    MainConsole.Instance.Output("Usage: debug http 0..2");
                     break;
 
                 case "scene":
