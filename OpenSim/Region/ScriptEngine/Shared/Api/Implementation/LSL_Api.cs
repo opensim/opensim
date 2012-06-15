@@ -2370,7 +2370,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // scene
             PhysicsActor pa = part.PhysActor;
 
-            if (pa != null && !pa.IsPhysical)
+            if (pa != null && !pa.IsPhysical && part == part.ParentGroup.RootPart)
             {
                 part.ParentGroup.ResetChildPrimPhysicsPositions();
             }
