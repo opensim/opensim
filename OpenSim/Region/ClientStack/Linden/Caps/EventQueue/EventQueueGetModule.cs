@@ -106,7 +106,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 scene.EventManager.OnRegisterCaps += OnRegisterCaps;
 
                 MainConsole.Instance.Commands.AddCommand(
-                    "Comms",
+                    "Debug",
                     false,
                     "debug eq",
                     "debug eq [0|1|2]",

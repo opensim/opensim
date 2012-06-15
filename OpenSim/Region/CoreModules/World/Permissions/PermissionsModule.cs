@@ -221,7 +221,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     "Force permissions on or off",
                     HandleForcePermissions);
 
-            m_scene.AddCommand("Users", this, "debug permissions",
+            m_scene.AddCommand("Debug", this, "debug permissions",
                     "debug permissions <true / false>",
                     "Turn on permissions debugging",
                     HandleDebugPermissions);                    

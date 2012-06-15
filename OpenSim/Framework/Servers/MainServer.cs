@@ -105,7 +105,7 @@ namespace OpenSim.Framework.Servers
         public static void RegisterHttpConsoleCommands(ICommandConsole console)
         {
             console.Commands.AddCommand(
-                "Comms", false, "debug http", "debug http [<level>]",
+                "Debug", false, "debug http", "debug http [<level>]",
                 "Turn on inbound non-poll http request debugging.",
                   "If level <= 0, then no extra logging is done.\n"
                 + "If level >= 1, then short warnings are logged when receiving bad input data.\n"
