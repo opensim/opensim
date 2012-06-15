@@ -138,6 +138,7 @@ namespace OpenSim.Server.Base
                 m_HttpServer = new BaseHttpServer(port, ssl_main, cert_path, cert_pass);
             }
 
+            MainServer.AddHttpServer(m_HttpServer);
             MainServer.Instance = m_HttpServer;
 
             // If https_listener = true, then add an ssl listener on the https_port...
@@ -157,16 +158,8 @@ namespace OpenSim.Server.Base
                     System.Console.WriteLine("Password for X509 certificate is missing, server can't start.");
                     Thread.CurrentThread.Abort();
                 }
-                // Add our https_server
-                BaseHttpServer server = null;
-                server = new BaseHttpServer(https_port, ssl_listener, cert_path, cert_pass);
-                if (server != null)
-                {
-                    m_Log.InfoFormat("[SERVER]: Starting HTTPS server on port {0}", https_port);
-                    m_Servers.Add(https_port,server);
-                }
-                else
-                    System.Console.WriteLine(String.Format("Failed to start HTTPS server on port {0}",https_port));
+
+                m_Servers.Add(https_port, new BaseHttpServer(https_port, ssl_listener, cert_path, cert_pass));
             }
         }
 

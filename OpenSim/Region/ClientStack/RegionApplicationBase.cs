@@ -94,6 +94,7 @@ namespace OpenSim.Region.ClientStack
             m_log.InfoFormat("[REGION SERVER]: Starting HTTP server on port {0}", m_httpServerPort);
             m_httpServer.Start();
 
+            MainServer.AddHttpServer(m_httpServer);
             MainServer.Instance = m_httpServer;
 
             // "OOB" Server

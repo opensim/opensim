@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Net;
@@ -40,13 +41,20 @@ namespace OpenSim.Framework.Servers
         private static BaseHttpServer instance = null;
         private static Dictionary<uint, BaseHttpServer> m_Servers = new Dictionary<uint, BaseHttpServer>();
 
+        /// <summary>
+        /// Control the printing of certain debug messages.
+        /// </summary>
+        /// <remarks>
+        /// If DebugLevel >= 1, then short warnings are logged when receiving bad input data.
+        /// If DebugLevel >= 2, then long warnings are logged when receiving bad input data.
+        /// If DebugLevel >= 3, then short notices about all incoming non-poll HTTP requests are logged.
+        /// </remarks>
         public static int DebugLevel
         {
             get { return s_debugLevel; }
             set
             {
                 s_debugLevel = value;
-                Instance.DebugLevel = s_debugLevel;
 
                 lock (m_Servers)
                     foreach (BaseHttpServer server in m_Servers.Values)
@@ -56,20 +64,70 @@ namespace OpenSim.Framework.Servers
 
         private static int s_debugLevel;
 
+        /// <summary>
+        /// Set the main HTTP server instance.
+        /// </summary>
+        /// <remarks>
+        /// This will be used to register all handlers that listen to the default port.
+        /// </remarks>
+        /// <exception cref='Exception'>
+        /// Thrown if the HTTP server has not already been registered via AddHttpServer()
+        /// </exception>
         public static BaseHttpServer Instance
         {
             get { return instance; }
-            set { instance = value; }
+
+            set
+            {
+                lock (m_Servers)
+                    if (!m_Servers.ContainsValue(value))
+                        throw new Exception("HTTP server must already have been registered to be set as the main instance");
+
+                instance = value;
+            }
         }
 
         /// <summary>
-        /// Add an already started HTTP server to the collection of known servers.
+        /// Register an already started HTTP server to the collection of known servers.
         /// </summary>
         /// <param name='server'></param>
         public static void AddHttpServer(BaseHttpServer server)
         {
             lock (m_Servers)
+            {
+                if (m_Servers.ContainsKey(server.Port))
+                    throw new Exception(string.Format("HTTP server for port {0} already exists.", server.Port));
+
                 m_Servers.Add(server.Port, server);
+            }
+        }
+
+        /// <summary>
+        /// Removes the http server listening on the given port.
+        /// </summary>
+        /// <remarks>
+        /// It is the responsibility of the caller to do clean up.
+        /// </remarks>
+        /// <param name='port'></param>
+        /// <returns></returns>
+        public static bool RemoveHttpServer(uint port)
+        {
+            lock (m_Servers)
+                return m_Servers.Remove(port);
+        }
+
+        /// <summary>
+        /// Does this collection of servers contain one with the given port?
+        /// </summary>
+        /// <remarks>
+        /// Unlike GetHttpServer, this will not instantiate a server if one does not exist on that port.
+        /// </remarks>
+        /// <param name='port'></param>
+        /// <returns>true if a server with the given port is registered, false otherwise.</returns>
+        public static bool ContainsHttpServer(uint port)
+        {
+            lock (m_Servers)
+                return m_Servers.ContainsKey(port);
         }
 
         /// <summary>
