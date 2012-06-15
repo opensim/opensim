@@ -2332,7 +2332,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // scene
             PhysicsActor pa = part.PhysActor;
 
-            if (pa != null && !pa.IsPhysical)
+            if (pa != null && !pa.IsPhysical && part == part.ParentGroup.RootPart)
             {
                 part.ParentGroup.ResetChildPrimPhysicsPositions();
             }
@@ -6917,7 +6917,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             // LSL quaternions can normalize to 0, normal Quaternions can't.
             if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
-                rot.z = 1; // ZERO_ROTATION = 0,0,0,1
+                rot.s = 1; // ZERO_ROTATION = 0,0,0,1
 
             part.SitTargetPosition = new Vector3((float)offset.x, (float)offset.y, (float)offset.z);
             part.SitTargetOrientation = Rot2Quaternion(rot);
@@ -7720,73 +7720,231 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(200);
         }
 
+        // vector up using libomv (c&p from sop )
+        // vector up rotated by r
+        private Vector3 Zrot(Quaternion r)
+        {
+            double x, y, z, m;
+
+            m = r.X * r.X + r.Y * r.Y + r.Z * r.Z + r.W * r.W;
+            if (Math.Abs(1.0 - m) > 0.000001)
+            {
+                m = 1.0 / Math.Sqrt(m);
+                r.X *= (float)m;
+                r.Y *= (float)m;
+                r.Z *= (float)m;
+                r.W *= (float)m;
+            }
+
+            x = 2 * (r.X * r.Z + r.Y * r.W);
+            y = 2 * (-r.X * r.W + r.Y * r.Z);
+            z = -r.X * r.X - r.Y * r.Y + r.Z * r.Z + r.W * r.W;
+
+            return new Vector3((float)x, (float)y, (float)z);
+        }
+
         protected void SetPrimParams(ScenePresence av, LSL_List rules)
         {
             //This is a special version of SetPrimParams to deal with avatars which are sat on the linkset.
-            //We only support PRIM_POSITION and PRIM_ROTATION
 
             int idx = 0;
+            SceneObjectPart sitpart = World.GetSceneObjectPart(av.ParentID); // betting this will be used
 
-            while (idx < rules.Length)
+            bool positionChanged = false;
+            Vector3 finalPos = Vector3.Zero;
+
+            try
             {
-                int code = rules.GetLSLIntegerItem(idx++);
-
-                int remain = rules.Length - idx;
-
-                switch (code)
+                while (idx < rules.Length)
                 {
-                    case (int)ScriptBaseClass.PRIM_POSITION:
-                        {
+                    int code = rules.GetLSLIntegerItem(idx++);
+
+                    int remain = rules.Length - idx;
+
+                    switch (code)
+                    {
+                        // a avatar is a child 
+                        case (int)ScriptBaseClass.PRIM_POSITION:
+                        case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                            {
+                                if (remain < 1)
+                                    return;
+                                LSL_Vector v;
+                                v = rules.GetVector3Item(idx++);
+
+                                if (sitpart == null)
+                                    break;
+
+                                Vector3 pos = new Vector3((float)v.x, (float)v.y, (float)v.z); // requested absolute position
+
+                                if (sitpart != sitpart.ParentGroup.RootPart)
+                                {
+                                    pos -= sitpart.OffsetPosition; // remove sit part offset
+                                    Quaternion rot = sitpart.RotationOffset;
+                                    pos *= Quaternion.Conjugate(rot); // removed sit part rotation
+                                }
+                                Vector3 sitOffset = (Zrot(av.Rotation)) * (av.Appearance.AvatarHeight * 0.02638f * 2.0f);
+                                pos += sitOffset;
+
+                                finalPos = pos;
+                                positionChanged = true;
+                            }
+                            break;
+
+                        case (int)ScriptBaseClass.PRIM_ROTATION:
+                            {
+                                if (remain < 1)
+                                    return;
+
+                                if (sitpart == null)
+                                    break;
+
+                                LSL_Rotation r = rules.GetQuaternionItem(idx++);
+                                Quaternion rot = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s); // requested world rotation
+
+// need to replicate SL bug
+                                SceneObjectGroup sitgrp = sitpart.ParentGroup;
+                                if (sitgrp != null && sitgrp.RootPart != sitpart)
+                                {
+                                    rot = sitgrp.RootPart.RotationOffset * rot;
+                                }
+
+                                Quaternion srot = sitpart.RotationOffset;
+                                rot = Quaternion.Conjugate(srot) * rot; // removed sit part offset rotation
+                                av.Rotation = rot;
+                                av.SendAvatarDataToAllAgents();
+                            }
+                            break;
+
+                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                            {
+                                if (remain < 1)
+                                    return;
+
+                                if (sitpart == null)
+                                    break;
+
+                                LSL_Rotation r = rules.GetQuaternionItem(idx++);
+                                Quaternion rot = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s); // requested offset rotation
+                                if (sitpart != sitpart.ParentGroup.RootPart)
+                                {
+                                    Quaternion srot = sitpart.RotationOffset;
+                                    rot = Quaternion.Conjugate(srot) * rot; // remove sit part offset rotation
+                                }
+                                av.Rotation = rot;
+                                av.SendAvatarDataToAllAgents();
+                            }
+                            break;
+
+                        // parse rest doing nothing but number of parameters error check
+                        case (int)ScriptBaseClass.PRIM_SIZE:
+                        case (int)ScriptBaseClass.PRIM_MATERIAL:
+                        case (int)ScriptBaseClass.PRIM_PHANTOM:
+                        case (int)ScriptBaseClass.PRIM_PHYSICS:
+                        case (int)ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
+                        case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
+                        case (int)ScriptBaseClass.PRIM_NAME:
+                        case (int)ScriptBaseClass.PRIM_DESC:
                             if (remain < 1)
                                 return;
-                            LSL_Vector v;
-                            v = rules.GetVector3Item(idx++);
+                            idx++;
+                            break;
 
-                            SceneObjectPart part = World.GetSceneObjectPart(av.ParentID);
-                            if (part == null)
-                                break;
+                        case (int)ScriptBaseClass.PRIM_GLOW:
+                        case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
+                        case (int)ScriptBaseClass.PRIM_TEXGEN:
+                            if (remain < 2)
+                                return;
+                            idx += 2;
+                            break;
 
-                            LSL_Rotation localRot = ScriptBaseClass.ZERO_ROTATION;
-                            LSL_Vector localPos = ScriptBaseClass.ZERO_VECTOR;
-                            if (llGetLinkNumber() > 1)
+                        case (int)ScriptBaseClass.PRIM_TYPE:
+                            if (remain < 3)
+                                return;
+                            code = (int)rules.GetLSLIntegerItem(idx++);
+                            remain = rules.Length - idx;
+                            switch (code)
                             {
-                                localRot = llGetLocalRot();
-                                localPos = llGetLocalPos();
+                                case (int)ScriptBaseClass.PRIM_TYPE_BOX:
+                                case (int)ScriptBaseClass.PRIM_TYPE_CYLINDER:
+                                case (int)ScriptBaseClass.PRIM_TYPE_PRISM:
+                                    if (remain < 6)
+                                        return;
+                                    idx += 6;
+                                    break;
+
+                                case (int)ScriptBaseClass.PRIM_TYPE_SPHERE:
+                                    if (remain < 5)
+                                        return;
+                                    idx += 5;
+                                    break;
+
+                                case (int)ScriptBaseClass.PRIM_TYPE_TORUS:
+                                case (int)ScriptBaseClass.PRIM_TYPE_TUBE:
+                                case (int)ScriptBaseClass.PRIM_TYPE_RING:
+                                    if (remain < 11)
+                                        return;
+                                    idx += 11;
+                                    break;
+
+                                case (int)ScriptBaseClass.PRIM_TYPE_SCULPT:
+                                    if (remain < 2)
+                                        return;
+                                    idx += 2;
+                                    break;
                             }
+                            break;
 
-                            v -= localPos;
-                            v /= localRot;
+                        case (int)ScriptBaseClass.PRIM_COLOR:
+                        case (int)ScriptBaseClass.PRIM_TEXT:
+                        case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
+                        case (int)ScriptBaseClass.PRIM_OMEGA:
+                            if (remain < 3)
+                                return;
+                            idx += 3;
+                            break;
 
-                            LSL_Vector sitOffset = (llRot2Up(new LSL_Rotation(av.Rotation.X, av.Rotation.Y, av.Rotation.Z, av.Rotation.W)) * av.Appearance.AvatarHeight * 0.02638f);
-                            
-                            v = v + 2 * sitOffset;
+                        case (int)ScriptBaseClass.PRIM_TEXTURE:
+                        case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
+                        case (int)ScriptBaseClass.PRIM_PHYSICS_MATERIAL:
+                            if (remain < 5)
+                                return;
+                            idx += 5;
+                            break;
 
-                            av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
-                            av.SendAvatarDataToAllAgents();
-
-                        }
-                        break;
-
-                    case (int)ScriptBaseClass.PRIM_ROTATION:
-                        {
-                            if (remain < 1)
+                        case (int)ScriptBaseClass.PRIM_FLEXIBLE:
+                            if (remain < 7)
                                 return;
 
-                            LSL_Rotation localRot = ScriptBaseClass.ZERO_ROTATION;
-                            LSL_Vector localPos = ScriptBaseClass.ZERO_VECTOR;
-                            if (llGetLinkNumber() > 1)
+                            idx += 7;
+                            break;
+
+                        case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                            if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
+                                return;
+
+                            if (positionChanged)
                             {
-                                localRot = llGetLocalRot();
-                                localPos = llGetLocalPos();
+                                positionChanged = false;
+                                av.OffsetPosition = finalPos;
+                                av.SendAvatarDataToAllAgents();
                             }
 
-                            LSL_Rotation r;
-                            r = rules.GetQuaternionItem(idx++);
-                            r = r * llGetRootRotation() / localRot;
-                            av.Rotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
-                            av.SendAvatarDataToAllAgents();
-                        }
-                        break;
+                            LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
+                            LSL_List new_rules = rules.GetSublist(idx, -1);
+                            setLinkPrimParams((int)new_linknumber, new_rules);
+                            return;
+                    }
+                }
+            }
+
+            finally
+            {
+                if (positionChanged)
+                {
+                    av.OffsetPosition = finalPos;
+                    av.SendAvatarDataToAllAgents();
+                    positionChanged = false;
                 }
             }
         }
@@ -7797,6 +7955,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             int idx = 0;
+
+            SceneObjectGroup parentgrp = part.ParentGroup;
 
             bool positionChanged = false;
             LSL_Vector currentPosition = GetPartLocalPos(part);
@@ -7820,8 +7980,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return;
 
                             v=rules.GetVector3Item(idx++);
-                            positionChanged = true;
                             currentPosition = GetSetPosTarget(part, v, currentPosition);
+                            positionChanged = true;
 
                             break;
                         case (int)ScriptBaseClass.PRIM_SIZE:
@@ -7837,8 +7997,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return;
 
                             LSL_Rotation q = rules.GetQuaternionItem(idx++);
+                            SceneObjectPart rootPart = parentgrp.RootPart;
                             // try to let this work as in SL...
-                            if (part.ParentID == 0)
+                            if (rootPart == part)
                             {
                                 // special case: If we are root, rotate complete SOG to new rotation
                                 SetRot(part, Rot2Quaternion(q));
@@ -7846,7 +8007,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             else
                             {
                                 // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
-                                SceneObjectPart rootPart = part.ParentGroup.RootPart;
+                                // sounds like sl bug that we need to replicate
                                 SetRot(part, rootPart.RotationOffset * Rot2Quaternion(q));
                             }
 
@@ -8099,7 +8260,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                  return;
 
                              string ph = rules.Data[idx++].ToString();
-                             m_host.ParentGroup.ScriptSetPhantomStatus(ph.Equals("1"));
+                             parentgrp.ScriptSetPhantomStatus(ph.Equals("1"));
 
                              break;
 
@@ -8152,7 +8313,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return;
                             string temp = rules.Data[idx++].ToString();
 
-                            m_host.ParentGroup.ScriptSetTemporaryStatus(temp.Equals("1"));
+                            parentgrp.ScriptSetTemporaryStatus(temp.Equals("1"));
 
                             break;
 
@@ -8202,13 +8363,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             LSL_Float gain = rules.GetLSLFloatItem(idx++);
                             TargetOmega(part, axis, (double)spinrate, (double)gain);
                             break;
+
                         case (int)ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
                                 return;
+
+                            // do a pending position change before jumping to other part/avatar
+                            if (positionChanged)
+                            {
+                                positionChanged = false;
+                                if (parentgrp == null)
+                                    return;
+
+                                if (parentgrp.RootPart == part)
+                                {
+
+                                    Util.FireAndForget(delegate(object x)
+                                    {
+                                        parentgrp.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
+                                    });
+                                }
+                                else
+                                {
+                                    part.OffsetPosition = new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z);
+                                    parentgrp.HasGroupChanged = true;
+                                    parentgrp.ScheduleGroupForTerseUpdate();
+                                }
+                            }
+
                             LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
                             LSL_List new_rules = rules.GetSublist(idx, -1);
                             setLinkPrimParams((int)new_linknumber, new_rules);
-
                             return;
                     }
                 }
@@ -8232,24 +8417,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         parent.ScheduleGroupForTerseUpdate();
                     }
                 }
-            }
-
-            if (positionChanged)
-            {
-                if (part.ParentGroup.RootPart == part)
-                {
-                    SceneObjectGroup parent = part.ParentGroup;
-                    Util.FireAndForget(delegate(object x) {
-                        parent.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
-                    });
-                }
-                else
-                {
-                    part.OffsetPosition = new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z);
-                    SceneObjectGroup parent = part.ParentGroup;
-                    parent.HasGroupChanged = true;
-                    parent.ScheduleGroupForTerseUpdate();
-                }    
             }
         }
 
@@ -8547,16 +8714,291 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
+            // acording to SL wiki this must indicate a single link number or link_root or link_this.
+            // keep other options as before
+
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
+            List<ScenePresence> avatars = GetLinkAvatars(linknumber);
 
             LSL_List res = new LSL_List();
 
-            foreach (var part in parts)
+            if (parts.Count > 0)
             {
-                LSL_List partRes = GetLinkPrimitiveParams(part, rules);
-                res += partRes;
+                foreach (var part in parts)
+                {
+                    LSL_List partRes = GetLinkPrimitiveParams(part, rules);
+                    res += partRes;
+                }
             }
+            if (avatars.Count > 0)
+            {
+                foreach (ScenePresence avatar in avatars)
+                {
+                    LSL_List avaRes = GetLinkPrimitiveParams(avatar, rules);
+                    res += avaRes;
+                }
+            }
+            return res;
+        }
 
+        public LSL_List GetLinkPrimitiveParams(ScenePresence avatar, LSL_List rules)
+        {
+            // avatars case
+            // replies as SL wiki
+
+            LSL_List res = new LSL_List();
+//            SceneObjectPart sitPart = avatar.ParentPart; // most likelly it will be needed
+            SceneObjectPart sitPart = World.GetSceneObjectPart(avatar.ParentID); // maybe better do this expensive search for it in case it's gone??
+
+            int idx = 0;
+            while (idx < rules.Length)
+            {
+                int code = (int)rules.GetLSLIntegerItem(idx++);
+                int remain = rules.Length - idx;
+
+                switch (code)
+                {
+                    case (int)ScriptBaseClass.PRIM_MATERIAL:
+                        res.Add(new LSL_Integer((int)SOPMaterialData.SopMaterial.Flesh));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_PHYSICS:
+                            res.Add(new LSL_Integer(0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
+                            res.Add(new LSL_Integer(0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_PHANTOM:
+                            res.Add(new LSL_Integer(0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_POSITION:
+
+                        Vector3 pos = avatar.OffsetPosition;
+
+                        Vector3 sitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f *2.0f);
+                        pos -= sitOffset;
+
+                        if( sitPart != null)
+                            pos = sitPart.GetWorldPosition() + pos * sitPart.GetWorldRotation();
+
+                        res.Add(new LSL_Vector(pos.X,pos.Y,pos.Z));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_SIZE:
+                        // as in llGetAgentSize above
+                        res.Add(new LSL_Vector(0.45f, 0.6f, avatar.Appearance.AvatarHeight));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_ROTATION:
+                        Quaternion rot = avatar.Rotation;
+                        if (sitPart != null)
+                        {
+                            rot = sitPart.GetWorldRotation() * rot; // apply sit part world rotation
+                        }
+
+                        res.Add(new LSL_Rotation (rot.X, rot.Y, rot.Z, rot.W));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TYPE:
+                        res.Add(new LSL_Integer(ScriptBaseClass.PRIM_TYPE_BOX));
+                        res.Add(new LSL_Integer(ScriptBaseClass.PRIM_HOLE_DEFAULT));
+                        res.Add(new LSL_Vector(0f,1.0f,0f));
+                        res.Add(new LSL_Float(0.0f));
+                        res.Add(new LSL_Vector(0, 0, 0));
+                        res.Add(new LSL_Vector(1.0f,1.0f,0f));
+                        res.Add(new LSL_Vector(0, 0, 0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEXTURE:
+                        if (remain < 1)
+                            return res;
+
+                        int face = (int)rules.GetLSLIntegerItem(idx++);
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < 21; face++)
+                            {
+                                res.Add(new LSL_String(""));
+                                res.Add(new LSL_Vector(0,0,0));
+                                res.Add(new LSL_Vector(0,0,0));
+                                res.Add(new LSL_Float(0.0));
+                            }
+                        }
+                        else
+                        {
+                            if (face >= 0 && face < 21)
+                            {
+                                res.Add(new LSL_String(""));
+                                res.Add(new LSL_Vector(0,0,0));
+                                res.Add(new LSL_Vector(0,0,0));
+                                res.Add(new LSL_Float(0.0));
+                            }
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_COLOR:
+                        if (remain < 1)
+                            return res;
+
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < 21; face++)
+                            {
+                                res.Add(new LSL_Vector(0,0,0));
+                                res.Add(new LSL_Float(0));
+                            }
+                        }
+                        else
+                        {
+                                res.Add(new LSL_Vector(0,0,0));
+                                res.Add(new LSL_Float(0));
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
+                        if (remain < 1)
+                            return res;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < 21; face++)
+                            {
+                                res.Add(new LSL_Integer(ScriptBaseClass.PRIM_SHINY_NONE));
+                                res.Add(new LSL_Integer(ScriptBaseClass.PRIM_BUMP_NONE));
+                            }
+                        }
+                        else
+                        {
+                                res.Add(new LSL_Integer(ScriptBaseClass.PRIM_SHINY_NONE));
+                                res.Add(new LSL_Integer(ScriptBaseClass.PRIM_BUMP_NONE));
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
+                        if (remain < 1)
+                            return res;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < 21; face++)
+                            {
+                                res.Add(new LSL_Integer(ScriptBaseClass.FALSE));
+                            }
+                        }
+                        else
+                        {
+                                res.Add(new LSL_Integer(ScriptBaseClass.FALSE));
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_FLEXIBLE:
+                        res.Add(new LSL_Integer(0));
+                        res.Add(new LSL_Integer(0));// softness
+                        res.Add(new LSL_Float(0.0f));   // gravity
+                        res.Add(new LSL_Float(0.0f));      // friction
+                        res.Add(new LSL_Float(0.0f));      // wind
+                        res.Add(new LSL_Float(0.0f));   // tension
+                        res.Add(new LSL_Vector(0f,0f,0f));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEXGEN:
+                        // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
+                        if (remain < 1)
+                            return res;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < 21; face++)
+                            {
+                                    res.Add(new LSL_Integer(ScriptBaseClass.PRIM_TEXGEN_DEFAULT));
+                            }
+                        }
+                        else
+                        {
+                                res.Add(new LSL_Integer(ScriptBaseClass.PRIM_TEXGEN_DEFAULT));
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
+                        res.Add(new LSL_Integer(0));
+                        res.Add(new LSL_Vector(0f,0f,0f));
+                        res.Add(new LSL_Float(0f)); // intensity
+                        res.Add(new LSL_Float(0f));    // radius
+                        res.Add(new LSL_Float(0f));   // falloff
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_GLOW:
+                        if (remain < 1)
+                            return res;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < 21; face++)
+                            {
+                                res.Add(new LSL_Float(0f));
+                            }
+                        }
+                        else
+                        {
+                                res.Add(new LSL_Float(0f));
+                        }
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEXT:
+                        res.Add(new LSL_String(""));
+                        res.Add(new LSL_Vector(0f,0f,0f));
+                        res.Add(new LSL_Float(1.0f));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_NAME:
+                        res.Add(new LSL_String(avatar.Name));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_DESC:
+                        res.Add(new LSL_String(""));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:                      
+                        Quaternion lrot = avatar.Rotation;
+
+                        if (sitPart != null && sitPart != sitPart.ParentGroup.RootPart)
+                        {
+                            lrot = sitPart.RotationOffset * lrot; // apply sit part rotation offset
+                        }
+                        res.Add(new LSL_Rotation(lrot.X, lrot.Y, lrot.Z, lrot.W));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                        Vector3 lpos = avatar.OffsetPosition; // pos relative to sit part
+                        Vector3 lsitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f * 2.0f);
+                        lpos -= lsitOffset;
+
+                        if (sitPart != null && sitPart != sitPart.ParentGroup.RootPart)
+                        {
+                            lpos = sitPart.OffsetPosition + (lpos * sitPart.RotationOffset); // make it relative to root prim
+                        }
+                        res.Add(new LSL_Vector(lpos.X,lpos.Y,lpos.Z));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                        if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
+                            return res;
+                        LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
+                        LSL_List new_rules = rules.GetSublist(idx, -1);
+
+                        res += llGetLinkPrimitiveParams((int)new_linknumber, new_rules);
+                        return res;
+                }
+            }
             return res;
         }
 
@@ -8946,6 +9388,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             res.Add(new LSL_Float(primglow));
                         }
                         break;
+
                     case (int)ScriptBaseClass.PRIM_TEXT:
                         Color4 textColor = part.GetTextColor();
                         res.Add(new LSL_String(part.Text));
@@ -8954,18 +9397,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                                textColor.B));
                         res.Add(new LSL_Float(textColor.A));
                         break;
+
                     case (int)ScriptBaseClass.PRIM_NAME:
                         res.Add(new LSL_String(part.Name));
                         break;
+
                     case (int)ScriptBaseClass.PRIM_DESC:
                         res.Add(new LSL_String(part.Description));
                         break;
+
                     case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                         res.Add(new LSL_Rotation(part.RotationOffset.X, part.RotationOffset.Y, part.RotationOffset.Z, part.RotationOffset.W));
                         break;
+
                     case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                         res.Add(new LSL_Vector(GetPartLocalPos(part)));
                         break;
+
+                    case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                        if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
+                            return res;
+                        LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
+                        LSL_List new_rules = rules.GetSublist(idx, -1);
+                        LSL_List tres = llGetLinkPrimitiveParams((int)new_linknumber, new_rules);
+                        res += tres;
+                        return res;                       
                 }
             }
             return res;
@@ -11134,6 +11590,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_List ret = new LSL_List();
             UUID key = new UUID();
+            
+
             if (UUID.TryParse(id, out key))
             {
                 ScenePresence av = World.GetScenePresence(key);
@@ -11151,13 +11609,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_String(""));
                                 break;
                             case ScriptBaseClass.OBJECT_POS:
-                                ret.Add(new LSL_Vector((double)av.AbsolutePosition.X, (double)av.AbsolutePosition.Y, (double)av.AbsolutePosition.Z));
+                                Vector3 avpos;
+
+                                if (av.ParentID != 0 && av.ParentPart != null)
+                                {
+                                    avpos = av.OffsetPosition;
+
+                                    Vector3 sitOffset = (Zrot(av.Rotation)) * (av.Appearance.AvatarHeight * 0.02638f *2.0f);
+                                    avpos -= sitOffset;
+
+                                    avpos = av.ParentPart.GetWorldPosition() + avpos * av.ParentPart.GetWorldRotation();
+                                }
+                                else
+                                    avpos = av.AbsolutePosition;
+                                
+                                ret.Add(new LSL_Vector((double)avpos.X, (double)avpos.Y, (double)avpos.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_ROT:
-                                ret.Add(new LSL_Rotation((double)av.Rotation.X, (double)av.Rotation.Y, (double)av.Rotation.Z, (double)av.Rotation.W));
+                                Quaternion avrot = av.Rotation;
+                                if (av.ParentID != 0 && av.ParentPart != null)
+                                {
+                                    avrot = av.ParentPart.GetWorldRotation() * avrot;
+                                }
+                                ret.Add(new LSL_Rotation((double)avrot.X, (double)avrot.Y, (double)avrot.Z, (double)avrot.W));
                                 break;
                             case ScriptBaseClass.OBJECT_VELOCITY:
-                                ret.Add(new LSL_Vector(av.Velocity.X, av.Velocity.Y, av.Velocity.Z));
+                                Vector3 avvel = av.Velocity;
+                                ret.Add(new LSL_Vector((double)avvel.X, (double)avvel.Y, (double)avvel.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_OWNER:
                                 ret.Add(new LSL_String(id));
@@ -11213,17 +11691,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.OBJECT_NAME:
                                 ret.Add(new LSL_String(obj.Name));
                                 break;
-                            case ScriptBaseClass.OBJECT_DESC:
+                            case ScriptBaseClass.OBJECT_DESC:                               
                                 ret.Add(new LSL_String(obj.Description));
                                 break;
                             case ScriptBaseClass.OBJECT_POS:
-                                ret.Add(new LSL_Vector(obj.AbsolutePosition.X, obj.AbsolutePosition.Y, obj.AbsolutePosition.Z));
+                                Vector3 opos = obj.AbsolutePosition;
+                                ret.Add(new LSL_Vector(opos.X, opos.Y, opos.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_ROT:
-                                ret.Add(new LSL_Rotation(obj.RotationOffset.X, obj.RotationOffset.Y, obj.RotationOffset.Z, obj.RotationOffset.W));
+//                                Quaternion orot = obj.RotationOffset;                               
+//                                ret.Add(new LSL_Rotation(orot.X, orot.Y, orot.Z, orot.W));
+
+                                LSL_Rotation objrot = GetPartRot(obj);
+                                ret.Add(objrot);
                                 break;
                             case ScriptBaseClass.OBJECT_VELOCITY:
-                                ret.Add(new LSL_Vector(obj.Velocity.X, obj.Velocity.Y, obj.Velocity.Z));
+                                Vector3 ovel = obj.Velocity;
+                                ret.Add(new LSL_Vector(ovel.X, ovel.Y, ovel.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_OWNER:
                                 ret.Add(new LSL_String(obj.OwnerID.ToString()));
@@ -11257,9 +11741,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 // The value returned in SL for normal prims is prim count
                                 ret.Add(new LSL_Integer(obj.ParentGroup.PrimCount));
                                 break;
-                            // The following 3 costs I have intentionaly coded to return zero. They are part of
-                            // "Land Impact" calculations. These calculations are probably not applicable
-                            // to OpenSim and are not yet complete in SL
+
+                            // costs below may need to be diferent for root parts, need to check
                             case ScriptBaseClass.OBJECT_SERVER_COST:
                                 // The linden calculation is here
                                 // http://wiki.secondlife.com/wiki/Mesh/Mesh_Server_Weight
@@ -11267,16 +11750,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_Float(0));
                                 break;
                             case ScriptBaseClass.OBJECT_STREAMING_COST:
-                                // The linden calculation is here
-                                // http://wiki.secondlife.com/wiki/Mesh/Mesh_Streaming_Cost
-                                // The value returned in SL for normal prims looks like the prim count * 0.06
-                                ret.Add(new LSL_Float(0));
+                                // The value returned in SL for normal prims is prim count * 0.06
+                                ret.Add(new LSL_Float(obj.StreamingCost));
                                 break;
                             case ScriptBaseClass.OBJECT_PHYSICS_COST:
-                                // The linden calculation is here
-                                // http://wiki.secondlife.com/wiki/Mesh/Mesh_physics
-                                // The value returned in SL for normal prims looks like the prim count
-                                ret.Add(new LSL_Float(0));
+                                // The value returned in SL for normal prims is prim count
+                                ret.Add(new LSL_Float(obj.PhysicsCost));
                                 break;
                             default:
                                 // Invalid or unhandled constant.
@@ -11933,9 +12412,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         results.Add(r);
                 }
 
-            // bug: will not detect phantom unless they are physical
-            // don't use ObjectIntersection because its also bad
-
+                // TODO: Replace this with a better solution. ObjectIntersection can only
+                // detect nonphysical phantoms. They are detected by virtue of being
+                // nonphysical (e.g. no PhysActor) so will not conflict with detecting
+                // physicsl phantoms as done by the physics scene
+                // We don't want anything else but phantoms here.
+                if (detectPhantom)
+                {
+                    ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd, false, false, true);
+                    foreach (ContactResult r in objectHits)
+                        results.Add(r);
+                }
             }
             else
             {
