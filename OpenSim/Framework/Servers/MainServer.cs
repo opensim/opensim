@@ -38,8 +38,23 @@ namespace OpenSim.Framework.Servers
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static BaseHttpServer instance = null;
-        private static Dictionary<uint, BaseHttpServer> m_Servers =
-                new Dictionary<uint, BaseHttpServer>();
+        private static Dictionary<uint, BaseHttpServer> m_Servers = new Dictionary<uint, BaseHttpServer>();
+
+        public static int DebugLevel
+        {
+            get { return s_debugLevel; }
+            set
+            {
+                s_debugLevel = value;
+                Instance.DebugLevel = s_debugLevel;
+
+                lock (m_Servers)
+                    foreach (BaseHttpServer server in m_Servers.Values)
+                        server.DebugLevel = s_debugLevel;
+            }
+        }
+
+        private static int s_debugLevel;
 
         public static BaseHttpServer Instance
         {
@@ -53,7 +68,8 @@ namespace OpenSim.Framework.Servers
         /// <param name='server'></param>
         public static void AddHttpServer(BaseHttpServer server)
         {
-            m_Servers.Add(server.Port, server);
+            lock (m_Servers)
+                m_Servers.Add(server.Port, server);
         }
 
         /// <summary>
@@ -87,16 +103,19 @@ namespace OpenSim.Framework.Servers
             if (instance != null && port == Instance.Port)
                 return Instance;
 
-            if (m_Servers.ContainsKey(port))
-                return m_Servers[port];
+            lock (m_Servers)
+            {
+                if (m_Servers.ContainsKey(port))
+                    return m_Servers[port];
 
-            m_Servers[port] = new BaseHttpServer(port);
+                m_Servers[port] = new BaseHttpServer(port);
 
-            if (ipaddr != null)
-                m_Servers[port].ListenIPAddress = ipaddr;
+                if (ipaddr != null)
+                    m_Servers[port].ListenIPAddress = ipaddr;
 
-            m_log.InfoFormat("[MAIN HTTP SERVER]: Starting main http server on port {0}", port);
-            m_Servers[port].Start();
+                m_log.InfoFormat("[MAIN HTTP SERVER]: Starting main http server on port {0}", port);
+                m_Servers[port].Start();
+            }
 
             return m_Servers[port];
         }

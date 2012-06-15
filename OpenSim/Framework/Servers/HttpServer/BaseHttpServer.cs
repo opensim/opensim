@@ -53,6 +53,16 @@ namespace OpenSim.Framework.Servers.HttpServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
 
+        /// <summary>
+        /// Control the printing of certain debug messages.
+        /// </summary>
+        /// <remarks>
+        /// If DebugLevel >= 1, then short warnings are logged when receiving bad input data.
+        /// If DebugLevel >= 2, then long warnings are logged when receiving bad input data.
+        /// If DebugLevel >= 3, then short notices about all incoming non-poll HTTP requests are logged.
+        /// </remarks>
+        public int DebugLevel { get; set; }
+
         private volatile int NotSocketErrors = 0;
         public volatile bool HTTPDRunning = false;
 
@@ -78,16 +88,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected IPAddress m_listenIPAddress = IPAddress.Any;
 
         private PollServiceRequestManager m_PollServiceManager;
-
-        /// <summary>
-        /// Control the printing of certain debug messages.
-        /// </summary>
-        /// <remarks>
-        /// If DebugLevel >= 1, then short warnings are logged when receiving bad input data.
-        /// If DebugLevel >= 2, then long warnings are logged when receiving bad input data.
-        /// If DebugLevel >= 3, then short notices about all incoming non-poll HTTP requests are logged.
-        /// </remarks>
-        public int DebugLevel { get; set; }
 
         public uint SSLPort
         {
