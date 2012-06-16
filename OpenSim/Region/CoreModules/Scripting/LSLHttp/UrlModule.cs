@@ -113,7 +113,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             IConfig llFunctionsConfig = config.Configs["LL-Functions"];
 
             if (llFunctionsConfig != null)
-                m_TotalUrls = llFunctionsConfig.GetInt("max_urls_per_simulator", m_TotalUrls);
+                m_TotalUrls = llFunctionsConfig.GetInt("max_external_urls_per_simulator", m_TotalUrls);
         }
 
         public void PostInitialise()
