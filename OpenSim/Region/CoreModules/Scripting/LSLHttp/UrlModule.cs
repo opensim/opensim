@@ -76,7 +76,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         private Dictionary<string, UrlData> m_UrlMap =
                 new Dictionary<string, UrlData>();
 
-
+        /// <summary>
+        /// Maximum number of external urls that can be set up by this module.
+        /// </summary>
         private int m_TotalUrls = 100;
 
         private uint https_port = 0;
@@ -107,6 +109,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             {
                 https_port = (uint) config.Configs["Network"].GetInt("https_port",0);
             }
+
+            IConfig llFunctionsConfig = config.Configs["LL-Functions"];
+
+            if (llFunctionsConfig != null)
+                m_TotalUrls = llFunctionsConfig.GetInt("max_external_urls_per_simulator", m_TotalUrls);
         }
 
         public void PostInitialise()

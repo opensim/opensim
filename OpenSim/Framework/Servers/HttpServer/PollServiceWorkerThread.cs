@@ -129,9 +129,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             OSHttpResponse response
                 = new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext);
 
-            byte[] buffer
-                = server.DoHTTPGruntWork(
-                    responsedata, new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
+            byte[] buffer = server.DoHTTPGruntWork(responsedata, response);
 
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
