@@ -433,7 +433,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return (IClientCore)ControllingClient; }
         }
 
-        public Vector3 ParentPosition { get; set; }
+//        public Vector3 ParentPosition { get; set; }
 
         /// <summary>
         /// Position of this avatar relative to the region the avatar is in
@@ -491,7 +491,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParentID == 0)
                 {
                     m_pos = value;
-                    ParentPosition = Vector3.Zero;
+//                    ParentPosition = Vector3.Zero;
                 }
 
                 //m_log.DebugFormat(
@@ -857,11 +857,12 @@ namespace OpenSim.Region.Framework.Scenes
                     part.ParentGroup.AddAvatar(UUID);
                     if (part.SitTargetPosition != Vector3.Zero)
                         part.SitTargetAvatar = UUID;
-                    ParentPosition = part.GetWorldPosition();
+//                    ParentPosition = part.GetWorldPosition();
                     ParentID = part.LocalId;
                     ParentPart = part;
                     m_pos = m_prevSitOffset;
-                    pos = ParentPosition;
+//                    pos = ParentPosition;
+                    pos = part.GetWorldPosition();
                 }
                 ParentUUID = UUID.Zero;
 
@@ -1933,11 +1934,12 @@ namespace OpenSim.Region.Framework.Scenes
                     part.SitTargetAvatar = UUID.Zero;
 
                 part.ParentGroup.DeleteAvatar(UUID);
-                ParentPosition = part.GetWorldPosition();
+//                ParentPosition = part.GetWorldPosition();
                 ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
 
-                m_pos += ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
-                ParentPosition = Vector3.Zero;
+//                m_pos += ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
+//                ParentPosition = Vector3.Zero;
+                m_pos += part.GetWorldPosition() + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
 
                 ParentID = 0;
                 ParentPart = null;
@@ -2388,13 +2390,13 @@ namespace OpenSim.Region.Framework.Scenes
 
 //                    m_pos = sitTargetPos + SIT_TARGET_ADJUSTMENT - sitOffset;
                     Rotation = sitTargetOrient;
-                    ParentPosition = part.AbsolutePosition;
+//                    ParentPosition = part.AbsolutePosition;
                     part.ParentGroup.AddAvatar(UUID);
                 }
                 else
                 {
                     m_pos -= part.AbsolutePosition;
-                    ParentPosition = part.AbsolutePosition;
+//                    ParentPosition = part.AbsolutePosition;
                     part.ParentGroup.AddAvatar(UUID);
 
 //                        m_log.DebugFormat(
