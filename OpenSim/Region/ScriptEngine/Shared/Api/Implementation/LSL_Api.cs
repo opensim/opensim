@@ -2343,10 +2343,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             else
             {
                 // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
-                SceneObjectPart rootPart;// = m_host.ParentGroup.RootPart;
-                if (m_host.ParentGroup != null && ((rootPart = m_host.ParentGroup.RootPart) != null)) // better safe than sorry
+                SceneObjectPart rootPart;
+                if (m_host.ParentGroup != null) // better safe than sorry
                 {
-                    SetRot(m_host, rootPart.RotationOffset * Rot2Quaternion(rot));
+                    rootPart = m_host.ParentGroup.RootPart;
+                    if (rootPart != null)
+                        SetRot(m_host, rootPart.RotationOffset * Rot2Quaternion(rot));
                 }
             }
 
