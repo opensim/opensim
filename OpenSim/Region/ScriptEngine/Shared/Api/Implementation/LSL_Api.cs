@@ -8026,7 +8026,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 Quaternion srot = sitpart.RotationOffset;
                                 rot = Quaternion.Conjugate(srot) * rot; // removed sit part offset rotation
                                 av.Rotation = rot;
-                                av.SendAvatarDataToAllAgents();
+//                                av.SendAvatarDataToAllAgents();
+                                av.SendTerseUpdateToAllClients();
                             }
                             break;
 
@@ -8046,7 +8047,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     rot = Quaternion.Conjugate(srot) * rot; // remove sit part offset rotation
                                 }
                                 av.Rotation = rot;
-                                av.SendAvatarDataToAllAgents();
+//                                av.SendAvatarDataToAllAgents();
+                                av.SendTerseUpdateToAllClients();
                             }
                             break;
 
@@ -8141,7 +8143,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 positionChanged = false;
                                 av.OffsetPosition = finalPos;
-                                av.SendAvatarDataToAllAgents();
+//                                av.SendAvatarDataToAllAgents();
+                                av.SendTerseUpdateToAllClients();
                             }
 
                             LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
@@ -8157,7 +8160,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (positionChanged)
                 {
                     av.OffsetPosition = finalPos;
-                    av.SendAvatarDataToAllAgents();
+//                    av.SendAvatarDataToAllAgents();
+                    av.SendTerseUpdateToAllClients();
                     positionChanged = false;
                 }
             }
