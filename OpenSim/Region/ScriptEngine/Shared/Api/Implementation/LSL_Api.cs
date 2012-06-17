@@ -660,18 +660,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             double x,y,z,s;
+            v.x *= 0.5;
+            v.y *= 0.5;
+            v.z *= 0.5;
+            double c1 = Math.Cos(v.x);
+            double c2 = Math.Cos(v.y);
+            double c1c2 = c1 * c2;
+            double s1 = Math.Sin(v.x);
+            double s2 = Math.Sin(v.y);
+            double s1s2 = s1 * s2;
+            double c1s2 = c1 * s2;
+            double s1c2 = s1 * c2;
+            double c3 = Math.Cos(v.z);
+            double s3 = Math.Sin(v.z);
 
-            double c1 = Math.Cos(v.x * 0.5);
-            double c2 = Math.Cos(v.y * 0.5);
-            double c3 = Math.Cos(v.z * 0.5);
-            double s1 = Math.Sin(v.x * 0.5);
-            double s2 = Math.Sin(v.y * 0.5);
-            double s3 = Math.Sin(v.z * 0.5);
-
-            x = s1 * c2 * c3 + c1 * s2 * s3;
-            y = c1 * s2 * c3 - s1 * c2 * s3;
-            z = s1 * s2 * c3 + c1 * c2 * s3;
-            s = c1 * c2 * c3 - s1 * s2 * s3;
+            x = s1c2 * c3 + c1s2 * s3;
+            y = c1s2 * c3 - s1c2 * s3;
+            z = s1s2 * c3 + c1c2 * s3;
+            s = c1c2 * c3 - s1s2 * s3;
 
             return new LSL_Rotation(x, y, z, s);
         }
@@ -1911,11 +1917,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Primitive.TextureEntry tex = part.Shape.Textures;
             Color4 texcolor;
             LSL_Vector rgb = new LSL_Vector();
+            int nsides = GetNumberOfSides(part);
+
             if (face == ScriptBaseClass.ALL_SIDES)
             {
                 int i;
-
-                for (i = 0 ; i < GetNumberOfSides(part); i++)
+                for (i = 0; i < nsides; i++)
                 {
                     texcolor = tex.GetFace((uint)i).RGBA;
                     rgb.x += texcolor.R;
@@ -1923,13 +1930,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     rgb.z += texcolor.B;
                 }
 
-                rgb.x /= (float)GetNumberOfSides(part);
-                rgb.y /= (float)GetNumberOfSides(part);
-                rgb.z /= (float)GetNumberOfSides(part);
+                float invnsides = 1.0f / (float)nsides;
+
+                rgb.x *= invnsides;
+                rgb.y *= invnsides;
+                rgb.z *= invnsides;
 
                 return rgb;
             }
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < nsides)
             {
                 texcolor = tex.GetFace((uint)face).RGBA;
                 rgb.x = texcolor.R;
@@ -2328,15 +2337,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // (root prim). ParentID may be nonzero in attachments and
                 // using it would cause attachments and HUDs to rotate
                 // to the wrong positions.
+                
                 SetRot(m_host, Rot2Quaternion(rot));
             }
             else
             {
                 // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
-                SceneObjectPart rootPart = m_host.ParentGroup.RootPart;
-                if (rootPart != null) // better safe than sorry
+                SceneObjectPart rootPart;
+                if (m_host.ParentGroup != null) // better safe than sorry
                 {
-                    SetRot(m_host, rootPart.RotationOffset * Rot2Quaternion(rot));
+                    rootPart = m_host.ParentGroup.RootPart;
+                    if (rootPart != null)
+                        SetRot(m_host, rootPart.RotationOffset * Rot2Quaternion(rot));
                 }
             }
 
@@ -2346,6 +2358,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetLocalRot(LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
+
             SetRot(m_host, Rot2Quaternion(rot));
             ScriptSleep(200);
         }
@@ -2355,24 +2368,42 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
-            part.UpdateRotation(rot);
-            // Update rotation does not move the object in the physics scene if it's a linkset.
+            bool isroot = (part == part.ParentGroup.RootPart);
+            bool isphys;
 
-//KF:  Do NOT use this next line if using ODE physics engine. This need a switch based on .ini Phys Engine type
-//          part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition;
-
-            // So, after thinking about this for a bit, the issue with the part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition line
-            // is it isn't compatible with vehicles because it causes the vehicle body to have to be broken down and rebuilt
-            // It's perfectly okay when the object is not an active physical body though.
-            // So, part.ParentGroup.ResetChildPrimPhysicsPositions(); does the thing that Kitto is warning against
-            // but only if the object is not physial and active.   This is important for rotating doors.
-            // without the absoluteposition = absoluteposition happening, the doors do not move in the physics
-            // scene
             PhysicsActor pa = part.PhysActor;
 
-            if (pa != null && !pa.IsPhysical)
+            // keep using physactor ideia of isphysical
+            // it should be SOP ideia of that
+            // not much of a issue with ubitODE
+            if (pa != null && pa.IsPhysical)
+                isphys = true;
+            else
+                isphys = false;
+
+            // SL doesn't let scripts rotate root of physical linksets
+            if (isroot && isphys)
+                return;
+
+            part.UpdateRotation(rot);
+
+            // Update rotation does not move the object in the physics engine if it's a non physical linkset
+            // so do a nasty update of parts positions if is a root part rotation
+            if (isroot && pa != null) // with if above implies non physical  root part
             {
                 part.ParentGroup.ResetChildPrimPhysicsPositions();
+            }
+            else // fix sitting avatars. This is only needed bc of how we link avas to child parts, not root part
+            {
+                List<ScenePresence> sittingavas = part.ParentGroup.GetLinkedAvatars();
+                if (sittingavas.Count > 0)
+                {
+                    foreach (ScenePresence av in sittingavas)
+                    {
+                        if (isroot || part.LocalId == av.ParentID)
+                            av.SendTerseUpdateToAllClients();
+                    }
+                }
             }
         }
 
@@ -2422,7 +2453,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Rotation llGetLocalRot()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Rotation(m_host.RotationOffset.X, m_host.RotationOffset.Y, m_host.RotationOffset.Z, m_host.RotationOffset.W);
+            Quaternion rot = m_host.RotationOffset;
+            return new LSL_Rotation(rot.X, rot.Y, rot.Z, rot.W);
         }
 
         public void llSetForce(LSL_Vector force, int local)
@@ -8534,6 +8566,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                             if (remain < 1)
                                 return;
+
                             LSL_Rotation lr = rules.GetQuaternionItem(idx++);
                             SetRot(part, Rot2Quaternion(lr));
                             break;
