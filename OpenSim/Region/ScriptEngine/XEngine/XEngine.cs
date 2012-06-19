@@ -880,8 +880,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
-            m_log.DebugFormat(
-                "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
+//            m_log.DebugFormat(
+//                "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
 
             // NOTE: Despite having a lockless queue, this lock is required
             // to make sure there is never no compile thread while there
