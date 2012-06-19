@@ -1715,14 +1715,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                 FileMode.Open, FileAccess.Read))
                         {
                             tfs.Read(tdata, 0, tdata.Length);
-                            tfs.Close();
                         }
 
                         assem = new System.Text.ASCIIEncoding().GetString(tdata);
                     }
                     catch (Exception e)
                     {
-                         m_log.DebugFormat("[XEngine]: Unable to open script textfile {0}, reason: {1}", assemName+".text", e.Message);
+                         m_log.ErrorFormat(
+                            "[XEngine]: Unable to open script textfile {0}{1}, reason: {2}",
+                            assemName, ".text", e.Message);
                     }
                 }
             }
@@ -1739,16 +1740,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         using (FileStream fs = File.Open(assemName, FileMode.Open, FileAccess.Read))
                         {
                             fs.Read(data, 0, data.Length);
-                            fs.Close();
                         }
 
                         assem = System.Convert.ToBase64String(data);
                     }
                     catch (Exception e)
                     {
-                        m_log.DebugFormat("[XEngine]: Unable to open script assembly {0}, reason: {1}", assemName, e.Message);
+                        m_log.ErrorFormat(
+                            "[XEngine]: Unable to open script assembly {0}, reason: {1}", assemName, e.Message);
                     }
-
                 }
             }
 
@@ -1761,9 +1761,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     using (StreamReader msr = new StreamReader(mfs))
                     {
                         map = msr.ReadToEnd();
-                        msr.Close();
                     }
-                    mfs.Close();
                 }
             }
 
