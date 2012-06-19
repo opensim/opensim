@@ -62,6 +62,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Control the printing of certain debug messages.
+        /// </summary>
+        /// <remarks>
+        /// If DebugLevel >= 1, then we log every time that a script is started.
+        /// </remarks>
+//        public int DebugLevel { get; set; }
+
         private SmartThreadPool m_ThreadPool;
         private int m_MaxScriptQueue;
         private Scene m_Scene;
@@ -216,9 +224,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             AppDomain.CurrentDomain.AssemblyResolve +=
                 OnAssemblyResolve;
 
-            m_log.InfoFormat("[XEngine] Initializing scripts in region {0}",
-                             scene.RegionInfo.RegionName);
             m_Scene = scene;
+            m_log.InfoFormat("[XEngine]: Initializing scripts in region {0}", m_Scene.RegionInfo.RegionName);
 
             m_MinThreads = m_ScriptConfig.GetInt("MinThreads", 2);
             m_MaxThreads = m_ScriptConfig.GetInt("MaxThreads", 100);
@@ -321,7 +328,40 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 "Starts all stopped scripts."
                     + "If a <script-item-uuid> is given then only that script will be started.  Otherwise, all suitable scripts are started.",
                 (module, cmdparams) => HandleScriptsAction(cmdparams, HandleStartScript));
+
+//            MainConsole.Instance.Commands.AddCommand(
+//                "Debug", false, "debug xengine", "debug xengine [<level>]",
+//                "Turn on detailed xengine debugging.",
+//                  "If level <= 0, then no extra logging is done.\n"
+//                + "If level >= 1, then we log every time that a script is started.",
+//                HandleDebugLevelCommand);
         }
+
+        /// <summary>
+        /// Change debug level
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="args"></param>
+//        private void HandleDebugLevelCommand(string module, string[] args)
+//        {
+//            if (args.Length == 3)
+//            {
+//                int newDebug;
+//                if (int.TryParse(args[2], out newDebug))
+//                {
+//                    DebugLevel = newDebug;
+//                    MainConsole.Instance.OutputFormat("Debug level set to {0}", newDebug);
+//                }
+//            }
+//            else if (args.Length == 2)
+//            {
+//                MainConsole.Instance.OutputFormat("Current debug level is {0}", DebugLevel);
+//            }
+//            else
+//            {
+//                MainConsole.Instance.Output("Usage: debug xengine 0..1");
+//            }
+//        }
 
         /// <summary>
         /// Parse the raw item id into a script instance from the command params if it's present.
@@ -825,8 +865,23 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             object[] o;
+
+            int scriptsStarted = 0;
+
             while (m_CompileQueue.Dequeue(out o))
-                DoOnRezScript(o);
+            {
+                if (DoOnRezScript(o))
+                {
+                    scriptsStarted++;
+
+//                    if (scriptsStarted % 50 == 0)
+//                        m_log.DebugFormat(
+//                            "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
+                }
+            }
+
+            m_log.DebugFormat(
+                "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
 
             // NOTE: Despite having a lockless queue, this lock is required
             // to make sure there is never no compile thread while there
@@ -1066,7 +1121,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                                   part.ParentGroup.RootPart.Name,
                                                   item.Name, startParam, postOnRez,
                                                   stateSource, m_MaxScriptQueue);
-                    
+
+//                    if (DebugLevel >= 1)
                     m_log.DebugFormat(
                         "[XEngine] Loaded script {0}.{1}, item UUID {2}, prim UUID {3} @ {4}.{5}",
                         part.ParentGroup.RootPart.Name, item.Name, itemID, part.UUID,

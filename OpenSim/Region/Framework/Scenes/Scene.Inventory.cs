@@ -60,19 +60,32 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Creates all the scripts in the scene which should be started.
         /// </summary>
-        public void CreateScriptInstances()
+        /// <returns>
+        /// Number of scripts that were valid for starting.  This does not guarantee that all these scripts
+        /// were actually started, but just that the start could be attempt (e.g. the asset data for the script could be found)
+        /// </returns>
+        public int CreateScriptInstances()
         {
-            m_log.Info("[PRIM INVENTORY]: Creating scripts in scene");
+            m_log.InfoFormat("[SCENE]: Initializing script instances in {0}", RegionInfo.RegionName);
+
+            int scriptsValidForStarting = 0;
 
             EntityBase[] entities = Entities.GetEntities();
             foreach (EntityBase group in entities)
             {
                 if (group is SceneObjectGroup)
                 {
-                    ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
+                    scriptsValidForStarting
+                        += ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
                     ((SceneObjectGroup) group).ResumeScripts();
                 }
             }
+
+            m_log.InfoFormat(
+                "[SCENE]: Initialized {0} script instances in {1}",
+                scriptsValidForStarting, RegionInfo.RegionName);
+
+            return scriptsValidForStarting;
         }
 
         /// <summary>
@@ -80,7 +93,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void StartScripts()
         {
-            m_log.Info("[PRIM INVENTORY]: Starting scripts in scene");
+            m_log.InfoFormat("[SCENE]: Starting scripts in {0}, please wait.", RegionInfo.RegionName);
 
             IScriptModule[] engines = RequestModuleInterfaces<IScriptModule>();
 
