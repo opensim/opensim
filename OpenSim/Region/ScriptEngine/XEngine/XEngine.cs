@@ -1743,6 +1743,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public bool SetXMLState(UUID itemID, string xml)
         {
+//            m_log.DebugFormat("[XEngine]: Writing state for script item with ID {0}", itemID);
+
             if (xml == String.Empty)
                 return false;
 
@@ -1803,14 +1805,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     {
                         using (FileStream fs = File.Create(path))
                         {
+//                            m_log.DebugFormat("[XEngine]: Writing assembly file {0}", path);
+
                             fs.Write(filedata, 0, filedata.Length);
-                            fs.Close();
                         }
                     }
                     catch (IOException ex)
                     {
                         // if there already exists a file at that location, it may be locked.
-                        m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", path, ex.Message);
+                        m_log.ErrorFormat("[XEngine]: Error whilst writing assembly file {0}, {1}", path, ex.Message);
                     }
 
                     string textpath = path + ".text";
@@ -1820,16 +1823,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         {
                             using (StreamWriter sw = new StreamWriter(fs))
                             {
+//                                m_log.DebugFormat("[XEngine]: Writing .text file {0}", textpath);
+
                                 sw.Write(base64);
-                                sw.Close();
                             }
-                            fs.Close();
                         }
                     }
                     catch (IOException ex)
                     {
                         // if there already exists a file at that location, it may be locked.
-                        m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", textpath, ex.Message);
+                        m_log.ErrorFormat("[XEngine]: Error whilst writing .text file {0}, {1}", textpath, ex.Message);
                     }
                 }
             }
@@ -1843,16 +1846,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     using (StreamWriter ssw = new StreamWriter(sfs))
                     {
+//                        m_log.DebugFormat("[XEngine]: Writing state file {0}", statepath);
+
                         ssw.Write(stateE.OuterXml);
-                        ssw.Close();
                     }
-                    sfs.Close();
                 }
             }
             catch (IOException ex)
             {
                 // if there already exists a file at that location, it may be locked.
-                m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", statepath, ex.Message);
+                m_log.ErrorFormat("[XEngine]: Error whilst writing state file {0}, {1}", statepath, ex.Message);
             }
 
             XmlNodeList mapL = rootE.GetElementsByTagName("LineMap");
@@ -1869,16 +1872,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     {
                         using (StreamWriter msw = new StreamWriter(mfs))
                         {
+//                            m_log.DebugFormat("[XEngine]: Writing linemap file {0}", mappath);
+
                             msw.Write(mapE.InnerText);
-                            msw.Close();
                         }
-                        mfs.Close();
                     }
                 }
                 catch (IOException ex)
                 {
                     // if there already exists a file at that location, it may be locked.
-                    m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", mappath, ex.Message);
+                    m_log.ErrorFormat("[XEngine]: Linemap file {0} already exists! {1}", mappath, ex.Message);
                 }
             }
 
