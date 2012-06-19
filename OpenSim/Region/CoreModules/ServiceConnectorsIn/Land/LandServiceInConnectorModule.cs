@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
             if (!m_Enabled)
                 return;
 
-            m_log.Info("[LAND IN CONNECTOR]: Starting...");
+//            m_log.Info("[LAND IN CONNECTOR]: Starting...");
         }
 
         public void Close()
