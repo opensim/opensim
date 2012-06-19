@@ -1625,7 +1625,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 m_log.WarnFormat(
                     "[SCENE OBJECT PART]: Part {0} {1} requested mesh/sculpt data for asset id {2} from asset service but received no data",
-                    Name, LocalId, id);
+                    Name, UUID, id);
         }
 
         /// <summary>
