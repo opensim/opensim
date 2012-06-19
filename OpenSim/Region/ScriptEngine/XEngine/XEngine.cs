@@ -1835,6 +1835,33 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         m_log.ErrorFormat("[XEngine]: Error whilst writing .text file {0}, {1}", textpath, ex.Message);
                     }
                 }
+
+                XmlNodeList mapL = rootE.GetElementsByTagName("LineMap");
+                if (mapL.Count > 0)
+                {
+                    XmlElement mapE = (XmlElement)mapL[0];
+
+                    string mappath = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
+                    mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
+
+                    try
+                    {
+                        using (FileStream mfs = File.Create(mappath))
+                        {
+                            using (StreamWriter msw = new StreamWriter(mfs))
+                            {
+    //                            m_log.DebugFormat("[XEngine]: Writing linemap file {0}", mappath);
+
+                                msw.Write(mapE.InnerText);
+                            }
+                        }
+                    }
+                    catch (IOException ex)
+                    {
+                        // if there already exists a file at that location, it may be locked.
+                        m_log.ErrorFormat("[XEngine]: Linemap file {0} already exists! {1}", mappath, ex.Message);
+                    }
+                }
             }
 
             string statepath = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
@@ -1856,33 +1883,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 // if there already exists a file at that location, it may be locked.
                 m_log.ErrorFormat("[XEngine]: Error whilst writing state file {0}, {1}", statepath, ex.Message);
-            }
-
-            XmlNodeList mapL = rootE.GetElementsByTagName("LineMap");
-            if (mapL.Count > 0)
-            {
-                XmlElement mapE = (XmlElement)mapL[0];
-
-                string mappath = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
-                mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
-
-                try
-                {
-                    using (FileStream mfs = File.Create(mappath))
-                    {
-                        using (StreamWriter msw = new StreamWriter(mfs))
-                        {
-//                            m_log.DebugFormat("[XEngine]: Writing linemap file {0}", mappath);
-
-                            msw.Write(mapE.InnerText);
-                        }
-                    }
-                }
-                catch (IOException ex)
-                {
-                    // if there already exists a file at that location, it may be locked.
-                    m_log.ErrorFormat("[XEngine]: Linemap file {0} already exists! {1}", mappath, ex.Message);
-                }
             }
 
             return true;
