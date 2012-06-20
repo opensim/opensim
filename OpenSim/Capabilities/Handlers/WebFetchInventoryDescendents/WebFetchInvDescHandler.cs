@@ -393,12 +393,8 @@ namespace OpenSim.Capabilities.Handlers
             llsdFolder.folder_id = invFolder.ID;
             llsdFolder.parent_id = invFolder.ParentID;
             llsdFolder.name = invFolder.Name;
-
-            if (invFolder.Type == (short)AssetType.Unknown || !Enum.IsDefined(typeof(AssetType), (sbyte)invFolder.Type))
-                llsdFolder.type = "-1";
-            else
-                llsdFolder.type = Utils.AssetTypeToString((AssetType)invFolder.Type);
-            llsdFolder.preferred_type = "-1";
+            llsdFolder.type = invFolder.Type;
+            llsdFolder.preferred_type = -1;
 
             return llsdFolder;
         }
