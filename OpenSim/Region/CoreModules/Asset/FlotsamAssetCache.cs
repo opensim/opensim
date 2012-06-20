@@ -143,7 +143,7 @@ namespace Flotsam.RegionModules.AssetCache
                     IConfig assetConfig = source.Configs["AssetCache"];
                     if (assetConfig == null)
                     {
-                        m_log.Warn(
+                        m_log.Debug(
                            "[FLOTSAM ASSET CACHE]: AssetCache section missing from config (not copied config-include/FlotsamCache.ini.example?  Using defaults.");
                     }
                     else
