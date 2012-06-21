@@ -354,7 +354,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void Init()
         {
-            if (!m_startOnInit) return;
+            if (!m_startOnInit)
+                return;
 
             if (m_startedFromSavedState) 
             {
