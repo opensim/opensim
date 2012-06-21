@@ -4496,7 +4496,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (pa != null)
                 {
-                    ParentGroup.Scene.RemovePhysicalPrim(1);
+                    if(wasUsingPhysics)
+                        ParentGroup.Scene.RemovePhysicalPrim(1);
                     RemoveFromPhysics();
                 }
 
@@ -4513,38 +4514,37 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         AddToPhysics(UsePhysics, SetPhantom, building, false);
                         pa = PhysActor;
-                        /*
-                                                if (pa != null)
-                                                {
-                                                    if (
-                        //                                ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
-                        //                                ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
-                        //                                ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
-                        //                                ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
-                        //                                ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
-                        //                                ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
-                                                        ((AggregateScriptEvents & PhysicsNeededSubsEvents) != 0) ||
-                                                        ((ParentGroup.RootPart.AggregateScriptEvents & PhysicsNeededSubsEvents) != 0) ||
-                                                        (CollisionSound != UUID.Zero)
-                                                        )
-                                                    {
-                                                        pa.OnCollisionUpdate += PhysicsCollision;
-                                                        pa.SubscribeEvents(1000);
-                                                    }
-                                                }
-                         */
+/*
+                        if (pa != null)
+                        {
+                            if (
+//                                ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
+//                                ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+//                                ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
+//                                ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
+//                                ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
+//                                ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
+                                ((AggregateScriptEvents & PhysicsNeededSubsEvents) != 0) ||
+                                ((ParentGroup.RootPart.AggregateScriptEvents & PhysicsNeededSubsEvents) != 0) ||
+                                (CollisionSound != UUID.Zero)
+                                )
+                            {
+                                pa.OnCollisionUpdate += PhysicsCollision;
+                                pa.SubscribeEvents(1000);
+                            }
+                        }
+*/
                     }
 
                     else // it already has a physical representation
                     {
                         DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status.
-                        /* moved into DoPhysicsPropertyUpdate
-                                                if(VolumeDetectActive)
-                                                    pa.SetVolumeDetect(1);
-                                                else
-                                                    pa.SetVolumeDetect(0);
-                        */
-
+/* moved into DoPhysicsPropertyUpdate
+                        if(VolumeDetectActive)
+                            pa.SetVolumeDetect(1);
+                        else
+                            pa.SetVolumeDetect(0);
+*/
 
                         if (pa.Building != building)
                             pa.Building = building;
