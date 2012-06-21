@@ -331,15 +331,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     else
                     {
                         m_log.ErrorFormat(
-                            "[SCRIPT INSTANCE]: Unable to load script state from assembly {0}: Memory limit exceeded",
-                            assembly);
+                            "[SCRIPT INSTANCE]: Unable to load script state file {0} from assembly {1}: Memory limit exceeded",
+                            savedState, assembly);
                     }
                 }
                 catch (Exception e)
                 {
                      m_log.ErrorFormat(
-                         "[SCRIPT INSTANCE]: Unable to load script state from assembly {0}.  XML is {1}.  Exception {2}{3}",
-                         assembly, xml, e.Message, e.StackTrace);
+                         "[SCRIPT INSTANCE]: Unable to load script state file {0} from assembly {1}.  XML is {2}.  Exception {3}{4}",
+                         savedState, assembly, xml, e.Message, e.StackTrace);
                 }
             }
 //            else
