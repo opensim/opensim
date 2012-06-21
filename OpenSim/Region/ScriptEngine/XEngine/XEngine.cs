@@ -63,6 +63,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Control the printing of certain debug messages.
+        /// </summary>
+        /// <remarks>
+        /// If DebugLevel >= 1, then we log every time that a script is started.
+        /// </remarks>
+//        public int DebugLevel { get; set; }
+
         private SmartThreadPool m_ThreadPool;
         private int m_MaxScriptQueue;
         private Scene m_Scene;
@@ -284,9 +292,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             AppDomain.CurrentDomain.AssemblyResolve +=
                 OnAssemblyResolve;
 
-            m_log.InfoFormat("[XEngine] Initializing scripts in region {0}",
-                             scene.RegionInfo.RegionName);
             m_Scene = scene;
+            m_log.InfoFormat("[XEngine]: Initializing scripts in region {0}", m_Scene.RegionInfo.RegionName);
 
             m_MinThreads = m_ScriptConfig.GetInt("MinThreads", 2);
             m_MaxThreads = m_ScriptConfig.GetInt("MaxThreads", 100);
@@ -389,7 +396,40 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 "Starts all stopped scripts."
                     + "If a <script-item-uuid> is given then only that script will be started.  Otherwise, all suitable scripts are started.",
                 (module, cmdparams) => HandleScriptsAction(cmdparams, HandleStartScript));
+
+//            MainConsole.Instance.Commands.AddCommand(
+//                "Debug", false, "debug xengine", "debug xengine [<level>]",
+//                "Turn on detailed xengine debugging.",
+//                  "If level <= 0, then no extra logging is done.\n"
+//                + "If level >= 1, then we log every time that a script is started.",
+//                HandleDebugLevelCommand);
         }
+
+        /// <summary>
+        /// Change debug level
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="args"></param>
+//        private void HandleDebugLevelCommand(string module, string[] args)
+//        {
+//            if (args.Length == 3)
+//            {
+//                int newDebug;
+//                if (int.TryParse(args[2], out newDebug))
+//                {
+//                    DebugLevel = newDebug;
+//                    MainConsole.Instance.OutputFormat("Debug level set to {0}", newDebug);
+//                }
+//            }
+//            else if (args.Length == 2)
+//            {
+//                MainConsole.Instance.OutputFormat("Current debug level is {0}", DebugLevel);
+//            }
+//            else
+//            {
+//                MainConsole.Instance.Output("Usage: debug xengine 0..1");
+//            }
+//        }
 
         /// <summary>
         /// Parse the raw item id into a script instance from the command params if it's present.
@@ -892,8 +932,23 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             object[] o;
+
+            int scriptsStarted = 0;
+
             while (m_CompileQueue.Dequeue(out o))
-                DoOnRezScript(o);
+            {
+                if (DoOnRezScript(o))
+                {
+                    scriptsStarted++;
+
+//                    if (scriptsStarted % 50 == 0)
+//                        m_log.DebugFormat(
+//                            "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
+                }
+            }
+
+//            m_log.DebugFormat(
+//                "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
 
             // NOTE: Despite having a lockless queue, this lock is required
             // to make sure there is never no compile thread while there
@@ -1749,14 +1804,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                 FileMode.Open, FileAccess.Read))
                         {
                             tfs.Read(tdata, 0, tdata.Length);
-                            tfs.Close();
                         }
 
                         assem = new System.Text.ASCIIEncoding().GetString(tdata);
                     }
                     catch (Exception e)
                     {
-                         m_log.DebugFormat("[XEngine]: Unable to open script textfile {0}, reason: {1}", assemName+".text", e.Message);
+                         m_log.ErrorFormat(
+                            "[XEngine]: Unable to open script textfile {0}{1}, reason: {2}",
+                            assemName, ".text", e.Message);
                     }
                 }
             }
@@ -1773,16 +1829,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         using (FileStream fs = File.Open(assemName, FileMode.Open, FileAccess.Read))
                         {
                             fs.Read(data, 0, data.Length);
-                            fs.Close();
                         }
 
                         assem = System.Convert.ToBase64String(data);
                     }
                     catch (Exception e)
                     {
-                        m_log.DebugFormat("[XEngine]: Unable to open script assembly {0}, reason: {1}", assemName, e.Message);
+                        m_log.ErrorFormat(
+                            "[XEngine]: Unable to open script assembly {0}, reason: {1}", assemName, e.Message);
                     }
-
                 }
             }
 
@@ -1795,9 +1850,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     using (StreamReader msr = new StreamReader(mfs))
                     {
                         map = msr.ReadToEnd();
-                        msr.Close();
                     }
-                    mfs.Close();
                 }
             }
 
@@ -1833,6 +1886,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public bool SetXMLState(UUID itemID, string xml)
         {
+//            m_log.DebugFormat("[XEngine]: Writing state for script item with ID {0}", itemID);
+
             if (xml == String.Empty)
                 return false;
 
@@ -1893,14 +1948,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     {
                         using (FileStream fs = File.Create(path))
                         {
+//                            m_log.DebugFormat("[XEngine]: Writing assembly file {0}", path);
+
                             fs.Write(filedata, 0, filedata.Length);
-                            fs.Close();
                         }
                     }
                     catch (IOException ex)
                     {
                         // if there already exists a file at that location, it may be locked.
-                        m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", path, ex.Message);
+                        m_log.ErrorFormat("[XEngine]: Error whilst writing assembly file {0}, {1}", path, ex.Message);
                     }
 
                     string textpath = path + ".text";
@@ -1910,16 +1966,43 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         {
                             using (StreamWriter sw = new StreamWriter(fs))
                             {
+//                                m_log.DebugFormat("[XEngine]: Writing .text file {0}", textpath);
+
                                 sw.Write(base64);
-                                sw.Close();
                             }
-                            fs.Close();
                         }
                     }
                     catch (IOException ex)
                     {
                         // if there already exists a file at that location, it may be locked.
-                        m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", textpath, ex.Message);
+                        m_log.ErrorFormat("[XEngine]: Error whilst writing .text file {0}, {1}", textpath, ex.Message);
+                    }
+                }
+
+                XmlNodeList mapL = rootE.GetElementsByTagName("LineMap");
+                if (mapL.Count > 0)
+                {
+                    XmlElement mapE = (XmlElement)mapL[0];
+
+                    string mappath = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
+                    mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
+
+                    try
+                    {
+                        using (FileStream mfs = File.Create(mappath))
+                        {
+                            using (StreamWriter msw = new StreamWriter(mfs))
+                            {
+    //                            m_log.DebugFormat("[XEngine]: Writing linemap file {0}", mappath);
+
+                                msw.Write(mapE.InnerText);
+                            }
+                        }
+                    }
+                    catch (IOException ex)
+                    {
+                        // if there already exists a file at that location, it may be locked.
+                        m_log.ErrorFormat("[XEngine]: Linemap file {0} already exists! {1}", mappath, ex.Message);
                     }
                 }
             }
@@ -1933,43 +2016,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     using (StreamWriter ssw = new StreamWriter(sfs))
                     {
+//                        m_log.DebugFormat("[XEngine]: Writing state file {0}", statepath);
+
                         ssw.Write(stateE.OuterXml);
-                        ssw.Close();
                     }
-                    sfs.Close();
                 }
             }
             catch (IOException ex)
             {
                 // if there already exists a file at that location, it may be locked.
-                m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", statepath, ex.Message);
-            }
-
-            XmlNodeList mapL = rootE.GetElementsByTagName("LineMap");
-            if (mapL.Count > 0)
-            {
-                XmlElement mapE = (XmlElement)mapL[0];
-
-                string mappath = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
-                mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
-
-                try
-                {
-                    using (FileStream mfs = File.Create(mappath))
-                    {
-                        using (StreamWriter msw = new StreamWriter(mfs))
-                        {
-                            msw.Write(mapE.InnerText);
-                            msw.Close();
-                        }
-                        mfs.Close();
-                    }
-                }
-                catch (IOException ex)
-                {
-                    // if there already exists a file at that location, it may be locked.
-                    m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", mappath, ex.Message);
-                }
+                m_log.ErrorFormat("[XEngine]: Error whilst writing state file {0}, {1}", statepath, ex.Message);
             }
 
             return true;

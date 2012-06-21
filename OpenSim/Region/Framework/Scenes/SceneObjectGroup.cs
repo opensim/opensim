@@ -1824,8 +1824,9 @@ namespace OpenSim.Region.Framework.Scenes
                         part.ClearUpdateSchedule();
                         if (part == m_rootPart)
                         {
-                            if (!IsAttachment || (AttachedAvatar == avatar.ControllingClient.AgentId) ||
-                                (AttachmentPoint < 31) || (AttachmentPoint > 38))
+                            if (!IsAttachment
+                                || AttachedAvatar == avatar.ControllingClient.AgentId
+                                || !HasPrivateAttachmentPoint)
                                 avatar.ControllingClient.SendKillObject(m_regionHandle, new List<uint> { part.LocalId });
                         }
                     }

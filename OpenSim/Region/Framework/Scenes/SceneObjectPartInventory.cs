@@ -260,14 +260,16 @@ namespace OpenSim.Region.Framework.Scenes
             Items.LockItemsForRead(false);
         }
 
-        /// <summary>
-        /// Start all the scripts contained in this prim's inventory
-        /// </summary>
-        public void CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource)
+        public int CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource)
         {
+            int scriptsValidForStarting = 0;
+
             List<TaskInventoryItem> scripts = GetInventoryItems(InventoryType.LSL);
             foreach (TaskInventoryItem item in scripts)
-                CreateScriptInstance(item, startParam, postOnRez, engine, stateSource);
+                if (CreateScriptInstance(item, startParam, postOnRez, engine, stateSource))
+                    scriptsValidForStarting++;
+
+            return scriptsValidForStarting;
         }
 
         public ArrayList GetScriptErrors(UUID itemID)
@@ -310,8 +312,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// Start a script which is in this prim's inventory.
         /// </summary>
         /// <param name="item"></param>
-        /// <returns></returns>
-        public void CreateScriptInstance(TaskInventoryItem item, int startParam, bool postOnRez, string engine, int stateSource)
+        /// <returns>true if the script instance was created, false otherwise</returns>
+        public bool CreateScriptInstance(TaskInventoryItem item, int startParam, bool postOnRez, string engine, int stateSource)
         {
 //             m_log.DebugFormat("[PRIM INVENTORY]: Starting script {0} {1} in prim {2} {3} in {4}",
 //                 item.Name, item.ItemID, m_part.Name, m_part.UUID, m_part.ParentGroup.Scene.RegionInfo.RegionName);
@@ -319,61 +321,70 @@ namespace OpenSim.Region.Framework.Scenes
             if (!m_part.ParentGroup.Scene.Permissions.CanRunScript(item.ItemID, m_part.UUID, item.OwnerID))
             {
                 StoreScriptError(item.ItemID, "no permission");
-                return;
+                return false;
             }
 
             m_part.AddFlag(PrimFlags.Scripted);
 
-            if (!m_part.ParentGroup.Scene.RegionInfo.RegionSettings.DisableScripts)
-            {
-                if (stateSource == 2 && // Prim crossing
-                        m_part.ParentGroup.Scene.m_trustBinaries)
-                {
-                    m_items.LockItemsForWrite(true);
-                    m_items[item.ItemID].PermsMask = 0;
-                    m_items[item.ItemID].PermsGranter = UUID.Zero;
-                    m_items.LockItemsForWrite(false);
-                    m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
-                        m_part.LocalId, item.ItemID, String.Empty, startParam, postOnRez, engine, stateSource);
-                    StoreScriptErrors(item.ItemID, null);
-                    m_part.ParentGroup.AddActiveScriptCount(1);
-                    m_part.ScheduleFullUpdate();
-                    return;
-                }
+            if (m_part.ParentGroup.Scene.RegionInfo.RegionSettings.DisableScripts)
+                return false;
 
-                AssetBase asset = m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString());
-                if (null == asset)
-                {
-                    string msg = String.Format("asset ID {0} could not be found", item.AssetID);
-                    StoreScriptError(item.ItemID, msg);
-                    m_log.ErrorFormat(
+            if (stateSource == 2 && // Prim crossing
+                    m_part.ParentGroup.Scene.m_trustBinaries)
+            {
+                m_items.LockItemsForWrite(true);
+                m_items[item.ItemID].PermsMask = 0;
+                m_items[item.ItemID].PermsGranter = UUID.Zero;
+                m_items.LockItemsForWrite(false);
+                m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
+                    m_part.LocalId, item.ItemID, String.Empty, startParam, postOnRez, engine, stateSource);
+                StoreScriptErrors(item.ItemID, null);
+                m_part.ParentGroup.AddActiveScriptCount(1);
+                m_part.ScheduleFullUpdate();
+                return true;
+            }
+
+            AssetBase asset = m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString());
+            if (null == asset)
+            {
+                m_log.ErrorFormat(
+                    "[PRIM INVENTORY]: Couldn't start script {0}, {1} at {2} in {3} since asset ID {4} could not be found",
+                    item.Name, item.ItemID, m_part.AbsolutePosition, 
+                    m_part.ParentGroup.Scene.RegionInfo.RegionName, item.AssetID);
+
+                return false;
+            }
+            else
+            {
+                if (m_part.ParentGroup.m_savedScriptState != null)
+                    item.OldItemID = RestoreSavedScriptState(item.LoadedItemID, item.OldItemID, item.ItemID);
+
+                string msg = String.Format("asset ID {0} could not be found", item.AssetID);
+                StoreScriptError(item.ItemID, msg);
+                m_log.ErrorFormat(
                         "[PRIM INVENTORY]: Couldn't start script {0}, {1} at {2} in {3} since asset ID {4} could not be found",
                         item.Name, item.ItemID, m_part.AbsolutePosition, 
                         m_part.ParentGroup.Scene.RegionInfo.RegionName, item.AssetID);
-                }
-                else
-                {
-                    if (m_part.ParentGroup.m_savedScriptState != null)
-                        item.OldItemID = RestoreSavedScriptState(item.LoadedItemID, item.OldItemID, item.ItemID);
 
-                    m_items.LockItemsForWrite(true);
+                m_items.LockItemsForWrite(true);
 
-                    m_items[item.ItemID].OldItemID = item.OldItemID;
-                    m_items[item.ItemID].PermsMask = 0;
-                    m_items[item.ItemID].PermsGranter = UUID.Zero;
+                m_items[item.ItemID].OldItemID = item.OldItemID;
+                m_items[item.ItemID].PermsMask = 0;
+                m_items[item.ItemID].PermsGranter = UUID.Zero;
 
-                    m_items.LockItemsForWrite(false);
+                m_items.LockItemsForWrite(false);
                 
-                    string script = Utils.BytesToString(asset.Data);
-                    m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
-                        m_part.LocalId, item.ItemID, script, startParam, postOnRez, engine, stateSource);
-                    StoreScriptErrors(item.ItemID, null);
-                    if (!item.ScriptRunning)
-                        m_part.ParentGroup.Scene.EventManager.TriggerStopScript(
-                            m_part.LocalId, item.ItemID);
-                    m_part.ParentGroup.AddActiveScriptCount(1);
-                    m_part.ScheduleFullUpdate();
-                }
+                string script = Utils.BytesToString(asset.Data);
+                m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
+                    m_part.LocalId, item.ItemID, script, startParam, postOnRez, engine, stateSource);
+                StoreScriptErrors(item.ItemID, null);
+                if (!item.ScriptRunning)
+                    m_part.ParentGroup.Scene.EventManager.TriggerStopScript(
+                        m_part.LocalId, item.ItemID);
+                m_part.ParentGroup.AddActiveScriptCount(1);
+                m_part.ScheduleFullUpdate();
+
+                return true;
             }
         }
 
@@ -446,7 +457,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="itemId">
         /// A <see cref="UUID"/>
         /// </param>
-        public void CreateScriptInstance(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource)
+        public bool CreateScriptInstance(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource)
         {
             lock (m_scriptErrors)
             {
@@ -454,6 +465,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_scriptErrors.Remove(itemId);
             }
             CreateScriptInstanceInternal(itemId, startParam, postOnRez, engine, stateSource);
+            return true;
         }
 
         private void CreateScriptInstanceInternal(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource)

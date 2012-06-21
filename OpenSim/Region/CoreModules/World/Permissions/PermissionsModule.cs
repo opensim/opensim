@@ -348,12 +348,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
 
             if (m_friendsModule == null)
-                m_log.Warn("[PERMISSIONS]: Friends module not found, friend permissions will not work");
+                m_log.Debug("[PERMISSIONS]: Friends module not found, friend permissions will not work");
 
             m_groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
 
             if (m_groupsModule == null)
-                m_log.Warn("[PERMISSIONS]: Groups module not found, group permissions will not work");
+                m_log.Debug("[PERMISSIONS]: Groups module not found, group permissions will not work");
             
             m_moapModule = m_scene.RequestModuleInterface<IMoapModule>();
             

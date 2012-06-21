@@ -2059,7 +2059,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 m_log.WarnFormat(
                     "[SCENE OBJECT PART]: Part {0} {1} requested mesh/sculpt data for asset id {2} from asset service but received no data",
-                    Name, LocalId, id);
+                    Name, UUID, id);
         }
 
         /// <summary>
@@ -5026,8 +5026,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup.IsDeleted)
                 return;
 
-            if (ParentGroup.IsAttachment && ((ParentGroup.RootPart != this) ||
-                ((ParentGroup.AttachedAvatar != remoteClient.AgentId) && (ParentGroup.AttachmentPoint >= 31) && (ParentGroup.AttachmentPoint <= 38))))
+            if (ParentGroup.IsAttachment
+                && (ParentGroup.RootPart != this
+                    || ParentGroup.AttachedAvatar != remoteClient.AgentId && ParentGroup.HasPrivateAttachmentPoint))
                 return;
             
             // Causes this thread to dig into the Client Thread Data.

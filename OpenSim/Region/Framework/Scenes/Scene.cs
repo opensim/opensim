@@ -1522,11 +1522,11 @@ namespace OpenSim.Region.Framework.Scenes
                                 LoginLock = false;
                                 EventManager.TriggerLoginsEnabled(RegionInfo.RegionName);
                             }
-                            m_log.DebugFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
     
                             // For RegionReady lockouts
-                            if(LoginLock == false)
+                            if (!LoginLock)
                             {
+                                m_log.InfoFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
                                 LoginsDisabled = false;
                             }
     

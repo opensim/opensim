@@ -81,7 +81,12 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Start all the scripts contained in this entity's inventory
         /// </summary>
-        void CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource);
+        /// <param name="startParam"></param>
+        /// <param name="postOnRez"></param>
+        /// <param name="engine"></param>
+        /// <param name="stateSource"></param>
+        /// <returns>Number of scripts started.</returns>
+        int CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource);
         
         ArrayList GetScriptErrors(UUID itemID);
         void ResumeScripts();
@@ -102,7 +107,11 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="postOnRez"></param>
         /// <param name="engine"></param>
         /// <param name="stateSource"></param>
-        void CreateScriptInstance(
+        /// <returns>
+        /// true if the script instance was valid for starting, false otherwise.  This does not guarantee
+        /// that the script was actually started, just that the script was valid (i.e. its asset data could be found, etc.)
+        /// </returns>
+        bool CreateScriptInstance(
             TaskInventoryItem item, int startParam, bool postOnRez, string engine, int stateSource);
 
         /// <summary>
@@ -113,7 +122,11 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="postOnRez"></param>
         /// <param name="engine"></param>
         /// <param name="stateSource"></param>
-        void CreateScriptInstance(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource);
+        /// <returns>
+        /// true if the script instance was valid for starting, false otherwise.  This does not guarantee
+        /// that the script was actually started, just that the script was valid (i.e. its asset data could be found, etc.)
+        /// </returns>
+        bool CreateScriptInstance(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource);
 
         ArrayList CreateScriptInstanceEr(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource);
 
