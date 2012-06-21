@@ -303,6 +303,36 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(presence.Appearance.GetAttachpoint(attItemId), Is.EqualTo((int)AttachmentPoint.Chest));
         }
 
+        [Test]
+        public void TestUpdateAttachmentPosition()
+        {
+            TestHelpers.InMethod();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UUID attItemId = TestHelpers.ParseTail(0x2);
+            UUID attAssetId = TestHelpers.ParseTail(0x3);
+            string attName = "att";
+
+            UserAccountHelpers.CreateUserWithInventory(scene, userId);
+            InventoryItemBase attItem
+                = UserInventoryHelpers.CreateInventoryItem(
+                    scene, attName, attItemId, attAssetId, userId, InventoryType.Object);
+
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
+            acd.Appearance = new AvatarAppearance();
+            acd.Appearance.SetAttachment((int)AttachmentPoint.Chest, attItem.ID, attItem.AssetID);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, acd);
+
+            SceneObjectGroup attSo = sp.GetAttachments()[0];
+
+            Vector3 newPosition = new Vector3(1, 2, 4);
+
+            scene.SceneGraph.UpdatePrimGroupPosition(attSo.LocalId, newPosition, sp.ControllingClient);
+
+            Assert.That(attSo.AbsolutePosition, Is.EqualTo(sp.AbsolutePosition));
+            Assert.That(attSo.RootPart.AttachedPos, Is.EqualTo(newPosition));
+        }
+
         // I'm commenting this test because scene setup NEEDS InventoryService to 
         // be non-null
         //[Test]
