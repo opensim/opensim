@@ -855,13 +855,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 m_InitialStartup = false;
                 System.Threading.Thread.Sleep(15000);
-
-                if (m_CompileQueue.Count == 0)
-                {
-                    // No scripts on region, so won't get triggered later
-                    // by the queue becoming empty so we trigger it here
-                    m_Scene.EventManager.TriggerEmptyScriptCompileQueue(0, String.Empty);
-                }
             }
 
             object[] o;
@@ -889,11 +882,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             // due to a race condition
             //
             lock (m_CompileQueue)
-            {
                 m_CurrentCompile = null;
-            }
+
             m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount,
                                                                 m_ScriptErrorMessage);
+
             m_ScriptFailCount = 0;
 
             return null;
