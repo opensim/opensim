@@ -408,17 +408,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (!Enabled)
                 return;
 
-            // First we save the
-            // attachment point information, then we update the relative 
-            // positioning. Then we have to mark the object as NOT an
-            // attachment. This is necessary in order to correctly save
-            // and retrieve GroupPosition information for the attachment.
-            // Finally, we restore the object's attachment status.
-            uint attachmentPoint = sog.AttachmentPoint;
             sog.UpdateGroupPosition(pos);
-            sog.IsAttachment = false;
-            sog.AbsolutePosition = sog.RootPart.AttachedPos;
-            sog.AttachmentPoint = attachmentPoint;
             sog.HasGroupChanged = true;            
         }
 
