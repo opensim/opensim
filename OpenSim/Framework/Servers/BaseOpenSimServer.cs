@@ -321,7 +321,7 @@ namespace OpenSim.Framework.Servers
             TimeSpan timeTaken = DateTime.Now - m_startuptime;
             
             m_log.InfoFormat(
-                "[STARTUP]: Non-script portion of startup took {0}m {1}s.  PLEASE WAIT FOR LOGINS TO BE ENABLED ON REGIONS.",
+                "[STARTUP]: Non-script portion of startup took {0}m {1}s.  PLEASE WAIT FOR LOGINS TO BE ENABLED ON REGIONS ONCE SCRIPTS HAVE STARTED.",
                 timeTaken.Minutes, timeTaken.Seconds);
         }
 

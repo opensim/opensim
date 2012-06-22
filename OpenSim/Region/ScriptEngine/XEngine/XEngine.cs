@@ -853,7 +853,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             if (m_InitialStartup)
             {
-                m_InitialStartup = false;
+                // This delay exists to stop mono problems where script compilation and startup would stop the sim
+                // working properly for the session.
                 System.Threading.Thread.Sleep(15000);
             }
 
@@ -867,14 +868,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     scriptsStarted++;
 
-//                    if (scriptsStarted % 50 == 0)
-//                        m_log.DebugFormat(
-//                            "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
+                    if (m_InitialStartup)
+                        if (scriptsStarted % 50 == 0)
+                            m_log.InfoFormat(
+                                "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
                 }
             }
 
-//            m_log.DebugFormat(
-//                "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
+            if (m_InitialStartup)
+                m_log.InfoFormat(
+                    "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
 
             // NOTE: Despite having a lockless queue, this lock is required
             // to make sure there is never no compile thread while there
@@ -888,6 +891,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                                                 m_ScriptErrorMessage);
 
             m_ScriptFailCount = 0;
+            m_InitialStartup = false;
 
             return null;
         }
