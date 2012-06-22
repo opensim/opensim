@@ -2911,6 +2911,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_scene.PhysicsScene.AddPhysicsActorTaint(actor);
             }
 
+            if (IsAttachment)
+            {
+                m_rootPart.AttachedPos = pos;
+            }
+
             AbsolutePosition = pos;
 
             HasGroupChanged = true;
