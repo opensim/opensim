@@ -1363,22 +1363,22 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     return false;
 
                 uuids = m_PrimObjects[localID];
-            }
 
-            foreach (UUID itemID in uuids)
-            {
-                IScriptInstance instance = null;
-                try
+                foreach (UUID itemID in uuids)
                 {
-                    if (m_Scripts.ContainsKey(itemID))
-                        instance = m_Scripts[itemID];
-                }
-                catch { /* ignore race conditions */ }
-
-                if (instance != null)
-                {
-                    instance.PostEvent(p);
-                    result = true;
+                    IScriptInstance instance = null;
+                    try
+                    {
+                        if (m_Scripts.ContainsKey(itemID))
+                            instance = m_Scripts[itemID];
+                    }
+                    catch { /* ignore race conditions */ }
+    
+                    if (instance != null)
+                    {
+                        instance.PostEvent(p);
+                        result = true;
+                    }
                 }
             }
             
