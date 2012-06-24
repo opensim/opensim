@@ -3570,7 +3570,8 @@ namespace OpenSim.Region.Framework.Scenes
             // m_reprioritizationTimer.Dispose(); 
 
             RemoveFromPhysicalScene();
-            Animator.Close();
+            if(Animator != null)
+                Animator.Close();
             Animator = null;
         }
 
