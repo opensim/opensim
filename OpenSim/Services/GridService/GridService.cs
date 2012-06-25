@@ -648,16 +648,15 @@ namespace OpenSim.Services.GridService
         private void OutputRegionsToConsoleSummary(List<RegionData> regions)
         {
             ConsoleDisplayTable dispTable = new ConsoleDisplayTable();
-            dispTable.Columns.Add(new ConsoleDisplayTableColumn("Name", 16));
-            dispTable.Columns.Add(new ConsoleDisplayTableColumn("ID", 36));
-            dispTable.Columns.Add(new ConsoleDisplayTableColumn("Owner ID", 36));
-            dispTable.Columns.Add(new ConsoleDisplayTableColumn("Flags", 60));
+            dispTable.AddColumn("Name", 16);
+            dispTable.AddColumn("ID", 36);
+            dispTable.AddColumn("Owner ID", 36);
+            dispTable.AddColumn("Flags", 60);
 
             foreach (RegionData r in regions)
             {
                 OpenSim.Data.RegionFlags flags = (OpenSim.Data.RegionFlags)Convert.ToInt32(r.Data["flags"]);
-                dispTable.Rows.Add(
-                    new ConsoleDisplayTableRow(new List<string> { r.RegionName, r.RegionID.ToString(), r.Data["owner_uuid"].ToString(), flags.ToString() }));
+                dispTable.AddRow(r.RegionName, r.RegionID.ToString(), r.Data["owner_uuid"].ToString(), flags.ToString());
             }
 
             MainConsole.Instance.Output(dispTable.ToString());

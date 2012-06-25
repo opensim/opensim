@@ -79,6 +79,16 @@ namespace OpenSim.Framework.Console
             return sb.ToString();
         }
 
+        public void AddColumn(string name, int width)
+        {
+            Columns.Add(new ConsoleDisplayTableColumn(name, width));
+        }
+
+        public void AddRow(params string[] cells)
+        {
+            Rows.Add(new ConsoleDisplayTableRow(cells));
+        }
+
         public void AddToStringBuilder(StringBuilder sb)
         {
             string formatString = GetFormatString();
@@ -134,6 +144,11 @@ namespace OpenSim.Framework.Console
         public ConsoleDisplayTableRow(List<string> cells) : this()
         {
             Cells = cells;
+        }
+
+        public ConsoleDisplayTableRow(params string[] cells) : this()
+        {
+            Cells = new List<string>(cells);
         }
     }
 }
