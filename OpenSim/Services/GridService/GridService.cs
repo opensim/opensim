@@ -91,6 +91,18 @@ namespace OpenSim.Services.GridService
                             String.Empty,
                             HandleDeregisterRegion);
 
+                    // A messy way of stopping this command being added if we are in standalone (since the simulator
+                    // has an identically named command
+                    //
+                    // XXX: We're relying on the OpenSimulator version being registered first, which is not well defined.
+                    if (MainConsole.Instance.Commands.Resolve(new string[] { "show", "regions" }).Length == 0)
+                        MainConsole.Instance.Commands.AddCommand("Regions", true,
+                                "show regions",
+                                "show all regions",
+                                "Show details on all regions",
+                                String.Empty,
+                                HandleShowRegions);
+
                     MainConsole.Instance.Commands.AddCommand("Regions", true,
                             "show region name",
                             "show region name <Region name>",
@@ -547,6 +559,20 @@ namespace OpenSim.Services.GridService
             return;
         }
 
+        private void HandleShowRegions(string module, string[] cmd)
+        {
+            if (cmd.Length != 2)
+            {
+                MainConsole.Instance.Output("Syntax: show regions");
+                return;
+            }
+
+            List<RegionData> regions = m_Database.Get(int.MinValue, int.MinValue, int.MaxValue, int.MaxValue, UUID.Zero);
+
+            OutputRegionsToConsoleSummary(regions);
+        }
+
+
         private void HandleShowRegion(string module, string[] cmd)
         {
             if (cmd.Length != 4)
@@ -617,6 +643,24 @@ namespace OpenSim.Services.GridService
         {
             foreach (RegionData r in regions)
                 OutputRegionToConsole(r);
+        }
+
+        private void OutputRegionsToConsoleSummary(List<RegionData> regions)
+        {
+            ConsoleDisplayTable dispTable = new ConsoleDisplayTable();
+            dispTable.Columns.Add(new ConsoleDisplayTableColumn("Name", 16));
+            dispTable.Columns.Add(new ConsoleDisplayTableColumn("ID", 36));
+            dispTable.Columns.Add(new ConsoleDisplayTableColumn("Owner ID", 36));
+            dispTable.Columns.Add(new ConsoleDisplayTableColumn("Flags", 60));
+
+            foreach (RegionData r in regions)
+            {
+                OpenSim.Data.RegionFlags flags = (OpenSim.Data.RegionFlags)Convert.ToInt32(r.Data["flags"]);
+                dispTable.Rows.Add(
+                    new ConsoleDisplayTableRow(new List<string> { r.RegionName, r.RegionID.ToString(), r.Data["owner_uuid"].ToString(), flags.ToString() }));
+            }
+
+            MainConsole.Instance.Output(dispTable.ToString());
         }
 
         private int ParseFlags(int prev, string flags)
