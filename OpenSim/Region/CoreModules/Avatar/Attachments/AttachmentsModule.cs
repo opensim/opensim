@@ -628,6 +628,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         {
                             m_scene.EventManager.TriggerOnAttach(group.LocalId, itemID, UUID.Zero);
                             sp.RemoveAttachment(group);
+                            m_scene.DeleteSceneObject(group, false);
 
                             // Prepare sog for storage
                             group.AttachedAvatar = UUID.Zero;
@@ -636,7 +637,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                             group.AbsolutePosition = group.RootPart.AttachedPos;
 
                             UpdateKnownItem(sp, group, true);
-                            m_scene.DeleteSceneObject(group, false);
 
                             return;
                         }

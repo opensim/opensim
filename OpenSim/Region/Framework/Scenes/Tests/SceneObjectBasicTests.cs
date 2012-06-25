@@ -187,7 +187,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             TestScene scene = new SceneHelpers().SetupScene();
             SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
+
+            Assert.That(part.ParentGroup.IsDeleted, Is.False);
+
             scene.DeleteSceneObject(part.ParentGroup, false);
+
+            Assert.That(part.ParentGroup.IsDeleted, Is.True);
 
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
             Assert.That(retrievedPart, Is.Null);
@@ -219,7 +224,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(retrievedPart, Is.Not.Null);
 
+            Assert.That(part.ParentGroup.IsDeleted, Is.False);
+
             sogd.InventoryDeQueueAndDelete();
+
+            Assert.That(part.ParentGroup.IsDeleted, Is.True);            
 
             SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(part.LocalId);
             Assert.That(retrievedPart2, Is.Null);
