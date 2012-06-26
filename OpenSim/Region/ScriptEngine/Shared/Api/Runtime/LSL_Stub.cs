@@ -954,6 +954,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llRequestDisplayName(id);
         }
 
+        public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
+        {
+            return m_LSL_Functions.llCastRay(start, end, options);
+        }
+
         public void llLinkParticleSystem(int linknum, LSL_List rules)
         {
             m_LSL_Functions.llLinkParticleSystem(linknum, rules);
