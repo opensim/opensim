@@ -56,8 +56,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
     [TestFixture]
     public class AttachmentsModuleTests
     {
-        private AttachmentsModule m_attMod;
-
         /// <summary>
         /// Standard user ID
         /// </summary>
@@ -95,8 +93,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
 
             Scene scene = new SceneHelpers().SetupScene();
-            m_attMod = new AttachmentsModule();
-            SceneHelpers.SetupSceneModules(scene, config, m_attMod, new BasicInventoryAccessModule());
+            SceneHelpers.SetupSceneModules(scene, config, new AttachmentsModule(), new BasicInventoryAccessModule());
 
             return scene;
         }
@@ -141,7 +138,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, attName, sp.UUID).ParentGroup;
 
-            m_attMod.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false);
+            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false);
 
             // Check status on scene presence
             Assert.That(sp.HasAttachments(), Is.True);
@@ -181,7 +178,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             InventoryItemBase attItem = CreateAttachmentItem(scene, m_userId, "att", 0x10, 0x20);
 
-            m_attMod.RezSingleAttachmentFromInventory(
+            scene.AttachmentsModule.RezSingleAttachmentFromInventory(
                 sp, attItem.ID, (uint)AttachmentPoint.Chest);
 
             // Check scene presence status
@@ -213,9 +210,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             InventoryItemBase attItem = CreateAttachmentItem(scene, m_userId, "att", 0x10, 0x20);
 
             ISceneEntity so
-                = m_attMod.RezSingleAttachmentFromInventory(
+                = scene.AttachmentsModule.RezSingleAttachmentFromInventory(
                     sp, attItem.ID, (uint)AttachmentPoint.Chest);
-            m_attMod.DetachSingleAttachmentToGround(sp, so.LocalId);
+            scene.AttachmentsModule.DetachSingleAttachmentToGround(sp, so.LocalId);
 
             // Check scene presence status
             Assert.That(sp.HasAttachments(), Is.False);
@@ -244,9 +241,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             InventoryItemBase attItem = CreateAttachmentItem(scene, m_userId, "att", 0x10, 0x20);
 
-            m_attMod.RezSingleAttachmentFromInventory(
+            scene.AttachmentsModule.RezSingleAttachmentFromInventory(
                 sp, attItem.ID, (uint)AttachmentPoint.Chest);
-            m_attMod.DetachSingleAttachmentToInv(sp, attItem.ID);
+            scene.AttachmentsModule.DetachSingleAttachmentToInv(sp, attItem.ID);
 
             // Check status on scene presence
             Assert.That(sp.HasAttachments(), Is.False);
@@ -364,6 +361,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             // for a callback from the destination scene before removing its avatar data.
             entityTransferConfig.Set("wait_for_callback", false);
 
+            modulesConfig.Set("InventoryAccessModule", "BasicInventoryAccessModule");
+
             SceneHelpers sh = new SceneHelpers();
             TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
             TestScene sceneB = sh.SetupScene("sceneB", TestHelpers.ParseTail(0x200), 1001, 1000);
@@ -380,7 +379,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             InventoryItemBase attItem = CreateAttachmentItem(sceneA, m_userId, "att", 0x10, 0x20);
 
-            m_attMod.RezSingleAttachmentFromInventory(
+            sceneA.AttachmentsModule.RezSingleAttachmentFromInventory(
                 beforeTeleportSp, attItem.ID, (uint)AttachmentPoint.Chest);
 
             Vector3 teleportPosition = new Vector3(10, 11, 12);
