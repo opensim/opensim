@@ -41,6 +41,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private readonly BaseHttpServer m_server;
         private static Queue m_requests = Queue.Synchronized(new Queue());
+        private static ManualResetEvent m_ev = new ManualResetEvent(false);
         private uint m_WorkerThreadCount = 0;
         private Thread[] m_workerThreads;
         private PollServiceWorkerThread[] m_PollServiceWorkerThreads;
@@ -88,15 +89,17 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             lock (m_requests)
                 m_requests.Enqueue(req);
+            m_ev.Set();
         }
 
         public void ThreadStart()
         {
             while (m_running)
             {
+                m_ev.WaitOne(1000);
+                m_ev.Reset();
                 Watchdog.UpdateThread();
                 ProcessQueuedRequests();
-                Thread.Sleep(1000);
             }
         }
 
