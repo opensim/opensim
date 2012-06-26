@@ -126,6 +126,11 @@ namespace OpenSim.Tests.Common
             return CreateUserWithInventory(scene, "Bill", "Bailey", userId, "troll");
         }
 
+        public static UserAccount CreateUserWithInventory(Scene scene, int userId)
+        {
+            return CreateUserWithInventory(scene, "Bill", "Bailey", TestHelpers.ParseTail(userId), "troll");
+        }
+
         public static UserAccount CreateUserWithInventory(
             Scene scene, string firstName, string lastName, UUID userId, string pw)
         {

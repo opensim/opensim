@@ -45,6 +45,7 @@ using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
@@ -56,21 +57,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
     [TestFixture]
     public class AttachmentsModuleTests
     {
-        /// <summary>
-        /// Standard user ID
-        /// </summary>
-        private UUID m_userId = TestHelpers.ParseTail(0x1);
-
-//        /// <summary>
-//        /// Standard attachment item ID
-//        /// </summary>
-//        private UUID m_attItemId = TestHelpers.ParseTail(0x10);
-//
-//        /// <summary>
-//        /// Standard attachment asset ID
-//        /// </summary>
-//        private UUID m_attAssetId = TestHelpers.ParseTail(0x11);
-
         [TestFixtureSetUp]
         public void FixtureInit()
         {
@@ -131,8 +117,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 //            TestHelpers.EnableLogging();
 
             Scene scene = CreateDefaultTestScene();
-            UserAccountHelpers.CreateUserWithInventory(scene, m_userId);
-            ScenePresence sp = SceneHelpers.AddScenePresence(scene, m_userId);
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1.PrincipalID);
 
             string attName = "att";
 
@@ -173,10 +159,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 //            log4net.Config.XmlConfigurator.Configure();
 
             Scene scene = CreateDefaultTestScene();
-            UserAccountHelpers.CreateUserWithInventory(scene, m_userId);
-            ScenePresence sp = SceneHelpers.AddScenePresence(scene, m_userId);
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1.PrincipalID);
 
-            InventoryItemBase attItem = CreateAttachmentItem(scene, m_userId, "att", 0x10, 0x20);
+            InventoryItemBase attItem = CreateAttachmentItem(scene, ua1.PrincipalID, "att", 0x10, 0x20);
 
             scene.AttachmentsModule.RezSingleAttachmentFromInventory(
                 sp, attItem.ID, (uint)AttachmentPoint.Chest);
@@ -204,10 +190,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 //            log4net.Config.XmlConfigurator.Configure();
 
             Scene scene = CreateDefaultTestScene();
-            UserAccountHelpers.CreateUserWithInventory(scene, m_userId);
-            ScenePresence sp = SceneHelpers.AddScenePresence(scene, m_userId);
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1.PrincipalID);
 
-            InventoryItemBase attItem = CreateAttachmentItem(scene, m_userId, "att", 0x10, 0x20);
+            InventoryItemBase attItem = CreateAttachmentItem(scene, ua1.PrincipalID, "att", 0x10, 0x20);
 
             ISceneEntity so
                 = scene.AttachmentsModule.RezSingleAttachmentFromInventory(
@@ -236,10 +222,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 //            log4net.Config.XmlConfigurator.Configure();
 
             Scene scene = CreateDefaultTestScene();
-            UserAccountHelpers.CreateUserWithInventory(scene, m_userId);
-            ScenePresence sp = SceneHelpers.AddScenePresence(scene, m_userId);
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1.PrincipalID);
 
-            InventoryItemBase attItem = CreateAttachmentItem(scene, m_userId, "att", 0x10, 0x20);
+            InventoryItemBase attItem = CreateAttachmentItem(scene, ua1.PrincipalID, "att", 0x10, 0x20);
 
             scene.AttachmentsModule.RezSingleAttachmentFromInventory(
                 sp, attItem.ID, (uint)AttachmentPoint.Chest);
@@ -264,10 +250,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 //            log4net.Config.XmlConfigurator.Configure();
 
             Scene scene = CreateDefaultTestScene();
-            UserAccountHelpers.CreateUserWithInventory(scene, m_userId);
-            InventoryItemBase attItem = CreateAttachmentItem(scene, m_userId, "att", 0x10, 0x20);
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
+            InventoryItemBase attItem = CreateAttachmentItem(scene, ua1.PrincipalID, "att", 0x10, 0x20);
 
-            AgentCircuitData acd = SceneHelpers.GenerateAgentData(m_userId);
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(ua1.PrincipalID);
             acd.Appearance = new AvatarAppearance();
             acd.Appearance.SetAttachment((int)AttachmentPoint.Chest, attItem.ID, attItem.AssetID);
             ScenePresence presence = SceneHelpers.AddScenePresence(scene, acd);
@@ -287,10 +273,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 //            log4net.Config.XmlConfigurator.Configure();
 
             Scene scene = CreateDefaultTestScene();
-            UserAccountHelpers.CreateUserWithInventory(scene, m_userId);
-            InventoryItemBase attItem = CreateAttachmentItem(scene, m_userId, "att", 0x10, 0x20);
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
+            InventoryItemBase attItem = CreateAttachmentItem(scene, ua1.PrincipalID, "att", 0x10, 0x20);
 
-            AgentCircuitData acd = SceneHelpers.GenerateAgentData(m_userId);
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(ua1.PrincipalID);
             acd.Appearance = new AvatarAppearance();
             acd.Appearance.SetAttachment((int)AttachmentPoint.Chest, attItem.ID, attItem.AssetID);
             ScenePresence presence = SceneHelpers.AddScenePresence(scene, acd);
@@ -321,10 +307,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             TestHelpers.InMethod();
 
             Scene scene = CreateDefaultTestScene();
-            UserAccountHelpers.CreateUserWithInventory(scene, m_userId);
-            InventoryItemBase attItem = CreateAttachmentItem(scene, m_userId, "att", 0x10, 0x20);
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
+            InventoryItemBase attItem = CreateAttachmentItem(scene, ua1.PrincipalID, "att", 0x10, 0x20);
 
-            AgentCircuitData acd = SceneHelpers.GenerateAgentData(m_userId);
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(ua1.PrincipalID);
             acd.Appearance = new AvatarAppearance();
             acd.Appearance.SetAttachment((int)AttachmentPoint.Chest, attItem.ID, attItem.AssetID);
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, acd);
@@ -373,11 +359,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             SceneHelpers.SetupSceneModules(
                 sceneB, config, new CapabilitiesModule(), etmB, attModB, new BasicInventoryAccessModule());
 
-            UserAccountHelpers.CreateUserWithInventory(sceneA, m_userId);
-            ScenePresence beforeTeleportSp = SceneHelpers.AddScenePresence(sceneA, m_userId, sh.SceneManager);
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(sceneA, 0x1);
+            ScenePresence beforeTeleportSp = SceneHelpers.AddScenePresence(sceneA, ua1.PrincipalID, sh.SceneManager);
             beforeTeleportSp.AbsolutePosition = new Vector3(30, 31, 32);
 
-            InventoryItemBase attItem = CreateAttachmentItem(sceneA, m_userId, "att", 0x10, 0x20);
+            InventoryItemBase attItem = CreateAttachmentItem(sceneA, ua1.PrincipalID, "att", 0x10, 0x20);
 
             sceneA.AttachmentsModule.RezSingleAttachmentFromInventory(
                 beforeTeleportSp, attItem.ID, (uint)AttachmentPoint.Chest);
@@ -395,7 +381,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             ((TestClient)beforeTeleportSp.ControllingClient).CompleteTeleportClientSide();
 
             // Check attachments have made it into sceneB
-            ScenePresence afterTeleportSceneBSp = sceneB.GetScenePresence(m_userId);
+            ScenePresence afterTeleportSceneBSp = sceneB.GetScenePresence(ua1.PrincipalID);
 
             // This is appearance data, as opposed to actually rezzed attachments
             List<AvatarAttachment> sceneBAttachments = afterTeleportSceneBSp.Appearance.GetAttachments();
@@ -413,7 +399,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(actualSceneBAtt.AttachmentPoint, Is.EqualTo((uint)AttachmentPoint.Chest));
 
             // Check attachments have been removed from sceneA
-            ScenePresence afterTeleportSceneASp = sceneA.GetScenePresence(m_userId);
+            ScenePresence afterTeleportSceneASp = sceneA.GetScenePresence(ua1.PrincipalID);
 
             // Since this is appearance data, it is still present on the child avatar!
             List<AvatarAttachment> sceneAAttachments = afterTeleportSceneASp.Appearance.GetAttachments();
