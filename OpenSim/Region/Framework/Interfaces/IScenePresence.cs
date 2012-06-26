@@ -41,6 +41,12 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IScenePresence : ISceneAgent
     {
         /// <summary>
+        /// Copy of the script states while the agent is in transit. This state may
+        /// need to be placed back in case of transfer fail.
+        /// </summary>
+        List<string> InTransitScriptStates { get; }
+
+        /// <summary>
         /// The AttachmentsModule synchronizes on this to avoid race conditions between commands to add and remove attachments.
         /// </summary>
         /// <remarks>
