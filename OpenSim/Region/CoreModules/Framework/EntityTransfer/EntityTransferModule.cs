@@ -709,6 +709,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agent.CallbackURI, region.RegionName);
         }
 
+        /// <summary>
+        /// Clean up operations once an agent has moved away through cross or teleport.
+        /// </summary>
+        /// <param name='sp'></param>
+        /// <param name='logout'></param>
         protected virtual void AgentHasMovedAway(ScenePresence sp, bool logout)
         {
             if (sp.Scene.AttachmentsModule != null)
