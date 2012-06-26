@@ -522,6 +522,7 @@ namespace OpenSim.Region.Framework.Scenes
         public IAttachmentsModule AttachmentsModule { get; set; }
         public IEntityTransferModule EntityTransferModule { get; private set; }
         public IAgentAssetTransactions AgentTransactionsModule { get; private set; }
+        public IUserManagement UserManagementModule { get; private set; }
 
         public IAvatarFactoryModule AvatarFactory
         {
@@ -1291,6 +1292,7 @@ namespace OpenSim.Region.Framework.Scenes
             EntityTransferModule = RequestModuleInterface<IEntityTransferModule>();
             m_groupsModule = RequestModuleInterface<IGroupsModule>();
             AgentTransactionsModule = RequestModuleInterface<IAgentAssetTransactions>();
+            UserManagementModule = RequestModuleInterface<IUserManagement>();
         }
 
         #endregion
@@ -2094,9 +2096,8 @@ namespace OpenSim.Region.Framework.Scenes
                 sceneObject.SetGroup(groupID, null);
             }
 
-            IUserManagement uman = RequestModuleInterface<IUserManagement>();
-            if (uman != null)
-                sceneObject.RootPart.CreatorIdentification = uman.GetUserUUI(ownerID);
+            if (UserManagementModule != null)
+                sceneObject.RootPart.CreatorIdentification = UserManagementModule.GetUserUUI(ownerID);
 
             sceneObject.ScheduleGroupForFullUpdate();
 
@@ -2855,14 +2856,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="aCircuit"></param>
         private void CacheUserName(ScenePresence sp, AgentCircuitData aCircuit)
         {
-            IUserManagement uMan = RequestModuleInterface<IUserManagement>();
-            if (uMan != null)
+            if (UserManagementModule != null)
             {
                 string first = aCircuit.firstname, last = aCircuit.lastname;
 
                 if (sp.PresenceType == PresenceType.Npc)
                 {
-                    uMan.AddUser(aCircuit.AgentID, first, last);
+                    UserManagementModule.AddUser(aCircuit.AgentID, first, last);
                 }
                 else
                 {
@@ -2881,7 +2881,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
 
-                    uMan.AddUser(aCircuit.AgentID, first, last, homeURL);
+                    UserManagementModule.AddUser(aCircuit.AgentID, first, last, homeURL);
                 }
             }
         }
@@ -3445,17 +3445,19 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!isChildAgent)
                 {
-                    if (AttachmentsModule != null && avatar.PresenceType != PresenceType.Npc)
+                    if (AttachmentsModule != null)
                     {
-                        IUserManagement uMan = RequestModuleInterface<IUserManagement>();
                         // Don't save attachments for HG visitors, it
                         // messes up their inventory. When a HG visitor logs
                         // out on a foreign grid, their attachments will be
                         // reloaded in the state they were in when they left
                         // the home grid. This is best anyway as the visited
                         // grid may use an incompatible script engine.
-                        if (uMan == null || uMan.IsLocalGridUser(avatar.UUID))
-                            AttachmentsModule.SaveChangedAttachments(avatar, false);
+                        bool saveChanged
+                            = avatar.PresenceType != PresenceType.Npc
+                                && (UserManagementModule == null || UserManagementModule.IsLocalGridUser(avatar.UUID));
+
+                        AttachmentsModule.DeRezAttachments(avatar, saveChanged, false);
                     }
 
                     ForEachClient(

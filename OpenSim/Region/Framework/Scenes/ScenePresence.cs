@@ -3606,9 +3606,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Close()
         {
-            if (!IsChildAgent && m_scene.AttachmentsModule != null)
-                m_scene.AttachmentsModule.DeleteAttachmentsFromScene(this, false);
-
             // Clear known regions
             KnownRegions = new Dictionary<ulong, string>();
 

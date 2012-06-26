@@ -44,10 +44,15 @@ namespace OpenSim.Region.Framework.Interfaces
         void RezAttachments(IScenePresence sp);
 
         /// <summary>
-        /// Save the attachments that have change on this presence.
+        /// Derez the attachements for a scene presence that is closing.
         /// </summary>
-        /// <param name="sp"></param>
-        void SaveChangedAttachments(IScenePresence sp, bool saveAllScripted);
+        /// <remarks>
+        /// Attachment changes are saved.
+        /// </remarks>
+        /// <param name="sp">The presence closing</param>
+        /// <param name="saveChanged">Save changed attachments.</param>
+        /// <param name="saveAllScripted">Save attachments with scripts even if they haven't changed.</para>
+        void DeRezAttachments(IScenePresence sp, bool saveChanged, bool saveAllScripted);
 
         /// <summary>
         /// Delete all the presence's attachments from the scene

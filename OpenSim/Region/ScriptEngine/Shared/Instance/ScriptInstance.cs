@@ -121,6 +121,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public bool Running { get; set; }
 
+        public bool Run { get; set; }
+
         public bool Suspended
         {
             get { return m_Suspended; }
@@ -216,6 +218,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_postOnRez = postOnRez;
             m_AttachedAvatar = part.ParentGroup.AttachedAvatar;
             m_RegionID = part.ParentGroup.Scene.RegionInfo.RegionID;
+            Run = true;
 
             if (part != null)
             {
@@ -330,16 +333,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     }
                     else
                     {
-                        m_log.ErrorFormat(
-                            "[SCRIPT INSTANCE]: Unable to load script state from assembly {0}: Memory limit exceeded",
-                            assembly);
+                        m_log.WarnFormat(
+                            "[SCRIPT INSTANCE]: Unable to load script state file {0} for script {1} {2} in {3} {4} (assembly {5}).  Memory limit exceeded",
+                            savedState, ScriptName, ItemID, PrimName, ObjectID, assembly);
                     }
                 }
                 catch (Exception e)
                 {
                      m_log.ErrorFormat(
-                         "[SCRIPT INSTANCE]: Unable to load script state from assembly {0}.  XML is {1}.  Exception {2}{3}",
-                         assembly, xml, e.Message, e.StackTrace);
+                         "[SCRIPT INSTANCE]: Unable to load script state file {0} for script {1} {2} in {3} {4} (assembly {5}).  XML is {6}.  Exception {7}{8}",
+                         savedState, ScriptName, ItemID, PrimName, ObjectID, assembly, xml, e.Message, e.StackTrace);
                 }
             }
 //            else
@@ -354,10 +357,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void Init()
         {
-            if (!m_startOnInit) return;
+            if (!m_startOnInit)
+                return;
 
             if (m_startedFromSavedState) 
             {
+                if (!Run)
+                    return;
+
                 Start();
                 if (m_postOnRez) 
                 {
@@ -390,6 +397,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
             else 
             {
+                if (!Run)
+                    return;
+
                 Start();
                 PostEvent(new EventParams("state_entry",
                                           new Object[0], new DetectParams[0]));

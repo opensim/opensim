@@ -920,15 +920,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             if (m_InitialStartup)
             {
-                m_InitialStartup = false;
+                // This delay exists to stop mono problems where script compilation and startup would stop the sim
+                // working properly for the session.
                 System.Threading.Thread.Sleep(15000);
-
-                if (m_CompileQueue.Count == 0)
-                {
-                    // No scripts on region, so won't get triggered later
-                    // by the queue becoming empty so we trigger it here
-                    m_Scene.EventManager.TriggerEmptyScriptCompileQueue(0, String.Empty);
-                }
             }
 
             object[] o;
@@ -941,14 +935,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     scriptsStarted++;
 
-//                    if (scriptsStarted % 50 == 0)
-//                        m_log.DebugFormat(
-//                            "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
+                    if (m_InitialStartup)
+                        if (scriptsStarted % 50 == 0)
+                            m_log.InfoFormat(
+                                "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
                 }
             }
 
-//            m_log.DebugFormat(
-//                "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
+            if (m_InitialStartup)
+                m_log.InfoFormat(
+                    "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
 
             // NOTE: Despite having a lockless queue, this lock is required
             // to make sure there is never no compile thread while there
@@ -956,12 +952,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             // due to a race condition
             //
             lock (m_CompileQueue)
-            {
                 m_CurrentCompile = null;
-            }
+
             m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount,
                                                                 m_ScriptErrorMessage);
+
             m_ScriptFailCount = 0;
+            m_InitialStartup = false;
 
             return null;
         }
@@ -1451,24 +1448,23 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     return false;
 
                 uuids = m_PrimObjects[localID];
-            
 
-            foreach (UUID itemID in uuids)
-            {
-                IScriptInstance instance = null;
-                try
+                foreach (UUID itemID in uuids)
                 {
-                    if (m_Scripts.ContainsKey(itemID))
-                        instance = m_Scripts[itemID];
+                    IScriptInstance instance = null;
+                    try
+                    {
+                        if (m_Scripts.ContainsKey(itemID))
+                            instance = m_Scripts[itemID];
+                    }
+                    catch { /* ignore race conditions */ }
+    
+                    if (instance != null)
+                    {
+                        instance.PostEvent(p);
+                        result = true;
+                    }
                 }
-                catch { /* ignore race conditions */ }
-
-                if (instance != null)
-                {
-                    instance.PostEvent(p);
-                    result = true;
-                }
-            }
             }
             
             return result;
@@ -1592,6 +1588,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 else
                     instance.Stop(100);
             }
+        }
+
+        public void SetRunEnable(UUID instanceID, bool enable)
+        {
+            IScriptInstance instance = GetInstance(instanceID);
+            if (instance != null)
+                instance.Run = enable;
         }
 
         public bool GetScriptState(UUID itemID)

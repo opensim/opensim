@@ -198,30 +198,39 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
 
-        public void SaveChangedAttachments(IScenePresence sp, bool saveAllScripted)
+        public void DeRezAttachments(IScenePresence sp, bool saveChanged, bool saveAllScripted)
         {
-//            m_log.DebugFormat("[ATTACHMENTS MODULE]: Saving changed attachments for {0}", sp.Name);
-
             if (!Enabled)
                 return;
 
-            foreach (SceneObjectGroup grp in sp.GetAttachments())
+//            m_log.DebugFormat("[ATTACHMENTS MODULE]: Saving changed attachments for {0}", sp.Name);
+
+            lock (sp.AttachmentsSyncLock)
             {
-                grp.IsAttachment = false;
-                grp.AbsolutePosition = grp.RootPart.AttachedPos;
-                UpdateKnownItem(sp, grp, saveAllScripted);
-                grp.IsAttachment = true;
+                foreach (SceneObjectGroup grp in sp.GetAttachments())
+                {
+                    grp.Scene.DeleteSceneObject(grp, false);
+    
+                    if (saveChanged || saveAllScripted)
+                    {
+                        grp.IsAttachment = false;
+                        grp.AbsolutePosition = grp.RootPart.AttachedPos;
+                        UpdateKnownItem(sp, grp, saveAllScripted);
+                    }
+                }
+    
+                sp.ClearAttachments();
             }
         }
 
         public void DeleteAttachmentsFromScene(IScenePresence sp, bool silent)
         {
-//            m_log.DebugFormat(
-//                "[ATTACHMENTS MODULE]: Deleting attachments from scene {0} for {1}, silent = {2}",
-//                m_scene.RegionInfo.RegionName, sp.Name, silent);
-
             if (!Enabled)
                 return;
+
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: Deleting attachments from scene {0} for {1}, silent = {2}",
+//                m_scene.RegionInfo.RegionName, sp.Name, silent);            
 
             foreach (SceneObjectGroup sop in sp.GetAttachments())
             {
@@ -477,17 +486,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (!Enabled)
                 return;
 
-            // First we save the
-            // attachment point information, then we update the relative 
-            // positioning. Then we have to mark the object as NOT an
-            // attachment. This is necessary in order to correctly save
-            // and retrieve GroupPosition information for the attachment.
-            // Finally, we restore the object's attachment status.
-            uint attachmentPoint = sog.AttachmentPoint;
             sog.UpdateGroupPosition(pos);
-            sog.IsAttachment = false;
-            sog.AbsolutePosition = sog.RootPart.AttachedPos;
-            sog.AttachmentPoint = attachmentPoint;
             sog.HasGroupChanged = true;            
         }
 
@@ -770,6 +769,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         {
                             m_scene.EventManager.TriggerOnAttach(group.LocalId, itemID, UUID.Zero);
                             sp.RemoveAttachment(group);
+                            m_scene.DeleteSceneObject(group, false);
 
                             // Prepare sog for storage
                             group.AttachedAvatar = UUID.Zero;
@@ -778,7 +778,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                             group.AbsolutePosition = group.RootPart.AttachedPos;
 
                             UpdateKnownItem(sp, group, true);
-                            m_scene.DeleteSceneObject(group, false);
 
                             return;
                         }
