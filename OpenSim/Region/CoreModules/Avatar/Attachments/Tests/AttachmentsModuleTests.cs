@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
     /// Attachment tests
     /// </summary>
     [TestFixture]
-    public class AttachmentsModuleTests
+    public class AttachmentsModuleTests : OpenSimTestCase
     {
         [TestFixtureSetUp]
         public void FixtureInit()
@@ -409,8 +409,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             // This is the actual attachment, which should no longer exist
             List<SceneObjectGroup> actualSceneAAttachments = afterTeleportSceneASp.GetAttachments();
             Assert.That(actualSceneAAttachments.Count, Is.EqualTo(0));
-
-//            TestHelpers.DisableLogging();
         }
 
         // I'm commenting this test because scene setup NEEDS InventoryService to 

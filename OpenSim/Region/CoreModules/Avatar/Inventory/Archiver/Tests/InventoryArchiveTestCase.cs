@@ -48,7 +48,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 {
     [TestFixture]
-    public class InventoryArchiveTestCase
+    public class InventoryArchiveTestCase : OpenSimTestCase
     {
         protected ManualResetEvent mre = new ManualResetEvent(false);
         
