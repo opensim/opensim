@@ -98,7 +98,7 @@ namespace OpenSim.Services.GridService
                     if (MainConsole.Instance.Commands.Resolve(new string[] { "show", "regions" }).Length == 0)
                         MainConsole.Instance.Commands.AddCommand("Regions", true,
                                 "show regions",
-                                "show all regions",
+                                "show regions",
                                 "Show details on all regions",
                                 String.Empty,
                                 HandleShowRegions);
