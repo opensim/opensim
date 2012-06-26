@@ -84,8 +84,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         protected string m_coaItemName = "Coalesced Item";
         
         [SetUp]
-        public virtual void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
             m_iarStream = new MemoryStream(m_iarStreamBytes);
         }
         
