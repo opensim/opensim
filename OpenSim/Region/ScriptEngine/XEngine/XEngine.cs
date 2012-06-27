@@ -768,12 +768,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 int colon = firstline.IndexOf(':');
                 if (firstline.Length > 2 && firstline.Substring(0, 2) == "//" && colon != -1)
                 {
-                    string engineName = firstline.Substring(2, colon-2);
+                    string engineName = firstline.Substring(2, colon - 2);
 
                     if (names.Contains(engineName))
                     {
                         engine = engineName;
-                        script = "//" + script.Substring(script.IndexOf(':')+1);
+                        script = "//" + script.Substring(colon + 1);
                     }
                     else
                     {
