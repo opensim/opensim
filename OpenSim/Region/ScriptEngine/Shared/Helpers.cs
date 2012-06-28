@@ -197,6 +197,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         presence.Velocity.Z);
 
                 Type = 0x01; // Avatar
+                if (presence.PresenceType == PresenceType.Npc)
+                    Type = 0x20;
                 if (presence.Velocity != Vector3.Zero)
                     Type |= 0x02; // Active
 
