@@ -6402,6 +6402,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 handlerCompleteMovementToRegion(sender, true);
             }
+            else
+                m_log.Debug("HandleCompleteAgentMovement NULL handler");
+
             handlerCompleteMovementToRegion = null;
 
             return true;
