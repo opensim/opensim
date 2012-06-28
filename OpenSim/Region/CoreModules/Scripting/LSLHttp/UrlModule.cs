@@ -508,7 +508,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     }
                     else
                     {
-                        m_log.Warn("[HttpRequestHandler]: http-in request failed; no such url: "+urlkey.ToString());
+                        //m_log.Warn("[HttpRequestHandler]: http-in request failed; no such url: "+urlkey.ToString());
+                        return;
                     }
 
                     //for llGetHttpHeader support we need to store original URI here

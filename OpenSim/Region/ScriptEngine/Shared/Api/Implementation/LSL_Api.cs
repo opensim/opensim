@@ -12416,9 +12416,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 ContactResult result = new ContactResult ();
                 result.ConsumerID = group.LocalId;
-                result.Depth = intersection.distance;
+//                result.Depth = intersection.distance;
                 result.Normal = intersection.normal;
                 result.Pos = intersection.ipoint;
+                result.Depth = Vector3.Mag(rayStart - result.Pos);
 
                 contacts.Add(result);
             });
