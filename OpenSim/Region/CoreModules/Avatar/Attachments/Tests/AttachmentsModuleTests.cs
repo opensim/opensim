@@ -227,9 +227,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             InventoryItemBase attItem = CreateAttachmentItem(scene, ua1.PrincipalID, "att", 0x10, 0x20);
 
-            scene.AttachmentsModule.RezSingleAttachmentFromInventory(
-                sp, attItem.ID, (uint)AttachmentPoint.Chest);
-            scene.AttachmentsModule.DetachSingleAttachmentToInv(sp, attItem.ID);
+            SceneObjectGroup so
+                = (SceneObjectGroup)scene.AttachmentsModule.RezSingleAttachmentFromInventory(
+                    sp, attItem.ID, (uint)AttachmentPoint.Chest);
+            scene.AttachmentsModule.DetachSingleAttachmentToInv(sp, so);
 
             // Check status on scene presence
             Assert.That(sp.HasAttachments(), Is.False);
