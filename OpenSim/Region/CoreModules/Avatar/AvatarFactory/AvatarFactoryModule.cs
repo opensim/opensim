@@ -128,7 +128,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         /// <param name="visualParam"></param>
         public void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams)
         {
-            //            m_log.InfoFormat("[AVFACTORY]: start SetAppearance for {0}", client.AgentId);
+//            m_log.DebugFormat(
+//                "[AVFACTORY]: start SetAppearance for {0}, te {1}, visualParams {2}",
+//                sp.Name, textureEntry, visualParams);
 
             // TODO: This is probably not necessary any longer, just assume the
             // textureEntry set implies that the appearance transaction is complete

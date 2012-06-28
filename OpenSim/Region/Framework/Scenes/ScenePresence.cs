@@ -3279,31 +3279,8 @@ namespace OpenSim.Region.Framework.Scenes
             catch { }
             cAgent.DefaultAnim = Animator.Animations.DefaultAnimation;
 
-            // Attachment objects
-            List<SceneObjectGroup> attachments = GetAttachments();
-            if (attachments.Count > 0)
-            {
-                cAgent.AttachmentObjects = new List<ISceneObject>();
-                cAgent.AttachmentObjectStates = new List<string>();
-//                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
-                InTransitScriptStates.Clear();
-
-                foreach (SceneObjectGroup sog in attachments)
-                {
-                    // We need to make a copy and pass that copy
-                    // because of transfers withn the same sim
-                    ISceneObject clone = sog.CloneForNewScene();
-                    // Attachment module assumes that GroupPosition holds the offsets...!
-                    ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
-                    ((SceneObjectGroup)clone).IsAttachment = false;
-                    cAgent.AttachmentObjects.Add(clone);
-                    string state = sog.GetStateSnapshot();
-                    cAgent.AttachmentObjectStates.Add(state);
-                    InTransitScriptStates.Add(state);
-                    // Let's remove the scripts of the original object here
-                    sog.RemoveScriptInstances(true);
-                }
-            }
+            if (Scene.AttachmentsModule != null)
+                Scene.AttachmentsModule.CopyAttachments(this, cAgent);
         }
 
         private void CopyFrom(AgentData cAgent)
@@ -3378,18 +3355,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (cAgent.DefaultAnim != null)
                 Animator.Animations.SetDefaultAnimation(cAgent.DefaultAnim.AnimID, cAgent.DefaultAnim.SequenceNum, UUID.Zero);
 
-            if (cAgent.AttachmentObjects != null && cAgent.AttachmentObjects.Count > 0)
-            {
-                m_attachments = new List<SceneObjectGroup>();
-                int i = 0;
-                foreach (ISceneObject so in cAgent.AttachmentObjects)
-                {
-                    ((SceneObjectGroup)so).LocalId = 0;
-                    ((SceneObjectGroup)so).RootPart.ClearUpdateSchedule();
-                    so.SetState(cAgent.AttachmentObjectStates[i++], m_scene);
-                    m_scene.IncomingCreateObject(Vector3.Zero, so);
-                }
-            }
+            if (Scene.AttachmentsModule != null)
+                Scene.AttachmentsModule.CopyAttachments(cAgent, this);
         }
 
         public bool CopyAgent(out IAgentData agent)

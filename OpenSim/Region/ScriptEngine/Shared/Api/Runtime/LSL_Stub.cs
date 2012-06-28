@@ -165,11 +165,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llBreakLink(linknum);
         }
 
-        public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
-        {
-            return m_LSL_Functions.llCastRay(start, end, options);
-        }
-
         public LSL_Integer llCeil(double f)
         {
             return m_LSL_Functions.llCeil(f);
@@ -969,6 +964,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_String llRequestDisplayName(string id)
         {
             return m_LSL_Functions.llRequestDisplayName(id);
+        }
+
+        public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
+        {
+            return m_LSL_Functions.llCastRay(start, end, options);
         }
 
         public void llLinkParticleSystem(int linknum, LSL_List rules)

@@ -102,6 +102,56 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         #region IAttachmentsModule
 
+        public void CopyAttachments(IScenePresence sp, AgentData ad)
+        {
+            lock (sp.AttachmentsSyncLock)
+            {
+                // Attachment objects
+                List<SceneObjectGroup> attachments = sp.GetAttachments();
+                if (attachments.Count > 0)
+                {
+                    ad.AttachmentObjects = new List<ISceneObject>();
+                    ad.AttachmentObjectStates = new List<string>();
+    //                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
+                    sp.InTransitScriptStates.Clear();
+
+                    foreach (SceneObjectGroup sog in attachments)
+                    {
+                        // We need to make a copy and pass that copy
+                        // because of transfers withn the same sim
+                        ISceneObject clone = sog.CloneForNewScene();
+                        // Attachment module assumes that GroupPosition holds the offsets...!
+                        ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
+                        ((SceneObjectGroup)clone).IsAttachment = false;
+                        ad.AttachmentObjects.Add(clone);
+                        string state = sog.GetStateSnapshot();
+                        ad.AttachmentObjectStates.Add(state);
+                        sp.InTransitScriptStates.Add(state);
+                        // Let's remove the scripts of the original object here
+                        sog.RemoveScriptInstances(true);
+                    }
+                }
+            }
+        }
+
+        public void CopyAttachments(AgentData ad, IScenePresence sp)
+        {
+            if (ad.AttachmentObjects != null && ad.AttachmentObjects.Count > 0)
+            {
+                lock (sp.AttachmentsSyncLock)
+                    sp.ClearAttachments();
+
+                int i = 0;
+                foreach (ISceneObject so in ad.AttachmentObjects)
+                {
+                    ((SceneObjectGroup)so).LocalId = 0;
+                    ((SceneObjectGroup)so).RootPart.ClearUpdateSchedule();
+                    so.SetState(ad.AttachmentObjectStates[i++], m_scene);
+                    m_scene.IncomingCreateObject(Vector3.Zero, so);
+                }
+            }
+        }
+
         /// <summary>
         /// RezAttachments. This should only be called upon login on the first region.
         /// Attachment rezzings on crossings and TPs are done in a different way.

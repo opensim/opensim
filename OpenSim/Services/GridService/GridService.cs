@@ -85,18 +85,37 @@ namespace OpenSim.Services.GridService
                 if (MainConsole.Instance != null)
                 {
                     MainConsole.Instance.Commands.AddCommand("Regions", true,
-                            "deregister region",
-                            "deregister region <Region UUID>",
+                            "deregister region id",
+                            "deregister region id <Region UUID>",
                             "Deregister a region manually.",
                             String.Empty,
                             HandleDeregisterRegion);
 
+                    // A messy way of stopping this command being added if we are in standalone (since the simulator
+                    // has an identically named command
+                    //
+                    // XXX: We're relying on the OpenSimulator version being registered first, which is not well defined.
+                    if (MainConsole.Instance.Commands.Resolve(new string[] { "show", "regions" }).Length == 0)
+                        MainConsole.Instance.Commands.AddCommand("Regions", true,
+                                "show regions",
+                                "show regions",
+                                "Show details on all regions",
+                                String.Empty,
+                                HandleShowRegions);
+
                     MainConsole.Instance.Commands.AddCommand("Regions", true,
-                            "show region",
-                            "show region <Region name>",
+                            "show region name",
+                            "show region name <Region name>",
                             "Show details on a region",
                             String.Empty,
                             HandleShowRegion);
+
+                    MainConsole.Instance.Commands.AddCommand("Regions", true,
+                            "show region at",
+                            "show region at <x-coord> <y-coord>",
+                            "Show details on a region at the given co-ordinate.",
+                            "For example, show region at 1000 1000",
+                            HandleShowRegionAt);
 
                     MainConsole.Instance.Commands.AddCommand("Regions", true,
                             "set region flags",
@@ -504,13 +523,13 @@ namespace OpenSim.Services.GridService
 
         private void HandleDeregisterRegion(string module, string[] cmd)
         {
-            if (cmd.Length != 3)
+            if (cmd.Length != 4)
             {
-                MainConsole.Instance.Output("Syntax: degregister region <Region UUID>");
+                MainConsole.Instance.Output("Syntax: degregister region id <Region UUID>");
                 return;
             }
 
-            string rawRegionUuid = cmd[2];
+            string rawRegionUuid = cmd[3];
             UUID regionUuid;
 
             if (!UUID.TryParse(rawRegionUuid, out regionUuid))
@@ -540,36 +559,113 @@ namespace OpenSim.Services.GridService
             return;
         }
 
+        private void HandleShowRegions(string module, string[] cmd)
+        {
+            if (cmd.Length != 2)
+            {
+                MainConsole.Instance.Output("Syntax: show regions");
+                return;
+            }
+
+            List<RegionData> regions = m_Database.Get(int.MinValue, int.MinValue, int.MaxValue, int.MaxValue, UUID.Zero);
+
+            OutputRegionsToConsoleSummary(regions);
+        }
+
+
         private void HandleShowRegion(string module, string[] cmd)
         {
-            if (cmd.Length != 3)
+            if (cmd.Length != 4)
             {
-                MainConsole.Instance.Output("Syntax: show region <region name>");
+                MainConsole.Instance.Output("Syntax: show region name <region name>");
                 return;
             }
-            List<RegionData> regions = m_Database.Get(cmd[2], UUID.Zero);
+
+            string regionName = cmd[3];
+
+            List<RegionData> regions = m_Database.Get(regionName, UUID.Zero);
             if (regions == null || regions.Count < 1)
             {
-                MainConsole.Instance.Output("Region not found");
+                MainConsole.Instance.Output("No region with name {0} found", regionName);
                 return;
             }
+
+            OutputRegionsToConsole(regions);
+        }
+
+        private void HandleShowRegionAt(string module, string[] cmd)
+        {
+            if (cmd.Length != 5)
+            {
+                MainConsole.Instance.Output("Syntax: show region at <x-coord> <y-coord>");
+                return;
+            }
+
+            int x, y;
+            if (!int.TryParse(cmd[3], out x))
+            {
+                MainConsole.Instance.Output("x-coord must be an integer");
+                return;
+            }
+
+            if (!int.TryParse(cmd[4], out y))
+            {
+                MainConsole.Instance.Output("y-coord must be an integer");
+                return;
+            }
+
+            RegionData region = m_Database.Get(x * (int)Constants.RegionSize, y * (int)Constants.RegionSize, UUID.Zero);
+            if (region == null)
+            {
+                MainConsole.Instance.OutputFormat("No region found at {0},{1}", x, y);
+                return;
+            }
+
+            OutputRegionToConsole(region);
+        }
+
+        private void OutputRegionToConsole(RegionData r)
+        {
+            OpenSim.Data.RegionFlags flags = (OpenSim.Data.RegionFlags)Convert.ToInt32(r.Data["flags"]);
+
+            ConsoleDisplayList dispList = new ConsoleDisplayList();
+            dispList.AddRow("Region Name", r.RegionName);
+            dispList.AddRow("Region ID", r.RegionID);
+            dispList.AddRow("Location", string.Format("{0},{1}", r.coordX, r.coordY));
+            dispList.AddRow("URI", r.Data["serverURI"]);
+            dispList.AddRow("Owner ID", r.Data["owner_uuid"]);
+            dispList.AddRow("Flags", flags);
+
+            MainConsole.Instance.Output(dispList.ToString());
+        }
+
+        private void OutputRegionsToConsole(List<RegionData> regions)
+        {
+            foreach (RegionData r in regions)
+                OutputRegionToConsole(r);
+        }
+
+        private void OutputRegionsToConsoleSummary(List<RegionData> regions)
+        {
+            ConsoleDisplayTable dispTable = new ConsoleDisplayTable();
+            dispTable.AddColumn("Name", 16);
+            dispTable.AddColumn("ID", 36);
+            dispTable.AddColumn("Position", 11);
+            dispTable.AddColumn("Owner ID", 36);
+            dispTable.AddColumn("Flags", 60);
 
             foreach (RegionData r in regions)
             {
                 OpenSim.Data.RegionFlags flags = (OpenSim.Data.RegionFlags)Convert.ToInt32(r.Data["flags"]);
-
-                ConsoleDisplayList dispList = new ConsoleDisplayList();
-                dispList.AddRow("Region Name", r.RegionName);
-                dispList.AddRow("Region ID", r.RegionID);
-                dispList.AddRow("Location", string.Format("{0},{1}", r.coordX, r.coordY));
-                dispList.AddRow("URI", r.Data["serverURI"]);
-                dispList.AddRow("Owner ID", r.Data["owner_uuid"]);
-                dispList.AddRow("Flags", flags);
-
-                MainConsole.Instance.Output(dispList.ToString());
+                dispTable.AddRow(
+                    r.RegionName,
+                    r.RegionID.ToString(),
+                    string.Format("{0},{1}", r.coordX, r.coordY),
+                    r.Data["owner_uuid"].ToString(),
+                    flags.ToString());
             }
 
-            return;
+            MainConsole.Instance.Output(dispTable.ToString());
         }
 
         private int ParseFlags(int prev, string flags)

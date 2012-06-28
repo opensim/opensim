@@ -37,6 +37,20 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IAttachmentsModule
     {
         /// <summary>
+        /// Copy attachment data from a ScenePresence into the AgentData structure for transmission to another simulator
+        /// </summary>
+        /// <param name='sp'></param>
+        /// <param name='ad'></param>
+        void CopyAttachments(IScenePresence sp, AgentData ad);
+
+        /// <summary>
+        /// Copy attachment data from an AgentData structure into a ScenePresence.
+        /// </summary>
+        /// <param name='ad'></param>
+        /// <param name='sp'></param>
+        void CopyAttachments(AgentData ad, IScenePresence sp);
+
+        /// <summary>
         /// RezAttachments. This should only be called upon login on the first region.
         /// Attachment rezzings on crossings and TPs are done in a different way.
         /// </summary>

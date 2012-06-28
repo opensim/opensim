@@ -709,6 +709,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agent.CallbackURI, region.RegionName);
         }
 
+        /// <summary>
+        /// Clean up operations once an agent has moved away through cross or teleport.
+        /// </summary>
+        /// <param name='sp'></param>
+        /// <param name='logout'></param>
         protected virtual void AgentHasMovedAway(ScenePresence sp, bool logout)
         {
             if (sp.Scene.AttachmentsModule != null)
@@ -1622,6 +1627,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         #endregion
 
         #region Object Transfers
+
         /// <summary>
         /// Move the given scene object into a new region depending on which region its absolute position has moved
         /// into.
@@ -1932,35 +1938,43 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return successYN;
         }
 
-        protected bool CrossAttachmentsIntoNewRegion(GridRegion destination, ScenePresence sp, bool silent)
+        /// <summary>
+        /// Cross the attachments for an avatar into the destination region.
+        /// </summary>
+        /// <remarks>
+        /// This is only invoked for simulators released prior to April 2011.  Versions of OpenSimulator since then
+        /// transfer attachments in one go as part of the ChildAgentDataUpdate data passed in the update agent call.
+        /// </remarks>
+        /// <param name='destination'></param>
+        /// <param name='sp'></param>
+        /// <param name='silent'></param>
+        protected void CrossAttachmentsIntoNewRegion(GridRegion destination, ScenePresence sp, bool silent)
         {
-            List<SceneObjectGroup> m_attachments = sp.GetAttachments();
+            List<SceneObjectGroup> attachments = sp.GetAttachments();
 
-            // Validate
-//            foreach (SceneObjectGroup gobj in m_attachments)
-//            {
-//                if (gobj == null || gobj.IsDeleted)
-//                    return false;
-//            }
+//            m_log.DebugFormat(
+//                "[ENTITY TRANSFER MODULE]: Crossing {0} attachments into {1} for {2}",
+//                m_attachments.Count, destination.RegionName, sp.Name);
 
-            foreach (SceneObjectGroup gobj in m_attachments)
+            foreach (SceneObjectGroup gobj in attachments)
             {
                 // If the prim group is null then something must have happened to it!
                 if (gobj != null && !gobj.IsDeleted)
                 {
-                    // Set the parent localID to 0 so it transfers over properly.
-                    gobj.RootPart.SetParentLocalId(0);
-                    gobj.AbsolutePosition = gobj.RootPart.AttachedPos;
-                    gobj.IsAttachment = false;
+                    SceneObjectGroup clone = (SceneObjectGroup)gobj.CloneForNewScene();
+                    clone.RootPart.GroupPosition = gobj.RootPart.AttachedPos;
+                    clone.IsAttachment = false;
+
                     //gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending attachment {0} to region {1}", gobj.UUID, destination.RegionName);
-                    CrossPrimGroupIntoNewRegion(destination, Vector3.Zero, gobj, silent);
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: Sending attachment {0} to region {1}",
+                        clone.UUID, destination.RegionName);
+
+                    CrossPrimGroupIntoNewRegion(destination, Vector3.Zero, clone, silent);
                 }
             }
 
             sp.ClearAttachments();
-
-            return true;
         }
 
         #endregion

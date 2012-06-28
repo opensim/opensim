@@ -98,7 +98,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_console.Commands.AddCommand(
                 "Objects", false, "delete object name",
                 "delete object name [--regex] <name>",
-                "Delete a scene object by name.\nIf --regex is specified then the name is treatead as a regular expression",
+                "Delete a scene object by name.",
+                "If --regex is specified then the name is treatead as a regular expression",
                 HandleDeleteObject);
 
             m_console.Commands.AddCommand(
@@ -118,7 +119,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 false,
                 "show object name",
                 "show object name [--regex] <name>",
-                "Show details of scene objects with the given name.\nIf --regex is specified then the name is treatead as a regular expression",
+                "Show details of scene objects with the given name.",
+                "If --regex is specified then the name is treatead as a regular expression",
                 HandleShowObjectByName);
 
             m_console.Commands.AddCommand(
@@ -133,7 +135,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 false,
                 "show part name",
                 "show part name [--regex] <name>",
-                "Show details of scene object parts with the given name.\nIf --regex is specified then the name is treatead as a regular expression",
+                "Show details of scene object parts with the given name.",
+                "If --regex is specified then the name is treatead as a regular expression",
                 HandleShowPartByName);
         }
 

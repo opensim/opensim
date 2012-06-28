@@ -835,35 +835,59 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 int colon = firstline.IndexOf(':');
                 if (firstline.Length > 2 && firstline.Substring(0, 2) == "//" && colon != -1)
                 {
-                    string engineName = firstline.Substring(2, colon-2);
+                    string engineName = firstline.Substring(2, colon - 2);
 
                     if (names.Contains(engineName))
                     {
                         engine = engineName;
-                        script = "//" + script.Substring(script.IndexOf(':')+1);
+                        script = "//" + script.Substring(colon + 1);
                     }
                     else
                     {
                         if (engine == ScriptEngineName)
                         {
-                            SceneObjectPart part =
-                                    m_Scene.GetSceneObjectPart(
-                                    localID);
-                         
-                            TaskInventoryItem item =
-                                    part.Inventory.GetInventoryItem(itemID);
+                            // If we are falling back on XEngine as the default engine, then only complain to the user
+                            // if a script language has been explicitly set and it's one that we recognize.  If it's
+                            // explicitly not allowed or the script is not in LSL then the user will be informed by a later compiler message.
+                            //
+                            // This avoids the overwhelming number of false positives where we're in this code because
+                            // there's a colon in a comment in the first line of a script for entirely
+                            // unrelated reasons (e.g. vim settings).
+                            //
+                            // TODO: A better fix would be to deprecate simple : detection and look for some less likely
+                            // string to begin the comment (like #! in unix shell scripts).
+                            bool scriptExplicitlyInXEngineLanguage = false;
+                            string restOfScript = script.Substring(colon + 1);
 
-                            ScenePresence presence = 
-                                    m_Scene.GetScenePresence(
-                                    item.OwnerID);
+                            // FIXME: These are hardcoded because they are currently hardcoded in Compiler.cs
+                            if (restOfScript.StartsWith("c#")
+                                || restOfScript.StartsWith("vb")
+                                || restOfScript.StartsWith("lsl")
+                                || restOfScript.StartsWith("js")
+                                || restOfScript.StartsWith("yp"))
+                                scriptExplicitlyInXEngineLanguage = true;
 
-                            if (presence != null)
+                            if (scriptExplicitlyInXEngineLanguage)
                             {
-                               presence.ControllingClient.SendAgentAlertMessage(
-                                        "Selected engine unavailable. "+
-                                        "Running script on "+
-                                        ScriptEngineName,
-                                        false);
+                                SceneObjectPart part =
+                                        m_Scene.GetSceneObjectPart(
+                                        localID);
+                             
+                                TaskInventoryItem item =
+                                        part.Inventory.GetInventoryItem(itemID);
+    
+                                ScenePresence presence = 
+                                        m_Scene.GetScenePresence(
+                                        item.OwnerID);
+    
+                                if (presence != null)
+                                {
+                                   presence.ControllingClient.SendAgentAlertMessage(
+                                            "Selected engine unavailable. "+
+                                            "Running script on "+
+                                            ScriptEngineName,
+                                            false);
+                                }
                             }
                         }
                     }
