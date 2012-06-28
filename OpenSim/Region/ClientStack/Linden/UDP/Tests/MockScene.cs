@@ -44,9 +44,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         }
         protected int m_objectNameCallsReceived;
         
-        public MockScene()
+        public MockScene() : base(new RegionInfo(1000, 1000, null, null))
         {
-            m_regInfo = new RegionInfo(1000, 1000, null, null);
             m_regStatus = RegionStatus.Up;
         }
         
