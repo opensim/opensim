@@ -666,34 +666,27 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (itemID == UUID.Zero) // If this happened, someone made a mistake....
                 return;
 
-            // We can NOT use the dictionries here, as we are looking
-            // for an entity by the fromAssetID, which is NOT the prim UUID
-            EntityBase[] detachEntities = m_scene.GetEntities();
-            SceneObjectGroup group;
-
             lock (sp.AttachmentsSyncLock)
             {
-                foreach (EntityBase entity in detachEntities)
+                List<SceneObjectGroup> attachments = sp.GetAttachments();
+
+                foreach (SceneObjectGroup group in attachments)
                 {
-                    if (entity is SceneObjectGroup)
+                    if (group.FromItemID == itemID)
                     {
-                        group = (SceneObjectGroup)entity;
-                        if (group.FromItemID == itemID)
-                        {
-                            m_scene.EventManager.TriggerOnAttach(group.LocalId, itemID, UUID.Zero);
-                            sp.RemoveAttachment(group);
-                            m_scene.DeleteSceneObject(group, false);
+                        m_scene.EventManager.TriggerOnAttach(group.LocalId, itemID, UUID.Zero);
+                        sp.RemoveAttachment(group);
+                        m_scene.DeleteSceneObject(group, false);
 
-                            // Prepare sog for storage
-                            group.AttachedAvatar = UUID.Zero;
-                            group.RootPart.SetParentLocalId(0);
-                            group.IsAttachment = false;
-                            group.AbsolutePosition = group.RootPart.AttachedPos;
+                        // Prepare sog for storage
+                        group.AttachedAvatar = UUID.Zero;
+                        group.RootPart.SetParentLocalId(0);
+                        group.IsAttachment = false;
+                        group.AbsolutePosition = group.RootPart.AttachedPos;
 
-                            UpdateKnownItem(sp, group, true);
+                        UpdateKnownItem(sp, group, true);
 
-                            return;
-                        }
+                        return;
                     }
                 }
             }
