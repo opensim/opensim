@@ -197,7 +197,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             string fromName = c.From;
             string fromNamePrefix = "";
             UUID fromID = UUID.Zero;
-            UUID targetID = c.TargetUUID;
             string message = c.Message;
             IScene scene = c.Scene;
             Vector3 fromPos = c.Position;
@@ -236,31 +235,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 message = message.Substring(0, 1000);
 
 //            m_log.DebugFormat(
-//                "[CHAT]: DCTA: fromID {0} fromName {1}, region{2}, cType {3}, sType {4}, targetID {5}",
-//                fromID, fromName, scene.RegionInfo.RegionName, c.Type, sourceType, targetID);
+//                "[CHAT]: DCTA: fromID {0} fromName {1}, region{2}, cType {3}, sType {4}", 
+//                fromID, fromName, scene.RegionInfo.RegionName, c.Type, sourceType);
 
             HashSet<UUID> receiverIDs = new HashSet<UUID>();
-
+            
             foreach (Scene s in m_scenes)
             {
-                if (targetID == UUID.Zero)
-                {
-                    // This should use ForEachClient, but clients don't have a position.
-                    // If camera is moved into client, then camera position can be used
-                    s.ForEachRootScenePresence(
-                        delegate(ScenePresence presence)
-                        {
-                            if (TrySendChatMessage(presence, fromPos, regionPos, fromID, fromName, c.Type, message, sourceType, false))
-                                receiverIDs.Add(presence.UUID);
-                        }
-                    );
-                }
-                else
-                {
-                    // This is a send to a specific client eg from llRegionSayTo
-                    // no need to check distance etc, jand send is as say
-                    ScenePresence presence = s.GetScenePresence(targetID);
-                    if (presence != null && !presence.IsChildAgent)
+                // This should use ForEachClient, but clients don't have a position.
+                // If camera is moved into client, then camera position can be used
+                s.ForEachRootScenePresence(
+                    delegate(ScenePresence presence)
                     {
                         ILandObject Presencecheck = s.LandChannel.GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
                         if (Presencecheck != null)
@@ -271,14 +256,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                             // objects on a parcel with access restrictions
                             if (c.Sender == null || Presencecheck.IsEitherBannedOrRestricted(c.Sender.AgentId) != true)
                             {
-                                if (TrySendChatMessage(presence, fromPos, regionPos, fromID, fromNamePrefix + fromName, c.Type, message, sourceType, false))
+                                if (TrySendChatMessage(presence, fromPos, regionPos, fromID, fromNamePrefix + fromName, c.Type, message, sourceType))
                                     receiverIDs.Add(presence.UUID);
                             }
                         }
                     }
-                }
+                );
             }
-
+            
             (scene as Scene).EventManager.TriggerOnChatToClients(
                 fromID, receiverIDs, message, c.Type, fromPos, fromName, sourceType, ChatAudibleLevel.Fully);
         }
@@ -358,7 +343,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         /// precondition</returns>
         protected virtual bool TrySendChatMessage(ScenePresence presence, Vector3 fromPos, Vector3 regionPos,
                                                   UUID fromAgentID, string fromName, ChatTypeEnum type,
-                                                  string message, ChatSourceType src, bool ignoreDistance)
+                                                  string message, ChatSourceType src)
         {
             // don't send stuff to child agents
             if (presence.IsChildAgent) return false;
@@ -369,15 +354,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                             presence.Scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
 
             int dis = (int)Util.GetDistanceTo(toRegionPos, fromRegionPos);
-
-            if (!ignoreDistance)
+            
+            if (type == ChatTypeEnum.Whisper && dis > m_whisperdistance ||
+                type == ChatTypeEnum.Say && dis > m_saydistance ||
+                type == ChatTypeEnum.Shout && dis > m_shoutdistance)
             {
-                if (type == ChatTypeEnum.Whisper && dis > m_whisperdistance ||
-                    type == ChatTypeEnum.Say && dis > m_saydistance ||
-                    type == ChatTypeEnum.Shout && dis > m_shoutdistance)
-                {
-                    return false;
-                }
+                return false;
             }
 
             // TODO: should change so the message is sent through the avatar rather than direct to the ClientView

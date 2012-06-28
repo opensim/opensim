@@ -921,22 +921,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void  llRegionSayTo(string target, int channel, string msg)
         {
+            string error = String.Empty;
+
             if (msg.Length > 1023)
                 msg = msg.Substring(0, 1023);
 
             m_host.AddScriptLPS(1);
-
-            if (channel == ScriptBaseClass.DEBUG_CHANNEL)
-            {
-                return;
-            }
 
             UUID TargetID;
             UUID.TryParse(target, out TargetID);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if (wComm != null)
-                wComm.DeliverMessageTo(TargetID, channel, m_host.AbsolutePosition, m_host.Name, m_host.UUID, msg);
+                if (!wComm.DeliverMessageTo(TargetID, channel, m_host.AbsolutePosition, m_host.Name, m_host.UUID, msg, out error))
+                    LSLError(error);
         }
 
         public LSL_Integer llListen(int channelID, string name, string ID, string msg)
