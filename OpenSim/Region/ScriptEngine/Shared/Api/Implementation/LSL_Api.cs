@@ -12614,7 +12614,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool checkPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_PHYSICAL) == ScriptBaseClass.RC_REJECT_PHYSICAL);
 
 
-            if (false)// World.SuportsRayCastFiltered())
+            if (World.SuportsRayCastFiltered())
             {
                 if (dist == 0)
                     return list;
