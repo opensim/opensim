@@ -51,6 +51,7 @@ namespace OpenSim.Framework
         protected object m_senderObject;
         protected ChatTypeEnum m_type;
         protected UUID m_fromID;
+        protected UUID m_destination = UUID.Zero;
 
         public OSChatMessage()
         {
@@ -129,6 +130,12 @@ namespace OpenSim.Framework
         {
             get { return m_fromID; }
             set { m_fromID = value; }
+        }
+
+        public UUID Destination
+        {
+            get { return m_destination; }
+            set { m_destination = value; }
         }
 
         /// <summary>

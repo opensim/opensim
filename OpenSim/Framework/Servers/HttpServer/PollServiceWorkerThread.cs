@@ -89,8 +89,15 @@ namespace OpenSim.Framework.Servers.HttpServer
                             continue;
                         }
 
-                        Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
-                        DoHTTPGruntWork(m_server, req, responsedata);
+                        try
+                        {
+                            Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
+                            DoHTTPGruntWork(m_server, req, responsedata);
+                        }
+                        catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
+                        {
+                            // Ignore it, no need to reply
+                        }
                     }
                     else
                     {

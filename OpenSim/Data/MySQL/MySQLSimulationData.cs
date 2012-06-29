@@ -1331,32 +1331,40 @@ namespace OpenSim.Data.MySQL
         /// <returns></returns>
         private static TaskInventoryItem BuildItem(IDataReader row)
         {
-            TaskInventoryItem taskItem = new TaskInventoryItem();
+            try
+            {
+                TaskInventoryItem taskItem = new TaskInventoryItem();
 
-            taskItem.ItemID        = DBGuid.FromDB(row["itemID"]);
-            taskItem.ParentPartID  = DBGuid.FromDB(row["primID"]);
-            taskItem.AssetID       = DBGuid.FromDB(row["assetID"]);
-            taskItem.ParentID      = DBGuid.FromDB(row["parentFolderID"]);
+                taskItem.ItemID        = DBGuid.FromDB(row["itemID"]);
+                taskItem.ParentPartID  = DBGuid.FromDB(row["primID"]);
+                taskItem.AssetID       = DBGuid.FromDB(row["assetID"]);
+                taskItem.ParentID      = DBGuid.FromDB(row["parentFolderID"]);
 
-            taskItem.InvType       = Convert.ToInt32(row["invType"]);
-            taskItem.Type          = Convert.ToInt32(row["assetType"]);
+                taskItem.InvType       = Convert.ToInt32(row["invType"]);
+                taskItem.Type          = Convert.ToInt32(row["assetType"]);
 
-            taskItem.Name          = (String)row["name"];
-            taskItem.Description   = (String)row["description"];
-            taskItem.CreationDate  = Convert.ToUInt32(row["creationDate"]);
-            taskItem.CreatorIdentification = (String)row["creatorID"];
-            taskItem.OwnerID       = DBGuid.FromDB(row["ownerID"]);
-            taskItem.LastOwnerID   = DBGuid.FromDB(row["lastOwnerID"]);
-            taskItem.GroupID       = DBGuid.FromDB(row["groupID"]);
+                taskItem.Name          = (String)row["name"];
+                taskItem.Description   = (String)row["description"];
+                taskItem.CreationDate  = Convert.ToUInt32(row["creationDate"]);
+                taskItem.CreatorIdentification = (String)row["creatorID"];
+                taskItem.OwnerID       = DBGuid.FromDB(row["ownerID"]);
+                taskItem.LastOwnerID   = DBGuid.FromDB(row["lastOwnerID"]);
+                taskItem.GroupID       = DBGuid.FromDB(row["groupID"]);
 
-            taskItem.NextPermissions = Convert.ToUInt32(row["nextPermissions"]);
-            taskItem.CurrentPermissions     = Convert.ToUInt32(row["currentPermissions"]);
-            taskItem.BasePermissions      = Convert.ToUInt32(row["basePermissions"]);
-            taskItem.EveryonePermissions  = Convert.ToUInt32(row["everyonePermissions"]);
-            taskItem.GroupPermissions     = Convert.ToUInt32(row["groupPermissions"]);
-            taskItem.Flags         = Convert.ToUInt32(row["flags"]);
+                taskItem.NextPermissions = Convert.ToUInt32(row["nextPermissions"]);
+                taskItem.CurrentPermissions     = Convert.ToUInt32(row["currentPermissions"]);
+                taskItem.BasePermissions      = Convert.ToUInt32(row["basePermissions"]);
+                taskItem.EveryonePermissions  = Convert.ToUInt32(row["everyonePermissions"]);
+                taskItem.GroupPermissions     = Convert.ToUInt32(row["groupPermissions"]);
+                taskItem.Flags         = Convert.ToUInt32(row["flags"]);
 
-            return taskItem;
+                return taskItem;
+            }
+            catch
+            {
+                m_log.ErrorFormat("[MYSQL DB]: Error reading task inventory: itemID was {0}, primID was {1}", row["itemID"].ToString(), row["primID"].ToString());
+                throw;
+            }
         }
 
         private static RegionSettings BuildRegionSettings(IDataReader row)

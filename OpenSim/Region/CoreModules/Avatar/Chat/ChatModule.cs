@@ -199,6 +199,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             UUID fromID = UUID.Zero;
             string message = c.Message;
             IScene scene = c.Scene;
+            UUID destination = c.Destination;
             Vector3 fromPos = c.Position;
             Vector3 regionPos = new Vector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
                                             scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
@@ -222,6 +223,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 {
                     fromNamePrefix = m_adminPrefix;
                 }
+                destination = UUID.Zero; // Avatars cant "SayTo"
                 break;
 
             case ChatSourceType.Object:
@@ -244,9 +246,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             {
                 // This should use ForEachClient, but clients don't have a position.
                 // If camera is moved into client, then camera position can be used
+                // MT: No, it can't, as chat is heard from the avatar position, not
+                // the camera position.
                 s.ForEachRootScenePresence(
                     delegate(ScenePresence presence)
                     {
+                        if (destination != UUID.Zero && presence.UUID != destination)
+                            return;
                         ILandObject Presencecheck = s.LandChannel.GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
                         if (Presencecheck != null)
                         {
@@ -345,8 +351,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                                                   UUID fromAgentID, string fromName, ChatTypeEnum type,
                                                   string message, ChatSourceType src)
         {
-            // don't send stuff to child agents
-            if (presence.IsChildAgent) return false;
+            // don't send llRegionSay to child agents. Send normal chat because you
+            // can't talk across sim borders if it's not done
+            if (type == ChatTypeEnum.Broadcast && presence.IsChildAgent) return false;
 
             Vector3 fromRegionPos = fromPos + regionPos;
             Vector3 toRegionPos = presence.AbsolutePosition +
