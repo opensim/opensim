@@ -3129,13 +3129,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 new_group.RootPart.UUID.ToString()) },
                                 new DetectParams[0]));
 
-                        float groupmass = new_group.GetMass();
+                        // do recoil
+                        SceneObjectGroup hostgrp = m_host.ParentGroup;
+                        if (hostgrp == null)
+                            return;
+
+                        if (hostgrp.IsAttachment) // don't recoil avatars
+                            return;                      
 
                         PhysicsActor pa = new_group.RootPart.PhysActor;
 
                         if (pa != null && pa.IsPhysical && llvel != Vector3.Zero)
                         {
-                            // recoil                          
+                            float groupmass = new_group.GetMass();
                             llvel *= -groupmass;
                             llApplyImpulse(new LSL_Vector(llvel.X, llvel.Y,llvel.Z), 0);
                         }
