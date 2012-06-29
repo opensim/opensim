@@ -3227,10 +3227,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
                 tickCountFrameRun = Util.EnvironmentTickCount();
-            }
 
-            if (CollectStats)
-                m_stats[ODETotalFrameMsStatName] += Util.EnvironmentTickCountSubtract(startFrameTick);
+                if (CollectStats)
+                    m_stats[ODETotalFrameMsStatName] += Util.EnvironmentTickCountSubtract(startFrameTick);
+            }
 
             return fps;
         }
