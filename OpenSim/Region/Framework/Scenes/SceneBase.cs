@@ -51,6 +51,8 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Fields
+
+        public string Name { get { return RegionInfo.RegionName; } }
         
         public IConfigSource Config
         {
@@ -148,6 +150,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
+        public SceneBase(RegionInfo regInfo)
+        {
+            RegionInfo = regInfo;
+        }
+
         #region Update Methods
 
         /// <summary>
@@ -211,10 +218,7 @@ namespace OpenSim.Region.Framework.Scenes
         ///
         /// </summary>
         /// <returns></returns>
-        public virtual RegionInfo RegionInfo
-        {
-            get { return m_regInfo; }
-        }
+        public virtual RegionInfo RegionInfo { get; private set; }
 
         #region admin stuff
         

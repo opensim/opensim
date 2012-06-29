@@ -3267,15 +3267,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private void DetachWrapper(object o)
         {
-            SceneObjectPart host = (SceneObjectPart)o;
-
-            SceneObjectGroup grp = host.ParentGroup;
-            UUID itemID = grp.FromItemID;
-            ScenePresence presence = World.GetScenePresence(host.OwnerID);
-
-            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
-            if (attachmentsModule != null)
-                attachmentsModule.DetachSingleAttachmentToInv(presence, itemID);
+            if (World.AttachmentsModule != null)
+            {
+                SceneObjectPart host = (SceneObjectPart)o;
+                ScenePresence presence = World.GetScenePresence(host.OwnerID);
+                World.AttachmentsModule.DetachSingleAttachmentToInv(presence, host.ParentGroup);
+            }
         }
 
         public void llAttachToAvatar(int attachmentPoint)

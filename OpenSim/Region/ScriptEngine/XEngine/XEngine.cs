@@ -847,8 +847,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         if (engine == ScriptEngineName)
                         {
                             // If we are falling back on XEngine as the default engine, then only complain to the user
-                            // if a script language has been explicitly set and it's one that we recognize.  If it's
+                            // if a script language has been explicitly set and it's one that we recognize or there are
+                            // no non-whitespace characters after the colon.
+                            //
+                            // If the script is
                             // explicitly not allowed or the script is not in LSL then the user will be informed by a later compiler message.
+                            //
+                            // If the colon ends the line then we'll risk the false positive as this is more likely
+                            // to signal a real scriptengine line where the user wants to use the default compile language.
                             //
                             // This avoids the overwhelming number of false positives where we're in this code because
                             // there's a colon in a comment in the first line of a script for entirely
@@ -856,18 +862,19 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             //
                             // TODO: A better fix would be to deprecate simple : detection and look for some less likely
                             // string to begin the comment (like #! in unix shell scripts).
-                            bool scriptExplicitlyInXEngineLanguage = false;
-                            string restOfScript = script.Substring(colon + 1);
+                            bool warnRunningInXEngine = false;
+                            string restOfFirstLine = firstline.Substring(colon + 1);
 
                             // FIXME: These are hardcoded because they are currently hardcoded in Compiler.cs
-                            if (restOfScript.StartsWith("c#")
-                                || restOfScript.StartsWith("vb")
-                                || restOfScript.StartsWith("lsl")
-                                || restOfScript.StartsWith("js")
-                                || restOfScript.StartsWith("yp"))
-                                scriptExplicitlyInXEngineLanguage = true;
+                            if (restOfFirstLine.StartsWith("c#")
+                                || restOfFirstLine.StartsWith("vb")
+                                || restOfFirstLine.StartsWith("lsl")
+                                || restOfFirstLine.StartsWith("js")
+                                || restOfFirstLine.StartsWith("yp")
+                                || restOfFirstLine.Length == 0)
+                                warnRunningInXEngine = true;
 
-                            if (scriptExplicitlyInXEngineLanguage)
+                            if (warnRunningInXEngine)
                             {
                                 SceneObjectPart part =
                                         m_Scene.GetSceneObjectPart(

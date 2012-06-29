@@ -114,11 +114,11 @@ namespace OpenSim.Region.Framework.Interfaces
         void DetachSingleAttachmentToGround(IScenePresence sp, uint objectLocalID);
 
         /// <summary>
-        /// Detach the given item so that it remains in the user's inventory.
+        /// Detach the given attachment so that it remains in the user's inventory.
         /// </summary>
         /// <param name="sp">/param>
-        /// <param name="itemID"></param>
-        void DetachSingleAttachmentToInv(IScenePresence sp, UUID itemID);
+        /// <param name="grp">The attachment to detach.</param>
+        void DetachSingleAttachmentToInv(IScenePresence sp, SceneObjectGroup grp);
         
         /// Update the position of an attachment.
         /// </summary>

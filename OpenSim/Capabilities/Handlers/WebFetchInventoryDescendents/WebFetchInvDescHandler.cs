@@ -301,7 +301,8 @@ namespace OpenSim.Capabilities.Handlers
                                         InventoryItemBase linkedItem
                                             = m_InventoryService.GetItem(new InventoryItemBase(link.AssetID));
 
-                                        itemsToReturn.Insert(0, linkedItem);
+                                        if (linkedItem != null)
+                                            itemsToReturn.Insert(0, linkedItem);
                                     }
                                 }
                             }

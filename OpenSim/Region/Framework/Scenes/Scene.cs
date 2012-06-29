@@ -637,7 +637,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_SimulationDataService = simDataService;
             m_EstateDataService = estateDataService;
             m_regionHandle = m_regInfo.RegionHandle;
-            m_regionName = m_regInfo.RegionName;
             m_lastIncoming = 0;
             m_lastOutgoing = 0;
 
@@ -654,7 +653,7 @@ namespace OpenSim.Region.Framework.Scenes
             // resave.
             // FIXME: It shouldn't be up to the database plugins to create this data - we should do it when a new
             // region is set up and avoid these gyrations.
-            RegionSettings rs = simDataService.LoadRegionSettings(m_regInfo.RegionID);
+            RegionSettings rs = simDataService.LoadRegionSettings(RegionInfo.RegionID);
             bool updatedTerrainTextures = false;
             if (rs.TerrainTexture1 == UUID.Zero)
             {
@@ -683,10 +682,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (updatedTerrainTextures)
                 rs.Save();
 
-            m_regInfo.RegionSettings = rs;
+            RegionInfo.RegionSettings = rs;
 
             if (estateDataService != null)
-                m_regInfo.EstateSettings = estateDataService.LoadEstateSettings(m_regInfo.RegionID, false);
+                RegionInfo.EstateSettings = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
 
             #endregion Region Settings
 
@@ -861,7 +860,7 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
         }
 
-        public Scene(RegionInfo regInfo)
+        public Scene(RegionInfo regInfo) : base(regInfo)
         {
             PhysicalPrims = true;
             CollidablePrims = true;
@@ -888,7 +887,6 @@ namespace OpenSim.Region.Framework.Scenes
             WestBorders.Add(westBorder);
             BordersLocked = false;
 
-            m_regInfo = regInfo;
             m_eventManager = new EventManager();
 
             m_permissions = new ScenePermissions(this);
@@ -1232,8 +1230,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_sceneGraph.Close();
 
-            if (!GridService.DeregisterRegion(m_regInfo.RegionID))
-                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", m_regInfo.RegionName);
+            if (!GridService.DeregisterRegion(RegionInfo.RegionID))
+                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
 
             // call the base class Close method.
             base.Close();
@@ -1770,14 +1768,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StoreWindlightProfile(RegionLightShareData wl)
         {
-            m_regInfo.WindlightSettings = wl;
+            RegionInfo.WindlightSettings = wl;
             SimulationDataService.StoreRegionWindlightSettings(wl);
             m_eventManager.TriggerOnSaveNewWindlightProfile();
         }
 
         public void LoadWindlightProfile()
         {
-            m_regInfo.WindlightSettings = SimulationDataService.LoadRegionWindlightSettings(RegionInfo.RegionID);
+            RegionInfo.WindlightSettings = SimulationDataService.LoadRegionWindlightSettings(RegionInfo.RegionID);
             m_eventManager.TriggerOnSaveNewWindlightProfile();
         }
 
@@ -2318,7 +2316,7 @@ namespace OpenSim.Region.Framework.Scenes
                         ForceSceneObjectBackup(so);                
                     
                     so.DetachFromBackup();
-                    SimulationDataService.RemoveObject(so.UUID, m_regInfo.RegionID);                                        
+                    SimulationDataService.RemoveObject(so.UUID, RegionInfo.RegionID);
                 }
                                     
                 // We need to keep track of this state in case this group is still queued for further backup.
@@ -2662,7 +2660,7 @@ namespace OpenSim.Region.Framework.Scenes
             // enter. Period.
             //
             int flags = GetUserFlags(sceneObject.OwnerID);
-            if (m_regInfo.EstateSettings.IsBanned(sceneObject.OwnerID, flags))
+            if (RegionInfo.EstateSettings.IsBanned(sceneObject.OwnerID, flags))
             {
                 m_log.InfoFormat("[INTERREGION]: Denied prim crossing for banned avatar {0}", sceneObject.OwnerID);
 
@@ -3908,9 +3906,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (m_regInfo.EstateSettings != null)
+            if (RegionInfo.EstateSettings != null)
             {
-                if (m_regInfo.EstateSettings.IsBanned(agent.AgentID,0))
+                if (RegionInfo.EstateSettings.IsBanned(agent.AgentID, 0))
                 {
                     m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
                                      agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
@@ -3942,7 +3940,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             bool groupAccess = false;
-            UUID[] estateGroups = m_regInfo.EstateSettings.EstateGroups;
+            UUID[] estateGroups = RegionInfo.EstateSettings.EstateGroups;
 
             if (estateGroups != null)
             {
@@ -3960,8 +3958,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat("[CONNECTION BEGIN]: EstateGroups is null!");
             }
 
-            if (!m_regInfo.EstateSettings.PublicAccess &&
-                !m_regInfo.EstateSettings.HasAccess(agent.AgentID) &&
+            if (!RegionInfo.EstateSettings.PublicAccess &&
+                !RegionInfo.EstateSettings.HasAccess(agent.AgentID) &&
                 !groupAccess)
             {
                 m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the estate",
@@ -4034,7 +4032,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            if (loggingOffUser != null)
 //            {
 //                UUID localRegionSecret = UUID.Zero;
-//                bool parsedsecret = UUID.TryParse(m_regInfo.regionSecret, out localRegionSecret);
+//                bool parsedsecret = UUID.TryParse(RegionInfo.regionSecret, out localRegionSecret);
 //
 //                // Region Secret is used here in case a new sessionid overwrites an old one on the user server.
 //                // Will update the user server in a few revisions to use it.
@@ -4272,13 +4270,13 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence sp = GetScenePresence(remoteClient.AgentId);
             if (sp != null)
             {
-                uint regionX = m_regInfo.RegionLocX;
-                uint regionY = m_regInfo.RegionLocY;
+                uint regionX = RegionInfo.RegionLocX;
+                uint regionY = RegionInfo.RegionLocY;
 
                 Utils.LongToUInts(regionHandle, out regionX, out regionY);
 
-                int shiftx = (int) regionX - (int) m_regInfo.RegionLocX * (int)Constants.RegionSize;
-                int shifty = (int) regionY - (int) m_regInfo.RegionLocY * (int)Constants.RegionSize;
+                int shiftx = (int) regionX - (int) RegionInfo.RegionLocX * (int)Constants.RegionSize;
+                int shifty = (int) regionY - (int) RegionInfo.RegionLocY * (int)Constants.RegionSize;
 
                 position.X += shiftx;
                 position.Y += shifty;
@@ -4301,7 +4299,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!result)
                 {
-                    regionHandle = m_regInfo.RegionHandle;
+                    regionHandle = RegionInfo.RegionHandle;
                 }
                 else
                 {
@@ -4807,7 +4805,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void DeleteFromStorage(UUID uuid)
         {
-            SimulationDataService.RemoveObject(uuid, m_regInfo.RegionID);
+            SimulationDataService.RemoveObject(uuid, RegionInfo.RegionID);
         }
 
         public int GetHealth(out int flags, out string message)
@@ -5288,7 +5286,7 @@ Environment.Exit(1);
             IEstateDataService estateDataService = EstateDataService;
             if (estateDataService != null)
             {
-                m_regInfo.EstateSettings = estateDataService.LoadEstateSettings(m_regInfo.RegionID, false);
+                RegionInfo.EstateSettings = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
                 TriggerEstateSunUpdate();
             }
         }

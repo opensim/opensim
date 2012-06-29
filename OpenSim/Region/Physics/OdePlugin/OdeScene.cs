@@ -387,12 +387,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// A dictionary of actors that should receive collision events.
         /// </summary>
-        private readonly Dictionary<uint, PhysicsActor> _collisionEventPrim = new Dictionary<uint, PhysicsActor>();
+        private readonly Dictionary<uint, PhysicsActor> m_collisionEventActors = new Dictionary<uint, PhysicsActor>();
 
         /// <summary>
         /// A dictionary of collision event changes that are waiting to be processed.
         /// </summary>
-        private readonly Dictionary<uint, PhysicsActor> _collisionEventPrimChanges = new Dictionary<uint, PhysicsActor>();
+        private readonly Dictionary<uint, PhysicsActor> m_collisionEventActorsChanges = new Dictionary<uint, PhysicsActor>();
 
         /// <summary>
         /// Maps a unique geometry id (a memory location) to a physics actor name.
@@ -1908,8 +1908,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
 //            m_log.DebugFormat("[PHYSICS]: Adding {0} {1} to collision event reporting", obj.SOPName, obj.LocalID);
             
-            lock (_collisionEventPrimChanges)
-                _collisionEventPrimChanges[obj.LocalID] = obj;
+            lock (m_collisionEventActorsChanges)
+                m_collisionEventActorsChanges[obj.LocalID] = obj;
         }
 
         /// <summary>
@@ -1920,8 +1920,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
 //            m_log.DebugFormat("[PHYSICS]: Removing {0} {1} from collision event reporting", obj.SOPName, obj.LocalID);
 
-            lock (_collisionEventPrimChanges)
-                _collisionEventPrimChanges[obj.LocalID] = null;
+            lock (m_collisionEventActorsChanges)
+                m_collisionEventActorsChanges[obj.LocalID] = null;
         }
 
         #region Add/Remove Entities
@@ -2930,17 +2930,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             // We change _collisionEventPrimChanges to avoid locking _collisionEventPrim itself and causing potential
             // deadlock if the collision event tries to lock something else later on which is already locked by a
             // caller that is adding or removing the collision event.
-            lock (_collisionEventPrimChanges)
+            lock (m_collisionEventActorsChanges)
             {
-                foreach (KeyValuePair<uint, PhysicsActor> kvp in _collisionEventPrimChanges)
+                foreach (KeyValuePair<uint, PhysicsActor> kvp in m_collisionEventActorsChanges)
                 {
                     if (kvp.Value == null)
-                        _collisionEventPrim.Remove(kvp.Key);
+                        m_collisionEventActors.Remove(kvp.Key);
                     else
-                        _collisionEventPrim[kvp.Key] = kvp.Value;
+                        m_collisionEventActors[kvp.Key] = kvp.Value;
                 }
 
-                _collisionEventPrimChanges.Clear();
+                m_collisionEventActorsChanges.Clear();
             }
 
             if (SupportsNINJAJoints)
@@ -3092,7 +3092,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             tempTick = tempTick2;
                         }
 
-                        foreach (PhysicsActor obj in _collisionEventPrim.Values)
+                        foreach (PhysicsActor obj in m_collisionEventActors.Values)
                         {
 //                                m_log.DebugFormat("[PHYSICS]: Assessing {0} {1} for collision events", obj.SOPName, obj.LocalID);
 
@@ -3227,10 +3227,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
                 tickCountFrameRun = Util.EnvironmentTickCount();
-            }
 
-            if (CollectStats)
-                m_stats[ODETotalFrameMsStatName] += Util.EnvironmentTickCountSubtract(startFrameTick);
+                if (CollectStats)
+                    m_stats[ODETotalFrameMsStatName] += Util.EnvironmentTickCountSubtract(startFrameTick);
+            }
 
             return fps;
         }

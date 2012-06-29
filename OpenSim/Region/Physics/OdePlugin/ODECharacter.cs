@@ -1270,7 +1270,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void UnSubscribeEvents()
         {
-            CollisionEventsThisFrame.Clear();
+            _parent_scene.RemoveCollisionEventReporting(this);
 
             // Don't clear collision event reporting here.  This is called directly from scene code and so can lead
             // to a race condition with the simulate loop

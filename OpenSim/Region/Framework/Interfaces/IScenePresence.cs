@@ -72,6 +72,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns></returns>
         List<SceneObjectGroup> GetAttachments(uint attachmentPoint);
 
+        /// <summary>
+        /// Does this avatar have any attachments?
+        /// </summary>
+        /// <returns></returns>
         bool HasAttachments();
 
         // Don't use these methods directly.  Instead, use the AttachmentsModule
