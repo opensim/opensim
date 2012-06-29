@@ -90,6 +90,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         // private static readonly ILog m_log =
         //     LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private const int DEBUG_CHANNEL = 2147483647;
+
         private ListenerManager m_listenerManager;
         private Queue m_pending;
         private Queue m_pendingQ;
@@ -311,6 +313,10 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         public bool DeliverMessageTo(UUID target, int channel, Vector3 pos, string name, UUID id, string msg, out string error)
         {
             error = null;
+
+            if (channel == DEBUG_CHANNEL)
+                return true;
+
             // Is id an avatar?
             ScenePresence sp = m_scene.GetScenePresence(target);
 
@@ -319,7 +325,9 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 // Send message to avatar
                 if (channel == 0)
                 {
-                    m_scene.SimChatBroadcast(Utils.StringToBytes(msg), ChatTypeEnum.Broadcast, 0, pos, name, id, false);
+                    // Channel 0 goes to viewer ONLY
+                    m_scene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Broadcast, 0, pos, name, id, false, false, target);
+                    return true;
                 }
 
                 List<SceneObjectGroup> attachments = sp.GetAttachments();
@@ -351,12 +359,9 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 return true;
             }
 
-            // Need to toss an error here
-            if (channel == 0)
-            {
-                error = "Cannot use llRegionSayTo to message objects on channel 0";
-                return false;
-            }
+            SceneObjectPart part = m_scene.GetSceneObjectPart(target);
+            if (part == null) // Not even an object
+                return true; // No error
 
             foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
             {

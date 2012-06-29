@@ -38,8 +38,8 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public partial class Scene
     {
-        protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
-                               UUID fromID, bool fromAgent, bool broadcast)
+        public void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
+                               UUID fromID, bool fromAgent, bool broadcast, UUID destination)
         {
             OSChatMessage args = new OSChatMessage();
 
@@ -49,6 +49,7 @@ namespace OpenSim.Region.Framework.Scenes
             args.Position = fromPos;
             args.SenderUUID = fromID;
             args.Scene = this;
+            args.Destination = destination;
 
             if (fromAgent)
             {
@@ -71,6 +72,12 @@ namespace OpenSim.Region.Framework.Scenes
                 EventManager.TriggerOnChatFromWorld(this, args);
         }
         
+        protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
+                               UUID fromID, bool fromAgent, bool broadcast)
+        {
+            SimChat(message, type, channel, fromPos, fromName, fromID, fromAgent, broadcast, UUID.Zero);
+        }
+
         /// <summary>
         ///
         /// </summary>
