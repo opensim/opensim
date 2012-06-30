@@ -40,9 +40,7 @@ namespace OpenSim.Server.Base
 {
     public class HttpServerBase : ServicesServerBase
     {
-        // Logger
-        //
-        private static readonly ILog m_Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private uint m_consolePort;
 

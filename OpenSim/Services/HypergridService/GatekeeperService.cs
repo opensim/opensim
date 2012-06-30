@@ -370,8 +370,6 @@ namespace OpenSim.Services.HypergridService
                     return false;
                 }
             }
-
-            return false;
         }
 
         // Check that the service token was generated for *this* grid.

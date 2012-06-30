@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Serialization.External
     /// </summary>
     public class UserInventoryItemSerializer
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static Dictionary<string, Action<InventoryItemBase, XmlTextReader>> m_InventoryItemXmlProcessors
             = new Dictionary<string, Action<InventoryItemBase, XmlTextReader>>();
