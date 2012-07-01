@@ -93,11 +93,6 @@ namespace OpenSim.Server.Handlers.Simulation
                     DoObjectPost(request, responsedata, regionID);
                     return responsedata;
                 }
-                else if (method.Equals("PUT"))
-                {
-                    DoObjectPut(request, responsedata, regionID);
-                    return responsedata;
-                }
                 //else if (method.Equals("DELETE"))
                 //{
                 //    DoObjectDelete(request, responsedata, agentID, action, regionHandle);
@@ -219,48 +214,5 @@ namespace OpenSim.Server.Handlers.Simulation
         {
             return m_SimulationService.CreateObject(destination, newPosition, sog, false);
         }
-
-        protected virtual void DoObjectPut(Hashtable request, Hashtable responsedata, UUID regionID)
-        {
-            OSDMap args = Utils.GetOSDMap((string)request["body"]);
-            if (args == null)
-            {
-                responsedata["int_response_code"] = 400;
-                responsedata["str_response_string"] = "false";
-                return;
-            }
-
-            // retrieve the input arguments
-            int x = 0, y = 0;
-            UUID uuid = UUID.Zero;
-            string regionname = string.Empty;
-            if (args.ContainsKey("destination_x") && args["destination_x"] != null)
-                Int32.TryParse(args["destination_x"].AsString(), out x);
-            if (args.ContainsKey("destination_y") && args["destination_y"] != null)
-                Int32.TryParse(args["destination_y"].AsString(), out y);
-            if (args.ContainsKey("destination_uuid") && args["destination_uuid"] != null)
-                UUID.TryParse(args["destination_uuid"].AsString(), out uuid);
-            if (args.ContainsKey("destination_name") && args["destination_name"] != null)
-                regionname = args["destination_name"].ToString();
-
-            GridRegion destination = new GridRegion();
-            destination.RegionID = uuid;
-            destination.RegionLocX = x;
-            destination.RegionLocY = y;
-            destination.RegionName = regionname;
-
-            UUID userID = UUID.Zero, itemID = UUID.Zero;
-            if (args.ContainsKey("userid") && args["userid"] != null)
-                userID = args["userid"].AsUUID();
-            if (args.ContainsKey("itemid") && args["itemid"] != null)
-                itemID = args["itemid"].AsUUID();
-
-            // This is the meaning of PUT object
-            bool result = m_SimulationService.CreateObject(destination, userID, itemID);
-
-            responsedata["int_response_code"] = 200;
-            responsedata["str_response_string"] = result.ToString();
-        }
-
     }
 }

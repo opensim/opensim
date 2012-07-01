@@ -2596,49 +2596,11 @@ namespace OpenSim.Region.Framework.Scenes
                 newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, GetStateSource(newObject));
                 newObject.ResumeScripts();
             }
-            else
-            {
-                ScenePresence sp;
-                if (TryGetScenePresence(newObject.OwnerID, out sp))
-                {
-                    // If the scene presence is here and already a root
-                    // agent, we came from a ;egacy region. Start the scripts
-                    // here as they used to start.
-                    // TODO: Remove in 0.7.3
-                    if (!sp.IsChildAgent)
-                    {
-                        newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, GetStateSource(newObject));
-                        newObject.ResumeScripts();
-                    }
-                }
-            }
 
             // Do this as late as possible so that listeners have full access to the incoming object
             EventManager.TriggerOnIncomingSceneObject(newObject);
 
             return true;
-        }
-
-        /// <summary>
-        /// Attachment rezzing
-        /// </summary>
-        /// <param name="userID">Agent Unique ID</param>
-        /// <param name="itemID">Object ID</param>
-        /// <returns>False</returns>
-        public virtual bool IncomingCreateObject(UUID userID, UUID itemID)
-        {
-            m_log.DebugFormat(" >>> IncomingCreateObject(userID, itemID) <<< {0} {1}", userID, itemID);
-
-            // Commented out since this is as yet unused and is arguably not the appropriate place to do this, as
-            // attachments are being rezzed elsewhere in AddNewClient()
-//            ScenePresence sp = GetScenePresence(userID);
-//            if (sp != null && AttachmentsModule != null)
-//            {
-//                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);
-//                AttachmentsModule.RezSingleAttachmentFromInventory(sp.ControllingClient, itemID, attPt);
-//            }
-
-            return false;
         }
 
         /// <summary>

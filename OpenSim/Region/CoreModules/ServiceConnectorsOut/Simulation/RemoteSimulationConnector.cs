@@ -315,13 +315,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
-        public bool CreateObject(GridRegion destination, UUID userID, UUID itemID)
-        {
-            // Not Implemented
-            return false;
-        }
-
         #endregion /* IInterregionComms */
-
     }
 }

@@ -37,7 +37,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
     public class BasicPhysicsPrim : PhysicsActor
     {
         private Vector3 _size;
-        private PrimitiveBaseShape _shape;
+//        private PrimitiveBaseShape _shape;
 
         public BasicPhysicsPrim(
             string name, uint localId, Vector3 position, Vector3 size, Quaternion orientation, PrimitiveBaseShape shape)
@@ -136,7 +136,8 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override PrimitiveBaseShape Shape
         {
-            set { _shape = value; }
+//            set { _shape = value; }
+            set {}
         }
 
         public override float Mass

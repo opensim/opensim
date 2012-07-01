@@ -118,16 +118,6 @@ namespace OpenSim.Services.Interfaces
         /// <returns></returns>
         bool CreateObject(GridRegion destination, Vector3 newPosition, ISceneObject sog, bool isLocalCall);
 
-        /// <summary>
-        /// Create an object from the user's inventory in the destination region. 
-        /// This message is used primarily by clients.
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="userID"></param>
-        /// <param name="itemID"></param>
-        /// <returns></returns>
-        bool CreateObject(GridRegion destination, UUID userID, UUID itemID);
-
         #endregion Objects
 
     }

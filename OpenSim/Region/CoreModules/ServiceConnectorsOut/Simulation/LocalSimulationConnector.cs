@@ -354,24 +354,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
-        public bool CreateObject(GridRegion destination, UUID userID, UUID itemID)
-        {
-            if (destination == null)
-                return false;
-
-            if (m_scenes.ContainsKey(destination.RegionID))
-            {
-//                    m_log.DebugFormat(
-//                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
-//                        s.RegionInfo.RegionName, destination.RegionHandle);
-
-                return m_scenes[destination.RegionID].IncomingCreateObject(userID, itemID);
-            }
-
-            return false;
-        }
-
-
         #endregion /* IInterregionComms */
 
         #region Misc

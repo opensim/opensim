@@ -57,7 +57,7 @@ namespace OpenSim.Services.HypergridService
         private string m_HomeURL;
         private IUserAccountService m_UserAccountService;
 
-        private UserAccountCache m_Cache;
+//        private UserAccountCache m_Cache;
 
         private ExpiringCache<UUID, List<XInventoryFolder>> m_SuitcaseTrees = new ExpiringCache<UUID, List<XInventoryFolder>>();
 
@@ -92,7 +92,7 @@ namespace OpenSim.Services.HypergridService
                 // Preferred
                 m_HomeURL = invConfig.GetString("HomeURI", m_HomeURL);
 
-                m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
+//                m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
             }
 
             m_log.Debug("[HG SUITCASE INVENTORY SERVICE]: Starting...");
