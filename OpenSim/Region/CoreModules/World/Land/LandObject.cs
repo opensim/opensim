@@ -200,7 +200,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                               * (long)m_scene.RegionInfo.ObjectCapacity
                               * (long)m_scene.RegionInfo.RegionSettings.ObjectBonus
                               / 65536L);
-                m_log.DebugFormat("Area: {0}, Capacity {1}, Bonus {2}, Parcel {3}", LandData.Area, m_scene.RegionInfo.ObjectCapacity, m_scene.RegionInfo.RegionSettings.ObjectBonus, parcelMax);
+                //m_log.DebugFormat("Area: {0}, Capacity {1}, Bonus {2}, Parcel {3}", LandData.Area, m_scene.RegionInfo.ObjectCapacity, m_scene.RegionInfo.RegionSettings.ObjectBonus, parcelMax);
                 return parcelMax;
             }
         }

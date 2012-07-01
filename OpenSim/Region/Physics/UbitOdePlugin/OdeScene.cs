@@ -302,6 +302,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         // split static geometry collision into a grid as before
         private IntPtr[,] staticPrimspace;
+        private IntPtr[] staticPrimspaceOffRegion;
 
         public Object OdeLock;
         private static Object SimulationLock;
@@ -551,6 +552,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // create all spaces now
             int i, j;
             IntPtr newspace;
+
             for (i = 0; i < spaceGridMaxX; i++)
                 for (j = 0; j < spaceGridMaxY; j++)
                 {
@@ -573,6 +575,29 @@ namespace OpenSim.Region.Physics.OdePlugin
             // let this now be real maximum values
             spaceGridMaxX--;
             spaceGridMaxY--;
+
+            // create 4 off world spaces (x<0,x>max,y<0,y>max)
+            staticPrimspaceOffRegion = new IntPtr[4];
+
+            for (i = 0; i < 4; i++)
+                {
+                    newspace = d.HashSpaceCreate(StaticSpace);
+                    d.GeomSetCategoryBits(newspace, (int)CollisionCategories.Space);
+                    waitForSpaceUnlock(newspace);
+                    d.SpaceSetSublevel(newspace, 2);
+                    d.HashSpaceSetLevels(newspace, -2, 8);
+                    d.GeomSetCategoryBits(newspace, (uint)(CollisionCategories.Space |
+                                        CollisionCategories.Geom |
+                                        CollisionCategories.Land |
+                                        CollisionCategories.Water |
+                                        CollisionCategories.Phantom |
+                                        CollisionCategories.VolumeDtc
+                                        ));
+                    d.GeomSetCollideBits(newspace, 0);
+
+                    staticPrimspaceOffRegion[i] = newspace;
+                }
+
             m_lastframe = DateTime.UtcNow;
         }
 
@@ -1650,20 +1675,22 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr calculateSpaceForGeom(Vector3 pos)
         {
             int x, y;
+
+            if (pos.X < 0)
+                return staticPrimspaceOffRegion[0];
+
+            if (pos.Y < 0)
+                return staticPrimspaceOffRegion[2];
+
             x = (int)(pos.X * spacesPerMeter);
-            if (x < 0)
-                x = 0;
-            else if (x > spaceGridMaxX)
-                x = spaceGridMaxX;
-
+            if (x > spaceGridMaxX)
+                return staticPrimspaceOffRegion[1];
+            
             y = (int)(pos.Y * spacesPerMeter);
-            if (y < 0)
-                y = 0;
-            else if (y >spaceGridMaxY)
-                y = spaceGridMaxY;
+            if (y > spaceGridMaxY)
+                return staticPrimspaceOffRegion[3];
 
-            IntPtr tmpSpace = staticPrimspace[x, y];
-            return tmpSpace;
+            return staticPrimspace[x, y];
         }
  
         #endregion
