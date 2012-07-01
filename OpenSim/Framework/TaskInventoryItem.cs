@@ -73,6 +73,9 @@ namespace OpenSim.Framework
 
         private bool _ownerChanged = false;
 
+        // This used ONLY during copy. It can't be relied on at other times!
+        private bool _scriptRunning = true;
+
         public UUID AssetID {
             get {
                 return _assetID;
@@ -347,6 +350,15 @@ namespace OpenSim.Framework
 //                m_log.DebugFormat(
 //                    "[TASK INVENTORY ITEM]: Owner changed set {0} for {1} {2} owned by {3}",
 //                    _ownerChanged, Name, ItemID, OwnerID);
+            }
+        }
+
+        public bool ScriptRunning {
+            get {
+                return _scriptRunning;
+            }
+            set {
+                _scriptRunning = value;
             }
         }
 

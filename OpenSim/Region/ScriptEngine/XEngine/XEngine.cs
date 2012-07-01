@@ -2081,5 +2081,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 //            else
 //                m_log.DebugFormat("[XEngine]: Could not find script with ID {0} to resume", itemID);
         }
+
+        public bool HasScript(UUID itemID, out bool running)
+        {
+            running = true;
+
+            IScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return false;
+
+            running = instance.Running;
+            return true;
+        }
     }
 }

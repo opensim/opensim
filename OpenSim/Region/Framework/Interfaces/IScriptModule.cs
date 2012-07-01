@@ -69,6 +69,8 @@ namespace OpenSim.Region.Framework.Interfaces
 
         ArrayList GetScriptErrors(UUID itemID);
 
+        bool HasScript(UUID itemID, out bool running);
+
         /// <summary>
         /// Returns true if a script is running.
         /// </summary>

@@ -89,6 +89,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_items = value;
                 m_inventorySerial++;
+                QueryScriptStates();
             }
         }
         
@@ -217,6 +218,36 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        private void QueryScriptStates()
+        {
+            if (m_part == null || m_part.ParentGroup == null)
+                return;
+
+            IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
+            if (engines == null) // No engine at all
+                return;
+
+            lock (Items)
+            {
+                foreach (TaskInventoryItem item in Items.Values)
+                {
+                    if (item.InvType == (int)InventoryType.LSL)
+                    {
+                        foreach (IScriptModule e in engines)
+                        {
+                            bool running;
+
+                            if (e.HasScript(item.ItemID, out running))
+                            {
+                                item.ScriptRunning = running;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         public int CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource)
         {
             int scriptsValidForStarting = 0;
@@ -321,6 +352,9 @@ namespace OpenSim.Region.Framework.Scenes
                 string script = Utils.BytesToString(asset.Data);
                 m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
                     m_part.LocalId, item.ItemID, script, startParam, postOnRez, engine, stateSource);
+                if (!item.ScriptRunning)
+                    m_part.ParentGroup.Scene.EventManager.TriggerStopScript(
+                        m_part.LocalId, item.ItemID);
                 m_part.ParentGroup.AddActiveScriptCount(1);
                 m_part.ScheduleFullUpdate();
 
