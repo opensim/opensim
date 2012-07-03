@@ -122,7 +122,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         private List<string> m_AllowedViewers = new List<string>();
-        private List<string> m_BanedViewers = new List<string>();
+        private List<string> m_BannedViewers = new List<string>();
         
         // TODO: need to figure out how allow client agents but deny
         // root agents when ACL denies access to root agent
@@ -796,7 +796,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (string viewer in grant.Split(','))
                     {
-                        m_BanedViewers.Add(viewer.Trim().ToLower());
+                        m_BannedViewers.Add(viewer.Trim().ToLower());
                     }
                 }
 
@@ -3460,9 +3460,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             //Check if the viewer is in the banned list
-            if (m_BanedViewers.Count > 0)
+            if (m_BannedViewers.Count > 0)
             {
-                foreach (string viewer in m_BanedViewers)
+                foreach (string viewer in m_BannedViewers)
                 {
                     if (viewer == agent.Viewer.Substring(0, viewer.Length).Trim().ToLower())
                     {
