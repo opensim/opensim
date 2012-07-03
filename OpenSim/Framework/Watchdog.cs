@@ -41,8 +41,8 @@ namespace OpenSim.Framework
         /// <summary>Timer interval in milliseconds for the watchdog timer</summary>
         const double WATCHDOG_INTERVAL_MS = 2500.0d;
 
-        /// <summary>Maximum timeout in milliseconds before a thread is considered dead</summary>
-        public const int WATCHDOG_TIMEOUT_MS = 5000;
+        /// <summary>Default timeout in milliseconds before a thread is considered dead</summary>
+        public const int DEFAULT_WATCHDOG_TIMEOUT_MS = 5000;
 
         [System.Diagnostics.DebuggerDisplay("{Thread.Name}")]
         public class ThreadWatchdogInfo
@@ -122,7 +122,7 @@ namespace OpenSim.Framework
         public static Thread StartThread(
             ThreadStart start, string name, ThreadPriority priority, bool isBackground, bool alarmIfTimeout)
         {
-            return StartThread(start, name, priority, isBackground, alarmIfTimeout, null, WATCHDOG_TIMEOUT_MS);
+            return StartThread(start, name, priority, isBackground, alarmIfTimeout, null, DEFAULT_WATCHDOG_TIMEOUT_MS);
         }
 
         /// <summary>
