@@ -184,6 +184,14 @@ namespace OpenSim.Region.Framework.Interfaces
         bool Stand(UUID agentID, Scene scene);
 
         /// <summary>
+        /// Get the NPC to touch an object.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="partID"></param>
+        /// <returns>true if the touch is actually attempted, false if not</returns>
+        bool Touch(UUID agentID, UUID partID);
+
+        /// <summary>
         /// Delete an NPC.
         /// </summary>
         /// <param name="agentID">The UUID of the NPC</param>

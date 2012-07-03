@@ -231,6 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void        osNpcRemove(key npc);
         void        osNpcPlayAnimation(LSL_Key npc, string animation);
         void        osNpcStopAnimation(LSL_Key npc, string animation);
+        void        osNpcTouch(LSL_Key npcLSL_Key, LSL_Key object_key, LSL_Integer link_num);
         void        osNpcWhisper(key npc, int channel, string message);
 
         LSL_Key     osOwnerSaveAppearance(string notecard);
