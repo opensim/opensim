@@ -4290,18 +4290,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID soundId = UUID.Zero;
             if (!UUID.TryParse(impact_sound, out soundId))
             {
-                lock (m_host.TaskInventory)
-                {
-                    foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-                    {
-                        if (item.Type == (int)AssetType.Sound && item.Name == impact_sound)
-                        {
-                            soundId = item.AssetID;
-                            break;
-                        }
-                    }
-                }
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(impact_sound);
+
+                if (item != null && item.Type == (int)AssetType.Sound)
+                    soundId = item.AssetID;
             }
+
             m_host.CollisionSound = soundId;
             m_host.CollisionSoundVolume = (float)impact_volume;
         }
