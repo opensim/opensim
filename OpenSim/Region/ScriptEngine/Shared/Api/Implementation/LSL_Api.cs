@@ -7479,7 +7479,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llSHA1String(string src)
         {
             m_host.AddScriptLPS(1);
-            return Util.SHA1Hash(src, Encoding.UTF8).ToLower();
+            return Util.SHA1Hash(src, Encoding.UTF8).ToUpper();
         }
 
         protected ObjectShapePacket.ObjectDataBlock SetPrimitiveBlockShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, byte profileshape, byte pathcurve)
@@ -8676,10 +8676,91 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llXorBase64Strings(string str1, string str2)
         {
-            m_host.AddScriptLPS(1);
-            Deprecated("llXorBase64Strings");
+            string b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
             ScriptSleep(300);
-            return String.Empty;
+            m_host.AddScriptLPS(1);
+
+            if (str1 == String.Empty)
+                return String.Empty;
+            if (str2 == String.Empty)
+                return str1;
+
+            int len = str2.Length;
+            if ((len % 4) != 0) // LL is EVIL!!!!
+            {
+                while (str2.EndsWith("="))
+                    str2 = str2.Substring(0, str2.Length - 1);
+
+                len = str2.Length;
+                int mod = len % 4;
+
+                if (mod == 1)
+                    str2 = str2.Substring(0, str2.Length - 1);
+                else if (mod == 2)
+                    str2 += "==";
+                else if (mod == 3)
+                    str2 += "=";
+            }
+
+            byte[] data1;
+            byte[] data2;
+            try
+            {
+                data1 = Convert.FromBase64String(str1);
+                data2 = Convert.FromBase64String(str2);
+            }
+            catch (Exception)
+            {
+                return new LSL_String(String.Empty);
+            }
+
+            // For cases where the decoded length of s2 is greater
+            // than the decoded length of s1, simply perform a normal
+            // decode and XOR
+            //
+            if (data2.Length >= data1.Length)
+            {
+                for (int pos = 0 ; pos < data1.Length ; pos++ )
+                    data1[pos] ^= data2[pos];
+
+                return Convert.ToBase64String(data1);
+            }
+
+            // Remove padding
+            while (str1.EndsWith("="))
+                str1 = str1.Substring(0, str1.Length - 1);
+            while (str2.EndsWith("="))
+                str2 = str2.Substring(0, str2.Length - 1);
+            
+            byte[] d1 = new byte[str1.Length];
+            byte[] d2 = new byte[str2.Length];
+
+            for (int i = 0 ; i < str1.Length ; i++)
+            {
+                int idx = b64.IndexOf(str1.Substring(i, 1));
+                if (idx == -1)
+                    idx = 0;
+                d1[i] = (byte)idx;
+            }
+
+            for (int i = 0 ; i < str2.Length ; i++)
+            {
+                int idx = b64.IndexOf(str2.Substring(i, 1));
+                if (idx == -1)
+                    idx = 0;
+                d2[i] = (byte)idx;
+            }
+
+            string output = String.Empty;
+
+            for (int pos = 0 ; pos < d1.Length ; pos++)
+                output += b64[d1[pos] ^ d2[pos % d2.Length]];
+
+            while (output.Length % 3 > 0)
+                output += "=";
+
+            return output;
         }
 
         public void llRemoteDataSetRegion()
