@@ -72,10 +72,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             bool debugtest = false; 
 
             Scene scene = new SceneHelpers().SetupScene();
-            SceneObjectPart part1 = SceneHelpers.AddSceneObject(scene);
-            SceneObjectGroup grp1 = part1.ParentGroup;
-            SceneObjectPart part2 = SceneHelpers.AddSceneObject(scene);
-            SceneObjectGroup grp2 = part2.ParentGroup;
+            SceneObjectGroup grp1 = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part1 = grp1.RootPart;
+            SceneObjectGroup grp2 = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part2 = grp2.RootPart;
 
             grp1.AbsolutePosition = new Vector3(10, 10, 10);
             grp2.AbsolutePosition = Vector3.Zero;
@@ -154,14 +154,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             bool debugtest = false;
 
             Scene scene = new SceneHelpers().SetupScene();
-            SceneObjectPart part1 = SceneHelpers.AddSceneObject(scene);
-            SceneObjectGroup grp1 = part1.ParentGroup;
-            SceneObjectPart part2 = SceneHelpers.AddSceneObject(scene);
-            SceneObjectGroup grp2 = part2.ParentGroup;
-            SceneObjectPart part3 = SceneHelpers.AddSceneObject(scene);
-            SceneObjectGroup grp3 = part3.ParentGroup;
-            SceneObjectPart part4 = SceneHelpers.AddSceneObject(scene);
-            SceneObjectGroup grp4 = part4.ParentGroup;
+            SceneObjectGroup grp1 = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part1 = grp1.RootPart;
+            SceneObjectGroup grp2 = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part2 = grp2.RootPart;
+            SceneObjectGroup grp3 = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part3 = grp3.RootPart;
+            SceneObjectGroup grp4 = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part4 = grp4.RootPart;
 
             grp1.AbsolutePosition = new Vector3(10, 10, 10);
             grp2.AbsolutePosition = Vector3.Zero;

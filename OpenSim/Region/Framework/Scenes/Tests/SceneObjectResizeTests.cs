@@ -53,7 +53,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            log4net.Config.XmlConfigurator.Configure();
 
             Scene scene = new SceneHelpers().SetupScene();
-            SceneObjectGroup g1 = SceneHelpers.AddSceneObject(scene).ParentGroup;
+            SceneObjectGroup g1 = SceneHelpers.AddSceneObject(scene);
 
             g1.GroupResize(new Vector3(2, 3, 4));
 

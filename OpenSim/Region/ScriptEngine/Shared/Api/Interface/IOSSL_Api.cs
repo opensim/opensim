@@ -107,6 +107,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osForceAttachToAvatar(int attachment);
 
         /// <summary>
+        /// Attach the inventory item in the object containing this script to the avatar that owns it without checking for PERMISSION_ATTACH
+        /// </summary>
+        /// <param name='itemName'>Tha name of the item.  If this is not found then a warning is said to the owner</param>
+        /// <param name='attachment'>The attachment point.  For example, ATTACH_CHEST</param>
+        void osForceAttachToAvatarFromInventory(string itemName, int attachment);
+
+        /// <summary>
         /// Detach the object containing this script from the avatar it is attached to without checking for PERMISSION_ATTACH
         /// </summary>
         /// <remarks>Nothing happens if the object is not attached.</remarks>
