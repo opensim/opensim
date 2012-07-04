@@ -9058,38 +9058,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return -1;
         }
 
-        public void llSetInventoryPermMask(string item, int mask, int value)
+        public void llSetInventoryPermMask(string itemName, int mask, int value)
         {
             m_host.AddScriptLPS(1);
+
             if (m_ScriptEngine.Config.GetBoolean("AllowGodFunctions", false))
             {
                 if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
                 {
-                    lock (m_host.TaskInventory)
+                    TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
+
+                    if (item != null)
                     {
-                        foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                        switch (mask)
                         {
-                            if (inv.Value.Name == item)
-                            {
-                                switch (mask)
-                                {
-                                    case 0:
-                                        inv.Value.BasePermissions = (uint)value;
-                                        break;
-                                    case 1:
-                                        inv.Value.CurrentPermissions = (uint)value;
-                                        break;
-                                    case 2:
-                                        inv.Value.GroupPermissions = (uint)value;
-                                        break;
-                                    case 3:
-                                        inv.Value.EveryonePermissions = (uint)value;
-                                        break;
-                                    case 4:
-                                        inv.Value.NextPermissions = (uint)value;
-                                        break;
-                                }
-                            }
+                            case 0:
+                                item.BasePermissions = (uint)value;
+                                break;
+                            case 1:
+                                item.CurrentPermissions = (uint)value;
+                                break;
+                            case 2:
+                                item.GroupPermissions = (uint)value;
+                                break;
+                            case 3:
+                                item.EveryonePermissions = (uint)value;
+                                break;
+                            case 4:
+                                item.NextPermissions = (uint)value;
+                                break;
                         }
                     }
                 }
