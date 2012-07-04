@@ -174,7 +174,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                
                 m_HttpServer.AddPollServiceHTTPHandler(
                     uri,
-                    new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, urlcode));
+                    new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, urlcode,25000));
 
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }
@@ -216,7 +216,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                
                 m_HttpsServer.AddPollServiceHTTPHandler(
                     uri,
-                    new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, urlcode));
+                    new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, urlcode,25000));
 
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }

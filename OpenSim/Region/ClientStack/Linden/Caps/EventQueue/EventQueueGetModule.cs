@@ -361,7 +361,7 @@ namespace OpenSim.Region.ClientStack.Linden
             // This will persist this beyond the expiry of the caps handlers
             MainServer.Instance.AddPollServiceHTTPHandler(
                 capsBase + EventQueueGetUUID.ToString() + "/",
-                new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID));
+                new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID,1000)); // 1 sec timeout
 
             Random rnd = new Random(Environment.TickCount);
             lock (m_ids)
