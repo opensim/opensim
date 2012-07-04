@@ -232,7 +232,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             while (m_running)
             {
-                Thread.Sleep(100); // let the world move
+                Thread.Sleep(1000); // let the world move  slow it to original polling rate
                 Watchdog.UpdateThread();
                 lock (m_retry_requests)
                 {
