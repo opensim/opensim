@@ -9656,18 +9656,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            lock (m_host.TaskInventory)
-            {
-                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-                {
-                    if (inv.Value.Name == name)
-                    {
-                        return inv.Value.Type;
-                    }
-                }
-            }
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
 
-            return -1;
+            if (item == null)
+                return -1;
+
+            return item.Type;
         }
 
         public void llSetPayPrice(int price, LSL_List quick_pay_buttons)
