@@ -10558,20 +10558,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            TaskInventoryDictionary itemsDictionary = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
-
             UUID assetID = UUID.Zero;
 
             if (!UUID.TryParse(name, out assetID))
             {
-                foreach (TaskInventoryItem item in itemsDictionary.Values)
-                {
-                    if (item.Type == 7 && item.Name == name)
-                    {
-                        assetID = item.AssetID;
-                        break;
-                    }
-                }
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+
+                if (item != null && item.Type == 7)
+                    assetID = item.AssetID;
             }
 
             if (assetID == UUID.Zero)
