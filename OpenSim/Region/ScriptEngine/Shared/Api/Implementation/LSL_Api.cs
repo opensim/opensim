@@ -9093,24 +9093,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public LSL_String llGetInventoryCreator(string item)
+        public LSL_String llGetInventoryCreator(string itemName)
         {
             m_host.AddScriptLPS(1);
 
-            lock (m_host.TaskInventory)
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
+
+            if (item == null)
             {
-                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-                {
-                    if (inv.Value.Name == item)
-                    {
-                        return inv.Value.CreatorID.ToString();
-                    }
-                }
+                llSay(0, "No item name '" + item + "'");
+
+                return String.Empty;
             }
 
-            llSay(0, "No item name '" + item + "'");
-
-            return String.Empty;
+            return item.CreatorID.ToString();
         }
 
         public void llOwnerSay(string msg)
