@@ -192,7 +192,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            if ((item = ScriptByName(name)) != UUID.Zero)
+            if ((item = GetScriptByName(name)) != UUID.Zero)
                 m_ScriptEngine.ResetScript(item);
             else
                 ShoutError("llResetOtherScript: script "+name+" not found");
@@ -204,7 +204,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            if ((item = ScriptByName(name)) != UUID.Zero)
+            if ((item = GetScriptByName(name)) != UUID.Zero)
             {
                 return m_ScriptEngine.GetScriptState(item) ?1:0;
             }
@@ -226,7 +226,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // These functions are supposed to be robust,
             // so get the state one step at a time.
 
-            if ((item = ScriptByName(name)) != UUID.Zero)
+            if ((item = GetScriptByName(name)) != UUID.Zero)
             {
                 m_ScriptEngine.SetScriptState(item, run == 0 ? false : true);
             }
@@ -10455,18 +10455,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_List();
         }
 
-        internal UUID ScriptByName(string name)
+        internal UUID GetScriptByName(string name)
         {
-            lock (m_host.TaskInventory)
-            {
-                foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-                {
-                    if (item.Type == 10 && item.Name == name)
-                        return item.ItemID;
-                }
-            }
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
 
-            return UUID.Zero;
+            if (item == null || item.Type != 10)
+                return UUID.Zero;
+
+            return item.ItemID;
         }
 
         internal void ShoutError(string msg)
