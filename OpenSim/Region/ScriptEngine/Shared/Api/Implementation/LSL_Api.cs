@@ -2738,67 +2738,63 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            Util.FireAndForget(delegate (object x)
+            Util.FireAndForget(x =>
             {
                 if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
                     return;
+
                 float dist = (float)llVecDist(llGetPos(), pos);
 
                 if (dist > m_ScriptDistanceFactor * 10.0f)
                     return;
 
-                //Clone is thread-safe
-                TaskInventoryDictionary partInventory = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
 
-                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in partInventory)
+                if (item == null)
                 {
-                    if (inv.Value.Name == inventory)
-                    {
-                        // make sure we're an object.
-                        if (inv.Value.InvType != (int)InventoryType.Object)
-                        {
-                            llSay(0, "Unable to create requested object. Object is missing from database.");
-                            return;
-                        }
-
-                        Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
-                        Vector3 llvel = new Vector3((float)vel.x, (float)vel.y, (float)vel.z);
-
-                        // need the magnitude later
-                        // float velmag = (float)Util.GetMagnitude(llvel);
-
-                        SceneObjectGroup new_group = World.RezObject(m_host, inv.Value, llpos, Rot2Quaternion(rot), llvel, param);
-
-                        // If either of these are null, then there was an unknown error.
-                        if (new_group == null)
-                            continue;
-
-                        // objects rezzed with this method are die_at_edge by default.
-                        new_group.RootPart.SetDieAtEdge(true);
-
-                        new_group.ResumeScripts();
-
-                        m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
-                                "object_rez", new Object[] {
-                                new LSL_String(
-                                new_group.RootPart.UUID.ToString()) },
-                                new DetectParams[0]));
-
-                        float groupmass = new_group.GetMass();
-
-                        PhysicsActor pa = new_group.RootPart.PhysActor;
-
-                        if (pa != null && pa.IsPhysical && llvel != Vector3.Zero)
-                        {
-                            //Recoil.
-                            llApplyImpulse(new LSL_Vector(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
-                        }
-                        // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
-                        return;
-                    }
+                    llSay(0, "Could not find object " + inventory);
+                    return;
                 }
 
-                llSay(0, "Could not find object " + inventory);
+                if (item.InvType != (int)InventoryType.Object)
+                {
+                    llSay(0, "Unable to create requested object. Object is missing from database.");
+                    return;
+                }
+
+                Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
+                Vector3 llvel = new Vector3((float)vel.x, (float)vel.y, (float)vel.z);
+
+                // need the magnitude later
+                // float velmag = (float)Util.GetMagnitude(llvel);
+
+                SceneObjectGroup new_group = World.RezObject(m_host, item, llpos, Rot2Quaternion(rot), llvel, param);
+
+                // If either of these are null, then there was an unknown error.
+                if (new_group == null)
+                    return;
+
+                // objects rezzed with this method are die_at_edge by default.
+                new_group.RootPart.SetDieAtEdge(true);
+
+                new_group.ResumeScripts();
+
+                m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
+                        "object_rez", new Object[] {
+                        new LSL_String(
+                        new_group.RootPart.UUID.ToString()) },
+                        new DetectParams[0]));
+
+                float groupmass = new_group.GetMass();
+
+                PhysicsActor pa = new_group.RootPart.PhysActor;
+
+                if (pa != null && pa.IsPhysical && llvel != Vector3.Zero)
+                {
+                    //Recoil.
+                    llApplyImpulse(new LSL_Vector(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
+                }
+                // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
             });
 
             //ScriptSleep((int)((groupmass * velmag) / 10));
