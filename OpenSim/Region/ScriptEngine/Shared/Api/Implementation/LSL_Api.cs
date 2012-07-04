@@ -4703,22 +4703,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            lock (m_host.TaskInventory)
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+
+            if (item == null)
+                return UUID.Zero.ToString();
+
+            if ((item.CurrentPermissions
+                 & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+                    == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
             {
-                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-                {
-                    if (inv.Value.Name == name)
-                    {
-                        if ((inv.Value.CurrentPermissions & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify)) == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
-                        {
-                            return inv.Value.AssetID.ToString();
-                        }
-                        else
-                        {
-                            return UUID.Zero.ToString();
-                        }
-                    }
-                }
+                return item.AssetID.ToString();
             }
 
             return UUID.Zero.ToString();
