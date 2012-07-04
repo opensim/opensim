@@ -182,7 +182,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private bool m_running = true;
 
-        private int m_timeout = 1000;   //  increase timeout 250;
+//        private int m_timeout = 1000;   //  increase timeout 250; now use the event one
 
         public PollServiceRequestManager(BaseHttpServer pSrv, uint pWorkerThreadCount, int pTimeout)
         {
@@ -245,7 +245,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         ~PollServiceRequestManager()
         {
             m_running = false;
-            m_timeout = -10000; // cause all to expire
+//            m_timeout = -10000; // cause all to expire
             Thread.Sleep(1000); // let the world move
 
             foreach (Thread t in m_workerThreads)
@@ -299,7 +299,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             PollServiceHttpRequest req;
             StreamReader str;
 
-            while (true)
+//            while (true)
+            while (m_running)
             {
                 req = m_requests.Dequeue(5000);
 
@@ -338,7 +339,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                         }
                         else
                         {
-                            if ((Environment.TickCount - req.RequestTime) > m_timeout)
+//                            if ((Environment.TickCount - req.RequestTime) > m_timeout)
+
+                            if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                             {
                                 m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id),
                                                          new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
