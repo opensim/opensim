@@ -6644,7 +6644,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param)
         {
             m_host.AddScriptLPS(1);
-            
+
             UUID destId = UUID.Zero;
 
             if (!UUID.TryParse(target, out destId))
@@ -9032,31 +9032,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public LSL_Integer llGetInventoryPermMask(string item, int mask)
+        public LSL_Integer llGetInventoryPermMask(string itemName, int mask)
         {
             m_host.AddScriptLPS(1);
 
-            lock (m_host.TaskInventory)
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
+
+            if (item == null)
+                return -1;
+
+            switch (mask)
             {
-                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-                {
-                    if (inv.Value.Name == item)
-                    {
-                        switch (mask)
-                        {
-                            case 0:
-                                return (int)inv.Value.BasePermissions;
-                            case 1:
-                                return (int)inv.Value.CurrentPermissions;
-                            case 2:
-                                return (int)inv.Value.GroupPermissions;
-                            case 3:
-                                return (int)inv.Value.EveryonePermissions;
-                            case 4:
-                                return (int)inv.Value.NextPermissions;
-                        }
-                    }
-                }
+                case 0:
+                    return (int)item.BasePermissions;
+                case 1:
+                    return (int)item.CurrentPermissions;
+                case 2:
+                    return (int)item.GroupPermissions;
+                case 3:
+                    return (int)item.EveryonePermissions;
+                case 4:
+                    return (int)item.NextPermissions;
             }
 
             return -1;
