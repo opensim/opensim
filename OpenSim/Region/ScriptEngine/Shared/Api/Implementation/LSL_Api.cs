@@ -6296,20 +6296,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        protected UUID GetTaskInventoryItem(string name)
-        {
-            lock (m_host.TaskInventory)
-            {
-                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-                {
-                    if (inv.Value.Name == name)
-                        return inv.Key;
-                }
-            }
-
-            return UUID.Zero;
-        }
-
         public void llGiveInventoryList(string destination, string category, LSL_List inventory)
         {
             m_host.AddScriptLPS(1);
@@ -6322,16 +6308,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             foreach (Object item in inventory.Data)
             {
+                string rawItemString = item.ToString();
+
                 UUID itemID;
-                if (UUID.TryParse(item.ToString(), out itemID))
+                if (UUID.TryParse(rawItemString, out itemID))
                 {
                     itemList.Add(itemID);
                 }
                 else
                 {
-                    itemID = GetTaskInventoryItem(item.ToString());
-                    if (itemID != UUID.Zero)
-                        itemList.Add(itemID);
+                    TaskInventoryItem taskItem = m_host.Inventory.GetInventoryItem(rawItemString);
+
+                    if (taskItem != null)
+                        itemList.Add(taskItem.ItemID);
                 }
             }
 
@@ -6349,11 +6338,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Array.Copy(objBytes, 0, bucket, 1, 16);
 
             GridInstantMessage msg = new GridInstantMessage(World,
-                    m_host.UUID, m_host.Name+", an object owned by "+
-                    resolveName(m_host.OwnerID)+",", destID,
+                    m_host.UUID, m_host.Name + ", an object owned by " +
+                    resolveName(m_host.OwnerID) + ",", destID,
                     (byte)InstantMessageDialog.InventoryOffered,
-                    false, category+"\n"+m_host.Name+" is located at "+
-                    World.RegionInfo.RegionName+" "+
+                    false, category + "\n" + m_host.Name + " is located at " +
+                    World.RegionInfo.RegionName + " " +
                     m_host.AbsolutePosition.ToString(),
                     folderID, true, m_host.AbsolutePosition,
                     bucket);
