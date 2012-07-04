@@ -4084,9 +4084,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            TaskInventoryDictionary itemDictionary = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
-
-            foreach (TaskInventoryItem item in itemDictionary.Values)
+            foreach (TaskInventoryItem item in m_host.Inventory.GetInventoryItems())
             {
                 if (item.Type == 3 && item.Name == name)
                 {
@@ -4118,6 +4116,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return tid.ToString();
                 }
             }
+            
             ScriptSleep(1000);
             return String.Empty;
         }
