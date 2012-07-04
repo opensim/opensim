@@ -182,7 +182,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private bool m_running = true;
 
-        private int m_timeout = 250;
+        private int m_timeout = 1000;   //  increase timeout 250;
 
         public PollServiceRequestManager(BaseHttpServer pSrv, uint pWorkerThreadCount, int pTimeout)
         {
@@ -232,7 +232,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             while (m_running)
             {
-                Thread.Sleep(1000); // let the world move  slow it to original polling rate
+                Thread.Sleep(100); // let the world move  .. back to faster rate
                 Watchdog.UpdateThread();
                 lock (m_retry_requests)
                 {
