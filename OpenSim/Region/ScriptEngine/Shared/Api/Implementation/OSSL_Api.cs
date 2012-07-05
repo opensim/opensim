@@ -2125,7 +2125,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String osFormatString(string str, LSL_List strings)
         {
-            CheckThreatLevel(ThreatLevel.Low, "osFormatString");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osFormatString");
             m_host.AddScriptLPS(1);
 
             return String.Format(str, strings.Data);
@@ -2133,7 +2133,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List osMatchString(string src, string pattern, int start)
         {
-            CheckThreatLevel(ThreatLevel.High, "osMatchString");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osMatchString");
             m_host.AddScriptLPS(1);
 
             LSL_List result = new LSL_List();
@@ -2175,7 +2175,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String osReplaceString(string src, string pattern, string replace, int count, int start)
         {
-            CheckThreatLevel(ThreatLevel.High, "osReplaceString");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osReplaceString");
             m_host.AddScriptLPS(1);
 
             // Normalize indices (if negative).
