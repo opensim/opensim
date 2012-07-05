@@ -174,7 +174,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private readonly BaseHttpServer m_server;
 
         private BlockingQueue<PollServiceHttpRequest> m_requests = new BlockingQueue<PollServiceHttpRequest>();
-        private BlockingQueue<PollServiceHttpRequest> m_slowRequests = new BlockingQueue<PollServiceHttpRequest>();
+        private static Queue<PollServiceHttpRequest> m_slowRequests = new Queue<PollServiceHttpRequest>();
         private static Queue<PollServiceHttpRequest> m_retryRequests = new Queue<PollServiceHttpRequest>();
 
         private uint m_WorkerThreadCount = 0;
@@ -229,9 +229,14 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (m_running)
             {
                 if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LslHttp)
+                {
                     m_requests.Enqueue(req);
+                }
                 else
-                    m_slowRequests.Enqueue(req);
+                {
+                    lock (m_slowRequests)
+                        m_slowRequests.Enqueue(req);
+                }
             }
         }
 
@@ -251,8 +256,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     slowCount = 0;
 
-                    while (m_slowRequests.Count() > 0 && m_running)
-                        m_requests.Enqueue(m_slowRequests.Dequeue());
+                    lock (m_slowRequests)
+                    {
+                        while (m_slowRequests.Count > 0 && m_running)
+                            m_requests.Enqueue(m_slowRequests.Dequeue());
+                    }
                 }
             }
         }
@@ -289,6 +297,12 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             PollServiceHttpRequest wreq;
             m_retryRequests.Clear();
+
+            lock (m_slowRequests)
+            {
+                while (m_slowRequests.Count > 0 && m_running)
+                    m_requests.Enqueue(m_slowRequests.Dequeue());
+            }
 
             while (m_requests.Count() > 0)
             {
