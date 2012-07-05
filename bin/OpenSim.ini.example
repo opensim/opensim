@@ -673,8 +673,11 @@
     ; AllowLightShareFunctions = false
 
     ;# {OSFunctionThreatLevel} {Enabled:true AllowOSFunctions:true} {OSFunction threat level? (DANGEROUS!)} {None VeryLow Low Moderate High VeryHigh Severe} VeryLow
-    ;; Threat level to allow, one of None, VeryLow, Low, Moderate, High,
-    ;; VeryHigh, Severe
+    ;; Threat level to allow, one of None, VeryLow, Low, Moderate, High, VeryHigh, Severe
+    ;; See http://opensimulator.org/wiki/Threat_level for more information on these levels.
+    ;; We do not recommend that use set a general level above Low unless you have a high level of trust
+    ;; in all the users that can run scripts in your simulator.  It is safer to explicitly
+    ;; allow certain types of user to run higher threat level OSSL functions, as detailed later on.
     OSFunctionThreatLevel = VeryLow
 
     ; OS Functions enable/disable
@@ -691,10 +694,10 @@
     ; Allow_osSetRegionWaterHeight = 888760cb-a3cf-43ac-8ea4-8732fd3ee2bb
     
     ; Comma separated list of owner classes that allow the function for a particular class of owners. Choices are
-    ; - PARCEL_GROUP_MEMBER: allow if objectgroup is the same group as the parcel
-    ; - PARCEL_OWNER: allow if the objectowner is parcelowner
-    ; - ESTATE_MANAGER: allow if the object owner is a estate manager
-    ; - ESTATE_OWNER: allow if objectowner is estateowner
+    ; - PARCEL_GROUP_MEMBER:  allow if the object group is the same group as the parcel
+    ; - PARCEL_OWNER:         allow if the object owner is the parcel owner
+    ; - ESTATE_MANAGER:       allow if the object owner is an estate manager
+    ; - ESTATE_OWNER:         allow if the object owner is the estate owner
     ; Allow_osSetRegionWaterHeight = 888760cb-a3cf-43ac-8ea4-8732fd3ee2bb, PARCEL_OWNER, ESTATE_OWNER>, ...
 
     ; You can also use script creators as the uuid
