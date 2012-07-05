@@ -229,9 +229,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (m_running)
             {
                 if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LslHttp)
-                    m_slowRequests.Enqueue(req);
-                else
                     m_requests.Enqueue(req);
+                else
+                    m_slowRequests.Enqueue(req);
             }
         }
 
@@ -252,7 +252,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     slowCount = 0;
 
                     while (m_slowRequests.Count() > 0 && m_running)
-                        m_requests.Enqueue(m_retryRequests.Dequeue());
+                        m_requests.Enqueue(m_slowRequests.Dequeue());
                 }
             }
         }
