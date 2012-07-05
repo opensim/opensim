@@ -92,8 +92,13 @@ namespace OpenSim
                 m_log.Info("[OPENSIM MAIN]: configured log4net using default OpenSim.exe.config");
             }
 
-            m_log.DebugFormat(
+            m_log.InfoFormat(
                 "[OPENSIM MAIN]: System Locale is {0}", System.Threading.Thread.CurrentThread.CurrentCulture);
+
+            string monoThreadsPerCpu = System.Environment.GetEnvironmentVariable("MONO_THREADS_PER_CPU");
+
+            m_log.InfoFormat(
+                "[OPENSIM MAIN]: Environment variable MONO_THREADS_PER_CPU is {0}", monoThreadsPerCpu ?? "unset");
 
             // Increase the number of IOCP threads available. Mono defaults to a tragically low number
             int workerThreads, iocpThreads;
@@ -109,7 +114,6 @@ namespace OpenSim
 
             // Check if the system is compatible with OpenSimulator.
             // Ensures that the minimum system requirements are met
-            m_log.Info("Performing compatibility checks... \n");
             string supported = String.Empty;
             if (Util.IsEnvironmentSupported(ref supported))
             {
