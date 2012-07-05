@@ -172,9 +172,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 
                 string uri = "/lslhttp/" + urlcode.ToString();
                
-                m_HttpServer.AddPollServiceHTTPHandler(
-                    uri,
-                    new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, urlcode,25000));
+                PollServiceEventArgs args = new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, urlcode, 25000);
+                args.Type = PollServiceEventArgs.EventType.LslHttp;
+                m_HttpServer.AddPollServiceHTTPHandler(uri, args);
 
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }
@@ -422,7 +422,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         }
         private Hashtable GetEvents(UUID requestID, UUID sessionID, string request)
         {
-             UrlData url = null;
+            UrlData url = null;
             RequestData requestData = null;
 
             lock (m_RequestMap)

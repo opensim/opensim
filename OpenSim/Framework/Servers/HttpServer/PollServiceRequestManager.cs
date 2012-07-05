@@ -174,13 +174,15 @@ namespace OpenSim.Framework.Servers.HttpServer
         private readonly BaseHttpServer m_server;
 
         private BlockingQueue<PollServiceHttpRequest> m_requests = new BlockingQueue<PollServiceHttpRequest>();
-        private static Queue<PollServiceHttpRequest> m_retry_requests = new Queue<PollServiceHttpRequest>();
+        private BlockingQueue<PollServiceHttpRequest> m_slowRequests = new BlockingQueue<PollServiceHttpRequest>();
+        private static Queue<PollServiceHttpRequest> m_retryRequests = new Queue<PollServiceHttpRequest>();
 
         private uint m_WorkerThreadCount = 0;
         private Thread[] m_workerThreads;
         private Thread m_retrysThread;
 
         private bool m_running = true;
+        private int slowCount = 0;
 
 //        private int m_timeout = 1000;   //  increase timeout 250; now use the event one
 
@@ -195,7 +197,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 m_workerThreads[i]
                     = Watchdog.StartThread(
-                        poolWorkerJob,
+                        PoolWorkerJob,
                         String.Format("PollServiceWorkerThread{0}", i),
                         ThreadPriority.Normal,
                         false,
@@ -217,15 +219,20 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             if (m_running)
             {
-                lock (m_retry_requests)
-                    m_retry_requests.Enqueue(req);
+                lock (m_retryRequests)
+                    m_retryRequests.Enqueue(req);
             }
         }
 
         public void Enqueue(PollServiceHttpRequest req)
         {
             if (m_running)
-                m_requests.Enqueue(req);
+            {
+                if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LslHttp)
+                    m_slowRequests.Enqueue(req);
+                else
+                    m_requests.Enqueue(req);
+            }
         }
 
         private void CheckRetries()
@@ -234,10 +241,18 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 Thread.Sleep(100); // let the world move  .. back to faster rate
                 Watchdog.UpdateThread();
-                lock (m_retry_requests)
+                lock (m_retryRequests)
                 {
-                    while (m_retry_requests.Count > 0 && m_running)
-                        Enqueue(m_retry_requests.Dequeue());
+                    while (m_retryRequests.Count > 0 && m_running)
+                        m_requests.Enqueue(m_retryRequests.Dequeue());
+                }
+                slowCount++;
+                if (slowCount >= 10)
+                {
+                    slowCount = 0;
+
+                    while (m_slowRequests.Count() > 0 && m_running)
+                        m_requests.Enqueue(m_retryRequests.Dequeue());
                 }
             }
         }
@@ -261,7 +276,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             try
             {
-                foreach (PollServiceHttpRequest req in m_retry_requests)
+                foreach (PollServiceHttpRequest req in m_retryRequests)
                 {
                     m_server.DoHTTPGruntWork(
                         req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id),
@@ -273,7 +288,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             PollServiceHttpRequest wreq;
-            m_retry_requests.Clear();
+            m_retryRequests.Clear();
 
             while (m_requests.Count() > 0)
             {
@@ -294,7 +309,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         // work threads
 
-        private void poolWorkerJob()
+        private void PoolWorkerJob()
         {
             PollServiceHttpRequest req;
             StreamReader str;
