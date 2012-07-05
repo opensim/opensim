@@ -52,14 +52,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     /// Tests for OSSL NPC API
     /// </summary>
     [TestFixture]
-    public class OSSL_NpcApiAppearanceTest
+    public class OSSL_NpcApiAppearanceTest : OpenSimTestCase
     {
         protected Scene m_scene;
         protected XEngine.XEngine m_engine;
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             IConfigSource initConfigSource = new IniConfigSource();
             IConfig config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");

@@ -231,7 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            if ((item = ScriptByName(name)) != UUID.Zero)
+            if ((item = GetScriptByName(name)) != UUID.Zero)
                 m_ScriptEngine.ResetScript(item);
             else
                 ShoutError("llResetOtherScript: script "+name+" not found");
@@ -243,7 +243,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            if ((item = ScriptByName(name)) != UUID.Zero)
+            if ((item = GetScriptByName(name)) != UUID.Zero)
             {
                 return m_ScriptEngine.GetScriptState(item) ?1:0;
             }
@@ -265,7 +265,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // These functions are supposed to be robust,
             // so get the state one step at a time.
 
-            if ((item = ScriptByName(name)) != UUID.Zero)
+            if ((item = GetScriptByName(name)) != UUID.Zero)
             {
                 m_ScriptEngine.SetScriptState(item, run == 0 ? false : true);
             }
@@ -3003,68 +3003,72 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            Util.FireAndForget(delegate (object x)
+            Util.FireAndForget(x =>
             {
                 if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
                     return;
+
                 float dist = (float)llVecDist(llGetPos(), pos);
 
                 if (dist > m_ScriptDistanceFactor * 10.0f)
                     return;
 
-                //Clone is thread-safe
-                TaskInventoryDictionary partInventory = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
 
-                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in partInventory)
+                if (item == null)
                 {
-                    if (inv.Value.Name == inventory)
-                    {
-                        // make sure we're an object.
-                        if (inv.Value.InvType != (int)InventoryType.Object)
-                        {
-                            llSay(0, "Unable to create requested object. Object is missing from database.");
-                            return;
-                        }
-
-                        Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
-                        Vector3 llvel = new Vector3((float)vel.x, (float)vel.y, (float)vel.z);
-
-                        // need the magnitude later
-                        // float velmag = (float)Util.GetMagnitude(llvel);
-
-                        SceneObjectGroup new_group = World.RezObject(m_host, inv.Value, llpos, Rot2Quaternion(rot), llvel, param);
-
-                        // If either of these are null, then there was an unknown error.
-                        if (new_group == null)
-                            continue;
-
-                        // objects rezzed with this method are die_at_edge by default.
-                        new_group.RootPart.SetDieAtEdge(true);
-
-                        new_group.ResumeScripts();
-
-                        m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
-                                "object_rez", new Object[] {
-                                new LSL_String(
-                                new_group.RootPart.UUID.ToString()) },
-                                new DetectParams[0]));
-
-                        float groupmass = new_group.GetMass();
-
-                        PhysicsActor pa = new_group.RootPart.PhysActor;
-
-                        if (pa != null && pa.IsPhysical && llvel != Vector3.Zero)
-                        {
-                            // recoil                          
-                            llvel *= -groupmass;
-                            llApplyImpulse(new LSL_Vector(llvel.X, llvel.Y,llvel.Z), 0);
-                        }
-                        // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
-                        return;
-                    }
+                    llSay(0, "Could not find object " + inventory);
+                    return;
                 }
 
-                llSay(0, "Could not find object " + inventory);
+                if (item.InvType != (int)InventoryType.Object)
+                {
+                    llSay(0, "Unable to create requested object. Object is missing from database.");
+                    return;
+                }
+
+                Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
+                Vector3 llvel = new Vector3((float)vel.x, (float)vel.y, (float)vel.z);
+
+                // need the magnitude later
+                // float velmag = (float)Util.GetMagnitude(llvel);
+
+                SceneObjectGroup new_group = World.RezObject(m_host, item, llpos, Rot2Quaternion(rot), llvel, param);
+
+                // If either of these are null, then there was an unknown error.
+                if (new_group == null)
+                    return;
+
+                // objects rezzed with this method are die_at_edge by default.
+                new_group.RootPart.SetDieAtEdge(true);
+
+                new_group.ResumeScripts();
+
+                m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
+                        "object_rez", new Object[] {
+                        new LSL_String(
+                        new_group.RootPart.UUID.ToString()) },
+                        new DetectParams[0]));
+
+                // do recoil
+                SceneObjectGroup hostgrp = m_host.ParentGroup;
+                if (hostgrp == null)
+                    return;
+
+                if (hostgrp.IsAttachment) // don't recoil avatars
+                    return;
+
+                PhysicsActor pa = new_group.RootPart.PhysActor;
+
+                if (pa != null && pa.IsPhysical && llvel != Vector3.Zero)
+                {
+                    float groupmass = new_group.GetMass();
+                    llvel *= -groupmass;
+                    llApplyImpulse(new LSL_Vector(llvel.X, llvel.Y,llvel.Z), 0);
+                }
+                // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
+                return;
+
             });
 
             //ScriptSleep((int)((groupmass * velmag) / 10));
@@ -4213,11 +4217,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llGiveInventory(string destination, string inventory)
         {
             m_host.AddScriptLPS(1);
-            bool found = false;
+
             UUID destId = UUID.Zero;
-            UUID objId = UUID.Zero;
-            int assetType = 0;
-            string objName = String.Empty;
 
             if (!UUID.TryParse(destination, out destId))
             {
@@ -4225,27 +4226,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            // move the first object found with this inventory name
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if (inv.Value.Name == inventory)
-                {
-                    found = true;
-                    objId = inv.Key;
-                    assetType = inv.Value.Type;
-                    objName = inv.Value.Name;
-                    break;
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
 
-            if (!found)
+            if (item == null)
             {
                 llSay(0, String.Format("Could not find object '{0}'", inventory));
                 return;
 //                throw new Exception(String.Format("The inventory object '{0}' could not be found", inventory));
             }
+
+            UUID objId = item.ItemID;
 
             // check if destination is an object
             if (World.GetSceneObjectPart(destId) != null)
@@ -4278,14 +4268,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 byte[] bucket = new byte[1];
-                bucket[0] = (byte)assetType;
+                bucket[0] = (byte)item.Type;
                 //byte[] objBytes = agentItem.ID.GetBytes();
                 //Array.Copy(objBytes, 0, bucket, 1, 16);
 
                 GridInstantMessage msg = new GridInstantMessage(World,
                         m_host.OwnerID, m_host.Name, destId,
                         (byte)InstantMessageDialog.TaskInventoryOffered,
-                        false, objName+". "+m_host.Name+" is located at "+
+                        false, item.Name+". "+m_host.Name+" is located at "+
                         World.RegionInfo.RegionName+" "+
                         m_host.AbsolutePosition.ToString(),
                         agentItem.ID, true, m_host.AbsolutePosition,
@@ -4313,27 +4303,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            List<TaskInventoryItem> inv;
-            try
-            {
-                m_host.TaskInventory.LockItemsForRead(true);
-                inv = new List<TaskInventoryItem>(m_host.TaskInventory.Values);
-            }
-            finally
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-            }
-            foreach (TaskInventoryItem item in inv)
-            {
-                if (item.Name == name)
-                {
-                    if (item.ItemID == m_item.ItemID)
-                        throw new ScriptDeleteException();
-                    else
-                        m_host.Inventory.RemoveInventoryItem(item.ItemID);
-                    return;
-                }
-            }
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+
+            if (item == null)
+                return;
+
+            if (item.ItemID == m_item.ItemID)
+                throw new ScriptDeleteException();
+            else
+                m_host.Inventory.RemoveInventoryItem(item.ItemID);
         }
 
         public void llSetText(string text, LSL_Vector color, double alpha)
@@ -4481,10 +4459,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            //Clone is thread safe
-            TaskInventoryDictionary itemDictionary = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
-
-            foreach (TaskInventoryItem item in itemDictionary.Values)
+            foreach (TaskInventoryItem item in m_host.Inventory.GetInventoryItems())
             {
                 if (item.Type == 3 && item.Name == name)
                 {
@@ -4516,6 +4491,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return tid.ToString();
                 }
             }
+
             ScriptSleep(1000);
             return String.Empty;
         }
@@ -4708,19 +4684,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID soundId = UUID.Zero;
             if (!UUID.TryParse(impact_sound, out soundId))
             {
-                m_host.TaskInventory.LockItemsForRead(true);
-                foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-                {
-                    if (item.Type == (int)AssetType.Sound && item.Name == impact_sound)
-                    {
-                        soundId = item.AssetID;
-                        break;
-                    }
-                }
-                m_host.TaskInventory.LockItemsForRead(false);
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(impact_sound);
+
+                if (item != null && item.Type == (int)AssetType.Sound)
+                    soundId = item.AssetID;
             }
-            m_host.CollisionSoundVolume = (float)impact_volume;
+
             m_host.CollisionSound = soundId;
+            m_host.CollisionSoundVolume = (float)impact_volume;
             m_host.CollisionSoundType = 1;
         }
 
@@ -4762,10 +4733,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID partItemID;
             foreach (SceneObjectPart part in parts)
             {
-                //Clone is thread safe
-                TaskInventoryDictionary itemsDictionary = (TaskInventoryDictionary)part.TaskInventory.Clone();
-
-                foreach (TaskInventoryItem item in itemsDictionary.Values)
+                foreach (TaskInventoryItem item in part.Inventory.GetInventoryItems())
                 {
                     if (item.Type == ScriptBaseClass.INVENTORY_SCRIPT)
                     {
@@ -5136,22 +5104,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+
+            if (item == null)
+                return UUID.Zero.ToString();
+
+            if ((item.CurrentPermissions
+                 & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+                    == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
             {
-                if (inv.Value.Name == name)
-                {
-                    if ((inv.Value.CurrentPermissions & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify)) == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
-                    {
-                        m_host.TaskInventory.LockItemsForRead(false);
-                        return inv.Value.AssetID.ToString();
-                    }
-                    else
-                    {
-                        m_host.TaskInventory.LockItemsForRead(false);
-                        return UUID.Zero.ToString();
-                    }
-                }
+                return item.AssetID.ToString();
             }
             m_host.TaskInventory.LockItemsForRead(false);
 
@@ -6774,22 +6736,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        protected UUID GetTaskInventoryItem(string name)
-        {
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if (inv.Value.Name == name)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return inv.Key;
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-
-            return UUID.Zero;
-        }
-
         public void llGiveInventoryList(string destination, string category, LSL_List inventory)
         {
             m_host.AddScriptLPS(1);
@@ -6802,16 +6748,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             foreach (Object item in inventory.Data)
             {
+                string rawItemString = item.ToString();
+
                 UUID itemID;
-                if (UUID.TryParse(item.ToString(), out itemID))
+                if (UUID.TryParse(rawItemString, out itemID))
                 {
                     itemList.Add(itemID);
                 }
                 else
                 {
-                    itemID = GetTaskInventoryItem(item.ToString());
-                    if (itemID != UUID.Zero)
-                        itemList.Add(itemID);
+                    TaskInventoryItem taskItem = m_host.Inventory.GetInventoryItem(rawItemString);
+
+                    if (taskItem != null)
+                        itemList.Add(taskItem.ItemID);
                 }
             }
 
@@ -7133,9 +7082,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param)
         {
             m_host.AddScriptLPS(1);
-            bool found = false;
+
             UUID destId = UUID.Zero;
-            UUID srcId = UUID.Zero;
 
             if (!UUID.TryParse(target, out destId))
             {
@@ -7150,25 +7098,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // copy the first script found with this inventory name
-            TaskInventoryItem scriptItem = null;
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if (inv.Value.Name == name)
-                {
-                    // make sure the object is a script
-                    if (10 == inv.Value.Type)
-                    {
-                        found = true;
-                        srcId = inv.Key;
-                        scriptItem = inv.Value;
-                        break;
-                    }
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
 
-            if (!found)
+            // make sure the object is a script
+            if (item == null || item.Type != 10)
             {
                 llSay(0, "Could not find script " + name);
                 return;
@@ -7177,13 +7110,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SceneObjectPart dest = World.GetSceneObjectPart(destId);
             if (dest != null)
             {
-                if ((scriptItem.BasePermissions & (uint)PermissionMask.Transfer) != 0 || dest.ParentGroup.RootPart.OwnerID == m_host.ParentGroup.RootPart.OwnerID)
+                if ((item.BasePermissions & (uint)PermissionMask.Transfer) != 0 || dest.ParentGroup.RootPart.OwnerID == m_host.ParentGroup.RootPart.OwnerID)
                 {
                     // the rest of the permission checks are done in RezScript, so check the pin there as well
-                    World.RezScriptFromPrim(srcId, m_host, destId, pin, running, start_param);
+                    World.RezScriptFromPrim(item.ItemID, m_host, destId, pin, running, start_param);
 
-                    if ((scriptItem.BasePermissions & (uint)PermissionMask.Copy) == 0)
-                        m_host.Inventory.RemoveInventoryItem(srcId);
+                    if ((item.BasePermissions & (uint)PermissionMask.Copy) == 0)
+                        m_host.Inventory.RemoveInventoryItem(item.ItemID);
                 }
             }
             // this will cause the delay even if the script pin or permissions were wrong - seems ok
@@ -10224,92 +10157,82 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public LSL_Integer llGetInventoryPermMask(string item, int mask)
+        public LSL_Integer llGetInventoryPermMask(string itemName, int mask)
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
+
+            if (item == null)
+                return -1;
+
+            switch (mask)
             {
-                if (inv.Value.Name == item)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    switch (mask)
-                    {
-                        case 0:
-                            return (int)inv.Value.BasePermissions;
-                        case 1:
-                            return (int)inv.Value.CurrentPermissions;
-                        case 2:
-                            return (int)inv.Value.GroupPermissions;
-                        case 3:
-                            return (int)inv.Value.EveryonePermissions;
-                        case 4:
-                            return (int)inv.Value.NextPermissions;
-                    }
-                }
+                case 0:
+                    return (int)item.BasePermissions;
+                case 1:
+                    return (int)item.CurrentPermissions;
+                case 2:
+                    return (int)item.GroupPermissions;
+                case 3:
+                    return (int)item.EveryonePermissions;
+                case 4:
+                    return (int)item.NextPermissions;
             }
             m_host.TaskInventory.LockItemsForRead(false);
 
             return -1;
         }
 
-        public void llSetInventoryPermMask(string item, int mask, int value)
+        public void llSetInventoryPermMask(string itemName, int mask, int value)
         {
             m_host.AddScriptLPS(1);
+
             if (m_ScriptEngine.Config.GetBoolean("AllowGodFunctions", false))
             {
                 if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
                 {
-                    lock (m_host.TaskInventory)
+                    TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
+
+                    if (item != null)
                     {
-                        foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                        switch (mask)
                         {
-                            if (inv.Value.Name == item)
-                            {
-                                switch (mask)
-                                {
-                                    case 0:
-                                        inv.Value.BasePermissions = (uint)value;
-                                        break;
-                                    case 1:
-                                        inv.Value.CurrentPermissions = (uint)value;
-                                        break;
-                                    case 2:
-                                        inv.Value.GroupPermissions = (uint)value;
-                                        break;
-                                    case 3:
-                                        inv.Value.EveryonePermissions = (uint)value;
-                                        break;
-                                    case 4:
-                                        inv.Value.NextPermissions = (uint)value;
-                                        break;
-                                }
-                            }
+                            case 0:
+                                item.BasePermissions = (uint)value;
+                                break;
+                            case 1:
+                                item.CurrentPermissions = (uint)value;
+                                break;
+                            case 2:
+                                item.GroupPermissions = (uint)value;
+                                break;
+                            case 3:
+                                item.EveryonePermissions = (uint)value;
+                                break;
+                            case 4:
+                                item.NextPermissions = (uint)value;
+                                break;
                         }
                     }
                 }
             }
         }
 
-        public LSL_String llGetInventoryCreator(string item)
+        public LSL_String llGetInventoryCreator(string itemName)
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
+
+            if (item == null)
             {
-                if (inv.Value.Name == item)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return inv.Value.CreatorID.ToString();
-                }
+                llSay(0, "No item name '" + item + "'");
+
+                return String.Empty;
             }
-            m_host.TaskInventory.LockItemsForRead(false);
 
-            llSay(0, "No item name '" + item + "'");
-
-            return String.Empty;
+            return item.CreatorID.ToString();
         }
 
         public void llOwnerSay(string msg)
@@ -10869,18 +10792,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if (inv.Value.Name == name)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return inv.Value.Type;
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
 
-            return -1;
+            if (item == null)
+                return -1;
+
+            return item.Type;
         }
 
         public void llSetPayPrice(int price, LSL_List quick_pay_buttons)
@@ -11766,22 +11683,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_List();
         }
 
-        internal UUID ScriptByName(string name)
+        internal UUID GetScriptByName(string name)
         {
-            m_host.TaskInventory.LockItemsForRead(true);
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
 
-            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-            {
-                if (item.Type == 10 && item.Name == name)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return item.ItemID;
-                }
-            }
+            if (item == null || item.Type != 10)
+                return UUID.Zero;
 
-            m_host.TaskInventory.LockItemsForRead(false);
-
-            return UUID.Zero;
+            return item.ItemID;
         }
 
         internal void ShoutError(string msg)
@@ -11821,21 +11730,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            //Clone is thread safe
-            TaskInventoryDictionary itemsDictionary = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
-
             UUID assetID = UUID.Zero;
 
             if (!UUID.TryParse(name, out assetID))
             {
-                foreach (TaskInventoryItem item in itemsDictionary.Values)
-                {
-                    if (item.Type == 7 && item.Name == name)
-                    {
-                        assetID = item.AssetID;
-                        break;
-                    }
-                }
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+
+                if (item != null && item.Type == 7)
+                    assetID = item.AssetID;
             }
 
             if (assetID == UUID.Zero)
@@ -11884,21 +11786,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            //Clone is thread safe
-            TaskInventoryDictionary itemsDictionary = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
-
             UUID assetID = UUID.Zero;
 
             if (!UUID.TryParse(name, out assetID))
             {
-                foreach (TaskInventoryItem item in itemsDictionary.Values)
-                {
-                    if (item.Type == 7 && item.Name == name)
-                    {
-                        assetID = item.AssetID;
-                        break;
-                    }
-                }
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+
+                if (item != null && item.Type == 7)
+                    assetID = item.AssetID;
             }
 
             if (assetID == UUID.Zero)

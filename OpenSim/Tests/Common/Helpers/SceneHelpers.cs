@@ -564,7 +564,7 @@ namespace OpenSim.Tests.Common
         /// </summary>
         /// <param name="scene"></param>
         /// <returns></returns>
-        public static SceneObjectPart AddSceneObject(Scene scene)
+        public static SceneObjectGroup AddSceneObject(Scene scene)
         {
             return AddSceneObject(scene, "Test Object", UUID.Zero);
         }
@@ -576,16 +576,16 @@ namespace OpenSim.Tests.Common
         /// <param name="name"></param>
         /// <param name="ownerId"></param>
         /// <returns></returns>
-        public static SceneObjectPart AddSceneObject(Scene scene, string name, UUID ownerId)
+        public static SceneObjectGroup AddSceneObject(Scene scene, string name, UUID ownerId)
         {
-            SceneObjectPart part = CreateSceneObjectPart(name, UUID.Random(), ownerId);
+            SceneObjectGroup so = new SceneObjectGroup(CreateSceneObjectPart(name, UUID.Random(), ownerId));
 
             //part.UpdatePrimFlags(false, false, true);
             //part.ObjectFlags |= (uint)PrimFlags.Phantom;
 
-            scene.AddNewSceneObject(new SceneObjectGroup(part), false);
+            scene.AddNewSceneObject(so, false);
 
-            return part;
+            return so;
         }
         
         /// <summary>

@@ -120,6 +120,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_defaultDrawDistance; }
         }
+
+        private List<string> m_AllowedViewers = new List<string>();
+        private List<string> m_BannedViewers = new List<string>();
         
         // TODO: need to figure out how allow client agents but deny
         // root agents when ACL denies access to root agent
@@ -805,6 +808,24 @@ namespace OpenSim.Region.Framework.Scenes
                         if (UUID.TryParse(tile, out tileID))
                         {
                             RegionInfo.RegionSettings.TerrainImageID = tileID;
+                        }
+                    }
+
+                    string grant = startupConfig.GetString("AllowedViewerList", String.Empty);
+                    if (grant.Length > 0)
+                    {
+                        foreach (string viewer in grant.Split(','))
+                        {
+                            m_AllowedViewers.Add(viewer.Trim().ToLower());
+                        }
+                    }
+
+                    grant = startupConfig.GetString("BannedViewerList", String.Empty);
+                    if (grant.Length > 0)
+                    {
+                        foreach (string viewer in grant.Split(','))
+                        {
+                            m_BannedViewers.Add(viewer.Trim().ToLower());
                         }
                     }
 
@@ -3570,6 +3591,50 @@ namespace OpenSim.Region.Framework.Scenes
                 reason = "Logins Disabled";
                 return false;
             }
+
+            //Check if the viewer is banned or in the viewer access list
+            //We check if the substring is listed for higher flexebility
+            bool ViewerDenied = true;
+
+            //Check if the specific viewer is listed in the allowed viewer list
+            if (m_AllowedViewers.Count > 0)
+            {
+                foreach (string viewer in m_AllowedViewers)
+                {
+                    if (viewer == agent.Viewer.Substring(0, viewer.Length).Trim().ToLower())
+                    {
+                        ViewerDenied = false;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                ViewerDenied = false;
+            }
+
+            //Check if the viewer is in the banned list
+            if (m_BannedViewers.Count > 0)
+            {
+                foreach (string viewer in m_BannedViewers)
+                {
+                    if (viewer == agent.Viewer.Substring(0, viewer.Length).Trim().ToLower())
+                    {
+                        ViewerDenied = true;
+                        break;
+                    }
+                }
+            }
+
+            if (ViewerDenied)
+            {
+                m_log.DebugFormat(
+                    "[SCENE]: Access denied for {0} {1} using {2}",
+                    agent.firstname, agent.lastname, agent.Viewer);
+                reason = "Access denied, your viewer is banned by the region owner";
+                return false;
+            }           
+
 
             ScenePresence sp = GetScenePresence(agent.AgentID);
 

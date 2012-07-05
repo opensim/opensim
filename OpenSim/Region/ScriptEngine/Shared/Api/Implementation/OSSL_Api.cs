@@ -126,7 +126,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     [Serializable]
     public class OSSL_Api : MarshalByRefObject, IOSSL_Api, IScriptApi
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public const string GridInfoServiceConfigSectionName = "GridInfoService";
 
@@ -2136,7 +2136,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String osFormatString(string str, LSL_List strings)
         {
-            CheckThreatLevel(ThreatLevel.Low, "osFormatString");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osFormatString");
             m_host.AddScriptLPS(1);
 
             return String.Format(str, strings.Data);
@@ -2144,7 +2144,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List osMatchString(string src, string pattern, int start)
         {
-            CheckThreatLevel(ThreatLevel.High, "osMatchString");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osMatchString");
             m_host.AddScriptLPS(1);
 
             LSL_List result = new LSL_List();
@@ -2186,7 +2186,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String osReplaceString(string src, string pattern, string replace, int count, int start)
         {
-            CheckThreatLevel(ThreatLevel.High, "osReplaceString");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osReplaceString");
             m_host.AddScriptLPS(1);
 
             // Normalize indices (if negative).
@@ -3197,6 +3197,58 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             InitLSL();
             ((LSL_Api)m_LSL_Api).AttachToAvatar(attachmentPoint);
+        }
+
+        public void osForceAttachToAvatarFromInventory(string itemName, int attachmentPoint)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osForceAttachToAvatarFromInventory");
+
+            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+
+            if (attachmentsModule == null)
+                return;
+
+            m_host.AddScriptLPS(1);
+
+            InitLSL();
+
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
+
+            if (item == null)
+            {
+                ((LSL_Api)m_LSL_Api).llSay(0, string.Format("Could not find object '{0}'", itemName));
+                throw new Exception(String.Format("The inventory item '{0}' could not be found", itemName));
+            }
+
+            if (item.InvType != (int)InventoryType.Object)
+            {
+                // FIXME: Temporary null check for regression tests since they dont' have the infrastructure to set
+                // up the api reference.  
+                if (m_LSL_Api != null)
+                    ((LSL_Api)m_LSL_Api).llSay(0, string.Format("Unable to attach, item '{0}' is not an object.", itemName));
+
+                throw new Exception(String.Format("The inventory item '{0}' is not an object", itemName));
+
+                return;
+            }
+
+            ScenePresence sp = World.GetScenePresence(m_host.OwnerID);
+
+            if (sp == null)
+                return;
+
+            InventoryItemBase newItem = World.MoveTaskInventoryItem(sp.UUID, UUID.Zero, m_host, item.ItemID);
+
+            if (newItem == null)
+            {
+                m_log.ErrorFormat(
+                    "[OSSL API]: Could not create user inventory item {0} for {1}, attach point {2} in {3}",
+                    itemName, m_host.Name, attachmentPoint, World.Name);
+
+                return;
+            }
+
+            attachmentsModule.RezSingleAttachmentFromInventory(sp, newItem.ID, (uint)attachmentPoint);
         }
 
         public void osForceDetachFromAvatar()

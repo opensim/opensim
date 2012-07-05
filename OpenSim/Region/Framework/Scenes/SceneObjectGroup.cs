@@ -131,6 +131,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// This indicates whether the object has changed such that it needs to be repersisted to permenant storage
+        /// (the database).
+        /// </summary>
+        /// <remarks>
+        /// Ultimately, this should be managed such that region modules can change it at the end of a set of operations
+        /// so that either all changes are preserved or none at all.  However, currently, a large amount of internal
+        /// code will set this anyway when some object properties are changed.
+        /// </remarks>
         public bool HasGroupChanged
         {
             set
@@ -2536,8 +2545,13 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Schedule a full update for this scene object
+        /// Schedule a full update for this scene object to all interested viewers.
         /// </summary>
+        /// <remarks>
+        /// Ultimately, this should be managed such that region modules can invoke it at the end of a set of operations
+        /// so that either all changes are sent at once.  However, currently, a large amount of internal
+        /// code will set this anyway when some object properties are changed.
+        /// </remarks>
         public void ScheduleGroupForFullUpdate()
         {
 //            if (IsAttachment)
@@ -2556,8 +2570,13 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Schedule a terse update for this scene object
+        /// Schedule a terse update for this scene object to all interested viewers.
         /// </summary>
+        /// <remarks>
+        /// Ultimately, this should be managed such that region modules can invoke it at the end of a set of operations
+        /// so that either all changes are sent at once.  However, currently, a large amount of internal
+        /// code will set this anyway when some object properties are changed.
+        /// </remarks>
         public void ScheduleGroupForTerseUpdate()
         {
 //            m_log.DebugFormat("[SOG]: Scheduling terse update for {0} {1}", Name, UUID);

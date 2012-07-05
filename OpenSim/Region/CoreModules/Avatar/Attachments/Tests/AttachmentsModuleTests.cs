@@ -122,7 +122,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             string attName = "att";
 
-            SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, attName, sp.UUID).ParentGroup;
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, attName, sp.UUID);
 
             scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false, false);
 

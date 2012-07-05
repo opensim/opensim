@@ -296,6 +296,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osForceAttachToAvatar(attachmentPoint);
         }
 
+        public void osForceAttachToAvatarFromInventory(string itemName, int attachmentPoint)
+        {
+            m_OSSL_Functions.osForceAttachToAvatarFromInventory(itemName, attachmentPoint);
+        }
+
         public void osForceDetachFromAvatar()
         {
             m_OSSL_Functions.osForceDetachFromAvatar();

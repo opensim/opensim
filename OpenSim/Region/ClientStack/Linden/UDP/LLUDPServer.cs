@@ -270,7 +270,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 false,
                 true,
                 GetWatchdogIncomingAlarmData,
-                Watchdog.WATCHDOG_TIMEOUT_MS);
+                Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS);
 
             Watchdog.StartThread(
                 OutgoingPacketHandler,
@@ -279,7 +279,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 false,
                 true,
                 GetWatchdogOutgoingAlarmData,
-                Watchdog.WATCHDOG_TIMEOUT_MS);
+                Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS);
 
             m_elapsedMSSinceLastStatReport = Environment.TickCount;
         }

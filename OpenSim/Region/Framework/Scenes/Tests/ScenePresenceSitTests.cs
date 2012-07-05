@@ -64,7 +64,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 startPos = new Vector3(10.1f, 0, 0);
             m_sp.AbsolutePosition = startPos;
 
-            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
 
             m_sp.HandleAgentRequestSit(m_sp.ControllingClient, m_sp.UUID, part.UUID, Vector3.Zero);
 
@@ -82,7 +82,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 startPos = new Vector3(9.9f, 0, 0);
             m_sp.AbsolutePosition = startPos;
 
-            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
 
             m_sp.HandleAgentRequestSit(m_sp.ControllingClient, m_sp.UUID, part.UUID, Vector3.Zero);
 
@@ -100,7 +100,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 startPos = new Vector3(1, 1, 1);
             m_sp.AbsolutePosition = startPos;
 
-            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
 
             m_sp.HandleAgentRequestSit(m_sp.ControllingClient, m_sp.UUID, part.UUID, Vector3.Zero);
 
@@ -133,7 +133,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 startPos = new Vector3(128, 128, 30);
             m_sp.AbsolutePosition = startPos;
 
-            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
             part.SitTargetPosition = new Vector3(0, 0, 1);
 
             m_sp.HandleAgentRequestSit(m_sp.ControllingClient, m_sp.UUID, part.UUID, Vector3.Zero);

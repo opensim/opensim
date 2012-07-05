@@ -128,7 +128,9 @@ namespace OpenSim.Region.Framework.Tests
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
-            TaskInventoryItem sopItem1 = TaskInventoryHelpers.AddNotecard(scene, sop1);
+            TaskInventoryItem sopItem1
+                = TaskInventoryHelpers.AddNotecard(
+                    scene, sop1, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900));
 
             InventoryFolderBase folder 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, user1.PrincipalID, "Objects")[0];
@@ -156,8 +158,11 @@ namespace OpenSim.Region.Framework.Tests
             Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
+
             SceneObjectPart sop1 = sog1.RootPart;
-            TaskInventoryItem sopItem1 = TaskInventoryHelpers.AddNotecard(scene, sop1);
+            TaskInventoryItem sopItem1
+                = TaskInventoryHelpers.AddNotecard(
+                    scene, sop1, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900));
             
             // Perform test
             scene.MoveTaskInventoryItem(user1.PrincipalID, UUID.Zero, sop1, sopItem1.ItemID);

@@ -59,7 +59,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             config.Set("Enabled", "true");
 
             Scene scene = new SceneHelpers().SetupScene();
-            SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(scene).RootPart;
 
             XEngine.XEngine engine = new XEngine.XEngine();
             engine.Initialise(initConfigSource);

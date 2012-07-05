@@ -232,7 +232,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void QueryScriptStates()
         {
-            if (m_part == null || m_part.ParentGroup == null)
+            if (m_part == null || m_part.ParentGroup == null || m_part.ParentGroup.Scene == null)
                 return;
 
             IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();

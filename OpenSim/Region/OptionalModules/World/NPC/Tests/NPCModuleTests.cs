@@ -301,7 +301,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             UUID npcId = m_npcMod.CreateNPC("John", "Smith", startPos, UUID.Zero, true, m_scene, sp.Appearance);
 
             ScenePresence npc = m_scene.GetScenePresence(npcId);
-            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
 
             part.SitTargetPosition = new Vector3(0, 0, 1);
             m_npcMod.Sit(npc.UUID, part.UUID, m_scene);
@@ -333,7 +333,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             UUID npcId = m_npcMod.CreateNPC("John", "Smith", startPos, UUID.Zero, true, m_scene, sp.Appearance);
 
             ScenePresence npc = m_scene.GetScenePresence(npcId);
-            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
 
             m_npcMod.Sit(npc.UUID, part.UUID, m_scene);
 
