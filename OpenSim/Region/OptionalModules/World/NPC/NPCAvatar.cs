@@ -192,6 +192,14 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         private void SendOnChatFromClient(int channel, string message, ChatTypeEnum chatType)
         {
+            if (channel == 0)
+            {
+                message = message.Trim();
+                if (string.IsNullOrEmpty(message))
+                {
+                    return;
+                }
+            }
             OSChatMessage chatFromClient = new OSChatMessage();
             chatFromClient.Channel = channel;
             chatFromClient.From = Name;
