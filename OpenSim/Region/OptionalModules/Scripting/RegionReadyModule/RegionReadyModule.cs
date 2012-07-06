@@ -228,7 +228,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                     // m_log.InfoFormat("[RegionReady]: Logins enabled for {0}, Oar {1}",
                     //                 m_scene.RegionInfo.RegionName, m_oarFileLoading.ToString());
 
-                    m_log.InfoFormat("[RegionReady]: Initialization complete - logins enabled for {0}", m_scene.RegionInfo.RegionName);
+                    m_log.InfoFormat(
+                        "[RegionReady]: INITIALIZATION COMPLETE - LOGINS ENABLED FOR {0}",
+                        m_scene.RegionInfo.RegionName);
 
                     if ( m_uri != string.Empty )
                     {
