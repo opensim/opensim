@@ -2554,8 +2554,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>True if the SceneObjectGroup was added, False if it was not</returns>
         public bool AddSceneObject(SceneObjectGroup sceneObject)
         {
-            sceneObject.SetScene(this);
-
             // Force allocation of new LocalId
             //
             SceneObjectPart[] parts = sceneObject.Parts;

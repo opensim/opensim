@@ -97,11 +97,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
             sp.Appearance.AvatarHeight = newHeight;
 
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId);
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, 0x10);
             SceneObjectPart part = so.RootPart;
             m_scene.AddSceneObject(so);
 
-            SceneObjectGroup otherSo = SceneHelpers.CreateSceneObject(1, otherUserId);
+            SceneObjectGroup otherSo = SceneHelpers.CreateSceneObject(1, otherUserId, 0x20);
             SceneObjectPart otherPart = otherSo.RootPart;
             m_scene.AddSceneObject(otherSo);
 
@@ -148,7 +148,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
             sp.Appearance.AvatarHeight = newHeight;
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId);
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, 0x10);
             SceneObjectPart part = so.RootPart;
             m_scene.AddSceneObject(so);
 

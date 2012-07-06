@@ -79,7 +79,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         /// Test creation of an NPC where the appearance data comes from a notecard
         /// </summary>
         [Test]
-        public void TestOsNpcCreateFromNotecard()
+        public void TestOsNpcCreateUsingAppearanceFromNotecard()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -90,7 +90,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
             sp.Appearance.AvatarHeight = newHeight;
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId);
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, 0x10);
             SceneObjectPart part = so.RootPart;
             m_scene.AddSceneObject(so);
 
@@ -114,10 +114,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         /// Test creation of an NPC where the appearance data comes from an avatar already in the region.
         /// </summary>
         [Test]
-        public void TestOsNpcCreateFromAvatar()
+        public void TestOsNpcCreateUsingAppearanceFromAvatar()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
 
             // Store an avatar with a different height from default in a notecard.
             UUID userId = TestHelpers.ParseTail(0x1);
@@ -125,7 +125,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
             sp.Appearance.AvatarHeight = newHeight;
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId);
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, 0x10);
             SceneObjectPart part = so.RootPart;
             m_scene.AddSceneObject(so);
 
@@ -156,7 +156,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
             sp.Appearance.AvatarHeight = newHeight;
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId);
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, 0x10);
             SceneObjectPart part = so.RootPart;
             m_scene.AddSceneObject(so);
 
@@ -197,7 +197,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, nonOwnerId);
             sp.Appearance.AvatarHeight = newHeight;
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, ownerId);
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, ownerId, 0x10);
             SceneObjectPart part = so.RootPart;
             m_scene.AddSceneObject(so);
 

@@ -1055,16 +1055,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             return Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
         }
-
-        /// <summary>
-        /// Added as a way for the storage provider to reset the scene,
-        /// most likely a better way to do this sort of thing but for now...
-        /// </summary>
-        /// <param name="scene"></param>
-        public void SetScene(Scene scene)
-        {
-            m_scene = scene;
-        }
         
         /// <summary>
         /// Set a part to act as the root part for this scene object

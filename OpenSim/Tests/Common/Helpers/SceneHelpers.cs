@@ -601,19 +601,36 @@ namespace OpenSim.Tests.Common
                 ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
                     { Name = name, UUID = id, Scale = new Vector3(1, 1, 1) };            
         }
-        
+
         /// <summary>
         /// Create a scene object but do not add it to the scene.
         /// </summary>
         /// <remarks>
-        /// UUID always starts at 00000000-0000-0000-0000-000000000001
+        /// UUID always starts at 00000000-0000-0000-0000-000000000001.  For some purposes, (e.g. serializing direct
+        /// to another object's inventory) we do not need a scene unique ID.  So it would be better to add the
+        /// UUID when we actually add an object to a scene rather than on creation.
         /// </remarks>
         /// <param name="parts">The number of parts that should be in the scene object</param>
         /// <param name="ownerId"></param>
         /// <returns></returns>
         public static SceneObjectGroup CreateSceneObject(int parts, UUID ownerId)
         {            
-            return CreateSceneObject(parts, ownerId, "", 0x1);
+            return CreateSceneObject(parts, ownerId, 0x1);
+        }
+        
+        /// <summary>
+        /// Create a scene object but do not add it to the scene.
+        /// </summary>
+        /// <param name="parts">The number of parts that should be in the scene object</param>
+        /// <param name="ownerId"></param>
+        /// <param name="uuidTail">
+        /// The hexadecimal last part of the UUID for parts created.  A UUID of the form "00000000-0000-0000-0000-{0:XD12}"
+        /// will be given to the root part, and incremented for each part thereafter.
+        /// </param>
+        /// <returns></returns>
+        public static SceneObjectGroup CreateSceneObject(int parts, UUID ownerId, int uuidTail)
+        {            
+            return CreateSceneObject(parts, ownerId, "", uuidTail);
         }          
         
         /// <summary>

@@ -355,9 +355,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (Entities.ContainsKey(sceneObject.UUID))
             {
-//                m_log.DebugFormat(
-//                    "[SCENEGRAPH]: Scene graph for {0} already contains object {1} in AddSceneObject()",
-//                    m_parentScene.RegionInfo.RegionName, sceneObject.UUID);
+                m_log.DebugFormat(
+                    "[SCENEGRAPH]: Scene graph for {0} already contains object {1} in AddSceneObject()",
+                    m_parentScene.RegionInfo.RegionName, sceneObject.UUID);
 
                 return false;
             }
