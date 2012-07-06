@@ -33,8 +33,11 @@ using log4net;
 using HttpServer;
 using OpenSim.Framework;
 
+
+/*
 namespace OpenSim.Framework.Servers.HttpServer
 {
+
     public class PollServiceRequestManager
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -158,3 +161,236 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
     }
 }
+ */
+
+using System.IO;
+using System.Text;
+using System.Collections.Generic;
+
+namespace OpenSim.Framework.Servers.HttpServer
+{
+    public class PollServiceRequestManager
+    {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private readonly BaseHttpServer m_server;
+
+        private BlockingQueue<PollServiceHttpRequest> m_requests = new BlockingQueue<PollServiceHttpRequest>();
+        private static Queue<PollServiceHttpRequest> m_slowRequests = new Queue<PollServiceHttpRequest>();
+        private static Queue<PollServiceHttpRequest> m_retryRequests = new Queue<PollServiceHttpRequest>();
+
+        private uint m_WorkerThreadCount = 0;
+        private Thread[] m_workerThreads;
+        private Thread m_retrysThread;
+
+        private bool m_running = true;
+        private int slowCount = 0;
+
+        // private int m_timeout = 250;   //  increase timeout 250; now use the event one
+
+        public PollServiceRequestManager(BaseHttpServer pSrv, uint pWorkerThreadCount, int pTimeout)
+        {
+            m_server = pSrv;
+            m_WorkerThreadCount = pWorkerThreadCount;
+            m_workerThreads = new Thread[m_WorkerThreadCount];
+
+            //startup worker threads
+            for (uint i = 0; i < m_WorkerThreadCount; i++)
+            {
+                m_workerThreads[i]
+                    = Watchdog.StartThread(
+                        PoolWorkerJob,
+                        String.Format("PollServiceWorkerThread{0}", i),
+                        ThreadPriority.Normal,
+                        false,
+                        true,
+                        null,
+                        int.MaxValue);
+            }
+
+            m_retrysThread = Watchdog.StartThread(
+                this.CheckRetries,
+                "PollServiceWatcherThread",
+                ThreadPriority.Normal,
+                false,
+                true,
+                null,
+                1000 * 60 * 10);
+        }
+
+
+        private void ReQueueEvent(PollServiceHttpRequest req)
+        {
+            if (m_running)
+            {
+                lock (m_retryRequests)
+                    m_retryRequests.Enqueue(req);
+            }
+        }
+
+        public void Enqueue(PollServiceHttpRequest req)
+        {
+            if (m_running)
+            {
+                if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LslHttp)
+                {
+                    m_requests.Enqueue(req);
+                }
+                else
+                {
+                    lock (m_slowRequests)
+                        m_slowRequests.Enqueue(req);
+                }
+            }
+        }
+
+        private void CheckRetries()
+        {
+            while (m_running)
+            {
+                Thread.Sleep(100); // let the world move  .. back to faster rate
+                Watchdog.UpdateThread();
+                lock (m_retryRequests)
+                {
+                    while (m_retryRequests.Count > 0 && m_running)
+                        m_requests.Enqueue(m_retryRequests.Dequeue());
+                }
+                slowCount++;
+                if (slowCount >= 10)
+                {
+                    slowCount = 0;
+
+                    lock (m_slowRequests)
+                    {
+                        while (m_slowRequests.Count > 0 && m_running)
+                            m_requests.Enqueue(m_slowRequests.Dequeue());
+                    }
+                }
+            }
+        }
+
+        ~PollServiceRequestManager()
+        {
+            m_running = false;
+//            m_timeout = -10000; // cause all to expire
+            Thread.Sleep(1000); // let the world move
+
+            foreach (Thread t in m_workerThreads)
+            {
+                try
+                {
+                    t.Abort();
+                }
+                catch
+                {
+                }
+            }
+
+            try
+            {
+                foreach (PollServiceHttpRequest req in m_retryRequests)
+                {
+                    m_server.DoHTTPGruntWork(
+                        req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id),
+                        new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
+                }
+            }
+            catch
+            {
+            }
+
+            PollServiceHttpRequest wreq;
+            m_retryRequests.Clear();
+
+            lock (m_slowRequests)
+            {
+                while (m_slowRequests.Count > 0 && m_running)
+                    m_requests.Enqueue(m_slowRequests.Dequeue());
+            }
+
+            while (m_requests.Count() > 0)
+            {
+                try
+                {
+                    wreq = m_requests.Dequeue(0);
+                    m_server.DoHTTPGruntWork(
+                        wreq.PollServiceArgs.NoEvents(wreq.RequestID, wreq.PollServiceArgs.Id),
+                        new OSHttpResponse(new HttpResponse(wreq.HttpContext, wreq.Request), wreq.HttpContext));
+                }
+                catch
+                {
+                }
+            }
+
+            m_requests.Clear();
+        }
+
+        // work threads
+
+        private void PoolWorkerJob()
+        {
+            PollServiceHttpRequest req;
+            StreamReader str;
+
+//            while (true)
+            while (m_running)
+            {
+                req = m_requests.Dequeue(5000);
+
+                Watchdog.UpdateThread();
+                if (req != null)
+                {
+                    try
+                    {
+                        if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
+                        {
+                            try
+                            {
+                                str = new StreamReader(req.Request.Body);
+                            }
+                            catch (System.ArgumentException)
+                            {
+                                // Stream was not readable means a child agent
+                                // was closed due to logout, leaving the
+                                // Event Queue request orphaned.
+                                continue;
+                            }
+
+                            try
+                            {
+                                Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
+                                m_server.DoHTTPGruntWork(responsedata,
+                                                     new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
+                            }
+                            catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
+                            {
+                                // Ignore it, no need to reply
+                            }
+
+                            str.Close();
+
+                        }
+                        else
+                        {
+                            // if ((Environment.TickCount - req.RequestTime) > m_timeout)
+                            if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
+                            {
+                                m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id),
+                                                         new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
+                            }
+                            else
+                            {
+                                ReQueueEvent(req);
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("Exception in poll service thread: " + e.ToString());
+                    }
+                }
+            }
+        }
+    }
+}
+

@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* Ubit work moved to PollServiceRequestManager
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -169,3 +171,4 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
     }
 }
+*/

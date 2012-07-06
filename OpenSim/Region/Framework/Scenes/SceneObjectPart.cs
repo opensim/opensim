@@ -1856,6 +1856,34 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+//      SetVelocity for LSL llSetVelocity..  may need revision if having other uses in future
+        public void SetVelocity(Vector3 pVel, bool localGlobalTF)
+        {
+            if (ParentGroup == null || ParentGroup.IsDeleted)
+                return;
+
+            if (ParentGroup.IsAttachment)
+                return;                         // don't work on attachments (for now ??)
+
+            SceneObjectPart root = ParentGroup.RootPart;
+
+            if (root.VehicleType != (int)Vehicle.TYPE_NONE) // don't mess with vehicles
+                return;
+
+            PhysicsActor pa = root.PhysActor;
+
+            if (pa == null || !pa.IsPhysical)
+                return;
+
+            if (localGlobalTF)
+            {
+                pVel = pVel * GetWorldRotation();
+            }
+
+            ParentGroup.Velocity = pVel;
+        }
+        
+
         /// <summary>
         /// hook to the physics scene to apply angular impulse
         /// This is sent up to the group, which then finds the root prim
@@ -4512,7 +4540,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (pa != null)
                 {
-                    ParentGroup.Scene.RemovePhysicalPrim(1);
+                    if(wasUsingPhysics)
+                        ParentGroup.Scene.RemovePhysicalPrim(1);
                     RemoveFromPhysics();
                 }
 
@@ -4529,37 +4558,36 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         AddToPhysics(UsePhysics, SetPhantom, building, false);
                         pa = PhysActor;
-                        /*
-                                                if (pa != null)
-                                                {
-                                                    if (
-                        //                                ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
-                        //                                ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
-                        //                                ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
-                        //                                ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
-                        //                                ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
-                        //                                ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
-                                                        ((AggregateScriptEvents & PhysicsNeededSubsEvents) != 0) ||
-                                                        ((ParentGroup.RootPart.AggregateScriptEvents & PhysicsNeededSubsEvents) != 0) ||
-                                                        (CollisionSound != UUID.Zero)
-                                                        )
-                                                    {
-                                                        pa.OnCollisionUpdate += PhysicsCollision;
-                                                        pa.SubscribeEvents(1000);
-                                                    }
-                                                }
-                         */
+/*
+                        if (pa != null)
+                        {
+                            if (
+//                                ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
+//                                ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+//                                ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
+//                                ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
+//                                ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
+//                                ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
+                                ((AggregateScriptEvents & PhysicsNeededSubsEvents) != 0) ||
+                                ((ParentGroup.RootPart.AggregateScriptEvents & PhysicsNeededSubsEvents) != 0) ||
+                                (CollisionSound != UUID.Zero)
+                                )
+                            {
+                                pa.OnCollisionUpdate += PhysicsCollision;
+                                pa.SubscribeEvents(1000);
+                            }
+                        }
+*/
                     }
                     else // it already has a physical representation
                     {
                         DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status.
-                        /* moved into DoPhysicsPropertyUpdate
-                                                if(VolumeDetectActive)
-                                                    pa.SetVolumeDetect(1);
-                                                else
-                                                    pa.SetVolumeDetect(0);
-                        */
-
+/* moved into DoPhysicsPropertyUpdate
+                        if(VolumeDetectActive)
+                            pa.SetVolumeDetect(1);
+                        else
+                            pa.SetVolumeDetect(0);
+*/
 
                         if (pa.Building != building)
                             pa.Building = building;

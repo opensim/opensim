@@ -656,6 +656,14 @@ namespace OpenSim.Region.Framework.Scenes
                     if (triggerScriptEvent)
                         part.TriggerScriptChangedEvent(Changed.POSITION);
                 }
+
+/*
+    This seems not needed and should not be needed:
+    sp absolute position depends on sit part absolute position fixed above.
+    sp ParentPosition is not used anywhere.
+    Since presence is sitting, viewer considers it 'linked' to root prim, so it will move/rotate it
+    Sending a extra packet with avatar position is not only bandwidth waste, but may cause jitter in viewers due to UPD nature.
+ 
                 if (!m_dupeInProgress)
                 {
                     foreach (ScenePresence av in m_linkedAvatars)
@@ -665,12 +673,12 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             Vector3 offset = p.GetWorldPosition() - av.ParentPosition;
                             av.AbsolutePosition += offset;
-                            av.ParentPosition = p.GetWorldPosition(); //ParentPosition gets cleared by AbsolutePosition
+//                            av.ParentPosition = p.GetWorldPosition(); //ParentPosition gets cleared by AbsolutePosition
                             av.SendAvatarDataToAllAgents();
                         }
                     }
                 }
-
+*/
                 //if (m_rootPart.PhysActor != null)
                 //{
                 //m_rootPart.PhysActor.Position =
@@ -701,8 +709,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (agent.ParentUUID != UUID.Zero)
                 {
                     agent.ParentPart = null;
-                    agent.ParentPosition = Vector3.Zero;
-                    //                    agent.ParentUUID = UUID.Zero;
+//                    agent.ParentPosition = Vector3.Zero;
+//                    agent.ParentUUID = UUID.Zero;
                 }
             }
 
@@ -3815,7 +3823,7 @@ namespace OpenSim.Region.Framework.Scenes
                         else
                         // ugly rotation update of all parts
                         {
-                            group.AbsolutePosition = AbsolutePosition;
+                            group.ResetChildPrimPhysicsPositions();
                         }
 
                     }

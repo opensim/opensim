@@ -351,9 +351,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                                                   UUID fromAgentID, string fromName, ChatTypeEnum type,
                                                   string message, ChatSourceType src)
         {
-            // don't send llRegionSay to child agents. Send normal chat because you
-            // can't talk across sim borders if it's not done
-            if (type == ChatTypeEnum.Broadcast && presence.IsChildAgent) return false;
+            // don't send chat to child agents
+            if (presence.IsChildAgent) return false;
 
             Vector3 fromRegionPos = fromPos + regionPos;
             Vector3 toRegionPos = presence.AbsolutePosition +

@@ -1495,6 +1495,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetAlpha(alpha, face);
         }
 
+        public void llSetAngularVelocity(LSL_Vector angvelocity, int local)
+        {
+            m_LSL_Functions.llSetAngularVelocity(angvelocity, local);
+        }
+
         public void llSetBuoyancy(double buoyancy)
         {
             m_LSL_Functions.llSetBuoyancy(buoyancy);
@@ -1728,6 +1733,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void llSetVehicleVectorParam(int param, LSL_Vector vec)
         {
             m_LSL_Functions.llSetVehicleVectorParam(param, vec);
+        }
+
+        public void llSetVelocity(LSL_Vector velocity, int local)
+        {
+            m_LSL_Functions.llSetVelocity(velocity, local);
         }
 
         public void llShout(int channelID, string text)

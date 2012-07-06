@@ -5080,10 +5080,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.TextureEntry = Utils.EmptyBytes;
 //            update.TextureEntry = (data.Appearance.Texture != null) ? data.Appearance.Texture.GetBytes() : Utils.EmptyBytes;
 
+/*  all this flags seem related to prims and not avatars. This allow for wrong viewer side move of a avatar in prim edition mode (anv mantis 854)
             update.UpdateFlags = (uint)(
                 PrimFlags.Physics | PrimFlags.ObjectModify | PrimFlags.ObjectCopy | PrimFlags.ObjectAnyOwner |
                 PrimFlags.ObjectYouOwner | PrimFlags.ObjectMove | PrimFlags.InventoryEmpty | PrimFlags.ObjectTransfer |
                 PrimFlags.ObjectOwnerModify);
+*/
+            update.UpdateFlags = 0;
 
             return update;
         }
@@ -6404,6 +6407,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 handlerCompleteMovementToRegion(sender, true);
             }
+            else
+                m_log.Debug("HandleCompleteAgentMovement NULL handler");
+
             handlerCompleteMovementToRegion = null;
 
             return true;
