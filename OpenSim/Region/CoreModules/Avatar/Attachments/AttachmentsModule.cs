@@ -292,36 +292,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
     
                 group.AttachmentPoint = attachmentPt;
                 group.AbsolutePosition = attachPos;
-    
-                // We also don't want to do any of the inventory operations for an NPC.
+
                 if (sp.PresenceType != PresenceType.Npc)
-                {
-                    // Remove any previous attachments
-                    List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
-    
-                    // At the moment we can only deal with a single attachment
-                    if (attachments.Count != 0)
-                    {
-                        if (attachments[0].FromItemID != UUID.Zero)
-                            DetachSingleAttachmentToInvInternal(sp, attachments[0]);
-                        else
-                            m_log.WarnFormat(
-                                "[ATTACHMENTS MODULE]: When detaching existing attachment {0} {1} at point {2} to make way for {3} {4} for {5}, couldn't find the associated item ID to adjust inventory attachment record!",
-                                attachments[0].Name, attachments[0].LocalId, attachmentPt, group.Name, group.LocalId, sp.Name);
-                    }
-    
-                    // Add the new attachment to inventory if we don't already have it.
-                    UUID newAttachmentItemID = group.FromItemID;
-                    if (newAttachmentItemID == UUID.Zero)
-                        newAttachmentItemID = AddSceneObjectAsNewAttachmentInInv(sp, group).ID;
-        
-                    ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group);
-                }
+                    UpdateUserInventoryWithAttachment(sp, group, attachmentPt);
     
                 AttachToAgent(sp, group, attachmentPt, attachPos, silent);
             }
 
             return true;
+        }
+
+        private void UpdateUserInventoryWithAttachment(IScenePresence sp, SceneObjectGroup group, uint attachmentPt)
+        {
+            // Remove any previous attachments
+            List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
+
+            // At the moment we can only deal with a single attachment
+            if (attachments.Count != 0)
+            {
+                if (attachments[0].FromItemID != UUID.Zero)
+                    DetachSingleAttachmentToInvInternal(sp, attachments[0]);
+                else
+                    m_log.WarnFormat(
+                        "[ATTACHMENTS MODULE]: When detaching existing attachment {0} {1} at point {2} to make way for {3} {4} for {5}, couldn't find the associated item ID to adjust inventory attachment record!",
+                        attachments[0].Name, attachments[0].LocalId, attachmentPt, group.Name, group.LocalId, sp.Name);
+            }
+
+            // Add the new attachment to inventory if we don't already have it.
+            UUID newAttachmentItemID = group.FromItemID;
+            if (newAttachmentItemID == UUID.Zero)
+                newAttachmentItemID = AddSceneObjectAsNewAttachmentInInv(sp, group).ID;
+
+            ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group);
         }
 
         public ISceneEntity RezSingleAttachmentFromInventory(IScenePresence sp, UUID itemID, uint AttachmentPt)
@@ -652,11 +654,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             //                "[ATTACHMENTS MODULE]: Called AddSceneObjectAsAttachment for object {0} {1} for {2}",
             //                grp.Name, grp.LocalId, remoteClient.Name);
 
-            InventoryItemBase newItem =  m_invAccessModule.CopyToInventory(
-                DeRezAction.TakeCopy,
-                m_scene.InventoryService.GetFolderForType(sp.UUID, AssetType.Object).ID,
-                new List<SceneObjectGroup> { grp },
-                sp.ControllingClient, true)[0];
+            InventoryItemBase newItem
+                = m_invAccessModule.CopyToInventory(
+                    DeRezAction.TakeCopy,
+                    m_scene.InventoryService.GetFolderForType(sp.UUID, AssetType.Object).ID,
+                    new List<SceneObjectGroup> { grp },
+                    sp.ControllingClient, true)[0];
 
             // sets itemID so client can show item as 'attached' in inventory
             grp.FromItemID = newItem.ID;
@@ -782,7 +785,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             item = m_scene.InventoryService.GetItem(item);
             bool changed = sp.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID);
             if (changed && m_scene.AvatarFactory != null)
+            {
+//                m_log.DebugFormat(
+//                    "[ATTACHMENTS MODULE]: Queueing appearance save for {0}, attachment {1} point {2} in ShowAttachInUserInventory()",
+//                    sp.Name, att.Name, AttachmentPt);
+
                 m_scene.AvatarFactory.QueueAppearanceSave(sp.UUID);
+            }
         }
 
         #endregion
