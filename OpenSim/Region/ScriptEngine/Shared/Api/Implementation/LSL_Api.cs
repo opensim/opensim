@@ -2538,6 +2538,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.ApplyImpulse(v, local != 0);
         }
 
+
         public void llApplyRotationalImpulse(LSL_Vector force, int local)
         {
             m_host.AddScriptLPS(1);
@@ -2562,6 +2563,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             llSetForce(force, local);
             llSetTorque(torque, local);
+        }
+
+        public void llSetVelocity(LSL_Vector vel, int local)
+        {
+            m_host.AddScriptLPS(1);
+            m_host.SetVelocity(new Vector3((float)vel.x, (float)vel.y, (float)vel.z), local != 0);
         }
 
         public LSL_Vector llGetVel()
@@ -2590,10 +2597,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Vector(m_host.Acceleration.X, m_host.Acceleration.Y, m_host.Acceleration.Z);
         }
 
+
+        public void llSetAngularVelocity(LSL_Vector avel, int local)
+        {
+            m_host.AddScriptLPS(1);
+            // Still not done !!!!
+//            m_host.SetAngularVelocity(new Vector3((float)avel.x, (float)avel.y, (float)avel.z), local != 0);
+        }
+
         public LSL_Vector llGetOmega()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(m_host.AngularVelocity.X, m_host.AngularVelocity.Y, m_host.AngularVelocity.Z);
+            Vector3 avel = m_host.AngularVelocity;
+            return new LSL_Vector(avel.X, avel.Y, avel.Z);
         }
 
         public LSL_Float llGetTimeOfDay()
