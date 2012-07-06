@@ -158,7 +158,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             {
                 osslApi.osForceAttachToAvatarFromInventory(taskInvObjItemName, (int)attachPoint);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 exceptionCaught = true;
             }
