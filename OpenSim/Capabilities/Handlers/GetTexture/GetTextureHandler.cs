@@ -226,7 +226,9 @@ namespace OpenSim.Capabilities.Handlers
                     // sending back the last byte instead of an error status
                     if (start >= texture.Data.Length)
                     {
-                        response.StatusCode = (int)System.Net.HttpStatusCode.RequestedRangeNotSatisfiable;
+//                        response.StatusCode = (int)System.Net.HttpStatusCode.RequestedRangeNotSatisfiable;
+                        // viewers don't seem to handle RequestedRangeNotSatisfiable and keep retrying with same parameters
+                        response.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
                     }
                     else
                     {
