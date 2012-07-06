@@ -407,7 +407,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(actualSceneBAtt.Name, Is.EqualTo(attItem.Name));
             Assert.That(actualSceneBAtt.AttachmentPoint, Is.EqualTo((uint)AttachmentPoint.Chest));
 
-            // Teleporting attachments should not end up in the scene graph
             Assert.That(sceneB.GetSceneObjectGroups().Count, Is.EqualTo(1));
 
             // Check attachments have been removed from sceneA
@@ -422,7 +421,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             List<SceneObjectGroup> actualSceneAAttachments = afterTeleportSceneASp.GetAttachments();
             Assert.That(actualSceneAAttachments.Count, Is.EqualTo(0));
 
-            // Teleporting attachments should not end up in the scene graph
             Assert.That(sceneA.GetSceneObjectGroups().Count, Is.EqualTo(0));
         }
 
