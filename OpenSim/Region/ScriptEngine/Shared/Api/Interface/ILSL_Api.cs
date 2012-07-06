@@ -328,6 +328,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSensorRemove();
               void llSensorRepeat(string name, string id, int type, double range, double arc, double rate);
               void llSetAlpha(double alpha, int face);
+              void llSetAngularVelocity(LSL_Vector angvelocity, int local);
               void llSetBuoyancy(double buoyancy);
               void llSetCameraAtOffset(LSL_Vector offset);
               void llSetCameraEyeOffset(LSL_Vector offset);
@@ -376,6 +377,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetVehicleRotationParam(int param, LSL_Rotation rot);
               void llSetVehicleType(int type);
               void llSetVehicleVectorParam(int param, LSL_Vector vec);
+              void llSetVelocity(LSL_Vector velocity, int local);
               void llShout(int channelID, string text);
          LSL_Float llSin(double f);
               void llSitTarget(LSL_Vector offset, LSL_Rotation rot);

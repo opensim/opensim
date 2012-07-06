@@ -1845,6 +1845,34 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+//      SetVelocity for LSL llSetVelocity..  may need revision if having other uses in future
+        public void SetVelocity(Vector3 pVel, bool localGlobalTF)
+        {
+            if (ParentGroup == null || ParentGroup.IsDeleted)
+                return;
+
+            if (ParentGroup.IsAttachment)
+                return;                         // don't work on attachments (for now ??)
+
+            SceneObjectPart root = ParentGroup.RootPart;
+
+            if (root.VehicleType != (int)Vehicle.TYPE_NONE) // don't mess with vehicles
+                return;
+
+            PhysicsActor pa = root.PhysActor;
+
+            if (pa == null || !pa.IsPhysical)
+                return;
+
+            if (localGlobalTF)
+            {
+                pVel = pVel * GetWorldRotation();
+            }
+
+            ParentGroup.Velocity = pVel;
+        }
+        
+
         /// <summary>
         /// hook to the physics scene to apply angular impulse
         /// This is sent up to the group, which then finds the root prim
