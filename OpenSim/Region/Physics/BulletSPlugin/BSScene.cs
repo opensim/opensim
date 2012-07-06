@@ -52,6 +52,7 @@ using OpenSim.Region.Framework;
 // Should prim.link() and prim.delink() membership checking happen at taint time?
 // Mesh sharing. Use meshHash to tell if we already have a hull of that shape and only create once
 // Do attachments need to be handled separately? Need collision events. Do not collide with VolumeDetect
+// Use collision masks for collision with terrain and phantom objects 
 // Implement the genCollisions feature in BulletSim::SetObjectProperties (don't pass up unneeded collisions)
 // Implement LockAngularMotion
 // Decide if clearing forces is the right thing to do when setting position (BulletSim::SetObjectTranslation)
@@ -62,9 +63,6 @@ using OpenSim.Region.Framework;
 // Multiple contact points on collision?
 //    See code in ode::near... calls to collision_accounting_events()
 //    (This might not be a problem. ODE collects all the collisions with one object in one tick.)
-// Use collision masks for collision with terrain and phantom objects 
-// Figure out how to not allocate a new Dictionary and List for every collision
-//    in BSPrim.Collide() and BSCharacter.Collide(). Can the same ones be reused?
 // Raycast
 // 
 namespace OpenSim.Region.Physics.BulletSPlugin
@@ -405,6 +403,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // prevent simulation until we've been initialized
         if (!m_initialized) return 10.0f;
 
+        long simulateStartTime = Util.EnvironmentTickCount();
+
         // update the prim states while we know the physics engine is not busy
         ProcessTaints();
 
@@ -437,13 +437,18 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
-        // The SendCollision's batch up the collisions on the objects. Now push the collisions into the simulator.
+        // The above SendCollision's batch up the collisions on the objects.
+        //      Now push the collisions into the simulator.
         foreach (BSPrim bsp in m_primsWithCollisions)
             bsp.SendCollisions();
         m_primsWithCollisions.Clear();
+
+        // This is a kludge to get avatar movement updated. 
+        //   Don't send collisions only if there were collisions -- send everytime.
+        //   ODE sends collisions even if there are none and this is used to update
+        //   avatar animations and stuff.
         // foreach (BSCharacter bsc in m_avatarsWithCollisions)
         //     bsc.SendCollisions();
-        // This is a kludge to get avatar movement updated. ODE sends collisions even if there isn't any
         foreach (KeyValuePair<uint, BSCharacter> kvp in m_avatars)
             kvp.Value.SendCollisions();
         m_avatarsWithCollisions.Clear();
@@ -465,10 +470,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 if (m_avatars.TryGetValue(entprop.ID, out actor))
                 {
                     actor.UpdateProperties(entprop);
+                    continue;
                 }
             }
         }
 
+        // If enabled, call into the physics engine to dump statistics
         if (m_detailedStatsStep > 0)
         {
             if ((m_simulationStep % m_detailedStatsStep) == 0)
@@ -476,6 +483,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 BulletSimAPI.DumpBulletStatistics();
             }
         }
+
+        // this is a waste since the outside routine also calcuates the physics simulation
+        //   period. TODO: There should be a way of computing physics frames from simulator computation.
+        // long simulateTotalTime = Util.EnvironmentTickCountSubtract(simulateStartTime);
+        // return (timeStep * (float)simulateTotalTime);
 
         // TODO: FIX THIS: fps calculation wrong. This calculation always returns about 1 in normal operation.
         return timeStep / (numSubSteps * m_fixedTimeStep) * 1000f;
@@ -528,6 +540,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public override void SetWaterLevel(float baseheight) 
     {
         m_waterLevel = baseheight;
+        // TODO: pass to physics engine so things will float?
     }
     public float GetWaterLevel()
     {
