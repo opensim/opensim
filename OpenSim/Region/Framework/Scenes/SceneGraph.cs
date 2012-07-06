@@ -958,6 +958,18 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Get all the scene object groups.
+        /// </summary>
+        /// <returns>
+        /// The scene object groups.  If the scene is empty then an empty list is returned.
+        /// </returns>
+        protected internal List<SceneObjectGroup> GetSceneObjectGroups()
+        {
+            lock (SceneObjectGroupsByFullID)
+                return new List<SceneObjectGroup>(SceneObjectGroupsByFullID.Values);
+        }
+
+        /// <summary>
         /// Get a group in the scene
         /// </summary>
         /// <param name="fullID">UUID of the group</param>
@@ -1100,11 +1112,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="action"></param>
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)
         {
-            List<SceneObjectGroup> objlist;
-            lock (SceneObjectGroupsByFullID)
-                objlist = new List<SceneObjectGroup>(SceneObjectGroupsByFullID.Values);
-
-            foreach (SceneObjectGroup obj in objlist)
+            foreach (SceneObjectGroup obj in GetSceneObjectGroups())
             {
                 try
                 {

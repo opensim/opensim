@@ -149,6 +149,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             InventoryFolderBase targetFolder = scene.InventoryService.GetFolderForType(sp.UUID, AssetType.Object);
             Assert.That(attachmentItem.Folder, Is.EqualTo(targetFolder.ID));
 
+            Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
+
 //            TestHelpers.DisableLogging();
         }
 
@@ -181,6 +183,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             // Check appearance status
             Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(1));
             Assert.That(sp.Appearance.GetAttachpoint(attItem.ID), Is.EqualTo((int)AttachmentPoint.Chest));
+
+            Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -239,6 +243,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             // Check item status
             Assert.That(sp.Appearance.GetAttachpoint(attItem.ID), Is.EqualTo(0));
+
+            Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(0));
         }
 
         /// <summary>
@@ -300,6 +306,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(retreivedAttachments[0].ItemID, Is.EqualTo(attItem.ID));
             Assert.That(retreivedAttachments[0].AssetID, Is.EqualTo(attItem.AssetID));
             Assert.That(presence.Appearance.GetAttachpoint(attItem.ID), Is.EqualTo((int)AttachmentPoint.Chest));
+
+            Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -399,6 +407,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(actualSceneBAtt.Name, Is.EqualTo(attItem.Name));
             Assert.That(actualSceneBAtt.AttachmentPoint, Is.EqualTo((uint)AttachmentPoint.Chest));
 
+            // Teleporting attachments should not end up in the scene graph
+            Assert.That(sceneB.GetSceneObjectGroups().Count, Is.EqualTo(1));
+
             // Check attachments have been removed from sceneA
             ScenePresence afterTeleportSceneASp = sceneA.GetScenePresence(ua1.PrincipalID);
 
@@ -410,6 +421,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             // This is the actual attachment, which should no longer exist
             List<SceneObjectGroup> actualSceneAAttachments = afterTeleportSceneASp.GetAttachments();
             Assert.That(actualSceneAAttachments.Count, Is.EqualTo(0));
+
+            // Teleporting attachments should not end up in the scene graph
+            Assert.That(sceneA.GetSceneObjectGroups().Count, Is.EqualTo(0));
         }
 
         // I'm commenting this test because scene setup NEEDS InventoryService to 

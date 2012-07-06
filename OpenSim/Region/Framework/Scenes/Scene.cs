@@ -4474,6 +4474,17 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Get all the scene object groups.
+        /// </summary>
+        /// <returns>
+        /// The scene object groups.  If the scene is empty then an empty list is returned.
+        /// </returns>
+        public List<SceneObjectGroup> GetSceneObjectGroups()
+        {
+            return m_sceneGraph.GetSceneObjectGroups();
+        }
+
+        /// <summary>
         /// Get a group via its UUID
         /// </summary>
         /// <param name="fullID"></param>
