@@ -229,10 +229,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                     //                 m_scene.RegionInfo.RegionName, m_oarFileLoading.ToString());
 
                     m_log.InfoFormat(
-                        "[RegionReady]: INITIALIZATION COMPLETE - LOGINS ENABLED FOR {0}",
-                        m_scene.RegionInfo.RegionName);
+                        "[RegionReady]: INITIALIZATION COMPLETE FOR {0} - LOGINS ENABLED", m_scene.Name);
 
-                    if ( m_uri != string.Empty )
+                    if (m_uri != string.Empty)
                     {
                         RRAlert("enabled");
                     }
