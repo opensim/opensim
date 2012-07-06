@@ -2600,18 +2600,6 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 AddRestoredSceneObject(sceneObject, true, false);
-
-                if (!Permissions.CanObjectEntry(sceneObject.UUID,
-                        true, sceneObject.AbsolutePosition))
-                {
-                    // Deny non attachments based on parcel settings
-                    //
-                    m_log.Info("[INTERREGION]: Denied prim crossing because of parcel settings");
-
-                    DeleteSceneObject(sceneObject, false);
-
-                    return false;
-                }
             }
 
             return true;
