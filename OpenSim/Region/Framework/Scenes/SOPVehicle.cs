@@ -565,31 +565,37 @@ namespace OpenSim.Region.Framework.Scenes
         
         public string ToXml2()
         {
-            MemoryStream ms = new MemoryStream();
+            MemoryStream ms = new MemoryStream(512);
             UTF8Encoding enc = new UTF8Encoding();
-            XmlTextWriter writer = new XmlTextWriter(ms, null);
-            ToXml2(writer);
-            return enc.GetString(ms.ToArray());
+            XmlTextWriter xwriter = new XmlTextWriter(ms, enc);
+            ToXml2(xwriter);
+            xwriter.Flush();
+            string s = ms.GetStreamString();
+            xwriter.Close();
+            return s;
         }
 
         public static SOPVehicle FromXml2(string text)
         {
             if (text == String.Empty)
                 return null;
+
             UTF8Encoding enc = new UTF8Encoding();
             MemoryStream ms = new MemoryStream(enc.GetBytes(text));
-            XmlTextReader reader = new XmlTextReader(ms);
+            XmlTextReader xreader = new XmlTextReader(ms);
 
             SOPVehicle v = new SOPVehicle();
             bool error;
 
-            v.FromXml2(reader, out error);
+            v.FromXml2(xreader, out error);
+
+            xreader.Close();
+
             if (error)
             {
                 v = null;
                 return null;
             }
-
             return v;
         }
 
