@@ -1647,9 +1647,9 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("Restitution", (double)prim.Bounciness);
 
             if (prim.VehicleParams != null)
-            {
                 cmd.Parameters.AddWithValue("Vehicle", prim.VehicleParams.ToXml2());
-            }
+            else
+                cmd.Parameters.AddWithValue("Vehicle", String.Empty);
         }
 
         /// <summary>
