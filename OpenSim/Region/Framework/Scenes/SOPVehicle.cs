@@ -30,6 +30,8 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+using System.Text;
+using System.IO;
 using System.Xml;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
@@ -561,6 +563,35 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         
+        public string ToXml2()
+        {
+            MemoryStream ms = new MemoryStream();
+            UTF8Encoding enc = new UTF8Encoding();
+            XmlTextWriter writer = new XmlTextWriter(ms, null);
+            ToXml2(writer);
+            return enc.GetString(ms.ToArray());
+        }
+
+        public static SOPVehicle FromXml2(string text)
+        {
+            if (text == String.Empty)
+                return null;
+            UTF8Encoding enc = new UTF8Encoding();
+            MemoryStream ms = new MemoryStream(enc.GetBytes(text));
+            XmlTextReader reader = new XmlTextReader(ms);
+
+            SOPVehicle v = new SOPVehicle();
+            bool error;
+
+            v.FromXml2(reader, out error);
+            if (error)
+            {
+                v = null;
+                return null;
+            }
+
+            return v;
+        }
 
         public void FromXml2(XmlTextReader _reader, out bool errors)
         {
