@@ -599,7 +599,20 @@ namespace OpenSim.Region.Framework.Scenes
             return v;
         }
 
-        public void FromXml2(XmlTextReader _reader, out bool errors)
+        public static SOPVehicle FromXml2(XmlTextReader reader)
+        {
+            SOPVehicle vehicle = new SOPVehicle();
+
+            bool errors = false;
+
+            vehicle.FromXml2(reader, out errors);
+            if (errors)
+                return null;
+
+            return vehicle;
+        }
+
+        private void FromXml2(XmlTextReader _reader, out bool errors)
         {
             errors = false;
             reader = _reader;
