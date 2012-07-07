@@ -526,8 +526,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.WorldSetGravity(world, gravityx, gravityy, gravityz);
             d.WorldSetContactSurfaceLayer(world, contactsurfacelayer);
 
-            d.WorldSetLinearDamping(world, 0.001f);
-            d.WorldSetAngularDamping(world, 0.001f);
+            d.WorldSetLinearDamping(world, 0.002f);
+            d.WorldSetAngularDamping(world, 0.002f);
             d.WorldSetAngularDampingThreshold(world, 0f);
             d.WorldSetLinearDampingThreshold(world, 0f);
             d.WorldSetMaxAngularSpeed(world, 100f);

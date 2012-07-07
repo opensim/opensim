@@ -275,6 +275,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (veh != null && veh.Type != Vehicle.TYPE_NONE)
                     cdata.mu *= veh.FrictionFactor;
+//                    cdata.mu *= 0;
             }
         }    
 
