@@ -137,6 +137,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         float m_amdampY;
         float m_amdampZ;
 
+
         public float FrictionFactor
         {
             get
@@ -144,6 +145,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return m_ffactor;
             }
         }
+
 
         public ODEDynamics(OdePrim rootp)
         {
@@ -345,7 +347,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_lmDecay = 1.0f - 1.0f / m_linearMotorDecayTimescale;
                     m_lmEfect = 1.0f; // turn it on
 
-                    m_ffactor = 0.01f;
+                    m_ffactor = 0.0f;
                     if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
                             && !rootPrim.m_isSelected && !rootPrim.m_disabled)
                         d.BodyEnable(rootPrim.Body);
@@ -401,7 +403,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_lmEfect = 1.0f; // turn it on
                     m_lmDecay = 1.0f - 1.0f / m_linearMotorDecayTimescale;
 
-                    m_ffactor = 0.01f;
+                    m_ffactor = 0.0f;
                     if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
                             && !rootPrim.m_isSelected && !rootPrim.m_disabled)
                         d.BodyEnable(rootPrim.Body);
@@ -805,7 +807,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
                 m_lmEfect *= m_lmDecay;
-                m_ffactor = 0.01f + 1e-4f * curVel.LengthSquared();
+//                m_ffactor = 0.01f + 1e-4f * curVel.LengthSquared();
+                m_ffactor = 0.0f;
             }
             else
             {
