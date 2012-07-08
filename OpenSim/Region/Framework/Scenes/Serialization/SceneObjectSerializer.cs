@@ -623,12 +623,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessVehicle(SceneObjectPart obj, XmlTextReader reader)
         {
-            bool errors = false;
-            SOPVehicle _vehicle = new SOPVehicle();
+            SOPVehicle vehicle = SOPVehicle.FromXml2(reader);
 
-            _vehicle.FromXml2(reader, out errors);
-
-            if (errors)
+            if (vehicle == null)
             {
                 obj.VehicleParams = null;
                 m_log.DebugFormat(
@@ -636,7 +633,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     obj.Name, obj.UUID);
             }
             else
-                obj.VehicleParams = _vehicle;
+            {
+                obj.VehicleParams = vehicle;
+            }
         }
                    
         private static void ProcessShape(SceneObjectPart obj, XmlTextReader reader)
