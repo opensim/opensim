@@ -29,6 +29,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 
 using Nini.Config;
 using log4net;
@@ -70,6 +71,8 @@ namespace OpenSim.Server.Handlers.MapImage
 
     class MapServerGetHandler : BaseStreamHandler
     {
+        public static ManualResetEvent ev = new ManualResetEvent(true);
+
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IMapImageService m_MapService;
@@ -82,8 +85,13 @@ namespace OpenSim.Server.Handlers.MapImage
 
         public override byte[] Handle(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            byte[] result = new byte[0];
+            ev.WaitOne();
+            lock (ev)
+            {
+                ev.Reset();
+            }
 
+            byte[] result = new byte[0];
             string format = string.Empty;
             result = m_MapService.GetMapTile(path.Trim('/'), out format);
             if (result.Length > 0)
@@ -98,6 +106,11 @@ namespace OpenSim.Server.Handlers.MapImage
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
                 httpResponse.ContentType = "text/plain";
+            }
+
+            lock (ev)
+            {
+                ev.Set();
             }
 
             return result;

@@ -63,7 +63,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private static readonly UUID STOP_UUID = UUID.Random();
         private static readonly string m_mapLayerPath = "0001/";
 
-        private OpenSim.Framework.BlockingQueue<MapRequestState> requests = new OpenSim.Framework.BlockingQueue<MapRequestState>();
+        private ManualResetEvent queueEvent = new ManualResetEvent(false);
+        private Queue<MapRequestState> requests = new Queue<MapRequestState>();
 
         protected Scene m_scene;
         private List<MapBlockData> cachedMapBlocks = new List<MapBlockData>();
@@ -71,7 +72,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private int blacklistTimeout = 10*60*1000; // 10 minutes
         private byte[] myMapImageJPEG;
         protected volatile bool m_Enabled = false;
-        private Dictionary<UUID, MapRequestState> m_openRequests = new Dictionary<UUID, MapRequestState>();
         private Dictionary<string, int> m_blacklistedurls = new Dictionary<string, int>();
         private Dictionary<ulong, int> m_blacklistedregions = new Dictionary<ulong, int>();
         private Dictionary<ulong, string> m_cachedRegionMapItemsAddress = new Dictionary<ulong, string>();
@@ -368,7 +368,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             st.itemtype=0;
             st.regionhandle=0;
 
-            requests.Enqueue(st);
+            lock (requests)
+            {
+                queueEvent.Set();
+                requests.Enqueue(st);
+            }
         }
 
         public virtual void HandleMapItemRequest(IClientAPI remoteClient, uint flags,
@@ -519,12 +523,26 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// </summary>
         public void process()
         {
-            const int MAX_ASYNC_REQUESTS = 20;
+            const int MAX_ASYNC_REQUESTS = 5;
             try
             {
                 while (true)
                 {
-                    MapRequestState st = requests.Dequeue(1000);
+                    MapRequestState st = new MapRequestState();
+                    bool valid = false;
+                    queueEvent.WaitOne();
+                    lock (requests)
+                    {
+                        if (requests.Count > 0)
+                        {
+                            st = requests.Dequeue();
+                            valid = true;
+                        }
+                        if (requests.Count == 0)
+                            queueEvent.Reset();
+                    }
+                    if (!valid)
+                        continue;
 
                     // end gracefully
                     if (st.agentID == STOP_UUID)
@@ -541,14 +559,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                         if (dorequest &&  !m_blacklistedregions.ContainsKey(st.regionhandle))
                         {
-                            while (nAsyncRequests >= MAX_ASYNC_REQUESTS) // hit the break
-                                Thread.Sleep(80);
+//                            while (nAsyncRequests >= MAX_ASYNC_REQUESTS) // hit the break
+//                                Thread.Sleep(500);
 
-                            RequestMapItemsDelegate d = RequestMapItemsAsync;
-                            d.BeginInvoke(st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle, RequestMapItemsCompleted, null);
-                            //OSDMap response = RequestMapItemsAsync(st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
-                            //RequestMapItemsCompleted(response);
                             Interlocked.Increment(ref nAsyncRequests);
+                            RequestMapItemsAsync(st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
                         }
                     }
 
@@ -570,110 +585,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <param name="state"></param>
         public void EnqueueMapItemRequest(MapRequestState state)
         {
-            requests.Enqueue(state);
-        }
-
-        /// <summary>
-        /// Sends the mapitem response to the IClientAPI
-        /// </summary>
-        /// <param name="response">The OSDMap Response for the mapitem</param>
-        private void RequestMapItemsCompleted(IAsyncResult iar)
-        {
-            AsyncResult result = (AsyncResult)iar;
-            RequestMapItemsDelegate icon = (RequestMapItemsDelegate)result.AsyncDelegate;
-
-            OSDMap response = (OSDMap)icon.EndInvoke(iar);
-
-            Interlocked.Decrement(ref nAsyncRequests);
-
-            if (!response.ContainsKey("requestID"))
-                return;
-
-            UUID requestID = response["requestID"].AsUUID();
-
-            if (requestID != UUID.Zero)
+            lock (requests)
             {
-                MapRequestState mrs = new MapRequestState();
-                mrs.agentID = UUID.Zero;
-                lock (m_openRequests)
-                {
-                    if (m_openRequests.ContainsKey(requestID))
-                    {
-                        mrs = m_openRequests[requestID];
-                        m_openRequests.Remove(requestID);
-                    }
-                }
-
-                if (mrs.agentID != UUID.Zero)
-                {
-                    ScenePresence av = null;
-                    m_scene.TryGetScenePresence(mrs.agentID, out av);
-                    if (av != null)
-                    {
-                        if (response.ContainsKey(mrs.itemtype.ToString()))
-                        {
-                            List<mapItemReply> returnitems = new List<mapItemReply>();
-                            OSDArray itemarray = (OSDArray)response[mrs.itemtype.ToString()];
-                            for (int i = 0; i < itemarray.Count; i++)
-                            {
-                                OSDMap mapitem = (OSDMap)itemarray[i];
-                                mapItemReply mi = new mapItemReply();
-                                mi.x = (uint)mapitem["X"].AsInteger();
-                                mi.y = (uint)mapitem["Y"].AsInteger();
-                                mi.id = mapitem["ID"].AsUUID();
-                                mi.Extra = mapitem["Extra"].AsInteger();
-                                mi.Extra2 = mapitem["Extra2"].AsInteger();
-                                mi.name = mapitem["Name"].AsString();
-                                returnitems.Add(mi);
-                            }
-                            av.ControllingClient.SendMapItemReply(returnitems.ToArray(), mrs.itemtype, mrs.flags);
-                        }
-
-                        // Service 7 (MAP_ITEM_LAND_FOR_SALE)
-                        uint itemtype = 7;
-
-                        if (response.ContainsKey(itemtype.ToString()))
-                        {
-                            List<mapItemReply> returnitems = new List<mapItemReply>();
-                            OSDArray itemarray = (OSDArray)response[itemtype.ToString()];
-                            for (int i = 0; i < itemarray.Count; i++)
-                            {
-                                OSDMap mapitem = (OSDMap)itemarray[i];
-                                mapItemReply mi = new mapItemReply();
-                                mi.x = (uint)mapitem["X"].AsInteger();
-                                mi.y = (uint)mapitem["Y"].AsInteger();
-                                mi.id = mapitem["ID"].AsUUID();
-                                mi.Extra = mapitem["Extra"].AsInteger();
-                                mi.Extra2 = mapitem["Extra2"].AsInteger();
-                                mi.name = mapitem["Name"].AsString();
-                                returnitems.Add(mi);
-                            }
-                            av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, mrs.flags);
-                        }
-
-                        // Service 1 (MAP_ITEM_TELEHUB)
-                        itemtype = 1;
-
-                        if (response.ContainsKey(itemtype.ToString()))
-                        {
-                            List<mapItemReply> returnitems = new List<mapItemReply>();
-                            OSDArray itemarray = (OSDArray)response[itemtype.ToString()];
-                            for (int i = 0; i < itemarray.Count; i++)
-                            {
-                                OSDMap mapitem = (OSDMap)itemarray[i];
-                                mapItemReply mi = new mapItemReply();
-                                mi.x = (uint)mapitem["X"].AsInteger();
-                                mi.y = (uint)mapitem["Y"].AsInteger();
-                                mi.id = mapitem["ID"].AsUUID();
-                                mi.Extra = mapitem["Extra"].AsInteger();
-                                mi.Extra2 = mapitem["Extra2"].AsInteger();
-                                mi.name = mapitem["Name"].AsString();
-                                returnitems.Add(mi);
-                            }
-                            av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, mrs.flags);
-                        }
-                    }
-                }
+                queueEvent.Set();
+                requests.Enqueue(state);
             }
         }
 
@@ -700,8 +615,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             EnqueueMapItemRequest(st);
         }
 
-        private delegate OSDMap RequestMapItemsDelegate(UUID id, uint flags,
-            uint EstateID, bool godlike, uint itemtype, ulong regionhandle);
         /// <summary>
         /// Does the actual remote mapitem request
         /// This should be called from an asynchronous thread
@@ -716,7 +629,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <param name="itemtype">passed in from packet</param>
         /// <param name="regionhandle">Region we're looking up</param>
         /// <returns></returns>
-        private OSDMap RequestMapItemsAsync(UUID id, uint flags,
+        private void RequestMapItemsAsync(UUID id, uint flags,
             uint EstateID, bool godlike, uint itemtype, ulong regionhandle)
         {
 //            m_log.DebugFormat("[WORLDMAP]: RequestMapItemsAsync; region handle: {0} {1}", regionhandle, itemtype);
@@ -739,7 +652,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
 
             if (blacklisted)
-                return new OSDMap();
+            {
+                Interlocked.Decrement(ref nAsyncRequests);
+                return;
+            }
 
             UUID requestID = UUID.Random();
             lock (m_cachedRegionMapItemsAddress)
@@ -747,6 +663,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if (m_cachedRegionMapItemsAddress.ContainsKey(regionhandle))
                     httpserver = m_cachedRegionMapItemsAddress[regionhandle];
             }
+
             if (httpserver.Length == 0)
             {
                 uint x = 0, y = 0;
@@ -791,18 +708,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             // Can't find the http server
             if (httpserver.Length == 0 || blacklisted)
-                return new OSDMap();
-
-            MapRequestState mrs = new MapRequestState();
-            mrs.agentID = id;
-            mrs.EstateID = EstateID;
-            mrs.flags = flags;
-            mrs.godlike = godlike;
-            mrs.itemtype=itemtype;
-            mrs.regionhandle = regionhandle;
-
-            lock (m_openRequests)
-                m_openRequests.Add(requestID, mrs);
+            {
+                Interlocked.Decrement(ref nAsyncRequests);
+                return;
+            }
 
             WebRequest mapitemsrequest = null;
             try
@@ -812,7 +721,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             catch (Exception e)
             {
                 m_log.DebugFormat("[WORLD MAP]: Access to {0} failed with {1}", httpserver, e);
-                return new OSDMap();
+                Interlocked.Decrement(ref nAsyncRequests);
+                return;
             }
 
             mapitemsrequest.Method = "POST";
@@ -826,6 +736,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             OSDMap responseMap = new OSDMap();
             responseMap["requestID"] = OSD.FromUUID(requestID);
 
+return;
             Stream os = null;
             try
             { // send the Post
@@ -837,7 +748,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             catch (WebException ex)
             {
                 m_log.WarnFormat("[WORLD MAP]: Bad send on GetMapItems {0}", ex.Message);
-                responseMap["connect"] = OSD.FromBoolean(false);
                 lock (m_blacklistedurls)
                 {
                     if (!m_blacklistedurls.ContainsKey(httpserver))
@@ -846,13 +756,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                 m_log.WarnFormat("[WORLD MAP]: Blacklisted {0}", httpserver);
 
-                return responseMap;
+                Interlocked.Decrement(ref nAsyncRequests);
+                return;
             }
             catch
             {
                 m_log.DebugFormat("[WORLD MAP]: RequestMapItems failed for {0}", httpserver);
-                responseMap["connect"] = OSD.FromBoolean(false);
-                return responseMap;
+                Interlocked.Decrement(ref nAsyncRequests);
+                return;
             }
             finally
             {
@@ -873,12 +784,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     }
                     else
                     {
-                        return new OSDMap();
+                        Interlocked.Decrement(ref nAsyncRequests);
+                        return;
                     }
                 }
                 catch (WebException)
                 {
-                    responseMap["connect"] = OSD.FromBoolean(false);
                     lock (m_blacklistedurls)
                     {
                         if (!m_blacklistedurls.ContainsKey(httpserver))
@@ -887,19 +798,20 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                     m_log.WarnFormat("[WORLD MAP]: Blacklisted {0}", httpserver);
 
-                    return responseMap;
+                    Interlocked.Decrement(ref nAsyncRequests);
+                    return;
                 }
                 catch
                 {
                     m_log.DebugFormat("[WORLD MAP]: RequestMapItems failed for {0}", httpserver);
-                    responseMap["connect"] = OSD.FromBoolean(false);
                     lock (m_blacklistedregions)
                     {
                         if (!m_blacklistedregions.ContainsKey(regionhandle))
                             m_blacklistedregions.Add(regionhandle, Environment.TickCount);
                     }
 
-                    return responseMap;
+                    Interlocked.Decrement(ref nAsyncRequests);
+                    return;
                 }
                 finally
                 {
@@ -918,14 +830,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 catch (Exception ex)
                 {
                     m_log.InfoFormat("[WORLD MAP]: exception on parse of RequestMapItems reply from {0}: {1}", httpserver, ex.Message);
-                    responseMap["connect"] = OSD.FromBoolean(false);
                     lock (m_blacklistedregions)
                     {
                         if (!m_blacklistedregions.ContainsKey(regionhandle))
                             m_blacklistedregions.Add(regionhandle, Environment.TickCount);
                     }
 
-                    return responseMap;
+                    Interlocked.Decrement(ref nAsyncRequests);
+                    return;
                 }
             }
 
@@ -939,7 +851,78 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 }
             }
 
-            return responseMap;
+            Interlocked.Decrement(ref nAsyncRequests);
+
+            if (id != UUID.Zero)
+            {
+                ScenePresence av = null;
+                m_scene.TryGetScenePresence(id, out av);
+                if (av != null)
+                {
+                    if (responseMap.ContainsKey(itemtype.ToString()))
+                    {
+                        List<mapItemReply> returnitems = new List<mapItemReply>();
+                        OSDArray itemarray = (OSDArray)responseMap[itemtype.ToString()];
+                        for (int i = 0; i < itemarray.Count; i++)
+                        {
+                            OSDMap mapitem = (OSDMap)itemarray[i];
+                            mapItemReply mi = new mapItemReply();
+                            mi.x = (uint)mapitem["X"].AsInteger();
+                            mi.y = (uint)mapitem["Y"].AsInteger();
+                            mi.id = mapitem["ID"].AsUUID();
+                            mi.Extra = mapitem["Extra"].AsInteger();
+                            mi.Extra2 = mapitem["Extra2"].AsInteger();
+                            mi.name = mapitem["Name"].AsString();
+                            returnitems.Add(mi);
+                        }
+                        av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
+                    }
+
+                    // Service 7 (MAP_ITEM_LAND_FOR_SALE)
+                    itemtype = 7;
+
+                    if (responseMap.ContainsKey(itemtype.ToString()))
+                    {
+                        List<mapItemReply> returnitems = new List<mapItemReply>();
+                        OSDArray itemarray = (OSDArray)responseMap[itemtype.ToString()];
+                        for (int i = 0; i < itemarray.Count; i++)
+                        {
+                            OSDMap mapitem = (OSDMap)itemarray[i];
+                            mapItemReply mi = new mapItemReply();
+                            mi.x = (uint)mapitem["X"].AsInteger();
+                            mi.y = (uint)mapitem["Y"].AsInteger();
+                            mi.id = mapitem["ID"].AsUUID();
+                            mi.Extra = mapitem["Extra"].AsInteger();
+                            mi.Extra2 = mapitem["Extra2"].AsInteger();
+                            mi.name = mapitem["Name"].AsString();
+                            returnitems.Add(mi);
+                        }
+                        av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
+                    }
+
+                    // Service 1 (MAP_ITEM_TELEHUB)
+                    itemtype = 1;
+
+                    if (responseMap.ContainsKey(itemtype.ToString()))
+                    {
+                        List<mapItemReply> returnitems = new List<mapItemReply>();
+                        OSDArray itemarray = (OSDArray)responseMap[itemtype.ToString()];
+                        for (int i = 0; i < itemarray.Count; i++)
+                        {
+                            OSDMap mapitem = (OSDMap)itemarray[i];
+                            mapItemReply mi = new mapItemReply();
+                            mi.x = (uint)mapitem["X"].AsInteger();
+                            mi.y = (uint)mapitem["Y"].AsInteger();
+                            mi.id = mapitem["ID"].AsUUID();
+                            mi.Extra = mapitem["Extra"].AsInteger();
+                            mi.Extra2 = mapitem["Extra2"].AsInteger();
+                            mi.name = mapitem["Name"].AsString();
+                            returnitems.Add(mi);
+                        }
+                        av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -951,53 +934,56 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <param name="maxY"></param>
         public virtual void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
-            //m_log.ErrorFormat("[YYY] RequestMapBlocks {0}={1}={2}={3} {4}", minX, minY, maxX, maxY, flag);
-            if ((flag & 0x10000) != 0)  // user clicked on qthe map a tile that isn't visible
+            Util.FireAndForget(x =>
             {
-                List<MapBlockData> response = new List<MapBlockData>();
-
-                // this should return one mapblock at most. It is triggered by a click
-                // on an unloaded square.
-                // But make sure: Look whether the one we requested is in there
-                List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                    minX * (int)Constants.RegionSize,
-                    maxX * (int)Constants.RegionSize,
-                    minY * (int)Constants.RegionSize,
-                    maxY * (int)Constants.RegionSize);
-
-                if (regions != null)
+                //m_log.ErrorFormat("[YYY] RequestMapBlocks {0}={1}={2}={3} {4}", minX, minY, maxX, maxY, flag);
+                if ((flag & 0x10000) != 0)  // user clicked on qthe map a tile that isn't visible
                 {
-                    foreach (GridRegion r in regions)
+                    List<MapBlockData> response = new List<MapBlockData>();
+
+                    // this should return one mapblock at most. It is triggered by a click
+                    // on an unloaded square.
+                    // But make sure: Look whether the one we requested is in there
+                    List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
+                        minX * (int)Constants.RegionSize,
+                        maxX * (int)Constants.RegionSize,
+                        minY * (int)Constants.RegionSize,
+                        maxY * (int)Constants.RegionSize);
+
+                    if (regions != null)
                     {
-                        if ((r.RegionLocX == minX * (int)Constants.RegionSize) &&
-                            (r.RegionLocY == minY * (int)Constants.RegionSize))
+                        foreach (GridRegion r in regions)
                         {
-                            // found it => add it to response
-                            MapBlockData block = new MapBlockData();
-                            MapBlockFromGridRegion(block, r, flag);
-                            response.Add(block);
-                            break;
+                            if ((r.RegionLocX == minX * (int)Constants.RegionSize) &&
+                                (r.RegionLocY == minY * (int)Constants.RegionSize))
+                            {
+                                // found it => add it to response
+                                MapBlockData block = new MapBlockData();
+                                MapBlockFromGridRegion(block, r, flag);
+                                response.Add(block);
+                                break;
+                            }
                         }
                     }
-                }
 
-                if (response.Count == 0)
-                {
-                    // response still empty => couldn't find the map-tile the user clicked on => tell the client
-                    MapBlockData block = new MapBlockData();
-                    block.X = (ushort)minX;
-                    block.Y = (ushort)minY;
-                    block.Access = 254; // means 'simulator is offline'
-                    response.Add(block);
+                    if (response.Count == 0)
+                    {
+                        // response still empty => couldn't find the map-tile the user clicked on => tell the client
+                        MapBlockData block = new MapBlockData();
+                        block.X = (ushort)minX;
+                        block.Y = (ushort)minY;
+                        block.Access = 254; // means 'simulator is offline'
+                        response.Add(block);
+                    }
+                    // The lower 16 bits are an unsigned int16
+                    remoteClient.SendMapBlock(response, flag & 0xffff);
                 }
-                // The lower 16 bits are an unsigned int16
-                remoteClient.SendMapBlock(response, flag & 0xffff);
-            }
-            else
-            {
-                // normal mapblock request. Use the provided values
-                GetAndSendBlocks(remoteClient, minX, minY, maxX, maxY, flag);
-            }
+                else
+                {
+                    // normal mapblock request. Use the provided values
+                    GetAndSendBlocks(remoteClient, minX, minY, maxX, maxY, flag);
+                }
+            });
         }
 
         protected virtual List<MapBlockData> GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
@@ -1013,8 +999,15 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 MapBlockData block = new MapBlockData();
                 MapBlockFromGridRegion(block, r, flag);
                 mapBlocks.Add(block);
+                if (mapBlocks.Count >= 20)
+                {
+                    remoteClient.SendMapBlock(mapBlocks, flag & 0xffff);
+                    mapBlocks.Clear();
+                    Thread.Sleep(1000);
+                }
             }
-            remoteClient.SendMapBlock(mapBlocks, flag & 0xffff);
+            if (mapBlocks.Count > 0)
+                remoteClient.SendMapBlock(mapBlocks, flag & 0xffff);
 
             return mapBlocks;
         }
