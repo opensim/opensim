@@ -999,7 +999,7 @@ return;
                 MapBlockData block = new MapBlockData();
                 MapBlockFromGridRegion(block, r, flag);
                 mapBlocks.Add(block);
-                if (mapBlocks.Count >= 20)
+                if (mapBlocks.Count >= 10)
                 {
                     remoteClient.SendMapBlock(mapBlocks, flag & 0xffff);
                     mapBlocks.Clear();
