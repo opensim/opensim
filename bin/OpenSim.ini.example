@@ -304,16 +304,30 @@
   	; If these values are uncommented then they will be used to create a default estate as necessary.
     ; New regions will be automatically assigned to that default estate.
 	
+    ;# {DefaultEstateName} {} {Default name for estate?} {} My Estate
+    ;; Name for the default estate
     ; DefaultEstateName = My Estate
-    ; DefaultEstateOwnerName = FirstName LastName
-	
-    ; The following parameters will only be used on a standalone system to create an estate owner that does not already exist
 
-    ; If DefaultEstateOwnerUUID is left at UUID.Zero (as below) then a random UUID will be assigned.
-    ; This is normally what you want
+    ;# {DefaultEstateOwnerName} {} {Default estate owner name?} {} FirstName LastName
+    ;; Name for default estate owner
+    ; DefaultEstateOwnerName = FirstName LastName
+
+
+    ; ** Standalone Estate Settings **	
+    ; The following parameters will only be used on a standalone system to 
+    ; create an estate owner that does not already exist
+
+    ;# {DefaultEstateOwnerUUID} {} {Default estate owner UUID?} {} 00000000-0000-0000-0000-000000000000
+    ;; If DefaultEstateOwnerUUID is left at UUID.Zero (as below) then a random 
+    ;; UUID will be assigned. This is normally what you want 
     ; DefaultEstateOwnerUUID = 00000000-0000-0000-0000-000000000000
 
+    ;# {DefaultEstateOwnerEMail} {} {Default estate owner email?} {}
+    ;; Email address for the default estate owner
     ; DefaultEstateOwnerEMail = owner@domain.com
+
+    ;# {DefaultEstateOwnerPassword} {} {Default estate owner password} {}
+    ;; Password for the default estate owner
     ; DefaultEstateOwnerPassword = password
 
 
