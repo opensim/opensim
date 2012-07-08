@@ -553,7 +553,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// </summary>
         public void process()
         {
-            const int MAX_ASYNC_REQUESTS = 5;
+            const int MAX_ASYNC_REQUESTS = 20;
             try
             {
                 while (true)
@@ -589,11 +589,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                         if (dorequest &&  !m_blacklistedregions.ContainsKey(st.regionhandle))
                         {
-//                            while (nAsyncRequests >= MAX_ASYNC_REQUESTS) // hit the break
-//                                Thread.Sleep(500);
+                            while (nAsyncRequests >= MAX_ASYNC_REQUESTS) // hit the break
+                                Thread.Sleep(100);
 
                             Interlocked.Increment(ref nAsyncRequests);
-                            RequestMapItemsAsync(st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
+                            Util.FireAndForget(x =>
+                            {
+                                RequestMapItemsAsync(st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
+                            });
                         }
                     }
 
@@ -766,7 +769,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             OSDMap responseMap = new OSDMap();
             responseMap["requestID"] = OSD.FromUUID(requestID);
 
-return;
             Stream os = null;
             try
             { // send the Post
