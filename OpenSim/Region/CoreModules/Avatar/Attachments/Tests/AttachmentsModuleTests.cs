@@ -118,7 +118,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             Scene scene = CreateDefaultTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
-            ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1.PrincipalID);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1);
 
             string attName = "att";
 
@@ -152,6 +152,36 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
 
 //            TestHelpers.DisableLogging();
+        }
+
+        /// <summary>
+        /// Test that we do not attempt to attach an in-world object that someone else is sitting on.
+        /// </summary>
+        [Test]
+        public void TestAddSatOnAttachmentFromGround()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            Scene scene = CreateDefaultTestScene();
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1);
+
+            string attName = "att";
+
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, attName, sp.UUID);
+
+            UserAccount ua2 = UserAccountHelpers.CreateUserWithInventory(scene, 0x2);
+            ScenePresence sp2 = SceneHelpers.AddScenePresence(scene, ua2);
+
+            // Put avatar within 10m of the prim so that sit doesn't fail.
+            sp2.AbsolutePosition = new Vector3(0, 0, 0);
+            sp2.HandleAgentRequestSit(sp2.ControllingClient, sp2.UUID, so.UUID, Vector3.Zero);
+
+            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false);
+
+            Assert.That(sp.HasAttachments(), Is.False);
+            Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
         }
 
         [Test]

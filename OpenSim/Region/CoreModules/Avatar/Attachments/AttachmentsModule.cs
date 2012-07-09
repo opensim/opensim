@@ -251,6 +251,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 //                m_log.DebugFormat(
 //                    "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
 //                    group.Name, group.LocalId, sp.Name, attachmentPt, silent);
+
+                if (group.GetSittingAvatarsCount() != 0)
+                {
+//                    m_log.WarnFormat(
+//                        "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since {4} avatars are still sitting on it",
+//                        group.Name, group.LocalId, sp.Name, attachmentPt, group.GetSittingAvatarsCount());
+    
+                    return false;
+                }
     
                 if (sp.GetAttachments(attachmentPt).Contains(group))
                 {

@@ -3401,6 +3401,20 @@ namespace OpenSim.Region.Framework.Scenes
             return count;
         }
 
+        /// <summary>
+        /// Gets the number of sitting avatars.
+        /// </summary>
+        /// <remarks>This applies to all sitting avatars whether there is a sit target set or not.</remarks>
+        /// <returns></returns>
+        public int GetSittingAvatarsCount()
+        {
+             int count = 0;
+
+             Array.ForEach<SceneObjectPart>(m_parts.GetArray(), p => count += p.GetSittingAvatarsCount());
+
+             return count;
+        }
+
         public override string ToString()
         {
             return String.Format("{0} {1} ({2})", Name, UUID, AbsolutePosition);
