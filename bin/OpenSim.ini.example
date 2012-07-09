@@ -364,10 +364,14 @@
     ; SMTP_SERVER_PASSWORD = ""
 
 [Network]
+
+    ;# {ConsoleUser} {} {User name for console account} {}
     ;; Configure the remote console user here. This will not actually be used
     ;; unless you use -console=rest at startup.
     ; ConsoleUser = "Test"
+    ;# {ConsolePass} {} {Password for console account} {}
     ; ConsolePass = "secret"
+    ;# {console_port} {} {Port for console connections} {} 0
     ; console_port = 0
 
     ;# {http_listener_port} {} {TCP Port for this simulator to listen on? (This must be unique to the simulator!)} {} 9000
@@ -431,11 +435,14 @@
 
 
 [SimulatorFeatures]
+
+    ;# {MapImageServerURI} {} {URL for the map server} {}
     ; Experimental new information sent in SimulatorFeatures cap for Kokua viewers 
     ; meant to override the MapImage and search server url given at login, and varying 
     ; on a sim-basis.
     ; Viewers that don't understand it, will ignore it
     ;MapImageServerURI = "http://127.0.0.1:9000/"
+    ;# {SearchServerURI} {} {URL of the search server} {}
     ;SearchServerURI = "http://127.0.0.1:9000/"
 
 
@@ -629,6 +636,7 @@
 
 
 [Economy]
+    ;# {SellEnabled} {} {Enable selling for 0?} {true false} true
     ; The default economy module only implements just enough to allow free actions (transfer of objects, etc).
     ; There is no intention to implement anything further in core OpenSimulator.
     ; This functionality has to be provided by third party modules.
@@ -636,9 +644,11 @@
     ;; Enables selling things for $0.  Default is true.
     ; SellEnabled = true
 
+    ;# {PriceUpload} {} {Price for uploading?} {} 0
     ;; Money Unit fee to upload textures, animations etc.  Default is 0.
     ; PriceUpload = 0
 
+    ;# {PriceGroupCreate} {} {Fee for group creation} {} 0
     ;; Money Unit fee to create groups.  Default is 0.
     ; PriceGroupCreate = 0
 
@@ -748,32 +758,41 @@
     ; If both Allow_ and Creators_ are given, effective permissions
     ; are the union of the two.
 
+    ;# {EventLimit} {} {Amount of time a script can spend in an event handler} {} 30
     ;; Time a script can spend in an event handler before it is interrupted
     ; EventLimit = 30
 
+    ;# {KillTimedOutScripts} {} {Kill script in case of event time overruns?} {true false} false
     ;; If a script overruns it's event limit, kill the script?
     ; KillTimedOutScripts = false
 
+    ;# {ScriptDelayFactor} {} {Multiplier for scripting delays} {} 1.0
     ;; Sets the multiplier for the scripting delays
     ; ScriptDelayFactor = 1.0
 
+    ;# {ScriptDistanceLimitFactor} {} {Multiplier for 10.0m distance limits?} {}
     ;; The factor the 10 m distances limits are multiplied by
     ; ScriptDistanceLimitFactor = 1.0
 
+    ;# {NotecardLineReadCharsMax} {} {Maximum length of notecard line?} {} 255
     ;; Maximum length of notecard line read
     ;; Increasing this to large values potentially opens
     ;; up the system to malicious scripters
     ; NotecardLineReadCharsMax = 255
 
+    ;# {SensorMaxRange} {} {Sensor range} {} 96.0
     ;; Sensor settings
     ; SensorMaxRange = 96.0
+    ;# {SensorMaxResults} {} {Max sensor results returned?} {}
     ; SensorMaxResults = 16
 
+    ;# {DisableUndergroundMovement} {} {Disable underground movement of prims} {true false} true
     ;; Disable underground movement of prims (default true); set to
     ;; false to allow script controlled underground positioning of
     ;; prims
     ; DisableUndergroundMovement = true
 
+    ;# {ScriptEnginesPath} {} {Path to script assemblies} {} ScriptEngines
     ;; Path to script engine assemblies
     ;; Default is ./bin/ScriptEngines
     ; ScriptEnginesPath = "ScriptEngines"
