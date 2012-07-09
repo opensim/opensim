@@ -1312,7 +1312,7 @@ namespace OdeAPI
         public static extern void GeomTriMeshSetRayCallback(IntPtr g, TriRayCallback callback);
 
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGetConfiguration"), SuppressUnmanagedCodeSecurity]
-        public static extern string GetConfiguration(string str);
+        public static extern string GetConfiguration();
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dHashSpaceCreate"), SuppressUnmanagedCodeSecurity]
 		public static extern IntPtr HashSpaceCreate(IntPtr space);
