@@ -2219,6 +2219,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (part != null)
             {
+                if (part.ParentGroup.IsAttachment)
+                {
+                    m_log.WarnFormat(
+                        "[SCENE PRESENCE]: Avatar {0} tried to sit on part {1} from object {2} in {3} but this is an attachment for avatar id {4}",
+                        Name, part.Name, part.ParentGroup.Name, Scene.Name, part.ParentGroup.AttachedAvatar);
+
+                    return;
+                }
+
                 if (part.SitTargetAvatar == UUID)
                 {
                     Vector3 sitTargetPos = part.SitTargetPosition;
