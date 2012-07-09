@@ -409,7 +409,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             mesher = meshmerizer;
             m_config = config;
 
-            string ode_config = d.GetConfiguration("ODE");
+            string ode_config = d.GetConfiguration();
             if (ode_config != null && ode_config != "")
             {
                 m_log.WarnFormat("ODE configuration: {0}", ode_config);
