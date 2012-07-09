@@ -175,7 +175,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         const d.ContactFlags comumContactFlags = d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM |d.ContactFlags.Approx1 | d.ContactFlags.Bounce;
         const float MaxERP = 0.8f;
-        const float minERP = 0.1f;
+        const float minERP = 0.2f;
         const float comumContactCFM = 0.0001f;
         
         float frictionMovementMult = 0.8f;
@@ -408,7 +408,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //            checkThread();
             mesher = meshmerizer;
             m_config = config;
-/*
+
             string ode_config = d.GetConfiguration("ODE");
             if (ode_config != null && ode_config != "")
             {
@@ -419,7 +419,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     OdeUbitLib = true;
                 }
             }
-*/
+
             /*
                         if (region != null)
                         {
@@ -921,6 +921,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             cfm = 0.0001f / cfm;
                             if (cfm > 0.01f)
                                 cfm = 0.01f;
+                            else if (cfm < 0.0001f)
+                                cfm = 0.0001f;
 
                             if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
                                 mu *= frictionMovementMult;
@@ -947,6 +949,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     cfm = 0.0001f / cfm;
                                     if (cfm > 0.01f)
                                         cfm = 0.01f;
+                                    else if (cfm < 0.0001f)
+                                        cfm = 0.0001f;
 
                                     if (d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
                                     {
