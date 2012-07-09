@@ -3190,12 +3190,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.High, "osForceAttachToAvatarFromInventory");
 
+            m_host.AddScriptLPS(1);
+
+            ForceAttachToAvatarFromInventory(m_host.OwnerID, itemName, attachmentPoint);
+        }
+
+        public void osForceAttachToOtherAvatarFromInventory(string rawAvatarId, string itemName, int attachmentPoint)
+        {
+            CheckThreatLevel(ThreatLevel.Severe, "osForceAttachToOtherAvatarFromInventory");
+
+            m_host.AddScriptLPS(1);
+
+            UUID avatarId;
+
+            if (!UUID.TryParse(rawAvatarId, out avatarId))
+                return;
+
+            ForceAttachToAvatarFromInventory(avatarId, itemName, attachmentPoint);
+        }
+
+        public void ForceAttachToAvatarFromInventory(UUID avatarId, string itemName, int attachmentPoint)
+        {
             IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
 
             if (attachmentsModule == null)
                 return;
-
-            m_host.AddScriptLPS(1);
 
             InitLSL();
 
@@ -3219,7 +3238,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            ScenePresence sp = World.GetScenePresence(m_host.OwnerID);
+            ScenePresence sp = World.GetScenePresence(avatarId);
 
             if (sp == null)
                 return;
