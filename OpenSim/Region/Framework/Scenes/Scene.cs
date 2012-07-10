@@ -2183,13 +2183,30 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Synchronously delete the given object from the scene.
         /// </summary>
+        /// <remarks>
+        /// Scripts are also removed.
+        /// </remarks>
         /// <param name="group">Object Id</param>
         /// <param name="silent">Suppress broadcasting changes to other clients.</param>
         public void DeleteSceneObject(SceneObjectGroup group, bool silent)
+        {
+            DeleteSceneObject(group, silent, true);
+        }
+
+        /// <summary>
+        /// Synchronously delete the given object from the scene.
+        /// </summary>
+        /// <param name="group">Object Id</param>
+        /// <param name="silent">Suppress broadcasting changes to other clients.</param>
+        /// <param name="removeScripts">If true, then scripts are removed.  If false, then they are only stopped.</para>
+        public void DeleteSceneObject(SceneObjectGroup group, bool silent, bool removeScripts)
         {            
 //            m_log.DebugFormat("[SCENE]: Deleting scene object {0} {1}", group.Name, group.UUID);
 
-            group.RemoveScriptInstances(true);
+            if (removeScripts)
+                group.RemoveScriptInstances(true);
+            else
+                group.StopScriptInstances();
 
             SceneObjectPart[] partList = group.Parts;
 

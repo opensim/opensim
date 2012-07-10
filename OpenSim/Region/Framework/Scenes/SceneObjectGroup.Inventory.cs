@@ -79,7 +79,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Stop the scripts contained in all the prims in this group
+        /// Stop and remove the scripts contained in all the prims in this group
         /// </summary>
         /// <param name="sceneObjectBeingDeleted">
         /// Should be true if these scripts are being removed because the scene
@@ -90,6 +90,14 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
                 parts[i].Inventory.RemoveScriptInstances(sceneObjectBeingDeleted);
+        }
+
+        /// <summary>
+        /// Stop the scripts contained in all the prims in this group
+        /// </summary>
+        public void StopScriptInstances()
+        {
+            Array.ForEach<SceneObjectPart>(m_parts.GetArray(), p => p.Inventory.StopScriptInstances());
         }
 
         /// <summary>

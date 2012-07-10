@@ -211,16 +211,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             lock (sp.AttachmentsSyncLock)
             {
-                foreach (SceneObjectGroup grp in sp.GetAttachments())
+                foreach (SceneObjectGroup so in sp.GetAttachments())
                 {
-                    grp.Scene.DeleteSceneObject(grp, false);
+                    // We can only remove the script instances from the script engine after we've retrieved their xml state
+                    // when we update the attachment item.
+                    m_scene.DeleteSceneObject(so, false, false);
     
                     if (saveChanged || saveAllScripted)
                     {
-                        grp.IsAttachment = false;
-                        grp.AbsolutePosition = grp.RootPart.AttachedPos;
-                        UpdateKnownItem(sp, grp, saveAllScripted);
+                        so.IsAttachment = false;
+                        so.AbsolutePosition = so.RootPart.AttachedPos;
+                        UpdateKnownItem(sp, so, saveAllScripted);
                     }
+
+                    so.RemoveScriptInstances(true);
                 }
     
                 sp.ClearAttachments();
@@ -682,7 +686,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             m_scene.EventManager.TriggerOnAttach(so.LocalId, so.FromItemID, UUID.Zero);
             sp.RemoveAttachment(so);
-            m_scene.DeleteSceneObject(so, false);
+
+            // We can only remove the script instances from the script engine after we've retrieved their xml state
+            // when we update the attachment item.
+            m_scene.DeleteSceneObject(so, false, false);
 
             // Prepare sog for storage
             so.AttachedAvatar = UUID.Zero;
@@ -691,6 +698,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             so.AbsolutePosition = so.RootPart.AttachedPos;
 
             UpdateKnownItem(sp, so, true);
+            so.RemoveScriptInstances(true);
         }
 
         private SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
