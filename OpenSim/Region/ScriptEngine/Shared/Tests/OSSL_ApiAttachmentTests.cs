@@ -179,7 +179,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         public void TestOsForceAttachToOtherAvatarFromInventory()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             string taskInvObjItemName = "sphere";
             UUID taskInvObjItemId = UUID.Parse("00000000-0000-0000-0000-100000000000");
