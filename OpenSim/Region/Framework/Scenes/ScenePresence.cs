@@ -1895,7 +1895,7 @@ namespace OpenSim.Region.Framework.Scenes
                    )
                    ));
 
-            m_log.DebugFormat("[SCENE PRESENCE]: {0} {1}", SitTargetisSet, SitTargetUnOccupied);
+//            m_log.DebugFormat("[SCENE PRESENCE]: {0} {1}", SitTargetisSet, SitTargetUnOccupied);
 
             if (PhysicsActor != null)
                 m_sitAvatarHeight = PhysicsActor.Size.Z;
