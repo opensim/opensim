@@ -4556,10 +4556,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// Get a copy of the list of sitting avatars.
         /// </summary>
         /// <remarks>This applies to all sitting avatars whether there is a sit target set or not.</remarks>
-        /// <returns></returns>
+        /// <returns>A hashset of the sitting avatars.  Returns null if there are no sitting avatars.</returns>
         public HashSet<UUID> GetSittingAvatars()
         {
-            return new HashSet<UUID>(m_sittingAvatars);
+            HashSet<UUID> sittingAvatars = m_sittingAvatars;
+
+            if (sittingAvatars == null)
+            {
+                return null;
+            }
+            else
+            {
+                lock (sittingAvatars)
+                    return new HashSet<UUID>(sittingAvatars);
+            }
         }
 
         /// <summary>
