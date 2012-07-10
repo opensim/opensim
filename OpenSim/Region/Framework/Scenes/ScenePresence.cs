@@ -1799,10 +1799,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                // Reset sit target.
-                if (part.SitTargetAvatar == UUID)
-                    part.SitTargetAvatar = UUID.Zero;
-
                 ParentPosition = part.GetWorldPosition();
                 ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
 
@@ -1884,7 +1880,6 @@ namespace OpenSim.Region.Framework.Scenes
 //                        "[SCENE PRESENCE]: Sitting {0} on {1} {2} because sit target is set and unoccupied",
 //                        Name, part.Name, part.LocalId);
 
-                    part.SitTargetAvatar = UUID;
                     offset = part.SitTargetPosition;
                     sitOrientation = part.SitTargetOrientation;
                     canSit = true;
