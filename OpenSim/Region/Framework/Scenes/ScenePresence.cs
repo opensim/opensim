@@ -1846,7 +1846,7 @@ namespace OpenSim.Region.Framework.Scenes
             //look for prims with explicit sit targets that are available
             foreach (SceneObjectPart part in partArray)
             {
-                if (part.IsSitTargetSet && !part.IsSitTargetOccupied)
+                if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
                 {
                     //switch the target to this prim
                     return part;
@@ -1878,7 +1878,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (part.IsSitTargetSet)
             {
-                if (!part.IsSitTargetOccupied)
+                if (part.SitTargetAvatar == UUID.Zero)
                 {
 //                    m_log.DebugFormat(
 //                        "[SCENE PRESENCE]: Sitting {0} on {1} {2} because sit target is set and unoccupied",
