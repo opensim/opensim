@@ -136,6 +136,11 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Is the sit target of this part occupied?
+        /// </summary>
+        public bool IsSitTargetOccupied { get { return SitTargetAvatar != UUID.Zero; } }
+
+        /// <summary>
         /// Is an explicit sit target set for this part?
         /// </summary>
         public bool IsSitTargetSet
@@ -736,7 +741,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 
                 // TODO if we decide to do sitting in a more SL compatible way (multiple avatars per prim), this has to be fixed, too
-                if (SitTargetAvatar != UUID.Zero)
+                if (IsSitTargetOccupied)
                 {
                     ScenePresence avatar;
                     if (ParentGroup.Scene.TryGetScenePresence(SitTargetAvatar, out avatar))
