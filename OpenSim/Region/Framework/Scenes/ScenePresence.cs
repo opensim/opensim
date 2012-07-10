@@ -1857,10 +1857,8 @@ namespace OpenSim.Region.Framework.Scenes
             return targetPart;
         }
 
-        private void SendSitResponse(UUID targetID, Vector3 offset, Quaternion pSitOrientation)
+        private void SendSitResponse(UUID targetID, Vector3 offset, Quaternion sitOrientation)
         {
-            Vector3 pos = new Vector3();
-            Quaternion sitOrientation = pSitOrientation;
             Vector3 cameraEyeOffset = Vector3.Zero;
             Vector3 cameraAtOffset = Vector3.Zero;
             bool forceMouselook = false;
@@ -1876,7 +1874,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_sitAvatarHeight = PhysicsActor.Size.Z;
 
             bool canSit = false;
-            pos = part.AbsolutePosition + offset;
+            Vector3 pos = part.AbsolutePosition + offset;
 
             if (part.IsSitTargetSet)
             {
