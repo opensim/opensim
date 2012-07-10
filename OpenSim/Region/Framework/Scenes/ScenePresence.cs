@@ -1872,18 +1872,15 @@ namespace OpenSim.Region.Framework.Scenes
             bool canSit = false;
             Vector3 pos = part.AbsolutePosition + offset;
 
-            if (part.IsSitTargetSet)
+            if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
             {
-                if (part.SitTargetAvatar == UUID.Zero)
-                {
 //                    m_log.DebugFormat(
 //                        "[SCENE PRESENCE]: Sitting {0} on {1} {2} because sit target is set and unoccupied",
 //                        Name, part.Name, part.LocalId);
 
-                    offset = part.SitTargetPosition;
-                    sitOrientation = part.SitTargetOrientation;
-                    canSit = true;
-                }
+                offset = part.SitTargetPosition;
+                sitOrientation = part.SitTargetOrientation;
+                canSit = true;
             }
             else
             {
