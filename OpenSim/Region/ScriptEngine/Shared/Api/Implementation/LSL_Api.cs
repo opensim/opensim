@@ -2597,12 +2597,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Vector(m_host.Acceleration.X, m_host.Acceleration.Y, m_host.Acceleration.Z);
         }
 
-
         public void llSetAngularVelocity(LSL_Vector avel, int local)
         {
             m_host.AddScriptLPS(1);
-            // Still not done !!!!
-//            m_host.SetAngularVelocity(new Vector3((float)avel.x, (float)avel.y, (float)avel.z), local != 0);
+            m_host.SetAngularVelocity(new Vector3((float)avel.x, (float)avel.y, (float)avel.z), local != 0);
         }
 
         public LSL_Vector llGetOmega()
@@ -3806,6 +3804,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void TargetOmega(SceneObjectPart part, LSL_Vector axis, double spinrate, double gain)
         {
+            spinrate *= gain;
             part.UpdateAngularVelocity(new Vector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate)));
          }
 

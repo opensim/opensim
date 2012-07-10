@@ -175,7 +175,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         const d.ContactFlags comumContactFlags = d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM |d.ContactFlags.Approx1 | d.ContactFlags.Bounce;
         const float MaxERP = 0.8f;
-        const float minERP = 0.1f;
+        const float minERP = 0.2f;
         const float comumContactCFM = 0.0001f;
         
         float frictionMovementMult = 0.8f;
@@ -268,7 +268,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public ContactData[] m_materialContactsData = new ContactData[8];
 
-        private readonly DoubleDictionary<Vector3, IntPtr, IntPtr> RegionTerrain = new DoubleDictionary<Vector3, IntPtr, IntPtr>();
+        private readonly Dictionary<Vector3, IntPtr> RegionTerrain = new Dictionary<Vector3, IntPtr>();
         private readonly Dictionary<IntPtr, float[]> TerrainHeightFieldHeights = new Dictionary<IntPtr, float[]>();
         private readonly Dictionary<IntPtr, GCHandle> TerrainHeightFieldHeightsHandlers = new Dictionary<IntPtr, GCHandle>();
        
@@ -408,8 +408,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 //            checkThread();
             mesher = meshmerizer;
             m_config = config;
-/*
-            string ode_config = d.GetConfiguration("ODE");
+
+            string ode_config = d.GetConfiguration();
             if (ode_config != null && ode_config != "")
             {
                 m_log.WarnFormat("ODE configuration: {0}", ode_config);
@@ -419,7 +419,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     OdeUbitLib = true;
                 }
             }
-*/
+
             /*
                         if (region != null)
                         {
@@ -921,6 +921,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             cfm = 0.0001f / cfm;
                             if (cfm > 0.01f)
                                 cfm = 0.01f;
+                            else if (cfm < 0.0001f)
+                                cfm = 0.0001f;
 
                             if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
                                 mu *= frictionMovementMult;
@@ -947,6 +949,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     cfm = 0.0001f / cfm;
                                     if (cfm > 0.01f)
                                         cfm = 0.01f;
+                                    else if (cfm < 0.0001f)
+                                        cfm = 0.0001f;
 
                                     if (d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
                                     {
@@ -1892,18 +1896,22 @@ namespace OpenSim.Region.Physics.OdePlugin
             lock (SimulationLock)
                 lock(OdeLock)
             {
+                if (world == IntPtr.Zero)
+                    return 0;
+
                 // adjust number of iterations per step
-                try
-                {
+
+//                try
+//                {
                     d.WorldSetQuickStepNumIterations(world, curphysiteractions);
-                }
+/*                }
                 catch (StackOverflowException)
                 {
                     m_log.Error("[PHYSICS]: The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
 //                    ode.drelease(world);
                     base.TriggerPhysicsBasedRestart();
                 }
-
+*/
                 while (step_time > HalfOdeStep && nodeframes < 10) //limit number of steps so we don't say here for ever
                 {
                     try
@@ -2383,11 +2391,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(GroundGeom, ref R);
                 d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f, 0);
-                RegionTerrain.Add(pOffset, GroundGeom, GroundGeom);
-//                TerrainHeightFieldHeights.Add(GroundGeom, ODElandMap);
+                RegionTerrain.Add(pOffset, GroundGeom);
                 TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
-                TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
-               
+                TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);             
             }
         }
 
@@ -2486,8 +2492,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 geom_name_map[GroundGeom] = "Terrain";
 
                 d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f, 0);
-                RegionTerrain.Add(pOffset, GroundGeom, GroundGeom);
-                //                TerrainHeightFieldHeights.Add(GroundGeom, ODElandMap);
+                RegionTerrain.Add(pOffset, GroundGeom);
                 TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
                 TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
             }
@@ -2649,18 +2654,41 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void Dispose()
         {
-            m_rayCastManager.Dispose();
-            m_rayCastManager = null;
-
             lock (OdeLock)
             {
+                m_rayCastManager.Dispose();
+                m_rayCastManager = null;
+
                 lock (_prims)
                 {
+                    ChangesQueue.Clear();
                     foreach (OdePrim prm in _prims)
                     {
-                        RemovePrim(prm);
+                        prm.DoAChange(changes.Remove, null);
+                        _collisionEventPrim.Remove(prm);
                     }
+                    _prims.Clear();
                 }
+
+                OdeCharacter[] chtorem;
+                lock (_characters)
+                {
+                    chtorem = new OdeCharacter[_characters.Count];
+                    _characters.CopyTo(chtorem);
+                }
+
+                ChangesQueue.Clear();
+                foreach (OdeCharacter ch in chtorem)
+                    ch.DoAChange(changes.Remove, null);
+
+                               
+                foreach (IntPtr GroundGeom in RegionTerrain.Values)
+                {
+                    if (GroundGeom != IntPtr.Zero)
+                        d.GeomDestroy(GroundGeom);
+                }
+
+                RegionTerrain.Clear();
 
                 if (TerrainHeightFieldHeightsHandlers.Count > 0)
                 {
@@ -2670,6 +2698,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                             gch.Free();
                     }
                 }
+
+                TerrainHeightFieldHeightsHandlers.Clear();
+                TerrainHeightFieldHeights.Clear();
 
                 if (WaterGeom != IntPtr.Zero)
                 {
@@ -2691,6 +2722,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
                 d.WorldDestroy(world);
+                world = IntPtr.Zero;
                 //d.CloseODE();
             }
         }

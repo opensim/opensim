@@ -959,7 +959,15 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 return m_angularVelocity;
             }
-            set { m_angularVelocity = value; }
+            set
+            {
+                m_angularVelocity = value;
+                PhysicsActor actor = PhysActor;
+                if ((actor != null) && actor.IsPhysical && ParentGroup.RootPart == this && VehicleType == (int)Vehicle.TYPE_NONE)
+                {
+                    actor.RotationalVelocity = m_angularVelocity;
+                }                       
+            }
         }
 
         /// <summary></summary>
@@ -1845,7 +1853,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-//      SetVelocity for LSL llSetVelocity..  may need revision if having other uses in future
+        //      SetVelocity for LSL llSetVelocity..  may need revision if having other uses in future
         public void SetVelocity(Vector3 pVel, bool localGlobalTF)
         {
             if (ParentGroup == null || ParentGroup.IsDeleted)
@@ -1870,6 +1878,33 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             ParentGroup.Velocity = pVel;
+        }
+
+        //      SetAngularVelocity for LSL llSetAngularVelocity..  may need revision if having other uses in future
+        public void SetAngularVelocity(Vector3 pAngVel, bool localGlobalTF)
+        {
+            if (ParentGroup == null || ParentGroup.IsDeleted)
+                return;
+
+            if (ParentGroup.IsAttachment)
+                return;                         // don't work on attachments (for now ??)
+
+            SceneObjectPart root = ParentGroup.RootPart;
+
+            if (root.VehicleType != (int)Vehicle.TYPE_NONE) // don't mess with vehicles
+                return;
+
+            PhysicsActor pa = root.PhysActor;
+
+            if (pa == null || !pa.IsPhysical)
+                return;
+
+            if (localGlobalTF)
+            {
+                pAngVel = pAngVel * GetWorldRotation();
+            }
+
+            root.AngularVelocity = pAngVel;
         }
         
 
