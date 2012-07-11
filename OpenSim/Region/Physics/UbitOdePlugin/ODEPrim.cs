@@ -943,6 +943,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 CollisionEventsThisFrame = null;
             }
             m_eventsubscription = 0;
+            // for now still done on odescene
+//            _parent_scene.RemoveCollisionEventReporting(this);
         }
 
         public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)

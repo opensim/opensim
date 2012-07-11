@@ -740,6 +740,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (Shell != IntPtr.Zero)
             {
                 _parent_scene.geom_name_map.Remove(Shell);
+                _parent_scene.actor_name_map.Remove(Shell);
                 _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
                 d.GeomDestroy(Shell);
                 Shell = IntPtr.Zero;
@@ -1188,6 +1189,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
+                    _parent_scene.RemoveCollisionEventReporting(this);
                     _parent_scene.RemoveCharacter(this);
                     // destroy avatar capsule and related ODE data
                     AvatarGeomAndBodyDestroy();
