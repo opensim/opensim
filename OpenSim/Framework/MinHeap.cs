@@ -285,6 +285,7 @@ namespace OpenSim.Framework
             if (--this.size > 0 && index != this.size)
             {
                 Set(this.items[this.size], index);
+                this.items[this.size].Clear();
                 if (!BubbleUp(index))
                     BubbleDown(index);
             }
