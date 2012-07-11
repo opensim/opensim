@@ -65,6 +65,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
 
             IConfig xEngineConfig = configSource.AddConfig("XEngine");
             xEngineConfig.Set("Enabled", "true");
+            xEngineConfig.Set("StartDelay", "0");
 
             // These tests will not run with AppDomainLoading = true, at least on mono.  For unknown reasons, the call
             // to AssemblyResolver.OnAssemblyResolve fails.

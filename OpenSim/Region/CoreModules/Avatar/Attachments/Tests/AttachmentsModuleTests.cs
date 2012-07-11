@@ -135,6 +135,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             IConfig xEngineConfig = config.AddConfig("XEngine");
             xEngineConfig.Set("Enabled", "true");
+            xEngineConfig.Set("StartDelay", "0");
 
             // These tests will not run with AppDomainLoading = true, at least on mono.  For unknown reasons, the call
             // to AssemblyResolver.OnAssemblyResolve fails.
@@ -371,7 +372,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         public void TestDetachScriptedAttachmentToInventory()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             Scene scene = CreateScriptingEnabledTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
