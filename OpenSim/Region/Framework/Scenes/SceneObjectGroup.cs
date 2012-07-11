@@ -1674,16 +1674,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             return Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
         }
-
-        /// <summary>
-        /// Added as a way for the storage provider to reset the scene,
-        /// most likely a better way to do this sort of thing but for now...
-        /// </summary>
-        /// <param name="scene"></param>
-        public void SetScene(Scene scene)
-        {
-            m_scene = scene;
-        }
         
         /// <summary>
         /// Set a part to act as the root part for this scene object
@@ -4322,6 +4312,20 @@ namespace OpenSim.Region.Framework.Scenes
                 count += parts[i].Inventory.RunningScriptCount();
 
             return count;
+        }
+
+        /// <summary>
+        /// Gets the number of sitting avatars.
+        /// </summary>
+        /// <remarks>This applies to all sitting avatars whether there is a sit target set or not.</remarks>
+        /// <returns></returns>
+        public int GetSittingAvatarsCount()
+        {
+             int count = 0;
+
+             Array.ForEach<SceneObjectPart>(m_parts.GetArray(), p => count += p.GetSittingAvatarsCount());
+
+             return count;
         }
 
         public override string ToString()

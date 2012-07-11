@@ -158,7 +158,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             {
                 osslApi.osForceAttachToAvatarFromInventory(taskInvObjItemName, (int)attachPoint);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 exceptionCaught = true;
             }
@@ -173,6 +173,59 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             // Check appearance status
             List<AvatarAttachment> attachmentsInAppearance = sp.Appearance.GetAttachments();
             Assert.That(attachmentsInAppearance.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestOsForceAttachToOtherAvatarFromInventory()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string taskInvObjItemName = "sphere";
+            UUID taskInvObjItemId = UUID.Parse("00000000-0000-0000-0000-100000000000");
+            AttachmentPoint attachPoint = AttachmentPoint.Chin;
+
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(m_scene, "user", "one", 0x1, "pass");
+            UserAccount ua2 = UserAccountHelpers.CreateUserWithInventory(m_scene, "user", "two", 0x2, "pass");
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, ua1);
+            SceneObjectGroup inWorldObj = SceneHelpers.AddSceneObject(m_scene, "inWorldObj", ua1.PrincipalID);
+            TaskInventoryItem scriptItem = TaskInventoryHelpers.AddScript(m_scene, inWorldObj.RootPart);
+
+            new LSL_Api().Initialize(m_engine, inWorldObj.RootPart, scriptItem);
+            OSSL_Api osslApi = new OSSL_Api();
+            osslApi.Initialize(m_engine, inWorldObj.RootPart, scriptItem);
+
+            // Create an object embedded inside the first
+            TaskInventoryHelpers.AddSceneObject(m_scene, inWorldObj.RootPart, taskInvObjItemName, taskInvObjItemId, ua1.PrincipalID);
+
+            ScenePresence sp2 = SceneHelpers.AddScenePresence(m_scene, ua2);
+
+            osslApi.osForceAttachToOtherAvatarFromInventory(sp2.UUID.ToString(), taskInvObjItemName, (int)attachPoint);
+
+            // Check scene presence status
+            Assert.That(sp.HasAttachments(), Is.False);
+            List<SceneObjectGroup> attachments = sp.GetAttachments();
+            Assert.That(attachments.Count, Is.EqualTo(0));
+
+            Assert.That(sp2.HasAttachments(), Is.True);
+            List<SceneObjectGroup> attachments2 = sp2.GetAttachments();
+            Assert.That(attachments2.Count, Is.EqualTo(1));
+            SceneObjectGroup attSo = attachments2[0];
+            Assert.That(attSo.Name, Is.EqualTo(taskInvObjItemName));
+            Assert.That(attSo.OwnerID, Is.EqualTo(ua2.PrincipalID));
+            Assert.That(attSo.AttachmentPoint, Is.EqualTo((uint)attachPoint));
+            Assert.That(attSo.IsAttachment);
+            Assert.That(attSo.UsesPhysics, Is.False);
+            Assert.That(attSo.IsTemporary, Is.False);
+
+            // Check appearance status
+            List<AvatarAttachment> attachmentsInAppearance = sp.Appearance.GetAttachments();
+            Assert.That(attachmentsInAppearance.Count, Is.EqualTo(0));
+
+            List<AvatarAttachment> attachmentsInAppearance2 = sp2.Appearance.GetAttachments();
+            Assert.That(attachmentsInAppearance2.Count, Is.EqualTo(1));
+            Assert.That(sp2.Appearance.GetAttachpoint(attachmentsInAppearance2[0].ItemID), Is.EqualTo((uint)attachPoint));
         }
     }
 }

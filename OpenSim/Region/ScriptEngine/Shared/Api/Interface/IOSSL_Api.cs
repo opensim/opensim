@@ -101,17 +101,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         // Attachment commands
 
         /// <summary>
-        /// Attach the object containing this script to the avatar that owns it without checking for PERMISSION_ATTACH
+        /// Attach the object containing this script to the avatar that owns it without asking for PERMISSION_ATTACH
         /// </summary>
         /// <param name='attachment'>The attachment point.  For example, ATTACH_CHEST</param>
         void osForceAttachToAvatar(int attachment);
 
         /// <summary>
-        /// Attach the inventory item in the object containing this script to the avatar that owns it without checking for PERMISSION_ATTACH
+        /// Attach an inventory item in the object containing this script to the avatar that owns it without asking for PERMISSION_ATTACH
         /// </summary>
+        /// <remarks>
+        /// Nothing happens if the owner is not in the region.
+        /// </remarks>
         /// <param name='itemName'>Tha name of the item.  If this is not found then a warning is said to the owner</param>
         /// <param name='attachment'>The attachment point.  For example, ATTACH_CHEST</param>
         void osForceAttachToAvatarFromInventory(string itemName, int attachment);
+
+        /// <summary>
+        /// Attach an inventory item in the object containing this script to any avatar in the region without asking for PERMISSION_ATTACH
+        /// </summary>
+        /// <remarks>
+        /// Nothing happens if the avatar is not in the region.
+        /// </remarks>
+        /// <param name='rawAvatarId'>The UUID of the avatar to which to attach.  Nothing happens if this is not a UUID</para>
+        /// <param name='itemName'>The name of the item.  If this is not found then a warning is said to the owner</param>
+        /// <param name='attachment'>The attachment point.  For example, ATTACH_CHEST</param>
+        void osForceAttachToOtherAvatarFromInventory(string rawAvatarId, string itemName, int attachmentPoint);
 
         /// <summary>
         /// Detach the object containing this script from the avatar it is attached to without checking for PERMISSION_ATTACH
@@ -231,6 +245,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void        osNpcRemove(key npc);
         void        osNpcPlayAnimation(LSL_Key npc, string animation);
         void        osNpcStopAnimation(LSL_Key npc, string animation);
+        void        osNpcTouch(LSL_Key npcLSL_Key, LSL_Key object_key, LSL_Integer link_num);
         void        osNpcWhisper(key npc, int channel, string message);
 
         LSL_Key     osOwnerSaveAppearance(string notecard);

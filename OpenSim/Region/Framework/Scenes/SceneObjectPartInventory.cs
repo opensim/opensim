@@ -292,7 +292,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Stop all the scripts in this prim.
+        /// Stop and remove all the scripts in this prim.
         /// </summary>
         /// <param name="sceneObjectBeingDeleted">
         /// Should be true if these scripts are being removed because the scene
@@ -306,6 +306,14 @@ namespace OpenSim.Region.Framework.Scenes
                 RemoveScriptInstance(item.ItemID, sceneObjectBeingDeleted);
                 m_part.RemoveScriptEvents(item.ItemID);
             }
+        }
+
+        /// <summary>
+        /// Stop all the scripts in this prim.
+        /// </summary>
+        public void StopScriptInstances()
+        {
+            GetInventoryItems(InventoryType.LSL).ForEach(i => StopScriptInstance(i));
         }
 
         /// <summary>
@@ -596,7 +604,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Stop a script which is in this prim's inventory.
+        /// Stop and remove a script which is in this prim's inventory.
         /// </summary>
         /// <param name="itemId"></param>
         /// <param name="sceneObjectBeingDeleted">
@@ -615,12 +623,57 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                m_log.ErrorFormat(
+                m_log.WarnFormat(
                     "[PRIM INVENTORY]: " +
                     "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2} at {3} in {4}",
                     itemId, m_part.Name, m_part.UUID, 
                     m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
             }
+        }
+
+        /// <summary>
+        /// Stop a script which is in this prim's inventory.
+        /// </summary>
+        /// <param name="itemId"></param>
+        /// <param name="sceneObjectBeingDeleted">
+        /// Should be true if this script is being removed because the scene
+        /// object is being deleted.  This will prevent spurious updates to the client.
+        /// </param>
+        public void StopScriptInstance(UUID itemId)
+        {
+            TaskInventoryItem scriptItem;
+
+            lock (m_items)
+                m_items.TryGetValue(itemId, out scriptItem);
+
+            if (scriptItem != null)
+            {
+                StopScriptInstance(scriptItem);
+            }
+            else
+            {
+                m_log.WarnFormat(
+                    "[PRIM INVENTORY]: " +
+                    "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2} at {3} in {4}",
+                    itemId, m_part.Name, m_part.UUID, 
+                    m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
+            }
+        }
+
+        /// <summary>
+        /// Stop a script which is in this prim's inventory.
+        /// </summary>
+        /// <param name="itemId"></param>
+        /// <param name="sceneObjectBeingDeleted">
+        /// Should be true if this script is being removed because the scene
+        /// object is being deleted.  This will prevent spurious updates to the client.
+        /// </param>
+        public void StopScriptInstance(TaskInventoryItem item)
+        {
+            m_part.ParentGroup.Scene.EventManager.TriggerStopScript(m_part.LocalId, item.ItemID);
+
+            // At the moment, even stopped scripts are counted as active, which is probably wrong.
+//            m_part.ParentGroup.AddActiveScriptCount(-1);
         }
 
         /// <summary>

@@ -101,12 +101,24 @@ namespace OpenSim.Framework
         private static Dictionary<int, ThreadWatchdogInfo> m_threads;
         private static System.Timers.Timer m_watchdogTimer;
 
+        /// <summary>
+        /// Last time the watchdog thread ran.
+        /// </summary>
+        /// <remarks>
+        /// Should run every WATCHDOG_INTERVAL_MS
+        /// </remarks>
+        public static int LastWatchdogThreadTick { get; private set; }
+
         static Watchdog()
         {
             m_threads = new Dictionary<int, ThreadWatchdogInfo>();
             m_watchdogTimer = new System.Timers.Timer(WATCHDOG_INTERVAL_MS);
             m_watchdogTimer.AutoReset = false;
             m_watchdogTimer.Elapsed += WatchdogTimerElapsed;
+
+            // Set now so we don't get alerted on the first run
+            LastWatchdogThreadTick = Environment.TickCount & Int32.MaxValue;
+
             m_watchdogTimer.Start();
         }
 
@@ -264,6 +276,16 @@ namespace OpenSim.Framework
         /// <param name="e"></param>
         private static void WatchdogTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
+            int now = Environment.TickCount & Int32.MaxValue;
+            int msElapsed = now - LastWatchdogThreadTick;
+
+            if (msElapsed > WATCHDOG_INTERVAL_MS * 2)
+                m_log.WarnFormat(
+                    "[WATCHDOG]: {0} ms since Watchdog last ran.  Interval should be approximately {1} ms",
+                    msElapsed, WATCHDOG_INTERVAL_MS);
+
+            LastWatchdogThreadTick = Environment.TickCount & Int32.MaxValue;
+
             Action<ThreadWatchdogInfo> callback = OnWatchdogTimeout;
 
             if (callback != null)
@@ -272,8 +294,6 @@ namespace OpenSim.Framework
 
                 lock (m_threads)
                 {
-                    int now = Environment.TickCount;
-
                     foreach (ThreadWatchdogInfo threadInfo in m_threads.Values)
                     {
                         if (threadInfo.Thread.ThreadState == ThreadState.Stopped)

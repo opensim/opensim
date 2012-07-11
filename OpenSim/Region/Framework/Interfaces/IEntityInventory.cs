@@ -92,13 +92,18 @@ namespace OpenSim.Region.Framework.Interfaces
         void ResumeScripts();
 
         /// <summary>
-        /// Stop all the scripts in this entity.
+        /// Stop and remove all the scripts in this entity from the scene.
         /// </summary>
         /// <param name="sceneObjectBeingDeleted">
         /// Should be true if these scripts are being removed because the scene
         /// object is being deleted.  This will prevent spurious updates to the client.
         /// </param>
         void RemoveScriptInstances(bool sceneObjectBeingDeleted);
+
+        /// <summary>
+        /// Stop all the scripts in this entity.
+        /// </summary>
+        void StopScriptInstances();
 
         /// <summary>
         /// Start a script which is in this entity's inventory.
@@ -131,7 +136,7 @@ namespace OpenSim.Region.Framework.Interfaces
         ArrayList CreateScriptInstanceEr(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource);
 
         /// <summary>
-        /// Stop a script which is in this prim's inventory.
+        /// Stop and remove a script which is in this prim's inventory from the scene.
         /// </summary>
         /// <param name="itemId"></param>
         /// <param name="sceneObjectBeingDeleted">
@@ -139,6 +144,12 @@ namespace OpenSim.Region.Framework.Interfaces
         /// object is being deleted.  This will prevent spurious updates to the client.
         /// </param>
         void RemoveScriptInstance(UUID itemId, bool sceneObjectBeingDeleted);
+
+        /// <summary>
+        /// Stop a script which is in this prim's inventory.
+        /// </summary>
+        /// <param name="itemId"></param>
+        void StopScriptInstance(UUID itemId);
 
         /// <summary>
         /// Add an item to this entity's inventory.  If an item with the same name already exists, then an alternative

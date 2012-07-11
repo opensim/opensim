@@ -412,26 +412,49 @@ namespace OpenSim.Tests.Common
         /// <returns></returns>
         public static AgentCircuitData GenerateAgentData(UUID agentId)
         {
-            string firstName = "testfirstname";
+            AgentCircuitData acd = GenerateCommonAgentData();
 
-            AgentCircuitData agentData = new AgentCircuitData();
-            agentData.AgentID = agentId;
-            agentData.firstname = firstName;
-            agentData.lastname = "testlastname";
+            acd.AgentID = agentId;
+            acd.firstname = "testfirstname";
+            acd.lastname = "testlastname";
+            acd.ServiceURLs = new Dictionary<string, object>();
+
+            return acd;
+        }
+
+        /// <summary>
+        /// Generate some standard agent connection data.
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <returns></returns>
+        public static AgentCircuitData GenerateAgentData(UserAccount ua)
+        {
+            AgentCircuitData acd = GenerateCommonAgentData();
+
+            acd.AgentID = ua.PrincipalID;
+            acd.firstname = ua.FirstName;
+            acd.lastname = ua.LastName;
+            acd.ServiceURLs = ua.ServiceURLs;
+
+            return acd;
+        }
+
+        private static AgentCircuitData GenerateCommonAgentData()
+        {
+            AgentCircuitData acd = new AgentCircuitData();
 
             // XXX: Sessions must be unique, otherwise one presence can overwrite another in NullPresenceData.
-            agentData.SessionID = UUID.Random();
-            agentData.SecureSessionID = UUID.Random();
+            acd.SessionID = UUID.Random();
+            acd.SecureSessionID = UUID.Random();
 
-            agentData.circuitcode = 123;
-            agentData.BaseFolder = UUID.Zero;
-            agentData.InventoryFolder = UUID.Zero;
-            agentData.startpos = Vector3.Zero;
-            agentData.CapsPath = "http://wibble.com";
-            agentData.ServiceURLs = new Dictionary<string, object>();
-            agentData.Appearance = new AvatarAppearance();
+            acd.circuitcode = 123;
+            acd.BaseFolder = UUID.Zero;
+            acd.InventoryFolder = UUID.Zero;
+            acd.startpos = Vector3.Zero;
+            acd.CapsPath = "http://wibble.com";
+            acd.Appearance = new AvatarAppearance();
 
-            return agentData;
+            return acd;
         }
 
         /// <summary>
@@ -440,6 +463,9 @@ namespace OpenSim.Tests.Common
         /// <remarks>
         /// This can be used for tests where there is only one region or where there are multiple non-neighbour regions
         /// and teleport doesn't take place.
+        ///
+        /// XXX: Use the version of this method that takes the UserAccount structure wherever possible - this will
+        /// make the agent circuit data (e.g. first, lastname) consistent with the user account data.
         /// </remarks>
         /// <param name="scene"></param>
         /// <param name="agentId"></param>
@@ -452,6 +478,10 @@ namespace OpenSim.Tests.Common
         /// <summary>
         /// Add a root agent where the details of the agent connection (apart from the id) are unimportant for the test
         /// </summary>
+        /// <remarks>
+        /// XXX: Use the version of this method that takes the UserAccount structure wherever possible - this will
+        /// make the agent circuit data (e.g. first, lastname) consistent with the user account data.
+        /// </remarks>
         /// <param name="scene"></param>
         /// <param name="agentId"></param>
         /// <param name="sceneManager"></param>
@@ -459,6 +489,17 @@ namespace OpenSim.Tests.Common
         public static ScenePresence AddScenePresence(Scene scene, UUID agentId, SceneManager sceneManager)
         {
             return AddScenePresence(scene, GenerateAgentData(agentId), sceneManager);
+        }
+
+        /// <summary>
+        /// Add a root agent.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="ua"></param>
+        /// <returns></returns>
+        public static ScenePresence AddScenePresence(Scene scene, UserAccount ua)
+        {
+            return AddScenePresence(scene, GenerateAgentData(ua));
         }
 
         /// <summary>
@@ -601,19 +642,36 @@ namespace OpenSim.Tests.Common
                 ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
                     { Name = name, UUID = id, Scale = new Vector3(1, 1, 1) };            
         }
-        
+
         /// <summary>
         /// Create a scene object but do not add it to the scene.
         /// </summary>
         /// <remarks>
-        /// UUID always starts at 00000000-0000-0000-0000-000000000001
+        /// UUID always starts at 00000000-0000-0000-0000-000000000001.  For some purposes, (e.g. serializing direct
+        /// to another object's inventory) we do not need a scene unique ID.  So it would be better to add the
+        /// UUID when we actually add an object to a scene rather than on creation.
         /// </remarks>
         /// <param name="parts">The number of parts that should be in the scene object</param>
         /// <param name="ownerId"></param>
         /// <returns></returns>
         public static SceneObjectGroup CreateSceneObject(int parts, UUID ownerId)
         {            
-            return CreateSceneObject(parts, ownerId, "", 0x1);
+            return CreateSceneObject(parts, ownerId, 0x1);
+        }
+        
+        /// <summary>
+        /// Create a scene object but do not add it to the scene.
+        /// </summary>
+        /// <param name="parts">The number of parts that should be in the scene object</param>
+        /// <param name="ownerId"></param>
+        /// <param name="uuidTail">
+        /// The hexadecimal last part of the UUID for parts created.  A UUID of the form "00000000-0000-0000-0000-{0:XD12}"
+        /// will be given to the root part, and incremented for each part thereafter.
+        /// </param>
+        /// <returns></returns>
+        public static SceneObjectGroup CreateSceneObject(int parts, UUID ownerId, int uuidTail)
+        {            
+            return CreateSceneObject(parts, ownerId, "", uuidTail);
         }          
         
         /// <summary>

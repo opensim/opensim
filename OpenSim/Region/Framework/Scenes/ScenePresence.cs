@@ -594,6 +594,12 @@ namespace OpenSim.Region.Framework.Scenes
         private UUID m_parentUUID = UUID.Zero;
 
         /// <summary>
+        /// Are we sitting on an object?
+        /// </summary>
+        /// <remarks>A more readable way of testing presence sit status than ParentID == 0</remarks>
+        public bool IsSatOnObject { get { return ParentID != 0; } }
+
+        /// <summary>
         /// If the avatar is sitting, the prim that it's sitting on.  If not sitting then null.
         /// </summary>
         /// <remarks>
@@ -1940,10 +1946,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                // Reset sit target.
-                if (part.SitTargetAvatar == UUID)
-                    part.SitTargetAvatar = UUID.Zero;
-
                 part.ParentGroup.DeleteAvatar(UUID);
 //                ParentPosition = part.GetWorldPosition();
                 ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
@@ -1960,6 +1962,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
+
+                part.RemoveSittingAvatar(UUID);
 
                 if (part != null)
                     part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
@@ -1994,15 +1998,7 @@ namespace OpenSim.Region.Framework.Scenes
             //look for prims with explicit sit targets that are available
             foreach (SceneObjectPart part in partArray)
             {
-                // Is a sit target available?
-                Vector3 avSitOffset = part.SitTargetPosition;
-                Quaternion avSitOrientation = part.SitTargetOrientation;
-                UUID avOnTargetAlready = part.SitTargetAvatar;
-
-                bool SitTargetUnOccupied = avOnTargetAlready == UUID.Zero;
-                bool SitTargetisSet = avSitOffset != Vector3.Zero || avSitOrientation != Quaternion.Identity;
-
-                if (SitTargetisSet && SitTargetUnOccupied)
+                if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
                 {
                     //switch the target to this prim
                     return part;
@@ -2013,10 +2009,8 @@ namespace OpenSim.Region.Framework.Scenes
             return targetPart;
         }
 
-        private void SendSitResponse(UUID targetID, Vector3 offset, Quaternion pSitOrientation)
+        private void SendSitResponse(UUID targetID, Vector3 offset, Quaternion sitOrientation)
         {
-            Vector3 pos = new Vector3();
-            Quaternion sitOrientation = pSitOrientation;
             Vector3 cameraEyeOffset = Vector3.Zero;
             Vector3 cameraAtOffset = Vector3.Zero;
             bool forceMouselook = false;
@@ -2028,42 +2022,21 @@ namespace OpenSim.Region.Framework.Scenes
             // TODO: determine position to sit at based on scene geometry; don't trust offset from client
             // see http://wiki.secondlife.com/wiki/User:Andrew_Linden/Office_Hours/2007_11_06 for details on how LL does it
 
-            // Is a sit target available?
-            Vector3 avSitOffSet = part.SitTargetPosition;
-            Quaternion avSitOrientation = part.SitTargetOrientation;
-            UUID avOnTargetAlready = part.SitTargetAvatar;
-
-            bool SitTargetUnOccupied = (!(avOnTargetAlready != UUID.Zero));
-            bool SitTargetisSet =
-                (!(avSitOffSet == Vector3.Zero &&
-                   (
-                       avSitOrientation == Quaternion.Identity // Valid Zero Rotation quaternion
-                       || avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 1f && avSitOrientation.W == 0f // W-Z Mapping was invalid at one point
-                       || avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 0f && avSitOrientation.W == 0f // Invalid Quaternion
-                   )
-                   ));
-
-//                m_log.DebugFormat("[SCENE PRESENCE]: {0} {1}", SitTargetisSet, SitTargetUnOccupied);
-
             if (PhysicsActor != null)
                 m_sitAvatarHeight = PhysicsActor.Size.Z * 0.5f;
 
             bool canSit = false;
-            pos = part.AbsolutePosition + offset;
+            Vector3 pos = part.AbsolutePosition + offset;
 
-            if (SitTargetisSet)
+            if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
             {
-                if (SitTargetUnOccupied)
-                {
 //                    m_log.DebugFormat(
 //                        "[SCENE PRESENCE]: Sitting {0} on {1} {2} because sit target is set and unoccupied",
 //                        Name, part.Name, part.LocalId);
 
-                    part.SitTargetAvatar = UUID;
-                    offset = new Vector3(avSitOffSet.X, avSitOffSet.Y, avSitOffSet.Z);
-                    sitOrientation = avSitOrientation;
-                    canSit = true;
-                }
+                offset = part.SitTargetPosition;
+                sitOrientation = part.SitTargetOrientation;
+                canSit = true;
             }
             else
             {
@@ -2076,6 +2049,12 @@ namespace OpenSim.Region.Framework.Scenes
                     AbsolutePosition = pos + new Vector3(0.0f, 0.0f, m_sitAvatarHeight);
                     canSit = true;
                 }
+//                else
+//                {
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: Ignoring sit request of {0} on {1} {2} because sit target is unset and outside 10m",
+//                        Name, part.Name, part.LocalId);
+//                }
             }
 
             if (canSit)
@@ -2085,6 +2064,8 @@ namespace OpenSim.Region.Framework.Scenes
                     // We can remove the physicsActor until they stand up.
                     RemoveFromPhysicalScene();
                 }
+
+                part.AddSittingAvatar(UUID);
 
                 cameraAtOffset = part.GetCameraAtOffset();
                 cameraEyeOffset = part.GetCameraEyeOffset();
@@ -2362,6 +2343,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (part != null)
             {
+                if (part.ParentGroup.IsAttachment)
+                {
+                    m_log.WarnFormat(
+                        "[SCENE PRESENCE]: Avatar {0} tried to sit on part {1} from object {2} in {3} but this is an attachment for avatar id {4}",
+                        Name, part.Name, part.ParentGroup.Name, Scene.Name, part.ParentGroup.AttachedAvatar);
+
+                    return;
+                }
+
                 if (part.SitTargetAvatar == UUID)
                 {
                     Vector3 sitTargetPos = part.SitTargetPosition;

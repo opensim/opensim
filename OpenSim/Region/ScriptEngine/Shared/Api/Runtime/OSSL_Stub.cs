@@ -301,6 +301,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osForceAttachToAvatarFromInventory(itemName, attachmentPoint);
         }
 
+        public void osForceAttachToOtherAvatarFromInventory(string rawAvatarId, string itemName, int attachmentPoint)
+        {
+            m_OSSL_Functions.osForceAttachToOtherAvatarFromInventory(rawAvatarId, itemName, attachmentPoint);
+        }
+
         public void osForceDetachFromAvatar()
         {
             m_OSSL_Functions.osForceDetachFromAvatar();
@@ -624,6 +629,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void osNpcWhisper(key npc, int channel, string message)
         {
             m_OSSL_Functions.osNpcWhisper(npc, channel, message);
+        }
+
+        public void osNpcTouch(LSL_Key npcLSL_Key, LSL_Key object_key, LSL_Integer link_num)
+        {
+            m_OSSL_Functions.osNpcTouch(npcLSL_Key, object_key, link_num);
         }
 
         public LSL_Key osOwnerSaveAppearance(string notecard)

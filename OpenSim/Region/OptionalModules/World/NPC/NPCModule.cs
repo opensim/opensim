@@ -306,6 +306,16 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return false;
         }
 
+        public bool Touch(UUID agentID, UUID objectID)
+        {
+            lock (m_avatars)
+            {
+                if (m_avatars.ContainsKey(agentID))
+                    return m_avatars[agentID].Touch(objectID);
+                return false;
+            }
+        }
+
         public UUID GetOwner(UUID agentID)
         {
             lock (m_avatars)

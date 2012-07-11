@@ -257,16 +257,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             lock (sp.AttachmentsSyncLock)
             {
-                foreach (SceneObjectGroup grp in sp.GetAttachments())
+                foreach (SceneObjectGroup so in sp.GetAttachments())
                 {
-                    grp.Scene.DeleteSceneObject(grp, false);
+                    // We can only remove the script instances from the script engine after we've retrieved their xml state
+                    // when we update the attachment item.
+                    m_scene.DeleteSceneObject(so, false, false);
     
                     if (saveChanged || saveAllScripted)
                     {
-                        grp.IsAttachment = false;
-                        grp.AbsolutePosition = grp.RootPart.AttachedPos;
-                        UpdateKnownItem(sp, grp, saveAllScripted);
+                        so.IsAttachment = false;
+                        so.AbsolutePosition = so.RootPart.AttachedPos;
+                        UpdateKnownItem(sp, so, saveAllScripted);
                     }
+
+                    so.RemoveScriptInstances(true);
                 }
     
                 sp.ClearAttachments();
@@ -297,6 +301,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 //                m_log.DebugFormat(
 //                    "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
 //                    group.Name, group.LocalId, sp.Name, attachmentPt, silent);
+
+                if (group.GetSittingAvatarsCount() != 0)
+                {
+//                    m_log.WarnFormat(
+//                        "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since {4} avatars are still sitting on it",
+//                        group.Name, group.LocalId, sp.Name, attachmentPt, group.GetSittingAvatarsCount());
+    
+                    return false;
+                }
     
                 if (sp.GetAttachments(attachmentPt).Contains(group))
                 {
@@ -357,35 +370,37 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 group.AttachmentPoint = attachmentPt;
                 group.AbsolutePosition = attachPos;
 
-                // We also don't want to do any of the inventory operations for an NPC.
                 if (sp.PresenceType != PresenceType.Npc)
-                {
-                    // Remove any previous attachments
-                    List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
-    
-                    // At the moment we can only deal with a single attachment
-                    if (attachments.Count != 0)
-                    {
-                        if (attachments[0].FromItemID != UUID.Zero)
-                            DetachSingleAttachmentToInvInternal(sp, attachments[0]);
-                        else
-                            m_log.WarnFormat(
-                                "[ATTACHMENTS MODULE]: When detaching existing attachment {0} {1} at point {2} to make way for {3} {4} for {5}, couldn't find the associated item ID to adjust inventory attachment record!",
-                                attachments[0].Name, attachments[0].LocalId, attachmentPt, group.Name, group.LocalId, sp.Name);
-                    }
-    
-                    // Add the new attachment to inventory if we don't already have it.
-                    UUID newAttachmentItemID = group.FromItemID;
-                    if (newAttachmentItemID == UUID.Zero)
-                        newAttachmentItemID = AddSceneObjectAsNewAttachmentInInv(sp, group).ID;
-        
-                    ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group);
-                }
+                    UpdateUserInventoryWithAttachment(sp, group, attachmentPt);
     
                 AttachToAgent(sp, group, attachmentPt, attachPos, silent);
             }
 
             return true;
+        }
+
+        private void UpdateUserInventoryWithAttachment(IScenePresence sp, SceneObjectGroup group, uint attachmentPt)
+        {
+            // Remove any previous attachments
+            List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
+
+            // At the moment we can only deal with a single attachment
+            if (attachments.Count != 0)
+            {
+                if (attachments[0].FromItemID != UUID.Zero)
+                    DetachSingleAttachmentToInvInternal(sp, attachments[0]);
+                else
+                    m_log.WarnFormat(
+                        "[ATTACHMENTS MODULE]: When detaching existing attachment {0} {1} at point {2} to make way for {3} {4} for {5}, couldn't find the associated item ID to adjust inventory attachment record!",
+                        attachments[0].Name, attachments[0].LocalId, attachmentPt, group.Name, group.LocalId, sp.Name);
+            }
+
+            // Add the new attachment to inventory if we don't already have it.
+            UUID newAttachmentItemID = group.FromItemID;
+            if (newAttachmentItemID == UUID.Zero)
+                newAttachmentItemID = AddSceneObjectAsNewAttachmentInInv(sp, group).ID;
+
+            ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group);
         }
 
         public ISceneEntity RezSingleAttachmentFromInventory(IScenePresence sp, UUID itemID, uint AttachmentPt)
@@ -721,79 +736,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             //                "[ATTACHMENTS MODULE]: Called AddSceneObjectAsAttachment for object {0} {1} for {2}",
             //                grp.Name, grp.LocalId, remoteClient.Name);
 
-//            Vector3 inventoryStoredPosition = new Vector3
-//                   (((grp.AbsolutePosition.X > (int)Constants.RegionSize)
-//                         ? (float)Constants.RegionSize - 6
-//                         : grp.AbsolutePosition.X)
-//                    ,
-//                    (grp.AbsolutePosition.Y > (int)Constants.RegionSize)
-//                        ? (float)Constants.RegionSize - 6
-//                        : grp.AbsolutePosition.Y,
-//                    grp.AbsolutePosition.Z);
-//
-//            Vector3 originalPosition = grp.AbsolutePosition;
-//
-//            grp.AbsolutePosition = inventoryStoredPosition;
-
-            // If we're being called from a script, then trying to serialize that same script's state will not complete
-            // in any reasonable time period.  Therefore, we'll avoid it.  The worst that can happen is that if
-            // the client/server crashes rather than logging out normally, the attachment's scripts will resume
-            // without state on relog.  Arguably, this is what we want anyway.
-            string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, false);
-
-//            grp.AbsolutePosition = originalPosition;
-
-            AssetBase asset = m_scene.CreateAsset(
-                grp.GetPartName(grp.LocalId),
-                grp.GetPartDescription(grp.LocalId),
-                (sbyte)AssetType.Object,
-                Utils.StringToBytes(sceneObjectXml),
-                sp.UUID);
-
-            m_scene.AssetService.Store(asset);
-
-            InventoryItemBase item = new InventoryItemBase();
-            item.CreatorId = grp.RootPart.CreatorID.ToString();
-            item.CreatorData = grp.RootPart.CreatorData;
-            item.Owner = sp.UUID;
-            item.ID = UUID.Random();
-            item.AssetID = asset.FullID;
-            item.Description = asset.Description;
-            item.Name = asset.Name;
-            item.AssetType = asset.Type;
-            item.InvType = (int)InventoryType.Object;
-
-            InventoryFolderBase folder = m_scene.InventoryService.GetFolderForType(sp.UUID, AssetType.Object);
-            if (folder != null)
-                item.Folder = folder.ID;
-            else // oopsies
-                item.Folder = UUID.Zero;
-
-            // Nix the special bits we used to use for slam and the folded perms
-            uint allowablePermissionsMask = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move);
-
-            if ((sp.UUID != grp.RootPart.OwnerID) && m_scene.Permissions.PropagatePermissions())
-            {
-                item.BasePermissions = grp.RootPart.BaseMask & grp.RootPart.NextOwnerMask & allowablePermissionsMask;
-                item.CurrentPermissions = grp.RootPart.BaseMask & grp.RootPart.NextOwnerMask & allowablePermissionsMask;
-                item.NextPermissions = grp.RootPart.NextOwnerMask & allowablePermissionsMask;
-                item.EveryOnePermissions = grp.RootPart.EveryoneMask & grp.RootPart.NextOwnerMask & allowablePermissionsMask;
-                item.GroupPermissions = grp.RootPart.GroupMask & grp.RootPart.NextOwnerMask & allowablePermissionsMask;
-            }
-            else
-            {
-                item.BasePermissions = grp.RootPart.BaseMask & allowablePermissionsMask;
-                item.CurrentPermissions = grp.RootPart.OwnerMask & allowablePermissionsMask;
-                item.NextPermissions = grp.RootPart.NextOwnerMask & allowablePermissionsMask;
-                item.EveryOnePermissions = grp.RootPart.EveryoneMask & allowablePermissionsMask;
-                item.GroupPermissions = grp.RootPart.GroupMask & allowablePermissionsMask;
-            }
-            item.CreationDate = Util.UnixTimeSinceEpoch();
+            InventoryItemBase newItem
+                = m_invAccessModule.CopyToInventory(
+                    DeRezAction.TakeCopy,
+                    m_scene.InventoryService.GetFolderForType(sp.UUID, AssetType.Object).ID,
+                    new List<SceneObjectGroup> { grp },
+                    sp.ControllingClient, true)[0];
 
             // sets itemID so client can show item as 'attached' in inventory
-            grp.FromItemID = item.ID;
+            grp.FromItemID = newItem.ID;
 
-            return item;
+            return newItem;
         }
 
         private void DetachSingleAttachmentToInvInternal(IScenePresence sp, SceneObjectGroup so)
@@ -802,7 +755,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             m_scene.EventManager.TriggerOnAttach(so.LocalId, so.FromItemID, UUID.Zero);
             sp.RemoveAttachment(so);
-            m_scene.DeleteSceneObject(so, false);
+
+            // We can only remove the script instances from the script engine after we've retrieved their xml state
+            // when we update the attachment item.
+            m_scene.DeleteSceneObject(so, false, false);
 
             // Prepare sog for storage
             so.AttachedAvatar = UUID.Zero;
@@ -811,6 +767,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             so.AbsolutePosition = so.RootPart.AttachedPos;
 
             UpdateKnownItem(sp, so, true);
+            so.RemoveScriptInstances(true);
         }
 
         protected SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
@@ -920,7 +877,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             item = m_scene.InventoryService.GetItem(item);
             bool changed = sp.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID);
             if (changed && m_scene.AvatarFactory != null)
+            {
+//                m_log.DebugFormat(
+//                    "[ATTACHMENTS MODULE]: Queueing appearance save for {0}, attachment {1} point {2} in ShowAttachInUserInventory()",
+//                    sp.Name, att.Name, AttachmentPt);
+
                 m_scene.AvatarFactory.QueueAppearanceSave(sp.UUID);
+            }
         }
 
         #endregion

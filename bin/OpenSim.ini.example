@@ -61,17 +61,20 @@
     ;; Place to create a PID file
     ; PIDFile = "/tmp/my.pid"
 
+    ;# {region_info_source} {} {Where to load region from?} {filesystem web} filesystem
     ;; Determine where OpenSimulator looks for the files which tell it
     ;; which regions to server
     ;; Default is "filesystem"
     ; region_info_source = "filesystem"
     ; region_info_source = "web"
-
+    
+    ;# {regionload_regionsdir} {region_info_source} {Location of file?} {} Regions
     ;; Determines where the region XML files are stored if you are loading
     ;; these from the filesystem.
     ;; Defaults to bin/Regions in your OpenSimulator installation directory
     ; regionload_regionsdir="C:\somewhere\xmlfiles\"
 
+    ;# {regionload_webserver_url} {region_info_source} {URL to load region from?} {}
     ;; Determines the page from which regions xml is retrieved if you are
     ;; loading these from the web.
     ;; The XML here has the same format as it does on the filesystem
@@ -92,6 +95,7 @@
     ;; Maximum size where a prim can be physical.  Affects resizing of existing prims.  This can be overriden in the region config file.
     ; PhysicalPrimMax = 10
 
+    ;# {ClampPrimSize} {} {Clamp viewer rezzed prims to max sizes?} {true false} false
     ;; If a viewer attempts to rez a prim larger than the non-physical or physical prim max, clamp the dimensions to the appropriate maximum
     ;; This can be overriden in the region config file.
     ; ClampPrimSize = false
@@ -117,6 +121,7 @@
     ;; This will likely break them
     ; CombineContiguousRegions = false
 
+    ;# {InworldRestartShutsDown} {} {Shutdown instance on region restart?} {true false} false
     ;; If you have only one region in an instance, or to avoid the many bugs
     ;; that you can trigger in modules by restarting a region, set this to
     ;; true to make the entire instance exit instead of restarting the region.
@@ -131,14 +136,17 @@
     ;; If both of these values are set to zero then persistence of all changed
     ;; objects will happen on every sweep.
 
+    ;# {MinimumTimeBeforePersistenceConsidered} {} {Time before un-changed object may be persisted} {} 60
     ;; Objects will be considered for persistance in the next sweep when they
     ;; have not changed for this number of seconds.
     ; MinimumTimeBeforePersistenceConsidered = 60
 
+    ;# {MaximumTimeBeforePersistenceConsidered} {} {Time before changed objects may be persisted?} {} 600
     ;; Objects will always be considered for persistance in the next sweep
     ;; if the first change occurred this number of seconds ago.
     ; MaximumTimeBeforePersistenceConsidered = 600
 
+    ;# {see_into_this_sim_from_neighbor} {} {Should avatars in neighbor sims see objects in this sim?} {true false} true
     ;; Should avatars in neighbor sims see objects in this sim?
     ; see_into_this_sim_from_neighbor = true
 
@@ -153,6 +161,7 @@
     ;; Note that only the ODE physics engine currently deals with meshed
     ;; prims in a satisfactory way.
 
+    ;# {meshing} {} {Select mesher} {Meshmerizer ZeroMesher} Meshmerizer
     ;; ZeroMesher is faster but leaves the physics engine to model the mesh
     ;; using the basic shapes that it supports.
     ;; Usually this is only a box.
@@ -161,6 +170,7 @@
     ; meshing = ZeroMesher
 
     ;; Choose one of the physics engines below
+    ;# {physics} {} {Select physics engine} {OpenDynamicsEngine BulletSim basicphysics POS} OpenDynamicsEngine
     ;; OpenDynamicsEngine is by some distance the most developed physics engine
     ;; BulletSim is incomplete and experimental but in active development
     ;; basicphysics effectively does not model physics at all, making all objects phantom
@@ -184,38 +194,52 @@
     ;; If set to true, then all permissions checks are carried out
     ; serverside_object_permissions = true
 
+    ;# {allow_grid_gods} {} {Allow grid gods?} {true false} false
     ;; This allows users with a UserLevel of 200 or more to assume god
     ;; powers in the regions in this simulator.
     ; allow_grid_gods = false
 
     ;; This allows some control over permissions
     ;; please note that this still doesn't duplicate SL, and is not intended to
+    ;# {region_owner_is_god} {} {Allow region owner gods} {true false} true
+    ;; Allow region owners to assume god powers in their regions
     ; region_owner_is_god = true
+
+    ;# {region_manager_is_god} {} {Allow region manager gods} {true false} false
+    ;; Allow region managers to assume god powers in regions they manage
     ; region_manager_is_god = false
+
+    ;# {parcel_owner_is_god} {} {Allow parcel owner gods} {true false} true
+    ;; Allow parcel owners to assume god powers in their parcels
     ; parcel_owner_is_god = true
 
+    ;# {simple_build_permissions} {} {Allow building in parcel by access list (no groups)} {true false} false
     ;; More control over permissions
     ;; This is definitely not SL!
-    ; Provides a simple control for land owners to give build rights to specific avatars
-    ; in publicly accessible parcels that disallow object creation in general. 
-    ; Owners specific avatars by adding them to the Access List of the parcel
-    ; without having to use the Groups feature
+    ;; Provides a simple control for land owners to give build rights to specific avatars
+    ;; in publicly accessible parcels that disallow object creation in general. 
+    ;; Owners specific avatars by adding them to the Access List of the parcel
+    ;; without having to use the Groups feature
     ; simple_build_permissions = false
 
 
+    ;# {DefaultScriptEngine} {} {Default script engine} {XEngine} XEngine
     ;; Default script engine to use. Currently, we only have XEngine
     ; DefaultScriptEngine = "XEngine"
 
+    ;# {GenerateMaptiles} {} {Generate map tiles?} {true false} true
     ;; Map tile options. You can choose to generate no map tiles at all,
     ;; generate normal maptiles, or nominate an uploaded texture to
     ;; be the map tile
     ; GenerateMaptiles = true
 
+    ;# {MaptileRefresh} {GenerateMaptiles} {Maptile refresh period?} {} 0
     ;; If desired, a running region can update the map tiles periodically
     ;; to reflect building activity. This names no sense of you don't have
     ;; prims on maptiles. Value is in seconds.
     ; MaptileRefresh = 0
 
+    ;# {MaptileStaticUUID} {} {Asset ID for static map texture} {} 00000000-0000-0000-0000-000000000000
     ;; If not generating maptiles, use this static texture asset ID
     ; MaptileStaticUUID = "00000000-0000-0000-0000-000000000000"
 
@@ -228,9 +252,11 @@
     ;; got a large number of objects, so you can turn it off here if you'd like.
     ; DrawPrimOnMapTile = true
 
+    ;# {HttpProxy} {} {Proxy URL for llHTTPRequest and dynamic texture loading} {} http://proxy.com:8080
     ;; Http proxy setting for llHTTPRequest and dynamic texture loading, if required
     ; HttpProxy = "http://proxy.com:8080"
 
+    ;# {HttpProxyExceptions} {HttpProxy} {Set of regular expressions defining URL that should not be proxied} {}
     ;; If you're using HttpProxy, then you can set HttpProxyExceptions to a list of regular expressions for URLs that you don't want to go through the proxy 
     ;; For example, servers inside your firewall.
     ;; Separate patterns with a ';'
@@ -254,7 +280,8 @@
     ;; default is false
     ; TelehubAllowLandmark = false
 
-    ;# Comma separated list of viewers which may gain access to the regions.
+    ;# {AllowedViewerList} {} {Comma separated list of allowed viewers} {}
+    ;; Comma separated list of viewers which may gain access to the regions.
     ;; One can use a Substring of the viewer name to enable only certain subversions
     ;; Example: Agent uses the viewer "Imprudence 1.3.2.0"
     ;; - "Imprudence" has access
@@ -262,6 +289,7 @@
     ;; - "Imprudence 1.3.1" has no access
     ;; AllowedViewerList = 
 
+    ;# {BannedViewerList} {} {Comma separated list of banned viewers} {}
     ;# Comma separated list of viewers which may not gain access to the regions.
     ;; One can use a Substring of the viewer name to disable only certain subversions
     ;; Example: Agent uses the viewer "Imprudence 1.3.2.0"
@@ -276,16 +304,30 @@
   	; If these values are uncommented then they will be used to create a default estate as necessary.
     ; New regions will be automatically assigned to that default estate.
 	
+    ;# {DefaultEstateName} {} {Default name for estate?} {} My Estate
+    ;; Name for the default estate
     ; DefaultEstateName = My Estate
-    ; DefaultEstateOwnerName = FirstName LastName
-	
-    ; The following parameters will only be used on a standalone system to create an estate owner that does not already exist
 
-    ; If DefaultEstateOwnerUUID is left at UUID.Zero (as below) then a random UUID will be assigned.
-    ; This is normally what you want
+    ;# {DefaultEstateOwnerName} {} {Default estate owner name?} {} FirstName LastName
+    ;; Name for default estate owner
+    ; DefaultEstateOwnerName = FirstName LastName
+
+
+    ; ** Standalone Estate Settings **	
+    ; The following parameters will only be used on a standalone system to 
+    ; create an estate owner that does not already exist
+
+    ;# {DefaultEstateOwnerUUID} {} {Default estate owner UUID?} {} 00000000-0000-0000-0000-000000000000
+    ;; If DefaultEstateOwnerUUID is left at UUID.Zero (as below) then a random 
+    ;; UUID will be assigned. This is normally what you want 
     ; DefaultEstateOwnerUUID = 00000000-0000-0000-0000-000000000000
 
+    ;# {DefaultEstateOwnerEMail} {} {Default estate owner email?} {}
+    ;; Email address for the default estate owner
     ; DefaultEstateOwnerEMail = owner@domain.com
+
+    ;# {DefaultEstateOwnerPassword} {} {Default estate owner password} {}
+    ;; Password for the default estate owner
     ; DefaultEstateOwnerPassword = password
 
 
@@ -322,10 +364,14 @@
     ; SMTP_SERVER_PASSWORD = ""
 
 [Network]
+
+    ;# {ConsoleUser} {} {User name for console account} {}
     ;; Configure the remote console user here. This will not actually be used
     ;; unless you use -console=rest at startup.
     ; ConsoleUser = "Test"
+    ;# {ConsolePass} {} {Password for console account} {}
     ; ConsolePass = "secret"
+    ;# {console_port} {} {Port for console connections} {} 0
     ; console_port = 0
 
     ;# {http_listener_port} {} {TCP Port for this simulator to listen on? (This must be unique to the simulator!)} {} 9000
@@ -389,11 +435,14 @@
 
 
 [SimulatorFeatures]
+
+    ;# {MapImageServerURI} {} {URL for the map server} {}
     ; Experimental new information sent in SimulatorFeatures cap for Kokua viewers 
     ; meant to override the MapImage and search server url given at login, and varying 
     ; on a sim-basis.
     ; Viewers that don't understand it, will ignore it
     ;MapImageServerURI = "http://127.0.0.1:9000/"
+    ;# {SearchServerURI} {} {URL of the search server} {}
     ;SearchServerURI = "http://127.0.0.1:9000/"
 
 
@@ -587,6 +636,7 @@
 
 
 [Economy]
+    ;# {SellEnabled} {} {Enable selling for 0?} {true false} true
     ; The default economy module only implements just enough to allow free actions (transfer of objects, etc).
     ; There is no intention to implement anything further in core OpenSimulator.
     ; This functionality has to be provided by third party modules.
@@ -594,9 +644,11 @@
     ;; Enables selling things for $0.  Default is true.
     ; SellEnabled = true
 
+    ;# {PriceUpload} {} {Price for uploading?} {} 0
     ;; Money Unit fee to upload textures, animations etc.  Default is 0.
     ; PriceUpload = 0
 
+    ;# {PriceGroupCreate} {} {Fee for group creation} {} 0
     ;; Money Unit fee to create groups.  Default is 0.
     ; PriceGroupCreate = 0
 
@@ -706,32 +758,41 @@
     ; If both Allow_ and Creators_ are given, effective permissions
     ; are the union of the two.
 
+    ;# {EventLimit} {} {Amount of time a script can spend in an event handler} {} 30
     ;; Time a script can spend in an event handler before it is interrupted
     ; EventLimit = 30
 
+    ;# {KillTimedOutScripts} {} {Kill script in case of event time overruns?} {true false} false
     ;; If a script overruns it's event limit, kill the script?
     ; KillTimedOutScripts = false
 
+    ;# {ScriptDelayFactor} {} {Multiplier for scripting delays} {} 1.0
     ;; Sets the multiplier for the scripting delays
     ; ScriptDelayFactor = 1.0
 
+    ;# {ScriptDistanceLimitFactor} {} {Multiplier for 10.0m distance limits?} {}
     ;; The factor the 10 m distances limits are multiplied by
     ; ScriptDistanceLimitFactor = 1.0
 
+    ;# {NotecardLineReadCharsMax} {} {Maximum length of notecard line?} {} 255
     ;; Maximum length of notecard line read
     ;; Increasing this to large values potentially opens
     ;; up the system to malicious scripters
     ; NotecardLineReadCharsMax = 255
 
+    ;# {SensorMaxRange} {} {Sensor range} {} 96.0
     ;; Sensor settings
     ; SensorMaxRange = 96.0
+    ;# {SensorMaxResults} {} {Max sensor results returned?} {}
     ; SensorMaxResults = 16
 
+    ;# {DisableUndergroundMovement} {} {Disable underground movement of prims} {true false} true
     ;; Disable underground movement of prims (default true); set to
     ;; false to allow script controlled underground positioning of
     ;; prims
     ; DisableUndergroundMovement = true
 
+    ;# {ScriptEnginesPath} {} {Path to script assemblies} {} ScriptEngines
     ;; Path to script engine assemblies
     ;; Default is ./bin/ScriptEngines
     ; ScriptEnginesPath = "ScriptEngines"

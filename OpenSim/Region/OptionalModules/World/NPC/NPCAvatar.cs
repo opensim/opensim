@@ -104,6 +104,45 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             OnMoneyTransferRequest(m_uuid, target, amount, 1, "Payment");
         }
 
+        public bool Touch(UUID target)
+        {
+            SceneObjectPart part = m_scene.GetSceneObjectPart(target);
+            if (part == null)
+                return false;
+            bool objectTouchable = hasTouchEvents(part); // Only touch an object that is scripted to respond
+            if (!objectTouchable && !part.IsRoot)
+                objectTouchable = hasTouchEvents(part.ParentGroup.RootPart);
+            if (!objectTouchable)
+                return false;
+            // Set up the surface args as if the touch is from a client that does not support this
+            SurfaceTouchEventArgs surfaceArgs = new SurfaceTouchEventArgs();
+            surfaceArgs.FaceIndex = -1; // TOUCH_INVALID_FACE
+            surfaceArgs.Binormal =  Vector3.Zero; // TOUCH_INVALID_VECTOR
+            surfaceArgs.Normal =  Vector3.Zero; // TOUCH_INVALID_VECTOR
+            surfaceArgs.STCoord = new Vector3(-1.0f, -1.0f, 0.0f); // TOUCH_INVALID_TEXCOORD
+            surfaceArgs.UVCoord = surfaceArgs.STCoord; // TOUCH_INVALID_TEXCOORD
+            List<SurfaceTouchEventArgs> touchArgs = new List<SurfaceTouchEventArgs>();
+            touchArgs.Add(surfaceArgs);
+            Vector3 offset = part.OffsetPosition * -1.0f;
+            if (OnGrabObject == null)
+                return false;
+            OnGrabObject(part.LocalId, offset, this, touchArgs);
+            if (OnGrabUpdate != null)
+                OnGrabUpdate(part.UUID, offset, part.ParentGroup.RootPart.GroupPosition, this, touchArgs);
+            if (OnDeGrabObject != null)
+                OnDeGrabObject(part.LocalId, this, touchArgs);
+            return true;
+        }
+
+        private bool hasTouchEvents(SceneObjectPart part)
+        {
+            if ((part.ScriptEvents & scriptEvents.touch) != 0 ||
+                (part.ScriptEvents & scriptEvents.touch_start) != 0 ||
+                (part.ScriptEvents & scriptEvents.touch_end) != 0)
+                return true;
+            return false;
+        }
+
         public void InstantMessage(UUID target, string message)
         {
             OnInstantMessage(this, new GridInstantMessage(m_scene,
@@ -153,6 +192,14 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         private void SendOnChatFromClient(int channel, string message, ChatTypeEnum chatType)
         {
+            if (channel == 0)
+            {
+                message = message.Trim();
+                if (string.IsNullOrEmpty(message))
+                {
+                    return;
+                }
+            }
             OSChatMessage chatFromClient = new OSChatMessage();
             chatFromClient.Channel = channel;
             chatFromClient.From = Name;
