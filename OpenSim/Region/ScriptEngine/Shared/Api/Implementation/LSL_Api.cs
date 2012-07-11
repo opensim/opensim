@@ -108,8 +108,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache =
                 new Dictionary<UUID, UserInfoCacheEntry>();
 
-        protected Timer m_ShoutSayTimer;
+//        protected Timer m_ShoutSayTimer;
         protected int m_SayShoutCount = 0;
+        DateTime m_lastSayShoutCheck;
 
         private Dictionary<string, string> MovementAnimationsForLSL =
                 new Dictionary<string, string> {
@@ -135,10 +136,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {
+/*
             m_ShoutSayTimer = new Timer(1000);
             m_ShoutSayTimer.Elapsed += SayShoutTimerElapsed;
             m_ShoutSayTimer.AutoReset = true;
             m_ShoutSayTimer.Start();
+*/
+            m_lastSayShoutCheck = DateTime.UtcNow;
 
             m_ScriptEngine = ScriptEngine;
             m_host = host;
@@ -900,12 +904,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 wComm.DeliverMessage(ChatTypeEnum.Whisper, channelID, m_host.Name, m_host.UUID, text);
         }
 
+        private void CheckSayShoutTime()
+        {
+            DateTime now = DateTime.UtcNow;
+            if ((now - m_lastSayShoutCheck).Ticks > 10000000) // 1sec
+            {
+                m_lastSayShoutCheck = now;
+                m_SayShoutCount = 0;
+            }
+            else
+                m_SayShoutCount++;
+        }
+
         public void llSay(int channelID, string text)
         {
             m_host.AddScriptLPS(1);
 
             if (channelID == 0)
-                m_SayShoutCount++;
+//                m_SayShoutCount++;
+                CheckSayShoutTime();
 
             if (m_SayShoutCount >= 11)
                 ScriptSleep(2000);
@@ -933,7 +950,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             if (channelID == 0)
-                m_SayShoutCount++;
+//                m_SayShoutCount++;
+                CheckSayShoutTime();
 
             if (m_SayShoutCount >= 11)
                 ScriptSleep(2000);
@@ -12373,12 +12391,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return rq.ToString();
         }
-
+/*
         private void SayShoutTimerElapsed(Object sender, ElapsedEventArgs args)
         {
             m_SayShoutCount = 0;
         }
-
+*/
         private struct Tri
         {
             public Vector3 p1;
