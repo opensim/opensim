@@ -30,6 +30,8 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+using System.Text;
+using System.IO;
 using System.Xml;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
@@ -561,8 +563,56 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         
+        public string ToXml2()
+        {
+            MemoryStream ms = new MemoryStream(512);
+            UTF8Encoding enc = new UTF8Encoding();
+            XmlTextWriter xwriter = new XmlTextWriter(ms, enc);
+            ToXml2(xwriter);
+            xwriter.Flush();
+            string s = ms.GetStreamString();
+            xwriter.Close();
+            return s;
+        }
 
-        public void FromXml2(XmlTextReader _reader, out bool errors)
+        public static SOPVehicle FromXml2(string text)
+        {
+            if (text == String.Empty)
+                return null;
+
+            UTF8Encoding enc = new UTF8Encoding();
+            MemoryStream ms = new MemoryStream(enc.GetBytes(text));
+            XmlTextReader xreader = new XmlTextReader(ms);
+
+            SOPVehicle v = new SOPVehicle();
+            bool error;
+
+            v.FromXml2(xreader, out error);
+
+            xreader.Close();
+
+            if (error)
+            {
+                v = null;
+                return null;
+            }
+            return v;
+        }
+
+        public static SOPVehicle FromXml2(XmlTextReader reader)
+        {
+            SOPVehicle vehicle = new SOPVehicle();
+
+            bool errors = false;
+
+            vehicle.FromXml2(reader, out errors);
+            if (errors)
+                return null;
+
+            return vehicle;
+        }
+
+        private void FromXml2(XmlTextReader _reader, out bool errors)
         {
             errors = false;
             reader = _reader;

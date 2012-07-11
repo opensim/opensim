@@ -275,6 +275,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (veh != null && veh.Type != Vehicle.TYPE_NONE)
                     cdata.mu *= veh.FrictionFactor;
+//                    cdata.mu *= 0;
             }
         }    
 
@@ -582,8 +583,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (value.IsFinite())
                 {
                     AddChange(changes.Velocity, value);
-//                    _velocity = value;
-
                 }
                 else
                 {
@@ -675,9 +674,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (value.IsFinite())
                 {
-                    m_rotationalVelocity = value;
-                    if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
-                        d.BodyEnable(Body);
+                    AddChange(changes.AngVelocity, value);
                 }
                 else
                 {
@@ -685,7 +682,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
         }
-
 
         public override float Buoyancy
         {
@@ -947,6 +943,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 CollisionEventsThisFrame = null;
             }
             m_eventsubscription = 0;
+            // for now still done on odescene
+//            _parent_scene.RemoveCollisionEventReporting(this);
         }
 
         public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
@@ -1736,17 +1734,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             d.BodySetAutoDisableFlag(Body, true);
             d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
-//            d.BodySetLinearDampingThreshold(Body, 0.01f);
-//            d.BodySetAngularDampingThreshold(Body, 0.001f);
-            d.BodySetDamping(Body, .002f, .002f);
+            d.BodySetDamping(Body, .005f, .005f);
 
-                if (m_targetSpace != IntPtr.Zero)
-                {
-                    _parent_scene.waitForSpaceUnlock(m_targetSpace);
-                    if (d.SpaceQuery(m_targetSpace, prim_geom))
-                        d.SpaceRemove(m_targetSpace, prim_geom);
-                }
-
+            if (m_targetSpace != IntPtr.Zero)
+            {
+                _parent_scene.waitForSpaceUnlock(m_targetSpace);
+                if (d.SpaceQuery(m_targetSpace, prim_geom))
+                    d.SpaceRemove(m_targetSpace, prim_geom);
+            }
 
             if (childrenPrim.Count == 0)
             {
@@ -3295,6 +3290,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changevelocity(Vector3 newVel)
         {
+            float len = newVel.LengthSquared();
+            if (len > 100000.0f) // limit to 100m/s
+            {
+                len = 100.0f / (float)Math.Sqrt(len);
+                newVel *= len;
+            }
+
             if (!m_isSelected)
             {
                 if (Body != IntPtr.Zero)
@@ -3309,6 +3311,33 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //resetCollisionAccounting();           
             }
             _velocity = newVel;
+        }
+
+
+        private void changeangvelocity(Vector3 newAngVel)
+        {
+            float len = newAngVel.LengthSquared();
+            if (len > 144.0f) // limit to 12rad/s
+            {
+                len = 12.0f / (float)Math.Sqrt(len);
+                newAngVel *= len;
+            }
+
+            if (!m_isSelected)
+            {
+                if (Body != IntPtr.Zero)
+                {
+                    if (m_disabled)
+                        enableBodySoft();
+                    else if (!d.BodyIsEnabled(Body))
+                        d.BodyEnable(Body);
+
+
+                    d.BodySetAngularVel(Body, newAngVel.X, newAngVel.Y, newAngVel.Z);
+                }
+                //resetCollisionAccounting();           
+            }
+            m_rotationalVelocity = newAngVel;
         }
 
         private void changeVolumedetetion(bool newVolDtc)
@@ -3947,9 +3976,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 //                case changes.Acceleration:
 //                    changeacceleration((Vector3)arg);
 //                    break;
-//                case changes.AngVelocity:
-//                    changeangvelocity((Vector3)arg);
-//                    break;
+
+                case changes.AngVelocity:
+                    changeangvelocity((Vector3)arg);
+                    break;
 
                 case changes.Force:
                     changeForce((Vector3)arg);

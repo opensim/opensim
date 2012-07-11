@@ -237,20 +237,20 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private d.NearCallback nearCallback;
 
-        private readonly HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
-        private readonly HashSet<OdePrim> _prims = new HashSet<OdePrim>();
-        private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
-        private readonly HashSet<OdePrim> _activegroups = new HashSet<OdePrim>();
+        private HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
+        private HashSet<OdePrim> _prims = new HashSet<OdePrim>();
+        private HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
+        private HashSet<OdePrim> _activegroups = new HashSet<OdePrim>();
 
         public OpenSim.Framework.LocklessQueue<ODEchangeitem> ChangesQueue = new OpenSim.Framework.LocklessQueue<ODEchangeitem>();
 
         /// <summary>
         /// A list of actors that should receive collision events.
         /// </summary>
-        private readonly List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
-        private readonly List<PhysicsActor> _collisionEventPrimRemove = new List<PhysicsActor>();
+        private List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
+        private List<PhysicsActor> _collisionEventPrimRemove = new List<PhysicsActor>();
         
-        private readonly HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
+        private HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
 
@@ -264,26 +264,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         private volatile int m_global_contactcount = 0;
 
 
-        private readonly IntPtr contactgroup;
+        private IntPtr contactgroup;
 
         public ContactData[] m_materialContactsData = new ContactData[8];
 
-        private readonly DoubleDictionary<Vector3, IntPtr, IntPtr> RegionTerrain = new DoubleDictionary<Vector3, IntPtr, IntPtr>();
-        private readonly Dictionary<IntPtr, float[]> TerrainHeightFieldHeights = new Dictionary<IntPtr, float[]>();
-        private readonly Dictionary<IntPtr, GCHandle> TerrainHeightFieldHeightsHandlers = new Dictionary<IntPtr, GCHandle>();
+        private Dictionary<Vector3, IntPtr> RegionTerrain = new Dictionary<Vector3, IntPtr>();
+        private Dictionary<IntPtr, float[]> TerrainHeightFieldHeights = new Dictionary<IntPtr, float[]>();
+        private Dictionary<IntPtr, GCHandle> TerrainHeightFieldHeightsHandlers = new Dictionary<IntPtr, GCHandle>();
        
         private int m_physicsiterations = 10;
         private const float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
-        private readonly PhysicsActor PANull = new NullPhysicsActor();
+        private PhysicsActor PANull = new NullPhysicsActor();
         private float step_time = 0.0f;
 
         public IntPtr world;
 
-        private uint obj2LocalID = 0;
-        private OdeCharacter cc1;
-        private OdePrim cp1;
-        private OdeCharacter cc2;
-        private OdePrim cp2;
 
         // split the spaces acording to contents type
         // ActiveSpace contains characters and active prims
@@ -408,8 +403,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 //            checkThread();
             mesher = meshmerizer;
             m_config = config;
-/*
-            string ode_config = d.GetConfiguration("ODE");
+
+            string ode_config = d.GetConfiguration();
             if (ode_config != null && ode_config != "")
             {
                 m_log.WarnFormat("ODE configuration: {0}", ode_config);
@@ -419,7 +414,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     OdeUbitLib = true;
                 }
             }
-*/
+
             /*
                         if (region != null)
                         {
@@ -526,8 +521,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.WorldSetGravity(world, gravityx, gravityy, gravityz);
             d.WorldSetContactSurfaceLayer(world, contactsurfacelayer);
 
-            d.WorldSetLinearDamping(world, 0.001f);
-            d.WorldSetAngularDamping(world, 0.001f);
+            d.WorldSetLinearDamping(world, 0.002f);
+            d.WorldSetAngularDamping(world, 0.002f);
             d.WorldSetAngularDampingThreshold(world, 0f);
             d.WorldSetLinearDampingThreshold(world, 0f);
             d.WorldSetMaxAngularSpeed(world, 100f);
@@ -921,6 +916,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             cfm = 0.0001f / cfm;
                             if (cfm > 0.01f)
                                 cfm = 0.01f;
+                            else if (cfm < 0.00001f)
+                                cfm = 0.00001f;
 
                             if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
                                 mu *= frictionMovementMult;
@@ -947,6 +944,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     cfm = 0.0001f / cfm;
                                     if (cfm > 0.01f)
                                         cfm = 0.01f;
+                                    else if (cfm < 0.00001f)
+                                        cfm = 0.00001f;
 
                                     if (d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
                                     {
@@ -989,6 +988,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 cfm = 0.0001f / cfm;
                                 if (cfm > 0.01f)
                                     cfm = 0.01f;
+                                else if (cfm < 0.00001f)
+                                    cfm = 0.00001f;
 
                                 if (curContact.side1 > 0) // should be 2 ?
                                     IgnoreNegSides = true;
@@ -1155,7 +1156,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, ContactPoint contact)
             {
-            obj2LocalID = 0;
+            
+            OdeCharacter cc1;
+            OdePrim cp1;
+            OdeCharacter cc2;
+            OdePrim cp2;
+
+            uint obj2LocalID = 0;
             bool p1events = p1.SubscribedEvents();
             bool p2events = p2.SubscribedEvents();
            
@@ -1892,18 +1899,22 @@ namespace OpenSim.Region.Physics.OdePlugin
             lock (SimulationLock)
                 lock(OdeLock)
             {
+                if (world == IntPtr.Zero)
+                    return 0;
+
                 // adjust number of iterations per step
-                try
-                {
+
+//                try
+//                {
                     d.WorldSetQuickStepNumIterations(world, curphysiteractions);
-                }
+/*                }
                 catch (StackOverflowException)
                 {
                     m_log.Error("[PHYSICS]: The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
 //                    ode.drelease(world);
                     base.TriggerPhysicsBasedRestart();
                 }
-
+*/
                 while (step_time > HalfOdeStep && nodeframes < 10) //limit number of steps so we don't say here for ever
                 {
                     try
@@ -1955,6 +1966,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 {
                                     RemoveCharacter(defect);
                                 }
+                                defects.Clear();
                             }
                         }
 
@@ -2060,13 +2072,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                         _badCharacter.Clear();
                     }
                 }
-
+/*
                 int nactivegeoms = d.SpaceGetNumGeoms(ActiveSpace);
                 int nstaticgeoms = d.SpaceGetNumGeoms(StaticSpace);
                 int ntopgeoms = d.SpaceGetNumGeoms(TopSpace);
                 int nbodies = d.NTotalBodies;
                 int ngeoms = d.NTotalGeoms;
-
+*/
                 // Finished with all sim stepping. If requested, dump world state to file for debugging.
                 // TODO: This call to the export function is already inside lock (OdeLock) - but is an extra lock needed?
                 // TODO: This overwrites all dump files in-place. Should this be a growing logfile, or separate snapshots?
@@ -2383,11 +2395,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(GroundGeom, ref R);
                 d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f, 0);
-                RegionTerrain.Add(pOffset, GroundGeom, GroundGeom);
-//                TerrainHeightFieldHeights.Add(GroundGeom, ODElandMap);
+                RegionTerrain.Add(pOffset, GroundGeom);
                 TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
-                TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
-               
+                TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);             
             }
         }
 
@@ -2486,8 +2496,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 geom_name_map[GroundGeom] = "Terrain";
 
                 d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f, 0);
-                RegionTerrain.Add(pOffset, GroundGeom, GroundGeom);
-                //                TerrainHeightFieldHeights.Add(GroundGeom, ODElandMap);
+                RegionTerrain.Add(pOffset, GroundGeom);
                 TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
                 TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
             }
@@ -2649,18 +2658,41 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void Dispose()
         {
-            m_rayCastManager.Dispose();
-            m_rayCastManager = null;
-
             lock (OdeLock)
             {
+                m_rayCastManager.Dispose();
+                m_rayCastManager = null;
+
                 lock (_prims)
                 {
+                    ChangesQueue.Clear();
                     foreach (OdePrim prm in _prims)
                     {
-                        RemovePrim(prm);
+                        prm.DoAChange(changes.Remove, null);
+                        _collisionEventPrim.Remove(prm);
                     }
+                    _prims.Clear();
                 }
+
+                OdeCharacter[] chtorem;
+                lock (_characters)
+                {
+                    chtorem = new OdeCharacter[_characters.Count];
+                    _characters.CopyTo(chtorem);
+                }
+
+                ChangesQueue.Clear();
+                foreach (OdeCharacter ch in chtorem)
+                    ch.DoAChange(changes.Remove, null);
+
+                               
+                foreach (IntPtr GroundGeom in RegionTerrain.Values)
+                {
+                    if (GroundGeom != IntPtr.Zero)
+                        d.GeomDestroy(GroundGeom);
+                }
+
+                RegionTerrain.Clear();
 
                 if (TerrainHeightFieldHeightsHandlers.Count > 0)
                 {
@@ -2670,6 +2702,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                             gch.Free();
                     }
                 }
+
+                TerrainHeightFieldHeightsHandlers.Clear();
+                TerrainHeightFieldHeights.Clear();
 
                 if (WaterGeom != IntPtr.Zero)
                 {
@@ -2691,6 +2726,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
                 d.WorldDestroy(world);
+                world = IntPtr.Zero;
                 //d.CloseODE();
             }
         }

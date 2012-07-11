@@ -176,7 +176,8 @@ namespace OpenSim.Data.MySQL
                                     "PassCollisions, " +
                                     "LinkNumber, MediaURL, KeyframeMotion, " +
                                     "PhysicsShapeType, Density, GravityModifier, " +
-                                    "Friction, Restitution) values (" + "?UUID, " +
+                                    "Friction, Restitution, Vehicle " +
+                                    ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
                                     "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, " +
@@ -210,7 +211,7 @@ namespace OpenSim.Data.MySQL
                                     "?CollisionSoundVolume, ?PassTouches, ?PassCollisions, " +
                                     "?LinkNumber, ?MediaURL, ?KeyframeMotion, " +
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
-                                    "?Friction, ?Restitution)";
+                                    "?Friction, ?Restitution, ?Vehicle)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -1320,6 +1321,15 @@ namespace OpenSim.Data.MySQL
             prim.GravityModifier = (float)(double)row["GravityModifier"];
             prim.Friction = (float)(double)row["Friction"];
             prim.Bounciness = (float)(double)row["Restitution"];
+            
+            SOPVehicle vehicle = null;
+
+            if (row["Vehicle"].ToString() != String.Empty)
+            {
+                vehicle = SOPVehicle.FromXml2(row["Vehicle"].ToString());
+                if (vehicle != null)
+                    prim.VehicleParams = vehicle;
+            }
 
             return prim;
         }
@@ -1697,6 +1707,11 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("GravityModifier", (double)prim.GravityModifier);
             cmd.Parameters.AddWithValue("Friction", (double)prim.Friction);
             cmd.Parameters.AddWithValue("Restitution", (double)prim.Bounciness);
+
+            if (prim.VehicleParams != null)
+                cmd.Parameters.AddWithValue("Vehicle", prim.VehicleParams.ToXml2());
+            else
+                cmd.Parameters.AddWithValue("Vehicle", String.Empty);
         }
 
         /// <summary>

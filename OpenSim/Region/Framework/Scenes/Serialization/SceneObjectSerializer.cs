@@ -623,20 +623,19 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessVehicle(SceneObjectPart obj, XmlTextReader reader)
         {
-            bool errors = false;
-            SOPVehicle _vehicle = new SOPVehicle();
+            SOPVehicle vehicle = SOPVehicle.FromXml2(reader);
 
-            _vehicle.FromXml2(reader, out errors);
-
-            if (errors)
+            if (vehicle == null)
             {
-                obj.sopVehicle = null;
+                obj.VehicleParams = null;
                 m_log.DebugFormat(
                     "[SceneObjectSerializer]: Parsing Vehicle for object part {0} {1} encountered errors.  Please see earlier log entries.",
                     obj.Name, obj.UUID);
             }
             else
-                obj.sopVehicle = _vehicle;
+            {
+                obj.VehicleParams = vehicle;
+            }
         }
                    
         private static void ProcessShape(SceneObjectPart obj, XmlTextReader reader)
@@ -1325,8 +1324,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             writer.WriteElementString("VolumeDetectActive", sop.VolumeDetectActive.ToString().ToLower());
 
-            if (sop.sopVehicle != null)
-                sop.sopVehicle.ToXml2(writer);
+            if (sop.VehicleParams != null)
+                sop.VehicleParams.ToXml2(writer);
 
             if(sop.PhysicsShapeType != sop.DefaultPhysicsShapeType())
                 writer.WriteElementString("PhysicsShapeType", sop.PhysicsShapeType.ToString().ToLower());

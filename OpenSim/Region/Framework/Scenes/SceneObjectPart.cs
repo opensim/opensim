@@ -353,7 +353,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int LastColSoundSentTime; 
 
 
-        private SOPVehicle m_vehicle = null;
+        private SOPVehicle m_vehicleParams = null;
 
         private KeyframeMotion m_keyframeMotion = null;
 
@@ -973,7 +973,15 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 return m_angularVelocity;
             }
-            set { m_angularVelocity = value; }
+            set
+            {
+                m_angularVelocity = value;
+                PhysicsActor actor = PhysActor;
+                if ((actor != null) && actor.IsPhysical && ParentGroup.RootPart == this && VehicleType == (int)Vehicle.TYPE_NONE)
+                {
+                    actor.RotationalVelocity = m_angularVelocity;
+                }                       
+            }
         }
 
         /// <summary></summary>
@@ -1877,7 +1885,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-//      SetVelocity for LSL llSetVelocity..  may need revision if having other uses in future
+        //      SetVelocity for LSL llSetVelocity..  may need revision if having other uses in future
         public void SetVelocity(Vector3 pVel, bool localGlobalTF)
         {
             if (ParentGroup == null || ParentGroup.IsDeleted)
@@ -1902,6 +1910,33 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             ParentGroup.Velocity = pVel;
+        }
+
+        //      SetAngularVelocity for LSL llSetAngularVelocity..  may need revision if having other uses in future
+        public void SetAngularVelocity(Vector3 pAngVel, bool localGlobalTF)
+        {
+            if (ParentGroup == null || ParentGroup.IsDeleted)
+                return;
+
+            if (ParentGroup.IsAttachment)
+                return;                         // don't work on attachments (for now ??)
+
+            SceneObjectPart root = ParentGroup.RootPart;
+
+            if (root.VehicleType != (int)Vehicle.TYPE_NONE) // don't mess with vehicles
+                return;
+
+            PhysicsActor pa = root.PhysActor;
+
+            if (pa == null || !pa.IsPhysical)
+                return;
+
+            if (localGlobalTF)
+            {
+                pAngVel = pAngVel * GetWorldRotation();
+            }
+
+            root.AngularVelocity = pAngVel;
         }
         
 
@@ -3415,15 +3450,15 @@ namespace OpenSim.Region.Framework.Scenes
             Force = force;
         }
 
-        public SOPVehicle sopVehicle
+        public SOPVehicle VehicleParams
         {
             get
             {
-                return m_vehicle;
+                return m_vehicleParams;
             }
             set
             {
-                m_vehicle = value;
+                m_vehicleParams = value;
             }
         }
 
@@ -3432,10 +3467,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (m_vehicle == null)
+                if (m_vehicleParams == null)
                     return (int)Vehicle.TYPE_NONE;
                 else
-                    return (int)m_vehicle.Type;
+                    return (int)m_vehicleParams.Type;
             }
             set
             {
@@ -3445,7 +3480,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetVehicleType(int type)
         {
-                m_vehicle = null;
+                m_vehicleParams = null;
                 
                 if (type == (int)Vehicle.TYPE_NONE)
                 {
@@ -3453,8 +3488,8 @@ namespace OpenSim.Region.Framework.Scenes
                         PhysActor.VehicleType = (int)Vehicle.TYPE_NONE;
                     return;
                 }
-                m_vehicle = new SOPVehicle();
-                m_vehicle.ProcessTypeChange((Vehicle)type);
+                m_vehicleParams = new SOPVehicle();
+                m_vehicleParams.ProcessTypeChange((Vehicle)type);
                 {
                     if (_parentID ==0 && PhysActor != null)
                         PhysActor.VehicleType = type;
@@ -3464,10 +3499,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetVehicleFlags(int param, bool remove)
         {
-            if (m_vehicle == null)
+            if (m_vehicleParams == null)
                 return;
 
-            m_vehicle.ProcessVehicleFlags(param, remove);
+            m_vehicleParams.ProcessVehicleFlags(param, remove);
 
             if (_parentID ==0 && PhysActor != null)
             {
@@ -3477,10 +3512,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetVehicleFloatParam(int param, float value)
         {
-            if (m_vehicle == null)
+            if (m_vehicleParams == null)
                 return;
 
-            m_vehicle.ProcessFloatVehicleParam((Vehicle)param, value);
+            m_vehicleParams.ProcessFloatVehicleParam((Vehicle)param, value);
 
             if (_parentID == 0 && PhysActor != null)
             {
@@ -3490,10 +3525,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetVehicleVectorParam(int param, Vector3 value)
         {
-            if (m_vehicle == null)
+            if (m_vehicleParams == null)
                 return;
 
-            m_vehicle.ProcessVectorVehicleParam((Vehicle)param, value);
+            m_vehicleParams.ProcessVectorVehicleParam((Vehicle)param, value);
 
             if (_parentID == 0 && PhysActor != null)
             {
@@ -3503,10 +3538,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetVehicleRotationParam(int param, Quaternion rotation)
         {
-            if (m_vehicle == null)
+            if (m_vehicleParams == null)
                 return;
 
-            m_vehicle.ProcessRotationVehicleParam((Vehicle)param, rotation);
+            m_vehicleParams.ProcessRotationVehicleParam((Vehicle)param, rotation);
 
             if (_parentID == 0 && PhysActor != null)
             {
@@ -4673,8 +4708,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (VolumeDetectActive) // change if not the default only
                     pa.SetVolumeDetect(1);
 
-                if (m_vehicle != null && LocalId == ParentGroup.RootPart.LocalId)
-                    m_vehicle.SetVehicle(pa);
+                if (m_vehicleParams != null && LocalId == ParentGroup.RootPart.LocalId)
+                    m_vehicleParams.SetVehicle(pa);
 
                 // we are going to tell rest of code about physics so better have this here
                 PhysActor = pa;
@@ -4712,7 +4747,7 @@ namespace OpenSim.Region.Framework.Scenes
                     pa.RotationalVelocity = rotationalVelocity;
 
                     // if not vehicle and root part apply force and torque
-                    if ((m_vehicle == null || m_vehicle.Type == Vehicle.TYPE_NONE)
+                    if ((m_vehicleParams == null || m_vehicleParams.Type == Vehicle.TYPE_NONE)
                             && LocalId == ParentGroup.RootPart.LocalId)
                     {
                         pa.Force = Force;

@@ -48,10 +48,26 @@ namespace OpenSim.Framework.Statistics
                 string.Format(
                     "Allocated to OpenSim objects: {0} MB\n",
                     Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0)));
-            sb.Append(
-                string.Format(
-                    "Process memory              : {0} MB\n",
-                    Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0)));
+
+            Process myprocess = Process.GetCurrentProcess();
+            if (!myprocess.HasExited)
+            {
+                myprocess.Refresh();
+                sb.Append(
+                    string.Format(
+                        "Process memory:      Physical {0} MB \t Paged {1} MB \t Virtual {2} MB\n",
+                        Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0),
+                        Math.Round(Process.GetCurrentProcess().PagedMemorySize64 / 1024.0 / 1024.0),
+                        Math.Round(Process.GetCurrentProcess().VirtualMemorySize64 / 1024.0 / 1024.0)));
+                sb.Append(
+                    string.Format(
+                        "Peak process memory: Physical {0} MB \t Paged {1} MB \t Virtual {2} MB\n",
+                        Math.Round(Process.GetCurrentProcess().PeakWorkingSet64 / 1024.0 / 1024.0),
+                        Math.Round(Process.GetCurrentProcess().PeakPagedMemorySize64 / 1024.0 / 1024.0),
+                        Math.Round(Process.GetCurrentProcess().PeakVirtualMemorySize64 / 1024.0 / 1024.0)));
+            }
+            else
+                sb.Append("Process reported as Exited \n");
 
             return sb.ToString();
         }
