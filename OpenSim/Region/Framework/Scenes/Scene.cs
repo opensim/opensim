@@ -831,6 +831,8 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter = new SimStatsReporter(this);
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
+
+            MainConsole.Instance.Commands.AddCommand("scene", false, "gc collect", "gc collect", "gc collect", "Cause the garbage collector to make a single pass", HandleGcCollect);
         }
 
         /// <summary>
@@ -5636,6 +5638,11 @@ Environment.Exit(1);
                     presence.AddNewMovement(agent_control_v3);
                 }
             }
+        }
+
+        private void HandleGcCollect(string module, string[] args)
+        {
+            GC.Collect();
         }
     }
 }
