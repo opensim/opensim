@@ -2039,8 +2039,6 @@ namespace OpenSim.Region.Framework.Scenes
                         HasGroupChangedDueToDelink = false;
 
                         m_scene.EventManager.TriggerOnSceneObjectPreSave(backup_group, this);
-                        datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
-
                         backup_group.ForEachPart(delegate(SceneObjectPart part) 
                         { 
                             if (part.KeyframeMotion != null)
@@ -2048,6 +2046,12 @@ namespace OpenSim.Region.Framework.Scenes
                                 part.KeyframeMotion = KeyframeMotion.FromData(backup_group, part.KeyframeMotion.Serialize());
                                 part.KeyframeMotion.UpdateSceneObject(this);
                             }
+                        });
+
+                        datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
+
+                        backup_group.ForEachPart(delegate(SceneObjectPart part) 
+                        { 
                             part.Inventory.ProcessInventoryBackup(datastore); 
                         });
 
