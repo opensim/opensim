@@ -2045,8 +2045,8 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 part.KeyframeMotion = KeyframeMotion.FromData(backup_group, part.KeyframeMotion.Serialize());
                                 part.KeyframeMotion.UpdateSceneObject(this);
-                                part.SuppressFinalizerLogging = true;
                             }
+                            part.SuppressFinalizerLogging = true;
                         });
 
                         datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
