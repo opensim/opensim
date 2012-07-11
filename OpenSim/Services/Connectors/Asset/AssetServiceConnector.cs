@@ -55,7 +55,10 @@ namespace OpenSim.Services.Connectors
 
         // Keeps track of concurrent requests for the same asset, so that it's only loaded once.
         // Maps: Asset ID -> Handlers which will be called when the asset has been loaded
-        private Dictionary<string, AssetRetrievedEx> m_AssetHandlers = new Dictionary<string, AssetRetrievedEx>();
+//        private Dictionary<string, AssetRetrievedEx> m_AssetHandlers = new Dictionary<string, AssetRetrievedEx>();
+
+        private Dictionary<string, List<AssetRetrievedEx>> m_AssetHandlers = new Dictionary<string, List<AssetRetrievedEx>>();
+
         private Dictionary<string, string> m_UriMap = new Dictionary<string, string>();
 
         public AssetServicesConnector()
@@ -269,16 +272,21 @@ namespace OpenSim.Services.Connectors
                 {
                     AssetRetrievedEx handlerEx = new AssetRetrievedEx(delegate(AssetBase _asset) { handler(id, sender, _asset); });
 
-                    AssetRetrievedEx handlers;
+//                    AssetRetrievedEx handlers;
+                    List<AssetRetrievedEx> handlers;
                     if (m_AssetHandlers.TryGetValue(id, out handlers))
                     {
                         // Someone else is already loading this asset. It will notify our handler when done.
-                        handlers += handlerEx;
+//                        handlers += handlerEx;
+                        handlers.Add(handlerEx);
                         return true;
                     }
 
                     // Load the asset ourselves
-                    handlers += handlerEx;
+//                    handlers += handlerEx;
+                    handlers = new List<AssetRetrievedEx>();
+                    handlers.Add(handlerEx);
+
                     m_AssetHandlers.Add(id, handlers);
                 }
 
@@ -290,14 +298,24 @@ namespace OpenSim.Services.Connectors
                         {
                             if (m_Cache != null)
                                 m_Cache.Cache(a);
-
+/*
                             AssetRetrievedEx handlers;
                             lock (m_AssetHandlers)
                             {
                                 handlers = m_AssetHandlers[id];
                                 m_AssetHandlers.Remove(id);
                             }
+
                             handlers.Invoke(a);
+*/
+                            List<AssetRetrievedEx> handlers;
+                            lock (m_AssetHandlers)
+                            {
+                                handlers = m_AssetHandlers[id];
+                                m_AssetHandlers.Remove(id);
+                            }
+                            foreach (AssetRetrievedEx h in handlers)
+                                h.Invoke(a);
                         });
                     
                     success = true;
