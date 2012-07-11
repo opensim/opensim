@@ -316,6 +316,8 @@ namespace OpenSim.Services.Connectors
                             }
                             foreach (AssetRetrievedEx h in handlers)
                                 h.Invoke(a);
+                            if (handlers != null)
+                                handlers.Clear();
                         });
                     
                     success = true;
@@ -324,10 +326,14 @@ namespace OpenSim.Services.Connectors
                 {
                     if (!success)
                     {
+                        List<AssetRetrievedEx> handlers;
                         lock (m_AssetHandlers)
                         {
+                            handlers = m_AssetHandlers[id];
                             m_AssetHandlers.Remove(id);
                         }
+                        if (handlers != null)
+                        handlers.Clear();
                     }
                 }
             }
