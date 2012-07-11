@@ -425,10 +425,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
             try 
             {
-                System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
-                string jsondata = SLUtil.ParseNotecardToString(enc.GetString(a.Data));
-                int result = m_store.SetValue(storeID,path,jsondata,true) ? 1 : 0;
-                m_comms.DispatchReply(scriptID,result,"",reqID.ToString());
+                string jsondata = SLUtil.ParseNotecardToString(Encoding.UTF8.GetString(a.Data));
+                int result = m_store.SetValue(storeID, path, jsondata,true) ? 1 : 0;
+                m_comms.DispatchReply(scriptID,result, "", reqID.ToString());
                 return;
             }
             catch (Exception e)
