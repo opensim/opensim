@@ -185,7 +185,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         }
 
         [Test]
-        public void TestAddAttachmentFromInventory()
+        public void TestRezAttachmentFromInventory()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -215,6 +215,31 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(sp.Appearance.GetAttachpoint(attItem.ID), Is.EqualTo((int)AttachmentPoint.Chest));
 
             Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
+        }
+
+        /// <summary>
+        /// Test specific conditions associated with rezzing a scripted attachment from inventory.
+        /// </summary>
+        [Test]
+        public void TestRezScriptedAttachmentFromInventory()
+        {
+            TestHelpers.InMethod();
+
+            Scene scene = CreateDefaultTestScene();
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1.PrincipalID);
+
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, sp.UUID, "att-name", 0x10);
+            TaskInventoryHelpers.AddScript(scene, so.RootPart);
+            InventoryItemBase userItem = UserInventoryHelpers.AddInventoryItem(scene, so, 0x100, 0x1000);
+
+            scene.AttachmentsModule.RezSingleAttachmentFromInventory(sp, userItem.ID, (uint)AttachmentPoint.Chest);
+
+            // TODO: Need to have a test that checks the script is actually started but this involves a lot more
+            // plumbing of the script engine and either pausing for events or more infrastructure to turn off various
+            // script engine delays/asychronicity that isn't helpful in an automated regression testing context.
+            SceneObjectGroup attSo = scene.GetSceneObjectGroup(so.Name);
+            Assert.That(attSo.ContainsScripts(), Is.True);
         }
 
         [Test]
