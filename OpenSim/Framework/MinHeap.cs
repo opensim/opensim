@@ -63,12 +63,15 @@ namespace OpenSim.Framework
 
             internal void Clear()
             {
-                this.value = default(T);
                 if (this.handle != null)
-                {
                     this.handle.Clear();
-                    this.handle = null;
-                }
+                ClearRef();
+            }
+
+            internal void ClearRef()
+            {
+                this.value = default(T);
+                this.handle = null;
             }
         }
 
@@ -285,6 +288,7 @@ namespace OpenSim.Framework
             if (--this.size > 0 && index != this.size)
             {
                 Set(this.items[this.size], index);
+                this.items[this.size].ClearRef();
                 if (!BubbleUp(index))
                     BubbleDown(index);
             }

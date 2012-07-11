@@ -596,7 +596,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (!m_Enabled)
                 return;
             lockScriptsForRead(true);
-            foreach (IScriptInstance instance in m_Scripts.Values)
+
+            List<IScriptInstance> instancesToDel = new List<IScriptInstance>(m_Scripts.Values);
+
+//            foreach (IScriptInstance instance in m_Scripts.Values)
+            foreach (IScriptInstance instance in instancesToDel)
             {
                 // Force a final state save
                 //
@@ -619,7 +623,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 // Must be done explicitly because they have infinite
                 // lifetime
                 //
-                if (!m_SimulatorShuttingDown)
+//                if (!m_SimulatorShuttingDown)
                 {
                     m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
                     if (m_DomainScripts[instance.AppDomain].Count == 0)
@@ -629,10 +633,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     }
                 }
 
-                m_Scripts.Clear();
-                m_PrimObjects.Clear();
-                m_Assemblies.Clear();
-                m_DomainScripts.Clear();
+//                m_Scripts.Clear();
+//                m_PrimObjects.Clear();
+//                m_Assemblies.Clear();
+//                m_DomainScripts.Clear();
             }
             lockScriptsForRead(false);
             lockScriptsForWrite(true);
