@@ -339,7 +339,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group);
         }
 
-        public ISceneEntity RezSingleAttachmentFromInventory(IScenePresence sp, UUID itemID, uint AttachmentPt)
+        public SceneObjectGroup RezSingleAttachmentFromInventory(IScenePresence sp, UUID itemID, uint AttachmentPt)
         {
             if (!Enabled)
                 return null;
@@ -527,6 +527,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// </remarks>
         /// <param name="sp"></param>
         /// <param name="grp"></param>
+        /// <param name="saveAllScripted"></param>
         private void UpdateKnownItem(IScenePresence sp, SceneObjectGroup grp, bool saveAllScripted)
         {
             // Saving attachments for NPCs messes them up for the real owner!
@@ -720,18 +721,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         null, assetID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
                         false, false, sp.UUID, true);
 
-                //                m_log.DebugFormat(
-                //                    "[ATTACHMENTS MODULE]: Retrieved single object {0} for attachment to {1} on point {2}",
-                //                    objatt.Name, remoteClient.Name, AttachmentPt);
-
                 if (objatt != null)
                 {
+//                    m_log.DebugFormat(
+//                        "[ATTACHMENTS MODULE]: Rezzed single object {0} for attachment to {1} on point {2} in {3}",
+//                        objatt.Name, sp.Name, attachmentPt, m_scene.Name);
+
                     // HasGroupChanged is being set from within RezObject.  Ideally it would be set by the caller.
                     objatt.HasGroupChanged = false;
                     bool tainted = false;
                     if (attachmentPt != 0 && attachmentPt != objatt.AttachmentPoint)
                         tainted = true;
 
+                    // FIXME: Detect whether it's really likely for AttachObject to throw an exception in the normal
+                    // course of events.  If not, then it's probably not worth trying to recover the situation
+                    // since this is more likely to trigger further exceptions and confuse later debugging.  If
+                    // exceptions can be thrown in expected error conditions (not NREs) then make this consistent
+                    // since other normal error conditions will simply return false instead.
                     // This will throw if the attachment fails
                     try
                     {

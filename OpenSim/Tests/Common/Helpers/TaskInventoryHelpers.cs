@@ -81,7 +81,7 @@ namespace OpenSim.Tests.Common
         public static TaskInventoryItem AddScript(Scene scene, SceneObjectPart part)
         {
             AssetScriptText ast = new AssetScriptText();
-            ast.Source = "default { state_entry() {} }";
+            ast.Source = "default { state_entry() { llSay(0, \"Hello World\"); } }";
             ast.Encode();
 
             UUID assetUuid = new UUID("00000000-0000-0000-1000-000000000000");

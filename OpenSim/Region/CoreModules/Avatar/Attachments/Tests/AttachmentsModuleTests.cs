@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Timers;
+using System.Xml;
 using Timer=System.Timers.Timer;
 using Nini.Config;
 using NUnit.Framework;
@@ -41,10 +42,12 @@ using OpenSim.Region.CoreModules.Avatar.Attachments;
 using OpenSim.Region.CoreModules.Framework;
 using OpenSim.Region.CoreModules.Framework.EntityTransfer;
 using OpenSim.Region.CoreModules.Framework.InventoryAccess;
-using OpenSim.Region.CoreModules.World.Serialiser;
+using OpenSim.Region.CoreModules.Scripting.WorldComm;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
+using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.ScriptEngine.XEngine;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
@@ -57,6 +60,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
     [TestFixture]
     public class AttachmentsModuleTests : OpenSimTestCase
     {
+        private AutoResetEvent m_chatEvent = new AutoResetEvent(false);
+        private OSChatMessage m_osChatMessageReceived;
+
         [TestFixtureSetUp]
         public void FixtureInit()
         {
@@ -72,16 +78,73 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
         }
 
-        private Scene CreateDefaultTestScene()
+        private void OnChatFromWorld(object sender, OSChatMessage oscm)
+        {
+//            Console.WriteLine("Got chat [{0}]", oscm.Message);
+
+            m_osChatMessageReceived = oscm;
+            m_chatEvent.Set();
+        }
+
+        private Scene CreateTestScene()
         {
             IConfigSource config = new IniConfigSource();
+            List<object> modules = new List<object>();
+
+            AddCommonConfig(config, modules);
+
+            Scene scene
+                = new SceneHelpers().SetupScene(
+                    "attachments-test-scene", TestHelpers.ParseTail(999), 1000, 1000, config);
+            SceneHelpers.SetupSceneModules(scene, config, modules.ToArray());
+
+            return scene;
+        }
+
+        private Scene CreateScriptingEnabledTestScene()
+        {
+            IConfigSource config = new IniConfigSource();
+            List<object> modules = new List<object>();
+
+            AddCommonConfig(config, modules);
+            AddScriptingConfig(config, modules);
+
+            Scene scene
+                = new SceneHelpers().SetupScene(
+                    "attachments-test-scene", TestHelpers.ParseTail(999), 1000, 1000, config);
+            SceneHelpers.SetupSceneModules(scene, config, modules.ToArray());
+
+            scene.StartScripts();
+
+            return scene;
+        }
+
+        private void AddCommonConfig(IConfigSource config, List<object> modules)
+        {
             config.AddConfig("Modules");
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
 
-            Scene scene = new SceneHelpers().SetupScene();
-            SceneHelpers.SetupSceneModules(scene, config, new AttachmentsModule(), new BasicInventoryAccessModule());
+            modules.Add(new AttachmentsModule());
+            modules.Add(new BasicInventoryAccessModule());
+        }
 
-            return scene;
+        private void AddScriptingConfig(IConfigSource config, List<object> modules)
+        {
+            IConfig startupConfig = config.AddConfig("Startup");
+            startupConfig.Set("DefaultScriptEngine", "XEngine");
+
+            IConfig xEngineConfig = config.AddConfig("XEngine");
+            xEngineConfig.Set("Enabled", "true");
+
+            // These tests will not run with AppDomainLoading = true, at least on mono.  For unknown reasons, the call
+            // to AssemblyResolver.OnAssemblyResolve fails.
+            xEngineConfig.Set("AppDomainLoading", "false");
+
+            modules.Add(new XEngine());
+
+            // Necessary to stop serialization complaining
+            // FIXME: Stop this being necessary if at all possible
+//            modules.Add(new WorldCommModule());
         }
 
         /// <summary>
@@ -116,7 +179,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            Scene scene = CreateDefaultTestScene();
+            Scene scene = CreateTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1);
 
@@ -163,7 +226,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            Scene scene = CreateDefaultTestScene();
+            Scene scene = CreateTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1);
 
@@ -190,7 +253,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            Scene scene = CreateDefaultTestScene();
+            Scene scene = CreateTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1.PrincipalID);
 
@@ -225,7 +288,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         {
             TestHelpers.InMethod();
 
-            Scene scene = CreateDefaultTestScene();
+            Scene scene = CreateTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1.PrincipalID);
 
@@ -248,7 +311,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            Scene scene = CreateDefaultTestScene();
+            Scene scene = CreateTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1.PrincipalID);
 
@@ -278,9 +341,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         public void TestDetachAttachmentToInventory()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
 
-            Scene scene = CreateDefaultTestScene();
+            Scene scene = CreateTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1.PrincipalID);
 
@@ -303,6 +365,45 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         }
 
         /// <summary>
+        /// Test specific conditions associated with detaching a scripted attachment from inventory.
+        /// </summary>
+        [Test]
+        public void TestDetachScriptedAttachmentToInventory()
+        {
+            TestHelpers.InMethod();
+            TestHelpers.EnableLogging();
+
+            Scene scene = CreateScriptingEnabledTestScene();
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1);
+
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, sp.UUID, "att-name", 0x10);
+            TaskInventoryHelpers.AddScript(scene, so.RootPart);
+            InventoryItemBase userItem = UserInventoryHelpers.AddInventoryItem(scene, so, 0x100, 0x1000);
+
+            // FIXME: Right now, we have to do a tricksy chat listen to make sure we know when the script is running.
+            // In the future, we need to be able to do this programatically more predicably.
+            scene.EventManager.OnChatFromWorld += OnChatFromWorld;
+
+            SceneObjectGroup soRezzed
+                = scene.AttachmentsModule.RezSingleAttachmentFromInventory(sp, userItem.ID, (uint)AttachmentPoint.Chest);
+
+            // Wait for chat to signal rezzed script has been started.
+            m_chatEvent.WaitOne(60000);
+
+            scene.AttachmentsModule.DetachSingleAttachmentToInv(sp, soRezzed);
+
+            InventoryItemBase userItemUpdated = scene.InventoryService.GetItem(userItem);
+            AssetBase asset = scene.AssetService.Get(userItemUpdated.AssetID.ToString());
+
+            XmlDocument soXml = new XmlDocument();
+            soXml.LoadXml(Encoding.UTF8.GetString(asset.Data));
+
+            XmlNodeList scriptStateNodes = soXml.GetElementsByTagName("ScriptState");
+            Assert.That(scriptStateNodes.Count, Is.EqualTo(1));
+        }
+
+        /// <summary>
         /// Test that attachments don't hang about in the scene when the agent is closed
         /// </summary>
         [Test]
@@ -311,7 +412,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            Scene scene = CreateDefaultTestScene();
+            Scene scene = CreateTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
             InventoryItemBase attItem = CreateAttachmentItem(scene, ua1.PrincipalID, "att", 0x10, 0x20);
 
@@ -334,7 +435,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            Scene scene = CreateDefaultTestScene();
+            Scene scene = CreateTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
             InventoryItemBase attItem = CreateAttachmentItem(scene, ua1.PrincipalID, "att", 0x10, 0x20);
 
@@ -370,7 +471,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         {
             TestHelpers.InMethod();
 
-            Scene scene = CreateDefaultTestScene();
+            Scene scene = CreateTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
             InventoryItemBase attItem = CreateAttachmentItem(scene, ua1.PrincipalID, "att", 0x10, 0x20);
 
