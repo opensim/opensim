@@ -58,9 +58,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
 //            Console.WriteLine(AppDomain.CurrentDomain.BaseDirectory);
             m_xEngine = new XEngine();
 
-            // Necessary to stop serialization complaining
-            WorldCommModule wcModule = new WorldCommModule();
-
             IniConfigSource configSource = new IniConfigSource();
             
             IConfig startupConfig = configSource.AddConfig("Startup");
@@ -74,7 +71,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
             xEngineConfig.Set("AppDomainLoading", "false");
 
             m_scene = new SceneHelpers().SetupScene("My Test", UUID.Random(), 1000, 1000, configSource);
-            SceneHelpers.SetupSceneModules(m_scene, configSource, m_xEngine, wcModule);
+            SceneHelpers.SetupSceneModules(m_scene, configSource, m_xEngine);
             m_scene.StartScripts();
         }
 
