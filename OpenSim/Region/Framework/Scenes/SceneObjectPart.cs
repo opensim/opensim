@@ -149,6 +149,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Fields
 
+        public bool SuppressFinalizerLogging = false;
+
         public bool AllowedDrop;
         
         public bool DIE_AT_EDGE;
@@ -350,15 +352,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion Fields
 
-//        ~SceneObjectPart()
-//        {
+        ~SceneObjectPart()
+        {
+            if (SuppressFinalizerLogging)
+                return;
+
 //            Console.WriteLine(
 //                "[SCENE OBJECT PART]: Destructor called for {0}, local id {1}, parent {2} {3}",
 //                Name, LocalId, ParentGroup.Name, ParentGroup.LocalId);
-//            m_log.DebugFormat(
-//                "[SCENE OBJECT PART]: Destructor called for {0}, local id {1}, parent {2} {3}",
-//                Name, LocalId, ParentGroup.Name, ParentGroup.LocalId);
-//        }
+            m_log.DebugFormat(
+                "[SCENE OBJECT PART]: Destructor called for {0}, local id {1}, parent {2} {3}",
+                Name, LocalId, ParentGroup.Name, ParentGroup.LocalId);
+        }
 
         #region Constructors
 
