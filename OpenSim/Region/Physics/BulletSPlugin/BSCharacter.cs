@@ -41,7 +41,7 @@ public class BSCharacter : PhysicsActor
 
     private BSScene _scene;
     private String _avName;
-    private bool _stopped;
+    // private bool _stopped;
     private Vector3 _size;
     private Vector3 _scale;
     private PrimitiveBaseShape _pbs;
@@ -134,9 +134,9 @@ public class BSCharacter : PhysicsActor
     {
         base.RequestPhysicsterseUpdate();
     }
-
+    // No one calls this method so I don't know what it could possibly mean
     public override bool Stopped { 
-        get { return _stopped; } 
+        get { return false; } 
     }
     public override Vector3 Size { 
         get { return _size; } 
@@ -391,52 +391,47 @@ public class BSCharacter : PhysicsActor
         _mass = _density * _avatarVolume;
     }
 
-    // Set to 'true' if the individual changed items should be checked
-    //   (someday RequestPhysicsTerseUpdate() will take a bitmap of changed properties)
-    const bool SHOULD_CHECK_FOR_INDIVIDUAL_CHANGES = false;
-
     // The physics engine says that properties have updated. Update same and inform
     // the world that things have changed.
     public void UpdateProperties(EntityProperties entprop)
     {
+        /*
         bool changed = false;
-        if (SHOULD_CHECK_FOR_INDIVIDUAL_CHANGES) {
-            // we assign to the local variables so the normal set action does not happen
-            if (_position != entprop.Position) {
-                _position = entprop.Position;
-                changed = true;
-            }
-            if (_orientation != entprop.Rotation) {
-                _orientation = entprop.Rotation;
-                changed = true;
-            }
-            if (_velocity != entprop.Velocity) {
-                _velocity = entprop.Velocity;
-                changed = true;
-            }
-            if (_acceleration != entprop.Acceleration) {
-                _acceleration = entprop.Acceleration;
-                changed = true;
-            }
-            if (_rotationalVelocity != entprop.RotationalVelocity) {
-                _rotationalVelocity = entprop.RotationalVelocity;
-                changed = true;
-            }
-            if (changed) {
-                // m_log.DebugFormat("{0}: UpdateProperties: id={1}, c={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
-                // Avatar movement is not done by generating this event. There is code in the heartbeat
-                //   loop that updates avatars.
-                // base.RequestPhysicsterseUpdate();
-            }
-        }
-        else {
+        // we assign to the local variables so the normal set action does not happen
+        if (_position != entprop.Position) {
             _position = entprop.Position;
+            changed = true;
+        }
+        if (_orientation != entprop.Rotation) {
             _orientation = entprop.Rotation;
+            changed = true;
+        }
+        if (_velocity != entprop.Velocity) {
             _velocity = entprop.Velocity;
+            changed = true;
+        }
+        if (_acceleration != entprop.Acceleration) {
             _acceleration = entprop.Acceleration;
+            changed = true;
+        }
+        if (_rotationalVelocity != entprop.RotationalVelocity) {
             _rotationalVelocity = entprop.RotationalVelocity;
+            changed = true;
+        }
+        if (changed) {
+            // m_log.DebugFormat("{0}: UpdateProperties: id={1}, c={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
+            // Avatar movement is not done by generating this event. There is code in the heartbeat
+            //   loop that updates avatars.
             // base.RequestPhysicsterseUpdate();
         }
+        */
+        _position = entprop.Position;
+        _orientation = entprop.Rotation;
+        _velocity = entprop.Velocity;
+        _acceleration = entprop.Acceleration;
+        _rotationalVelocity = entprop.RotationalVelocity;
+        // Avatars don't report theirr changes the usual way. Changes are checked for in the heartbeat loop.
+        // base.RequestPhysicsterseUpdate();
     }
 
     // Called by the scene when a collision with this object is reported

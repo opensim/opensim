@@ -107,6 +107,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private long m_simulationStep = 0;
     public long SimulationStep { get { return m_simulationStep; } }
 
+    public float LastSimulatedTimestep { get; private set; }
+
     // A value of the time now so all the collision and update routines do not have to get their own
     // Set to 'now' just before all the prims and actors are called for collisions and updates
     private int m_simulationNowTime;
@@ -122,6 +124,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     private bool _meshSculptedPrim = true;         // cause scuplted prims to get meshed
     private bool _forceSimplePrimMeshing = false;   // if a cube or sphere, let Bullet do internal shapes
+
+    public float PID_D { get; private set; }    // derivative
+    public float PID_P { get; private set; }    // proportional
 
     public const uint TERRAIN_ID = 0;       // OpenSim senses terrain with a localID of zero
     public const uint GROUNDPLANE_ID = 1;
@@ -222,6 +227,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         m_maxUpdatesPerFrame = 2048;
         m_maximumObjectMass = 10000.01f;
 
+        PID_D = 2200f;
+        PID_P = 900f;
+
         parms.defaultFriction = 0.5f;
         parms.defaultDensity = 10.000006836f; // Aluminum g/cm3
         parms.defaultRestitution = 0f;
@@ -277,6 +285,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 m_maxCollisionsPerFrame = pConfig.GetInt("MaxCollisionsPerFrame", m_maxCollisionsPerFrame);
                 m_maxUpdatesPerFrame = pConfig.GetInt("MaxUpdatesPerFrame", m_maxUpdatesPerFrame);
                 m_maximumObjectMass = pConfig.GetFloat("MaxObjectMass", m_maximumObjectMass);
+
+                PID_D = pConfig.GetFloat("PIDDerivative", PID_D);
+                PID_P = pConfig.GetFloat("PIDProportional", PID_P);
 
                 parms.defaultFriction = pConfig.GetFloat("DefaultFriction", parms.defaultFriction);
                 parms.defaultDensity = pConfig.GetFloat("DefaultDensity", parms.defaultDensity);
@@ -414,6 +425,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         IntPtr updatedEntitiesPtr;
         int collidersCount;
         IntPtr collidersPtr;
+
+        LastSimulatedTimestep = timeStep;
 
         // prevent simulation until we've been initialized
         if (!m_initialized) return 10.0f;

@@ -148,7 +148,7 @@ public sealed class BSPrim : PhysicsActor
     {
         // m_log.DebugFormat("{0}: Destroy, id={1}", LogHeader, LocalID);
         // Undo any vehicle properties
-        _vehicle.ProcessTypeChange(Vehicle.TYPE_NONE);
+        _vehicle.ProcessTypeChange(Vehicle.TYPE_NONE, 1f);
         _scene.RemoveVehiclePrim(this);     // just to make sure
 
         // undo any dependance with/on other objects
@@ -353,7 +353,7 @@ public sealed class BSPrim : PhysicsActor
         } 
         set {
             Vehicle type = (Vehicle)value;
-            _vehicle.ProcessTypeChange(type);
+            _vehicle.ProcessTypeChange(type, _scene.LastSimulatedTimestep);
             _scene.TaintedObject(delegate()
             {
                 if (type == Vehicle.TYPE_NONE)
@@ -371,11 +371,11 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void VehicleFloatParam(int param, float value) 
     {
-        _vehicle.ProcessFloatVehicleParam((Vehicle)param, value);
+        _vehicle.ProcessFloatVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
     }
     public override void VehicleVectorParam(int param, OMV.Vector3 value) 
     {
-        _vehicle.ProcessVectorVehicleParam((Vehicle)param, value);
+        _vehicle.ProcessVectorVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
     }
     public override void VehicleRotationParam(int param, OMV.Quaternion rotation) 
     {
@@ -1262,77 +1262,65 @@ public sealed class BSPrim : PhysicsActor
     const float POSITION_TOLERANCE = 0.05f;
     const float ACCELERATION_TOLERANCE = 0.01f;
     const float ROTATIONAL_VELOCITY_TOLERANCE = 0.01f;
-    const bool SHOULD_DAMP_UPDATES = false;
 
     public void UpdateProperties(EntityProperties entprop)
     {
+        /*
         UpdatedProperties changed = 0;
-        if (SHOULD_DAMP_UPDATES)
+        // assign to the local variables so the normal set action does not happen
+        // if (_position != entprop.Position)
+        if (!_position.ApproxEquals(entprop.Position, POSITION_TOLERANCE))
         {
-            // assign to the local variables so the normal set action does not happen
-            // if (_position != entprop.Position)
-            if (!_position.ApproxEquals(entprop.Position, POSITION_TOLERANCE))
-            {
-                _position = entprop.Position;
-                // m_log.DebugFormat("{0}: UpdateProperties: id={1}, pos = {2}", LogHeader, LocalID, _position);
-                changed |= UpdatedProperties.Position;
-            }
-            // if (_orientation != entprop.Rotation)
-            if (!_orientation.ApproxEquals(entprop.Rotation, ROTATION_TOLERANCE))
-            {
-                _orientation = entprop.Rotation;
-                // m_log.DebugFormat("{0}: UpdateProperties: id={1}, rot = {2}", LogHeader, LocalID, _orientation);
-                changed |= UpdatedProperties.Rotation;
-            }
-            // if (_velocity != entprop.Velocity)
-            if (!_velocity.ApproxEquals(entprop.Velocity, VELOCITY_TOLERANCE))
-            {
-                _velocity = entprop.Velocity;
-                // m_log.DebugFormat("{0}: UpdateProperties: velocity = {1}", LogHeader, _velocity);
-                changed |= UpdatedProperties.Velocity;
-            }
-            // if (_acceleration != entprop.Acceleration)
-            if (!_acceleration.ApproxEquals(entprop.Acceleration, ACCELERATION_TOLERANCE))
-            {
-                _acceleration = entprop.Acceleration;
-                // m_log.DebugFormat("{0}: UpdateProperties: acceleration = {1}", LogHeader, _acceleration);
-                changed |= UpdatedProperties.Acceleration;
-            }
-            // if (_rotationalVelocity != entprop.RotationalVelocity)
-            if (!_rotationalVelocity.ApproxEquals(entprop.RotationalVelocity, ROTATIONAL_VELOCITY_TOLERANCE))
-            {
-                _rotationalVelocity = entprop.RotationalVelocity;
-                // m_log.DebugFormat("{0}: UpdateProperties: rotationalVelocity = {1}", LogHeader, _rotationalVelocity);
-                changed |= UpdatedProperties.RotationalVel;
-            }
-            if (changed != 0)
-            {
-                // m_log.DebugFormat("{0}: UpdateProperties: id={1}, c={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
-                // Only update the position of single objects and linkset roots
-                if (this._parentPrim == null)
-                {
-                    // m_log.DebugFormat("{0}: RequestTerseUpdate. id={1}, ch={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
-                    base.RequestPhysicsterseUpdate();
-                }
-            }
+            _position = entprop.Position;
+            changed |= UpdatedProperties.Position;
         }
-        else
+        // if (_orientation != entprop.Rotation)
+        if (!_orientation.ApproxEquals(entprop.Rotation, ROTATION_TOLERANCE))
         {
-            // Don't check for damping here -- it's done in BulletSim and SceneObjectPart.
-
-            // Only updates only for individual prims and for the root object of a linkset.
+            _orientation = entprop.Rotation;
+            changed |= UpdatedProperties.Rotation;
+        }
+        // if (_velocity != entprop.Velocity)
+        if (!_velocity.ApproxEquals(entprop.Velocity, VELOCITY_TOLERANCE))
+        {
+            _velocity = entprop.Velocity;
+            changed |= UpdatedProperties.Velocity;
+        }
+        // if (_acceleration != entprop.Acceleration)
+        if (!_acceleration.ApproxEquals(entprop.Acceleration, ACCELERATION_TOLERANCE))
+        {
+            _acceleration = entprop.Acceleration;
+            changed |= UpdatedProperties.Acceleration;
+        }
+        // if (_rotationalVelocity != entprop.RotationalVelocity)
+        if (!_rotationalVelocity.ApproxEquals(entprop.RotationalVelocity, ROTATIONAL_VELOCITY_TOLERANCE))
+        {
+            _rotationalVelocity = entprop.RotationalVelocity;
+            changed |= UpdatedProperties.RotationalVel;
+        }
+        if (changed != 0)
+        {
+            // Only update the position of single objects and linkset roots
             if (this._parentPrim == null)
             {
-                // Assign to the local variables so the normal set action does not happen
-                _position = entprop.Position;
-                _orientation = entprop.Rotation;
-                _velocity = entprop.Velocity;
-                _acceleration = entprop.Acceleration;
-                _rotationalVelocity = entprop.RotationalVelocity;
-                // m_log.DebugFormat("{0}: RequestTerseUpdate. id={1}, ch={2}, pos={3}, rot={4}, vel={5}, acc={6}, rvel={7}", 
-                //         LogHeader, LocalID, changed, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
                 base.RequestPhysicsterseUpdate();
             }
+        }
+        */
+
+        // Don't check for damping here -- it's done in BulletSim and SceneObjectPart.
+        // Updates only for individual prims and for the root object of a linkset.
+        if (this._parentPrim == null)
+        {
+            // Assign to the local variables so the normal set action does not happen
+            _position = entprop.Position;
+            _orientation = entprop.Rotation;
+            _velocity = entprop.Velocity;
+            _acceleration = entprop.Acceleration;
+            _rotationalVelocity = entprop.RotationalVelocity;
+            // m_log.DebugFormat("{0}: RequestTerseUpdate. id={1}, ch={2}, pos={3}, rot={4}, vel={5}, acc={6}, rvel={7}", 
+            //         LogHeader, LocalID, changed, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
+            base.RequestPhysicsterseUpdate();
         }
     }
 
