@@ -1917,9 +1917,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            SetPos(m_host, pos);
+            SetPos(m_host, pos, true);
 
             ScriptSleep(200);
+        }
+
+        /// <summary>
+        /// Tries to move the entire object so that the root prim is within 0.1m of position. http://wiki.secondlife.com/wiki/LlSetRegionPos
+        /// Documentation indicates that the use of x/y coordinates up to 10 meters outside the bounds of a region will work but do not specify what happens if there is no adjacent region for the object to move into.
+        /// Uses the RegionSize constant here rather than hard-coding 266.0 to alert any developer modifying OpenSim to support variable-sized regions that this method will need tweaking.
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns>1 if successful, 0 otherwise.</returns>
+        public LSL_Integer llSetRegionPos(LSL_Vector pos)
+        {
+            m_host.AddScriptLPS(1);
+            if (
+                llGetStatus((int)PrimFlags.Physics) == 1 || // return FALSE if physical.
+                m_host.ParentGroup.IsAttachment || // return FALSE if attachment
+                (
+                    pos.x < -10.0 || // return FALSE if more than 10 meters into a west-adjacent region.
+                    pos.x > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a east-adjacent region.
+                    pos.y < -10.0 || // return FALSE if more than 10 meters into a south-adjacent region.
+                    pos.y > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a north-adjacent region.
+                    pos.z > 4096 // return FALSE if altitude than 4096m
+                )
+            ){
+                return 0;
+            }
+
+            SetPos(m_host.ParentGroup.RootPart, pos, false);
+
+            return llVecDist(pos, llGetRootPosition()) <= 0.1 ? 1 : 0; 
         }
 
         // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
@@ -1953,7 +1982,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return real_vec;
         }
 
-        protected void SetPos(SceneObjectPart part, LSL_Vector targetPos)
+        /// <summary>
+        /// set object position, optionally capping the distance.
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="targetPos"></param>
+        /// <param name="adjust">if TRUE, will cap the distance to 10m.</param>
+        protected void SetPos(SceneObjectPart part, LSL_Vector targetPos, bool adjust)
         {
             // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
             LSL_Vector currentPos = GetPartLocalPos(part);
@@ -1966,12 +2001,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if ((targetPos.z < ground) && disable_underground_movement && m_host.ParentGroup.AttachmentPoint == 0)
                     targetPos.z = ground;
                 SceneObjectGroup parent = part.ParentGroup;
-                LSL_Vector real_vec = SetPosAdjust(currentPos, targetPos);
+                LSL_Vector real_vec = !adjust ? targetPos : SetPosAdjust(currentPos, targetPos);
                 parent.UpdateGroupPosition(new Vector3((float)real_vec.x, (float)real_vec.y, (float)real_vec.z));
             }
             else
             {
-                LSL_Vector rel_vec = SetPosAdjust(currentPos, targetPos);
+                LSL_Vector rel_vec = !adjust ? targetPos : SetPosAdjust(currentPos, targetPos);
                 part.OffsetPosition = new Vector3((float)rel_vec.x, (float)rel_vec.y, (float)rel_vec.z);
                 SceneObjectGroup parent = part.ParentGroup;
                 parent.HasGroupChanged = true;

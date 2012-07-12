@@ -1618,6 +1618,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetPrimURL(url);
         }
 
+        public LSL_Integer llSetRegionPos(LSL_Vector pos)
+        {
+            return m_LSL_Functions.llSetRegionPos(pos);
+        }
+
         public void llSetRemoteScriptAccessPin(int pin)
         {
             m_LSL_Functions.llSetRemoteScriptAccessPin(pin);

@@ -359,6 +359,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetPrimitiveParams(LSL_List rules);
               void llSetLinkPrimitiveParamsFast(int linknum, LSL_List rules);
               void llSetPrimURL(string url);
+       LSL_Integer llSetRegionPos(LSL_Vector pos);
               void llSetRemoteScriptAccessPin(int pin);
               void llSetRot(LSL_Rotation rot);
               void llSetScale(LSL_Vector scale);
