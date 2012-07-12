@@ -72,6 +72,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS SCENE]";
 
+    private void DebugLog(string mm, params Object[] xx) { if (shouldDebugLog) m_log.DebugFormat(mm, xx); }
+
     public string BulletSimVersion = "?";
 
     private Dictionary<uint, BSCharacter> m_avatars = new Dictionary<uint, BSCharacter>();
@@ -147,6 +149,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     ConfigurationParameters[] m_params;
     GCHandle m_paramsHandle;
 
+    public bool shouldDebugLog { get; private set; }
+
     private BulletSimAPI.DebugLogCallback m_DebugLogCallbackHandle;
 
     public BSScene(string identifier)
@@ -209,6 +213,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         m_meshLOD = 8f;
         m_sculptLOD = 32f;
 
+        shouldDebugLog = false;
         m_detailedStatsStep = 0;            // disabled
 
         m_maxSubSteps = 10;
@@ -261,7 +266,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 _meshSculptedPrim = pConfig.GetBoolean("MeshSculptedPrim", _meshSculptedPrim);
                 _forceSimplePrimMeshing = pConfig.GetBoolean("ForceSimplePrimMeshing", _forceSimplePrimMeshing);
 
+                shouldDebugLog = pConfig.GetBoolean("ShouldDebugLog", shouldDebugLog);
                 m_detailedStatsStep = pConfig.GetInt("DetailedStatsStep", m_detailedStatsStep);
+
                 m_meshLOD = pConfig.GetFloat("MeshLevelOfDetail", m_meshLOD);
                 m_sculptLOD = pConfig.GetFloat("SculptLevelOfDetail", m_sculptLOD);
 
@@ -347,34 +354,42 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public override void RemoveAvatar(PhysicsActor actor)
     {
         // m_log.DebugFormat("{0}: RemoveAvatar", LogHeader);
-        if (actor is BSCharacter)
+        BSCharacter bsactor = actor as BSCharacter;
+        if (bsactor != null)
         {
-            ((BSCharacter)actor).Destroy();
-        }
-        try
-        {
-            lock (m_avatars) m_avatars.Remove(actor.LocalID);
-        }
-        catch (Exception e)
-        {
-            m_log.WarnFormat("{0}: Attempt to remove avatar that is not in physics scene: {1}", LogHeader, e);
+            try
+            {
+                lock (m_avatars) m_avatars.Remove(actor.LocalID);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("{0}: Attempt to remove avatar that is not in physics scene: {1}", LogHeader, e);
+            }
+            bsactor.Destroy();
+            // bsactor.dispose();
         }
     }
 
     public override void RemovePrim(PhysicsActor prim)
     {
-        // m_log.DebugFormat("{0}: RemovePrim", LogHeader);
-        if (prim is BSPrim)
+        BSPrim bsprim = prim as BSPrim;
+        if (bsprim != null)
         {
-            ((BSPrim)prim).Destroy();
+            m_log.DebugFormat("{0}: RemovePrim. id={1}/{2}", LogHeader, bsprim.Name, bsprim.LocalID);
+            try
+            {
+                lock (m_prims) m_prims.Remove(bsprim.LocalID);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("{0}: Attempt to remove prim that is not in physics scene: {1}", LogHeader, e);
+            }
+            bsprim.Destroy();
+            // bsprim.dispose();
         }
-        try
+        else
         {
-            lock (m_prims) m_prims.Remove(prim.LocalID);
-        }
-        catch (Exception e)
-        {
-            m_log.WarnFormat("{0}: Attempt to remove prim that is not in physics scene: {1}", LogHeader, e);
+            m_log.ErrorFormat("{0}: Attempt to remove prim that is not a BSPrim type.", LogHeader);
         }
     }
 
