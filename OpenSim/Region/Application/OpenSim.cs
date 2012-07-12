@@ -996,25 +996,7 @@ namespace OpenSim
                     break;
 
                 case "connections":
-                    System.Text.StringBuilder connections = new System.Text.StringBuilder("Connections:\n");
-                    m_sceneManager.ForEachScene(
-                        delegate(Scene scene) {
-                        scene.ForEachClient(
-                                delegate(IClientAPI client) {
-                            connections.AppendFormat(
-                                "{0}: {1} ({2}) from {3} on circuit {4}\n",
-                                scene.RegionInfo.RegionName,
-                                client.Name,
-                                client.AgentId,
-                                client.RemoteEndPoint,
-                                client.CircuitCode
-                            );
-                        }
-                        );
-                    }
-                    );
-
-                    MainConsole.Instance.Output(connections.ToString());
+                    HandleShowConnections();
                     break;
 
                 case "circuits":
@@ -1136,6 +1118,21 @@ namespace OpenSim
                     });
                     break;
             }
+        }
+
+        private void HandleShowConnections()
+        {
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Region", 20);
+            cdt.AddColumn("Avatar name", 25);
+            cdt.AddColumn("Remote endpoint", 23);
+            cdt.AddColumn("Circuit number", 14);
+
+            m_sceneManager.ForEachScene(
+                s => s.ForEachClient(
+                    c => cdt.AddRow(s.RegionInfo.RegionName, c.Name, c.RemoteEndPoint.ToString(), c.CircuitCode.ToString())));
+
+            MainConsole.Instance.Output(cdt.ToString());
         }
 
         /// <summary>
