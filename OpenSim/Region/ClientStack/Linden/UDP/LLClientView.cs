@@ -11845,11 +11845,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpClient.SetClientInfo(info);
         }
 
-        public EndPoint GetClientEP()
-        {
-            return m_userEndPoint;
-        }
-
         #region Media Parcel Members
 
         public void SendParcelMediaCommand(uint flags, ParcelMediaCommandEnum command, float time)
