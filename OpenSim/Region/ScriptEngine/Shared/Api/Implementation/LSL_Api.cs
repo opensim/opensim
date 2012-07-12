@@ -1946,10 +1946,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             else{
                 LSL_List parcelID = new LSL_List(ScriptBaseClass.PARCEL_DETAILS_ID);
                 Vector3 objectPos = m_host.ParentGroup.RootPart.AbsolutePosition;
-                bool sameParcel = 
-                    llGetParcelDetails(new LSL_Vector(pos.x, pos.y, pos.z), parcelID).Data[0] ==
-                    llGetParcelDetails(pos, parcelID).Data[0]
-                ;
+                string parcelA = llGetParcelDetails(new LSL_Vector(objectPos.X, objectPos.X, objectPos.X), parcelID).Data[0].ToString();
+                string parcelB = llGetParcelDetails(pos, parcelID).Data[0].ToString();
+                bool sameParcel = parcelA == parcelB;
+                int objectPrimCount = m_host.ParentGroup.PrimCount;
+                LSL_Integer destParcelPrimCount = llGetParcelPrimCount(pos, ScriptBaseClass.PARCEL_COUNT_TOTAL, 0);
+                LSL_Integer max = llGetParcelMaxPrims(pos, 0);
                 if (
                     llGetStatus((int)PrimFlags.Physics) == 1 || // return FALSE if physical.
                     m_host.ParentGroup.IsAttachment || // return FALSE if attachment
@@ -1964,7 +1966,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // this check will only work if pos is within the region bounds.
                     (
                         !sameParcel && // if it's moving within the same parcel we do not need to check if the destination parcel will exceed capacity if the object is moved.
-                        (llGetParcelPrimCount(pos, ScriptBaseClass.PARCEL_COUNT_TOTAL, 0) + m_host.ParentGroup.PrimCount) > llGetParcelMaxPrims(pos, 0)
+                        (destParcelPrimCount + objectPrimCount) > max
                     )
                     // END RELIANCE ON WORK-AROUND
                 ){
