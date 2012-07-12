@@ -61,6 +61,8 @@ namespace OdeAPI
         public static int NTotalBodies = 0;
         public static int NTotalGeoms = 0;
 
+        public const uint CONTACTS_UNIMPORTANT = 0x80000000;
+
 		#region Flags and Enumerations
 
         [Flags]

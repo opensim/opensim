@@ -713,8 +713,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
-
-                count = d.CollidePtr(g1, g2, (contactsPerCollision & 0xffff), ContactgeomsArray, d.ContactGeom.unmanagedSizeOf);
+                if(d.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc ||
+                    d.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc)
+                {
+                    int cflags;
+                    unchecked
+                    {
+                        cflags = (int)(1 | d.CONTACTS_UNIMPORTANT);
+                    }
+                    count = d.CollidePtr(g1, g2, cflags, ContactgeomsArray, d.ContactGeom.unmanagedSizeOf);
+                }
+                else
+                    count = d.CollidePtr(g1, g2, (contactsPerCollision & 0xffff), ContactgeomsArray, d.ContactGeom.unmanagedSizeOf);
             }
             catch (SEHException)
             {

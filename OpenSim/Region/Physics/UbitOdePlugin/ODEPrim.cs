@@ -134,7 +134,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 //        private bool m_collidesLand = true;
         private bool m_collidesWater;
-        public bool m_returnCollisions;
+//        public bool m_returnCollisions;
 
         private bool m_NoColide;  // for now only for internal use for bad meshs
 
@@ -164,8 +164,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private List<OdePrim> childrenPrim = new List<OdePrim>();
 
 
-        private bool m_throttleUpdates;
-        private int throttleCounter;
+//        private bool m_throttleUpdates;
+//        private int throttleCounter;
         public float m_collisionscore;
         int m_colliderfilter = 0;
 
@@ -363,12 +363,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { return; }
         }
 
-        public override bool ThrottleUpdates
+
+        public override bool ThrottleUpdates {get;set;}
+/*
         {
             get { return m_throttleUpdates; }
             set { m_throttleUpdates = value; }
         }
-
+*/
         public override bool Stopped
         {
             get { return _zeroFlag; }
@@ -951,7 +953,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
-            CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
+//            if(CollisionEventsThisFrame.Count < 32)
+                CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
         }
 
         public void SendCollisions()
@@ -977,6 +980,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
+                    if (ncolisions > 10)
+                    {
+                    }
+
                     SentEmptyCollisionsEvent = false;
                     CollisionEventsThisFrame.Clear();
                 }
@@ -1746,8 +1753,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (childrenPrim.Count == 0)
             {
                 collide_geom = prim_geom;
-                m_targetSpace = _parent_scene.ActiveSpace;
-                d.SpaceAdd(m_targetSpace, prim_geom);
+                m_targetSpace = _parent_scene.ActiveSpace;               
             }
             else
             {
@@ -1755,7 +1761,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.HashSpaceSetLevels(m_targetSpace, -2, 8);
                 d.SpaceSetSublevel(m_targetSpace, 3);
                 d.SpaceSetCleanup(m_targetSpace, false);
-                d.SpaceAdd(m_targetSpace, prim_geom);
 
                 d.GeomSetCategoryBits(m_targetSpace, (uint)(CollisionCategories.Space |
                                                             CollisionCategories.Geom |
@@ -1766,11 +1771,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                 collide_geom = m_targetSpace;
             }
 
+            d.SpaceAdd(m_targetSpace, prim_geom);
+
             if (m_delaySelect)
             {
                 m_isSelected = true;
                 m_delaySelect = false;
             }
+
+            m_collisionscore = 0;
+
+            UpdateCollisionCatFlags();
+            ApplyCollisionCatFlags();
+
+            _parent_scene.addActivePrim(this);
 
             lock (childrenPrim)
             {
@@ -1809,10 +1823,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 createAMotor(m_angularlock);
             }
 
-            m_collisionscore = 0;
-
-            UpdateCollisionCatFlags();
-            ApplyCollisionCatFlags();
 
             if (m_isSelected || m_disabled)
             {
@@ -1824,7 +1834,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
             }
 
-            _parent_scene.addActivePrim(this);
             _parent_scene.addActiveGroups(this);
         }
 
@@ -3441,92 +3450,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (++bodydisablecontrol < 20)
                         return;
 
-                    bodydisablecontrol = 0;
+                    
                     d.BodyEnable(Body);
                 }
 
+                bodydisablecontrol = 0;
+
                 d.Vector3 lpos = d.GeomGetPosition(prim_geom); // root position that is seem by rest of simulator
 
-/*  moved down to UpdateMove... where it belongs again
-
-                // check outside region
-
-                if (lpos.Z < -100 || lpos.Z > 100000f)
-                {
-                    m_outbounds = true;
-
-                    lpos.Z = Util.Clip(lpos.Z, -100f, 100000f);
-                    _acceleration.X = 0;
-                    _acceleration.Y = 0;
-                    _acceleration.Z = 0;
-
-                    _velocity.X = 0;
-                    _velocity.Y = 0;
-                    _velocity.Z = 0;
-                    m_rotationalVelocity.X = 0;
-                    m_rotationalVelocity.Y = 0;
-                    m_rotationalVelocity.Z = 0;
-
-                    d.BodySetLinearVel(Body, 0, 0, 0); // stop it
-                    d.BodySetAngularVel(Body, 0, 0, 0); // stop it
-                    d.BodySetPosition(Body, lpos.X, lpos.Y, lpos.Z); // put it somewhere 
-                    m_lastposition = _position;
-                    m_lastorientation = _orientation;
-
-                    base.RequestPhysicsterseUpdate();
-
-                    throttleCounter = 0;
-                    _zeroFlag = true;
-
-                    disableBodySoft(); // disable it and colisions
-                    base.RaiseOutOfBounds(_position);
-                    return;
-                }
-
-                if (lpos.X < 0f)
-                {
-                    _position.X = Util.Clip(lpos.X, -2f, -0.1f);
-                    m_outbounds = true;
-                }
-                else if (lpos.X > _parent_scene.WorldExtents.X)
-                {
-                    _position.X = Util.Clip(lpos.X, _parent_scene.WorldExtents.X + 0.1f, _parent_scene.WorldExtents.X + 2f);
-                    m_outbounds = true;
-                }
-                if (lpos.Y < 0f)
-                {
-                    _position.Y = Util.Clip(lpos.Y, -2f, -0.1f);
-                    m_outbounds = true;
-                }
-                else if (lpos.Y > _parent_scene.WorldExtents.Y)
-                {
-                    _position.Y = Util.Clip(lpos.Y, _parent_scene.WorldExtents.Y + 0.1f, _parent_scene.WorldExtents.Y + 2f);
-                    m_outbounds = true;
-                }
-
-                if (m_outbounds)
-                {
-                    m_lastposition = _position;
-                    m_lastorientation = _orientation;
-
-                    d.Vector3 dtmp = d.BodyGetAngularVel(Body);
-                    m_rotationalVelocity.X = dtmp.X;
-                    m_rotationalVelocity.Y = dtmp.Y;
-                    m_rotationalVelocity.Z = dtmp.Z;
-
-                    dtmp = d.BodyGetLinearVel(Body);
-                    _velocity.X = dtmp.X;
-                    _velocity.Y = dtmp.Y;
-                    _velocity.Z = dtmp.Z;
-
-                    d.BodySetLinearVel(Body, 0, 0, 0); // stop it
-                    d.BodySetAngularVel(Body, 0, 0, 0);
-                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                    disableBodySoft(); // stop collisions
-                    base.RequestPhysicsterseUpdate();
-                    return;
-                }
-*/
                 if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
                 {
                     // 'VEHICLES' are dealt with in ODEDynamics.cs
@@ -3721,7 +3652,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         base.RequestPhysicsterseUpdate();
 
-                        throttleCounter = 0;
+//                        throttleCounter = 0;
                         _zeroFlag = true;
 
                         disableBodySoft(); // disable it and colisions
