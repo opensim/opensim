@@ -3822,7 +3822,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void TargetOmega(SceneObjectPart part, LSL_Vector axis, double spinrate, double gain)
         {
-            spinrate *= gain;
             part.UpdateAngularVelocity(new Vector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate)));
          }
 
