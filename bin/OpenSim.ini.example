@@ -280,18 +280,18 @@
     ;; default is false
     ; TelehubAllowLandmark = false
 
-    ;# {AllowedViewerList} {} {Comma separated list of allowed viewers} {}
-    ;; Comma separated list of viewers which may gain access to the regions.
-    ;; One can use a Substring of the viewer name to enable only certain subversions
+    ;# {AllowedClients} {} {Bar (|) separated list of allowed clients} {}
+    ;; Bar (|) separated list of viewers which may gain access to the regions.
+    ;; One can use a substring of the viewer name to enable only certain versions
     ;; Example: Agent uses the viewer "Imprudence 1.3.2.0"
     ;; - "Imprudence" has access
     ;; - "Imprudence 1.3" has access
     ;; - "Imprudence 1.3.1" has no access
-    ;; AllowedViewerList = 
+    ; AllowedViewerList = 
 
-    ;# {BannedViewerList} {} {Comma separated list of banned viewers} {}
-    ;# Comma separated list of viewers which may not gain access to the regions.
-    ;; One can use a Substring of the viewer name to disable only certain subversions
+    ;# {BannedClients} {} {Bar (|) separated list of banned clients} {}
+    ;# Bar (|) separated list of viewers which may not gain access to the regions.
+    ;; One can use a Substring of the viewer name to disable only certain versions
     ;; Example: Agent uses the viewer "Imprudence 1.3.2.0"
     ;; - "Imprudence" has no access
     ;; - "Imprudence 1.3" has no access
