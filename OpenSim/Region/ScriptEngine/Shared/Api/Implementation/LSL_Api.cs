@@ -1932,23 +1932,51 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llSetRegionPos(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
-            if (
-                llGetStatus((int)PrimFlags.Physics) == 1 || // return FALSE if physical.
-                m_host.ParentGroup.IsAttachment || // return FALSE if attachment
-                (
-                    pos.x < -10.0 || // return FALSE if more than 10 meters into a west-adjacent region.
-                    pos.x > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a east-adjacent region.
-                    pos.y < -10.0 || // return FALSE if more than 10 meters into a south-adjacent region.
-                    pos.y > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a north-adjacent region.
-                    pos.z > 4096 // return FALSE if altitude than 4096m
-                )
-            ){
+
+            // BEGIN WORKAROUND
+            // IF YOU GET REGION CROSSINGS WORKING WITH THIS FUNCTION, REPLACE THE WORKAROUND.
+            //
+            // This workaround is to prevent silent failure of this function.
+            // According to the specification on the SL Wiki, providing a position outside of the 
+            if (pos.x < 0 || pos.x > Constants.RegionSize || pos.y < 0 || pos.y > Constants.RegionSize)
+            {
                 return 0;
             }
+            // END WORK AROUND
+            else{
+                LSL_List parcelID = new LSL_List(ScriptBaseClass.PARCEL_DETAILS_ID);
+                Vector3 objectPos = m_host.ParentGroup.RootPart.AbsolutePosition;
+                bool sameParcel = 
+                    llGetParcelDetails(new LSL_Vector(pos.x, pos.y, pos.z), parcelID).Data[0] ==
+                    llGetParcelDetails(pos, parcelID).Data[0]
+                ;
+                if (
+                    llGetStatus((int)PrimFlags.Physics) == 1 || // return FALSE if physical.
+                    m_host.ParentGroup.IsAttachment || // return FALSE if attachment
+                    (
+                        pos.x < -10.0 || // return FALSE if more than 10 meters into a west-adjacent region.
+                        pos.x > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a east-adjacent region.
+                        pos.y < -10.0 || // return FALSE if more than 10 meters into a south-adjacent region.
+                        pos.y > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a north-adjacent region.
+                        pos.z > 4096 // return FALSE if altitude than 4096m
+                    ) ||
+                    // BEGIN RELIANCE ON WORK AROUND
+                    // this check will only work if pos is within the region bounds.
+                    (
+                        !sameParcel && // if it's moving within the same parcel we do not need to check if the destination parcel will exceed capacity if the object is moved.
+                        (llGetParcelPrimCount(pos, ScriptBaseClass.PARCEL_COUNT_TOTAL, 0) + m_host.ParentGroup.PrimCount) > llGetParcelMaxPrims(pos, 0)
+                    )
+                    // END RELIANCE ON WORK-AROUND
+                ){
+                    return 0;
+                }
 
-            SetPos(m_host.ParentGroup.RootPart, pos, false);
+                SetPos(m_host.ParentGroup.RootPart, pos, false);
 
-            return llVecDist(pos, llGetRootPosition()) <= 0.1 ? 1 : 0; 
+                return llVecDist(pos, llGetRootPosition()) <= 0.1 ? 1 : 0;
+            }
+
+            return 0;
         }
 
         // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
