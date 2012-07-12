@@ -1127,10 +1127,16 @@ namespace OpenSim
             cdt.AddColumn("Avatar name", 25);
             cdt.AddColumn("Remote endpoint", 23);
             cdt.AddColumn("Circuit number", 14);
+            cdt.AddColumn("Active?", 7);
 
             m_sceneManager.ForEachScene(
                 s => s.ForEachClient(
-                    c => cdt.AddRow(s.RegionInfo.RegionName, c.Name, c.RemoteEndPoint.ToString(), c.CircuitCode.ToString())));
+                    c => cdt.AddRow(
+                        s.RegionInfo.RegionName,
+                        c.Name,
+                        c.RemoteEndPoint.ToString(),
+                        c.CircuitCode.ToString(),
+                        c.IsActive.ToString())));
 
             MainConsole.Instance.Output(cdt.ToString());
         }
