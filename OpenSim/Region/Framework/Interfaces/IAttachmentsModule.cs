@@ -97,7 +97,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         // Same as above, but also load script states from a separate doc
         ISceneEntity RezSingleAttachmentFromInventory(
-            IScenePresence presence, UUID itemID, uint AttachmentPt, bool updateInventoryStatus, XmlDocument doc);
+            IScenePresence presence, UUID itemID, uint AttachmentPt, XmlDocument doc);
 
         /// <summary>
         /// Rez multiple attachments from a user's inventory

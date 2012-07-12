@@ -26,16 +26,17 @@
  */
 
 using System;
-using System.IO;
-using System.Diagnostics; //for [DebuggerNonUserCode]
-using System.Runtime.Remoting;
-using System.Runtime.Remoting.Lifetime;
-using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
-using System.Security.Policy;
-using System.Reflection;
 using System.Globalization;
+using System.IO;
+using System.Diagnostics; //for [DebuggerNonUserCode]
+using System.Reflection;
+using System.Runtime.Remoting;
+using System.Runtime.Remoting.Lifetime;
+using System.Security.Policy;
+using System.Text;
+using System.Threading;
 using System.Xml;
 using OpenMetaverse;
 using log4net;
@@ -298,13 +299,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         using (FileStream fs = File.Open(savedState,
                                                          FileMode.Open, FileAccess.Read, FileShare.None))
                         {
-                            System.Text.UTF8Encoding enc =
-                                new System.Text.UTF8Encoding();
-
                             Byte[] data = new Byte[size];
                             fs.Read(data, 0, size);
 
-                            xml = enc.GetString(data);
+                            xml = Encoding.UTF8.GetString(data);
 
                             ScriptSerializer.Deserialize(xml, this);
 
@@ -956,8 +954,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 try
                 {
                     FileStream fs = File.Create(Path.Combine(Path.GetDirectoryName(assembly), ItemID.ToString() + ".state"));
-                    System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
-                    Byte[] buf = enc.GetBytes(xml);
+                    Byte[] buf = (new UTF8Encoding()).GetBytes(xml);
                     fs.Write(buf, 0, buf.Length);
                     fs.Close();
                 }

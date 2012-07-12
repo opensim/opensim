@@ -252,7 +252,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             if (horizontalScale < 0.01d)
                 horizontalScale = 0.01d;
 
-            System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+            Encoding enc = Encoding.ASCII;
 
             bs.Write(enc.GetBytes("TERRAGENTERRAIN "));
 

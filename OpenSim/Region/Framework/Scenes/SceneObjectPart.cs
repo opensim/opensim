@@ -752,6 +752,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return m_groupPosition;
                 }
 
+                // If I'm an attachment, my position is reported as the position of who I'm attached to
                 if (ParentGroup.IsAttachment)
                 {
                     ScenePresence sp = ParentGroup.Scene.GetScenePresence(ParentGroup.AttachedAvatar);
@@ -779,7 +780,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else
                         {
-                            // To move the child prim in respect to the group position and rotation we have to calculate
+                            // The physics engine always sees all objects (root or linked) in world coordinates.
                             actor.Position = GetWorldPosition();
                             actor.Orientation = GetWorldRotation();
                         }
@@ -858,6 +859,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // We don't want the physics engine mucking up the rotations in a linkset
                 PhysicsActor actor = PhysActor;
+                // If this is a root of a linkset, the real rotation is what the physics engine thinks.
+                // If not a root prim, the offset rotation is computed by SOG and is relative to the root.
                 if (ParentID == 0 && (Shape.PCode != 9 || Shape.State == 0) && actor != null)
                 {
                     if (actor.Orientation.X != 0f || actor.Orientation.Y != 0f
@@ -2529,14 +2532,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>A Linked Child Prim objects position in world</returns>
         public Vector3 GetWorldPosition()
         {
-            Quaternion parentRot = ParentGroup.RootPart.RotationOffset;
-            Vector3 axPos = OffsetPosition;
-            axPos *= parentRot;
-            Vector3 translationOffsetPosition = axPos;
-            if(_parentID == 0)
-                return GroupPosition;
+            Vector3 ret;
+            if (_parentID == 0)
+                // if a root SOP, my position is what it is
+                ret = GroupPosition;
             else
-                return ParentGroup.AbsolutePosition + translationOffsetPosition;
+            {
+                // If a child SOP, my position is relative to the root SOP so take
+                //    my info and add the root's position and rotation to
+                //    get my world position.
+                Quaternion parentRot = ParentGroup.RootPart.RotationOffset;
+                Vector3 translationOffsetPosition = OffsetPosition * parentRot;
+                ret = ParentGroup.AbsolutePosition + translationOffsetPosition;
+            }
+            return ret;
         }
 
         /// <summary>
@@ -2553,6 +2562,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
+                // A child SOP's rotation is relative to the root SOP's rotation.
+                // Combine them to get my absolute rotation.
                 Quaternion parentRot = ParentGroup.RootPart.RotationOffset;
                 Quaternion oldRot = RotationOffset;
                 newRot = parentRot * oldRot;

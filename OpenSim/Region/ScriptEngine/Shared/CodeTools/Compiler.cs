@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.IO;
+using System.Text;
 using Microsoft.CSharp;
 //using Microsoft.JScript;
 using Microsoft.VisualBasic;
@@ -711,9 +712,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             //
             string filetext = System.Convert.ToBase64String(data);
 
-            System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-
-            Byte[] buf = enc.GetBytes(filetext);
+            Byte[] buf = Encoding.ASCII.GetBytes(filetext);
 
             FileStream sfs = File.Create(assembly + ".text");
             sfs.Write(buf, 0, buf.Length);
@@ -804,8 +803,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 mapstring += String.Format("{0},{1},{2},{3}\n", k.Key, k.Value, v.Key, v.Value);
             }
 
-            System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-            Byte[] mapbytes = enc.GetBytes(mapstring);
+            Byte[] mapbytes = Encoding.ASCII.GetBytes(mapstring);
             FileStream mfs = File.Create(filename);
             mfs.Write(mapbytes, 0, mapbytes.Length);
             mfs.Close();

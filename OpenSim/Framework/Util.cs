@@ -1248,8 +1248,7 @@ namespace OpenSim.Framework
 
         public static string Base64ToString(string str)
         {
-            UTF8Encoding encoder = new UTF8Encoding();
-            Decoder utf8Decode = encoder.GetDecoder();
+            Decoder utf8Decode = Encoding.UTF8.GetDecoder();
 
             byte[] todecode_byte = Convert.FromBase64String(str);
             int charCount = utf8Decode.GetCharCount(todecode_byte, 0, todecode_byte.Length);

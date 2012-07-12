@@ -43,6 +43,57 @@ namespace OpenSim.Tests.Common
         public static readonly string PATH_DELIMITER = "/";
 
         /// <summary>
+        /// Add an existing scene object as an item in the user's inventory.
+        /// </summary>
+        /// <param name='scene'></param>
+        /// <param name='so'></param>
+        /// <param name='inventoryIdTail'></param>
+        /// <param name='assetIdTail'></param>
+        /// <returns>The inventory item created.</returns>
+        public static InventoryItemBase AddInventoryItem(
+            Scene scene, SceneObjectGroup so, int inventoryIdTail, int assetIdTail)
+        {
+            return AddInventoryItem(
+                scene,
+                so.Name,
+                TestHelpers.ParseTail(inventoryIdTail),
+                InventoryType.Object,
+                AssetHelpers.CreateAsset(TestHelpers.ParseTail(assetIdTail), so),
+                so.OwnerID);
+        }
+
+        /// <summary>
+        /// Creates a notecard in the objects folder and specify an item id.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="itemName"></param>
+        /// <param name="itemId"></param>
+        /// <param name="itemType"></param>
+        /// <param name="asset">The serialized asset for this item</param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        private static InventoryItemBase AddInventoryItem(
+            Scene scene, string itemName, UUID itemId, InventoryType itemType, AssetBase asset, UUID userId)
+        {
+            scene.AssetService.Store(asset);
+
+            InventoryItemBase item = new InventoryItemBase();
+            item.Name = itemName;
+            item.AssetID = asset.FullID;
+            item.ID = itemId;
+            item.Owner = userId;
+            item.AssetType = asset.Type;
+            item.InvType = (int)itemType;
+
+            InventoryFolderBase folder = scene.InventoryService.GetFolderForType(userId, (AssetType)asset.Type);
+
+            item.Folder = folder.ID;
+            scene.AddInventoryItem(item);
+
+            return item;
+        }
+
+        /// <summary>
         /// Creates a notecard in the objects folder and specify an item id.
         /// </summary>
         /// <param name="scene"></param>
@@ -81,42 +132,27 @@ namespace OpenSim.Tests.Common
         /// <param name="type">Type of item to create</param>
         /// <returns></returns>
         public static InventoryItemBase CreateInventoryItem(
-            Scene scene, string itemName, UUID itemId, UUID assetId, UUID userId, InventoryType type)
+            Scene scene, string itemName, UUID itemId, UUID assetId, UUID userId, InventoryType itemType)
         {
             AssetBase asset = null;
 
-            if (type == InventoryType.Notecard)
+            if (itemType == InventoryType.Notecard)
             {
                 asset = AssetHelpers.CreateNotecardAsset();
                 asset.CreatorID = userId.ToString();
             }
-            else if (type == InventoryType.Object)
+            else if (itemType == InventoryType.Object)
             {
                 asset = AssetHelpers.CreateAsset(assetId, SceneHelpers.CreateSceneObject(1, userId));
             }
             else
             {
-                throw new Exception(string.Format("Inventory type {0} not supported", type));
+                throw new Exception(string.Format("Inventory type {0} not supported", itemType));
             }
 
-            scene.AssetService.Store(asset);
-
-            InventoryItemBase item = new InventoryItemBase();
-            item.Name = itemName;
-            item.AssetID = asset.FullID;
-            item.ID = itemId;
-            item.Owner = userId;
-            item.AssetType = asset.Type;
-            item.InvType = (int)type;
-
-            InventoryFolderBase folder = scene.InventoryService.GetFolderForType(userId, AssetType.Notecard);
-            
-            item.Folder = folder.ID;
-            scene.AddInventoryItem(item);
-            
-            return item;
+            return AddInventoryItem(scene, itemName, itemId, itemType, asset, userId);
         }
-        
+
         /// <summary>
         /// Create inventory folders starting from the user's root folder.
         /// </summary>

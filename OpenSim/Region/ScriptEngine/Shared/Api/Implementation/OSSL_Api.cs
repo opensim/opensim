@@ -1822,8 +1822,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (a == null)
                     return UUID.Zero;
 
-                System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
-                string data = enc.GetString(a.Data);
+                string data = Encoding.UTF8.GetString(a.Data);
                 NotecardCache.Cache(assetID, data);
             };
 

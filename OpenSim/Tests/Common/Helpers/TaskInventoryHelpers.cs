@@ -69,7 +69,7 @@ namespace OpenSim.Tests.Common
         }
 
         /// <summary>
-        /// Add a blank script to the given part.
+        /// Add a simple script to the given part.
         /// </summary>
         /// <remarks>
         /// TODO: Accept input for item and asset IDs to avoid mysterious script failures that try to use any of these
@@ -81,6 +81,7 @@ namespace OpenSim.Tests.Common
         public static TaskInventoryItem AddScript(Scene scene, SceneObjectPart part)
         {
             AssetScriptText ast = new AssetScriptText();
+            ast.Source = "default { state_entry() { llSay(0, \"Hello World\"); } }";
             ast.Encode();
 
             UUID assetUuid = new UUID("00000000-0000-0000-1000-000000000000");

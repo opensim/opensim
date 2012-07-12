@@ -591,8 +591,8 @@ namespace OpenSim.Framework.Servers
             {
                 string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
                 FileStream fs = File.Create(path);
-                System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-                Byte[] buf = enc.GetBytes(pidstring);
+
+                Byte[] buf = Encoding.ASCII.GetBytes(pidstring);
                 fs.Write(buf, 0, buf.Length);
                 fs.Close();
                 m_pidFile = path;

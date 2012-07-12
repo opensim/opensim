@@ -41,7 +41,6 @@ namespace OpenSim.Framework.Serialization
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
         protected static UTF8Encoding m_utf8Encoding = new UTF8Encoding();
 
         /// <summary>
@@ -85,7 +84,7 @@ namespace OpenSim.Framework.Serialization
         public void WriteFile(string filePath, byte[] data)
         {
             if (filePath.Length > 100)
-                WriteEntry("././@LongLink", m_asciiEncoding.GetBytes(filePath), 'L');
+                WriteEntry("././@LongLink", Encoding.ASCII.GetBytes(filePath), 'L');
 
             char fileType;
 
@@ -137,7 +136,7 @@ namespace OpenSim.Framework.Serialization
                 oString = "0" + oString;
             }
 
-            byte[] oBytes = m_asciiEncoding.GetBytes(oString);
+            byte[] oBytes = Encoding.ASCII.GetBytes(oString);
 
             return oBytes;
         }
@@ -156,20 +155,20 @@ namespace OpenSim.Framework.Serialization
             byte[] header = new byte[512];
 
             // file path field (100)
-            byte[] nameBytes = m_asciiEncoding.GetBytes(filePath);
+            byte[] nameBytes = Encoding.ASCII.GetBytes(filePath);
             int nameSize = (nameBytes.Length >= 100) ? 100 : nameBytes.Length;
             Array.Copy(nameBytes, header, nameSize);
 
             // file mode (8)
-            byte[] modeBytes = m_asciiEncoding.GetBytes("0000777");
+            byte[] modeBytes = Encoding.ASCII.GetBytes("0000777");
             Array.Copy(modeBytes, 0, header, 100, 7);
 
             // owner user id (8)
-            byte[] ownerIdBytes = m_asciiEncoding.GetBytes("0000764");
+            byte[] ownerIdBytes = Encoding.ASCII.GetBytes("0000764");
             Array.Copy(ownerIdBytes, 0, header, 108, 7);
 
             // group user id (8)
-            byte[] groupIdBytes = m_asciiEncoding.GetBytes("0000764");
+            byte[] groupIdBytes = Encoding.ASCII.GetBytes("0000764");
             Array.Copy(groupIdBytes, 0, header, 116, 7);
 
             // file size in bytes (12)
@@ -181,17 +180,17 @@ namespace OpenSim.Framework.Serialization
             Array.Copy(fileSizeBytes, 0, header, 124, 11);
 
             // last modification time (12)
-            byte[] lastModTimeBytes = m_asciiEncoding.GetBytes("11017037332");
+            byte[] lastModTimeBytes = Encoding.ASCII.GetBytes("11017037332");
             Array.Copy(lastModTimeBytes, 0, header, 136, 11);
 
             // entry type indicator (1)
-            header[156] = m_asciiEncoding.GetBytes(new char[] { fileType })[0];
+            header[156] = Encoding.ASCII.GetBytes(new char[] { fileType })[0];
 
-            Array.Copy(m_asciiEncoding.GetBytes("0000000"), 0, header, 329, 7);
-            Array.Copy(m_asciiEncoding.GetBytes("0000000"), 0, header, 337, 7);
+            Array.Copy(Encoding.ASCII.GetBytes("0000000"), 0, header, 329, 7);
+            Array.Copy(Encoding.ASCII.GetBytes("0000000"), 0, header, 337, 7);
 
             // check sum for header block (8) [calculated last]
-            Array.Copy(m_asciiEncoding.GetBytes("        "), 0, header, 148, 8);
+            Array.Copy(Encoding.ASCII.GetBytes("        "), 0, header, 148, 8);
 
             int checksum = 0;
             foreach (byte b in header)

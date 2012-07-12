@@ -646,6 +646,9 @@ namespace OpenSim.Region.Framework.Scenes
                         return;
                     }
                 }
+
+                // Restuff the new GroupPosition into each SOP of the linkset.
+                //    This has the affect of resetting and tainting the physics actors.
                 SceneObjectPart[] parts = m_parts.GetArray();
                 bool triggerScriptEvent = m_rootPart.GroupPosition != val;
                 if (m_dupeInProgress)
@@ -1755,6 +1758,9 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void ResetChildPrimPhysicsPositions()
         {
+            // Setting this SOG's absolute position also loops through and sets the positions
+            //    of the SOP's in this SOG's linkset. This has the side affect of making sure
+            //    the physics world matches the simulated world.
             AbsolutePosition = AbsolutePosition; // could someone in the know please explain how this works?
 
             // teravus: AbsolutePosition is NOT a normal property!
@@ -2714,6 +2720,8 @@ namespace OpenSim.Region.Framework.Scenes
             LinkToGroup(objectGroup, false);
         }
 
+        // Link an existing group to this group.
+        // The group being linked need not be a linkset -- it can have just one prim.
         public void LinkToGroup(SceneObjectGroup objectGroup, bool insert)
         {
 //            m_log.DebugFormat(
@@ -2724,6 +2732,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (objectGroup == this)
                 return;
 
+            // 'linkPart' == the root of the group being linked into this group
             SceneObjectPart linkPart = objectGroup.m_rootPart;
 
             if (m_rootPart.PhysActor != null)
@@ -2735,31 +2744,44 @@ namespace OpenSim.Region.Framework.Scenes
             bool grpusephys = UsesPhysics;
             bool grptemporary = IsTemporary;
 
+            // Remember where the group being linked thought it was
             Vector3 oldGroupPosition = linkPart.GroupPosition;
             Quaternion oldRootRotation = linkPart.RotationOffset;
 
-            linkPart.OffsetPosition = linkPart.GroupPosition - AbsolutePosition;
+            // A linked SOP remembers its location and rotation relative to the root of a group. 
+            // Convert the root of the group being linked to be relative to the
+            //   root of the group being linked to.
+            // Note: Some of the assignments have complex side effects.
 
+            // First move the new group's root SOP's position to be relative to ours
+            // (radams1: Not sure if the multiple setting of OffsetPosition is required. If not,
+            //   this code can be reordered to have a more logical flow.)
+            linkPart.OffsetPosition = linkPart.GroupPosition - AbsolutePosition;
+            // Assign the new parent to the root of the old group
             linkPart.ParentID = m_rootPart.LocalId;
-            
-            linkPart.GroupPosition = AbsolutePosition;           
+            // Now that it's a child, it's group position is our root position
+            linkPart.GroupPosition = AbsolutePosition;
 
             Vector3 axPos = linkPart.OffsetPosition;
+            // Rotate the linking root SOP's position to be relative to the new root prim
             Quaternion parentRot = m_rootPart.RotationOffset;
             axPos *= Quaternion.Conjugate(parentRot);
             linkPart.OffsetPosition = axPos;
 
+            // Make the linking root SOP's rotation relative to the new root prim
             Quaternion oldRot = linkPart.RotationOffset;
             Quaternion newRot = Quaternion.Conjugate(parentRot) * oldRot;
             linkPart.RotationOffset = newRot;
 
-//            linkPart.ParentID = m_rootPart.LocalId; done above
-
+            // If there is only one SOP in a SOG, the LinkNum is zero. I.e., not a linkset.
+            // Now that we know this SOG has at least two SOPs in it, the new root
+            //    SOP becomes the first in the linkset.
             if (m_rootPart.LinkNum == 0)
                 m_rootPart.LinkNum = 1;
 
             lock (m_parts.SyncRoot)
             {
+                // Calculate the new link number for the old root SOP
                 int linkNum;
                 if (insert)
                 {
@@ -2775,6 +2797,7 @@ namespace OpenSim.Region.Framework.Scenes
                     linkNum = PrimCount + 1;
                 }
 
+                // Add the old root SOP as a part in our group's list
                 m_parts.Add(linkPart.UUID, linkPart);
 
                 linkPart.SetParent(this);
@@ -2782,6 +2805,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // let physics know preserve part volume dtc messy since UpdatePrimFlags doesn't look to parent changes for now
                 linkPart.UpdatePrimFlags(grpusephys, grptemporary, (IsPhantom || (linkPart.Flags & PrimFlags.Phantom) != 0), linkPart.VolumeDetectActive, true);
+
+                // If the added SOP is physical, also tell the physics engine about the link relationship.
                 if (linkPart.PhysActor != null && m_rootPart.PhysActor != null && m_rootPart.PhysActor.IsPhysical)
                 {
                     linkPart.PhysActor.link(m_rootPart.PhysActor);
@@ -2791,20 +2816,26 @@ namespace OpenSim.Region.Framework.Scenes
                 linkPart.LinkNum = linkNum++;
                 linkPart.UpdatePrimFlags(UsesPhysics, IsTemporary, IsPhantom, IsVolumeDetect, false);
 
+                // Get a list of the SOP's in the old group in order of their linknum's.
                 SceneObjectPart[] ogParts = objectGroup.Parts;
                 Array.Sort(ogParts, delegate(SceneObjectPart a, SceneObjectPart b)
                         {
                             return a.LinkNum - b.LinkNum;
                         });
 
+                // Add each of the SOP's from the old linkset to our linkset
                 for (int i = 0; i < ogParts.Length; i++)
                 {
                     SceneObjectPart part = ogParts[i];
                     if (part.UUID != objectGroup.m_rootPart.UUID)
                     {
                         LinkNonRootPart(part, oldGroupPosition, oldRootRotation, linkNum++);
-                        // let physics know
+
+                        // Update the physics flags for the newly added SOP
+                        // (Is this necessary? LinkNonRootPart() has already called UpdatePrimFlags but with different flags!??)
                         part.UpdatePrimFlags(grpusephys, grptemporary, (IsPhantom || (part.Flags & PrimFlags.Phantom) != 0), part.VolumeDetectActive, true);
+
+                        // If the added SOP is physical, also tell the physics engine about the link relationship.
                         if (part.PhysActor != null && m_rootPart.PhysActor != null && m_rootPart.PhysActor.IsPhysical)
                         {
                             part.PhysActor.link(m_rootPart.PhysActor);
@@ -2815,6 +2846,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            // Now that we've aquired all of the old SOG's parts, remove the old SOG from the scene.
             m_scene.UnlinkSceneObject(objectGroup, true);
             objectGroup.IsDeleted = true;
 
@@ -2890,7 +2922,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <remarks>
         /// FIXME: This method should not be called directly since it bypasses update locking, allowing a potential race
         /// condition.  But currently there is no
-        /// alternative method that does take a lonk to delink a single prim.
+        /// alternative method that does take a lock to delink a single prim.
         /// </remarks>
         /// <param name="partID"></param>
         /// <param name="sendEvents"></param>
@@ -2906,6 +2938,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             linkPart.ClearUndoState();
 
+            Vector3 worldPos = linkPart.GetWorldPosition();
             Quaternion worldRot = linkPart.GetWorldRotation();
 
             // Remove the part from this object
@@ -2915,6 +2948,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 SceneObjectPart[] parts = m_parts.GetArray();
 
+                // Rejigger the linknum's of the remaining SOP's to fill any gap
                 if (parts.Length == 1 && RootPart != null)
                 {
                     // Single prim left
@@ -2936,22 +2970,31 @@ namespace OpenSim.Region.Framework.Scenes
 
             PhysicsActor linkPartPa = linkPart.PhysActor;
 
+            // Remove the SOP from the physical scene.
+            // If the new SOG is physical, it is re-created later.
+            // (There is a problem here in that we have not yet told the physics
+            //    engine about the delink. Someday, linksets should be made first
+            //    class objects in the physics engine interface).
             if (linkPartPa != null)
                 m_scene.PhysicsScene.RemovePrim(linkPartPa);
 
             // We need to reset the child part's position
             // ready for life as a separate object after being a part of another object
+
+            /* This commented out code seems to recompute what GetWorldPosition already does.
+             * Replace with a call to GetWorldPosition (before unlinking)
             Quaternion parentRot = m_rootPart.RotationOffset;
-
             Vector3 axPos = linkPart.OffsetPosition;
-
             axPos *= parentRot;
             linkPart.OffsetPosition = new Vector3(axPos.X, axPos.Y, axPos.Z);
             linkPart.GroupPosition = AbsolutePosition + linkPart.OffsetPosition;
             linkPart.OffsetPosition = new Vector3(0, 0, 0);
-
+             */
+            linkPart.GroupPosition = worldPos;
+            linkPart.OffsetPosition = Vector3.Zero;
             linkPart.RotationOffset = worldRot;
 
+            // Create a new SOG to go around this unlinked and unattached SOP
             SceneObjectGroup objectGroup = new SceneObjectGroup(linkPart);
 
             m_scene.AddNewSceneObject(objectGroup, true);
@@ -2989,43 +3032,57 @@ namespace OpenSim.Region.Framework.Scenes
             m_isBackedUp = false;
         }
 
+        // This links an SOP from a previous linkset into my linkset.
+        // The trick is that the SOP's position and rotation are relative to the old root SOP's
+        //    so we are passed in the position and rotation of the old linkset so this can
+        //    unjigger this SOP's position and rotation from the previous linkset and
+        //    then make them relative to my linkset root.
         private void LinkNonRootPart(SceneObjectPart part, Vector3 oldGroupPosition, Quaternion oldGroupRotation, int linkNum)
         {
             Quaternion parentRot = oldGroupRotation;
             Quaternion oldRot = part.RotationOffset;
-            Quaternion worldRot = parentRot * oldRot;
 
-            parentRot = oldGroupRotation;
-
+            // Move our position to not be relative to the old parent
             Vector3 axPos = part.OffsetPosition;
-
             axPos *= parentRot;
             part.OffsetPosition = axPos;
             Vector3 newPos = oldGroupPosition + part.OffsetPosition;
             part.GroupPosition = newPos;
             part.OffsetPosition = Vector3.Zero;
+
+            // Compution our rotation to be not relative to the old parent
+            Quaternion worldRot = parentRot * oldRot;
             part.RotationOffset = worldRot;
 
+            // Add this SOP to our linkset
             part.SetParent(this);
             part.ParentID = m_rootPart.LocalId;
-
             m_parts.Add(part.UUID, part);
 
             part.LinkNum = linkNum;
 
-            part.OffsetPosition = newPos - AbsolutePosition;
+            // Compute the new position of this SOP relative to the group position
+            part.OffsetPosition = part.GroupPosition - AbsolutePosition;
 
+            // (radams1 20120711: I don't know why part.OffsetPosition is set multiple times.
+            //   It would have the affect of setting the physics engine position multiple 
+            //   times. In theory, that is not necessary but I don't have a good linkset
+            //   test to know that cleaning up this code wouldn't break things.)
+
+            // Rotate the relative position by the rotation of the group
             Quaternion rootRotation = m_rootPart.RotationOffset;
-
             Vector3 pos = part.OffsetPosition;
             pos *= Quaternion.Conjugate(rootRotation);
             part.OffsetPosition = pos;
 
+            // Compute the SOP's rotation relative to the rotation of the group.
             parentRot = m_rootPart.RotationOffset;
             oldRot = part.RotationOffset;
             Quaternion newRot = Quaternion.Conjugate(parentRot) * worldRot;
             part.RotationOffset = newRot;
 
+            // Since this SOP's state has changed, push those changes into the physics engine
+            //    and the simulator.
             part.UpdatePrimFlags(UsesPhysics, IsTemporary, IsPhantom, IsVolumeDetect, false);
         }
 

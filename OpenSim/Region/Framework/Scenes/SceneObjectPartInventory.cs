@@ -1453,6 +1453,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (e != null)
                     {
+//                        m_log.DebugFormat(
+//                            "[PRIM INVENTORY]: Getting script state from engine {0} for {1} in part {2} in group {3} in {4}",
+//                            e.Name, item.Name, m_part.Name, m_part.ParentGroup.Name, m_part.ParentGroup.Scene.Name);
+
                         string n = e.GetXMLState(item.ItemID);
                         if (n != String.Empty)
                         {
