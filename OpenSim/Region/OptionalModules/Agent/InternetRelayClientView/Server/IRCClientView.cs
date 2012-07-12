@@ -44,7 +44,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 {
     public delegate void OnIRCClientReadyDelegate(IRCClientView cv);
 
-    public class IRCClientView : IClientAPI, IClientCore, IClientIPEndpoint
+    public class IRCClientView : IClientAPI, IClientCore
     {
         public event OnIRCClientReadyDelegate OnIRCReady;
 
@@ -1624,15 +1624,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
         {
             return true;
-        }
-
-        #endregion
-
-        #region Implementation of IClientIPEndpoint
-
-        public IPAddress EndPoint
-        {
-            get { return ((IPEndPoint) m_client.Client.RemoteEndPoint).Address; }
         }
 
         #endregion
