@@ -55,7 +55,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public RegionCache(Scene s)
         {
-            Util.PrintCallStack();
             m_scene = s;
             m_scene.EventManager.OnRegionUp += OnRegionUp;
         }
