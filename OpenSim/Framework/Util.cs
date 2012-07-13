@@ -148,6 +148,7 @@ namespace OpenSim.Framework
         }
 
         public static Encoding UTF8 = Encoding.UTF8;
+        public static Encoding UTF8NoBomEncoding = new UTF8Encoding(false);
 
         /// <value>
         /// Well known UUID for the blank texture used in the Linden SL viewer version 1.20 (and hopefully onwards) 

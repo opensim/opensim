@@ -150,7 +150,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             if (!m_Enabled)
                 return;
-            
+
             m_LocalCache[scene.RegionInfo.RegionID].Clear();
             m_LocalCache.Remove(scene.RegionInfo.RegionID);
         }
