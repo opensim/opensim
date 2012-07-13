@@ -1171,6 +1171,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             OdePrim cp1;
             OdeCharacter cc2;
             OdePrim cp2;
+            OdePrim cp1Parent;
+            OdePrim cp2Parent;
 
             uint obj2LocalID = 0;
             bool p1events = p1.SubscribedEvents();
@@ -1207,18 +1209,19 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                         case ActorTypes.Agent:
                             cc2 = (OdeCharacter)p2;
-                            obj2LocalID = cc2.m_localID;
+                            obj2LocalID = cc2.LocalID;
                             if (p2events)
-                                cc2.AddCollisionEvent(cc1.m_localID, contact);
+                                cc2.AddCollisionEvent(cc1.LocalID, contact);
                             break;
 
                         case ActorTypes.Prim:
                             if (p2 is OdePrim)
                                 {
                                 cp2 = (OdePrim)p2;
-                                obj2LocalID = cp2.m_localID;
                                 if (p2events)
-                                    cp2.AddCollisionEvent(cc1.m_localID, contact);
+                                    cp2.AddCollisionEvent(cc1.LocalID, contact);
+                                cp2 = cp2.Parent;
+                                obj2LocalID = cp2.LocalID;
                                 }
                             break;
 
@@ -1240,17 +1243,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (p1 is OdePrim)
                         {
                         cp1 = (OdePrim)p1;
-
-                        // obj1LocalID = cp2.m_localID;
+                        cp1Parent = cp1.Parent;
                         switch ((ActorTypes)p2.PhysicsActorType)
                             {
                             case ActorTypes.Agent:
                                 if (p2 is OdeCharacter)
                                     {
                                     cc2 = (OdeCharacter)p2;
-                                    obj2LocalID = cc2.m_localID;
+                                    obj2LocalID = cc2.LocalID;
                                     if (p2events)
-                                        cc2.AddCollisionEvent(cp1.m_localID, contact);
+                                        cc2.AddCollisionEvent(cp1Parent.LocalID, contact);
                                     }
                                 break;
                             case ActorTypes.Prim:
@@ -1258,9 +1260,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 if (p2 is OdePrim)
                                     {
                                     cp2 = (OdePrim)p2;
-                                    obj2LocalID = cp2.m_localID;
                                     if (p2events)
-                                        cp2.AddCollisionEvent(cp1.m_localID, contact);
+                                        cp2.AddCollisionEvent(cp1Parent.LocalID, contact);
+                                    cp2 = cp2.Parent;
+                                    obj2LocalID = cp2.LocalID;
                                     }
                                 break;
 
@@ -1286,7 +1289,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 if (p2 is OdeCharacter)
                                 {
                                     cc2 = (OdeCharacter)p2;
-                                    obj2LocalID = cc2.m_localID;
+                                    obj2LocalID = cc2.LocalID;
                                     if (p2events)
                                         cc2.AddCollisionEvent(0, contact);
                                 }
@@ -1295,7 +1298,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 if (p2 is OdePrim)
                                 {
                                     cp2 = (OdePrim)p2;
-                                    obj2LocalID = cp2.m_localID;
+                                    obj2LocalID = cp2.LocalID;
                                     if (p2events)
                                         cp2.AddCollisionEvent(0, contact);
                                 }
@@ -1350,8 +1353,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     foreach (OdePrim prm in _activegroups)
                     {
-                        if (d.BodyIsEnabled(prm.Body) && !prm.m_outbounds)
-                            d.SpaceCollide2(StaticSpace, prm.collide_geom, IntPtr.Zero, nearCallback);
+                        if (!prm.m_outbounds)
+                        {
+//                            if (d.BodyIsEnabled(prm.Body))
+                                d.SpaceCollide2(StaticSpace, prm.collide_geom, IntPtr.Zero, nearCallback);
+                        }
                     }
                 }
                 catch (AccessViolationException)
@@ -1604,7 +1610,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             //Console.WriteLine("RemovePrimThreadLocked " +  prim.m_primName);
             lock (prim)
             {
-                RemoveCollisionEventReporting(prim);
+//                RemoveCollisionEventReporting(prim);
                 lock (_prims)
                     _prims.Remove(prim);
             }
@@ -2012,6 +2018,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 case ActorTypes.Prim:
                                     OdePrim pobj = (OdePrim)obj;
                                     if (pobj.Body == IntPtr.Zero || (d.BodyIsEnabled(pobj.Body) && !pobj.m_outbounds))
+                                    if (!pobj.m_outbounds)
                                     {
                                         pobj.AddCollisionFrameTime((int)(odetimestepMS));
                                         pobj.SendCollisions();
@@ -2728,7 +2735,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         WaterMapHandler.Free();
                 }
 
-
                 if (ContactgeomsArray != IntPtr.Zero)
                     Marshal.FreeHGlobal(ContactgeomsArray);
                 if (GlobalContactsArray != IntPtr.Zero)
@@ -2751,7 +2757,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (prm.CollisionScore > 0)
                     {
-                        returncolliders.Add(prm.m_localID, prm.CollisionScore);
+                        returncolliders.Add(prm.LocalID, prm.CollisionScore);
                         cnt++;
                         prm.CollisionScore = 0f;
                         if (cnt > 25)

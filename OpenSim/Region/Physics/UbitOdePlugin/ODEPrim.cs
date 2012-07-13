@@ -101,7 +101,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_invTimeStep = 50.0f;
         private float m_timeStep = .02f;
 
-
         private Vector3 m_PIDTarget;
         private float m_PIDTau;
         private bool m_usePID;
@@ -119,7 +118,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_buoyancy;                //KF: m_buoyancy should be set by llSetBuoyancy() for non-vehicle. 
 
         private int body_autodisable_frames = 5;
-        private int bodydisablecontrol = 0;
+        public int bodydisablecontrol = 0;
 
 
         // Default we're a Geometry
@@ -144,7 +143,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public bool m_disabled;
 
-        public uint m_localID;
+        private uint m_localID;
 
         private IMesh m_mesh;
         private object m_meshlock = new object();
@@ -167,7 +166,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //        private bool m_throttleUpdates;
 //        private int throttleCounter;
         public float m_collisionscore;
-        int m_colliderfilter = 0;
+        private int m_colliderfilter = 0;
 
         public IntPtr collide_geom; // for objects: geom if single prim space it linkset
 
@@ -235,7 +234,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-
         public override bool Phantom  // this is not reliable for internal use
         {
             get { return m_fakeisphantom; }
@@ -293,14 +291,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override uint LocalID
         {
+            get { return m_localID; }
+            set { m_localID = value; }
+        }
+
+        public OdePrim Parent
+        {
             get
             {
-                return m_localID;
-            }
-            set
-            {
-                //m_log.Info("[PHYSICS]: Setting TrackerID: " + value);
-                m_localID = value;
+                if (childPrim)
+                    return (OdePrim)_parent;
+                else
+                    return this;
             }
         }
 
@@ -945,8 +947,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 CollisionEventsThisFrame = null;
             }
             m_eventsubscription = 0;
-            // for now still done on odescene
-//            _parent_scene.RemoveCollisionEventReporting(this);
+           _parent_scene.RemoveCollisionEventReporting(this);
         }
 
         public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
@@ -980,10 +981,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    if (ncolisions > 10)
-                    {
-                    }
-
                     SentEmptyCollisionsEvent = false;
                     CollisionEventsThisFrame.Clear();
                 }
@@ -1832,8 +1829,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 d.BodySetAngularVel(Body, m_rotationalVelocity.X, m_rotationalVelocity.Y, m_rotationalVelocity.Z);
                 d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
-            }
-
+            }               
             _parent_scene.addActiveGroups(this);
         }
 
@@ -3700,6 +3696,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.BodySetAngularVel(Body, 0, 0, 0);
                         d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                         disableBodySoft(); // stop collisions
+                        UnSubscribeEvents();
+
                         base.RequestPhysicsterseUpdate();
                         return;
                     }
@@ -3871,8 +3869,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_vehicle = null;
                     RemoveGeom();
                     m_targetSpace = IntPtr.Zero;
-                    if (m_eventsubscription > 0)
-                        UnSubscribeEvents();
+                    UnSubscribeEvents();
                     return true;
 
                 case changes.Link:

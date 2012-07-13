@@ -509,14 +509,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if ((thisFlags & CurrentRayFilter) == 0)
                         return;
 
-                    ID = ((OdePrim)p2).m_localID;
+                    ID = ((OdePrim)p2).LocalID;
                 }
                 else if (p2 is OdeCharacter)
                 {
                     if ((CurrentRayFilter & RayFilterFlags.agent) == 0)
                         return;
                     else
-                        ID = ((OdeCharacter)p2).m_localID;
+                        ID = ((OdeCharacter)p2).LocalID;
                 }
                 else //??
                     return;
