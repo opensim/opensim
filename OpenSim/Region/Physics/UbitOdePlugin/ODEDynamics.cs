@@ -425,7 +425,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             switch (pParam)
             {
                 case Vehicle.REFERENCE_FRAME:
-                    m_referenceFrame = Quaternion.Inverse(pValue);
+                    //                    m_referenceFrame = Quaternion.Inverse(pValue);
+                    m_referenceFrame = pValue;
                     break;
                 case Vehicle.ROLL_FRAME:
                     m_RollreferenceFrame = pValue;
