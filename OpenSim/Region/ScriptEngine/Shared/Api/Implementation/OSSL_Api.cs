@@ -883,13 +883,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (World.Entities.ContainsKey((UUID)agent) && World.Entities[avatarID] is ScenePresence)
             {
                 ScenePresence target = (ScenePresence)World.Entities[avatarID];
-                EndPoint ep = target.ControllingClient.GetClientEP();
-                if (ep is IPEndPoint)
-                {
-                    IPEndPoint ip = (IPEndPoint)ep;
-                    return ip.Address.ToString();
-                }
+                return target.ControllingClient.RemoteEndPoint.Address.ToString();
             }
+            
             // fall through case, just return nothing
             return "";
         }

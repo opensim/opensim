@@ -954,7 +954,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 try
                 {
                     FileStream fs = File.Create(Path.Combine(Path.GetDirectoryName(assembly), ItemID.ToString() + ".state"));
-                    Byte[] buf = (new UTF8Encoding()).GetBytes(xml);
+                    Byte[] buf = Util.UTF8NoBomEncoding.GetBytes(xml);
                     fs.Write(buf, 0, buf.Length);
                     fs.Close();
                 }

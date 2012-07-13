@@ -1369,7 +1369,6 @@ namespace OpenSim.Framework
         void SendBlueBoxMessage(UUID FromAvatarID, String FromAvatarName, String Message);
 
         void SendLogoutPacket();
-        EndPoint GetClientEP();
 
         // WARNING WARNING WARNING
         //

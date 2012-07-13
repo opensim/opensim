@@ -996,44 +996,11 @@ namespace OpenSim
                     break;
 
                 case "connections":
-                    System.Text.StringBuilder connections = new System.Text.StringBuilder("Connections:\n");
-                    m_sceneManager.ForEachScene(
-                        delegate(Scene scene) {
-                        scene.ForEachClient(
-                                delegate(IClientAPI client) {
-                            connections.AppendFormat(
-                                "{0}: {1} ({2}) from {3} on circuit {4}\n",
-                                scene.RegionInfo.RegionName,
-                                client.Name,
-                                client.AgentId,
-                                client.RemoteEndPoint,
-                                client.CircuitCode
-                            );
-                        }
-                        );
-                    }
-                    );
-
-                    MainConsole.Instance.Output(connections.ToString());
+                    HandleShowConnections();
                     break;
 
                 case "circuits":
-                    System.Text.StringBuilder acd = new System.Text.StringBuilder("Agent Circuits:\n");
-                    m_sceneManager.ForEachScene(
-                        delegate(Scene scene) {
-                        //this.HttpServer.
-                        acd.AppendFormat("{0}:\n", scene.RegionInfo.RegionName);
-                        foreach (AgentCircuitData aCircuit in scene.AuthenticateHandler.GetAgentCircuits().Values)
-                            acd.AppendFormat(
-                                "\t{0} {1} ({2})\n",
-                                aCircuit.firstname,
-                                aCircuit.lastname,
-                                (aCircuit.child ? "Child" : "Root")
-                            );
-                    }
-                    );
-
-                    MainConsole.Instance.Output(acd.ToString());
+                    HandleShowCircuits();
                     break;
 
                 case "http-handlers":
@@ -1136,6 +1103,53 @@ namespace OpenSim
                     });
                     break;
             }
+        }
+
+        private void HandleShowCircuits()
+        {
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Region", 20);
+            cdt.AddColumn("Avatar name", 24);
+            cdt.AddColumn("Type", 5);
+            cdt.AddColumn("Code", 10);
+            cdt.AddColumn("IP", 16);
+            cdt.AddColumn("Viewer Name", 24);
+
+            m_sceneManager.ForEachScene(
+                s =>
+                {
+                    foreach (AgentCircuitData aCircuit in s.AuthenticateHandler.GetAgentCircuits().Values)
+                        cdt.AddRow(
+                            s.Name,
+                            aCircuit.Name,
+                            aCircuit.child ? "child" : "root",
+                            aCircuit.circuitcode.ToString(),
+                            aCircuit.IPAddress.ToString(),
+                            aCircuit.Viewer);
+                });
+
+            MainConsole.Instance.Output(cdt.ToString());
+        }
+
+        private void HandleShowConnections()
+        {
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Region", 20);
+            cdt.AddColumn("Avatar name", 24);
+            cdt.AddColumn("Circuit code", 12);
+            cdt.AddColumn("Endpoint", 23);
+            cdt.AddColumn("Active?", 7);
+
+            m_sceneManager.ForEachScene(
+                s => s.ForEachClient(
+                    c => cdt.AddRow(
+                        s.Name,
+                        c.Name,
+                        c.RemoteEndPoint.ToString(),
+                        c.CircuitCode.ToString(),
+                        c.IsActive.ToString())));
+
+            MainConsole.Instance.Output(cdt.ToString());
         }
 
         /// <summary>

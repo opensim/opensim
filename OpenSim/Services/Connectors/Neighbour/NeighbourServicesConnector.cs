@@ -132,8 +132,7 @@ namespace OpenSim.Services.Connectors
             try
             {
                 strBuffer = OSDParser.SerializeJsonString(args);
-                UTF8Encoding str = new UTF8Encoding();
-                buffer = str.GetBytes(strBuffer);
+                buffer = Util.UTF8NoBomEncoding.GetBytes(strBuffer);
             }
             catch (Exception e)
             {

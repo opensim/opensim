@@ -66,9 +66,7 @@ namespace OpenSim.Framework.Capabilities
 
             TResponse response = m_method(llsdRequest);
 
-            Encoding encoding = new UTF8Encoding(false);
-
-            return encoding.GetBytes(LLSDHelpers.SerialiseLLSDReply(response));
+            return Util.UTF8NoBomEncoding.GetBytes(LLSDHelpers.SerialiseLLSDReply(response));
         }
     }
 }

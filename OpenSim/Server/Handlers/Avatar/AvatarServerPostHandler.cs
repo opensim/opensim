@@ -121,8 +121,7 @@ namespace OpenSim.Server.Handlers.Avatar
 
                 string xmlString = ServerUtils.BuildXmlResponse(result);
 
-                UTF8Encoding encoding = new UTF8Encoding();
-                return encoding.GetBytes(xmlString);
+                return Util.UTF8NoBomEncoding.GetBytes(xmlString);
             }
 
             return FailureResult();

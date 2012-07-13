@@ -971,11 +971,6 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public EndPoint GetClientEP()
-        {
-            return null;
-        }
-
         public ClientInfo GetClientInfo()
         {
             return null;

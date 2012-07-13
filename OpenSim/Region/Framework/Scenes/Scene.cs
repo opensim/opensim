@@ -811,7 +811,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
 
-                    string grant = startupConfig.GetString("AllowedViewerList", String.Empty);
+                    string grant = startupConfig.GetString("AllowedClients", String.Empty);
                     if (grant.Length > 0)
                     {
                         foreach (string viewer in grant.Split(','))
@@ -820,7 +820,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
 
-                    grant = startupConfig.GetString("BannedViewerList", String.Empty);
+                    grant = startupConfig.GetString("BannedClients", String.Empty);
                     if (grant.Length > 0)
                     {
                         foreach (string viewer in grant.Split(','))

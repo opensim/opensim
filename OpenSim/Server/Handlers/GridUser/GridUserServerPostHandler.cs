@@ -117,10 +117,9 @@ namespace OpenSim.Server.Handlers.GridUser
             result["result"] = guinfo.ToKeyValuePairs();
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            //m_log.DebugFormat("[GRID USER HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
 
+            //m_log.DebugFormat("[GRID USER HANDLER]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] LoggedOut(Dictionary<string, object> request)
@@ -189,10 +188,9 @@ namespace OpenSim.Server.Handlers.GridUser
             result["result"] = guinfo.ToKeyValuePairs();
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            //m_log.DebugFormat("[GRID USER HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
 
+            //m_log.DebugFormat("[GRID USER HANDLER]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] GetGridUserInfos(Dictionary<string, object> request)
@@ -231,8 +229,7 @@ namespace OpenSim.Server.Handlers.GridUser
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         private bool UnpackArgs(Dictionary<string, object> request, out string user, out UUID region, out Vector3 position, out Vector3 lookAt)

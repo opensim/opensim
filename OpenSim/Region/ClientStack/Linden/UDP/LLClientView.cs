@@ -59,7 +59,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// Handles new client connections
     /// Constructor takes a single Packet and authenticates everything
     /// </summary>
-    public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IClientInventory, IClientIPEndpoint, IStatsCollector
+    public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IClientInventory, IStatsCollector
     {
         /// <value>
         /// Debug packet level.  See OpenSim.RegisterConsoleCommands() for more details.
@@ -365,7 +365,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected string m_lastName;
         protected Thread m_clientThread;
         protected Vector3 m_startpos;
-        protected EndPoint m_userEndPoint;
         protected UUID m_activeGroupID;
         protected string m_activeGroupName = String.Empty;
         protected ulong m_activeGroupPowers;
@@ -458,7 +457,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Constructor
         /// </summary>
-        public LLClientView(EndPoint remoteEP, Scene scene, LLUDPServer udpServer, LLUDPClient udpClient, AuthenticateResponse sessionInfo,
+        public LLClientView(Scene scene, LLUDPServer udpServer, LLUDPClient udpClient, AuthenticateResponse sessionInfo,
             UUID agentId, UUID sessionId, uint circuitCode)
         {
 //            DebugPacketLevel = 1;
@@ -466,7 +465,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RegisterInterface<IClientIM>(this);
             RegisterInterface<IClientInventory>(this);
             RegisterInterface<IClientChat>(this);
-            RegisterInterface<IClientIPEndpoint>(this);
 
             m_scene = scene;
             m_entityUpdates = new PriorityQueue(m_scene.Entities.Count);
@@ -483,7 +481,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_sessionId = sessionId;
             m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
             m_circuitCode = circuitCode;
-            m_userEndPoint = remoteEP;
             m_firstName = sessionInfo.LoginInfo.First;
             m_lastName = sessionInfo.LoginInfo.Last;
             m_startpos = sessionInfo.LoginInfo.StartPos;
@@ -11982,7 +11979,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             ClientInfo info = m_udpClient.GetClientInfo();
 
-            info.userEP = m_userEndPoint;
             info.proxyEP = null;
             info.agentcircuit = RequestClientInfo();
 
@@ -11992,11 +11988,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SetClientInfo(ClientInfo info)
         {
             m_udpClient.SetClientInfo(info);
-        }
-
-        public EndPoint GetClientEP()
-        {
-            return m_userEndPoint;
         }
 
         #region Media Parcel Members
@@ -12271,24 +12262,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             return numPackets;
         }
-
-        #region IClientIPEndpoint Members
-
-        public IPAddress EndPoint
-        {
-            get
-            {
-                if (m_userEndPoint is IPEndPoint)
-                {
-                    IPEndPoint ep = (IPEndPoint)m_userEndPoint;
-
-                    return ep.Address;
-                }
-                return null;
-            }
-        }
-
-        #endregion
 
         public void SendRebakeAvatarTextures(UUID textureID)
         {

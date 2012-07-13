@@ -41,8 +41,6 @@ namespace OpenSim.Framework.Serialization
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected static UTF8Encoding m_utf8Encoding = new UTF8Encoding();
-
         /// <summary>
         /// Binary writer for the underlying stream
         /// </summary>
@@ -73,7 +71,7 @@ namespace OpenSim.Framework.Serialization
         /// <param name="data"></param>
         public void WriteFile(string filePath, string data)
         {
-            WriteFile(filePath, m_utf8Encoding.GetBytes(data));
+            WriteFile(filePath, Util.UTF8NoBomEncoding.GetBytes(data));
         }
 
         /// <summary>
