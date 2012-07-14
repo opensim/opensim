@@ -111,6 +111,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                             asset = assetService.GetCached(cacheID.ToString());
                             if (asset != null)
                             {
+//                                m_log.DebugFormat(
+//                                    "[TERRAIN SPLAT]: Got asset service cached terrain texture {0} {1}", i, asset.ID);
+
                                 try
                                 {
                                     using (System.IO.MemoryStream stream = new System.IO.MemoryStream(asset.Data))
@@ -129,6 +132,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                 asset = assetService.Get(textureIDs[i].ToString());
                                 if (asset != null)
                                 {
+//                                    m_log.DebugFormat(
+//                                        "[TERRAIN SPLAT]: Got cached original JPEG2000 terrain texture {0} {1}", i, asset.ID);
+
                                     try { detailTexture[i] = (Bitmap)CSJ2K.J2kImage.FromBytes(asset.Data); }
                                     catch (Exception ex)
                                     {
@@ -137,15 +143,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                 }
     
                                 if (detailTexture[i] != null)
-                                {
-                                    Bitmap bitmap = detailTexture[i];
-    
+                                {    
                                     // Make sure this texture is the correct size, otherwise resize
-                                    if (bitmap.Width != 256 || bitmap.Height != 256)
+                                    if (detailTexture[i].Width != 256 || detailTexture[i].Height != 256)
                                     {
-                                        using (Bitmap origBitmap = bitmap)
+                                        using (Bitmap origBitmap = detailTexture[i])
                                         {
-                                            bitmap = ImageUtils.ResizeImage(origBitmap, 256, 256);
+                                            detailTexture[i] = ImageUtils.ResizeImage(origBitmap, 256, 256);
                                         }
                                     }
     
@@ -153,7 +157,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                     byte[] data;
                                     using (System.IO.MemoryStream stream = new System.IO.MemoryStream())
                                     {
-                                        bitmap.Save(stream, ImageFormat.Png);
+                                        detailTexture[i].Save(stream, ImageFormat.Png);
                                         data = stream.ToArray();
                                     }
     
@@ -185,6 +189,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 {
                     if (detailTexture[i] == null)
                     {
+//                        m_log.DebugFormat(
+//                            "[TERRAIN SPLAT]: Generating solid colour for missing texture {0}", i);
+
                         // Create a solid color texture for this layer
                         detailTexture[i] = new Bitmap(256, 256, PixelFormat.Format24bppRgb);
                         using (Graphics gfx = Graphics.FromImage(detailTexture[i]))
