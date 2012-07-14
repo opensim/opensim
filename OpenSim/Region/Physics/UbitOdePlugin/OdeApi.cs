@@ -903,7 +903,7 @@ namespace OdeAPI
 		public static extern GeomClassID GeomGetClass(IntPtr geom);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetData"), SuppressUnmanagedCodeSecurity]
-		public static extern IntPtr GeomGetData(IntPtr geom);
+        public static extern IntPtr GeomGetData(IntPtr geom);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetOffsetPosition"), SuppressUnmanagedCodeSecurity]
 		public extern unsafe static Vector3* GeomGetOffsetPositionUnsafe(IntPtr geom);
@@ -1096,8 +1096,8 @@ namespace OdeAPI
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomSetConvex"), SuppressUnmanagedCodeSecurity]
 		public static extern IntPtr GeomSetConvex(IntPtr geom, dReal[] planes, int planeCount, dReal[] points, int pointCount, int[] polygons);
 
-		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomSetData"), SuppressUnmanagedCodeSecurity]
-		public static extern void GeomSetData(IntPtr geom, IntPtr data);
+        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomSetData"), SuppressUnmanagedCodeSecurity]
+        public static extern void GeomSetData(IntPtr geom, IntPtr data);
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomSetOffsetPosition"), SuppressUnmanagedCodeSecurity]
 		public static extern void GeomSetOffsetPosition(IntPtr geom, dReal x, dReal y, dReal z);

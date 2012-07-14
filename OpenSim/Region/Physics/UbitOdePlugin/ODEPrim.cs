@@ -176,7 +176,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_lastUpdateSent;
 
         public IntPtr Body = IntPtr.Zero;
-        public String Name { get; private set; }
+//        public String Name { get; private set; }
         private Vector3 _target_velocity;
 
         public Vector3 primOOBsize; // prim real dimensions from mesh 
@@ -295,14 +295,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { m_localID = value; }
         }
 
-        public OdePrim Parent
+        public override PhysicsActor ParentActor
         {
             get
             {
                 if (childPrim)
-                    return (OdePrim)_parent;
+                    return _parent;
                 else
-                    return this;
+                    return (PhysicsActor)this;
             }
         }
 
@@ -950,7 +950,7 @@ namespace OpenSim.Region.Physics.OdePlugin
            _parent_scene.RemoveCollisionEventReporting(this);
         }
 
-        public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
+        public override void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
@@ -1431,6 +1431,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             //Console.WriteLine("SetGeom to " + prim_geom + " for " + Name);
             if (prim_geom != IntPtr.Zero)
             {
+
                 if (m_NoColide)
                 {
                     d.GeomSetCategoryBits(prim_geom, 0);
@@ -1452,7 +1453,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 CalcPrimBodyData();
 
-                _parent_scene.geom_name_map[prim_geom] = Name;
                 _parent_scene.actor_name_map[prim_geom] = this;
 
             }
@@ -1526,7 +1526,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (prim_geom != IntPtr.Zero)
             {
-                _parent_scene.geom_name_map.Remove(prim_geom);
+//                _parent_scene.geom_name_map.Remove(prim_geom);
                 _parent_scene.actor_name_map.Remove(prim_geom);
                 try
                 {

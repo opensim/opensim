@@ -251,7 +251,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private List<PhysicsActor> _collisionEventPrimRemove = new List<PhysicsActor>();
         
         private HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
-        public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
+//        public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
 
         private float contactsurfacelayer = 0.002f;
@@ -274,7 +274,7 @@ namespace OpenSim.Region.Physics.OdePlugin
        
         private int m_physicsiterations = 10;
         private const float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
-        private PhysicsActor PANull = new NullPhysicsActor();
+//        private PhysicsActor PANull = new NullPhysicsActor();
         private float step_time = 0.0f;
 
         public IntPtr world;
@@ -713,6 +713,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
+
                 if(d.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc ||
                     d.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc)
                 {
@@ -738,7 +739,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
             }
 
-            // id contacts done
+            // contacts done
             if (count == 0)
                 return;
 
@@ -748,12 +749,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (!actor_name_map.TryGetValue(g1, out p1))
             {
-                p1 = PANull;
+                m_log.WarnFormat("[PHYSICS]: failed actor mapping for geom 1");
+                return;
             }
 
             if (!actor_name_map.TryGetValue(g2, out p2))
             {
-                p2 = PANull;
+                m_log.WarnFormat("[PHYSICS]: failed actor mapping for geom 2");
+                return;
             }
 
             // update actors collision score
@@ -764,7 +767,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (p2.CollisionScore >= float.MaxValue - count)
                 p2.CollisionScore = 0;
             p2.CollisionScore += count;
-
 
             // get first contact
             d.ContactGeom curContact = new d.ContactGeom();
@@ -798,7 +800,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             ContactData contactdata1 = new ContactData(0, 0, false);
             ContactData contactdata2 = new ContactData(0, 0, false);
 
-            String name = null;
             bool dop1foot = false;
             bool dop2foot = false;
             bool ignore = false;
@@ -830,34 +831,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                         switch (p2.PhysicsActorType)
                         {
                             case (int)ActorTypes.Agent:
-/*
-                                p1.getContactData(ref contactdata1);
-                                p2.getContactData(ref contactdata2);
-
-                                mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
-
-                                if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
-                                    mu *= frictionMovementMult;
-*/
                                 p1.CollidingObj = true;
                                 p2.CollidingObj = true;
                                 break;
+
                             case (int)ActorTypes.Prim:
-/*
-                                p1.getContactData(ref contactdata1);
-                                p2.getContactData(ref contactdata2);
-
-
-                                mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
-
-                                if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
-                                    mu *= frictionMovementMult;
- */
                                 if (p2.Velocity.LengthSquared() > 0.0f)
                                     p2.CollidingObj = true;
-
                                 dop1foot = true;
                                 break;
+
                             default:
                                 ignore = true; // avatar to terrain and water ignored
                                 break;
@@ -869,9 +852,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     switch (p2.PhysicsActorType)
                     {
                         case (int)ActorTypes.Agent:
-                            //                            p1.getContactData(ref contactdata1);
-                            //                            p2.getContactData(ref contactdata2);
-
                             AvanormOverride = true;
 
                             Vector3 tmp = p2.Position - p1.Position;
@@ -894,16 +874,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                             bounce = 0;
                             mu = 0;
                             cfm = 0.0001f;
-                            /*
-                                                        mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
 
-                                                        if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
-                                                            mu *= frictionMovementMult;
-                            */
                             dop2foot = true;
                             if (p1.Velocity.LengthSquared() > 0.0f)
                                 p1.CollidingObj = true;
                             break;
+
                         case (int)ActorTypes.Prim:
                             if ((p1.Velocity - p2.Velocity).LengthSquared() > 0.0f)
                             {
@@ -933,95 +909,77 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 mu *= frictionMovementMult;
 
                             break;
-                        default:
-                            if (geom_name_map.TryGetValue(g2, out name))
+
+                        case (int)ActorTypes.Ground:
+                            p1.getContactData(ref contactdata1);
+                            bounce = contactdata1.bounce * TerrainBounce;
+                            mu = (float)Math.Sqrt(contactdata1.mu * TerrainFriction);
+                            if (Math.Abs(p1.Velocity.X) > 0.1f || Math.Abs(p1.Velocity.Y) > 0.1f)
+                                mu *= frictionMovementMult;
+                            p1.CollidingGround = true;
+
+                            cfm = p1.Mass;
+                            dscale = 10 / cfm;
+                            dscale = (float)Math.Sqrt(dscale);
+                            if (dscale > 1.0f)
+                                dscale = 1.0f;
+                            erpscale = cfm * 0.01f;
+                            cfm = 0.0001f / cfm;
+                            if (cfm > 0.01f)
+                                cfm = 0.01f;
+                            else if (cfm < 0.00001f)
+                                cfm = 0.00001f;
+
+                            if (d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
                             {
-                                if (name == "Terrain")
-                                {
-                                    p1.getContactData(ref contactdata1);
-                                    bounce = contactdata1.bounce * TerrainBounce;
-                                    mu = (float)Math.Sqrt(contactdata1.mu * TerrainFriction);
-                                    if (Math.Abs(p1.Velocity.X) > 0.1f || Math.Abs(p1.Velocity.Y) > 0.1f)
-                                        mu *= frictionMovementMult;
-                                    p1.CollidingGround = true;
-
-                                    cfm = p1.Mass;
-                                    dscale = 10 / cfm;
-                                    dscale = (float)Math.Sqrt(dscale);
-                                    if (dscale > 1.0f)
-                                        dscale = 1.0f;
-                                    erpscale = cfm * 0.01f;
-                                    cfm = 0.0001f / cfm;
-                                    if (cfm > 0.01f)
-                                        cfm = 0.01f;
-                                    else if (cfm < 0.00001f)
-                                        cfm = 0.00001f;
-
-                                    if (d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
-                                    {
-                                        if (curContact.side1 > 0)
-                                            IgnoreNegSides = true;
-                                    }
-
-                                }
-                                else if (name == "Water")
-                                {
-                                    ignore = true;
-                                }
+                                if (curContact.side1 > 0)
+                                    IgnoreNegSides = true;
                             }
-                            else
-                                ignore = true;
+                            break;
+
+                        case (int)ActorTypes.Water:
+                        default:
+                            ignore = true;
                             break;
                     }
                     break;
 
-                default:
-                    if (geom_name_map.TryGetValue(g1, out name))
+                case (int)ActorTypes.Ground:
+                    if (p2.PhysicsActorType == (int)ActorTypes.Prim)
                     {
-                        if (name == "Terrain")
-                        {
-                            if (p2.PhysicsActorType == (int)ActorTypes.Prim)
-                            {
-                                p2.CollidingGround = true;
-                                p2.getContactData(ref contactdata2);
-                                bounce = contactdata2.bounce * TerrainBounce;
-                                mu = (float)Math.Sqrt(contactdata2.mu * TerrainFriction);
+                        p2.CollidingGround = true;
+                        p2.getContactData(ref contactdata2);
+                        bounce = contactdata2.bounce * TerrainBounce;
+                        mu = (float)Math.Sqrt(contactdata2.mu * TerrainFriction);
 
-                                cfm = p2.Mass;
-                                dscale = 10 / cfm;
-                                dscale = (float)Math.Sqrt(dscale);
+                        cfm = p2.Mass;
+                        dscale = 10 / cfm;
+                        dscale = (float)Math.Sqrt(dscale);
 
-                                if (dscale > 1.0f)
-                                    dscale = 1.0f;
+                        if (dscale > 1.0f)
+                            dscale = 1.0f;
 
-                                erpscale = cfm * 0.01f;
-                                cfm = 0.0001f / cfm;
-                                if (cfm > 0.01f)
-                                    cfm = 0.01f;
-                                else if (cfm < 0.00001f)
-                                    cfm = 0.00001f;
+                        erpscale = cfm * 0.01f;
+                        cfm = 0.0001f / cfm;
+                        if (cfm > 0.01f)
+                            cfm = 0.01f;
+                        else if (cfm < 0.00001f)
+                            cfm = 0.00001f;
 
-                                if (curContact.side1 > 0) // should be 2 ?
-                                    IgnoreNegSides = true;
+                        if (curContact.side1 > 0) // should be 2 ?
+                            IgnoreNegSides = true;
 
-                                if (Math.Abs(p2.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y) > 0.1f)
-                                    mu *= frictionMovementMult;
-                            }
-                            else
-                                ignore = true;
-
-                        }
-                        else if (name == "Water" &&
-                            (p2.PhysicsActorType == (int)ActorTypes.Prim || p2.PhysicsActorType == (int)ActorTypes.Agent))
-                        {
-                            ignore = true;
-                        }
+                        if (Math.Abs(p2.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y) > 0.1f)
+                            mu *= frictionMovementMult;
                     }
                     else
                         ignore = true;
                     break;
-            }
 
+                case (int)ActorTypes.Water:
+                default:
+                    break;
+            }
             if (ignore)
                 return;
 
@@ -1162,35 +1120,22 @@ namespace OpenSim.Region.Physics.OdePlugin
                 
             }
  */
-        }            
+        }
 
         private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, ContactPoint contact)
-            {
-            
-            OdeCharacter cc1;
-            OdePrim cp1;
-            OdeCharacter cc2;
-            OdePrim cp2;
-            OdePrim cp1Parent;
-            OdePrim cp2Parent;
-
+        {
             uint obj2LocalID = 0;
+
             bool p1events = p1.SubscribedEvents();
             bool p2events = p2.SubscribedEvents();
-           
+
             if (p1.IsVolumeDtc)
                 p2events = false;
             if (p2.IsVolumeDtc)
                 p1events = false;
 
-            if (!(p2events || p1events))
+            if (!p2events && !p1events)
                 return;
-
-            if (p1events)
-                AddCollisionEventReporting(p1);
-
-            if (p2events)
-                AddCollisionEventReporting(p2);
 
             Vector3 vel = Vector3.Zero;
             if (p2 != null && p2.IsPhysical)
@@ -1200,71 +1145,22 @@ namespace OpenSim.Region.Physics.OdePlugin
                 vel -= p1.Velocity;
 
             contact.RelativeSpeed = Vector3.Dot(vel, contact.SurfaceNormal);
-             
+
             switch ((ActorTypes)p1.PhysicsActorType)
-                {
+            {
                 case ActorTypes.Agent:
-                    cc1 = (OdeCharacter)p1;
-                    switch ((ActorTypes)p2.PhysicsActorType)
-                        {
-                        case ActorTypes.Agent:
-                            cc2 = (OdeCharacter)p2;
-                            obj2LocalID = cc2.LocalID;
-                            if (p2events)
-                                cc2.AddCollisionEvent(cc1.LocalID, contact);
-                            break;
-
-                        case ActorTypes.Prim:
-                            if (p2 is OdePrim)
-                                {
-                                cp2 = (OdePrim)p2;
-                                if (p2events)
-                                    cp2.AddCollisionEvent(cc1.LocalID, contact);
-                                cp2 = cp2.Parent;
-                                obj2LocalID = cp2.LocalID;
-                                }
-                            break;
-
-                        case ActorTypes.Ground:
-                        case ActorTypes.Unknown:
-                        default:
-                            obj2LocalID = 0;
-                            break;
-                        }
-                    if (p1events)
-                        {
-                        contact.SurfaceNormal = -contact.SurfaceNormal;
-                        cc1.AddCollisionEvent(obj2LocalID, contact);
-                        }
-                    break;
-
                 case ActorTypes.Prim:
-
-                    if (p1 is OdePrim)
-                        {
-                        cp1 = (OdePrim)p1;
-                        cp1Parent = cp1.Parent;
+                    {
                         switch ((ActorTypes)p2.PhysicsActorType)
-                            {
+                        {
                             case ActorTypes.Agent:
-                                if (p2 is OdeCharacter)
-                                    {
-                                    cc2 = (OdeCharacter)p2;
-                                    obj2LocalID = cc2.LocalID;
-                                    if (p2events)
-                                        cc2.AddCollisionEvent(cp1Parent.LocalID, contact);
-                                    }
-                                break;
                             case ActorTypes.Prim:
-
-                                if (p2 is OdePrim)
-                                    {
-                                    cp2 = (OdePrim)p2;
-                                    if (p2events)
-                                        cp2.AddCollisionEvent(cp1Parent.LocalID, contact);
-                                    cp2 = cp2.Parent;
-                                    obj2LocalID = cp2.LocalID;
-                                    }
+                                if (p2events)
+                                {
+                                    AddCollisionEventReporting(p2);
+                                    p2.AddCollisionEvent(p1.ParentActor.LocalID, contact);
+                                }
+                                obj2LocalID = p2.ParentActor.LocalID;
                                 break;
 
                             case ActorTypes.Ground:
@@ -1272,41 +1168,28 @@ namespace OpenSim.Region.Physics.OdePlugin
                             default:
                                 obj2LocalID = 0;
                                 break;
-                            }
-                        if (p1events)
-                            {
-                            contact.SurfaceNormal = -contact.SurfaceNormal;
-                            cp1.AddCollisionEvent(obj2LocalID, contact);
-                            }
                         }
-                    break;
+                        if (p1events)
+                        {
+                            contact.SurfaceNormal = -contact.SurfaceNormal;
+                            AddCollisionEventReporting(p1);
+                            p1.AddCollisionEvent(obj2LocalID, contact);
+                        }
+                        break;
+                    }
                 case ActorTypes.Ground:
                 case ActorTypes.Unknown:
                 default:
-                        switch ((ActorTypes)p2.PhysicsActorType)
+                    {
+                        if (p2events && !p2.IsVolumeDtc)
                         {
-                            case ActorTypes.Agent:
-                                if (p2 is OdeCharacter)
-                                {
-                                    cc2 = (OdeCharacter)p2;
-                                    obj2LocalID = cc2.LocalID;
-                                    if (p2events)
-                                        cc2.AddCollisionEvent(0, contact);
-                                }
-                                break;
-                            case ActorTypes.Prim:
-                                if (p2 is OdePrim)
-                                {
-                                    cp2 = (OdePrim)p2;
-                                    obj2LocalID = cp2.LocalID;
-                                    if (p2events)
-                                        cp2.AddCollisionEvent(0, contact);
-                                }
-                                break;
+                            AddCollisionEventReporting(p2);
+                            p2.AddCollisionEvent(0, contact);
                         }
                         break;
-                }
+                    }
             }
+        }
 
         /// <summary>
         /// This is our collision testing routine in ODE
@@ -2369,6 +2252,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     RegionTerrain.Remove(pOffset);
                     if (GroundGeom != IntPtr.Zero)
                     {
+                        actor_name_map.Remove(GroundGeom);
                         d.GeomDestroy(GroundGeom);
 
                         if (TerrainHeightFieldHeights.ContainsKey(GroundGeom))
@@ -2394,27 +2278,32 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomSetCategoryBits(GroundGeom, (uint)(CollisionCategories.Land));
                     d.GeomSetCollideBits(GroundGeom, 0);
 
+                    PhysicsActor pa = new NullPhysicsActor();
+                    pa.Name = "Terrain";
+                    pa.PhysicsActorType = (int)ActorTypes.Ground;
+                    actor_name_map[GroundGeom] = pa;
+
+//                    geom_name_map[GroundGeom] = "Terrain";
+
+                    d.Matrix3 R = new d.Matrix3();
+
+                    Quaternion q1 = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 1.5707f);
+                    Quaternion q2 = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 1.5707f);
+
+
+                    q1 = q1 * q2;
+
+                    Vector3 v3;
+                    float angle;
+                    q1.GetAxisAngle(out v3, out angle);
+
+                    d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
+                    d.GeomSetRotation(GroundGeom, ref R);
+                    d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f, 0);
+                    RegionTerrain.Add(pOffset, GroundGeom);
+                    TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
+                    TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
                 }
-                geom_name_map[GroundGeom] = "Terrain";
-
-                d.Matrix3 R = new d.Matrix3();
-
-                Quaternion q1 = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 1.5707f);
-                Quaternion q2 = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 1.5707f);
-                
-
-                q1 = q1 * q2;
-                
-                Vector3 v3;
-                float angle;
-                q1.GetAxisAngle(out v3, out angle);
-
-                d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
-                d.GeomSetRotation(GroundGeom, ref R);
-                d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f, 0);
-                RegionTerrain.Add(pOffset, GroundGeom);
-                TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
-                TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);             
             }
         }
 
@@ -2478,6 +2367,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     RegionTerrain.Remove(pOffset);
                     if (GroundGeom != IntPtr.Zero)
                     {
+                        actor_name_map.Remove(GroundGeom);
                         d.GeomDestroy(GroundGeom);
 
                         if (TerrainHeightFieldHeights.ContainsKey(GroundGeom))
@@ -2509,13 +2399,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomSetCategoryBits(GroundGeom, (uint)(CollisionCategories.Land));
                     d.GeomSetCollideBits(GroundGeom, 0);
 
-                }
-                geom_name_map[GroundGeom] = "Terrain";
+                    PhysicsActor pa = new NullPhysicsActor();
+                    pa.Name = "Terrain";
+                    pa.PhysicsActorType = (int)ActorTypes.Ground;
+                    actor_name_map[GroundGeom] = pa;
 
-                d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f, 0);
-                RegionTerrain.Add(pOffset, GroundGeom);
-                TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
-                TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
+//                    geom_name_map[GroundGeom] = "Terrain";
+
+                    d.GeomSetPosition(GroundGeom, pOffset.X + (float)Constants.RegionSize * 0.5f, pOffset.Y + (float)Constants.RegionSize * 0.5f, 0);
+                    RegionTerrain.Add(pOffset, GroundGeom);
+                    TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
+                    TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
+                }
             }
         }
 
@@ -2632,6 +2527,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (WaterGeom != IntPtr.Zero)
                 {
+                    actor_name_map.Remove(WaterGeom);
                     d.GeomDestroy(WaterGeom);
                     d.GeomHeightfieldDataDestroy(WaterHeightmapData);
                     WaterGeom = IntPtr.Zero;
@@ -2654,7 +2550,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomSetCategoryBits(WaterGeom, (uint)(CollisionCategories.Water));
                     d.GeomSetCollideBits(WaterGeom, 0);
 
-                    geom_name_map[WaterGeom] = "Water";
+
+                    PhysicsActor pa = new NullPhysicsActor();
+                    pa.Name = "Water";
+                    pa.PhysicsActorType = (int)ActorTypes.Water;
+
+                    actor_name_map[WaterGeom] = pa;
+//                    geom_name_map[WaterGeom] = "Water";
 
                     d.Matrix3 R = new d.Matrix3();
 
