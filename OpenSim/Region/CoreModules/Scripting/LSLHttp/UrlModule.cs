@@ -214,9 +214,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 
                 string uri = "/lslhttps/" + urlcode.ToString() + "/";
                
-                m_HttpsServer.AddPollServiceHTTPHandler(
-                    uri,
-                    new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, urlcode,25000));
+                PollServiceEventArgs args = new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, urlcode, 25000));
+                args.Type = PollServiceEventArgs.EventType.LslHttp;
+                m_HttpsServer.AddPollServiceHTTPHandler(uri, args);
 
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }
