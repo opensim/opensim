@@ -421,7 +421,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return LSL_Vector.Norm(v);
         }
 
-        private double vecDist(LSL_Vector a, LSL_Vector b)
+        private double VecDist(LSL_Vector a, LSL_Vector b)
         {
             double dx = a.x - b.x;
             double dy = a.y - b.y;
@@ -432,7 +432,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llVecDist(LSL_Vector a, LSL_Vector b)
         {
             m_host.AddScriptLPS(1);
-            return vecDist(a, b);
+            return VecDist(a, b);
         }
 
         //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
@@ -1247,7 +1247,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        private bool isPhysical(){
+        private bool IsPhysical()
+        {
             return ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == (uint)PrimFlags.Physics);
         }
 
@@ -1258,7 +1259,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             switch (status)
             {
                 case ScriptBaseClass.STATUS_PHYSICS:
-                    return isPhysical() ? 1 : 0;
+                    return IsPhysical() ? 1 : 0;
 
                 case ScriptBaseClass.STATUS_PHANTOM:
                     if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) == (uint)PrimFlags.Phantom)
@@ -1949,7 +1950,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             // END WORK AROUND
             else if ( // this is not part of the workaround if-block because it's not related to the workaround.
-                isPhysical() ||
+                IsPhysical() ||
                 m_host.ParentGroup.IsAttachment || // return FALSE if attachment
                 (
                     pos.x < -10.0 || // return FALSE if more than 10 meters into a west-adjacent region.
@@ -1981,7 +1982,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             SetPos(m_host.ParentGroup.RootPart, pos, false);
 
-            return vecDist(pos, llGetRootPosition()) <= 0.1 ? 1 : 0;
+            return VecDist(pos, llGetRootPosition()) <= 0.1 ? 1 : 0;
         }
 
         // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
