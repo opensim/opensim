@@ -31,7 +31,6 @@ using System.Reflection;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
 using log4net;
 
 namespace OpenSim.Region.Framework.Scenes
