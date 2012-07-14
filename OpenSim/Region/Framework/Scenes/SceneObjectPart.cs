@@ -4917,7 +4917,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             pa.OnCollisionUpdate -= PhysicsCollision;
 
-            bool hassound = (CollisionSoundType >= 0 && !VolumeDetectActive);
+            bool hassound = (!VolumeDetectActive && CollisionSoundType >= 0 && ((Flags & PrimFlags.Physics) != 0));
 
             scriptEvents CombinedEvents = AggregateScriptEvents;
 
