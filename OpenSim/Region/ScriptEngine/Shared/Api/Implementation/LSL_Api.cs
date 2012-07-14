@@ -421,13 +421,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return LSL_Vector.Norm(v);
         }
 
-        public LSL_Float llVecDist(LSL_Vector a, LSL_Vector b)
+        private double vecDist(LSL_Vector a, LSL_Vector b)
         {
-            m_host.AddScriptLPS(1);
             double dx = a.x - b.x;
             double dy = a.y - b.y;
             double dz = a.z - b.z;
             return Math.Sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
+        public LSL_Float llVecDist(LSL_Vector a, LSL_Vector b)
+        {
+            m_host.AddScriptLPS(1);
+            return vecDist(a, b);
         }
 
         //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
@@ -1242,6 +1247,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        private bool isPhysical(){
+            return ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == (uint)PrimFlags.Physics);
+        }
+
         public LSL_Integer llGetStatus(int status)
         {
             m_host.AddScriptLPS(1);
@@ -1249,11 +1258,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             switch (status)
             {
                 case ScriptBaseClass.STATUS_PHYSICS:
-                    if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == (uint)PrimFlags.Physics)
-                    {
-                        return 1;
-                    }
-                    return 0;
+                    return isPhysical() ? 1 : 0;
 
                 case ScriptBaseClass.STATUS_PHANTOM:
                     if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) == (uint)PrimFlags.Phantom)
@@ -1943,42 +1948,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
             }
             // END WORK AROUND
-            else{
-                LSL_List parcelID = new LSL_List(ScriptBaseClass.PARCEL_DETAILS_ID);
-                Vector3 objectPos = m_host.ParentGroup.RootPart.AbsolutePosition;
-                string parcelA = llGetParcelDetails(new LSL_Vector(objectPos.X, objectPos.X, objectPos.X), parcelID).Data[0].ToString();
-                string parcelB = llGetParcelDetails(pos, parcelID).Data[0].ToString();
-                bool sameParcel = parcelA == parcelB;
-                int objectPrimCount = m_host.ParentGroup.PrimCount;
-                LSL_Integer destParcelPrimCount = llGetParcelPrimCount(pos, ScriptBaseClass.PARCEL_COUNT_TOTAL, 0);
-                LSL_Integer max = llGetParcelMaxPrims(pos, 0);
-                if (
-                    llGetStatus((int)PrimFlags.Physics) == 1 || // return FALSE if physical.
-                    m_host.ParentGroup.IsAttachment || // return FALSE if attachment
-                    (
-                        pos.x < -10.0 || // return FALSE if more than 10 meters into a west-adjacent region.
-                        pos.x > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a east-adjacent region.
-                        pos.y < -10.0 || // return FALSE if more than 10 meters into a south-adjacent region.
-                        pos.y > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a north-adjacent region.
-                        pos.z > 4096 // return FALSE if altitude than 4096m
-                    ) ||
-                    // BEGIN RELIANCE ON WORK AROUND
-                    // this check will only work if pos is within the region bounds.
-                    (
-                        !sameParcel && // if it's moving within the same parcel we do not need to check if the destination parcel will exceed capacity if the object is moved.
-                        (destParcelPrimCount + objectPrimCount) > max
-                    )
-                    // END RELIANCE ON WORK-AROUND
-                ){
-                    return 0;
-                }
-
-                SetPos(m_host.ParentGroup.RootPart, pos, false);
-
-                return llVecDist(pos, llGetRootPosition()) <= 0.1 ? 1 : 0;
+            else if ( // this is not part of the workaround if-block because it's not related to the workaround.
+                isPhysical() ||
+                m_host.ParentGroup.IsAttachment || // return FALSE if attachment
+                (
+                    pos.x < -10.0 || // return FALSE if more than 10 meters into a west-adjacent region.
+                    pos.x > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a east-adjacent region.
+                    pos.y < -10.0 || // return FALSE if more than 10 meters into a south-adjacent region.
+                    pos.y > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a north-adjacent region.
+                    pos.z > 4096 // return FALSE if altitude than 4096m
+                )
+            )
+            {
+                return 0;
             }
 
-            return 0;
+            // if we reach this point, then the object is not physical, it's not an attachment, and the destination is within the valid range.
+            // this could possibly be done in the above else-if block, but we're doing the check here to keep the code easier to read.
+
+            Vector3 objectPos = m_host.ParentGroup.RootPart.AbsolutePosition;
+            LandData here = World.GetLandData((float)objectPos.X, (float)objectPos.Y);
+            LandData there = World.GetLandData((float)pos.x, (float)pos.y);
+
+            // we're only checking prim limits if it's moving to a different parcel under the assumption that if the object got onto the parcel without exceeding the prim limits.
+
+            bool sameParcel = here.GlobalID == there.GlobalID;
+
+            if (!sameParcel && !World.Permissions.CanRezObject(m_host.ParentGroup.PrimCount, m_host.ParentGroup.OwnerID, new Vector3((float)pos.x, (float)pos.y, (float)pos.z)))
+            {
+                return 0;
+            }
+
+            SetPos(m_host.ParentGroup.RootPart, pos, false);
+
+            return vecDist(pos, llGetRootPosition()) <= 0.1 ? 1 : 0;
         }
 
         // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
