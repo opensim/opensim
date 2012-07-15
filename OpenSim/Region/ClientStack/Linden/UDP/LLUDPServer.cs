@@ -153,6 +153,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Flag to signal when clients should send pings</summary>
         private bool m_sendPing;
 
+        private ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>>();
+
         private int m_defaultRTO = 0;
         private int m_maxRTO = 0;
 
@@ -701,6 +703,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 object[] array = new object[] { buffer, packet };
 
+                lock (m_pendingCache)
+                    m_pendingCache.AddOrUpdate(address, new Queue<UDPPacketBuffer>(), 60);
                 Util.FireAndForget(HandleUseCircuitCode, array);
 
                 return;
@@ -710,7 +714,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IClientAPI client;
             if (!m_scene.TryGetClient(address, out client) || !(client is LLClientView))
             {
+<<<<<<< HEAD
                 m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
+=======
+                lock (m_pendingCache)
+                {
+                    Queue<UDPPacketBuffer> queue;
+                    if (m_pendingCache.TryGetValue(address, out queue))
+                        queue.Enqueue(buffer);
+                }
+
+//                m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
+>>>>>>> 2606484e45138adef289386509b1e27552a32aee
                 return;
             }
 
@@ -943,6 +958,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // We only want to send initial data to new clients, not ones which are being converted from child to root.
                     if (client != null)
                         client.SceneAgent.SendInitialDataToMe();
+
+                    // Now we know we can handle more data
+                    Thread.Sleep(200);
+
+                    // Obtain the queue and remove it from the cache
+                    Queue<UDPPacketBuffer> queue = null;
+
+                    lock (m_pendingCache)
+                    {
+                        if (!m_pendingCache.TryGetValue(remoteEndPoint, out queue))
+                            return;
+                        m_pendingCache.Remove(remoteEndPoint);
+                    }
+
+                    // Reinject queued packets
+                    while(queue.Count > 0)
+                    {
+                        UDPPacketBuffer buf = queue.Dequeue();
+                        PacketReceived(buf);
+                    }
+                    queue = null;
                 }
                 else
                 {
@@ -950,6 +986,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_log.WarnFormat(
                         "[LLUDPSERVER]: Connection request for client {0} connecting with unnotified circuit code {1} from {2}",
                         uccp.CircuitCode.ID, uccp.CircuitCode.Code, remoteEndPoint);
+                    lock (m_pendingCache)
+                        m_pendingCache.Remove(remoteEndPoint);
                 }
     
                 //            m_log.DebugFormat(
