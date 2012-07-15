@@ -1238,7 +1238,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         if (!prm.m_outbounds)
                         {
-//                            if (d.BodyIsEnabled(prm.Body))
+                            if (d.BodyIsEnabled(prm.Body))
                                 d.SpaceCollide2(StaticSpace, prm.collide_geom, IntPtr.Zero, nearCallback);
                         }
                     }
