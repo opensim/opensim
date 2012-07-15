@@ -726,15 +726,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // If this is a pending connection, enqueue, don't process yet
             lock (m_pendingCache)
             {
-<<<<<<< HEAD
-<<<<<<< HEAD
-                m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
-=======
-                lock (m_pendingCache)
-=======
                 Queue<UDPPacketBuffer> queue;
                 if (m_pendingCache.TryGetValue(address, out queue))
->>>>>>> 15a1ad393c3748c5c911beac981945a9bd8b200d
                 {
                     //m_log.DebugFormat("[LLUDPSERVER]: Enqueued a {0} packet into the pending queue", packet.Type);
                     queue.Enqueue(buffer);
@@ -742,18 +735,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-//                m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
->>>>>>> 2606484e45138adef289386509b1e27552a32aee
-=======
->>>>>>> 0baa1b557af20af3590737dc04294a9bdc8e8728
-=======
             // Determine which agent this packet came from
             if (client == null || !(client is LLClientView))
             {
                 //m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
->>>>>>> 15a1ad393c3748c5c911beac981945a9bd8b200d
                 return;
             }
 
