@@ -8000,7 +8000,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //This is a special version of SetPrimParams to deal with avatars which are sat on the linkset.
 
             int idx = 0;
-            SceneObjectPart sitpart = World.GetSceneObjectPart(av.ParentID); // betting this will be used
 
             bool positionChanged = false;
             Vector3 finalPos = Vector3.Zero;
@@ -8049,6 +8048,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             break;
 
+                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                         case (int)ScriptBaseClass.PRIM_ROTATION:
                             {
                                 if (remain < 1)
@@ -8068,27 +8068,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 r = r * llGetRootRotation() / localRot;
                                 av.Rotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
                                 av.SendAvatarDataToAllAgents();
-                            }
-                            break;
-
-                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
-                            {
-                                if (remain < 1)
-                                    return;
-
-                                if (sitpart == null)
-                                    break;
-
-                                LSL_Rotation r = rules.GetQuaternionItem(idx++);
-                                Quaternion rot = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s); // requested offset rotation
-                                if (sitpart != sitpart.ParentGroup.RootPart)
-                                {
-                                    Quaternion srot = sitpart.RotationOffset;
-                                    rot = Quaternion.Conjugate(srot) * rot; // remove sit part offset rotation
-                                }
-                                av.Rotation = rot;
-//                                av.SendAvatarDataToAllAgents();
-                                av.SendTerseUpdateToAllClients();
                             }
                             break;
 
