@@ -698,50 +698,61 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #region Packet to Client Mapping
 
-            // UseCircuitCode handling
-            if (packet.Type == PacketType.UseCircuitCode)
+            // If there is already a client for this endpoint, don't process UseCircuitCode
+            IClientAPI client = null;
+            if (!m_scene.TryGetClient(address, out client))
             {
-                lock (m_pendingCache)
+                // UseCircuitCode handling
+                if (packet.Type == PacketType.UseCircuitCode)
                 {
-                    if (m_pendingCache.Contains(address))
-                        return;
+                    // And if there is a UseCircuitCode pending, also drop it
+                    lock (m_pendingCache)
+                    {
+                        if (m_pendingCache.Contains(address))
+                            return;
 
-                    m_pendingCache.AddOrUpdate(address, new Queue<UDPPacketBuffer>(), 60);
+                        m_pendingCache.AddOrUpdate(address, new Queue<UDPPacketBuffer>(), 60);
+                    }
+
+                    object[] array = new object[] { buffer, packet };
+
+                    Util.FireAndForget(HandleUseCircuitCode, array);
+
+                    return;
                 }
-
-                object[] array = new object[] { buffer, packet };
-
-                Util.FireAndForget(HandleUseCircuitCode, array);
-
-                return;
             }
 
-            // Determine which agent this packet came from
-            IClientAPI client;
-            if (!m_scene.TryGetClient(address, out client) || !(client is LLClientView))
+            // If this is a pending connection, enqueue, don't process yet
+            lock (m_pendingCache)
             {
+<<<<<<< HEAD
 <<<<<<< HEAD
                 m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
 =======
                 lock (m_pendingCache)
+=======
+                Queue<UDPPacketBuffer> queue;
+                if (m_pendingCache.TryGetValue(address, out queue))
+>>>>>>> 15a1ad393c3748c5c911beac981945a9bd8b200d
                 {
-                    Queue<UDPPacketBuffer> queue;
-                    if (m_pendingCache.TryGetValue(address, out queue))
-                    {
-                        m_log.DebugFormat("[LLUDPSERVER]: Enqueued a {0} packet into the pending queue", packet.Type);
-                        queue.Enqueue(buffer);
-                    }
-                    else
-                    {
-                        m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
-                    }
+                    //m_log.DebugFormat("[LLUDPSERVER]: Enqueued a {0} packet into the pending queue", packet.Type);
+                    queue.Enqueue(buffer);
+                    return;
                 }
+            }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 //                m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
 >>>>>>> 2606484e45138adef289386509b1e27552a32aee
 =======
 >>>>>>> 0baa1b557af20af3590737dc04294a9bdc8e8728
+=======
+            // Determine which agent this packet came from
+            if (client == null || !(client is LLClientView))
+            {
+                //m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
+>>>>>>> 15a1ad393c3748c5c911beac981945a9bd8b200d
                 return;
             }
 
