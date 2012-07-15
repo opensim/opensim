@@ -701,10 +701,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // UseCircuitCode handling
             if (packet.Type == PacketType.UseCircuitCode)
             {
+                lock (m_pendingCache)
+                {
+                    if (m_pendingCache.Contains(address))
+                        return;
+
+                    m_pendingCache.AddOrUpdate(address, new Queue<UDPPacketBuffer>(), 60);
+                }
+
                 object[] array = new object[] { buffer, packet };
 
-                lock (m_pendingCache)
-                    m_pendingCache.AddOrUpdate(address, new Queue<UDPPacketBuffer>(), 60);
                 Util.FireAndForget(HandleUseCircuitCode, array);
 
                 return;
@@ -718,10 +724,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     Queue<UDPPacketBuffer> queue;
                     if (m_pendingCache.TryGetValue(address, out queue))
+                    {
+                        m_log.DebugFormat("[LLUDPSERVER]: Enqueued a {0} packet into the pending queue", packet.Type);
                         queue.Enqueue(buffer);
+                    }
+                    else
+                    {
+                        m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
+                    }
                 }
 
-//                m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
                 return;
             }
 
@@ -964,9 +976,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     lock (m_pendingCache)
                     {
                         if (!m_pendingCache.TryGetValue(remoteEndPoint, out queue))
+                        {
+                            m_log.DebugFormat("[LLUDPSERVER]: Client created but no pending queue present");
                             return;
+                        }
                         m_pendingCache.Remove(remoteEndPoint);
                     }
+
+                    m_log.DebugFormat("[LLUDPSERVER]: Client created, processing pending queue, {0} entries", queue.Count);
 
                     // Reinject queued packets
                     while(queue.Count > 0)
