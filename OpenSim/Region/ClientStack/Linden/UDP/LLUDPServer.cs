@@ -701,8 +701,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 object[] array = new object[] { buffer, packet };
 
-                //Util.FireAndForget(HandleUseCircuitCode, array);
-                HandleUseCircuitCode(array);
+                Util.FireAndForget(HandleUseCircuitCode, array);
 
                 return;
             }

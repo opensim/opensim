@@ -8062,7 +8062,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 }
 
                                 Quaternion srot = sitpart.RotationOffset;
-                                rot = Quaternion.Conjugate(srot) * rot; // removed sit part offset rotation
+                                rot = srot * rot; // removed sit part offset rotation
                                 av.Rotation = rot;
 //                                av.SendAvatarDataToAllAgents();
                                 av.SendTerseUpdateToAllClients();
