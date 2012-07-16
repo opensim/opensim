@@ -517,13 +517,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return LSL_Vector.Norm(v);
         }
 
-        public LSL_Float llVecDist(LSL_Vector a, LSL_Vector b)
+        private double VecDist(LSL_Vector a, LSL_Vector b)
         {
-            m_host.AddScriptLPS(1);
             double dx = a.x - b.x;
             double dy = a.y - b.y;
             double dz = a.z - b.z;
             return Math.Sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
+        public LSL_Float llVecDist(LSL_Vector a, LSL_Vector b)
+        {
+            m_host.AddScriptLPS(1);
+            return VecDist(a, b);
         }
 
         //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
@@ -1391,6 +1396,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        private bool IsPhysical()
+        {
+            return ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == (uint)PrimFlags.Physics);
+        }
+
         public LSL_Integer llGetStatus(int status)
         {
             m_host.AddScriptLPS(1);
@@ -1398,11 +1408,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             switch (status)
             {
                 case ScriptBaseClass.STATUS_PHYSICS:
-                    if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == (uint)PrimFlags.Physics)
-                    {
-                        return 1;
-                    }
-                    return 0;
+                    return IsPhysical() ? 1 : 0;
 
                 case ScriptBaseClass.STATUS_PHANTOM:
                     if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) == (uint)PrimFlags.Phantom)
@@ -2155,9 +2161,66 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            SetPos(m_host, pos);
+            SetPos(m_host, pos, true);
 
             ScriptSleep(200);
+        }
+
+        /// <summary>
+        /// Tries to move the entire object so that the root prim is within 0.1m of position. http://wiki.secondlife.com/wiki/LlSetRegionPos
+        /// Documentation indicates that the use of x/y coordinates up to 10 meters outside the bounds of a region will work but do not specify what happens if there is no adjacent region for the object to move into.
+        /// Uses the RegionSize constant here rather than hard-coding 266.0 to alert any developer modifying OpenSim to support variable-sized regions that this method will need tweaking.
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns>1 if successful, 0 otherwise.</returns>
+        public LSL_Integer llSetRegionPos(LSL_Vector pos)
+        {
+            m_host.AddScriptLPS(1);
+
+            // BEGIN WORKAROUND
+            // IF YOU GET REGION CROSSINGS WORKING WITH THIS FUNCTION, REPLACE THE WORKAROUND.
+            //
+            // This workaround is to prevent silent failure of this function.
+            // According to the specification on the SL Wiki, providing a position outside of the 
+            if (pos.x < 0 || pos.x > Constants.RegionSize || pos.y < 0 || pos.y > Constants.RegionSize)
+            {
+                return 0;
+            }
+            // END WORK AROUND
+            else if ( // this is not part of the workaround if-block because it's not related to the workaround.
+                IsPhysical() ||
+                m_host.ParentGroup.IsAttachment || // return FALSE if attachment
+                (
+                    pos.x < -10.0 || // return FALSE if more than 10 meters into a west-adjacent region.
+                    pos.x > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a east-adjacent region.
+                    pos.y < -10.0 || // return FALSE if more than 10 meters into a south-adjacent region.
+                    pos.y > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a north-adjacent region.
+                    pos.z > 4096 // return FALSE if altitude than 4096m
+                )
+            )
+            {
+                return 0;
+            }
+
+            // if we reach this point, then the object is not physical, it's not an attachment, and the destination is within the valid range.
+            // this could possibly be done in the above else-if block, but we're doing the check here to keep the code easier to read.
+
+            Vector3 objectPos = m_host.ParentGroup.RootPart.AbsolutePosition;
+            LandData here = World.GetLandData((float)objectPos.X, (float)objectPos.Y);
+            LandData there = World.GetLandData((float)pos.x, (float)pos.y);
+
+            // we're only checking prim limits if it's moving to a different parcel under the assumption that if the object got onto the parcel without exceeding the prim limits.
+
+            bool sameParcel = here.GlobalID == there.GlobalID;
+
+            if (!sameParcel && !World.Permissions.CanObjectEntry(m_host.UUID, false, new Vector3((float)pos.x, (float)pos.y, (float)pos.z)))
+            {
+                return 0;
+            }
+
+            SetPos(m_host.ParentGroup.RootPart, pos, false);
+
+            return VecDist(pos, llGetRootPosition()) <= 0.1 ? 1 : 0;
         }
 
         // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
@@ -2191,55 +2254,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return real_vec;
         }
 
-        public LSL_Integer llSetRegionPos(LSL_Vector pos)
-        {
-            return new LSL_Integer(SetRegionPos(m_host, pos));
-        }
-
-        protected int SetRegionPos(SceneObjectPart part, LSL_Vector targetPos)
-        {
-            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
-                return 0;
-
-            SceneObjectGroup grp = part.ParentGroup;
-
-            if (grp.IsAttachment)
-                return 0;
-
-            if (grp.RootPart.PhysActor != null && grp.RootPart.PhysActor.IsPhysical)
-                return 0;
-
-            if (targetPos.x < -10.0f || targetPos.x >= (float)Constants.RegionSize || targetPos.y < -10.0f || targetPos.y >= (float)Constants.RegionSize || targetPos.z < 0 || targetPos.z >= 4096.0f)
-                return 0;
-
-            float constrainedX = (float)targetPos.x;
-            float constrainedY = (float)targetPos.y;
-
-            if (constrainedX < 0.0f)
-                constrainedX = 0.0f;
-            if (constrainedY < 0.0f)
-                constrainedY = 0.0f;
-            if (constrainedX >= (float)Constants.RegionSize)
-                constrainedX = (float)Constants.RegionSize - 0.1f;
-            if (constrainedY >= (float)Constants.RegionSize)
-                constrainedY = (float)Constants.RegionSize -0.1f;
-
-            float ground = World.GetGroundHeight(constrainedX, constrainedY);
-
-            if (targetPos.z < ground)
-                targetPos.z = ground;
-
-            Vector3 dest = new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z);
-
-            if (!World.Permissions.CanObjectEntry(grp.UUID, false, dest))
-                return 0;
-
-            grp.UpdateGroupPosition(dest);
-
-            return 1;
-        }
-
-        protected void SetPos(SceneObjectPart part, LSL_Vector targetPos)
+        /// <summary>
+        /// set object position, optionally capping the distance.
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="targetPos"></param>
+        /// <param name="adjust">if TRUE, will cap the distance to 10m.</param>
+        protected void SetPos(SceneObjectPart part, LSL_Vector targetPos, bool adjust)
         {
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
