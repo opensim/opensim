@@ -203,9 +203,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float waterlevel = 0f;
         private int framecount = 0;
 
-        private IntPtr WaterGeom = IntPtr.Zero;
-        private IntPtr WaterHeightmapData = IntPtr.Zero;
-        private GCHandle WaterMapHandler = new GCHandle();
+//        private IntPtr WaterGeom = IntPtr.Zero;
+//        private IntPtr WaterHeightmapData = IntPtr.Zero;
+//        private GCHandle WaterMapHandler = new GCHandle();
 
         public float avPIDD = 2200f; // make it visible
         public float avPIDP = 900f; // make it visible
@@ -2491,9 +2491,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void SetWaterLevel(float baseheight)
         {
             waterlevel = baseheight;
-            randomizeWater(waterlevel);
+//            randomizeWater(waterlevel);
         }
-
+/*
         public void randomizeWater(float baseheight)
         {
             const uint heightmapWidth = Constants.RegionSize + 2;
@@ -2574,7 +2574,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
         }
-
+*/
         public override void Dispose()
         {
             lock (OdeLock)
@@ -2624,7 +2624,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 TerrainHeightFieldHeightsHandlers.Clear();
                 TerrainHeightFieldHeights.Clear();
-
+/*
                 if (WaterGeom != IntPtr.Zero)
                 {
                     d.GeomDestroy(WaterGeom);
@@ -2636,7 +2636,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (WaterMapHandler.IsAllocated)
                         WaterMapHandler.Free();
                 }
-
+*/
                 if (ContactgeomsArray != IntPtr.Zero)
                     Marshal.FreeHGlobal(ContactgeomsArray);
                 if (GlobalContactsArray != IntPtr.Zero)
