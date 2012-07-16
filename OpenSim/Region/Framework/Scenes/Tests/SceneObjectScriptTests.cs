@@ -52,7 +52,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            UUID itemId = TestHelpers.ParseTail(0x2);
             string itemName = "Test Script Item";
 
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId);
             scene.AddNewSceneObject(so, true);
 

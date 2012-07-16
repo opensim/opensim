@@ -156,11 +156,12 @@ namespace OpenSim.Capabilities.Handlers
             inv.Folders = new List<InventoryFolderBase>();
             inv.Items = new List<InventoryItemBase>();
             int version = 0;
+            int descendents = 0;
 
             inv
                 = Fetch(
                     invFetch.owner_id, invFetch.folder_id, invFetch.owner_id,
-                    invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order, out version);
+                    invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order, out version, out descendents);
 
             if (inv != null && inv.Folders != null)
             {
@@ -168,6 +169,8 @@ namespace OpenSim.Capabilities.Handlers
                 {
                     contents.categories.Array.Add(ConvertInventoryFolder(invFolder));
                 }
+
+                descendents += inv.Folders.Count;
             }
 
             if (inv != null && inv.Items != null)
@@ -178,7 +181,7 @@ namespace OpenSim.Capabilities.Handlers
                 }
             }
 
-            contents.descendents = contents.items.Array.Count + contents.categories.Array.Count;
+            contents.descendents = descendents;
             contents.version = version;
 
 //            m_log.DebugFormat(
@@ -206,7 +209,7 @@ namespace OpenSim.Capabilities.Handlers
         /// <returns>An empty InventoryCollection if the inventory look up failed</returns>
         private InventoryCollection Fetch(
             UUID agentID, UUID folderID, UUID ownerID,
-            bool fetchFolders, bool fetchItems, int sortOrder, out int version)
+            bool fetchFolders, bool fetchItems, int sortOrder, out int version, out int descendents)
         {
 //            m_log.DebugFormat(
 //                "[WEB FETCH INV DESC HANDLER]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
@@ -215,6 +218,8 @@ namespace OpenSim.Capabilities.Handlers
             // FIXME MAYBE: We're not handling sortOrder!
 
             version = 0;
+            descendents = 0;
+
             InventoryFolderImpl fold;
             if (m_LibraryService != null && m_LibraryService.LibraryRootFolder != null && agentID == m_LibraryService.LibraryRootFolder.Owner)
             {
@@ -223,6 +228,7 @@ namespace OpenSim.Capabilities.Handlers
                     InventoryCollection ret = new InventoryCollection();
                     ret.Folders = new List<InventoryFolderBase>();
                     ret.Items = fold.RequestListOfItems();
+                    descendents = ret.Folders.Count + ret.Items.Count;
 
                     return ret;
                 }
@@ -246,24 +252,72 @@ namespace OpenSim.Capabilities.Handlers
 
                     version = containingFolder.Version;
 
-//                    if (fetchItems)
+                    if (fetchItems)
+                    {
+                        List<InventoryItemBase> itemsToReturn = contents.Items;
+                        List<InventoryItemBase> originalItems = new List<InventoryItemBase>(itemsToReturn);
+
+                        // descendents must only include the links, not the linked items we add
+                        descendents = originalItems.Count;
+
+                        // Add target items for links in this folder before the links themselves.
+                        foreach (InventoryItemBase item in originalItems)
+                        {
+                            if (item.AssetType == (int)AssetType.Link)
+                            {
+                                InventoryItemBase linkedItem = m_InventoryService.GetItem(new InventoryItemBase(item.AssetID));
+
+                                // Take care of genuinely broken links where the target doesn't exist
+                                // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
+                                // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
+                                // rather than having to keep track of every folder requested in the recursion.
+                                if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link)
+                                    itemsToReturn.Insert(0, linkedItem);
+                            }
+                        }
+
+                        // Now scan for folder links and insert the items they target and those links at the head of the return data
+                        foreach (InventoryItemBase item in originalItems)
+                        {
+                            if (item.AssetType == (int)AssetType.LinkFolder)
+                            {
+                                InventoryCollection linkedFolderContents = m_InventoryService.GetFolderContent(ownerID, item.AssetID);
+                                List<InventoryItemBase> links = linkedFolderContents.Items;
+
+                                itemsToReturn.InsertRange(0, links);
+
+                                foreach (InventoryItemBase link in linkedFolderContents.Items)
+                                {
+                                    // Take care of genuinely broken links where the target doesn't exist
+                                    // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
+                                    // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
+                                    // rather than having to keep track of every folder requested in the recursion.
+                                    if (link != null)
+                                    {
+//                                        m_log.DebugFormat(
+//                                            "[WEB FETCH INV DESC HANDLER]: Adding item {0} {1} from folder {2} linked from {3}",
+//                                            link.Name, (AssetType)link.AssetType, item.AssetID, containingFolder.Name);
+
+                                        InventoryItemBase linkedItem
+                                            = m_InventoryService.GetItem(new InventoryItemBase(link.AssetID));
+
+                                        if (linkedItem != null)
+                                            itemsToReturn.Insert(0, linkedItem);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+//                    foreach (InventoryItemBase item in contents.Items)
 //                    {
-//                        List<InventoryItemBase> linkedItemsToAdd = new List<InventoryItemBase>();
-//
-//                        foreach (InventoryItemBase item in contents.Items)
-//                        {
-//                            if (item.AssetType == (int)AssetType.Link)
-//                            {
-//                                InventoryItemBase linkedItem = m_InventoryService.GetItem(new InventoryItemBase(item.AssetID));
-//
-//                                // Take care of genuinely broken links where the target doesn't exist
-//                                // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
-//                                // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
-//                                // rather than having to keep track of every folder requested in the recursion.
-//                                if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link)
-//                                    linkedItemsToAdd.Insert(0, linkedItem);
-//                            }
-//                        }
+//                        m_log.DebugFormat(
+//                            "[WEB FETCH INV DESC HANDLER]: Returning item {0}, type {1}, parent {2} in {3} {4}",
+//                            item.Name, (AssetType)item.AssetType, item.Folder, containingFolder.Name, containingFolder.ID);
+//                    }
+
+                    // =====
+
 //
 //                        foreach (InventoryItemBase linkedItem in linkedItemsToAdd)
 //                        {
@@ -340,12 +394,8 @@ namespace OpenSim.Capabilities.Handlers
             llsdFolder.folder_id = invFolder.ID;
             llsdFolder.parent_id = invFolder.ParentID;
             llsdFolder.name = invFolder.Name;
-
-            if (invFolder.Type == (short)AssetType.Unknown || !Enum.IsDefined(typeof(AssetType), (sbyte)invFolder.Type))
-                llsdFolder.type = "-1";
-            else
-                llsdFolder.type = Utils.AssetTypeToString((AssetType)invFolder.Type);
-            llsdFolder.preferred_type = "-1";
+            llsdFolder.type = invFolder.Type;
+            llsdFolder.preferred_type = -1;
 
             return llsdFolder;
         }
@@ -365,18 +415,8 @@ namespace OpenSim.Capabilities.Handlers
             llsdItem.item_id = invItem.ID;
             llsdItem.name = invItem.Name;
             llsdItem.parent_id = invItem.Folder;
-
-            try
-            {
-                llsdItem.type = Utils.AssetTypeToString((AssetType)invItem.AssetType);
-                llsdItem.inv_type = Utils.InventoryTypeToString((InventoryType)invItem.InvType);
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat(
-                    "[WEB FETCH INV DESC HANDLER]: Problem setting asset {0} inventory {1} types while converting inventory item {2}: {3}",
-                    invItem.AssetType, invItem.InvType, invItem.Name, e.Message);
-            }
+            llsdItem.type = invItem.AssetType;
+            llsdItem.inv_type = invItem.InvType;
 
             llsdItem.permissions = new LLSDPermissions();
             llsdItem.permissions.creator_id = invItem.CreatorIdAsUuid;
@@ -390,21 +430,7 @@ namespace OpenSim.Capabilities.Handlers
             llsdItem.permissions.owner_mask = (int)invItem.CurrentPermissions;
             llsdItem.sale_info = new LLSDSaleInfo();
             llsdItem.sale_info.sale_price = invItem.SalePrice;
-            switch (invItem.SaleType)
-            {
-                default:
-                    llsdItem.sale_info.sale_type = "not";
-                    break;
-                case 1:
-                    llsdItem.sale_info.sale_type = "original";
-                    break;
-                case 2:
-                    llsdItem.sale_info.sale_type = "copy";
-                    break;
-                case 3:
-                    llsdItem.sale_info.sale_type = "contents";
-                    break;
-            }
+            llsdItem.sale_info.sale_type = invItem.SaleType;
 
             return llsdItem;
         }

@@ -296,6 +296,10 @@ namespace OpenSim.Framework.Console
                             matches[0].Groups["Category"].Value);
                     System.Console.Write("]:");
                 }
+                else
+                {
+                    outText = outText.Trim();
+                }
             }
 
             if (level == "error")

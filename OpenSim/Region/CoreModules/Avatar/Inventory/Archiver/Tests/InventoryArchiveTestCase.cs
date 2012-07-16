@@ -48,7 +48,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 {
     [TestFixture]
-    public class InventoryArchiveTestCase
+    public class InventoryArchiveTestCase : OpenSimTestCase
     {
         protected ManualResetEvent mre = new ManualResetEvent(false);
         
@@ -84,8 +84,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         protected string m_coaItemName = "Coalesced Item";
         
         [SetUp]
-        public virtual void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
             m_iarStream = new MemoryStream(m_iarStreamBytes);
         }
         
@@ -100,7 +101,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(scene, archiverModule);            
             
             UserAccountHelpers.CreateUserWithInventory(scene, m_uaLL1, "hampshire");

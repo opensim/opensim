@@ -240,9 +240,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                         {
                             ScenePresence sp = scene.GetScenePresence(client.AgentId);
                             IEntityTransferModule transferMod = scene.RequestModuleInterface<IEntityTransferModule>();
-                            IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
-                            if (transferMod != null && sp != null && eq != null)
-                                transferMod.DoTeleport(sp, gatekeeper, finalDestination, im.Position + new Vector3(0.5f, 0.5f, 0f), Vector3.UnitX, teleportflags, eq);
+
+                            if (transferMod != null && sp != null)
+                                transferMod.DoTeleport(
+                                    sp, gatekeeper, finalDestination, im.Position + new Vector3(0.5f, 0.5f, 0f),
+                                    Vector3.UnitX, teleportflags);
                         }
                     }
                 }

@@ -101,18 +101,8 @@ namespace OpenSim.Capabilities.Handlers
             llsdItem.item_id = invItem.ID;
             llsdItem.name = invItem.Name;
             llsdItem.parent_id = invItem.Folder;
-
-            try
-            {
-                llsdItem.type = Utils.AssetTypeToString((AssetType)invItem.AssetType);
-                llsdItem.inv_type = Utils.InventoryTypeToString((InventoryType)invItem.InvType);
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat(
-                    "[WEB FETCH INV DESC HANDLER]: Problem setting asset {0} inventory {1} types while converting inventory item {2}: {3}",
-                    invItem.AssetType, invItem.InvType, invItem.Name, e.Message);
-            }
+            llsdItem.type = invItem.AssetType;
+            llsdItem.inv_type = invItem.InvType;
 
             llsdItem.permissions = new LLSDPermissions();
             llsdItem.permissions.creator_id = invItem.CreatorIdAsUuid;
@@ -126,21 +116,7 @@ namespace OpenSim.Capabilities.Handlers
             llsdItem.permissions.owner_mask = (int)invItem.CurrentPermissions;
             llsdItem.sale_info = new LLSDSaleInfo();
             llsdItem.sale_info.sale_price = invItem.SalePrice;
-            switch (invItem.SaleType)
-            {
-                default:
-                    llsdItem.sale_info.sale_type = "not";
-                    break;
-                case 1:
-                    llsdItem.sale_info.sale_type = "original";
-                    break;
-                case 2:
-                    llsdItem.sale_info.sale_type = "copy";
-                    break;
-                case 3:
-                    llsdItem.sale_info.sale_type = "contents";
-                    break;
-            }
+            llsdItem.sale_info.sale_type = invItem.SaleType;
 
             return llsdItem;
         }

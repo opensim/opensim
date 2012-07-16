@@ -147,6 +147,21 @@ namespace OpenSim.Region.Framework.Scenes
             get { return ParentGroup.RootPart == this; } 
         }
 
+        /// <summary>
+        /// Is an explicit sit target set for this part?
+        /// </summary>
+        public bool IsSitTargetSet
+        {
+            get
+            {
+                return
+                    !(SitTargetPosition == Vector3.Zero
+                      && (SitTargetOrientation == Quaternion.Identity // Valid Zero Rotation quaternion
+                       || SitTargetOrientation.X == 0f && SitTargetOrientation.Y == 0f && SitTargetOrientation.Z == 1f && SitTargetOrientation.W == 0f // W-Z Mapping was invalid at one point
+                       || SitTargetOrientation.X == 0f && SitTargetOrientation.Y == 0f && SitTargetOrientation.Z == 0f && SitTargetOrientation.W == 0f)); // Invalid Quaternion
+            }
+        }
+
         #region Fields
 
         public bool AllowedDrop;
@@ -426,7 +441,6 @@ namespace OpenSim.Region.Framework.Scenes
         private uint _category;
         private Int32 _creationDate;
         private uint _parentID = 0;
-        private UUID m_sitTargetAvatar = UUID.Zero;
         private uint _baseMask = (uint)PermissionMask.All;
         private uint _ownerMask = (uint)PermissionMask.All;
         private uint _groupMask = (uint)PermissionMask.None;
@@ -738,6 +752,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return m_groupPosition;
                 }
 
+                // If I'm an attachment, my position is reported as the position of who I'm attached to
                 if (ParentGroup.IsAttachment)
                 {
                     ScenePresence sp = ParentGroup.Scene.GetScenePresence(ParentGroup.AttachedAvatar);
@@ -765,7 +780,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else
                         {
-                            // To move the child prim in respect to the group position and rotation we have to calculate
+                            // The physics engine always sees all objects (root or linked) in world coordinates.
                             actor.Position = GetWorldPosition();
                             actor.Orientation = GetWorldRotation();
                         }
@@ -844,6 +859,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // We don't want the physics engine mucking up the rotations in a linkset
                 PhysicsActor actor = PhysActor;
+                // If this is a root of a linkset, the real rotation is what the physics engine thinks.
+                // If not a root prim, the offset rotation is computed by SOG and is relative to the root.
                 if (ParentID == 0 && (Shape.PCode != 9 || Shape.State == 0) && actor != null)
                 {
                     if (actor.Orientation.X != 0f || actor.Orientation.Y != 0f
@@ -1024,7 +1041,18 @@ namespace OpenSim.Region.Framework.Scenes
         public int LinkNum
         {
             get { return m_linkNum; }
-            set { m_linkNum = value; }
+            set
+            {
+//                if (ParentGroup != null)
+//                {
+//                    m_log.DebugFormat(
+//                        "[SCENE OBJECT PART]: Setting linknum of {0}@{1} to {2} from {3}",
+//                        Name, AbsolutePosition, value, m_linkNum);
+//                    Util.PrintCallStack();
+//                }
+
+                m_linkNum = value;
+            }
         }
 
         public byte ClickAction
@@ -1309,13 +1337,20 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// ID of the avatar that is sat on us.  If there is no such avatar then is UUID.Zero
+        /// ID of the avatar that is sat on us if we have a sit target.  If there is no such avatar then is UUID.Zero
         /// </summary>
-        public UUID SitTargetAvatar
-        {
-            get { return m_sitTargetAvatar; }
-            set { m_sitTargetAvatar = value; }
-        }
+        public UUID SitTargetAvatar { get; set; }
+
+        /// <summary>
+        /// IDs of all avatars start on this object part.
+        /// </summary>
+        /// <remarks>
+        /// We need to track this so that we can stop sat upon prims from being attached.
+        /// </remarks>
+        /// <value>
+        /// null if there are no sitting avatars.  This is to save us create a hashset for every prim in a scene.
+        /// </value>
+        private HashSet<UUID> m_sittingAvatars;
 
         public virtual UUID RegionID
         {
@@ -2111,7 +2146,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 m_log.WarnFormat(
                     "[SCENE OBJECT PART]: Part {0} {1} requested mesh/sculpt data for asset id {2} from asset service but received no data",
-                    Name, LocalId, id);
+                    Name, UUID, id);
         }
 
         /// <summary>
@@ -2216,6 +2251,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="isNew"></param>
         public void DoPhysicsPropertyUpdate(bool UsePhysics, bool isNew)
         {
+            if (ParentGroup.Scene == null)
+                return;
+
             if (!ParentGroup.Scene.PhysicalPrims && UsePhysics)
                 return;
 
@@ -2494,14 +2532,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>A Linked Child Prim objects position in world</returns>
         public Vector3 GetWorldPosition()
         {
-            Quaternion parentRot = ParentGroup.RootPart.RotationOffset;
-            Vector3 axPos = OffsetPosition;
-            axPos *= parentRot;
-            Vector3 translationOffsetPosition = axPos;
-            if(_parentID == 0)
-                return GroupPosition;
+            Vector3 ret;
+            if (_parentID == 0)
+                // if a root SOP, my position is what it is
+                ret = GroupPosition;
             else
-                return ParentGroup.AbsolutePosition + translationOffsetPosition;
+            {
+                // If a child SOP, my position is relative to the root SOP so take
+                //    my info and add the root's position and rotation to
+                //    get my world position.
+                Quaternion parentRot = ParentGroup.RootPart.RotationOffset;
+                Vector3 translationOffsetPosition = OffsetPosition * parentRot;
+                ret = ParentGroup.AbsolutePosition + translationOffsetPosition;
+            }
+            return ret;
         }
 
         /// <summary>
@@ -2518,6 +2562,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
+                // A child SOP's rotation is relative to the root SOP's rotation.
+                // Combine them to get my absolute rotation.
                 Quaternion parentRot = ParentGroup.RootPart.RotationOffset;
                 Quaternion oldRot = RotationOffset;
                 newRot = parentRot * oldRot;
@@ -3174,8 +3220,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup.IsDeleted)
                 return;
 
-            if (ParentGroup.IsAttachment && (ParentGroup.AttachedAvatar != remoteClient.AgentId) &&
-                (ParentGroup.AttachmentPoint >= 31) && (ParentGroup.AttachmentPoint <= 38))
+            if (ParentGroup.IsAttachment
+                && ParentGroup.AttachedAvatar != remoteClient.AgentId
+                && ParentGroup.HasPrivateAttachmentPoint)
                 return;
 
             if (remoteClient.AgentId == OwnerID)
@@ -3694,7 +3741,6 @@ namespace OpenSim.Region.Framework.Scenes
             hasProfileCut = hasDimple; // is it the same thing?
         }
         
-
         public void SetGroup(UUID groupID, IClientAPI client)
         {
             // Scene.AddNewPrims() calls with client == null so can't use this.
@@ -3724,10 +3770,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetPhysicsAxisRotation()
         {
-            if (PhysActor != null)
+            PhysicsActor pa = PhysActor;
+
+            if (pa != null)
             {
-                PhysActor.LockAngularMotion(RotationAxis);
-                ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                pa.LockAngularMotion(RotationAxis);
+                ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
             }
         }
 
@@ -4444,7 +4492,7 @@ namespace OpenSim.Region.Framework.Scenes
             // For now, we use the NINJA naming scheme for identifying joints.
             // In the future, we can support other joint specification schemes such as a 
             // custom checkbox in the viewer GUI.
-            if (ParentGroup.Scene.PhysicsScene.SupportsNINJAJoints)
+            if (ParentGroup.Scene != null && ParentGroup.Scene.PhysicsScene.SupportsNINJAJoints)
             {
                 string hingeString = "hingejoint";
                 return (Name.Length >= hingeString.Length && Name.Substring(0, hingeString.Length) == hingeString);
@@ -4460,7 +4508,7 @@ namespace OpenSim.Region.Framework.Scenes
             // For now, we use the NINJA naming scheme for identifying joints.
             // In the future, we can support other joint specification schemes such as a 
             // custom checkbox in the viewer GUI.
-            if (ParentGroup.Scene.PhysicsScene.SupportsNINJAJoints)
+            if (ParentGroup.Scene != null && ParentGroup.Scene.PhysicsScene.SupportsNINJAJoints)
             {
                 string ballString = "balljoint";
                 return (Name.Length >= ballString.Length && Name.Substring(0, ballString.Length) == ballString);
@@ -4476,7 +4524,7 @@ namespace OpenSim.Region.Framework.Scenes
             // For now, we use the NINJA naming scheme for identifying joints.
             // In the future, we can support other joint specification schemes such as a 
             // custom checkbox in the viewer GUI.
-            if (ParentGroup.Scene.PhysicsScene.SupportsNINJAJoints)
+            if (ParentGroup.Scene != null && ParentGroup.Scene.PhysicsScene.SupportsNINJAJoints)
             {
                 return IsHingeJoint() || IsBallJoint();
             }
@@ -4598,7 +4646,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
 */
                     }
-
                     else // it already has a physical representation
                     {
                         DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status.
@@ -5074,8 +5121,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup.IsDeleted)
                 return;
 
-            if (ParentGroup.IsAttachment && ((ParentGroup.RootPart != this) ||
-                ((ParentGroup.AttachedAvatar != remoteClient.AgentId) && (ParentGroup.AttachmentPoint >= 31) && (ParentGroup.AttachmentPoint <= 38))))
+            if (ParentGroup.IsAttachment
+                && (ParentGroup.RootPart != this
+                    || ParentGroup.AttachedAvatar != remoteClient.AgentId && ParentGroup.HasPrivateAttachmentPoint))
                 return;
             
             // Causes this thread to dig into the Client Thread Data.
@@ -5146,6 +5194,100 @@ namespace OpenSim.Region.Framework.Scenes
                 item.OwnerChanged = false;
                 Inventory.UpdateInventoryItem(item, false, false);
             }
+        }
+
+        /// <summary>
+        /// Record an avatar sitting on this part.
+        /// </summary>
+        /// <remarks>This is called for all the sitting avatars whether there is a sit target set or not.</remarks>
+        /// <returns>
+        /// true if the avatar was not already recorded, false otherwise.
+        /// </returns>
+        /// <param name='avatarId'></param>
+        protected internal bool AddSittingAvatar(UUID avatarId)
+        {
+            if (IsSitTargetSet && SitTargetAvatar == UUID.Zero)
+                SitTargetAvatar = avatarId;
+
+            HashSet<UUID> sittingAvatars = m_sittingAvatars;
+
+            if (sittingAvatars == null)
+                sittingAvatars = new HashSet<UUID>();
+
+            lock (sittingAvatars)
+            {
+                m_sittingAvatars = sittingAvatars;
+                return m_sittingAvatars.Add(avatarId);
+            }
+        }
+
+        /// <summary>
+        /// Remove an avatar recorded as sitting on this part.
+        /// </summary>
+        /// <remarks>This applies to all sitting avatars whether there is a sit target set or not.</remarks>
+        /// <returns>
+        /// true if the avatar was present and removed, false if it was not present.
+        /// </returns>
+        /// <param name='avatarId'></param>
+        protected internal bool RemoveSittingAvatar(UUID avatarId)
+        {
+            if (SitTargetAvatar == avatarId)
+                SitTargetAvatar = UUID.Zero;
+
+            HashSet<UUID> sittingAvatars = m_sittingAvatars;
+
+            // This can occur under a race condition where another thread
+            if (sittingAvatars == null)
+                return false;
+
+            lock (sittingAvatars)
+            {
+                if (sittingAvatars.Remove(avatarId))
+                {
+                    if (sittingAvatars.Count == 0)
+                        m_sittingAvatars = null;
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Get a copy of the list of sitting avatars.
+        /// </summary>
+        /// <remarks>This applies to all sitting avatars whether there is a sit target set or not.</remarks>
+        /// <returns>A hashset of the sitting avatars.  Returns null if there are no sitting avatars.</returns>
+        public HashSet<UUID> GetSittingAvatars()
+        {
+            HashSet<UUID> sittingAvatars = m_sittingAvatars;
+
+            if (sittingAvatars == null)
+            {
+                return null;
+            }
+            else
+            {
+                lock (sittingAvatars)
+                    return new HashSet<UUID>(sittingAvatars);
+            }
+        }
+
+        /// <summary>
+        /// Gets the number of sitting avatars.
+        /// </summary>
+        /// <remarks>This applies to all sitting avatars whether there is a sit target set or not.</remarks>
+        /// <returns></returns>
+        public int GetSittingAvatarsCount()
+        {
+            HashSet<UUID> sittingAvatars = m_sittingAvatars;
+
+            if (sittingAvatars == null)
+                return 0;
+
+            lock (sittingAvatars)
+                return sittingAvatars.Count;
         }
     }
 }

@@ -383,6 +383,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_SCULPT_FLAG_INVERT = 64;
         public const int PRIM_SCULPT_FLAG_MIRROR = 128;
 
+        public const int PROFILE_NONE = 0;
+        public const int PROFILE_SCRIPT_MEMORY = 1;
+
         public const int MASK_BASE = 0;
         public const int MASK_OWNER = 1;
         public const int MASK_GROUP = 2;
@@ -641,6 +644,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OS_NPC_FLY = 0;
         public const int OS_NPC_NO_FLY = 1;
         public const int OS_NPC_LAND_AT_TARGET = 2;
+        public const int OS_NPC_RUNNING = 4;
 
         public const int OS_NPC_SIT_NOW = 0;
 

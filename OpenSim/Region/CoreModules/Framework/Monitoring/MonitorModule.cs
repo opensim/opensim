@@ -49,7 +49,16 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
         public bool Enabled { get; private set; }
 
         private Scene m_scene;
-        private readonly List<IMonitor> m_monitors = new List<IMonitor>();
+
+        /// <summary>
+        /// These are monitors where we know the static details in advance.
+        /// </summary>
+        /// <remarks>
+        /// Dynamic monitors also exist (we don't know any of the details of what stats we get back here)
+        /// but these are currently hardcoded.
+        /// </remarks>
+        private readonly List<IMonitor> m_staticMonitors = new List<IMonitor>();
+
         private readonly List<IAlert> m_alerts = new List<IAlert>();
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -84,9 +93,18 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
 
         public void DebugMonitors(string module, string[] args)
         {
-            foreach (IMonitor monitor in m_monitors)
+            foreach (IMonitor monitor in m_staticMonitors)
             {
-                m_log.Info("[MonitorModule]: " + m_scene.RegionInfo.RegionName + " reports " + monitor.GetFriendlyName() + " = " + monitor.GetFriendlyValue());
+                m_log.InfoFormat(
+                    "[MONITOR MODULE]: {0} reports {1} = {2}",
+                    m_scene.RegionInfo.RegionName, monitor.GetFriendlyName(), monitor.GetFriendlyValue());
+            }
+
+            foreach (KeyValuePair<string, float> tuple in m_scene.StatsReporter.GetExtraSimStats())
+            {
+                m_log.InfoFormat(
+                    "[MONITOR MODULE]: {0} reports {1} = {2}",
+                    m_scene.RegionInfo.RegionName, tuple.Key, tuple.Value);
             }
         }
 
@@ -106,11 +124,12 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             {
                 string monID = (string) request["monitor"];
 
-                foreach (IMonitor monitor in m_monitors)
+                foreach (IMonitor monitor in m_staticMonitors)
                 {
                     string elemName = monitor.ToString();
                     if (elemName.StartsWith(monitor.GetType().Namespace))
                         elemName = elemName.Substring(monitor.GetType().Namespace.Length + 1);
+
                     if (elemName == monID || monitor.ToString() == monID)
                     {
                         Hashtable ereply3 = new Hashtable();
@@ -123,6 +142,9 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     }
                 }
 
+                // FIXME: Arguably this should also be done with dynamic monitors but I'm not sure what the above code
+                // is even doing.  Why are we inspecting the type of the monitor???
+
                 // No monitor with that name
                 Hashtable ereply2 = new Hashtable();
 
@@ -134,12 +156,18 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             }
 
             string xml = "<data>";
-            foreach (IMonitor monitor in m_monitors)
+            foreach (IMonitor monitor in m_staticMonitors)
             {
                 string elemName = monitor.GetName();
                 xml += "<" + elemName + ">" + monitor.GetValue().ToString() + "</" + elemName + ">";
 //                m_log.DebugFormat("[MONITOR MODULE]: {0} = {1}", elemName, monitor.GetValue());
             }
+
+            foreach (KeyValuePair<string, float> tuple in m_scene.StatsReporter.GetExtraSimStats())
+            {
+                xml += "<" + tuple.Key + ">" + tuple.Value + "</" + tuple.Key + ">";
+            }
+
             xml += "</data>";
 
             Hashtable ereply = new Hashtable();
@@ -156,20 +184,20 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             if (!Enabled)
                 return;
 
-            m_monitors.Add(new AgentCountMonitor(m_scene));
-            m_monitors.Add(new ChildAgentCountMonitor(m_scene));
-            m_monitors.Add(new GCMemoryMonitor());
-            m_monitors.Add(new ObjectCountMonitor(m_scene));
-            m_monitors.Add(new PhysicsFrameMonitor(m_scene));
-            m_monitors.Add(new PhysicsUpdateFrameMonitor(m_scene));
-            m_monitors.Add(new PWSMemoryMonitor());
-            m_monitors.Add(new ThreadCountMonitor());
-            m_monitors.Add(new TotalFrameMonitor(m_scene));
-            m_monitors.Add(new EventFrameMonitor(m_scene));
-            m_monitors.Add(new LandFrameMonitor(m_scene));
-            m_monitors.Add(new LastFrameTimeMonitor(m_scene));
+            m_staticMonitors.Add(new AgentCountMonitor(m_scene));
+            m_staticMonitors.Add(new ChildAgentCountMonitor(m_scene));
+            m_staticMonitors.Add(new GCMemoryMonitor());
+            m_staticMonitors.Add(new ObjectCountMonitor(m_scene));
+            m_staticMonitors.Add(new PhysicsFrameMonitor(m_scene));
+            m_staticMonitors.Add(new PhysicsUpdateFrameMonitor(m_scene));
+            m_staticMonitors.Add(new PWSMemoryMonitor());
+            m_staticMonitors.Add(new ThreadCountMonitor());
+            m_staticMonitors.Add(new TotalFrameMonitor(m_scene));
+            m_staticMonitors.Add(new EventFrameMonitor(m_scene));
+            m_staticMonitors.Add(new LandFrameMonitor(m_scene));
+            m_staticMonitors.Add(new LastFrameTimeMonitor(m_scene));
             
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "TimeDilationMonitor",
@@ -177,7 +205,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[0],
                     m => m.GetValue().ToString()));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "SimFPSMonitor",
@@ -185,7 +213,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[1],
                     m => string.Format("{0}", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "PhysicsFPSMonitor",
@@ -193,7 +221,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[2],
                     m => string.Format("{0}", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "AgentUpdatesPerSecondMonitor",
@@ -201,15 +229,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[3],
                     m => string.Format("{0} per second", m.GetValue())));
 
-            m_monitors.Add(
-                new GenericMonitor(
-                    m_scene,
-                    "ObjectUpdatesPerSecondMonitor",
-                    "Object Updates",
-                    m => m.Scene.StatsReporter.LastReportedObjectUpdates,
-                    m => string.Format("{0} per second", m.GetValue())));
-
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "ActiveObjectCountMonitor",
@@ -217,7 +237,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[7],
                     m => string.Format("{0}", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "ActiveScriptsMonitor",
@@ -225,7 +245,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[19],
                     m => string.Format("{0}", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "ScriptEventsPerSecondMonitor",
@@ -233,7 +253,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[20],
                     m => string.Format("{0} per second", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "InPacketsPerSecondMonitor",
@@ -241,7 +261,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[13],
                     m => string.Format("{0} per second", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "OutPacketsPerSecondMonitor",
@@ -249,7 +269,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[14],
                     m => string.Format("{0} per second", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "UnackedBytesMonitor",
@@ -257,7 +277,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[15],
                     m => string.Format("{0}", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "PendingDownloadsMonitor",
@@ -265,7 +285,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[17],
                     m => string.Format("{0}", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "PendingUploadsMonitor",
@@ -273,7 +293,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[18],
                     m => string.Format("{0}", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "TotalFrameTimeMonitor",
@@ -281,7 +301,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[8],
                     m => string.Format("{0} ms", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "NetFrameTimeMonitor",
@@ -289,7 +309,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[9],
                     m => string.Format("{0} ms", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "PhysicsFrameTimeMonitor",
@@ -297,7 +317,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[10],
                     m => string.Format("{0} ms", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "SimulationFrameTimeMonitor",
@@ -305,7 +325,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[12],
                     m => string.Format("{0} ms", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "AgentFrameTimeMonitor",
@@ -313,7 +333,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[16],
                     m => string.Format("{0} ms", m.GetValue())));
 
-            m_monitors.Add(
+            m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
                     "ImagesFrameTimeMonitor",
@@ -321,7 +341,15 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m => m.Scene.StatsReporter.LastReportedSimStats[11],
                     m => string.Format("{0} ms", m.GetValue())));
 
-            m_alerts.Add(new DeadlockAlert(m_monitors.Find(x => x is LastFrameTimeMonitor) as LastFrameTimeMonitor));
+            m_staticMonitors.Add(
+                new GenericMonitor(
+                    m_scene,
+                    "SpareFrameTimeMonitor",
+                    "Spare Frame Time",
+                    m => m.Scene.StatsReporter.LastReportedSimStats[21],
+                    m => string.Format("{0} ms", m.GetValue())));
+
+            m_alerts.Add(new DeadlockAlert(m_staticMonitors.Find(x => x is LastFrameTimeMonitor) as LastFrameTimeMonitor));
 
             foreach (IAlert alert in m_alerts)
             {

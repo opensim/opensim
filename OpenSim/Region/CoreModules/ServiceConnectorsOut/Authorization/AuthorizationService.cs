@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private IUserManagement m_UserManagement;
-        private IGridService m_GridService;
+//        private IGridService m_GridService;
 
         private Scene m_Scene;
         AccessFlags m_accessValue = AccessFlags.None;
@@ -65,7 +65,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
         {
             m_Scene = scene;
             m_UserManagement = scene.RequestModuleInterface<IUserManagement>();
-            m_GridService = scene.GridService;
+//            m_GridService = scene.GridService;
 
             if (config != null)
             {

@@ -883,3 +883,15 @@ ALTER TABLE `regionsettings` MODIFY COLUMN `TelehubObject` VARCHAR(36) NOT NULL 
 
 COMMIT;
 
+:VERSION 44         #--------------------- Environment Settings
+
+BEGIN;
+
+CREATE TABLE `regionenvironment` (
+  `region_id` varchar(36) NOT NULL,
+  `llsd_settings` TEXT NOT NULL,
+  PRIMARY KEY (`region_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+COMMIT;
+

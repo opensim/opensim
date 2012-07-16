@@ -113,6 +113,21 @@ namespace OpenSim.Data.Null
             m_store.StoreRegionWindlightSettings(wl);
         }
 
+        public string LoadRegionEnvironmentSettings(UUID regionUUID)
+        {
+            return m_store.LoadRegionEnvironmentSettings(regionUUID);
+        }
+
+        public void StoreRegionEnvironmentSettings(UUID regionUUID, string settings)
+        {
+            m_store.StoreRegionEnvironmentSettings(regionUUID, settings);
+        }
+
+        public void RemoveRegionEnvironmentSettings(UUID regionUUID)
+        {
+            m_store.RemoveRegionEnvironmentSettings(regionUUID);
+        }
+
         public UUID[] GetObjectIDs(UUID regionID)
         {
             return new UUID[0];
@@ -163,7 +178,25 @@ namespace OpenSim.Data.Null
         {
             //This connector doesn't support the windlight module yet
         }
-        
+
+        #region Environment Settings
+        public string LoadRegionEnvironmentSettings(UUID regionUUID)
+        {
+            //This connector doesn't support the Environment module yet
+            return string.Empty;
+        }
+
+        public void StoreRegionEnvironmentSettings(UUID regionUUID, string settings)
+        {
+            //This connector doesn't support the Environment module yet
+        }
+
+        public void RemoveRegionEnvironmentSettings(UUID regionUUID)
+        {
+            //This connector doesn't support the Environment module yet
+        }
+        #endregion
+
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             RegionSettings rs = null;

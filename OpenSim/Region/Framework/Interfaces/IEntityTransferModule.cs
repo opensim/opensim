@@ -39,13 +39,30 @@ namespace OpenSim.Region.Framework.Interfaces
 
     public interface IEntityTransferModule
     {
-        void Teleport(ScenePresence agent, ulong regionHandle, Vector3 position,
-                                                      Vector3 lookAt, uint teleportFlags);
+        /// <summary>
+        /// Teleport an agent within the same or to a different region.
+        /// </summary>
+        /// <param name='agent'></param>
+        /// <param name='regionHandle'>
+        /// The handle of the destination region.  If it's the same as the region currently
+        /// occupied by the agent then the teleport will be within that region.
+        /// </param>
+        /// <param name='position'></param>
+        /// <param name='lookAt'></param>
+        /// <param name='teleportFlags'></param>
+        void Teleport(ScenePresence agent, ulong regionHandle, Vector3 position, Vector3 lookAt, uint teleportFlags);
 
         bool TeleportHome(UUID id, IClientAPI client);
 
         void DoTeleport(ScenePresence sp, GridRegion reg, GridRegion finalDestination,
-            Vector3 position, Vector3 lookAt, uint teleportFlags, IEventQueue eq);
+            Vector3 position, Vector3 lookAt, uint teleportFlags);
+
+        /// <summary>
+        /// Show whether the given agent is being teleported.
+        /// </summary>
+        /// <param name='id'>The agent ID</para></param>
+        /// <returns>true if the agent is in the process of being teleported, false otherwise.</returns>
+        bool IsInTransit(UUID id);        
 
         bool Cross(ScenePresence agent, bool isFlying);
 

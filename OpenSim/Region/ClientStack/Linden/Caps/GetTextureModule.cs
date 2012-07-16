@@ -130,7 +130,9 @@ namespace OpenSim.Region.ClientStack.Linden
             if (m_URL == "localhost")
             {
 //                m_log.DebugFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
-                caps.RegisterHandler("GetTexture", new GetTextureHandler("/CAPS/" + capID + "/", m_assetService));
+                caps.RegisterHandler(
+                    "GetTexture",
+                    new GetTextureHandler("/CAPS/" + capID + "/", m_assetService, "GetTexture", agentID.ToString()));
             }
             else
             {

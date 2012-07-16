@@ -58,17 +58,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     {
         internal IScriptEngine m_ScriptEngine;
         internal SceneObjectPart m_host;
-        internal uint m_localID;
-        internal UUID m_itemID;
         internal bool m_LSFunctionsEnabled = false;
         internal IScriptModuleComms m_comms = null;
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
+        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;
-            m_localID = localID;
-            m_itemID = itemID;
 
             if (m_ScriptEngine.Config.GetBoolean("AllowLightShareFunctions", false))
                 m_LSFunctionsEnabled = true;
@@ -449,7 +445,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSShoutError("LightShare functions are not enabled.");
                 return 0;
             }
-            if (!World.RegionInfo.EstateSettings.IsEstateManager(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
+            if (!World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
             {
                 LSShoutError("lsSetWindlightScene can only be used by estate managers or owners.");
                 return 0;
@@ -477,7 +473,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSShoutError("LightShare functions are not enabled.");
                 return;
             }
-            if (!World.RegionInfo.EstateSettings.IsEstateManager(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
+            if (!World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
             {
                 LSShoutError("lsSetWindlightScene can only be used by estate managers or owners.");
                 return;
@@ -500,7 +496,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSShoutError("LightShare functions are not enabled.");
                 return 0;
             }
-            if (!World.RegionInfo.EstateSettings.IsEstateManager(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
+            if (!World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
             {
                 LSShoutError("lsSetWindlightSceneTargeted can only be used by estate managers or owners.");
                 return 0;

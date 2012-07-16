@@ -214,16 +214,13 @@ namespace OpenSim.Framework.Tests
 
             for (int i = 0; i < contenttypes.Length; i++)
             {
-                if (SLUtil.ContentTypeToSLAssetType(contenttypes[i]) == 18)
-                {
-                    Assert.That(contenttypes[i] == "image/tga");
-                }
+                int expected;
+                if (contenttypes[i] == "image/tga")
+                    expected = 12;  // if we know only the content-type "image/tga", then we assume the asset type is TextureTGA; not ImageTGA
                 else
-                {
-                    Assert.That(SLUtil.ContentTypeToSLAssetType(contenttypes[i]) == assettypes[i],
-                                "Expecting {0} but got {1}", assettypes[i],
-                                SLUtil.ContentTypeToSLAssetType(contenttypes[i]));
-                }
+                    expected = assettypes[i];
+                Assert.AreEqual(expected, SLUtil.ContentTypeToSLAssetType(contenttypes[i]),
+                            String.Format("Incorrect AssetType mapped from Content-Type {0}", contenttypes[i]));
             }
 
             int[] inventorytypes = new int[] {-1,0,1,2,3,6,7,8,9,10,15,17,18,20};
@@ -237,7 +234,7 @@ namespace OpenSim.Framework.Tests
                                                "application/vnd.ll.primitive",
                                                "application/vnd.ll.notecard",
                                                "application/vnd.ll.folder",
-                                               "application/octet-stream",
+                                               "application/vnd.ll.rootfolder",
                                                "application/vnd.ll.lsltext",
                                                "image/x-j2c",
                                                "application/vnd.ll.primitive",
@@ -247,7 +244,8 @@ namespace OpenSim.Framework.Tests
         
             for (int i=0;i<inventorytypes.Length;i++)
             {
-                Assert.That(SLUtil.SLInvTypeToContentType(inventorytypes[i]) == invcontenttypes[i], "Expected {0}, Got {1}", invcontenttypes[i], SLUtil.SLInvTypeToContentType(inventorytypes[i]));
+                Assert.AreEqual(invcontenttypes[i], SLUtil.SLInvTypeToContentType(inventorytypes[i]),
+                    String.Format("Incorrect Content-Type mapped from InventoryType {0}", inventorytypes[i]));
             }
 
             invcontenttypes = new string[]
@@ -280,7 +278,8 @@ namespace OpenSim.Framework.Tests
 
             for (int i = 0; i < invtypes.Length; i++)
             {
-                Assert.That(SLUtil.ContentTypeToSLInvType(invcontenttypes[i]) == invtypes[i], "Expected {0}, Got {1}", invtypes[i], SLUtil.ContentTypeToSLInvType(invcontenttypes[i]));
+                Assert.AreEqual(invtypes[i], SLUtil.ContentTypeToSLInvType(invcontenttypes[i]),
+                    String.Format("Incorrect InventoryType mapped from Content-Type {0}", invcontenttypes[i]));
             }
         }
     }

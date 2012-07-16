@@ -166,7 +166,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ;; This switch creates the minimum set of body parts and avatar entries for a viewer 2 
     ;; to show a default "Ruth" avatar rather than a cloud for a newly created user.
     ;; Default is false
-    ; CreateDefaultAvatarEntries = false
+    CreateDefaultAvatarEntries = true
 
     ;; Allow the service to process HTTP createuser calls.
     ;; Default is false.
@@ -225,10 +225,14 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     MapTileURL = "http://127.0.0.1:8002";
 
     ; For V2/3 Web Profiles
-    ProfileServerURL = "http://127.0.0.1/profiles/[AGENT_NAME]"
-
+    ; Work in progress: The ProfileServerURL/OpenIDServerURL are
+    ; being used in a development viewer as support for webprofiles
+    ; is being developed across the componets
+    ;
+    ; ProfileServerURL = "http://127.0.0.1/profiles/[AGENT_NAME]"
+    ;
     ; For V2/V3 webapp authentication SSO
-    OpenIDServerURL = "http://127.0.0.1/openid/openidserver/"
+    ; OpenIDServerURL = "http://127.0.0.1/openid/openidserver/"
 
     ; If you run this login server behind a proxy, set this to true
     ; HasProxy = false
@@ -250,10 +254,39 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ;AllowedClients = ""
     ;DeniedClients = ""
 
+    ;# {DSTZone} {} {Override Daylight Saving Time rules} {* none local} "America/Los_Angeles;Pacific Standard Time"
+    ;; Viewers do not listen to timezone sent by the server. They use Pacific Standard Time instead,
+    ;; but rely on the server to calculate Daylight Saving Time. Sending another DST than US Pacific
+    ;; would result in time inconsistencies between grids (during summer and around DST transition period)
+    ;;   default    let OpenSim calculate US Pacific DST
+    ;;   "none"     disable DST (equivallent to "local" with system set to GMT)
+    ;;   "local"    force legacy behaviour (using local system time to calculate DST)
+    ; DSTZone = "America/Los_Angeles;Pacific Standard Time"
+
+    ;# {DSTZone} {} {Override Daylight Saving Time rules} {* none local} "America/Los_Angeles;Pacific Standard Time"
+    ;; Viewers do not receive timezone information from the server - almost all (?) default to Pacific Standard Time
+    ;; However, they do rely on the server to tell them whether it's Daylight Saving Time or not.
+    ;; Hence, calculating DST based on a different timezone can result in a misleading viewer display and inconsistencies between grids.
+    ;; By default, this setting uses various timezone names to calculate DST with regards to the viewer's standard PST.
+    ;; Options are
+    ;;   "none"     no DST 
+    ;;   "local"    use the server's only timezone to calculate DST.  This is previous OpenSimulator behaviour.
+    ;;   "America/Los_Angeles;Pacific Standard Time" use these timezone names to look up Daylight savings.
+    ;;      'America/Los_Angeles' is used on Linux/Mac systems whilst 'Pacific Standard Time' is used on Windows
+    DSTZone = "America/Los_Angeles;Pacific Standard Time"
+
 [MapImageService]
     LocalServiceModule = "OpenSim.Services.MapImageService.dll:MapImageService"
 	; Set this if you want to change the default
 	; TilesStoragePath = "maptiles"
+	;
+	; If for some reason you have the AddMapTile service outside the firewall (e.g. 8002),
+	; you may want to set this. Otherwise, don't set it, because it's already protected.
+	; GridService = "OpenSim.Services.GridService.dll:GridService"
+	;
+    ; Additionally, if you run this server behind a proxy, set this to true
+    ; HasProxy = false
+
 
 
 [GridInfoService]

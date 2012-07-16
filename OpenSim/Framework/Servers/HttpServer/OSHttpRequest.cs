@@ -107,7 +107,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public bool IsSecured
         {
-            get { return _context.Secured; }
+            get { return _context.IsSecured; }
         }
 
         public bool KeepAlive

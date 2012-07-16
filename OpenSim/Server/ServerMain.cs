@@ -30,6 +30,7 @@ using log4net;
 using System.Reflection;
 using System;
 using System.Collections.Generic;
+using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
@@ -92,27 +93,24 @@ namespace OpenSim.Server
                 if (parts.Length > 1)
                     friendlyName = parts[1];
 
-                IHttpServer server = m_Server.HttpServer;
-                if (port != 0)
-                    server = m_Server.GetHttpServer(port);
+                IHttpServer server;
 
-                if (port != m_Server.DefaultPort && port != 0)
-                    m_log.InfoFormat("[SERVER]: Loading {0} on port {1}", friendlyName, port);
+                if (port != 0)
+                    server = MainServer.GetHttpServer(port);
                 else
-                    m_log.InfoFormat("[SERVER]: Loading {0}", friendlyName);
+                    server = MainServer.Instance;
+
+                m_log.InfoFormat("[SERVER]: Loading {0} on port {1}", friendlyName, server.Port);
 
                 IServiceConnector connector = null;
 
-                Object[] modargs = new Object[] { m_Server.Config, server,
-                    configName };
-                connector = ServerUtils.LoadPlugin<IServiceConnector>(conn,
-                        modargs);
+                Object[] modargs = new Object[] { m_Server.Config, server, configName };
+                connector = ServerUtils.LoadPlugin<IServiceConnector>(conn, modargs);
+
                 if (connector == null)
                 {
                     modargs = new Object[] { m_Server.Config, server };
-                    connector =
-                            ServerUtils.LoadPlugin<IServiceConnector>(conn,
-                            modargs);
+                    connector = ServerUtils.LoadPlugin<IServiceConnector>(conn, modargs);
                 }
 
                 if (connector != null)

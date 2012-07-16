@@ -26,7 +26,9 @@
  */
 
 using System;
+using System.IO;
 using System.Reflection;
+using System.Text;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -44,7 +46,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestDuplicateObject()
         {
             TestHelpers.InMethod();
-            Scene scene = SceneHelpers.SetupScene();
+//            TestHelpers.EnableLogging();
+
+            Scene scene = new SceneHelpers().SetupScene();
 
             UUID ownerId = new UUID("00000000-0000-0000-0000-000000000010");
             string part1Name = "part1";
@@ -82,6 +86,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(dupePart1.PhysActor, Is.Not.Null);
             Assert.That(dupePart2.PhysActor, Is.Not.Null);
             */
+
+//            TestHelpers.DisableLogging();
         }
     }
 }

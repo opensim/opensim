@@ -162,7 +162,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }            
         }
 
-        protected void InitModule(IConfigSource config)
+        protected virtual void InitModule(IConfigSource config)
         {
             IConfig friendsConfig = config.Configs["Friends"];
             if (friendsConfig != null)
@@ -449,29 +449,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         /// </summary>
         public IClientAPI LocateClientObject(UUID agentID)
         {
-            Scene scene = GetClientScene(agentID);
-            if (scene != null)
-            {
-                ScenePresence presence = scene.GetScenePresence(agentID);
-                if (presence != null)
-                    return presence.ControllingClient;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Find the scene for an agent
-        /// </summary>
-        private Scene GetClientScene(UUID agentId)
-        {
             lock (m_Scenes)
             {
                 foreach (Scene scene in m_Scenes)
                 {
-                    ScenePresence presence = scene.GetScenePresence(agentId);
+                    ScenePresence presence = scene.GetScenePresence(agentID);
                     if (presence != null && !presence.IsChildAgent)
-                        return scene;
+                        return presence.ControllingClient;
                 }
             }
 
@@ -498,7 +482,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 Util.FireAndForget(
                     delegate
                     {
-                        m_log.DebugFormat("[FRIENDS MODULE]: Notifying {0} friends", friendList.Count);
+                        m_log.DebugFormat(
+                            "[FRIENDS MODULE]: Notifying {0} friends of {1} of online status {2}",
+                            friendList.Count, agentID, online);
+
                         // Notify about this user status
                         StatusNotify(friendList, agentID, online);
                     }
@@ -515,7 +502,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 {
                     // Try local
                     if (LocalStatusNotification(userID, friendID, online))
-                        return;
+                        continue;
 
                     // The friend is not here [as root]. Let's forward.
                     PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
@@ -523,11 +510,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     {
                         PresenceInfo friendSession = null;
                         foreach (PresenceInfo pinfo in friendSessions)
+                        {
                             if (pinfo.RegionID != UUID.Zero) // let's guard against sessions-gone-bad
                             {
                                 friendSession = pinfo;
                                 break;
                             }
+                        }
 
                         if (friendSession != null)
                         {
@@ -546,7 +535,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
         }
 
-        private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
+        protected virtual void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
             if ((InstantMessageDialog)im.dialog == InstantMessageDialog.FriendshipOffered)
             { 

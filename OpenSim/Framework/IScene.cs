@@ -56,6 +56,11 @@ namespace OpenSim.Framework
 
     public interface IScene
     {
+        /// <summary>
+        /// The name of this scene.
+        /// </summary>
+        string Name { get; }
+
         RegionInfo RegionInfo { get; }
         RegionStatus RegionStatus { get; set; }
 

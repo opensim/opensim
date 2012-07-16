@@ -1134,3 +1134,17 @@ ALTER TABLE landaccesslist ADD Expires integer NOT NULL  DEFAULT 0;
 
 COMMIT
 
+:VERSION 37       #---------------- Environment Settings
+
+BEGIN TRANSACTION
+
+CREATE TABLE [dbo].[regionenvironment](
+	[region_id] [uniqueidentifier] NOT NULL,
+	[llsd_settings] [varchar](max) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+ PRIMARY KEY CLUSTERED
+(
+	[region_id] ASC
+)WITH (PAD_INDEX  = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+
+COMMIT

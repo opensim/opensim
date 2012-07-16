@@ -158,7 +158,9 @@ namespace OpenSim.Region.ClientStack.Linden
             try
             {
                 // the root of all evil
-                m_HostCapsObj.RegisterHandler("SEED", new RestStreamHandler("POST", capsBase + m_requestPath, SeedCapRequest));
+                m_HostCapsObj.RegisterHandler(
+                    "SEED", new RestStreamHandler("POST", capsBase + m_requestPath, SeedCapRequest, "SEED", null));
+
                 m_log.DebugFormat(
                     "[CAPS]: Registered seed capability {0} for {1}", capsBase + m_requestPath, m_HostCapsObj.AgentID);
 
@@ -166,7 +168,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 //    new LLSDStreamhandler<OSDMapRequest, OSDMapLayerResponse>("POST",
                 //                                                                capsBase + m_mapLayerPath,
                 //                                                                GetMapLayer);
-                IRequestHandler req = new RestStreamHandler("POST", capsBase + m_notecardTaskUpdatePath, ScriptTaskInventory);
+                IRequestHandler req
+                    = new RestStreamHandler(
+                        "POST", capsBase + m_notecardTaskUpdatePath, ScriptTaskInventory, "UpdateScript", null);
+
                 m_HostCapsObj.RegisterHandler("UpdateScriptTaskInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptTask", req);
             }
@@ -181,14 +186,22 @@ namespace OpenSim.Region.ClientStack.Linden
             try
             {
                 // I don't think this one works...
-                m_HostCapsObj.RegisterHandler("NewFileAgentInventory", new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST",
-                                                                                           capsBase + m_newInventory,
-                                                                                           NewAgentInventoryRequest));
-                IRequestHandler req = new RestStreamHandler("POST", capsBase + m_notecardUpdatePath, NoteCardAgentInventory);
+                m_HostCapsObj.RegisterHandler(
+                    "NewFileAgentInventory",
+                    new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>(
+                        "POST",
+                        capsBase + m_newInventory,
+                        NewAgentInventoryRequest,
+                        "NewFileAgentInventory",
+                        null));
+
+                IRequestHandler req
+                    = new RestStreamHandler(
+                        "POST", capsBase + m_notecardUpdatePath, NoteCardAgentInventory, "Update*", null);
+
                 m_HostCapsObj.RegisterHandler("UpdateNotecardAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgent", req);
-                m_HostCapsObj.RegisterHandler("CopyInventoryFromNotecard", new RestStreamHandler("POST", capsBase + m_copyFromNotecardPath, CopyInventoryFromNotecard));
                 IRequestHandler getObjectPhysicsDataHandler = new RestStreamHandler("POST", capsBase + m_getObjectPhysicsDataPath, GetObjectPhysicsData);
                 m_HostCapsObj.RegisterHandler("GetObjectPhysicsData", getObjectPhysicsDataHandler);
                 IRequestHandler getObjectCostHandler = new RestStreamHandler("POST", capsBase + m_getObjectCostPath, GetObjectCost);
@@ -197,6 +210,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterHandler("ResourceCostSelected", ResourceCostSelectedHandler);
            
 
+
+                m_HostCapsObj.RegisterHandler(
+                    "CopyInventoryFromNotecard",
+                    new RestStreamHandler(
+                        "POST", capsBase + m_copyFromNotecardPath, CopyInventoryFromNotecard, "CopyInventoryFromNotecard", null));
+             
                 // As of RC 1.22.9 of the Linden client this is
                 // supported
 
@@ -245,7 +264,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (!m_Scene.CheckClient(m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint))
             {
-                m_log.DebugFormat("[CAPS]: Unauthorized CAPS client");
+                m_log.DebugFormat(
+                    "[CAPS]: Unauthorized CAPS client {0} from {1}",
+                    m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint);
+
                 return string.Empty;
             }
 
@@ -296,7 +318,9 @@ namespace OpenSim.Region.ClientStack.Linden
                         m_dumpAssetsToFile);
                 uploader.OnUpLoad += TaskScriptUpdated;
 
-                m_HostCapsObj.HttpListener.AddStreamHandler(new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
+                m_HostCapsObj.HttpListener.AddStreamHandler(
+                    new BinaryStreamHandler(
+                        "POST", capsBase + uploaderPath, uploader.uploaderCaps, "TaskInventoryScriptUpdater", null));
 
                 string protocol = "http://";
 
@@ -423,8 +447,14 @@ namespace OpenSim.Region.ClientStack.Linden
             AssetUploader uploader =
                 new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
                                   llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile);
+
             m_HostCapsObj.HttpListener.AddStreamHandler(
-                new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
+                new BinaryStreamHandler(
+                    "POST",
+                    capsBase + uploaderPath,
+                    uploader.uploaderCaps,
+                    "NewAgentInventoryRequest",
+                    m_HostCapsObj.AgentID.ToString()));
 
             string protocol = "http://";
 
@@ -740,7 +770,8 @@ namespace OpenSim.Region.ClientStack.Linden
             uploader.OnUpLoad += ItemUpdated;
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
-                new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
+                new BinaryStreamHandler(
+                    "POST", capsBase + uploaderPath, uploader.uploaderCaps, "NoteCardAgentInventory", null));
 
             string protocol = "http://";
 

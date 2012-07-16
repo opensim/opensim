@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         {
             m_pcm = new PrimCountModule();
             LandManagementModule lmm = new LandManagementModule();
-            m_scene = SceneHelpers.SetupScene();            
+            m_scene = new SceneHelpers().SetupScene();            
             SceneHelpers.SetupSceneModules(m_scene, lmm, m_pcm);             
                         
             int xParcelDivider = (int)Constants.RegionSize - 1;

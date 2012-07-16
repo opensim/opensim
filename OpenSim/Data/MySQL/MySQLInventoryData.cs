@@ -467,43 +467,43 @@ namespace OpenSim.Data.MySQL
                 {
                     dbcon.Open();
 
-                    MySqlCommand result = new MySqlCommand(sql, dbcon);
-                    result.Parameters.AddWithValue("?inventoryID", item.ID.ToString());
-                    result.Parameters.AddWithValue("?assetID", item.AssetID.ToString());
-                    result.Parameters.AddWithValue("?assetType", item.AssetType.ToString());
-                    result.Parameters.AddWithValue("?parentFolderID", item.Folder.ToString());
-                    result.Parameters.AddWithValue("?avatarID", item.Owner.ToString());
-                    result.Parameters.AddWithValue("?inventoryName", itemName);
-                    result.Parameters.AddWithValue("?inventoryDescription", itemDesc);
-                    result.Parameters.AddWithValue("?inventoryNextPermissions", item.NextPermissions.ToString());
-                    result.Parameters.AddWithValue("?inventoryCurrentPermissions",
-                                                   item.CurrentPermissions.ToString());
-                    result.Parameters.AddWithValue("?invType", item.InvType);
-                    result.Parameters.AddWithValue("?creatorID", item.CreatorId);
-                    result.Parameters.AddWithValue("?inventoryBasePermissions", item.BasePermissions);
-                    result.Parameters.AddWithValue("?inventoryEveryOnePermissions", item.EveryOnePermissions);
-                    result.Parameters.AddWithValue("?inventoryGroupPermissions", item.GroupPermissions);
-                    result.Parameters.AddWithValue("?salePrice", item.SalePrice);
-                    result.Parameters.AddWithValue("?saleType", unchecked((sbyte)item.SaleType));
-                    result.Parameters.AddWithValue("?creationDate", item.CreationDate);
-                    result.Parameters.AddWithValue("?groupID", item.GroupID);
-                    result.Parameters.AddWithValue("?groupOwned", item.GroupOwned);
-                    result.Parameters.AddWithValue("?flags", item.Flags);
-
-                    lock (m_dbLock)
+                    using (MySqlCommand result = new MySqlCommand(sql, dbcon))
                     {
-                        result.ExecuteNonQuery();
+                        result.Parameters.AddWithValue("?inventoryID", item.ID.ToString());
+                        result.Parameters.AddWithValue("?assetID", item.AssetID.ToString());
+                        result.Parameters.AddWithValue("?assetType", item.AssetType.ToString());
+                        result.Parameters.AddWithValue("?parentFolderID", item.Folder.ToString());
+                        result.Parameters.AddWithValue("?avatarID", item.Owner.ToString());
+                        result.Parameters.AddWithValue("?inventoryName", itemName);
+                        result.Parameters.AddWithValue("?inventoryDescription", itemDesc);
+                        result.Parameters.AddWithValue("?inventoryNextPermissions", item.NextPermissions.ToString());
+                        result.Parameters.AddWithValue("?inventoryCurrentPermissions",
+                                                       item.CurrentPermissions.ToString());
+                        result.Parameters.AddWithValue("?invType", item.InvType);
+                        result.Parameters.AddWithValue("?creatorID", item.CreatorId);
+                        result.Parameters.AddWithValue("?inventoryBasePermissions", item.BasePermissions);
+                        result.Parameters.AddWithValue("?inventoryEveryOnePermissions", item.EveryOnePermissions);
+                        result.Parameters.AddWithValue("?inventoryGroupPermissions", item.GroupPermissions);
+                        result.Parameters.AddWithValue("?salePrice", item.SalePrice);
+                        result.Parameters.AddWithValue("?saleType", unchecked((sbyte)item.SaleType));
+                        result.Parameters.AddWithValue("?creationDate", item.CreationDate);
+                        result.Parameters.AddWithValue("?groupID", item.GroupID);
+                        result.Parameters.AddWithValue("?groupOwned", item.GroupOwned);
+                        result.Parameters.AddWithValue("?flags", item.Flags);
+    
+                        lock (m_dbLock)
+                            result.ExecuteNonQuery();
+    
+                        result.Dispose();
                     }
 
-                    result.Dispose();
-
-                    result = new MySqlCommand("update inventoryfolders set version=version+1 where folderID = ?folderID", dbcon);
-                    result.Parameters.AddWithValue("?folderID", item.Folder.ToString());
-                    lock (m_dbLock)
+                    using (MySqlCommand result = new MySqlCommand("update inventoryfolders set version=version+1 where folderID = ?folderID", dbcon))
                     {
-                        result.ExecuteNonQuery();
+                        result.Parameters.AddWithValue("?folderID", item.Folder.ToString());
+
+                        lock (m_dbLock)
+                            result.ExecuteNonQuery();
                     }
-                    result.Dispose();
                 }
             }
             catch (MySqlException e)
@@ -533,12 +533,12 @@ namespace OpenSim.Data.MySQL
                 {
                     dbcon.Open();
 
-                    MySqlCommand cmd = new MySqlCommand("DELETE FROM inventoryitems WHERE inventoryID=?uuid", dbcon);
-                    cmd.Parameters.AddWithValue("?uuid", itemID.ToString());
-
-                    lock (m_dbLock)
+                    using (MySqlCommand cmd = new MySqlCommand("DELETE FROM inventoryitems WHERE inventoryID=?uuid", dbcon))
                     {
-                        cmd.ExecuteNonQuery();
+                        cmd.Parameters.AddWithValue("?uuid", itemID.ToString());
+
+                        lock (m_dbLock)
+                            cmd.ExecuteNonQuery();
                     }
                 }
             }
@@ -579,24 +579,26 @@ namespace OpenSim.Data.MySQL
             {
                 dbcon.Open();
 
-                MySqlCommand cmd = new MySqlCommand(sql, dbcon);
-                cmd.Parameters.AddWithValue("?folderID", folder.ID.ToString());
-                cmd.Parameters.AddWithValue("?agentID", folder.Owner.ToString());
-                cmd.Parameters.AddWithValue("?parentFolderID", folder.ParentID.ToString());
-                cmd.Parameters.AddWithValue("?folderName", folderName);
-                cmd.Parameters.AddWithValue("?type", folder.Type);
-                cmd.Parameters.AddWithValue("?version", folder.Version);
+                using (MySqlCommand cmd = new MySqlCommand(sql, dbcon))
+                {
+                    cmd.Parameters.AddWithValue("?folderID", folder.ID.ToString());
+                    cmd.Parameters.AddWithValue("?agentID", folder.Owner.ToString());
+                    cmd.Parameters.AddWithValue("?parentFolderID", folder.ParentID.ToString());
+                    cmd.Parameters.AddWithValue("?folderName", folderName);
+                    cmd.Parameters.AddWithValue("?type", folder.Type);
+                    cmd.Parameters.AddWithValue("?version", folder.Version);
 
-                try
-                {
-                    lock (m_dbLock)
+                    try
                     {
-                        cmd.ExecuteNonQuery();
+                        lock (m_dbLock)
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    m_log.Error(e.ToString());
+                    catch (Exception e)
+                    {
+                        m_log.Error(e.ToString());
+                    }
                 }
             }
         }
@@ -624,20 +626,22 @@ namespace OpenSim.Data.MySQL
             {
                 dbcon.Open();
 
-                MySqlCommand cmd = new MySqlCommand(sql, dbcon);
-                cmd.Parameters.AddWithValue("?folderID", folder.ID.ToString());
-                cmd.Parameters.AddWithValue("?parentFolderID", folder.ParentID.ToString());
-
-                try
+                using (MySqlCommand cmd = new MySqlCommand(sql, dbcon))
                 {
-                    lock (m_dbLock)
+                    cmd.Parameters.AddWithValue("?folderID", folder.ID.ToString());
+                    cmd.Parameters.AddWithValue("?parentFolderID", folder.ParentID.ToString());
+    
+                    try
                     {
-                        cmd.ExecuteNonQuery();
+                        lock (m_dbLock)
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    m_log.Error(e.ToString());
+                    catch (Exception e)
+                    {
+                        m_log.Error(e.ToString());
+                    }
                 }
             }
         }

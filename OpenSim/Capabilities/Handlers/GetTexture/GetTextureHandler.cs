@@ -58,8 +58,8 @@ namespace OpenSim.Capabilities.Handlers
         // TODO: Change this to a config option
         const string REDIRECT_URL = null;
 
-        public GetTextureHandler(string path, IAssetService assService) :
-                base("GET", path)
+        public GetTextureHandler(string path, IAssetService assService, string name, string description)
+            : base("GET", path, name, description)
         {
             m_assetService = assService;
         }
@@ -77,7 +77,6 @@ namespace OpenSim.Capabilities.Handlers
             {
                 m_log.Error("[GETTEXTURE]: Cannot fetch texture " + textureStr + " without an asset service");
                 httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
-                return null;
             }
 
             UUID textureID;
@@ -115,7 +114,6 @@ namespace OpenSim.Capabilities.Handlers
 //                "[GETTEXTURE]: For texture {0} sending back response {1}, data length {2}",
 //                textureID, httpResponse.StatusCode, httpResponse.ContentLength);
 
-            httpResponse.Send();
             return null;
         }
 

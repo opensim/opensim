@@ -99,6 +99,11 @@ namespace OpenSim.Framework
         public string lastname;
 
         /// <summary>
+        /// Agent's full name.
+        /// </summary>
+        public string Name { get { return string.Format("{0} {1}", firstname, lastname); } }
+
+        /// <summary>
         /// Random Unique GUID for this session.  Client gets this at login and it's
         /// only supposed to be disclosed over secure channels
         /// </summary>

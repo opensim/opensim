@@ -165,11 +165,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llBreakLink(linknum);
         }
 
-        public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
-        {
-            return m_LSL_Functions.llCastRay(start, end, options);
-        }
-
         public LSL_Integer llCeil(double f)
         {
             return m_LSL_Functions.llCeil(f);
@@ -374,6 +369,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_Float llFrand(double mag)
         {
             return m_LSL_Functions.llFrand(mag);
+        }
+
+        public LSL_Key llGenerateKey()
+        {
+            return m_LSL_Functions.llGenerateKey();
         }
 
         public LSL_Vector llGetAccel()
@@ -591,6 +591,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetMassMKS();
         }
 
+        public LSL_Integer llGetMemoryLimit()
+        {
+            return m_LSL_Functions.llGetMemoryLimit();
+        }
+
         public void llGetNextEmail(string address, string subject)
         {
             m_LSL_Functions.llGetNextEmail(address, subject);
@@ -781,6 +786,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetSimulatorHostname();
         }
 
+        public LSL_Integer llGetSPMaxMemory()
+        {
+            return m_LSL_Functions.llGetSPMaxMemory();
+        }
+
         public LSL_Integer llGetStartParameter()
         {
             return m_LSL_Functions.llGetStartParameter();
@@ -954,6 +964,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_String llRequestDisplayName(string id)
         {
             return m_LSL_Functions.llRequestDisplayName(id);
+        }
+
+        public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
+        {
+            return m_LSL_Functions.llCastRay(start, end, options);
         }
 
         public void llLinkParticleSystem(int linknum, LSL_List rules)
@@ -1450,6 +1465,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llScriptDanger(pos);
         }
 
+        public void llScriptProfiler(LSL_Integer flags)
+        {
+            m_LSL_Functions.llScriptProfiler(flags);
+        }
+
         public LSL_Key llSendRemoteData(string channel, string dest, int idata, string sdata)
         {
             return m_LSL_Functions.llSendRemoteData(channel, dest, idata, sdata);
@@ -1563,6 +1583,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void llSetLocalRot(LSL_Rotation rot)
         {
             m_LSL_Functions.llSetLocalRot(rot);
+        }
+
+        public LSL_Integer llSetMemoryLimit(LSL_Integer limit)
+        {
+            return m_LSL_Functions.llSetMemoryLimit(limit);
         }
 
         public void llSetObjectDesc(string desc)

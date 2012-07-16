@@ -74,7 +74,7 @@ public class BSCharacter : PhysicsActor
     private float _buoyancy;
 
     private int _subscribedEventsMs = 0;
-    private int _lastCollisionTime = 0;
+    private int _nextCollisionOkTime = 0;
 
     private Vector3 _PIDTarget;
     private bool _usePID;
@@ -360,17 +360,22 @@ public class BSCharacter : PhysicsActor
         }
         //m_lastUpdateSent = false;
     }
+
     public override void AddAngularForce(Vector3 force, bool pushforce) { 
     }
     public override void SetMomentum(Vector3 momentum) { 
     }
+
+    // Turn on collision events at a rate no faster than one every the given milliseconds
     public override void SubscribeEvents(int ms) {
         _subscribedEventsMs = ms;
-        _lastCollisionTime = Util.EnvironmentTickCount() - _subscribedEventsMs; // make first collision happen
+        _nextCollisionOkTime = Util.EnvironmentTickCount() - _subscribedEventsMs; // make first collision happen
     }
+    // Stop collision events
     public override void UnSubscribeEvents() { 
         _subscribedEventsMs = 0;
     }
+    // Return 'true' if someone has subscribed to events
     public override bool SubscribedEvents() {
         return (_subscribedEventsMs > 0);
     }
@@ -386,47 +391,57 @@ public class BSCharacter : PhysicsActor
         _mass = _density * _avatarVolume;
     }
 
+    // Set to 'true' if the individual changed items should be checked
+    //   (someday RequestPhysicsTerseUpdate() will take a bitmap of changed properties)
+    const bool SHOULD_CHECK_FOR_INDIVIDUAL_CHANGES = false;
+
     // The physics engine says that properties have updated. Update same and inform
     // the world that things have changed.
     public void UpdateProperties(EntityProperties entprop)
     {
         bool changed = false;
-        // we assign to the local variables so the normal set action does not happen
-        if (_position != entprop.Position)
-        {
+        if (SHOULD_CHECK_FOR_INDIVIDUAL_CHANGES) {
+            // we assign to the local variables so the normal set action does not happen
+            if (_position != entprop.Position) {
+                _position = entprop.Position;
+                changed = true;
+            }
+            if (_orientation != entprop.Rotation) {
+                _orientation = entprop.Rotation;
+                changed = true;
+            }
+            if (_velocity != entprop.Velocity) {
+                _velocity = entprop.Velocity;
+                changed = true;
+            }
+            if (_acceleration != entprop.Acceleration) {
+                _acceleration = entprop.Acceleration;
+                changed = true;
+            }
+            if (_rotationalVelocity != entprop.RotationalVelocity) {
+                _rotationalVelocity = entprop.RotationalVelocity;
+                changed = true;
+            }
+            if (changed) {
+                // m_log.DebugFormat("{0}: UpdateProperties: id={1}, c={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
+                // Avatar movement is not done by generating this event. There is code in the heartbeat
+                //   loop that updates avatars.
+                // base.RequestPhysicsterseUpdate();
+            }
+        }
+        else {
             _position = entprop.Position;
-            changed = true;
-        }
-        if (_orientation != entprop.Rotation)
-        {
             _orientation = entprop.Rotation;
-            changed = true;
-        }
-        if (_velocity != entprop.Velocity)
-        {
             _velocity = entprop.Velocity;
-            changed = true;
-        }
-        if (_acceleration != entprop.Acceleration)
-        {
             _acceleration = entprop.Acceleration;
-            changed = true;
-        }
-        if (_rotationalVelocity != entprop.RotationalVelocity)
-        {
             _rotationalVelocity = entprop.RotationalVelocity;
-            changed = true;
-        }
-        if (changed)
-        {
-            // m_log.DebugFormat("{0}: UpdateProperties: id={1}, c={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
-            // Avatar movement is not done by generating this event. There is a system that
-            //  checks for avatar updates each heartbeat loop.
             // base.RequestPhysicsterseUpdate();
         }
     }
 
     // Called by the scene when a collision with this object is reported
+    // The collision, if it should be reported to the character, is placed in a collection
+    //   that will later be sent to the simulator when SendCollisions() is called.
     CollisionEventUpdate collisionCollection = null;
     public void Collide(uint collidingWith, ActorTypes type, Vector3 contactPoint, Vector3 contactNormal, float pentrationDepth)
     {
@@ -440,29 +455,34 @@ public class BSCharacter : PhysicsActor
         }
 
         // throttle collisions to the rate specified in the subscription
-        if (_subscribedEventsMs == 0) return;   // don't want collisions
-        int nowTime = _scene.SimulationNowTime;
-        if (nowTime < (_lastCollisionTime + _subscribedEventsMs)) return;
-        _lastCollisionTime = nowTime;
+        if (_subscribedEventsMs != 0) {
+            int nowTime = _scene.SimulationNowTime;
+            if (nowTime >= _nextCollisionOkTime) {
+                _nextCollisionOkTime = nowTime + _subscribedEventsMs;
 
-        if (collisionCollection == null)
-            collisionCollection = new CollisionEventUpdate();
-        collisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
+                if (collisionCollection == null)
+                    collisionCollection = new CollisionEventUpdate();
+                collisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
+            }
+        }
     }
 
     public void SendCollisions()
     {
-        // if (collisionCollection != null)
-        // {
-        //     base.SendCollisionUpdate(collisionCollection);
-        //     collisionCollection = null;
-        // }
+        /*
+        if (collisionCollection != null && collisionCollection.Count > 0)
+        {
+            base.SendCollisionUpdate(collisionCollection);
+            collisionCollection = null;
+        }
+         */
         // Kludge to make a collision call even if there are no collisions.
         // This causes the avatar animation to get updated.
         if (collisionCollection == null)
             collisionCollection = new CollisionEventUpdate();
         base.SendCollisionUpdate(collisionCollection);
-        collisionCollection = null;
+        collisionCollection.Clear();
+        // End kludge
     }
 
 }

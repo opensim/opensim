@@ -128,7 +128,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         /// <param name="visualParam"></param>
         public void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams)
         {
-            //            m_log.InfoFormat("[AVFACTORY]: start SetAppearance for {0}", client.AgentId);
+//            m_log.DebugFormat(
+//                "[AVFACTORY]: start SetAppearance for {0}, te {1}, visualParams {2}",
+//                sp.Name, textureEntry, visualParams);
 
             // TODO: This is probably not necessary any longer, just assume the
             // textureEntry set implies that the appearance transaction is complete
@@ -158,7 +160,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 // Process the baked texture array
                 if (textureEntry != null)
                 {
-                    m_log.InfoFormat("[AVFACTORY]: Received texture update for {0} {1}", sp.Name, sp.UUID);
+//                    m_log.DebugFormat("[AVFACTORY]: Received texture update for {0} {1}", sp.Name, sp.UUID);
 
 //                    WriteBakedTexturesReport(sp, m_log.DebugFormat);
 
@@ -208,7 +210,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             ScenePresence sp = m_scene.GetScenePresence(agentId);
             if (sp == null)
             {
-                m_log.WarnFormat("[AVFACTORY]: Agent {0} no longer in the scene", agentId);
+                // This is expected if the user has gone away.
+//                m_log.DebugFormat("[AVFACTORY]: Agent {0} no longer in the scene", agentId);
                 return false;
             }
 
@@ -248,10 +251,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 if (bakedTextureFace == null)
                 {
-                    m_log.WarnFormat(
-                        "[AV FACTORY]: No texture ID set for {0} for {1} in {2} not found when trying to save permanently",
-                        bakeType, sp.Name, m_scene.RegionInfo.RegionName);
-
+                    // This can happen legitimately, since some baked textures might not exist
+                    //m_log.WarnFormat(
+                    //    "[AV FACTORY]: No texture ID set for {0} for {1} in {2} not found when trying to save permanently",
+                    //    bakeType, sp.Name, m_scene.RegionInfo.RegionName);
                     continue;
                 }
 
@@ -337,7 +340,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     return false;
             }
 
-            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0} {1}", sp.Name, sp.UUID);
+//            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0} {1}", sp.Name, sp.UUID);
 
             // If we only found default textures, then the appearance is not cached
             return (defonly ? false : true);
@@ -370,11 +373,21 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (missingTexturesOnly)
                 {
                     if (m_scene.AssetService.Get(face.TextureID.ToString()) != null)
+                    {
                         continue;
+                    }
                     else
+                    {
+                        // On inter-simulator teleports, this occurs if baked textures are not being stored by the
+                        // grid asset service (which means that they are not available to the new region and so have
+                        // to be re-requested from the client).
+                        //
+                        // The only available core OpenSimulator behaviour right now
+                        // is not to store these textures, temporarily or otherwise.
                         m_log.DebugFormat(
                             "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
                             face.TextureID, idx, sp.Name);
+                    }
                 }
                 else
                 {
@@ -417,7 +430,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 //                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
 
                 int ftIndex = (int)AppearanceManager.BakeTypeToAgentTextureIndex(bakeType);
-                bakedTextures[bakeType] = faceTextures[ftIndex];
+                Primitive.TextureEntryFace texture = faceTextures[ftIndex];    // this will be null if there's no such baked texture
+                bakedTextures[bakeType] = texture;
             }
 
             return bakedTextures;
@@ -482,7 +496,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             ScenePresence sp = m_scene.GetScenePresence(agentid);
             if (sp == null)
             {
-                m_log.WarnFormat("[AVFACTORY]: Agent {0} no longer in the scene", agentid);
+                // This is expected if the user has gone away.
+//                m_log.DebugFormat("[AVFACTORY]: Agent {0} no longer in the scene", agentid);
                 return;
             }
 

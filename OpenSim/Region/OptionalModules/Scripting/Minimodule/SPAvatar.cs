@@ -68,7 +68,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public Vector3 WorldPosition
         {
             get { return GetSP().AbsolutePosition; }
-            set { GetSP().TeleportWithMomentum(value); }
+            set { GetSP().Teleport(value); }
         }
         
         public bool IsChildAgent

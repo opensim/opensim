@@ -46,8 +46,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
-
         /// <summary>
         /// Store for asset data we received before we get the metadata
         /// </summary>

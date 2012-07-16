@@ -52,10 +52,10 @@ namespace OpenSim.Framework
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Thread LockedByThread;
-        private string WriterStack;
+//        private string WriterStack;
 
-        private Dictionary<Thread, string> ReadLockers =
-                new Dictionary<Thread, string>();
+//        private Dictionary<Thread, string> ReadLockers =
+//                new Dictionary<Thread, string>();
 
         /// <value>
         /// An advanced lock for inventory data
@@ -98,14 +98,25 @@ namespace OpenSim.Framework
                     m_log.Error("[TaskInventoryDictionary] Recursive read lock requested. This should not happen and means something needs to be fixed. For now though, it's safe to continue.");
                     try
                     {
-                        StackTrace stackTrace = new StackTrace();           // get call stack
-                        StackFrame[] stackFrames = stackTrace.GetFrames();  // get method calls (frames)
+                        // That call stack is useful for end users only. RealProgrammers need a full dump. Commented.
+                        // StackTrace stackTrace = new StackTrace();           // get call stack
+                        // StackFrame[] stackFrames = stackTrace.GetFrames();  // get method calls (frames)
+                        //
+                        // // write call stack method names
+                        // foreach (StackFrame stackFrame in stackFrames)
+                        // {
+                        //     m_log.Error("[SceneObjectGroup.m_parts]  "+(stackFrame.GetMethod().Name));   // write method name
+                        // }
 
-                        // write call stack method names
-                        foreach (StackFrame stackFrame in stackFrames)
-                        {
-                            m_log.Error("[SceneObjectGroup.m_parts]  "+(stackFrame.GetMethod().Name));   // write method name
-                        }
+                        // The below is far more useful
+//                        System.Console.WriteLine("------------------------------------------");
+//                        System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
+//                        System.Console.WriteLine("------------------------------------------");
+//                        foreach (KeyValuePair<Thread, string> kvp in ReadLockers)
+//                        {
+//                            System.Console.WriteLine("Locker name {0} call stack:\n" + kvp.Value, kvp.Key.Name);
+//                            System.Console.WriteLine("------------------------------------------");
+//                        }
                     }
                     catch
                     {}
@@ -114,6 +125,16 @@ namespace OpenSim.Framework
                 if (m_itemLock.RecursiveWriteCount > 0)
                 {
                     m_log.Error("[TaskInventoryDictionary] Recursive write lock requested. This should not happen and means something needs to be fixed.");
+//                    try
+//                    {
+//                        System.Console.WriteLine("------------------------------------------");
+//                        System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
+//                        System.Console.WriteLine("------------------------------------------");
+//                        System.Console.WriteLine("Locker's call stack:\n" + WriterStack);
+//                        System.Console.WriteLine("------------------------------------------");
+//                    }
+//                    catch
+//                    {}
                     m_itemLock.ExitWriteLock();
                 }
                 
@@ -123,15 +144,16 @@ namespace OpenSim.Framework
                     if (m_itemLock.IsWriteLockHeld)
                     {
                         m_itemLock = new System.Threading.ReaderWriterLockSlim();
-                        System.Console.WriteLine("------------------------------------------");
-                        System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
-                        System.Console.WriteLine("------------------------------------------");
-                        System.Console.WriteLine("Locker's call stack:\n" + WriterStack);
-                        System.Console.WriteLine("------------------------------------------");
-                        LockedByThread = null;
-                        ReadLockers.Clear();
+//                        System.Console.WriteLine("------------------------------------------");
+//                        System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
+//                        System.Console.WriteLine("------------------------------------------");
+//                        System.Console.WriteLine("Locker's call stack:\n" + WriterStack);
+//                        System.Console.WriteLine("------------------------------------------");
+//                        LockedByThread = null;
+//                        ReadLockers.Clear();
                     }
                 }
+//                ReadLockers[Thread.CurrentThread] = Environment.StackTrace;
             }
             else
             {
@@ -139,6 +161,8 @@ namespace OpenSim.Framework
                 {
                     m_itemLock.ExitReadLock();
                 }
+//                if (m_itemLock.RecursiveReadCount == 0)
+//                    ReadLockers.Remove(Thread.CurrentThread);
             }
         }
 
@@ -158,6 +182,7 @@ namespace OpenSim.Framework
                 if (m_itemLock.RecursiveWriteCount > 0)
                 {
                     m_log.Error("[TaskInventoryDictionary] Recursive write lock requested. This should not happen and means something needs to be fixed.");
+
                     m_itemLock.ExitWriteLock();
                 }
                 while (!m_itemLock.TryEnterWriteLock(60000))
@@ -165,30 +190,30 @@ namespace OpenSim.Framework
                     if (m_itemLock.IsWriteLockHeld)
                     {
                         m_log.Error("Thread lock detected while trying to aquire WRITE lock in TaskInventoryDictionary. Locked by thread " + LockedByThread.Name + ". I'm going to try to solve the thread lock automatically to preserve region stability, but this needs to be fixed.");
-                        System.Console.WriteLine("------------------------------------------");
-                        System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
-                        System.Console.WriteLine("------------------------------------------");
-                        System.Console.WriteLine("Locker's call stack:\n" + WriterStack);
-                        System.Console.WriteLine("------------------------------------------");
+//                        System.Console.WriteLine("------------------------------------------");
+//                        System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
+//                        System.Console.WriteLine("------------------------------------------");
+//                        System.Console.WriteLine("Locker's call stack:\n" + WriterStack);
+//                        System.Console.WriteLine("------------------------------------------");
                     }
                     else
                     {
                         m_log.Error("Thread lock detected while trying to aquire WRITE lock in TaskInventoryDictionary. Locked by a reader. I'm going to try to solve the thread lock automatically to preserve region stability, but this needs to be fixed.");
-                        System.Console.WriteLine("------------------------------------------");
-                        System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
-                        System.Console.WriteLine("------------------------------------------");
-                        foreach (KeyValuePair<Thread, string> kvp in ReadLockers)
-                        {
-                            System.Console.WriteLine("Locker name {0} call stack:\n" + kvp.Value, kvp.Key.Name);
-                            System.Console.WriteLine("------------------------------------------");
-                        }
+//                        System.Console.WriteLine("------------------------------------------");
+//                        System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
+//                        System.Console.WriteLine("------------------------------------------");
+//                        foreach (KeyValuePair<Thread, string> kvp in ReadLockers)
+//                        {
+//                            System.Console.WriteLine("Locker name {0} call stack:\n" + kvp.Value, kvp.Key.Name);
+//                            System.Console.WriteLine("------------------------------------------");
+//                        }
                     }
                     m_itemLock = new System.Threading.ReaderWriterLockSlim();
-                    ReadLockers.Clear();
+//                    ReadLockers.Clear();
                 }
 
                 LockedByThread = Thread.CurrentThread;
-                WriterStack = Environment.StackTrace;
+//                WriterStack = Environment.StackTrace;
             }
             else
             {

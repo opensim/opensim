@@ -26,16 +26,17 @@
  */
 
 using System;
-using System.IO;
-using System.Diagnostics; //for [DebuggerNonUserCode]
-using System.Runtime.Remoting;
-using System.Runtime.Remoting.Lifetime;
-using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
-using System.Security.Policy;
-using System.Reflection;
 using System.Globalization;
+using System.IO;
+using System.Diagnostics; //for [DebuggerNonUserCode]
+using System.Reflection;
+using System.Runtime.Remoting;
+using System.Runtime.Remoting.Lifetime;
+using System.Security.Policy;
+using System.Text;
+using System.Threading;
 using System.Xml;
 using OpenMetaverse;
 using log4net;
@@ -120,6 +121,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         }
 
         public bool Running { get; set; }
+
+        public bool Run { get; set; }
 
         public bool Suspended
         {
@@ -216,6 +219,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_postOnRez = postOnRez;
             m_AttachedAvatar = part.ParentGroup.AttachedAvatar;
             m_RegionID = part.ParentGroup.Scene.RegionInfo.RegionID;
+            Run = true;
 
             if (part != null)
             {
@@ -232,7 +236,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             foreach (string api in am.GetApis())
             {
                 m_Apis[api] = am.CreateApi(api);
-                m_Apis[api].Initialize(engine, part, LocalID, itemID);
+                m_Apis[api].Initialize(engine, part, ScriptTask);
             }
     
             try
@@ -295,13 +299,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         using (FileStream fs = File.Open(savedState,
                                                          FileMode.Open, FileAccess.Read, FileShare.None))
                         {
-                            System.Text.UTF8Encoding enc =
-                                new System.Text.UTF8Encoding();
-
                             Byte[] data = new Byte[size];
                             fs.Read(data, 0, size);
 
-                            xml = enc.GetString(data);
+                            xml = Encoding.UTF8.GetString(data);
 
                             ScriptSerializer.Deserialize(xml, this);
 
@@ -330,16 +331,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     }
                     else
                     {
-                        m_log.ErrorFormat(
-                            "[SCRIPT INSTANCE]: Unable to load script state from assembly {0}: Memory limit exceeded",
-                            assembly);
+                        m_log.WarnFormat(
+                            "[SCRIPT INSTANCE]: Unable to load script state file {0} for script {1} {2} in {3} {4} (assembly {5}).  Memory limit exceeded",
+                            savedState, ScriptName, ItemID, PrimName, ObjectID, assembly);
                     }
                 }
                 catch (Exception e)
                 {
                      m_log.ErrorFormat(
-                         "[SCRIPT INSTANCE]: Unable to load script state from assembly {0}.  XML is {1}.  Exception {2}{3}",
-                         assembly, xml, e.Message, e.StackTrace);
+                         "[SCRIPT INSTANCE]: Unable to load script state file {0} for script {1} {2} in {3} {4} (assembly {5}).  XML is {6}.  Exception {7}{8}",
+                         savedState, ScriptName, ItemID, PrimName, ObjectID, assembly, xml, e.Message, e.StackTrace);
                 }
             }
 //            else
@@ -354,10 +355,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void Init()
         {
-            if (!m_startOnInit) return;
+            if (!m_startOnInit)
+                return;
 
             if (m_startedFromSavedState) 
             {
+                if (!Run)
+                    return;
+
                 Start();
                 if (m_postOnRez) 
                 {
@@ -390,6 +395,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
             else 
             {
+                if (!Run)
+                    return;
+
                 Start();
                 PostEvent(new EventParams("state_entry",
                                           new Object[0], new DetectParams[0]));
@@ -946,8 +954,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 try
                 {
                     FileStream fs = File.Create(Path.Combine(Path.GetDirectoryName(assembly), ItemID.ToString() + ".state"));
-                    System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
-                    Byte[] buf = enc.GetBytes(xml);
+                    Byte[] buf = Util.UTF8NoBomEncoding.GetBytes(xml);
                     fs.Write(buf, 0, buf.Length);
                     fs.Close();
                 }
@@ -966,7 +973,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public IScriptApi GetApi(string name)
         {
             if (m_Apis.ContainsKey(name))
+            {
+//                m_log.DebugFormat("[SCRIPT INSTANCE]: Found api {0} in {1}@{2}", name, ScriptName, PrimName);
+
                 return m_Apis[name];
+            }
+
+//            m_log.DebugFormat("[SCRIPT INSTANCE]: Did not find api {0} in {1}@{2}", name, ScriptName, PrimName);
+
             return null;
         }
         

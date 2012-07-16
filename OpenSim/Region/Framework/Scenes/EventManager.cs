@@ -53,6 +53,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event ClientMovement OnClientMovement;
 
+        public delegate void OnTerrainTaintedDelegate();
+
+        public event OnTerrainTaintedDelegate OnTerrainTainted;
+
         public delegate void OnTerrainTickDelegate();
 
         public delegate void OnTerrainUpdateDelegate();
@@ -483,6 +487,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void SceneObjectPartUpdated(SceneObjectPart sop);
         public event SceneObjectPartUpdated OnSceneObjectPartUpdated;
+
+        public delegate void ScenePresenceUpdated(ScenePresence sp);
+        public event ScenePresenceUpdated OnScenePresenceUpdated;
 
         public delegate void RegionUp(GridRegion region);
         public event RegionUp OnRegionUp;
@@ -929,6 +936,27 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerTerrainTick failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerTerrainTainted()
+        {
+            OnTerrainTaintedDelegate handlerTerrainTainted = OnTerrainTainted;
+            if (handlerTerrainTainted != null)
+            {
+                foreach (OnTerrainTaintedDelegate d in handlerTerrainTainted.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerTerrainTainted failed - continuing.  {0} {1}",
                             e.Message, e.StackTrace);
                     }
                 }
@@ -2361,6 +2389,27 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerSceneObjectPartUpdated failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerScenePresenceUpdated(ScenePresence sp)
+        {
+            ScenePresenceUpdated handler = OnScenePresenceUpdated;
+            if (handler != null)
+            {
+                foreach (ScenePresenceUpdated d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(sp);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerScenePresenceUpdated failed - continuing.  {0} {1}",
                             e.Message, e.StackTrace);
                     }
                 }

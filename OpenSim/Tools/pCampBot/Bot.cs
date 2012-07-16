@@ -43,6 +43,14 @@ using Timer = System.Timers.Timer;
 
 namespace pCampBot
 {
+    public enum ConnectionState
+    {
+        Disconnected,
+        Connecting,
+        Connected,
+        Disconnecting
+    }
+
     public class Bot
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -86,7 +94,7 @@ namespace pCampBot
         /// <summary>
         /// Is this bot connected to the grid?
         /// </summary>
-        public bool IsConnected { get; private set; }
+        public ConnectionState ConnectionState { get; private set; }
 
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
@@ -130,6 +138,8 @@ namespace pCampBot
             BotManager bm, List<IBehaviour> behaviours,
             string firstName, string lastName, string password, string loginUri)
         {
+            ConnectionState = ConnectionState.Disconnected;
+
             behaviours.ForEach(b => b.Initialize(this));
             
             Client = new GridClient();
@@ -157,10 +167,10 @@ namespace pCampBot
                     Behaviours.ForEach(
                         b =>
                         {
+                            Thread.Sleep(Random.Next(3000, 10000));
+                        
                             // m_log.DebugFormat("[pCAMPBOT]: For {0} performing action {1}", Name, b.GetType());
                             b.Action();
-
-                            Thread.Sleep(Random.Next(1000, 10000));
                         }
                     );
         }
@@ -178,6 +188,8 @@ namespace pCampBot
         /// </summary>
         public void shutdown()
         {
+            ConnectionState = ConnectionState.Disconnecting;
+
             if (m_actionThread != null)
                 m_actionThread.Abort();
 
@@ -209,9 +221,11 @@ namespace pCampBot
             Client.Network.Disconnected += this.Network_OnDisconnected;
             Client.Objects.ObjectUpdate += Objects_NewPrim;
 
+            ConnectionState = ConnectionState.Connecting;
+
             if (Client.Network.Login(FirstName, LastName, Password, "pCampBot", "Your name"))
             {
-                IsConnected = true;
+                ConnectionState = ConnectionState.Connected;
 
                 Thread.Sleep(Random.Next(1000, 10000));
                 m_actionThread = new Thread(Action);
@@ -241,6 +255,8 @@ namespace pCampBot
             }
             else
             {
+                ConnectionState = ConnectionState.Disconnected;
+
                 m_log.ErrorFormat(
                     "{0} {1} cannot login: {2}", FirstName, LastName, Client.Network.LoginMessage);
 
@@ -439,6 +455,8 @@ namespace pCampBot
 
         public void Network_OnDisconnected(object sender, DisconnectedEventArgs args)
         {
+            ConnectionState = ConnectionState.Disconnected;
+
             m_log.DebugFormat(
                 "[BOT]: Bot {0} disconnected reason {1}, message {2}", Name, args.Reason, args.Message);
 
@@ -456,13 +474,15 @@ namespace pCampBot
                && OnDisconnected != null)
 //            if (OnDisconnected != null)
             {
-                IsConnected = false;
                 OnDisconnected(this, EventType.DISCONNECTED);
             }
         }
 
         public void Objects_NewPrim(object sender, PrimEventArgs args)
         {
+//            if (Name.EndsWith("4"))
+//                throw new Exception("Aaargh");
+
             Primitive prim = args.Prim;
 
             if (prim != null)

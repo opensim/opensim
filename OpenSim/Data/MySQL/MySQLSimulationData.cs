@@ -131,121 +131,121 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-                    MySqlCommand cmd = dbcon.CreateCommand();
 
-                    foreach (SceneObjectPart prim in obj.Parts)
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        cmd.Parameters.Clear();
+                        foreach (SceneObjectPart prim in obj.Parts)
+                        {
+                            cmd.Parameters.Clear();
 
-                        cmd.CommandText = "replace into prims (" +
-                                "UUID, CreationDate, " +
-                                "Name, Text, Description, " +
-                                "SitName, TouchName, ObjectFlags, " +
-                                "OwnerMask, NextOwnerMask, GroupMask, " +
-                                "EveryoneMask, BaseMask, PositionX, " +
-                                "PositionY, PositionZ, GroupPositionX, " +
-                                "GroupPositionY, GroupPositionZ, VelocityX, " +
-                                "VelocityY, VelocityZ, AngularVelocityX, " +
-                                "AngularVelocityY, AngularVelocityZ, " +
-                                "AccelerationX, AccelerationY, " +
-                                "AccelerationZ, RotationX, " +
-                                "RotationY, RotationZ, " +
-                                "RotationW, SitTargetOffsetX, " +
-                                "SitTargetOffsetY, SitTargetOffsetZ, " +
-                                "SitTargetOrientW, SitTargetOrientX, " +
-                                "SitTargetOrientY, SitTargetOrientZ, " +
-                                "RegionUUID, CreatorID, " +
-                                "OwnerID, GroupID, " +
-                                "LastOwnerID, SceneGroupID, " +
-                                "PayPrice, PayButton1, " +
-                                "PayButton2, PayButton3, " +
-                                "PayButton4, LoopedSound, " +
-                                "LoopedSoundGain, TextureAnimation, " +
-                                "OmegaX, OmegaY, OmegaZ, " +
-                                "CameraEyeOffsetX, CameraEyeOffsetY, " +
-                                "CameraEyeOffsetZ, CameraAtOffsetX, " +
-                                "CameraAtOffsetY, CameraAtOffsetZ, " +
-                                "ForceMouselook, ScriptAccessPin, " +
-                                "AllowedDrop, DieAtEdge, " +
-                                "SalePrice, SaleType, " +
-                                "ColorR, ColorG, ColorB, ColorA, " +
-                                "ParticleSystem, ClickAction, Material, " +
-                                "CollisionSound, CollisionSoundVolume, " +
-                                "PassTouches, " +
-                                "PassCollisions, " +
-                                "LinkNumber, MediaURL, KeyframeMotion, " +
-                                "PhysicsShapeType, Density, GravityModifier, " +
-                                "Friction, Restitution, Vehicle " +
-                                ") values (" + "?UUID, " +
-                                "?CreationDate, ?Name, ?Text, " +
-                                "?Description, ?SitName, ?TouchName, " +
-                                "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, " +
-                                "?GroupMask, ?EveryoneMask, ?BaseMask, " +
-                                "?PositionX, ?PositionY, ?PositionZ, " +
-                                "?GroupPositionX, ?GroupPositionY, " +
-                                "?GroupPositionZ, ?VelocityX, " +
-                                "?VelocityY, ?VelocityZ, ?AngularVelocityX, " +
-                                "?AngularVelocityY, ?AngularVelocityZ, " +
-                                "?AccelerationX, ?AccelerationY, " +
-                                "?AccelerationZ, ?RotationX, " +
-                                "?RotationY, ?RotationZ, " +
-                                "?RotationW, ?SitTargetOffsetX, " +
-                                "?SitTargetOffsetY, ?SitTargetOffsetZ, " +
-                                "?SitTargetOrientW, ?SitTargetOrientX, " +
-                                "?SitTargetOrientY, ?SitTargetOrientZ, " +
-                                "?RegionUUID, ?CreatorID, ?OwnerID, " +
-                                "?GroupID, ?LastOwnerID, ?SceneGroupID, " +
-                                "?PayPrice, ?PayButton1, ?PayButton2, " +
-                                "?PayButton3, ?PayButton4, ?LoopedSound, " +
-                                "?LoopedSoundGain, ?TextureAnimation, " +
-                                "?OmegaX, ?OmegaY, ?OmegaZ, " +
-                                "?CameraEyeOffsetX, ?CameraEyeOffsetY, " +
-                                "?CameraEyeOffsetZ, ?CameraAtOffsetX, " +
-                                "?CameraAtOffsetY, ?CameraAtOffsetZ, " +
-                                "?ForceMouselook, ?ScriptAccessPin, " +
-                                "?AllowedDrop, ?DieAtEdge, ?SalePrice, " +
-                                "?SaleType, ?ColorR, ?ColorG, " +
-                                "?ColorB, ?ColorA, ?ParticleSystem, " +
-                                "?ClickAction, ?Material, ?CollisionSound, " +
-                                "?CollisionSoundVolume, ?PassTouches, ?PassCollisions, " +
-                                "?LinkNumber, ?MediaURL, ?KeyframeMotion, " +
-                                "?PhysicsShapeType, ?Density, ?GravityModifier, " +
-                                "?Friction, ?Restitution, ?Vehicle)";
+                            cmd.CommandText = "replace into prims (" +
+                                    "UUID, CreationDate, " +
+                                    "Name, Text, Description, " +
+                                    "SitName, TouchName, ObjectFlags, " +
+                                    "OwnerMask, NextOwnerMask, GroupMask, " +
+                                    "EveryoneMask, BaseMask, PositionX, " +
+                                    "PositionY, PositionZ, GroupPositionX, " +
+                                    "GroupPositionY, GroupPositionZ, VelocityX, " +
+                                    "VelocityY, VelocityZ, AngularVelocityX, " +
+                                    "AngularVelocityY, AngularVelocityZ, " +
+                                    "AccelerationX, AccelerationY, " +
+                                    "AccelerationZ, RotationX, " +
+                                    "RotationY, RotationZ, " +
+                                    "RotationW, SitTargetOffsetX, " +
+                                    "SitTargetOffsetY, SitTargetOffsetZ, " +
+                                    "SitTargetOrientW, SitTargetOrientX, " +
+                                    "SitTargetOrientY, SitTargetOrientZ, " +
+                                    "RegionUUID, CreatorID, " +
+                                    "OwnerID, GroupID, " +
+                                    "LastOwnerID, SceneGroupID, " +
+                                    "PayPrice, PayButton1, " +
+                                    "PayButton2, PayButton3, " +
+                                    "PayButton4, LoopedSound, " +
+                                    "LoopedSoundGain, TextureAnimation, " +
+                                    "OmegaX, OmegaY, OmegaZ, " +
+                                    "CameraEyeOffsetX, CameraEyeOffsetY, " +
+                                    "CameraEyeOffsetZ, CameraAtOffsetX, " +
+                                    "CameraAtOffsetY, CameraAtOffsetZ, " +
+                                    "ForceMouselook, ScriptAccessPin, " +
+                                    "AllowedDrop, DieAtEdge, " +
+                                    "SalePrice, SaleType, " +
+                                    "ColorR, ColorG, ColorB, ColorA, " +
+                                    "ParticleSystem, ClickAction, Material, " +
+                                    "CollisionSound, CollisionSoundVolume, " +
+                                    "PassTouches, " +
+                                    "PassCollisions, " +
+                                    "LinkNumber, MediaURL, KeyframeMotion, " +
+                                    "PhysicsShapeType, Density, GravityModifier, " +
+                                    "Friction, Restitution, Vehicle " +
+                                    ") values (" + "?UUID, " +
+                                    "?CreationDate, ?Name, ?Text, " +
+                                    "?Description, ?SitName, ?TouchName, " +
+                                    "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, " +
+                                    "?GroupMask, ?EveryoneMask, ?BaseMask, " +
+                                    "?PositionX, ?PositionY, ?PositionZ, " +
+                                    "?GroupPositionX, ?GroupPositionY, " +
+                                    "?GroupPositionZ, ?VelocityX, " +
+                                    "?VelocityY, ?VelocityZ, ?AngularVelocityX, " +
+                                    "?AngularVelocityY, ?AngularVelocityZ, " +
+                                    "?AccelerationX, ?AccelerationY, " +
+                                    "?AccelerationZ, ?RotationX, " +
+                                    "?RotationY, ?RotationZ, " +
+                                    "?RotationW, ?SitTargetOffsetX, " +
+                                    "?SitTargetOffsetY, ?SitTargetOffsetZ, " +
+                                    "?SitTargetOrientW, ?SitTargetOrientX, " +
+                                    "?SitTargetOrientY, ?SitTargetOrientZ, " +
+                                    "?RegionUUID, ?CreatorID, ?OwnerID, " +
+                                    "?GroupID, ?LastOwnerID, ?SceneGroupID, " +
+                                    "?PayPrice, ?PayButton1, ?PayButton2, " +
+                                    "?PayButton3, ?PayButton4, ?LoopedSound, " +
+                                    "?LoopedSoundGain, ?TextureAnimation, " +
+                                    "?OmegaX, ?OmegaY, ?OmegaZ, " +
+                                    "?CameraEyeOffsetX, ?CameraEyeOffsetY, " +
+                                    "?CameraEyeOffsetZ, ?CameraAtOffsetX, " +
+                                    "?CameraAtOffsetY, ?CameraAtOffsetZ, " +
+                                    "?ForceMouselook, ?ScriptAccessPin, " +
+                                    "?AllowedDrop, ?DieAtEdge, ?SalePrice, " +
+                                    "?SaleType, ?ColorR, ?ColorG, " +
+                                    "?ColorB, ?ColorA, ?ParticleSystem, " +
+                                    "?ClickAction, ?Material, ?CollisionSound, " +
+                                    "?CollisionSoundVolume, ?PassTouches, ?PassCollisions, " +
+                                    "?LinkNumber, ?MediaURL, ?KeyframeMotion, " +
+                                    "?PhysicsShapeType, ?Density, ?GravityModifier, " +
+                                    "?Friction, ?Restitution, ?Vehicle)";
 
-                        FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
+                            FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
-                        ExecuteNonQuery(cmd);
+                            ExecuteNonQuery(cmd);
 
-                        cmd.Parameters.Clear();
+                            cmd.Parameters.Clear();
 
-                        cmd.CommandText = "replace into primshapes (" +
-                                "UUID, Shape, ScaleX, ScaleY, " +
-                                "ScaleZ, PCode, PathBegin, PathEnd, " +
-                                "PathScaleX, PathScaleY, PathShearX, " +
-                                "PathShearY, PathSkew, PathCurve, " +
-                                "PathRadiusOffset, PathRevolutions, " +
-                                "PathTaperX, PathTaperY, PathTwist, " +
-                                "PathTwistBegin, ProfileBegin, ProfileEnd, " +
-                                "ProfileCurve, ProfileHollow, Texture, " +
-                                "ExtraParams, State, Media) values (?UUID, " +
-                                "?Shape, ?ScaleX, ?ScaleY, ?ScaleZ, " +
-                                "?PCode, ?PathBegin, ?PathEnd, " +
-                                "?PathScaleX, ?PathScaleY, " +
-                                "?PathShearX, ?PathShearY, " +
-                                "?PathSkew, ?PathCurve, ?PathRadiusOffset, " +
-                                "?PathRevolutions, ?PathTaperX, " +
-                                "?PathTaperY, ?PathTwist, " +
-                                "?PathTwistBegin, ?ProfileBegin, " +
-                                "?ProfileEnd, ?ProfileCurve, " +
-                                "?ProfileHollow, ?Texture, ?ExtraParams, " +
-                                "?State, ?Media)";
+                            cmd.CommandText = "replace into primshapes (" +
+                                    "UUID, Shape, ScaleX, ScaleY, " +
+                                    "ScaleZ, PCode, PathBegin, PathEnd, " +
+                                    "PathScaleX, PathScaleY, PathShearX, " +
+                                    "PathShearY, PathSkew, PathCurve, " +
+                                    "PathRadiusOffset, PathRevolutions, " +
+                                    "PathTaperX, PathTaperY, PathTwist, " +
+                                    "PathTwistBegin, ProfileBegin, ProfileEnd, " +
+                                    "ProfileCurve, ProfileHollow, Texture, " +
+                                    "ExtraParams, State, Media) values (?UUID, " +
+                                    "?Shape, ?ScaleX, ?ScaleY, ?ScaleZ, " +
+                                    "?PCode, ?PathBegin, ?PathEnd, " +
+                                    "?PathScaleX, ?PathScaleY, " +
+                                    "?PathShearX, ?PathShearY, " +
+                                    "?PathSkew, ?PathCurve, ?PathRadiusOffset, " +
+                                    "?PathRevolutions, ?PathTaperX, " +
+                                    "?PathTaperY, ?PathTwist, " +
+                                    "?PathTwistBegin, ?ProfileBegin, " +
+                                    "?ProfileEnd, ?ProfileCurve, " +
+                                    "?ProfileHollow, ?Texture, ?ExtraParams, " +
+                                    "?State, ?Media)";
 
-                        FillShapeCommand(cmd, prim);
+                            FillShapeCommand(cmd, prim);
 
-                        ExecuteNonQuery(cmd);
+                            ExecuteNonQuery(cmd);
+                        }
                     }
-                    
-                    cmd.Dispose();
                 }
             }
         }
@@ -996,6 +996,68 @@ namespace OpenSim.Data.MySQL
                 }
             }
         }
+
+        #region RegionEnvironmentSettings
+        public string LoadRegionEnvironmentSettings(UUID regionUUID)
+        {
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                string command = "select * from `regionenvironment` where region_id = ?region_id";
+
+                using (MySqlCommand cmd = new MySqlCommand(command))
+                {
+                    cmd.Connection = dbcon;
+
+                    cmd.Parameters.AddWithValue("?region_id", regionUUID.ToString());
+
+                    IDataReader result = ExecuteReader(cmd);
+                    if (!result.Read())
+                    {
+                        return String.Empty;
+                    }
+                    else
+                    {
+                        return Convert.ToString(result["llsd_settings"]);
+                    }
+                }
+            }
+        }
+
+        public void StoreRegionEnvironmentSettings(UUID regionUUID, string settings)
+        {
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                using (MySqlCommand cmd = dbcon.CreateCommand())
+                {
+                    cmd.CommandText = "REPLACE INTO `regionenvironment` (`region_id`, `llsd_settings`) VALUES (?region_id, ?llsd_settings)";
+
+                    cmd.Parameters.AddWithValue("region_id", regionUUID);
+                    cmd.Parameters.AddWithValue("llsd_settings", settings);
+
+                    ExecuteNonQuery(cmd);
+                }
+            }
+        }
+
+        public void RemoveRegionEnvironmentSettings(UUID regionUUID)
+        {
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                using (MySqlCommand cmd = dbcon.CreateCommand())
+                {
+                    cmd.CommandText = "delete from `regionenvironment` where region_id = ?region_id";
+                    cmd.Parameters.AddWithValue("?region_id", regionUUID.ToString());
+                    ExecuteNonQuery(cmd);
+                }
+            }
+        }
+        #endregion
 
         public virtual void StoreRegionSettings(RegionSettings rs)
         {
@@ -1897,41 +1959,40 @@ namespace OpenSim.Data.MySQL
             {
                 RemoveItems(primID);
 
+                if (items.Count == 0)
+                    return;
+
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
 
-                    MySqlCommand cmd = dbcon.CreateCommand();
-
-                    if (items.Count == 0)
-                        return;
-
-                    cmd.CommandText = "insert into primitems (" +
-                            "invType, assetType, name, " +
-                            "description, creationDate, nextPermissions, " +
-                            "currentPermissions, basePermissions, " +
-                            "everyonePermissions, groupPermissions, " +
-                            "flags, itemID, primID, assetID, " +
-                            "parentFolderID, creatorID, ownerID, " +
-                            "groupID, lastOwnerID) values (?invType, " +
-                            "?assetType, ?name, ?description, " +
-                            "?creationDate, ?nextPermissions, " +
-                            "?currentPermissions, ?basePermissions, " +
-                            "?everyonePermissions, ?groupPermissions, " +
-                            "?flags, ?itemID, ?primID, ?assetID, " +
-                            "?parentFolderID, ?creatorID, ?ownerID, " +
-                            "?groupID, ?lastOwnerID)";
-
-                    foreach (TaskInventoryItem item in items)
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        cmd.Parameters.Clear();
-
-                        FillItemCommand(cmd, item);
-
-                        ExecuteNonQuery(cmd);
+                        cmd.CommandText = "insert into primitems (" +
+                                "invType, assetType, name, " +
+                                "description, creationDate, nextPermissions, " +
+                                "currentPermissions, basePermissions, " +
+                                "everyonePermissions, groupPermissions, " +
+                                "flags, itemID, primID, assetID, " +
+                                "parentFolderID, creatorID, ownerID, " +
+                                "groupID, lastOwnerID) values (?invType, " +
+                                "?assetType, ?name, ?description, " +
+                                "?creationDate, ?nextPermissions, " +
+                                "?currentPermissions, ?basePermissions, " +
+                                "?everyonePermissions, ?groupPermissions, " +
+                                "?flags, ?itemID, ?primID, ?assetID, " +
+                                "?parentFolderID, ?creatorID, ?ownerID, " +
+                                "?groupID, ?lastOwnerID)";
+    
+                        foreach (TaskInventoryItem item in items)
+                        {
+                            cmd.Parameters.Clear();
+    
+                            FillItemCommand(cmd, item);
+    
+                            ExecuteNonQuery(cmd);
+                        }
                     }
-
-                    cmd.Dispose();
                 }
             }
         }

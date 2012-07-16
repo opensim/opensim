@@ -232,7 +232,7 @@ namespace OpenSim
 
             base.StartupSpecific();
 
-            m_stats = StatsManager.StartCollectingSimExtraStats();
+            m_stats = StatsManager.SimExtraStats;
 
             // Create a ModuleLoader instance
             m_moduleLoader = new ModuleLoader(m_config.Source);
@@ -437,7 +437,7 @@ namespace OpenSim
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);
             
             // TODO : Try setting resource for region xstats here on scene
-            MainServer.Instance.AddStreamHandler(new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
+            MainServer.Instance.AddStreamHandler(new RegionStatsHandler(regionInfo));
             
             scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
             scene.EventManager.TriggerParcelPrimCountUpdate();
@@ -856,6 +856,9 @@ namespace OpenSim
                 return Util.UTF8.GetBytes("OK");
             }
 
+            public string Name { get { return "SimStatus"; } }
+            public string Description { get { return "Simulator Status"; } }
+
             public string ContentType
             {
                 get { return "text/plain"; }
@@ -880,6 +883,9 @@ namespace OpenSim
         {
             OpenSimBase m_opensim;
             string osXStatsURI = String.Empty;
+
+            public string Name { get { return "XSimStatus"; } }
+            public string Description { get { return "Simulator XStatus"; } }
         
             public XSimStatusHandler(OpenSimBase sim)
             {
@@ -920,6 +926,9 @@ namespace OpenSim
         {
             OpenSimBase m_opensim;
             string osUXStatsURI = String.Empty;
+
+            public string Name { get { return "UXSimStatus"; } }
+            public string Description { get { return "Simulator UXStatus"; } }
         
             public UXSimStatusHandler(OpenSimBase sim)
             {
@@ -1051,13 +1060,13 @@ namespace OpenSim
         /// Load the estate information for the provided RegionInfo object.
         /// </summary>
         /// <param name="regInfo"></param>
-        public void PopulateRegionEstateInfo(RegionInfo regInfo)
+        public bool PopulateRegionEstateInfo(RegionInfo regInfo)
         {
             if (EstateDataService != null)
                 regInfo.EstateSettings = EstateDataService.LoadEstateSettings(regInfo.RegionID, false);
 
             if (regInfo.EstateSettings.EstateID != 0)
-                return;
+                return false;	// estate info in the database did not change
 
             m_log.WarnFormat("[ESTATE] Region {0} is not part of an estate.", regInfo.RegionName);
             
@@ -1092,7 +1101,7 @@ namespace OpenSim
                     }
 
                     if (defaultEstateJoined)
-                        return;
+                        return true; // need to update the database
                     else
                         m_log.ErrorFormat(
                             "[OPENSIM BASE]: Joining default estate {0} failed", defaultEstateName);
@@ -1154,8 +1163,10 @@ namespace OpenSim
                         MainConsole.Instance.Output("Joining the estate failed. Please try again.");
                     }
                 }
-            }
-        }
+	    }
+
+	    return true;	// need to update the database
+	}
     }
     
     public class OpenSimConfigSource

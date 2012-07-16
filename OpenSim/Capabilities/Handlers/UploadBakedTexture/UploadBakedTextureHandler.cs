@@ -85,8 +85,8 @@ namespace OpenSim.Capabilities.Handlers
                 uploader.OnUpLoad += BakedTextureUploaded;
 
                 m_HostCapsObj.HttpListener.AddStreamHandler(
-                        new BinaryStreamHandler("POST", capsBase + uploaderPath,
-                        uploader.uploaderCaps));
+                    new BinaryStreamHandler(
+                        "POST", capsBase + uploaderPath, uploader.uploaderCaps, "UploadBakedTexture", null));
 
                 string protocol = "http://";
 

@@ -117,7 +117,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         private void InventoryRunDeleteTimer(object sender, ElapsedEventArgs e)
         {
-            m_log.Debug("[ASYNC DELETER]: Starting send to inventory loop");
+//            m_log.Debug("[ASYNC DELETER]: Starting send to inventory loop");
 
             // We must set appearance parameters in the en_US culture in order to avoid issues where values are saved
             // in a culture where decimal points are commas and then reloaded in a culture which just treats them as
@@ -147,15 +147,15 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         x = m_inventoryDeletes.Dequeue();
 
-                        m_log.DebugFormat(
-                            "[ASYNC DELETER]: Sending object to user's inventory, action {1}, count {2}, {0} item(s) remaining.",
-                            left, x.action, x.objectGroups.Count);
+//                        m_log.DebugFormat(
+//                            "[ASYNC DELETER]: Sending object to user's inventory, action {1}, count {2}, {0} item(s) remaining.",
+//                            left, x.action, x.objectGroups.Count);
                         
                         try
                         {
                             IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
                             if (invAccess != null)
-                                invAccess.CopyToInventory(x.action, x.folderID, x.objectGroups, x.remoteClient);
+                                invAccess.CopyToInventory(x.action, x.folderID, x.objectGroups, x.remoteClient, false);
                             
                             if (x.permissionToDelete)
                             {
@@ -185,7 +185,7 @@ namespace OpenSim.Region.Framework.Scenes
                     e.StackTrace);
             }
 
-            m_log.Debug("[ASYNC DELETER]: No objects left in inventory send queue.");
+//            m_log.Debug("[ASYNC DELETER]: No objects left in inventory send queue.");
             
             return false;
         }

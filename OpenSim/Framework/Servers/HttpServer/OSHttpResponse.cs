@@ -321,13 +321,12 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             _httpResponse.Body.Flush();
             _httpResponse.Send();
-            
         }
+
         public void FreeContext()
         {
             if (_httpClientContext != null)
                 _httpClientContext.Close();
         }
-        
     }
 }

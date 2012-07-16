@@ -50,6 +50,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private int m_levelHGFriends = 0;
+
         IUserManagement m_uMan;
         public IUserManagement UserManagementModule
         {
@@ -87,6 +89,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 m_StatusNotifier = new HGStatusNotifier(this);
         }
 
+        protected override void InitModule(IConfigSource config)
+        {
+            base.InitModule(config);
+
+            // Additionally to the base method
+            IConfig friendsConfig = config.Configs["HGFriendsModule"];
+            if (friendsConfig != null)
+            {
+                m_levelHGFriends = friendsConfig.GetInt("LevelHGFriends", 0);
+
+                // TODO: read in all config variables pertaining to
+                // HG friendship permissions
+            }
+        }
+
         #endregion
 
         #region IFriendsSimConnector
@@ -104,6 +121,35 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         }
 
         #endregion
+
+        protected override void OnInstantMessage(IClientAPI client, GridInstantMessage im)
+        {
+            if ((InstantMessageDialog)im.dialog == InstantMessageDialog.FriendshipOffered)
+            {
+                // we got a friendship offer
+                UUID principalID = new UUID(im.fromAgentID);
+                UUID friendID = new UUID(im.toAgentID);
+
+                // Check if friendID is foreigner and if principalID has the permission
+                // to request friendships with foreigners. If not, return immediately.
+                if (!UserManagementModule.IsLocalGridUser(friendID))
+                {
+                    ScenePresence avatar = null;
+                    ((Scene)client.Scene).TryGetScenePresence(principalID, out avatar);
+
+                    if (avatar == null)
+                        return;
+
+                    if (avatar.UserLevel < m_levelHGFriends)
+                    {
+                        client.SendAgentAlertMessage("Unable to send friendship invitation to foreigner. Insufficient permissions.", false);
+                        return;
+                    }
+                }
+            }
+
+            base.OnInstantMessage(client, im);
+        }
 
         protected override void OnApproveFriendRequest(IClientAPI client, UUID friendID, List<UUID> callingCardFolders)
         {
@@ -369,12 +415,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override void StoreBackwards(UUID friendID, UUID agentID)
         {
-            Boolean agentIsLocal = true;
-            Boolean friendIsLocal = true;
+            bool agentIsLocal = true;
+//            bool friendIsLocal = true;
+
             if (UserManagementModule != null)
             {
                 agentIsLocal = UserManagementModule.IsLocalGridUser(agentID);
-                friendIsLocal = UserManagementModule.IsLocalGridUser(friendID);
+//                friendIsLocal = UserManagementModule.IsLocalGridUser(friendID);
             }
 
             // Is the requester a local user?
@@ -461,7 +508,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                             {
                                 friendUUI = finfo.Friend;
                                 theFriendUUID = friendUUI;
-                                UUID utmp = UUID.Zero; String url = String.Empty; String first = String.Empty, last = String.Empty, tmp = String.Empty;
+                                UUID utmp = UUID.Zero;
+                                string url = String.Empty;
+                                string first = String.Empty;
+                                string last = String.Empty;
+
                                 // If it's confirming the friendship, we already have the full UUI with the secret
                                 if (Util.ParseUniversalUserIdentifier(theFriendUUID, out utmp, out url, out first, out last, out secret))
                                 {

@@ -163,54 +163,53 @@ namespace OpenSim.Data.MySQL
                 {
                     dbcon.Open();
 
-                    MySqlCommand cmd =
+                    using (MySqlCommand cmd =
                         new MySqlCommand(
                             "replace INTO assets(id, name, description, assetType, local, temporary, create_time, access_time, asset_flags, CreatorID, data)" +
                             "VALUES(?id, ?name, ?description, ?assetType, ?local, ?temporary, ?create_time, ?access_time, ?asset_flags, ?CreatorID, ?data)",
-                            dbcon);
-
-                    string assetName = asset.Name;
-                    if (asset.Name.Length > 64)
+                            dbcon))
                     {
-                        assetName = asset.Name.Substring(0, 64);
-                        m_log.Warn("[ASSET DB]: Name field truncated from " + asset.Name.Length + " to " + assetName.Length + " characters on add");
-                    }
-
-                    string assetDescription = asset.Description;
-                    if (asset.Description.Length > 64)
-                    {
-                        assetDescription = asset.Description.Substring(0, 64);
-                        m_log.Warn("[ASSET DB]: Description field truncated from " + asset.Description.Length + " to " + assetDescription.Length + " characters on add");
-                    }
-
-                    // need to ensure we dispose
-                    try
-                    {
-                        using (cmd)
+                        string assetName = asset.Name;
+                        if (asset.Name.Length > 64)
                         {
-                            // create unix epoch time
-                            int now = (int)Utils.DateTimeToUnixTime(DateTime.UtcNow);
-                            cmd.Parameters.AddWithValue("?id", asset.ID);
-                            cmd.Parameters.AddWithValue("?name", assetName);
-                            cmd.Parameters.AddWithValue("?description", assetDescription);
-                            cmd.Parameters.AddWithValue("?assetType", asset.Type);
-                            cmd.Parameters.AddWithValue("?local", asset.Local);
-                            cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
-                            cmd.Parameters.AddWithValue("?create_time", now);
-                            cmd.Parameters.AddWithValue("?access_time", now);
-                            cmd.Parameters.AddWithValue("?CreatorID", asset.Metadata.CreatorID);
-                            cmd.Parameters.AddWithValue("?asset_flags", (int)asset.Flags);
-                            cmd.Parameters.AddWithValue("?data", asset.Data);
-                            cmd.ExecuteNonQuery();
-                            cmd.Dispose();
-                            return true;
+                            assetName = asset.Name.Substring(0, 64);
+                            m_log.Warn("[ASSET DB]: Name field truncated from " + asset.Name.Length + " to " + assetName.Length + " characters on add");
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat("[ASSET DB]: MySQL failure creating asset {0} with name \"{1}\". Error: {2}",
-                            asset.FullID, asset.Name, e.Message);
-                        return false;
+    
+                        string assetDescription = asset.Description;
+                        if (asset.Description.Length > 64)
+                        {
+                            assetDescription = asset.Description.Substring(0, 64);
+                            m_log.Warn("[ASSET DB]: Description field truncated from " + asset.Description.Length + " to " + assetDescription.Length + " characters on add");
+                        }
+    
+                        try
+                        {
+                            using (cmd)
+                            {
+                                // create unix epoch time
+                                int now = (int)Utils.DateTimeToUnixTime(DateTime.UtcNow);
+                                cmd.Parameters.AddWithValue("?id", asset.ID);
+                                cmd.Parameters.AddWithValue("?name", assetName);
+                                cmd.Parameters.AddWithValue("?description", assetDescription);
+                                cmd.Parameters.AddWithValue("?assetType", asset.Type);
+                                cmd.Parameters.AddWithValue("?local", asset.Local);
+                                cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
+                                cmd.Parameters.AddWithValue("?create_time", now);
+                                cmd.Parameters.AddWithValue("?access_time", now);
+                                cmd.Parameters.AddWithValue("?CreatorID", asset.Metadata.CreatorID);
+                                cmd.Parameters.AddWithValue("?asset_flags", (int)asset.Flags);
+                                cmd.Parameters.AddWithValue("?data", asset.Data);
+                                cmd.ExecuteNonQuery();
+                                return true;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.ErrorFormat("[ASSET DB]: MySQL failure creating asset {0} with name \"{1}\". Error: {2}",
+                                asset.FullID, asset.Name, e.Message);
+                            return false;
+                        }
                     }
                 }
             }
@@ -223,33 +222,31 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-                    MySqlCommand cmd =
-                        new MySqlCommand("update assets set access_time=?access_time where id=?id",
-                                         dbcon);
 
-                    // need to ensure we dispose
-                    try
+                    using (MySqlCommand cmd
+                        = new MySqlCommand("update assets set access_time=?access_time where id=?id", dbcon))
                     {
-                        using (cmd)
+                        try
                         {
-                            // create unix epoch time
-                            int now = (int)Utils.DateTimeToUnixTime(DateTime.UtcNow);
-                            cmd.Parameters.AddWithValue("?id", asset.ID);
-                            cmd.Parameters.AddWithValue("?access_time", now);
-                            cmd.ExecuteNonQuery();
-                            cmd.Dispose();
+                            using (cmd)
+                            {
+                                // create unix epoch time
+                                int now = (int)Utils.DateTimeToUnixTime(DateTime.UtcNow);
+                                cmd.Parameters.AddWithValue("?id", asset.ID);
+                                cmd.Parameters.AddWithValue("?access_time", now);
+                                cmd.ExecuteNonQuery();
+                            }
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat(
-                            "[ASSETS DB]: " +
-                            "MySql failure updating access_time for asset {0} with name {1}" + Environment.NewLine + e.ToString()
-                            + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
+                        catch (Exception e)
+                        {
+                            m_log.ErrorFormat(
+                                "[ASSETS DB]: " +
+                                "MySql failure updating access_time for asset {0} with name {1}" + Environment.NewLine + e.ToString()
+                                + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
+                        }
                     }
                 }
             }
-
         }
 
         /// <summary>
@@ -312,35 +309,41 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-                    MySqlCommand cmd = new MySqlCommand("SELECT name,description,assetType,temporary,id,asset_flags,CreatorID FROM assets LIMIT ?start, ?count", dbcon);
-                    cmd.Parameters.AddWithValue("?start", start);
-                    cmd.Parameters.AddWithValue("?count", count);
 
-                    try
+                    using (MySqlCommand cmd
+                        = new MySqlCommand(
+                            "SELECT name,description,assetType,temporary,id,asset_flags,CreatorID FROM assets LIMIT ?start, ?count",
+                            dbcon))
                     {
-                        using (MySqlDataReader dbReader = cmd.ExecuteReader())
+                        cmd.Parameters.AddWithValue("?start", start);
+                        cmd.Parameters.AddWithValue("?count", count);
+    
+                        try
                         {
-                            while (dbReader.Read())
+                            using (MySqlDataReader dbReader = cmd.ExecuteReader())
                             {
-                                AssetMetadata metadata = new AssetMetadata();
-                                metadata.Name = (string)dbReader["name"];
-                                metadata.Description = (string)dbReader["description"];
-                                metadata.Type = (sbyte)dbReader["assetType"];
-                                metadata.Temporary = Convert.ToBoolean(dbReader["temporary"]); // Not sure if this is correct.
-                                metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
-                                metadata.FullID = DBGuid.FromDB(dbReader["id"]);
-                                metadata.CreatorID = dbReader["CreatorID"].ToString();
-
-                                // Current SHA1s are not stored/computed.
-                                metadata.SHA1 = new byte[] { };
-
-                                retList.Add(metadata);
+                                while (dbReader.Read())
+                                {
+                                    AssetMetadata metadata = new AssetMetadata();
+                                    metadata.Name = (string)dbReader["name"];
+                                    metadata.Description = (string)dbReader["description"];
+                                    metadata.Type = (sbyte)dbReader["assetType"];
+                                    metadata.Temporary = Convert.ToBoolean(dbReader["temporary"]); // Not sure if this is correct.
+                                    metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
+                                    metadata.FullID = DBGuid.FromDB(dbReader["id"]);
+                                    metadata.CreatorID = dbReader["CreatorID"].ToString();
+    
+                                    // Current SHA1s are not stored/computed.
+                                    metadata.SHA1 = new byte[] { };
+    
+                                    retList.Add(metadata);
+                                }
                             }
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.Error("[ASSETS DB]: MySql failure fetching asset set" + Environment.NewLine + e.ToString());
+                        catch (Exception e)
+                        {
+                            m_log.Error("[ASSETS DB]: MySql failure fetching asset set" + Environment.NewLine + e.ToString());
+                        }
                     }
                 }
             }
@@ -355,11 +358,12 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-                    MySqlCommand cmd = new MySqlCommand("delete from assets where id=?id", dbcon);
-                    cmd.Parameters.AddWithValue("?id", id);
-                    cmd.ExecuteNonQuery();
 
-                    cmd.Dispose();
+                    using (MySqlCommand cmd = new MySqlCommand("delete from assets where id=?id", dbcon))
+                    {
+                        cmd.Parameters.AddWithValue("?id", id);
+                        cmd.ExecuteNonQuery();
+                    }
                 }
             }
 

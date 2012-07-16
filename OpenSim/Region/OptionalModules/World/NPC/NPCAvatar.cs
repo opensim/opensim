@@ -76,27 +76,71 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public void Say(string message)
         {
-            SendOnChatFromClient(message, ChatTypeEnum.Say);
+            SendOnChatFromClient(0, message, ChatTypeEnum.Say);
         }
 
-        public void Shout(string message)
+        public void Say(int channel, string message)
         {
-            SendOnChatFromClient(message, ChatTypeEnum.Shout);
+            SendOnChatFromClient(channel, message, ChatTypeEnum.Say);
         }
 
-        public void Whisper(string message)
+        public void Shout(int channel, string message)
         {
-            SendOnChatFromClient(message, ChatTypeEnum.Whisper);
+            SendOnChatFromClient(channel, message, ChatTypeEnum.Shout);
+        }
+
+        public void Whisper(int channel, string message)
+        {
+            SendOnChatFromClient(channel, message, ChatTypeEnum.Whisper);
         }
 
         public void Broadcast(string message)
         {
-            SendOnChatFromClient(message, ChatTypeEnum.Broadcast);
+            SendOnChatFromClient(0, message, ChatTypeEnum.Broadcast);
         }
 
         public void GiveMoney(UUID target, int amount)
         {
             OnMoneyTransferRequest(m_uuid, target, amount, 1, "Payment");
+        }
+
+        public bool Touch(UUID target)
+        {
+            SceneObjectPart part = m_scene.GetSceneObjectPart(target);
+            if (part == null)
+                return false;
+            bool objectTouchable = hasTouchEvents(part); // Only touch an object that is scripted to respond
+            if (!objectTouchable && !part.IsRoot)
+                objectTouchable = hasTouchEvents(part.ParentGroup.RootPart);
+            if (!objectTouchable)
+                return false;
+            // Set up the surface args as if the touch is from a client that does not support this
+            SurfaceTouchEventArgs surfaceArgs = new SurfaceTouchEventArgs();
+            surfaceArgs.FaceIndex = -1; // TOUCH_INVALID_FACE
+            surfaceArgs.Binormal =  Vector3.Zero; // TOUCH_INVALID_VECTOR
+            surfaceArgs.Normal =  Vector3.Zero; // TOUCH_INVALID_VECTOR
+            surfaceArgs.STCoord = new Vector3(-1.0f, -1.0f, 0.0f); // TOUCH_INVALID_TEXCOORD
+            surfaceArgs.UVCoord = surfaceArgs.STCoord; // TOUCH_INVALID_TEXCOORD
+            List<SurfaceTouchEventArgs> touchArgs = new List<SurfaceTouchEventArgs>();
+            touchArgs.Add(surfaceArgs);
+            Vector3 offset = part.OffsetPosition * -1.0f;
+            if (OnGrabObject == null)
+                return false;
+            OnGrabObject(part.LocalId, offset, this, touchArgs);
+            if (OnGrabUpdate != null)
+                OnGrabUpdate(part.UUID, offset, part.ParentGroup.RootPart.GroupPosition, this, touchArgs);
+            if (OnDeGrabObject != null)
+                OnDeGrabObject(part.LocalId, this, touchArgs);
+            return true;
+        }
+
+        private bool hasTouchEvents(SceneObjectPart part)
+        {
+            if ((part.ScriptEvents & scriptEvents.touch) != 0 ||
+                (part.ScriptEvents & scriptEvents.touch_start) != 0 ||
+                (part.ScriptEvents & scriptEvents.touch_end) != 0)
+                return true;
+            return false;
         }
 
         public void InstantMessage(UUID target, string message)
@@ -146,10 +190,18 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         #region Internal Functions
 
-        private void SendOnChatFromClient(string message, ChatTypeEnum chatType)
+        private void SendOnChatFromClient(int channel, string message, ChatTypeEnum chatType)
         {
+            if (channel == 0)
+            {
+                message = message.Trim();
+                if (string.IsNullOrEmpty(message))
+                {
+                    return;
+                }
+            }
             OSChatMessage chatFromClient = new OSChatMessage();
-            chatFromClient.Channel = 0;
+            chatFromClient.Channel = channel;
             chatFromClient.From = Name;
             chatFromClient.Message = message;
             chatFromClient.Position = StartPos;
@@ -900,11 +952,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public EndPoint GetClientEP()
-        {
-            return null;
-        }
-
         public ClientInfo GetClientInfo()
         {
             return null;
@@ -1043,10 +1090,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
 
         public void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags)
-        {
-        }
-
-        public void KillEndDone()
         {
         }
 

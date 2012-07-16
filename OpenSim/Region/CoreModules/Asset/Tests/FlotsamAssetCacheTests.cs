@@ -65,7 +65,7 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
             config.Configs["AssetCache"].Set("MemoryCacheEnabled", "true");
 
             m_cache = new FlotsamAssetCache();
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, config, m_cache);
         }
 

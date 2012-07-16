@@ -59,6 +59,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             PacketsSent.Add(packet);
         }
 
+        public void ClientOutgoingPacketHandler(IClientAPI client, bool resendUnacked, bool sendAcks, bool sendPing)
+        {
+            m_resendUnacked = resendUnacked;
+            m_sendAcks = sendAcks;
+            m_sendPing = sendPing;
+
+            ClientOutgoingPacketHandler(client);
+        }
+
 ////        /// <summary>
 ////        /// The chunks of data to pass to the LLUDPServer when it calls EndReceive
 ////        /// </summary>

@@ -122,7 +122,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
                         return GrantRights(request);
                         */
                 }
-                m_log.DebugFormat("[HGFRIENDS HANDLER]: unknown method {0} request {1}", method.Length, method);
+                
+                m_log.DebugFormat("[HGFRIENDS HANDLER]: unknown method {0}", method);
             }
             catch (Exception e)
             {
@@ -278,12 +279,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
-
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
-
 
         #endregion
 

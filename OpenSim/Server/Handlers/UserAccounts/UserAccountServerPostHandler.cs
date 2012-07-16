@@ -195,9 +195,9 @@ namespace OpenSim.Server.Handlers.UserAccounts
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         byte[] StoreAccount(Dictionary<string, object> request)
@@ -353,8 +353,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
         private byte[] ResultToBytes(Dictionary<string, object> result)
         {
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
     }
 }

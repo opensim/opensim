@@ -113,14 +113,15 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
             if (!m_Enabled)
                 return new Byte[0];
 
-            Bitmap bmp = m_Generator.CreateViewImage(pos, rot, fov, width,
-                    height, usetex);
+            using (Bitmap bmp = m_Generator.CreateViewImage(pos, rot, fov, width, height, usetex))
+            {
+                using (MemoryStream str = new MemoryStream())
+                {
+                    bmp.Save(str, ImageFormat.Jpeg);
 
-            MemoryStream str = new MemoryStream();
-
-            bmp.Save(str, ImageFormat.Jpeg);
-
-            return str.ToArray();
+                    return str.ToArray();
+                }
+            }
         }
     }
 }

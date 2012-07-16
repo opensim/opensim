@@ -35,7 +35,7 @@ namespace OpenSim.Framework.Capabilities
         public UUID folder_id;
         public UUID parent_id;
         public string name;
-        public string type;
-        public string preferred_type;
+        public int type;
+        public int preferred_type;
     }
 }

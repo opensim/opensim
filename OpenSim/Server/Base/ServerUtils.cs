@@ -117,7 +117,10 @@ namespace OpenSim.Server.Base
                             catch (Exception e)
                             {
                                 if (!(e is System.MissingMethodException))
-                                    m_log.ErrorFormat("Error loading plugin from {0}, exception {1}", dllName, e.InnerException);
+                                {
+                                    m_log.ErrorFormat("Error loading plugin {0} from {1}. Exception: {2}",
+                                        interfaceName, dllName, e.InnerException == null ? e.Message : e.InnerException.Message);
+                                }
                                 return null;
                             }
 
@@ -265,7 +268,7 @@ namespace OpenSim.Server.Base
                     continue;
 
                 XmlElement elem = parent.OwnerDocument.CreateElement("",
-                        kvp.Key, "");
+                        XmlConvert.EncodeLocalName(kvp.Key), "");
 
                 if (kvp.Value is Dictionary<string, object>)
                 {
@@ -320,11 +323,11 @@ namespace OpenSim.Server.Base
                 XmlNode type = part.Attributes.GetNamedItem("type");
                 if (type == null || type.Value != "List")
                 {
-                    ret[part.Name] = part.InnerText;
+                    ret[XmlConvert.DecodeName(part.Name)] = part.InnerText;
                 }
                 else
                 {
-                    ret[part.Name] = ParseElement(part);
+                    ret[XmlConvert.DecodeName(part.Name)] = ParseElement(part);
                 }
             }
 

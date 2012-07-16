@@ -62,7 +62,7 @@ namespace OpenSim.Services.Connectors.Simulation
             //m_Region = region;
         }
 
-        public IScene GetScene(ulong regionHandle)
+        public IScene GetScene(UUID regionId)
         {
             return null;
         }
@@ -320,29 +320,40 @@ namespace OpenSim.Services.Connectors.Simulation
                 {
                     OSDMap data = (OSDMap)result["_Result"];
 
+                    // FIXME: If there is a _Result map then it's the success key here that indicates the true success
+                    // or failure, not the sibling result node.
+                    success = data["success"];
+
                     reason = data["reason"].AsString();
                     if (data["version"] != null && data["version"].AsString() != string.Empty)
                         version = data["version"].AsString();
 
-                    m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1} version {2} ({3})", uri, success, version, data["version"].AsString());
+                    m_log.DebugFormat(
+                        "[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1}, reason {2}, version {3} ({4})",
+                        uri, success, reason, version, data["version"].AsString());
                 }
 
                 if (!success)
                 {
-                    if (result.ContainsKey("Message"))
+                    // If we don't check this then OpenSimulator 0.7.3.1 and some period before will never see the
+                    // actual failure message
+                    if (!result.ContainsKey("_Result"))
                     {
-                        string message = result["Message"].AsString();
-                        if (message == "Service request failed: [MethodNotAllowed] MethodNotAllowed") // Old style region
+                        if (result.ContainsKey("Message"))
                         {
-                            m_log.Info("[REMOTE SIMULATION CONNECTOR]: The above web util error was caused by a TP to a sim that doesn't support QUERYACCESS and can be ignored");
-                            return true;
+                            string message = result["Message"].AsString();
+                            if (message == "Service request failed: [MethodNotAllowed] MethodNotAllowed") // Old style region
+                            {
+                                m_log.Info("[REMOTE SIMULATION CONNECTOR]: The above web util error was caused by a TP to a sim that doesn't support QUERYACCESS and can be ignored");
+                                return true;
+                            }
+    
+                            reason = result["Message"];
                         }
-
-                        reason = result["Message"];
-                    }
-                    else
-                    {
-                        reason = "Communications failure";
+                        else
+                        {
+                            reason = "Communications failure";
+                        }
                     }
 
                     return false;
@@ -356,7 +367,7 @@ namespace OpenSim.Services.Connectors.Simulation
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR] QueryAcess failed with exception; {0}",e.ToString());
+                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR] QueryAcesss failed with exception; {0}",e.ToString());
             }
             
             return false;

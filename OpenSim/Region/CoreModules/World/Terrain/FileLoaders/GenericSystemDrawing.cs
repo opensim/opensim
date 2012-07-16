@@ -59,28 +59,32 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         /// <returns>A terrain channel generated from the image.</returns>
         public virtual ITerrainChannel LoadFile(string filename)
         {
-            return LoadBitmap(new Bitmap(filename));
+            using (Bitmap b = new Bitmap(filename))
+                return LoadBitmap(b);
         }
 
         public virtual ITerrainChannel LoadFile(string filename, int offsetX, int offsetY, int fileWidth, int fileHeight, int w, int h)
         {
-            Bitmap bitmap = new Bitmap(filename);
-            ITerrainChannel retval = new TerrainChannel(true);
-
-            for (int x = 0; x < retval.Width; x++)
+            using (Bitmap bitmap = new Bitmap(filename))
             {
-                for (int y = 0; y < retval.Height; y++)
-                {
-                    retval[x, y] = bitmap.GetPixel(offsetX * retval.Width + x, (bitmap.Height - (retval.Height * (offsetY + 1))) + retval.Height - y - 1).GetBrightness() * 128;
-                }
-            }
+                ITerrainChannel retval = new TerrainChannel(true);
 
-            return retval;
+                for (int x = 0; x < retval.Width; x++)
+                {
+                    for (int y = 0; y < retval.Height; y++)
+                    {
+                        retval[x, y] = bitmap.GetPixel(offsetX * retval.Width + x, (bitmap.Height - (retval.Height * (offsetY + 1))) + retval.Height - y - 1).GetBrightness() * 128;
+                    }
+                }
+
+                return retval;
+            }
         }
 
         public virtual ITerrainChannel LoadStream(Stream stream)
         {
-            return LoadBitmap(new Bitmap(stream));
+            using (Bitmap b = new Bitmap(stream))
+                return LoadBitmap(b);
         }
 
         protected virtual ITerrainChannel LoadBitmap(Bitmap bitmap)
@@ -134,35 +138,53 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             // "Saving the image to the same file it was constructed from is not allowed and throws an exception."
             string tempName = Path.GetTempFileName();
 
-            Bitmap entireBitmap = null;
+            Bitmap existingBitmap = null;
             Bitmap thisBitmap = null;
-            if (File.Exists(filename))
+            Bitmap newBitmap = null;
+
+            try
             {
-                File.Copy(filename, tempName, true);
-                entireBitmap = new Bitmap(tempName);
-                if (entireBitmap.Width != fileWidth * regionSizeX || entireBitmap.Height != fileHeight * regionSizeY)
+                if (File.Exists(filename))
                 {
-                    // old file, let's overwrite it
-                    entireBitmap = new Bitmap(fileWidth * regionSizeX, fileHeight * regionSizeY);
+                    File.Copy(filename, tempName, true);
+                    existingBitmap = new Bitmap(tempName);
+                    if (existingBitmap.Width != fileWidth * regionSizeX || existingBitmap.Height != fileHeight * regionSizeY)
+                    {
+                        // old file, let's overwrite it
+                        newBitmap = new Bitmap(fileWidth * regionSizeX, fileHeight * regionSizeY);
+                    }
+                    else
+                    {
+                        newBitmap = existingBitmap;
+                    }
                 }
+                else
+                {
+                    newBitmap = new Bitmap(fileWidth * regionSizeX, fileHeight * regionSizeY);
+                }
+    
+                thisBitmap = CreateGrayscaleBitmapFromMap(m_channel);
+    //            Console.WriteLine("offsetX=" + offsetX + " offsetY=" + offsetY);
+                for (int x = 0; x < regionSizeX; x++)
+                    for (int y = 0; y < regionSizeY; y++)
+                        newBitmap.SetPixel(x + offsetX * regionSizeX, y + (fileHeight - 1 - offsetY) * regionSizeY, thisBitmap.GetPixel(x, y));
+    
+                Save(newBitmap, filename);
             }
-            else
+            finally
             {
-                entireBitmap = new Bitmap(fileWidth * regionSizeX, fileHeight * regionSizeY);
+                if (existingBitmap != null)
+                    existingBitmap.Dispose();
+
+                if (thisBitmap != null)
+                    thisBitmap.Dispose();
+
+                if (newBitmap != null)
+                    newBitmap.Dispose();
+
+                if (File.Exists(tempName))
+                    File.Delete(tempName);
             }
-
-            thisBitmap = CreateGrayscaleBitmapFromMap(m_channel);
-//            Console.WriteLine("offsetX=" + offsetX + " offsetY=" + offsetY);
-            for (int x = 0; x < regionSizeX; x++)
-                for (int y = 0; y < regionSizeY; y++)
-                    entireBitmap.SetPixel(x + offsetX * regionSizeX, y + (fileHeight - 1 - offsetY) * regionSizeY, thisBitmap.GetPixel(x, y));
-
-            Save(entireBitmap, filename);
-            thisBitmap.Dispose();
-            entireBitmap.Dispose();
-
-            if (File.Exists(tempName))
-                File.Delete(tempName);
         }
 
         protected virtual void Save(Bitmap bmp, string filename)
@@ -226,16 +248,21 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         /// <returns>A System.Drawing.Bitmap containing a coloured image</returns>
         protected static Bitmap CreateBitmapFromMap(ITerrainChannel map)
         {
-            Bitmap gradientmapLd = new Bitmap("defaultstripe.png");
+            int pallete;
+            Bitmap bmp;
+            Color[] colours;
 
-            int pallete = gradientmapLd.Height;
-
-            Bitmap bmp = new Bitmap(map.Width, map.Height);
-            Color[] colours = new Color[pallete];
-
-            for (int i = 0; i < pallete; i++)
+            using (Bitmap gradientmapLd = new Bitmap("defaultstripe.png"))
             {
-                colours[i] = gradientmapLd.GetPixel(0, i);
+                pallete = gradientmapLd.Height;
+    
+                bmp = new Bitmap(map.Width, map.Height);
+                colours = new Color[pallete];
+    
+                for (int i = 0; i < pallete; i++)
+                {
+                    colours[i] = gradientmapLd.GetPixel(0, i);
+                }
             }
 
             for (int y = 0; y < map.Height; y++)

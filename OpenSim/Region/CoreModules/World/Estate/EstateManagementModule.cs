@@ -170,12 +170,18 @@ namespace OpenSim.Region.CoreModules.World.Estate
             sendRegionInfoPacketToAll();
         }
 
-        public void setEstateTerrainBaseTexture(IClientAPI remoteClient, int corner, UUID texture)
+        public void setEstateTerrainBaseTexture(int level, UUID texture)
+        {
+            setEstateTerrainBaseTexture(null, level, texture);
+            sendRegionHandshakeToAll();
+        }
+
+        public void setEstateTerrainBaseTexture(IClientAPI remoteClient, int level, UUID texture)
         {
             if (texture == UUID.Zero)
                 return;
 
-            switch (corner)
+            switch (level)
             {
                 case 0:
                     Scene.RegionInfo.RegionSettings.TerrainTexture1 = texture;
@@ -193,6 +199,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
             Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
             sendRegionInfoPacketToAll();
+        }
+
+        public void setEstateTerrainTextureHeights(int corner, float lowValue, float highValue)
+        {
+            setEstateTerrainTextureHeights(null, corner, lowValue, highValue);
         }
 
         public void setEstateTerrainTextureHeights(IClientAPI client, int corner, float lowValue, float highValue)
@@ -993,7 +1004,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             RegionHandshakeArgs args = new RegionHandshakeArgs();
 
-            args.isEstateManager = Scene.RegionInfo.EstateSettings.IsEstateManager(remoteClient.AgentId);
+            args.isEstateManager = Scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(remoteClient.AgentId);
             if (Scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero && Scene.RegionInfo.EstateSettings.EstateOwner == remoteClient.AgentId)
                 args.isEstateManager = true;
 

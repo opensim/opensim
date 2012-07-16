@@ -126,13 +126,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     [Serializable]
     public class OSSL_Api : MarshalByRefObject, IOSSL_Api, IScriptApi
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public const string GridInfoServiceConfigSectionName = "GridInfoService";
 
         internal IScriptEngine m_ScriptEngine;
         internal ILSL_Api m_LSL_Api = null; // get a reference to the LSL API so we can call methods housed there
         internal SceneObjectPart m_host;
-        internal uint m_localID;
-        internal UUID m_itemID;
+        internal TaskInventoryItem m_item;
         internal bool m_OSFunctionsEnabled = false;
         internal ThreatLevel m_MaxThreatLevel = ThreatLevel.VeryLow;
         internal float m_ScriptDelayFactor = 1.0f;
@@ -140,12 +141,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal bool m_debuggerSafe = false;
         internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
+        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;
-            m_localID = localID;
-            m_itemID = itemID;
+            m_item = item;
             m_debuggerSafe = m_ScriptEngine.Config.GetBoolean("DebuggerSafe", false);
 
             if (m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
@@ -218,12 +218,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        /// <summary>
+        /// Initialize the LSL interface.
+        /// </summary>
+        /// <remarks>
+        /// FIXME: This is an abomination.  We should be able to set this up earlier but currently we have no
+        /// guarantee the interface is present on Initialize().  There needs to be another post initialize call from
+        /// ScriptInstance.
+        /// </remarks>
         private void InitLSL()
         {
             if (m_LSL_Api != null)
                 return;
 
-            m_LSL_Api = (ILSL_Api)m_ScriptEngine.GetApi(m_itemID, "LSL");
+            m_LSL_Api = (ILSL_Api)m_ScriptEngine.GetApi(m_item.ItemID, "LSL");
         }
 
         //
@@ -342,22 +350,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
                     }
 
-                    TaskInventoryItem ti = m_host.Inventory.GetInventoryItem(m_itemID);
-                    if (ti == null)
-                    {
-                        OSSLError(
-                            String.Format("{0} permission error. Can't find script in prim inventory.",
-                            function));
-                    }
+                    UUID ownerID = m_item.OwnerID;
 
-                    UUID ownerID = ti.OwnerID;
-
-                    //OSSL only may be used if objet is in the same group as the parcel
+                    //OSSL only may be used if object is in the same group as the parcel
                     if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_GROUP_MEMBER"))
                     {
                         ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
 
-                        if (land.LandData.GroupID == ti.GroupID && land.LandData.GroupID != UUID.Zero)
+                        if (land.LandData.GroupID == m_item.GroupID && land.LandData.GroupID != UUID.Zero)
                         {
                             return;
                         }
@@ -378,7 +378,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ESTATE_MANAGER"))
                     {
                         //Only Estate Managers may use the function
-                        if (World.RegionInfo.EstateSettings.IsEstateManager(ownerID) && World.RegionInfo.EstateSettings.EstateOwner != ownerID)
+                        if (World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(ownerID) && World.RegionInfo.EstateSettings.EstateOwner != ownerID)
                         {
                             return;
                         }
@@ -393,13 +393,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                     }
 
-                    if (!m_FunctionPerms[function].AllowedCreators.Contains(ti.CreatorID))
+                    if (!m_FunctionPerms[function].AllowedCreators.Contains(m_item.CreatorID))
                         OSSLError(
                             String.Format("{0} permission denied. Script creator is not in the list of users allowed to execute this function and prim owner also has no permission.",
                             function));
-                    if (ti.CreatorID != ownerID)
+
+                    if (m_item.CreatorID != ownerID)
                     {
-                        if ((ti.CurrentPermissions & (uint)PermissionMask.Modify) != 0)
+                        if ((m_item.CurrentPermissions & (uint)PermissionMask.Modify) != 0)
                             OSSLError(
                                 String.Format("{0} permission denied. Script permissions error.",
                                 function));
@@ -730,11 +731,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
+            // For safety, we add another permission check here, and don't rely only on the standard OSSL permissions
             if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
             {
                 MainConsole.Instance.RunCommand(command);
                 return true;
             }
+
             return false;
         }
 
@@ -880,13 +883,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (World.Entities.ContainsKey((UUID)agent) && World.Entities[avatarID] is ScenePresence)
             {
                 ScenePresence target = (ScenePresence)World.Entities[avatarID];
-                EndPoint ep = target.ControllingClient.GetClientEP();
-                if (ep is IPEndPoint)
-                {
-                    IPEndPoint ip = (IPEndPoint)ep;
-                    return ip.Address.ToString();
-                }
+                return target.ControllingClient.RemoteEndPoint.Address.ToString();
             }
+            
             // fall through case, just return nothing
             return "";
         }
@@ -957,21 +956,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID avatarID = (UUID)avatar;
 
             m_host.AddScriptLPS(1);
+
+            // FIXME: What we really want to do here is factor out the similar code in llStopAnimation() to a common
+            // method (though see that doesn't do the is animation check, which is probably a bug) and have both
+            // these functions call that common code.  However, this does mean navigating the brain-dead requirement
+            // of calling InitLSL()
             if (World.Entities.ContainsKey(avatarID) && World.Entities[avatarID] is ScenePresence)
             {
                 ScenePresence target = (ScenePresence)World.Entities[avatarID];
                 if (target != null)
                 {
-                    UUID animID = UUID.Zero;
-                    m_host.TaskInventory.LockItemsForRead(true);
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                    UUID animID;
+
+                    if (!UUID.TryParse(animation, out animID))
                     {
-                        if (inv.Value.Name == animation)
-                        {
-                            if (inv.Value.Type == (int)AssetType.Animation)
-                                animID = inv.Value.AssetID;
-                            continue;
-                        }
+                        TaskInventoryItem item = m_host.Inventory.GetInventoryItem(animation);
+                        if (item != null && item.Type == (int)AssetType.Animation)
+                            animID = item.AssetID;
+                        else
+                            animID = UUID.Zero;
                     }
                     m_host.TaskInventory.LockItemsForRead(false);
                     
@@ -1178,7 +1181,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osSetStateEvents");
             m_host.AddScriptLPS(1);
 
-            m_host.SetScriptEvents(m_itemID, events);
+            m_host.SetScriptEvents(m_item.ItemID, events);
         }
 
         public void osSetRegionWaterHeight(double height)
@@ -1186,12 +1189,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osSetRegionWaterHeight");
 
             m_host.AddScriptLPS(1);
-            //Check to make sure that the script's owner is the estate manager/master
-            //World.Permissions.GenericEstatePermission(
-            if (World.Permissions.IsGod(m_host.OwnerID))
-            {
-                World.EventManager.TriggerRequestChangeWaterHeight((float)height);
-            }
+
+            World.EventManager.TriggerRequestChangeWaterHeight((float)height);
         }
 
         /// <summary>
@@ -1202,27 +1201,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="sunHour">The "Sun Hour" that is desired, 0...24, with 0 just after SunRise</param>
         public void osSetRegionSunSettings(bool useEstateSun, bool sunFixed, double sunHour)
         {
-            CheckThreatLevel(ThreatLevel.Nuisance, "osSetRegionSunSettings");
+            CheckThreatLevel(ThreatLevel.High, "osSetRegionSunSettings");
 
             m_host.AddScriptLPS(1);
-            //Check to make sure that the script's owner is the estate manager/master
-            //World.Permissions.GenericEstatePermission(
-            if (World.Permissions.IsGod(m_host.OwnerID))
-            {
-                while (sunHour > 24.0)
-                    sunHour -= 24.0;
 
-                while (sunHour < 0)
-                    sunHour += 24.0;
+            while (sunHour > 24.0)
+                sunHour -= 24.0;
 
+            while (sunHour < 0)
+                sunHour += 24.0;
 
-                World.RegionInfo.RegionSettings.UseEstateSun = useEstateSun;
-                World.RegionInfo.RegionSettings.SunPosition  = sunHour + 6; // LL Region Sun Hour is 6 to 30
-                World.RegionInfo.RegionSettings.FixedSun     = sunFixed;
-                World.RegionInfo.RegionSettings.Save();
+            World.RegionInfo.RegionSettings.UseEstateSun = useEstateSun;
+            World.RegionInfo.RegionSettings.SunPosition  = sunHour + 6; // LL Region Sun Hour is 6 to 30
+            World.RegionInfo.RegionSettings.FixedSun     = sunFixed;
+            World.RegionInfo.RegionSettings.Save();
 
-                World.EventManager.TriggerEstateToolsSunUpdate(World.RegionInfo.RegionHandle, sunFixed, useEstateSun, (float)sunHour);
-            }
+            World.EventManager.TriggerEstateToolsSunUpdate(
+                World.RegionInfo.RegionHandle, sunFixed, useEstateSun, (float)sunHour);
         }
 
         /// <summary>
@@ -1232,26 +1227,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="sunHour">The "Sun Hour" that is desired, 0...24, with 0 just after SunRise</param>
         public void osSetEstateSunSettings(bool sunFixed, double sunHour)
         {
-            CheckThreatLevel(ThreatLevel.Nuisance, "osSetEstateSunSettings");
+            CheckThreatLevel(ThreatLevel.High, "osSetEstateSunSettings");
 
             m_host.AddScriptLPS(1);
-            //Check to make sure that the script's owner is the estate manager/master
-            //World.Permissions.GenericEstatePermission(
-            if (World.Permissions.IsGod(m_host.OwnerID))
-            {
-                while (sunHour > 24.0)
-                    sunHour -= 24.0;
 
-                while (sunHour < 0)
-                    sunHour += 24.0;
+            while (sunHour > 24.0)
+                sunHour -= 24.0;
 
-                World.RegionInfo.EstateSettings.UseGlobalTime = !sunFixed;
-                World.RegionInfo.EstateSettings.SunPosition = sunHour;
-                World.RegionInfo.EstateSettings.FixedSun = sunFixed;
-                World.RegionInfo.EstateSettings.Save();
+            while (sunHour < 0)
+                sunHour += 24.0;
 
-                World.EventManager.TriggerEstateToolsSunUpdate(World.RegionInfo.RegionHandle, sunFixed, World.RegionInfo.RegionSettings.UseEstateSun, (float)sunHour);
-            }
+            World.RegionInfo.EstateSettings.UseGlobalTime = !sunFixed;
+            World.RegionInfo.EstateSettings.SunPosition = sunHour;
+            World.RegionInfo.EstateSettings.FixedSun = sunFixed;
+            World.RegionInfo.EstateSettings.Save();
+
+            World.EventManager.TriggerEstateToolsSunUpdate(
+                World.RegionInfo.RegionHandle, sunFixed, World.RegionInfo.RegionSettings.UseEstateSun, (float)sunHour);
         }
 
         /// <summary>
@@ -1627,7 +1619,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public Object osParseJSONNew(string JSON)
         {
-            CheckThreatLevel(ThreatLevel.None, "osParseJSON");
+            CheckThreatLevel(ThreatLevel.None, "osParseJSONNew");
 
             m_host.AddScriptLPS(1);
 
@@ -1681,9 +1673,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Low, "osMessageObject");
             m_host.AddScriptLPS(1);
 
+            UUID objUUID;
+            if (!UUID.TryParse(objectUUID, out objUUID)) // prior to patching, a thrown exception regarding invalid GUID format would be shouted instead.
+            {
+                OSSLShoutError("osMessageObject() cannot send messages to objects with invalid UUIDs");
+                return;
+            }
+
             object[] resobj = new object[] { new LSL_Types.LSLString(m_host.UUID.ToString()), new LSL_Types.LSLString(message) };
 
-            SceneObjectPart sceneOP = World.GetSceneObjectPart(new UUID(objectUUID));
+            SceneObjectPart sceneOP = World.GetSceneObjectPart(objUUID);
+
+            if (sceneOP == null) // prior to patching, PostObjectEvent() would cause a throw exception to be shouted instead.
+            {
+                OSSLShoutError("osMessageObject() cannot send message to " + objUUID.ToString() + ", object was not found in scene.");
+                return;
+            }
 
             m_ScriptEngine.PostObjectEvent(
                 sceneOP.LocalId, new EventParams(
@@ -1826,8 +1831,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (a == null)
                     return UUID.Zero;
 
-                System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
-                string data = enc.GetString(a.Data);
+                string data = Encoding.UTF8.GetString(a.Data);
                 NotecardCache.Cache(assetID, data);
             };
 
@@ -1980,7 +1984,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             string retval = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
-            string url = config.Configs["GridInfo"].GetString("GridInfoURI", String.Empty);
+            string url = null;
+
+            IConfig gridInfoConfig = config.Configs["GridInfo"];
+
+            if (gridInfoConfig != null)
+                url = gridInfoConfig.GetString("GridInfoURI", String.Empty);
 
             if (String.IsNullOrEmpty(url))
                 return "Configuration Error!";
@@ -2042,8 +2051,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             string nick = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
 
-            if (config.Configs["GridInfo"] != null)
-                nick = config.Configs["GridInfo"].GetString("gridnick", nick);
+            if (config.Configs[GridInfoServiceConfigSectionName] != null)
+                nick = config.Configs[GridInfoServiceConfigSectionName].GetString("gridnick", nick);
 
             if (String.IsNullOrEmpty(nick))
                 nick = GridUserInfo(InfoType.Nick);
@@ -2059,8 +2068,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             string name = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
 
-            if (config.Configs["GridInfo"] != null)
-                name = config.Configs["GridInfo"].GetString("gridname", name);
+            if (config.Configs[GridInfoServiceConfigSectionName] != null)
+                name = config.Configs[GridInfoServiceConfigSectionName].GetString("gridname", name);
 
             if (String.IsNullOrEmpty(name))
                 name = GridUserInfo(InfoType.Name);
@@ -2076,8 +2085,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             string loginURI = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
 
-            if (config.Configs["GridInfo"] != null)
-                loginURI = config.Configs["GridInfo"].GetString("login", loginURI);
+            if (config.Configs[GridInfoServiceConfigSectionName] != null)
+                loginURI = config.Configs[GridInfoServiceConfigSectionName].GetString("login", loginURI);
 
             if (String.IsNullOrEmpty(loginURI))
                 loginURI = GridUserInfo(InfoType.Login);
@@ -2124,8 +2133,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             string retval = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
 
-            if (config.Configs["GridInfo"] != null)
-                retval = config.Configs["GridInfo"].GetString(key, retval);
+            if (config.Configs[GridInfoServiceConfigSectionName] != null)
+                retval = config.Configs[GridInfoServiceConfigSectionName].GetString(key, retval);
 
             if (String.IsNullOrEmpty(retval))
                 retval = GridUserInfo(InfoType.Custom, key);
@@ -2135,7 +2144,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String osFormatString(string str, LSL_List strings)
         {
-            CheckThreatLevel(ThreatLevel.Low, "osFormatString");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osFormatString");
             m_host.AddScriptLPS(1);
 
             return String.Format(str, strings.Data);
@@ -2143,7 +2152,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List osMatchString(string src, string pattern, int start)
         {
-            CheckThreatLevel(ThreatLevel.High, "osMatchString");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osMatchString");
             m_host.AddScriptLPS(1);
 
             LSL_List result = new LSL_List();
@@ -2185,7 +2194,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String osReplaceString(string src, string pattern, string replace, int count, int start)
         {
-            CheckThreatLevel(ThreatLevel.High, "osReplaceString");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osReplaceString");
             m_host.AddScriptLPS(1);
 
             // Normalize indices (if negative).
@@ -2480,7 +2489,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 
                 Vector3 pos = new Vector3((float) position.x, (float) position.y, (float) position.z);
-                module.MoveToTarget(npcId, World, pos, false, true);
+                module.MoveToTarget(npcId, World, pos, false, true, false);
             }
         }
 
@@ -2505,7 +2514,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     World,
                     pos,
                     (options & ScriptBaseClass.OS_NPC_NO_FLY) != 0,
-                    (options & ScriptBaseClass.OS_NPC_LAND_AT_TARGET) != 0);
+                    (options & ScriptBaseClass.OS_NPC_LAND_AT_TARGET) != 0,
+                    (options & ScriptBaseClass.OS_NPC_RUNNING) != 0);
             }
         }
 
@@ -2555,7 +2565,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osNpcStopMoveToTarget(LSL_Key npc)
         {
-            CheckThreatLevel(ThreatLevel.VeryLow, "osNpcStopMoveTo");
+            CheckThreatLevel(ThreatLevel.High, "osNpcStopMoveToTarget");
             m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
@@ -2572,6 +2582,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osNpcSay(LSL_Key npc, string message)
         {
+            osNpcSay(npc, 0, message);
+        }
+
+        public void osNpcSay(LSL_Key npc, int channel, string message)
+        {
             CheckThreatLevel(ThreatLevel.High, "osNpcSay");
             m_host.AddScriptLPS(1);
 
@@ -2583,7 +2598,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!module.CheckPermissions(npcId, m_host.OwnerID))
                     return;
 
-                module.Say(npcId, World, message);
+                module.Say(npcId, World, message, channel);
+            }
+        }
+
+        public void osNpcShout(LSL_Key npc, int channel, string message)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcShout");
+            m_host.AddScriptLPS(1);
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+
+                module.Shout(npcId, World, message, channel);
             }
         }
 
@@ -2681,6 +2713,58 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (module.CheckPermissions(npcID, m_host.OwnerID))
                     AvatarStopAnimation(npcID.ToString(), animation);
+            }
+        }
+
+        public void osNpcWhisper(LSL_Key npc, int channel, string message)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcWhisper");
+            m_host.AddScriptLPS(1);
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+
+                module.Whisper(npcId, World, message, channel);
+            }
+        }
+
+        public void osNpcTouch(LSL_Key npcLSL_Key, LSL_Key object_key, LSL_Integer link_num)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcTouch");
+            m_host.AddScriptLPS(1);
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            int linkNum = link_num.value;
+            if (module != null || (linkNum < 0 && linkNum != ScriptBaseClass.LINK_THIS))
+            {
+                UUID npcId;
+                if (!UUID.TryParse(npcLSL_Key, out npcId) || !module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+                SceneObjectPart part = null;
+                UUID objectId;
+                if (UUID.TryParse(LSL_String.ToString(object_key), out objectId))
+                    part = World.GetSceneObjectPart(objectId);
+                if (part == null)
+                    return;
+                if (linkNum != ScriptBaseClass.LINK_THIS)
+                {
+                    if (linkNum == 0 || linkNum == ScriptBaseClass.LINK_ROOT)
+                    { // 0 and 1 are treated as root, find the root if the current part isnt it
+                        if (!part.IsRoot)
+                            part = part.ParentGroup.RootPart;
+                    }
+                    else
+                    { // Find the prim with the given link number if not found then fail silently
+                        part = part.ParentGroup.GetLinkNumPart(linkNum);
+                        if (part == null)
+                            return;
+                    }
+                }
+                module.Touch(npcId, part.UUID);
             }
         }
 
@@ -2835,21 +2919,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Severe, "osKickAvatar");
             m_host.AddScriptLPS(1);
 
-            if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
+            World.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                World.ForEachRootScenePresence(delegate(ScenePresence sp)
+                if (sp.Firstname == FirstName && sp.Lastname == SurName)
                 {
-                    if (sp.Firstname == FirstName && sp.Lastname == SurName)
-                    {
-                        // kick client...
-                        if (alert != null)
-                            sp.ControllingClient.Kick(alert);
+                    // kick client...
+                    if (alert != null)
+                        sp.ControllingClient.Kick(alert);
 
-                        // ...and close on our side
-                        sp.Scene.IncomingCloseAgent(sp.UUID);
-                    }
-                });
-            }
+                    // ...and close on our side
+                    sp.Scene.IncomingCloseAgent(sp.UUID);
+                }
+            });
         }
         
         public void osCauseDamage(string avatar, double damage)
@@ -3094,6 +3175,152 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             groupsModule.EjectGroupMember(null, m_host.OwnerID, m_host.GroupID, agent);
 
             return ScriptBaseClass.TRUE;
+        }
+
+        /// <summary>
+        /// Sets terrain estate texture
+        /// </summary>
+        /// <param name="level"></param>
+        /// <param name="texture"></param>
+        /// <returns></returns>
+        public void osSetTerrainTexture(int level, LSL_Key texture)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osSetTerrainTexture");
+
+            m_host.AddScriptLPS(1);
+            //Check to make sure that the script's owner is the estate manager/master
+            //World.Permissions.GenericEstatePermission(
+            if (World.Permissions.IsGod(m_host.OwnerID))
+            {
+                if (level < 0 || level > 3)
+                    return;
+
+                UUID textureID = new UUID();
+                if (!UUID.TryParse(texture, out textureID))
+                    return;
+
+                // estate module is required
+                IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
+                if (estate != null)
+                    estate.setEstateTerrainBaseTexture(level, textureID);
+            }
+        }
+
+        /// <summary>
+        /// Sets terrain heights of estate
+        /// </summary>
+        /// <param name="corner"></param>
+        /// <param name="low"></param>
+        /// <param name="high"></param>
+        /// <returns></returns>
+        public void osSetTerrainTextureHeight(int corner, double low, double high)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osSetTerrainTextureHeight");
+
+            m_host.AddScriptLPS(1);
+            //Check to make sure that the script's owner is the estate manager/master
+            //World.Permissions.GenericEstatePermission(
+            if (World.Permissions.IsGod(m_host.OwnerID))
+            {
+                if (corner < 0 || corner > 3)
+                    return;
+
+                // estate module is required
+                IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
+                if (estate != null)
+                    estate.setEstateTerrainTextureHeights(corner, (float)low, (float)high);
+            }
+        }
+
+        public void osForceAttachToAvatar(int attachmentPoint)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osForceAttachToAvatar");
+
+            m_host.AddScriptLPS(1);
+
+            InitLSL();
+            ((LSL_Api)m_LSL_Api).AttachToAvatar(attachmentPoint);
+        }
+
+        public void osForceAttachToAvatarFromInventory(string itemName, int attachmentPoint)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osForceAttachToAvatarFromInventory");
+
+            m_host.AddScriptLPS(1);
+
+            ForceAttachToAvatarFromInventory(m_host.OwnerID, itemName, attachmentPoint);
+        }
+
+        public void osForceAttachToOtherAvatarFromInventory(string rawAvatarId, string itemName, int attachmentPoint)
+        {
+            CheckThreatLevel(ThreatLevel.Severe, "osForceAttachToOtherAvatarFromInventory");
+
+            m_host.AddScriptLPS(1);
+
+            UUID avatarId;
+
+            if (!UUID.TryParse(rawAvatarId, out avatarId))
+                return;
+
+            ForceAttachToAvatarFromInventory(avatarId, itemName, attachmentPoint);
+        }
+
+        public void ForceAttachToAvatarFromInventory(UUID avatarId, string itemName, int attachmentPoint)
+        {
+            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+
+            if (attachmentsModule == null)
+                return;
+
+            InitLSL();
+
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
+
+            if (item == null)
+            {
+                ((LSL_Api)m_LSL_Api).llSay(0, string.Format("Could not find object '{0}'", itemName));
+                throw new Exception(String.Format("The inventory item '{0}' could not be found", itemName));
+            }
+
+            if (item.InvType != (int)InventoryType.Object)
+            {
+                // FIXME: Temporary null check for regression tests since they dont' have the infrastructure to set
+                // up the api reference.  
+                if (m_LSL_Api != null)
+                    ((LSL_Api)m_LSL_Api).llSay(0, string.Format("Unable to attach, item '{0}' is not an object.", itemName));
+
+                throw new Exception(String.Format("The inventory item '{0}' is not an object", itemName));
+
+                return;
+            }
+
+            ScenePresence sp = World.GetScenePresence(avatarId);
+
+            if (sp == null)
+                return;
+
+            InventoryItemBase newItem = World.MoveTaskInventoryItem(sp.UUID, UUID.Zero, m_host, item.ItemID);
+
+            if (newItem == null)
+            {
+                m_log.ErrorFormat(
+                    "[OSSL API]: Could not create user inventory item {0} for {1}, attach point {2} in {3}",
+                    itemName, m_host.Name, attachmentPoint, World.Name);
+
+                return;
+            }
+
+            attachmentsModule.RezSingleAttachmentFromInventory(sp, newItem.ID, (uint)attachmentPoint);
+        }
+
+        public void osForceDetachFromAvatar()
+        {
+            CheckThreatLevel(ThreatLevel.High, "osForceDetachFromAvatar");
+
+            m_host.AddScriptLPS(1);
+
+            InitLSL();
+            ((LSL_Api)m_LSL_Api).DetachFromAvatar();
         }
     }
 }

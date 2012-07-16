@@ -52,6 +52,7 @@ namespace OpenSim.Services.InventoryService
             : this(config, "InventoryService")
         {
         }
+
         public XInventoryService(IConfigSource config, string configName) : base(config)
         {
             if (configName != string.Empty)
@@ -301,46 +302,62 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool AddFolder(InventoryFolderBase folder)
         {
-            //m_log.DebugFormat("[XINVENTORY]: Add folder {0} type {1} in parent {2}", folder.Name, folder.Type, folder.ParentID);
+//            m_log.DebugFormat("[XINVENTORY]: Add folder {0} type {1} in parent {2}", folder.Name, folder.Type, folder.ParentID);
+
             InventoryFolderBase check = GetFolder(folder);
             if (check != null)
                 return false;
 
-            if (folder.Type == (short)AssetType.Folder || folder.Type == (short)AssetType.Unknown ||
-                GetFolderForType(folder.Owner, (AssetType)(folder.Type)) == null)
+            if (folder.Type == (short)AssetType.Folder
+                || folder.Type == (short)AssetType.Unknown
+                || folder.Type == (short)AssetType.OutfitFolder
+                || GetFolderForType(folder.Owner, (AssetType)(folder.Type)) == null)
             {
                 XInventoryFolder xFolder = ConvertFromOpenSim(folder);
                 return m_Database.StoreFolder(xFolder);
             }
             else
-                m_log.DebugFormat("[XINVENTORY]: Folder {0} of type {1} already exists", folder.Name, folder.Type);
+            {
+                m_log.WarnFormat(
+                    "[XINVENTORY]: Folder of type {0} already exists when tried to add {1} to {2} for {3}",
+                    folder.Type, folder.Name, folder.ParentID, folder.Owner);
+            }
 
             return false;
         }
 
         public virtual bool UpdateFolder(InventoryFolderBase folder)
         {
-            //m_log.DebugFormat("[XINVENTORY]: Update folder {0} {1} ({2})", folder.Name, folder.Type, folder.ID);
+//            m_log.DebugFormat("[XINVENTORY]: Update folder {0} {1} ({2})", folder.Name, folder.Type, folder.ID);
+
             XInventoryFolder xFolder = ConvertFromOpenSim(folder);
             InventoryFolderBase check = GetFolder(folder);
+
             if (check == null)
                 return AddFolder(folder);
 
-            if (check.Type != -1 || xFolder.type != -1)
+            if ((check.Type != (short)AssetType.Unknown || xFolder.type != (short)AssetType.Unknown)
+                && (check.Type != (short)AssetType.OutfitFolder || xFolder.type != (short)AssetType.OutfitFolder))
             {
                 if (xFolder.version < check.Version)
                 {
-                    //m_log.DebugFormat("[XINVENTORY]: {0} < {1} can't do", xFolder.version, check.Version);
+//                    m_log.DebugFormat("[XINVENTORY]: {0} < {1} can't do", xFolder.version, check.Version);
                     return false;
                 }
+
                 check.Version = (ushort)xFolder.version;
                 xFolder = ConvertFromOpenSim(check);
-                //m_log.DebugFormat("[XINVENTORY]: Storing {0} {1} {2}", xFolder.folderName, xFolder.version, xFolder.type);
+
+//                m_log.DebugFormat(
+//                    "[XINVENTORY]: Storing version only update to system folder {0} {1} {2}",
+//                    xFolder.folderName, xFolder.version, xFolder.type);
+
                 return m_Database.StoreFolder(xFolder);
             }
 
             if (xFolder.version < check.Version)
                 xFolder.version = check.Version;
+
             xFolder.folderID = check.ID;
 
             return m_Database.StoreFolder(xFolder);
@@ -364,6 +381,11 @@ namespace OpenSim.Services.InventoryService
         //
         public virtual bool DeleteFolders(UUID principalID, List<UUID> folderIDs)
         {
+            return DeleteFolders(principalID, folderIDs, true);
+        }
+
+        public virtual bool DeleteFolders(UUID principalID, List<UUID> folderIDs, bool onlyIfTrash)
+        {
             if (!m_AllowDelete)
                 return false;
 
@@ -371,11 +393,12 @@ namespace OpenSim.Services.InventoryService
             //
             foreach (UUID id in folderIDs)
             {
-                if (!ParentIsTrash(id))
+                if (onlyIfTrash && !ParentIsTrash(id))
                     continue;
+                //m_log.InfoFormat("[XINVENTORY SERVICE]: Delete folder {0}", id);
                 InventoryFolderBase f = new InventoryFolderBase();
                 f.ID = id;
-                PurgeFolder(f);
+                PurgeFolder(f, onlyIfTrash);
                 m_Database.DeleteFolders("folderID", id.ToString());
             }
 
@@ -384,10 +407,15 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool PurgeFolder(InventoryFolderBase folder)
         {
+            return PurgeFolder(folder, true);
+        }
+
+        public virtual bool PurgeFolder(InventoryFolderBase folder, bool onlyIfTrash)
+        {
             if (!m_AllowDelete)
                 return false;
 
-            if (!ParentIsTrash(folder.ID))
+            if (onlyIfTrash && !ParentIsTrash(folder.ID))
                 return false;
 
             XInventoryFolder[] subFolders = m_Database.GetFolders(
@@ -396,7 +424,7 @@ namespace OpenSim.Services.InventoryService
 
             foreach (XInventoryFolder x in subFolders)
             {
-                PurgeFolder(ConvertToOpenSim(x));
+                PurgeFolder(ConvertToOpenSim(x), onlyIfTrash);
                 m_Database.DeleteFolders("folderID", x.folderID.ToString());
             }
 
@@ -408,14 +436,13 @@ namespace OpenSim.Services.InventoryService
         public virtual bool AddItem(InventoryItemBase item)
         {
 //            m_log.DebugFormat(
-//                "[XINVENTORY SERVICE]: Adding item {0} to folder {1} for {2}", item.ID, item.Folder, item.Owner);
+//                "[XINVENTORY SERVICE]: Adding item {0} {1} to folder {2} for {3}", item.Name, item.ID, item.Folder, item.Owner);
             
             return m_Database.StoreItem(ConvertFromOpenSim(item));
         }
 
         public virtual bool UpdateItem(InventoryItemBase item)
         {
-//            throw new Exception("urrgh");
             if (!m_AllowDelete)
                 if (item.AssetType == (sbyte)AssetType.Link || item.AssetType == (sbyte)AssetType.LinkFolder)
                     return false;

@@ -49,11 +49,15 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="folderID"></param>
         /// <param name="objectGroups"></param>
         /// <param name="remoteClient"></param>
+        /// <param name="asAttachment">
+        /// Should be true if the object(s) are begin taken as attachments.  False otherwise.
+        /// </param>
         /// <returns>
-        /// Returns the UUID of the newly created item asset (not the item itself).
-        /// FIXME: This is not very useful.  It would be far more useful to return a list of items instead.
+        /// A list of the items created.  If there was more than one object and objects are not being coaleseced in
+        /// inventory, then the order of items is in the same order as the input objects.
         /// </returns>
-        UUID CopyToInventory(DeRezAction action, UUID folderID, List<SceneObjectGroup> objectGroups, IClientAPI remoteClient);
+        List<InventoryItemBase> CopyToInventory(
+            DeRezAction action, UUID folderID, List<SceneObjectGroup> objectGroups, IClientAPI remoteClient, bool asAttachment);
 
         /// <summary>
         /// Rez an object into the scene from the user's inventory

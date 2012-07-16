@@ -61,7 +61,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             SerialiserModule serialiserModule = new SerialiserModule();
             m_archiverModule = new InventoryArchiverModule();
 
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, serialiserModule, m_archiverModule);            
         }
                 

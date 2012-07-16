@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using OpenMetaverse;
+using System.Runtime.Serialization;
 
 namespace OpenSim.Framework
 {
@@ -70,6 +71,32 @@ namespace OpenSim.Framework
             offset *= rot;
 
             return pos + offset;
+        }
+
+        /// <summary>
+        /// Returns a string representation of this SpawnPoint.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return string.Format("{0},{1},{2}", Yaw, Pitch, Distance);
+        }
+
+        /// <summary>
+        /// Generate a SpawnPoint from a string
+        /// </summary>
+        /// <param name="str"></param>
+        public static SpawnPoint Parse(string str)
+        {
+            string[] parts = str.Split(',');
+            if (parts.Length != 3)
+                throw new ArgumentException("Invalid string: " + str);
+            
+            SpawnPoint sp = new SpawnPoint();
+            sp.Yaw = float.Parse(parts[0]);
+            sp.Pitch = float.Parse(parts[1]);
+            sp.Distance = float.Parse(parts[2]);
+            return sp;
         }
     }
 
@@ -478,7 +505,7 @@ namespace OpenSim.Framework
         }
 
         // Connected Telehub object
-        private UUID m_TelehubObject;
+        private UUID m_TelehubObject = UUID.Zero;
         public UUID TelehubObject
         {
             get

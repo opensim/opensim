@@ -57,17 +57,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     {
         internal IScriptEngine m_ScriptEngine;
         internal SceneObjectPart m_host;
-        internal uint m_localID;
-        internal UUID m_itemID;
+        internal TaskInventoryItem m_item;
         internal bool m_MODFunctionsEnabled = false;
         internal IScriptModuleComms m_comms = null;
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
+        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;
-            m_localID = localID;
-            m_itemID = itemID;
+            m_item = item;
 
             if (m_ScriptEngine.Config.GetBoolean("AllowMODFunctions", false))
                 m_MODFunctionsEnabled = true;
@@ -252,7 +250,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // non-null but don't trust it completely
             try 
             {
-                object result = m_comms.InvokeOperation(m_host.UUID, m_itemID, fname, convertedParms);
+                object result = m_comms.InvokeOperation(m_host.UUID, m_item.ItemID, fname, convertedParms);
                 if (result != null)
                     return result;
 
@@ -279,7 +277,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UUID req = UUID.Random();
 
-            m_comms.RaiseEvent(m_itemID, req.ToString(), module, command, k);
+            m_comms.RaiseEvent(m_item.ItemID, req.ToString(), module, command, k);
 
             return req.ToString();
         }
