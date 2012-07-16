@@ -1632,13 +1632,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
-        public void SetRunEnable(UUID instanceID, bool enable)
-        {
-            IScriptInstance instance = GetInstance(instanceID);
-            if (instance != null)
-                instance.Run = enable;
-        }
-
         public bool GetScriptState(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
