@@ -355,6 +355,8 @@ namespace OpenSim.Region.Framework.Scenes
             AssetBase asset = m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString());
             if (null == asset)
             {
+                string msg = String.Format("asset ID {0} could not be found", item.AssetID);
+                StoreScriptError(item.ItemID, msg);
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: Couldn't start script {0}, {1} at {2} in {3} since asset ID {4} could not be found",
                     item.Name, item.ItemID, m_part.AbsolutePosition, 
@@ -366,13 +368,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_part.ParentGroup.m_savedScriptState != null)
                     item.OldItemID = RestoreSavedScriptState(item.LoadedItemID, item.OldItemID, item.ItemID);
-
-                string msg = String.Format("asset ID {0} could not be found", item.AssetID);
-                StoreScriptError(item.ItemID, msg);
-                m_log.ErrorFormat(
-                        "[PRIM INVENTORY]: Couldn't start script {0}, {1} at {2} in {3} since asset ID {4} could not be found",
-                        item.Name, item.ItemID, m_part.AbsolutePosition, 
-                        m_part.ParentGroup.Scene.RegionInfo.RegionName, item.AssetID);
 
                 m_items.LockItemsForWrite(true);
 

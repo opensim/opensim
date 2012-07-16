@@ -639,7 +639,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGridService = sceneGridService;
             m_SimulationDataService = simDataService;
             m_EstateDataService = estateDataService;
-            m_regionHandle = m_regInfo.RegionHandle;
+            m_regionHandle = RegionInfo.RegionHandle;
             m_lastIncoming = 0;
             m_lastOutgoing = 0;
 
@@ -4156,7 +4156,7 @@ namespace OpenSim.Region.Framework.Scenes
             // We have to wait until the viewer contacts this region after receiving EAC.
             // That calls AddNewClient, which finally creates the ScenePresence
             int flags = GetUserFlags(cAgentData.AgentID);
-            if (m_regInfo.EstateSettings.IsBanned(cAgentData.AgentID, flags))
+            if (RegionInfo.EstateSettings.IsBanned(cAgentData.AgentID, flags))
             {
                 m_log.DebugFormat("[SCENE]: Denying root agent entry to {0}: banned", cAgentData.AgentID);
                 return false;
