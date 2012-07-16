@@ -2470,8 +2470,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Rotation llGetLocalRot()
         {
+            return GetPartLocalRot(m_host);
+        }
+
+        private LSL_Rotation GetPartLocalRot(SceneObjectPart part)
+        {
             m_host.AddScriptLPS(1);
-            Quaternion rot = m_host.RotationOffset;
+            Quaternion rot = part.RotationOffset;
             return new LSL_Rotation(rot.X, rot.Y, rot.Z, rot.W);
         }
 
@@ -8029,10 +8034,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 LSL_Rotation localRot = ScriptBaseClass.ZERO_ROTATION;
                                 LSL_Vector localPos = ScriptBaseClass.ZERO_VECTOR;
-                                if (llGetLinkNumber() > 1)
+                                if (part.LinkNum > 1)
                                 {
-                                    localRot = llGetLocalRot();
-                                    localPos = llGetLocalPos();
+                                    localRot = GetPartLocalRot(part);
+                                    localPos = GetPartLocalPos(part);
                                 }
 
                                 v -= localPos;
@@ -8054,17 +8059,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (remain < 1)
                                     return;
 
+                                LSL_Rotation r;
+                                r = rules.GetQuaternionItem(idx++);
+
+                                SceneObjectPart part = World.GetSceneObjectPart(av.ParentID);
+                                if (part == null)
+                                    break;
+
                                 LSL_Rotation localRot = ScriptBaseClass.ZERO_ROTATION;
                                 LSL_Vector localPos = ScriptBaseClass.ZERO_VECTOR;
 
-                                if (llGetLinkNumber() > 1)
-                                {
-                                    localRot = llGetLocalRot();
-                                    localPos = llGetLocalPos();
-                                }
+                                if (part.LinkNum > 1)
+                                    localRot = GetPartLocalRot(part);
 
-                                LSL_Rotation r;
-                                r = rules.GetQuaternionItem(idx++);
                                 r = r * llGetRootRotation() / localRot;
                                 av.Rotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
                                 av.SendAvatarDataToAllAgents();
