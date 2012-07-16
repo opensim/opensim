@@ -154,6 +154,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         protected void OnRequestCallbackTimeout(object source, ElapsedEventArgs args)
         {
+            bool close = true;
+
             try
             {
                 lock (this)
@@ -161,7 +163,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     // Take care of the possibilty that this thread started but was paused just outside the lock before
                     // the final request came in (assuming that such a thing is possible)
                     if (m_requestState == RequestState.Completed)
+                    {
+                        close = false;
                         return;
+                    }
                     
                     m_requestState = RequestState.Aborted;
                 }
@@ -208,7 +213,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
             finally
             {
-                m_assetsArchiver.ForceClose();
+                if (close)
+                    m_assetsArchiver.ForceClose();
             }
         }
 
@@ -242,11 +248,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     
                     m_requestCallbackTimer.Stop();
                     
-                    if (m_requestState == RequestState.Aborted)
+                    if ((m_requestState == RequestState.Aborted) || (m_requestState == RequestState.Completed))
                     {
                         m_log.WarnFormat(
-                            "[ARCHIVER]: Received information about asset {0} after archive save abortion.  Ignoring.", 
-                            id);
+                            "[ARCHIVER]: Received information about asset {0} while in state {1}.  Ignoring.", 
+                            id, m_requestState);
 
                         return;
                     }
@@ -268,7 +274,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         m_notFoundAssetUuids.Add(new UUID(id));
                     }
         
-                    if (m_foundAssetUuids.Count + m_notFoundAssetUuids.Count == m_repliesRequired)
+                    if (m_foundAssetUuids.Count + m_notFoundAssetUuids.Count >= m_repliesRequired)
                     {
                         m_requestState = RequestState.Completed;
                         
