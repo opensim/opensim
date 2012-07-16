@@ -321,26 +321,25 @@ namespace OpenSim.Region.UserStatistics
         {
             lock (m_sessions)
             {
+                UserSessionID uid;
+
                 if (!m_sessions.ContainsKey(agent.UUID))
                 {
                     UserSessionData usd = UserSessionUtil.newUserSessionData();
-
-                    UserSessionID uid = new UserSessionID();
+                    uid = new UserSessionID();
                     uid.name_f = agent.Firstname;
                     uid.name_l = agent.Lastname;
-                    uid.region_id = agent.Scene.RegionInfo.RegionID;
-                    uid.session_id = agent.ControllingClient.SessionId;
                     uid.session_data = usd;
 
                     m_sessions.Add(agent.UUID, uid);
                 }
                 else
                 {
-                    UserSessionID uid = m_sessions[agent.UUID];
-                    uid.region_id = agent.Scene.RegionInfo.RegionID;
-                    uid.session_id = agent.ControllingClient.SessionId;
-                    m_sessions[agent.UUID] = uid;
+                    uid = m_sessions[agent.UUID];
                 }
+
+                uid.region_id = agent.Scene.RegionInfo.RegionID;
+                uid.session_id = agent.ControllingClient.SessionId;
             }
         }
 
