@@ -879,6 +879,8 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter = new SimStatsReporter(this);
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
+
+            MainConsole.Instance.Commands.AddCommand("scene", false, "gc collect", "gc collect", "gc collect", "Cause the garbage collector to make a single pass", HandleGcCollect);
         }
 
         public Scene(RegionInfo regInfo) : base(regInfo)
@@ -5772,6 +5774,11 @@ Environment.Exit(1);
             if (m_SpawnPoint > spawnpoints)
                 m_SpawnPoint = 1;
             return m_SpawnPoint - 1;
+        }
+
+        private void HandleGcCollect(string module, string[] args)
+        {
+            GC.Collect();
         }
     }
 }

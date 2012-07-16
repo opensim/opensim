@@ -36,7 +36,6 @@ using System.Xml;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.Framework.Scenes.Serialization;
-using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -215,7 +214,7 @@ namespace OpenSim.Region.Framework.Scenes
             switch (pParam)
             {
                 case Vehicle.REFERENCE_FRAME:
-                    vd.m_referenceFrame = Quaternion.Inverse(pValue);
+                    vd.m_referenceFrame = pValue;
                     break;
             }
         }//end ProcessRotationVehicleParam

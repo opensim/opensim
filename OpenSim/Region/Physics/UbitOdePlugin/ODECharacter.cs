@@ -95,7 +95,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_iscollidingObj = false;
         private bool m_alwaysRun = false;
         private int m_requestedUpdateFrequency = 0;
-        public uint m_localID = 0;
+        private uint m_localID = 0;
         public bool m_returnCollisions = false;
         // taints and their non-tainted counterparts
         public bool m_isPhysical = false; // the current physical status
@@ -214,6 +214,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override uint LocalID
         {
+            get { return m_localID; }     
             set { m_localID = value; }
         }
 
