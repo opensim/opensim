@@ -2470,8 +2470,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Rotation llGetLocalRot()
         {
+            return GetPartLocalRot(m_host);
+        }
+
+        private LSL_Rotation GetPartLocalRot(SceneObjectPart part)
+        {
             m_host.AddScriptLPS(1);
-            Quaternion rot = m_host.RotationOffset;
+            Quaternion rot = part.RotationOffset;
             return new LSL_Rotation(rot.X, rot.Y, rot.Z, rot.W);
         }
 
@@ -8000,7 +8005,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //This is a special version of SetPrimParams to deal with avatars which are sat on the linkset.
 
             int idx = 0;
-            SceneObjectPart sitpart = World.GetSceneObjectPart(av.ParentID); // betting this will be used
 
             bool positionChanged = false;
             Vector3 finalPos = Vector3.Zero;
@@ -8015,81 +8019,62 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     switch (code)
                     {
-                        // a avatar is a child 
                         case (int)ScriptBaseClass.PRIM_POSITION:
                         case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                             {
                                 if (remain < 1)
                                     return;
+
                                 LSL_Vector v;
                                 v = rules.GetVector3Item(idx++);
 
-                                if (sitpart == null)
+                                SceneObjectPart part = World.GetSceneObjectPart(av.ParentID);
+                                if (part == null)
                                     break;
 
-                                Vector3 pos = new Vector3((float)v.x, (float)v.y, (float)v.z); // requested absolute position
-
-                                if (sitpart != sitpart.ParentGroup.RootPart)
+                                LSL_Rotation localRot = ScriptBaseClass.ZERO_ROTATION;
+                                LSL_Vector localPos = ScriptBaseClass.ZERO_VECTOR;
+                                if (part.LinkNum > 1)
                                 {
-                                    pos -= sitpart.OffsetPosition; // remove sit part offset
-                                    Quaternion rot = sitpart.RotationOffset;
-                                    pos *= Quaternion.Conjugate(rot); // removed sit part rotation
+                                    localRot = GetPartLocalRot(part);
+                                    localPos = GetPartLocalPos(part);
                                 }
-                                Vector3 sitOffset = (Zrot(av.Rotation)) * (av.Appearance.AvatarHeight * 0.02638f * 2.0f);
-                                pos += sitOffset;
 
-                                finalPos = pos;
-                                positionChanged = true;
+                                v -= localPos;
+                                v /= localRot;
+
+                                LSL_Vector sitOffset = (llRot2Up(new LSL_Rotation(av.Rotation.X, av.Rotation.Y, av.Rotation.Z, av.Rotation.W)) * av.Appearance.AvatarHeight * 0.02638f);
+
+                                v = v + 2 * sitOffset;
+
+                                av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
+                                av.SendAvatarDataToAllAgents();
+
                             }
                             break;
 
+                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                         case (int)ScriptBaseClass.PRIM_ROTATION:
                             {
                                 if (remain < 1)
                                     return;
 
-                                if (sitpart == null)
+                                LSL_Rotation r;
+                                r = rules.GetQuaternionItem(idx++);
+
+                                SceneObjectPart part = World.GetSceneObjectPart(av.ParentID);
+                                if (part == null)
                                     break;
 
-                                LSL_Rotation r = rules.GetQuaternionItem(idx++);
-                                Quaternion rot = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s); // requested world rotation
-                                
-                                SceneObjectGroup sitgrp = sitpart.ParentGroup;
-                                if (sitgrp != null)
-                                {
-                                    // need to replicate SL bug
-                                    rot = sitgrp.RootPart.RotationOffset * rot;
-                                    if (sitgrp.RootPart != sitpart)
-                                    {
-                                        Quaternion srot = sitpart.RotationOffset;
-                                        rot = Quaternion.Conjugate(srot) * rot; // removed sit part offset rotation
-                                    }
+                                LSL_Rotation localRot = ScriptBaseClass.ZERO_ROTATION;
+                                LSL_Vector localPos = ScriptBaseClass.ZERO_VECTOR;
 
-                                    av.Rotation = rot;
-                                    //                                av.SendAvatarDataToAllAgents();
-                                    av.SendTerseUpdateToAllClients();
-                                }
-                            }
-                            break;
+                                if (part.LinkNum > 1)
+                                    localRot = GetPartLocalRot(part);
 
-                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
-                            {
-                                if (remain < 1)
-                                    return;
-
-                                if (sitpart == null)
-                                    break;
-
-                                LSL_Rotation r = rules.GetQuaternionItem(idx++);
-                                Quaternion rot = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s); // requested offset rotation
-                                if (sitpart != sitpart.ParentGroup.RootPart)
-                                {
-                                    Quaternion srot = sitpart.RotationOffset;
-                                    rot = Quaternion.Conjugate(srot) * rot; // remove sit part offset rotation
-                                }
-                                av.Rotation = rot;
-//                                av.SendAvatarDataToAllAgents();
-                                av.SendTerseUpdateToAllClients();
+                                r = r * llGetRootRotation() / localRot;
+                                av.Rotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
+                                av.SendAvatarDataToAllAgents();
                             }
                             break;
 
