@@ -57,7 +57,12 @@ namespace OpenSim.Region.UserStatistics
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private static SqliteConnection dbConn;
+
+        /// <summary>
+        /// User statistics sessions keyed by agent ID
+        /// </summary>
         private Dictionary<UUID, UserSessionID> m_sessions = new Dictionary<UUID, UserSessionID>();
+
         private List<Scene> m_scenes = new List<Scene>();
         private Dictionary<string, IStatsController> reports = new Dictionary<string, IStatsController>();
         private Dictionary<UUID, USimStatsData> m_simstatsCounters = new Dictionary<UUID, USimStatsData>(); 
@@ -308,7 +313,6 @@ namespace OpenSim.Region.UserStatistics
                     scene.EventManager.OnDeregisterCaps += OnDeRegisterCaps;
                     scene.EventManager.OnClientClosed += OnClientClosed;
                     scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
-                    scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
                 }
             }
         }
@@ -342,15 +346,11 @@ namespace OpenSim.Region.UserStatistics
             }
         }
 
-        private void OnMakeChildAgent(ScenePresence agent)
-        {
-        }
-
         private void OnClientClosed(UUID agentID, Scene scene)
         {
             lock (m_sessions)
             {
-                if (m_sessions.ContainsKey(agentID))
+                if (m_sessions.ContainsKey(agentID) && m_sessions[agentID].region_id == scene.RegionInfo.RegionID)
                 {
                     m_sessions.Remove(agentID);
                 }
