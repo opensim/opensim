@@ -64,16 +64,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         bool Running { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this
-        /// <see cref="OpenSim.Region.ScriptEngine.Interfaces.IScriptInstance"/> is run.
-        /// For viewer script editor control
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if run; otherwise, <c>false</c>.
-        /// </value>
-        bool Run { get; set; }
-
-        /// <summary>
         /// Is the script suspended?
         /// </summary>
         bool Suspended { get; set; }

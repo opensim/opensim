@@ -121,8 +121,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public bool Running { get; set; }
 
-        public bool Run { get; set; }
-
         public bool Suspended
         {
             get { return m_Suspended; }
@@ -218,7 +216,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_postOnRez = postOnRez;
             m_AttachedAvatar = part.ParentGroup.AttachedAvatar;
             m_RegionID = part.ParentGroup.Scene.RegionInfo.RegionID;
-            Run = true;
 
             if (part != null)
             {
@@ -360,9 +357,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             if (m_startedFromSavedState) 
             {
-                if (!Run)
-                    return;
-
                 Start();
                 if (m_postOnRez) 
                 {
@@ -395,9 +389,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
             else 
             {
-                if (!Run)
-                    return;
-
                 Start();
                 PostEvent(new EventParams("state_entry",
                                           new Object[0], new DetectParams[0]));

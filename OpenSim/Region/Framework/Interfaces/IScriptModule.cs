@@ -77,8 +77,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="itemID">The item ID of the script.</param>
         bool GetScriptState(UUID itemID);
 
-        void SetRunEnable(UUID instanceID, bool enable);
-
         void SaveAllState();
 
         /// <summary>
