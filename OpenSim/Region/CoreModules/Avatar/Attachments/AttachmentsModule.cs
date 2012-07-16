@@ -566,11 +566,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     item.InvType = (int)InventoryType.Object;
 
                     m_scene.InventoryService.UpdateItem(item);
-
-                    // this gets called when the agent logs off!
-                    if (sp.ControllingClient != null)
-                        sp.ControllingClient.SendInventoryItemCreateUpdate(item, 0);
                 }
+                
                 grp.HasGroupChanged = false; // Prevent it being saved over and over
             }
 //            else
