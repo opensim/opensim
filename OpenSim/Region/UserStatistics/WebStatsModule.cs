@@ -319,8 +319,6 @@ namespace OpenSim.Region.UserStatistics
 
         private void OnMakeRootAgent(ScenePresence agent)
         {
-            UUID regionUUID = GetRegionUUIDFromHandle(agent.RegionHandle);
-
             lock (m_sessions)
             {
                 if (!m_sessions.ContainsKey(agent.UUID))
@@ -330,7 +328,7 @@ namespace OpenSim.Region.UserStatistics
                     UserSessionID uid = new UserSessionID();
                     uid.name_f = agent.Firstname;
                     uid.name_l = agent.Lastname;
-                    uid.region_id = regionUUID;
+                    uid.region_id = agent.Scene.RegionInfo.RegionID;
                     uid.session_id = agent.ControllingClient.SessionId;
                     uid.session_data = usd;
 
@@ -339,7 +337,7 @@ namespace OpenSim.Region.UserStatistics
                 else
                 {
                     UserSessionID uid = m_sessions[agent.UUID];
-                    uid.region_id = regionUUID;
+                    uid.region_id = agent.Scene.RegionInfo.RegionID;
                     uid.session_id = agent.ControllingClient.SessionId;
                     m_sessions[agent.UUID] = uid;
                 }
@@ -393,20 +391,6 @@ namespace OpenSim.Region.UserStatistics
             fs.Close();
             fs.Dispose();
             return encoding.GetString(buffer);
-        }
-
-        private UUID GetRegionUUIDFromHandle(ulong regionhandle)
-        {
-            lock (m_scenes)
-            {
-                foreach (Scene scene in m_scenes)
-                {
-                    if (scene.RegionInfo.RegionHandle == regionhandle)
-                        return scene.RegionInfo.RegionID;
-                }
-            }
-
-            return UUID.Zero;
         }
 
         /// <summary>
