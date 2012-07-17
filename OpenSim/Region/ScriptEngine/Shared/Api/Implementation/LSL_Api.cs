@@ -3988,22 +3988,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (agentItem == null)
                     return;
 
-                byte[] bucket = new byte[17];
-                bucket[0] = (byte)assetType;
-                byte[] objBytes = agentItem.ID.GetBytes();
-                Array.Copy(objBytes, 0, bucket, 1, 16);
-
-                GridInstantMessage msg = new GridInstantMessage(World,
-                        m_host.UUID, m_host.Name+", an object owned by "+
-                        resolveName(m_host.OwnerID)+",", destId,
-                        (byte)InstantMessageDialog.TaskInventoryOffered,
-                        false, objName+"\n"+m_host.Name+" is located at "+
-                        World.RegionInfo.RegionName+" "+
-                        m_host.AbsolutePosition.ToString(),
-                        agentItem.ID, true, m_host.AbsolutePosition,
-                        bucket);
                 if (m_TransferModule != null)
+                {
+                    byte[] bucket = new byte[] { (byte)assetType };
+                    
+                    GridInstantMessage msg = new GridInstantMessage(World,
+                            m_host.UUID, m_host.Name + ", an object owned by " +
+                            resolveName(m_host.OwnerID) + ",", destId,
+                            (byte)InstantMessageDialog.TaskInventoryOffered,
+                            false, objName + "\n" + m_host.Name + " is located at " +
+                            World.RegionInfo.RegionName + " " +
+                            m_host.AbsolutePosition.ToString(),
+                            agentItem.ID, true, m_host.AbsolutePosition,
+                            bucket);
+
                     m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
+                }
+
                 ScriptSleep(3000);
             }
         }
@@ -6410,23 +6411,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (folderID == UUID.Zero)
                 return;
 
-            byte[] bucket = new byte[17];
-            bucket[0] = (byte)AssetType.Folder;
-            byte[] objBytes = folderID.GetBytes();
-            Array.Copy(objBytes, 0, bucket, 1, 16);
-
-            GridInstantMessage msg = new GridInstantMessage(World,
-                    m_host.UUID, m_host.Name + ", an object owned by " +
-                    resolveName(m_host.OwnerID) + ",", destID,
-                    (byte)InstantMessageDialog.InventoryOffered,
-                    false, category + "\n" + m_host.Name + " is located at " +
-                    World.RegionInfo.RegionName + " " +
-                    m_host.AbsolutePosition.ToString(),
-                    folderID, true, m_host.AbsolutePosition,
-                    bucket);
-
             if (m_TransferModule != null)
+            {
+                byte[] bucket = new byte[] { (byte)AssetType.Folder };
+    
+                GridInstantMessage msg = new GridInstantMessage(World,
+                        m_host.UUID, m_host.Name + ", an object owned by " +
+                        resolveName(m_host.OwnerID) + ",", destID,
+                        (byte)InstantMessageDialog.TaskInventoryOffered,
+                        false, category + "\n" + m_host.Name + " is located at " +
+                        World.RegionInfo.RegionName + " " +
+                        m_host.AbsolutePosition.ToString(),
+                        folderID, true, m_host.AbsolutePosition,
+                        bucket);
+
                 m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
+            }
         }
 
         public void llSetVehicleType(int type)
