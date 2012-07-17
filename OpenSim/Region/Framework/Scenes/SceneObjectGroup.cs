@@ -3066,7 +3066,7 @@ namespace OpenSim.Region.Framework.Scenes
             part.LinkNum = linkNum;
 
             // Compute the new position of this SOP relative to the group position
-            part.OffsetPosition = part.GroupPosition - AbsolutePosition;
+            part.OffsetPosition = newPos - AbsolutePosition;
 
             // (radams1 20120711: I don't know why part.OffsetPosition is set multiple times.
             //   It would have the affect of setting the physics engine position multiple 
@@ -3087,7 +3087,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Since this SOP's state has changed, push those changes into the physics engine
             //    and the simulator.
-            part.UpdatePrimFlags(UsesPhysics, IsTemporary, IsPhantom, IsVolumeDetect, false);
+            // done on caller
+//            part.UpdatePrimFlags(UsesPhysics, IsTemporary, IsPhantom, IsVolumeDetect, false);
         }
 
         /// <summary>
