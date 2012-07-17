@@ -79,29 +79,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 
         public void OnConnectionClose(IClientAPI client)
         {
-            if (client.IsLoggingOut)
-            {
-                object sp = null;
-                Vector3 position = new Vector3(128, 128, 0);
-                Vector3 lookat = new Vector3(0, 1, 0);
+            if (client.SceneAgent.IsChildAgent)
+                return;
 
-                if (client.Scene.TryGetScenePresence(client.AgentId, out sp))
-                {
-                    if (sp is ScenePresence)
-                    {
-                        if (((ScenePresence)sp).IsChildAgent)
-                            return;
-
-                        position = ((ScenePresence)sp).AbsolutePosition;
-                        lookat = ((ScenePresence)sp).Lookat;
-                    }
-                }
-
-//                m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
-                m_GridUserService.LoggedOut(client.AgentId.ToString(), client.SessionId, client.Scene.RegionInfo.RegionID, position, lookat);
-            }
-
+//            m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
+            m_GridUserService.LoggedOut(
+                client.AgentId.ToString(), client.SessionId, client.Scene.RegionInfo.RegionID,
+                client.SceneAgent.AbsolutePosition, client.SceneAgent.Lookat);
         }
-
     }
 }

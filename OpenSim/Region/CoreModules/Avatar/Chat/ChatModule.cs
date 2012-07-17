@@ -266,7 +266,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                                     receiverIDs.Add(presence.UUID);
                             }
                         }
-
                     }
                 );
             }

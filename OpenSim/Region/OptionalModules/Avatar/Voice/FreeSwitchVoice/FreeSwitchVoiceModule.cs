@@ -306,30 +306,35 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 agentID, caps, scene.RegionInfo.RegionName);
 
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
-            caps.RegisterHandler("ProvisionVoiceAccountRequest",
-                                 new RestStreamHandler("POST", capsBase + m_provisionVoiceAccountRequestPath,
-                                                       delegate(string request, string path, string param,
-                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-                                                       {
-                                                           return ProvisionVoiceAccountRequest(scene, request, path, param,
-                                                                                               agentID, caps);
-                                                       }));
-            caps.RegisterHandler("ParcelVoiceInfoRequest",
-                                 new RestStreamHandler("POST", capsBase + m_parcelVoiceInfoRequestPath,
-                                                       delegate(string request, string path, string param,
-                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-                                                       {
-                                                           return ParcelVoiceInfoRequest(scene, request, path, param,
-                                                                                         agentID, caps);
-                                                       }));
-            caps.RegisterHandler("ChatSessionRequest",
-                                 new RestStreamHandler("POST", capsBase + m_chatSessionRequestPath,
-                                                       delegate(string request, string path, string param,
-                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-                                                       {
-                                                           return ChatSessionRequest(scene, request, path, param,
-                                                                                     agentID, caps);
-                                                       }));
+            caps.RegisterHandler(
+                "ProvisionVoiceAccountRequest",
+                new RestStreamHandler(
+                    "POST",
+                    capsBase + m_provisionVoiceAccountRequestPath,
+                    (request, path, param, httpRequest, httpResponse)
+                        => ProvisionVoiceAccountRequest(scene, request, path, param, agentID, caps),
+                    "ProvisionVoiceAccountRequest",
+                    agentID.ToString()));
+
+            caps.RegisterHandler(
+                "ParcelVoiceInfoRequest",
+                new RestStreamHandler(
+                    "POST",
+                    capsBase + m_parcelVoiceInfoRequestPath,
+                        (request, path, param, httpRequest, httpResponse)
+                            => ParcelVoiceInfoRequest(scene, request, path, param, agentID, caps),
+                    "ParcelVoiceInfoRequest",
+                    agentID.ToString()));
+
+            caps.RegisterHandler(
+                "ChatSessionRequest",
+                new RestStreamHandler(
+                    "POST",
+                    capsBase + m_chatSessionRequestPath,
+                            (request, path, param, httpRequest, httpResponse)
+                                => ChatSessionRequest(scene, request, path, param, agentID, caps),
+                    "ChatSessionRequest",
+                    agentID.ToString()));
         }
 
         /// <summary>
@@ -818,11 +823,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 m_log.DebugFormat("[FreeSwitchVoice]: Region:Parcel \"{0}\": parcel id {1}: using channel name {2}",
                                   landName, land.LocalID, landUUID);
             }
-            System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
 
             // slvoice handles the sip address differently if it begins with confctl, hiding it from the user in the friends list. however it also disables
             // the personal speech indicators as well unless some siren14-3d codec magic happens. we dont have siren143d so we'll settle for the personal speech indicator.
-            channelUri = String.Format("sip:conf-{0}@{1}", "x" + Convert.ToBase64String(encoding.GetBytes(landUUID)), m_freeSwitchRealm);
+            channelUri = String.Format("sip:conf-{0}@{1}", "x" + Convert.ToBase64String(Encoding.ASCII.GetBytes(landUUID)), m_freeSwitchRealm);
 
             lock (m_ParcelAddress)
             {

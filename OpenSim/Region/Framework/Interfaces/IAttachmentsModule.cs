@@ -37,6 +37,20 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IAttachmentsModule
     {
         /// <summary>
+        /// Copy attachment data from a ScenePresence into the AgentData structure for transmission to another simulator
+        /// </summary>
+        /// <param name='sp'></param>
+        /// <param name='ad'></param>
+        void CopyAttachments(IScenePresence sp, AgentData ad);
+
+        /// <summary>
+        /// Copy attachment data from an AgentData structure into a ScenePresence.
+        /// </summary>
+        /// <param name='ad'></param>
+        /// <param name='sp'></param>
+        void CopyAttachments(AgentData ad, IScenePresence sp);
+
+        /// <summary>
         /// RezAttachments. This should only be called upon login on the first region.
         /// Attachment rezzings on crossings and TPs are done in a different way.
         /// </summary>
@@ -44,10 +58,15 @@ namespace OpenSim.Region.Framework.Interfaces
         void RezAttachments(IScenePresence sp);
 
         /// <summary>
-        /// Save the attachments that have change on this presence.
+        /// Derez the attachements for a scene presence that is closing.
         /// </summary>
-        /// <param name="sp"></param>
-        void SaveChangedAttachments(IScenePresence sp, bool saveAllScripted);
+        /// <remarks>
+        /// Attachment changes are saved.
+        /// </remarks>
+        /// <param name="sp">The presence closing</param>
+        /// <param name="saveChanged">Save changed attachments.</param>
+        /// <param name="saveAllScripted">Save attachments with scripts even if they haven't changed.</para>
+        void DeRezAttachments(IScenePresence sp, bool saveChanged, bool saveAllScripted);
 
         /// <summary>
         /// Delete all the presence's attachments from the scene
@@ -78,7 +97,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         // Same as above, but also load script states from a separate doc
         ISceneEntity RezSingleAttachmentFromInventory(
-            IScenePresence presence, UUID itemID, uint AttachmentPt, bool updateInventoryStatus, XmlDocument doc);
+            IScenePresence presence, UUID itemID, uint AttachmentPt, XmlDocument doc);
 
         /// <summary>
         /// Rez multiple attachments from a user's inventory
@@ -95,11 +114,11 @@ namespace OpenSim.Region.Framework.Interfaces
         void DetachSingleAttachmentToGround(IScenePresence sp, uint objectLocalID);
 
         /// <summary>
-        /// Detach the given item so that it remains in the user's inventory.
+        /// Detach the given attachment so that it remains in the user's inventory.
         /// </summary>
         /// <param name="sp">/param>
-        /// <param name="itemID"></param>
-        void DetachSingleAttachmentToInv(IScenePresence sp, UUID itemID);
+        /// <param name="grp">The attachment to detach.</param>
+        void DetachSingleAttachmentToInv(IScenePresence sp, SceneObjectGroup grp);
         
         /// Update the position of an attachment.
         /// </summary>

@@ -47,14 +47,30 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
     /// </remarks>
     public class CoalescedSceneObjectsSerializer
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);        
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Serialize coalesced objects to Xml
         /// </summary>
         /// <param name="coa"></param>
+        /// <param name="doScriptStates">
+        /// If true then serialize script states.  This will halt any running scripts
+        /// </param>
         /// <returns></returns>
         public static string ToXml(CoalescedSceneObjects coa)
+        {
+            return ToXml(coa, true);
+        }
+
+        /// <summary>
+        /// Serialize coalesced objects to Xml
+        /// </summary>
+        /// <param name="coa"></param>
+        /// <param name="doScriptStates">
+        /// If true then serialize script states.  This will halt any running scripts
+        /// </param>
+        /// <returns></returns>
+        public static string ToXml(CoalescedSceneObjects coa, bool doScriptStates)
         {            
             using (StringWriter sw = new StringWriter())
             {
@@ -91,7 +107,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                         writer.WriteAttributeString("offsety", offsets[i].Y.ToString());
                         writer.WriteAttributeString("offsetz", offsets[i].Z.ToString());
                         
-                        SceneObjectSerializer.ToOriginalXmlFormat(obj, writer, true);
+                        SceneObjectSerializer.ToOriginalXmlFormat(obj, writer, doScriptStates);
                         
                         writer.WriteEndElement(); // SceneObjectGroup
                     }  

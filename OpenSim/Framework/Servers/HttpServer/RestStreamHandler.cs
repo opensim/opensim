@@ -39,6 +39,15 @@ namespace OpenSim.Framework.Servers.HttpServer
             get { return m_restMethod; }
         }
 
+        public RestStreamHandler(string httpMethod, string path, RestMethod restMethod)
+            : this(httpMethod, path, restMethod, null, null) {}
+
+        public RestStreamHandler(string httpMethod, string path, RestMethod restMethod, string name, string description)
+            : base(httpMethod, path, name, description)
+        {
+            m_restMethod = restMethod;
+        }
+
         public override byte[] Handle(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             Encoding encoding = Encoding.UTF8;
@@ -51,11 +60,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             string responseString = m_restMethod(requestBody, path, param, httpRequest, httpResponse);
 
             return Encoding.UTF8.GetBytes(responseString);
-        }
-
-        public RestStreamHandler(string httpMethod, string path, RestMethod restMethod) : base(httpMethod, path)
-        {
-            m_restMethod = restMethod;
         }
     }
 }

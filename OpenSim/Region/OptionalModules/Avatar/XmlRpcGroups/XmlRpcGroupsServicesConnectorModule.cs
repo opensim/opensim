@@ -1120,7 +1120,6 @@ namespace Nwc.XmlRpc
     /// <summary>Class supporting the request side of an XML-RPC transaction.</summary>
     public class ConfigurableKeepAliveXmlRpcRequest : XmlRpcRequest
     {
-        private Encoding _encoding = new ASCIIEncoding();
         private XmlRpcRequestSerializer _serializer = new XmlRpcRequestSerializer();
         private XmlRpcResponseDeserializer _deserializer = new XmlRpcResponseDeserializer();
         private bool _disableKeepAlive = true;
@@ -1153,7 +1152,7 @@ namespace Nwc.XmlRpc
             request.KeepAlive = !_disableKeepAlive;
 
             Stream stream = request.GetRequestStream();
-            XmlTextWriter xml = new XmlTextWriter(stream, _encoding);
+            XmlTextWriter xml = new XmlTextWriter(stream, Encoding.ASCII);
             _serializer.Serialize(xml, this);
             xml.Flush();
             xml.Close();

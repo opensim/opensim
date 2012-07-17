@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -69,6 +70,7 @@ namespace OpenSim
         private Regex m_consolePromptRegex = new Regex(@"([^\\])\\(\w)", RegexOptions.Compiled);
 
         private string m_timedScript = "disabled";
+        private int m_timeInterval = 1200;
         private Timer m_scriptTimer;
 
         public OpenSim(IConfigSource configSource) : base(configSource)
@@ -98,6 +100,10 @@ namespace OpenSim
                     m_consolePort = (uint)networkConfig.GetInt("console_port", 0);
 
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
+                if (m_timedScript != "disabled")
+                {
+                    m_timeInterval = startupConfig.GetInt("timer_Interval", 1200);
+                }
 
                 if (m_logFileAppender != null)
                 {
@@ -138,7 +144,7 @@ namespace OpenSim
             m_log.Info("====================================================================");
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
-            
+
             //m_log.InfoFormat("[OPENSIM MAIN]: GC Is Server GC: {0}", GCSettings.IsServerGC.ToString());
             // http://msdn.microsoft.com/en-us/library/bb384202.aspx
             //GCSettings.LatencyMode = GCLatencyMode.Batch;
@@ -215,7 +221,7 @@ namespace OpenSim
             {
                 m_scriptTimer = new Timer();
                 m_scriptTimer.Enabled = true;
-                m_scriptTimer.Interval = 1200*1000;
+                m_scriptTimer.Interval = m_timeInterval*1000;
                 m_scriptTimer.Elapsed += RunAutoTimerScript;
             }
         }
@@ -225,12 +231,14 @@ namespace OpenSim
         /// </summary>
         private void RegisterConsoleCommands()
         {
-            m_console.Commands.AddCommand("Regions", false, "force update",
+            MainServer.RegisterHttpConsoleCommands(m_console);
+
+            m_console.Commands.AddCommand("Objects", false, "force update",
                                           "force update",
                                           "Force the update of all objects on clients",
                                           HandleForceUpdate);
 
-            m_console.Commands.AddCommand("Comms", false, "debug packet",
+            m_console.Commands.AddCommand("Debug", false, "debug packet",
                                           "debug packet <level> [<avatar-first-name> <avatar-last-name>]",
                                           "Turn on packet debugging",
                                             "If level >  255 then all incoming and outgoing packets are logged.\n"
@@ -242,17 +250,9 @@ namespace OpenSim
                                           + "If an avatar name is given then only packets from that avatar are logged",
                                           Debug);
 
-            m_console.Commands.AddCommand("Comms", false, "debug http",
-                                          "debug http <level>",
-                                          "Turn on inbound http request debugging for everything except the event queue (see debug eq).",
-                                            "If level >= 2 then the handler used to service the request is logged.\n"
-                                          + "If level >= 1 then incoming HTTP requests are logged.\n"
-                                          + "If level <= 0 then no extra http logging is done.\n",
-                                          Debug);
+            m_console.Commands.AddCommand("Debug", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
 
-            m_console.Commands.AddCommand("Comms", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
-
-            m_console.Commands.AddCommand("Regions", false, "debug scene",
+            m_console.Commands.AddCommand("Debug", false, "debug scene",
                                           "debug scene <scripting> <collisions> <physics>",
                                           "Turn on scene debugging", Debug);
 
@@ -306,7 +306,7 @@ namespace OpenSim
                                           + " If this is not given then the oar is saved to region.oar in the current directory.",
                                           SaveOar);
 
-            m_console.Commands.AddCommand("Regions", false, "edit scale",
+            m_console.Commands.AddCommand("Objects", false, "edit scale",
                                           "edit scale <name> <x> <y> <z>",
                                           "Change the scale of a named prim", HandleEditScale);
 
@@ -349,7 +349,7 @@ namespace OpenSim
                                           "show ratings",
                                           "Show rating data", HandleShow);
 
-            m_console.Commands.AddCommand("Regions", false, "backup",
+            m_console.Commands.AddCommand("Objects", false, "backup",
                                           "backup",
                                           "Persist currently unsaved object changes immediately instead of waiting for the normal persistence call.", RunCommand);
 
@@ -409,10 +409,6 @@ namespace OpenSim
             m_console.Commands.AddCommand("General", false, "modules unload",
                                           "modules unload <name>",
                                           "Unload a module", HandleModules);
-
-            m_console.Commands.AddCommand("Regions", false, "kill uuid",
-                                          "kill uuid <UUID>",
-                                          "Kill an object by UUID", KillUUID);
         }
 
         public override void ShutdownSpecific()
@@ -437,12 +433,16 @@ namespace OpenSim
             }
         }
 
-        private void WatchdogTimeoutHandler(System.Threading.Thread thread, int lastTick)
+        private void WatchdogTimeoutHandler(Watchdog.ThreadWatchdogInfo twi)
         {
             int now = Environment.TickCount & Int32.MaxValue;
 
-            m_log.ErrorFormat("[WATCHDOG]: Timeout detected for thread \"{0}\". ThreadState={1}. Last tick was {2}ms ago",
-                thread.Name, thread.ThreadState, now - lastTick);
+            m_log.ErrorFormat(
+                "[WATCHDOG]: Timeout detected for thread \"{0}\". ThreadState={1}. Last tick was {2}ms ago.  {3}",
+                twi.Thread.Name,
+                twi.Thread.ThreadState,
+                now - twi.LastTick,
+                twi.AlarmMethod != null ? string.Format("Data: {0}", twi.AlarmMethod()) : "");
         }
 
         #region Console Commands
@@ -481,10 +481,10 @@ namespace OpenSim
                     else
                         presence.ControllingClient.Kick("\nYou have been logged out by an administrator.\n");
 
-                    // ...and close on our side
                     presence.Scene.IncomingCloseAgent(presence.UUID);
                 }
             }
+
             MainConsole.Instance.Output("");
         }
 
@@ -618,10 +618,11 @@ namespace OpenSim
                 return;
             }
 
-            PopulateRegionEstateInfo(regInfo);
+            bool changed = PopulateRegionEstateInfo(regInfo);
             IScene scene;
             CreateRegion(regInfo, true, out scene);
-            regInfo.EstateSettings.Save();
+            if (changed)
+	      regInfo.EstateSettings.Save();
         }
 
         /// <summary>
@@ -903,21 +904,6 @@ namespace OpenSim
 
                     break;
 
-                case "http":
-                    if (args.Length == 3)
-                    {
-                        int newDebug;
-                        if (int.TryParse(args[2], out newDebug))
-                        {
-                            MainServer.Instance.DebugLevel = newDebug;
-                            MainConsole.Instance.OutputFormat("Debug http level set to {0}", newDebug);
-                            break;
-                        }
-                    }
-
-                    MainConsole.Instance.Output("Usage: debug http 0..2");
-                    break;
-
                 case "scene":
                     if (args.Length == 4)
                     {
@@ -969,8 +955,7 @@ namespace OpenSim
                     if (showParams.Length > 1 && showParams[1] == "full")
                     {
                         agents = m_sceneManager.GetCurrentScenePresences();
-                    }
-                    else
+                    } else
                     {
                         agents = m_sceneManager.GetCurrentSceneAvatars();
                     }
@@ -979,7 +964,8 @@ namespace OpenSim
 
                     MainConsole.Instance.Output(
                         String.Format("{0,-16} {1,-16} {2,-37} {3,-11} {4,-16} {5,-30}", "Firstname", "Lastname",
-                                      "Agent ID", "Root/Child", "Region", "Position"));
+                                      "Agent ID", "Root/Child", "Region", "Position")
+                    );
 
                     foreach (ScenePresence presence in agents)
                     {
@@ -989,8 +975,7 @@ namespace OpenSim
                         if (regionInfo == null)
                         {
                             regionName = "Unresolvable";
-                        }
-                        else
+                        } else
                         {
                             regionName = regionInfo.RegionName;
                         }
@@ -1003,43 +988,19 @@ namespace OpenSim
                                 presence.UUID,
                                 presence.IsChildAgent ? "Child" : "Root",
                                 regionName,
-                                presence.AbsolutePosition.ToString()));
+                                presence.AbsolutePosition.ToString())
+                        );
                     }
 
                     MainConsole.Instance.Output(String.Empty);
                     break;
 
                 case "connections":
-                    System.Text.StringBuilder connections = new System.Text.StringBuilder("Connections:\n");
-                    m_sceneManager.ForEachScene(
-                        delegate(Scene scene)
-                        {
-                            scene.ForEachClient(
-                                delegate(IClientAPI client)
-                                {
-                                    connections.AppendFormat("{0}: {1} ({2}) from {3} on circuit {4}\n",
-                                        scene.RegionInfo.RegionName, client.Name, client.AgentId, client.RemoteEndPoint, client.CircuitCode);
-                                }
-                            );
-                        }
-                    );
-
-                    MainConsole.Instance.Output(connections.ToString());
+                    HandleShowConnections();
                     break;
 
                 case "circuits":
-                    System.Text.StringBuilder acd = new System.Text.StringBuilder("Agent Circuits:\n");
-                    m_sceneManager.ForEachScene(
-                        delegate(Scene scene)
-                        {
-                            //this.HttpServer.
-                            acd.AppendFormat("{0}:\n", scene.RegionInfo.RegionName);
-                            foreach (AgentCircuitData aCircuit in scene.AuthenticateHandler.GetAgentCircuits().Values)
-                                acd.AppendFormat("\t{0} {1} ({2})\n", aCircuit.firstname, aCircuit.lastname, (aCircuit.child ? "Child" : "Root"));
-                        }
-                    );
-
-                    MainConsole.Instance.Output(acd.ToString());
+                    HandleShowCircuits();
                     break;
 
                 case "http-handlers":
@@ -1077,17 +1038,29 @@ namespace OpenSim
                     }
 
                     m_sceneManager.ForEachScene(
-                        delegate(Scene scene)
+                        delegate(Scene scene) {
+                        m_log.Error("The currently loaded modules in " + scene.RegionInfo.RegionName + " are:");
+                        foreach (IRegionModule module in scene.Modules.Values)
                         {
-                            m_log.Error("The currently loaded modules in " + scene.RegionInfo.RegionName + " are:");
-                            foreach (IRegionModule module in scene.Modules.Values)
+                            if (!module.IsSharedModule)
                             {
-                                if (!module.IsSharedModule)
-                                {
-                                    m_log.Error("Region Module: " + module.Name);
-                                }
+                                m_log.Error("Region Module: " + module.Name);
                             }
-                        });
+                        }
+                    }
+                    );
+
+                    m_sceneManager.ForEachScene(
+                        delegate(Scene scene) {
+                        MainConsole.Instance.Output("Loaded new region modules in" + scene.RegionInfo.RegionName + " are:");
+                        foreach (IRegionModuleBase module in scene.RegionModules.Values)
+                        {
+                            Type type = module.GetType().GetInterface("ISharedRegionModule");
+                            string module_type = type != null ? "Shared" : "Non-Shared";
+                            MainConsole.Instance.OutputFormat("New Region Module ({0}): {1}", module_type, module.Name);
+                        }
+                    }
+                    );
 
                     MainConsole.Instance.Output("");
                     break;
@@ -1130,6 +1103,53 @@ namespace OpenSim
                     });
                     break;
             }
+        }
+
+        private void HandleShowCircuits()
+        {
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Region", 20);
+            cdt.AddColumn("Avatar name", 24);
+            cdt.AddColumn("Type", 5);
+            cdt.AddColumn("Code", 10);
+            cdt.AddColumn("IP", 16);
+            cdt.AddColumn("Viewer Name", 24);
+
+            m_sceneManager.ForEachScene(
+                s =>
+                {
+                    foreach (AgentCircuitData aCircuit in s.AuthenticateHandler.GetAgentCircuits().Values)
+                        cdt.AddRow(
+                            s.Name,
+                            aCircuit.Name,
+                            aCircuit.child ? "child" : "root",
+                            aCircuit.circuitcode.ToString(),
+                            aCircuit.IPAddress.ToString(),
+                            aCircuit.Viewer);
+                });
+
+            MainConsole.Instance.Output(cdt.ToString());
+        }
+
+        private void HandleShowConnections()
+        {
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Region", 20);
+            cdt.AddColumn("Avatar name", 24);
+            cdt.AddColumn("Circuit code", 12);
+            cdt.AddColumn("Endpoint", 23);
+            cdt.AddColumn("Active?", 7);
+
+            m_sceneManager.ForEachScene(
+                s => s.ForEachClient(
+                    c => cdt.AddRow(
+                        s.Name,
+                        c.Name,
+                        c.RemoteEndPoint.ToString(),
+                        c.CircuitCode.ToString(),
+                        c.IsActive.ToString())));
+
+            MainConsole.Instance.Output(cdt.ToString());
         }
 
         /// <summary>
@@ -1297,58 +1317,6 @@ namespace OpenSim
             }
             result = result.TrimEnd(' ');
             return result;
-        }
-
-        /// <summary>
-        /// Kill an object given its UUID.
-        /// </summary>
-        /// <param name="cmdparams"></param>
-        protected void KillUUID(string module, string[] cmdparams)
-        {
-            if (cmdparams.Length > 2)
-            {
-                UUID id = UUID.Zero;
-                SceneObjectGroup grp = null;
-                Scene sc = null;
-
-                if (!UUID.TryParse(cmdparams[2], out id))
-                {
-                    MainConsole.Instance.Output("[KillUUID]: Error bad UUID format!");
-                    return;
-                }
-
-                m_sceneManager.ForEachScene(
-                    delegate(Scene scene)
-                    {
-                        SceneObjectPart part = scene.GetSceneObjectPart(id);
-                        if (part == null)
-                            return;
-
-                        grp = part.ParentGroup;
-                        sc = scene;
-                    });
-
-                if (grp == null)
-                {
-                    MainConsole.Instance.Output(String.Format("[KillUUID]: Given UUID {0} not found!", id));
-                }
-                else
-                {
-                    MainConsole.Instance.Output(String.Format("[KillUUID]: Found UUID {0} in scene {1}", id, sc.RegionInfo.RegionName));
-                    try
-                    {
-                        sc.DeleteSceneObject(grp, false);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat("[KillUUID]: Error while removing objects from scene: " + e);
-                    }
-                }
-            }
-            else
-            {
-                MainConsole.Instance.Output("[KillUUID]: Usage: kill uuid <UUID>");
-            }
         }
 
         #endregion

@@ -106,7 +106,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     "POST",
                     "/CAPS/" + caps.CapsObjectPath + m_uploadBakedTexturePath,
                     new UploadBakedTextureHandler(
-                        caps, m_scene.AssetService, m_persistBakedTextures).UploadBakedTexture));
+                        caps, m_scene.AssetService, m_persistBakedTextures).UploadBakedTexture,
+                    "UploadBakedTexture",
+                    agentID.ToString()));
         }
     }
 }

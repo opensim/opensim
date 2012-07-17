@@ -52,14 +52,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     /// Tests for OSSL NPC API
     /// </summary>
     [TestFixture]
-    public class OSSL_NpcApiAppearanceTest
+    public class OSSL_NpcApiAppearanceTest : OpenSimTestCase
     {
         protected Scene m_scene;
         protected XEngine.XEngine m_engine;
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             IConfigSource initConfigSource = new IniConfigSource();
             IConfig config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");
@@ -68,7 +70,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             config = initConfigSource.AddConfig("NPC");
             config.Set("Enabled", "true");
 
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, initConfigSource, new AvatarFactoryModule(), new NPCModule());
 
             m_engine = new XEngine.XEngine();
@@ -95,19 +97,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
             sp.Appearance.AvatarHeight = newHeight;
 
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId);
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, 0x10);
             SceneObjectPart part = so.RootPart;
             m_scene.AddSceneObject(so);
 
-            SceneObjectGroup otherSo = SceneHelpers.CreateSceneObject(1, otherUserId);
+            SceneObjectGroup otherSo = SceneHelpers.CreateSceneObject(1, otherUserId, 0x20);
             SceneObjectPart otherPart = otherSo.RootPart;
             m_scene.AddSceneObject(otherSo);
 
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(m_engine, part, part.LocalId, part.UUID);
+            osslApi.Initialize(m_engine, part, null);
 
             OSSL_Api otherOsslApi = new OSSL_Api();
-            otherOsslApi.Initialize(m_engine, otherPart, otherPart.LocalId, otherPart.UUID);
+            otherOsslApi.Initialize(m_engine, otherPart, null);
 
             string notecardName = "appearanceNc";
             osslApi.osOwnerSaveAppearance(notecardName);
@@ -146,12 +148,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
             sp.Appearance.AvatarHeight = newHeight;
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId);
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, 0x10);
             SceneObjectPart part = so.RootPart;
             m_scene.AddSceneObject(so);
 
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(m_engine, part, part.LocalId, part.UUID);
+            osslApi.Initialize(m_engine, part, null);
 
             string notecardName = "appearanceNc";
             osslApi.osOwnerSaveAppearance(notecardName);

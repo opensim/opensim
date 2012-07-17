@@ -90,7 +90,7 @@ public sealed class BSPrim : PhysicsActor
     private BSPrim _parentPrim;
 
     private int _subscribedEventsMs = 0;
-    private int _lastCollisionTime = 0;
+    private int _nextCollisionOkTime = 0;
     long _collidingStep;
     long _collidingGroundStep;
 
@@ -597,7 +597,8 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void SubscribeEvents(int ms) { 
         _subscribedEventsMs = ms;
-        _lastCollisionTime = Util.EnvironmentTickCount() - _subscribedEventsMs; // make first collision happen
+        // make sure first collision happens
+        _nextCollisionOkTime = Util.EnvironmentTickCount() - _subscribedEventsMs;
     }
     public override void UnSubscribeEvents() { 
         _subscribedEventsMs = 0;
@@ -1338,23 +1339,27 @@ public sealed class BSPrim : PhysicsActor
             _collidingGroundStep = _scene.SimulationStep;
         }
 
-        if (_subscribedEventsMs == 0) return;   // nothing in the object is waiting for collision events
-        // throttle the collisions to the number of milliseconds specified in the subscription
-        int nowTime = _scene.SimulationNowTime;
-        if (nowTime < (_lastCollisionTime + _subscribedEventsMs)) return;
-        _lastCollisionTime = nowTime;
+        // if someone is subscribed to collision events....
+        if (_subscribedEventsMs != 0) {
+            // throttle the collisions to the number of milliseconds specified in the subscription
+            int nowTime = _scene.SimulationNowTime;
+            if (nowTime >= _nextCollisionOkTime) {
+                _nextCollisionOkTime = nowTime + _subscribedEventsMs;
 
-        if (collisionCollection == null)
-            collisionCollection = new CollisionEventUpdate();
-        collisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
+                if (collisionCollection == null)
+                    collisionCollection = new CollisionEventUpdate();
+                collisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
+            }
+        }
     }
 
+    // The scene is telling us it's time to pass our collected collisions into the simulator
     public void SendCollisions()
     {
-        if (collisionCollection != null)
+        if (collisionCollection != null && collisionCollection.Count > 0)
         {
             base.SendCollisionUpdate(collisionCollection);
-            collisionCollection = null;
+            collisionCollection.Clear();
         }
     }
 }

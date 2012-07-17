@@ -29,8 +29,10 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using log4net;
 using Mono.Addins;
+using NDesk.Options;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -78,49 +80,64 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_scene = scene;
             m_console = MainConsole.Instance;
 
-            m_console.Commands.AddCommand("Regions", false, "delete object owner",
-                                          "delete object owner <UUID>",
-                                          "Delete a scene object by owner", HandleDeleteObject);
-            m_console.Commands.AddCommand("Regions", false, "delete object creator",
-                                          "delete object creator <UUID>",
-                                          "Delete a scene object by creator", HandleDeleteObject);
-            m_console.Commands.AddCommand("Regions", false, "delete object uuid",
-                                          "delete object uuid <UUID>",
-                                          "Delete a scene object by uuid", HandleDeleteObject);
-            m_console.Commands.AddCommand("Regions", false, "delete object name",
-                                          "delete object name <name>",
-                                          "Delete a scene object by name", HandleDeleteObject);
-            m_console.Commands.AddCommand("Regions", false, "delete object outside",
-                                          "delete object outside",
-                                          "Delete all scene objects outside region boundaries", HandleDeleteObject);
+            m_console.Commands.AddCommand(
+                "Objects", false, "delete object owner",
+                "delete object owner <UUID>",
+                "Delete a scene object by owner", HandleDeleteObject);
 
             m_console.Commands.AddCommand(
-                "Regions",
+                "Objects", false, "delete object creator",
+                "delete object creator <UUID>",
+                "Delete a scene object by creator", HandleDeleteObject);
+
+            m_console.Commands.AddCommand(
+                "Objects", false, "delete object uuid",
+                "delete object uuid <UUID>",
+                "Delete a scene object by uuid", HandleDeleteObject);
+
+            m_console.Commands.AddCommand(
+                "Objects", false, "delete object name",
+                "delete object name [--regex] <name>",
+                "Delete a scene object by name.",
+                "If --regex is specified then the name is treatead as a regular expression",
+                HandleDeleteObject);
+
+            m_console.Commands.AddCommand(
+                "Objects", false, "delete object outside",
+                "delete object outside",
+                "Delete all scene objects outside region boundaries", HandleDeleteObject);
+
+            m_console.Commands.AddCommand(
+                "Objects",
                 false,
                 "show object uuid",
                 "show object uuid <UUID>",
                 "Show details of a scene object with the given UUID", HandleShowObjectByUuid);
 
             m_console.Commands.AddCommand(
-                "Regions",
+                "Objects",
                 false,
                 "show object name",
-                "show object name <name>",
-                "Show details of scene objects with the given name", HandleShowObjectByName);
+                "show object name [--regex] <name>",
+                "Show details of scene objects with the given name.",
+                "If --regex is specified then the name is treatead as a regular expression",
+                HandleShowObjectByName);
 
             m_console.Commands.AddCommand(
-                "Regions",
+                "Objects",
                 false,
                 "show part uuid",
                 "show part uuid <UUID>",
                 "Show details of a scene object parts with the given UUID", HandleShowPartByUuid);
 
             m_console.Commands.AddCommand(
-                "Regions",
+                "Objects",
                 false,
                 "show part name",
-                "show part name <name>",
-                "Show details of scene object parts with the given name", HandleShowPartByName);
+                "show part name [--regex] <name>",
+                "Show details of scene object parts with the given name.",
+                "If --regex is specified then the name is treatead as a regular expression",
+                HandleShowPartByName);
         }
 
         public void RemoveRegion(Scene scene)
@@ -165,22 +182,38 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_console.OutputFormat(sb.ToString());
         }
 
-        private void HandleShowObjectByName(string module, string[] cmd)
+        private void HandleShowObjectByName(string module, string[] cmdparams)
         {
             if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
                 return;
 
-            if (cmd.Length < 4)
+            bool useRegex = false;
+            OptionSet options = new OptionSet().Add("regex", v=> useRegex = v != null );
+
+            List<string> mainParams = options.Parse(cmdparams);
+
+            if (mainParams.Count < 4)
             {
-                m_console.OutputFormat("Usage: show object name <name>");
+                m_console.OutputFormat("Usage: show object name [--regex] <name>");
                 return;
             }
 
-            string name = cmd[3];
+            string name = mainParams[3];
 
             List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
+            Action<SceneObjectGroup> searchAction;
 
-            m_scene.ForEachSOG(so => { if (so.Name == name) { sceneObjects.Add(so); }});
+            if (useRegex)
+            {
+                Regex nameRegex = new Regex(name);
+                searchAction = so => { if (nameRegex.IsMatch(so.Name)) { sceneObjects.Add(so); }};
+            }
+            else
+            {
+                searchAction = so => { if (so.Name == name) { sceneObjects.Add(so); }};
+            }
+
+            m_scene.ForEachSOG(searchAction);
 
             if (sceneObjects.Count == 0)
             {
@@ -231,22 +264,39 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_console.OutputFormat(sb.ToString());
         }
 
-        private void HandleShowPartByName(string module, string[] cmd)
+        private void HandleShowPartByName(string module, string[] cmdparams)
         {
             if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
                 return;
 
-            if (cmd.Length < 4)
+            bool useRegex = false;
+            OptionSet options = new OptionSet().Add("regex", v=> useRegex = v != null );
+
+            List<string> mainParams = options.Parse(cmdparams);
+
+            if (mainParams.Count < 4)
             {
-                m_console.OutputFormat("Usage: show part name <name>");
+                m_console.OutputFormat("Usage: show part name [--regex] <name>");
                 return;
             }
 
-            string name = cmd[3];
+            string name = mainParams[3];
 
             List<SceneObjectPart> parts = new List<SceneObjectPart>();
 
-            m_scene.ForEachSOG(so => so.ForEachPart(sop => { if (sop.Name == name) { parts.Add(sop); } }));
+            Action<SceneObjectGroup> searchAction;
+
+            if (useRegex)
+            {
+                Regex nameRegex = new Regex(name);
+                searchAction = so => so.ForEachPart(sop => { if (nameRegex.IsMatch(sop.Name)) { parts.Add(sop); } });
+            }
+            else
+            {
+                searchAction = so => so.ForEachPart(sop => { if (sop.Name == name) { parts.Add(sop); } });
+            }
+
+            m_scene.ForEachSOG(searchAction);
 
             if (parts.Count == 0)
             {
@@ -271,6 +321,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             sb.AppendFormat("Description: {0}\n", so.Description);
             sb.AppendFormat("Location:    {0} @ {1}\n", so.AbsolutePosition, so.Scene.RegionInfo.RegionName);
             sb.AppendFormat("Parts:       {0}\n", so.PrimCount);
+            sb.AppendFormat("Flags:       {0}\n", so.RootPart.Flags);
 
             return sb;
         }
@@ -282,7 +333,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             sb.AppendFormat("Location:    {0} @ {1}\n", sop.AbsolutePosition, sop.ParentGroup.Scene.RegionInfo.RegionName);
             sb.AppendFormat("Parent:      {0}",
                 sop.IsRoot ? "Is Root\n" : string.Format("{0} {1}\n", sop.ParentGroup.Name, sop.ParentGroup.UUID));
-            sb.AppendFormat("Parts:       {0}\n", !sop.IsRoot ? "1" : sop.ParentGroup.PrimCount.ToString());;
+            sb.AppendFormat("Link number: {0}\n", sop.LinkNum);
+            sb.AppendFormat("Flags:       {0}\n", sop.Flags);
 
             return sb;
         }
@@ -306,96 +358,121 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 o = cmd[3];
             }
 
-            List<SceneObjectGroup> deletes = new List<SceneObjectGroup>();
-
+            List<SceneObjectGroup> deletes = null;
             UUID match;
+            bool requireConfirmation = true;
 
             switch (mode)
             {
-            case "owner":
-                if (!UUID.TryParse(o, out match))
-                    return;
+                case "owner":
+                    if (!UUID.TryParse(o, out match))
+                        return;
 
-                m_scene.ForEachSOG(delegate (SceneObjectGroup g)
-                {
-                    if (g.OwnerID == match && !g.IsAttachment)
-                        deletes.Add(g);
-                });
+                    deletes = new List<SceneObjectGroup>();
 
-//                if (deletes.Count == 0)
-//                    m_console.OutputFormat("No objects were found with owner {0}", match);
-
-                break;
-
-            case "creator":
-                if (!UUID.TryParse(o, out match))
-                    return;
-
-                m_scene.ForEachSOG(delegate (SceneObjectGroup g)
-                {
-                    if (g.RootPart.CreatorID == match && !g.IsAttachment)
-                        deletes.Add(g);
-                });
-
-//                if (deletes.Count == 0)
-//                    m_console.OutputFormat("No objects were found with creator {0}", match);
-
-                break;
-
-            case "uuid":
-                if (!UUID.TryParse(o, out match))
-                    return;
-
-                m_scene.ForEachSOG(delegate (SceneObjectGroup g)
-                {
-                    if (g.UUID == match && !g.IsAttachment)
-                        deletes.Add(g);
-                });
-
-//                if (deletes.Count == 0)
-//                    m_console.OutputFormat("No objects were found with uuid {0}", match);
-
-                break;
-
-            case "name":
-                m_scene.ForEachSOG(delegate (SceneObjectGroup g)
-                {
-                    if (g.RootPart.Name == o && !g.IsAttachment)
-                        deletes.Add(g);
-                });
-
-//                if (deletes.Count == 0)
-//                    m_console.OutputFormat("No objects were found with name {0}", o);
-
-                break;
-
-            case "outside":
-                m_scene.ForEachSOG(delegate (SceneObjectGroup g)
-                {
-                    SceneObjectPart rootPart = g.RootPart;
-                    bool delete = false;
-
-                    if (rootPart.GroupPosition.Z < 0.0 || rootPart.GroupPosition.Z > 10000.0)
+                    m_scene.ForEachSOG(delegate (SceneObjectGroup g)
                     {
-                        delete = true;
-                    }
-                    else
-                    {
-                        ILandObject parcel
-                            = m_scene.LandChannel.GetLandObject(rootPart.GroupPosition.X, rootPart.GroupPosition.Y);
+                        if (g.OwnerID == match && !g.IsAttachment)
+                            deletes.Add(g);
+                    });
+        
+        //                if (deletes.Count == 0)
+        //                    m_console.OutputFormat("No objects were found with owner {0}", match);
+        
+                    break;
+        
+                case "creator":
+                    if (!UUID.TryParse(o, out match))
+                        return;
 
-                        if (parcel == null || parcel.LandData.Name == "NO LAND")
+                    deletes = new List<SceneObjectGroup>();
+
+                    m_scene.ForEachSOG(delegate (SceneObjectGroup g)
+                    {
+                        if (g.RootPart.CreatorID == match && !g.IsAttachment)
+                            deletes.Add(g);
+                    });
+        
+        //                if (deletes.Count == 0)
+        //                    m_console.OutputFormat("No objects were found with creator {0}", match);
+        
+                    break;
+        
+                case "uuid":
+                    if (!UUID.TryParse(o, out match))
+                        return;
+
+                    requireConfirmation = false;
+                    deletes = new List<SceneObjectGroup>();
+        
+                    m_scene.ForEachSOG(delegate (SceneObjectGroup g)
+                    {
+                        if (g.UUID == match && !g.IsAttachment)
+                            deletes.Add(g);
+                    });
+        
+        //                if (deletes.Count == 0)
+        //                    m_console.OutputFormat("No objects were found with uuid {0}", match);
+        
+                    break;
+        
+                case "name":
+                    deletes = GetDeleteCandidatesByName(module, cmd);
+                    break;
+        
+                case "outside":
+                    deletes = new List<SceneObjectGroup>();
+
+                    m_scene.ForEachSOG(delegate (SceneObjectGroup g)
+                    {
+                        SceneObjectPart rootPart = g.RootPart;
+                        bool delete = false;
+        
+                        if (rootPart.GroupPosition.Z < 0.0 || rootPart.GroupPosition.Z > 10000.0)
+                        {
                             delete = true;
-                    }
+                        }
+                        else
+                        {
+                            ILandObject parcel
+                                = m_scene.LandChannel.GetLandObject(rootPart.GroupPosition.X, rootPart.GroupPosition.Y);
+        
+                            if (parcel == null || parcel.LandData.Name == "NO LAND")
+                                delete = true;
+                        }
+        
+                        if (delete && !g.IsAttachment && !deletes.Contains(g))
+                            deletes.Add(g);
+                    });
+        
+                    if (deletes.Count == 0)
+                        m_console.OutputFormat("No objects were found outside region bounds");
+        
+                    break;
 
-                    if (delete && !g.IsAttachment && !deletes.Contains(g))
-                        deletes.Add(g);
-                });
+                default:
+                    m_console.OutputFormat("Unrecognized mode {0}", mode);
+                    return;
+            }
 
-//                if (deletes.Count == 0)
-//                    m_console.OutputFormat("No objects were found outside region bounds");
+            if (deletes == null || deletes.Count <= 0)
+                return;
 
-                break;
+            if (requireConfirmation)
+            {
+                string response = MainConsole.Instance.CmdPrompt(
+                    string.Format(
+                        "Are you sure that you want to delete {0} objects from {1}",
+                        deletes.Count, m_scene.RegionInfo.RegionName),
+                    "n");
+    
+                if (response.ToLower() != "y")
+                {
+                    MainConsole.Instance.OutputFormat(
+                        "Aborting delete of {0} objects from {1}", deletes.Count, m_scene.RegionInfo.RegionName);
+
+                    return;
+                }
             }
 
             m_console.OutputFormat("Deleting {0} objects in {1}", deletes.Count, m_scene.RegionInfo.RegionName);
@@ -405,6 +482,45 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 m_console.OutputFormat("Deleting object {0} {1}", g.UUID, g.Name);
                 m_scene.DeleteSceneObject(g, false);
             }
+        }
+
+        private List<SceneObjectGroup> GetDeleteCandidatesByName(string module, string[] cmdparams)
+        {
+            if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
+                return null;
+
+            bool useRegex = false;
+            OptionSet options = new OptionSet().Add("regex", v=> useRegex = v != null );
+
+            List<string> mainParams = options.Parse(cmdparams);
+
+            if (mainParams.Count < 4)
+            {
+                m_console.OutputFormat("Usage: delete object name [--regex] <name>");
+                return null;
+            }
+
+            string name = mainParams[3];
+
+            List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
+            Action<SceneObjectGroup> searchAction;
+
+            if (useRegex)
+            {
+                Regex nameRegex = new Regex(name);
+                searchAction = so => { if (nameRegex.IsMatch(so.Name)) { sceneObjects.Add(so); }};
+            }
+            else
+            {
+                searchAction = so => { if (so.Name == name) { sceneObjects.Add(so); }};
+            }
+
+            m_scene.ForEachSOG(searchAction);
+
+            if (sceneObjects.Count == 0)
+                m_console.OutputFormat("No objects with name {0} found in {1}", name, m_scene.RegionInfo.RegionName);
+
+            return sceneObjects;
         }
     }
 }

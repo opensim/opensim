@@ -84,16 +84,23 @@ namespace OpenSim.Region.Framework.Scenes
             if (neighbourService != null)
                 neighbour = neighbourService.HelloNeighbour(regionhandle, region);
             else
-                m_log.DebugFormat("[SCS]: No neighbour service provided for informing neigbhours of this region");
+                m_log.DebugFormat(
+                    "[SCENE COMMUNICATION SERVICE]: No neighbour service provided for region {0} to inform neigbhours of status",
+                    m_scene.Name);
 
             if (neighbour != null)
             {
-              //  m_log.DebugFormat("[INTERGRID]: Successfully informed neighbour {0}-{1} that I'm here", x / Constants.RegionSize, y / Constants.RegionSize);
+                m_log.DebugFormat(
+                    "[SCENE COMMUNICATION SERVICE]: Region {0} successfully informed neighbour {1} at {2}-{3} that it is up",
+                    m_scene.Name, neighbour.RegionName, x / Constants.RegionSize, y / Constants.RegionSize);
+
                 m_scene.EventManager.TriggerOnRegionUp(neighbour);
             }
             else
             {
-                m_log.InfoFormat("[INTERGRID]: Failed to inform neighbour {0}-{1} that I'm here.", x / Constants.RegionSize, y / Constants.RegionSize);
+                m_log.WarnFormat(
+                    "[SCENE COMMUNICATION SERVICE]: Region {0} failed to inform neighbour at {1}-{2} that it is up.",
+                    x / Constants.RegionSize, y / Constants.RegionSize);
             }
         }
 
@@ -101,8 +108,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
 
-            List<GridRegion> neighbours = m_scene.GridService.GetNeighbours(m_scene.RegionInfo.ScopeID, m_scene.RegionInfo.RegionID);
-            //m_log.DebugFormat("[INTERGRID]: Informing {0} neighbours that this region is up", neighbours.Count);
+            List<GridRegion> neighbours
+                = m_scene.GridService.GetNeighbours(m_scene.RegionInfo.ScopeID, m_scene.RegionInfo.RegionID);
+
+            m_log.DebugFormat(
+                "[SCENE COMMUNICATION SERVICE]: Informing {0} neighbours that region {1} is up",
+                neighbours.Count, m_scene.Name);
+
             foreach (GridRegion n in neighbours)
             {
                 InformNeighbourThatRegionUpDelegate d = InformNeighboursThatRegionIsUpAsync;
@@ -156,7 +168,9 @@ namespace OpenSim.Region.Framework.Scenes
                         // that the region position is cached or performance will degrade
                         Utils.LongToUInts(regionHandle, out x, out y);
                         GridRegion dest = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
-//                        bool v = true;
+                        if (dest == null)
+                            continue;
+
                         if (!simulatorList.Contains(dest.ServerURI))
                         {
                             // we havent seen this simulator before, add it to the list

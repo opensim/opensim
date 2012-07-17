@@ -450,7 +450,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     bool isMember;
                     if (m_groupMemberCache.TryGetValue(avatar, out isMember))
+                    {
+                        m_groupMemberCache.Update(avatar, isMember, m_groupMemberCacheTimeout);
                         return isMember;
+                    }
 
                     IGroupsModule groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
                     if (groupsModule == null)
@@ -487,7 +490,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
 
-            if (m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar))
+            if (m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(avatar))
                 return false;
 
             if (avatar == LandData.OwnerID)
@@ -517,7 +520,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
 
-            if (m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar))
+            if (m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(avatar))
                 return false;
 
             if (avatar == LandData.OwnerID)
@@ -1230,7 +1233,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     if (land.LandData.LocalID == LandData.LocalID)
                     {
                         Vector3 pos = m_scene.GetNearestAllowedPosition(presence, land);
-                        presence.TeleportWithMomentum(pos);
+                        presence.TeleportWithMomentum(pos, null);
                         presence.ControllingClient.SendAlertMessage("You have been ejected from this land");
                     }
                 }

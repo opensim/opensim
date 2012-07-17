@@ -42,9 +42,7 @@ namespace OpenSim.Framework.Serialization.External
     /// </summary>
     public class LandDataSerializer
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        protected static UTF8Encoding m_utf8Encoding = new UTF8Encoding();
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static Dictionary<string, Action<LandData, XmlTextReader>> m_ldProcessors
             = new Dictionary<string, Action<LandData, XmlTextReader>>();
@@ -163,7 +161,7 @@ namespace OpenSim.Framework.Serialization.External
         /// <exception cref="System.Xml.XmlException"></exception>
         public static LandData Deserialize(byte[] serializedLandData)
         {
-            return Deserialize(m_utf8Encoding.GetString(serializedLandData, 0, serializedLandData.Length));
+            return Deserialize(Encoding.UTF8.GetString(serializedLandData, 0, serializedLandData.Length));
         }
 
         /// <summary>

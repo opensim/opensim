@@ -149,6 +149,21 @@ namespace OpenSim.Services.Connectors
             m_database.RemoveRegionWindlightSettings(regionID);
         }
 
+        public string LoadRegionEnvironmentSettings(UUID regionUUID)
+        {
+            return m_database.LoadRegionEnvironmentSettings(regionUUID);
+        }
+
+        public void StoreRegionEnvironmentSettings(UUID regionUUID, string settings)
+        {
+            m_database.StoreRegionEnvironmentSettings(regionUUID, settings);
+        }
+
+        public void RemoveRegionEnvironmentSettings(UUID regionUUID)
+        {
+            m_database.RemoveRegionEnvironmentSettings(regionUUID);
+        }
+
         public UUID[] GetObjectIDs(UUID regionID)
         {
             return m_database.GetObjectIDs(regionID);

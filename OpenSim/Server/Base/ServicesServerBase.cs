@@ -27,9 +27,10 @@
 
 using System;
 using System.IO;
-using System.Xml;
-using System.Threading;
 using System.Reflection;
+using System.Threading;
+using System.Text;
+using System.Xml;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using log4net;
@@ -335,8 +336,7 @@ namespace OpenSim.Server.Base
             {
                 string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
                 FileStream fs = File.Create(path);
-                System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-                Byte[] buf = enc.GetBytes(pidstring);
+                Byte[] buf = Encoding.ASCII.GetBytes(pidstring);
                 fs.Write(buf, 0, buf.Length);
                 fs.Close();
                 m_pidFile = path;

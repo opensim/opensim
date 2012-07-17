@@ -42,8 +42,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
     public class AssetTransactionModule : INonSharedRegionModule,
             IAgentAssetTransactions
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(
-//                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_Scene;
         private bool m_dumpAssetsToFile = false;
@@ -209,15 +208,15 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// and comes through this method.
         /// </summary>
         /// <param name="remoteClient"></param>
+        /// <param name="part"></param>
         /// <param name="transactionID"></param>
         /// <param name="item"></param>
-        public void HandleTaskItemUpdateFromTransaction(IClientAPI remoteClient,
-                SceneObjectPart part, UUID transactionID,
-                TaskInventoryItem item)
+        public void HandleTaskItemUpdateFromTransaction(
+            IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item)
         {
-//            m_log.DebugFormat(
-//                "[TRANSACTIONS MANAGER] Called HandleTaskItemUpdateFromTransaction with item {0}",
-//                item.Name);
+            m_log.DebugFormat(
+                "[TRANSACTIONS MANAGER] Called HandleTaskItemUpdateFromTransaction with item {0} in {1} for {2} in {3}",
+                item.Name, part.Name, remoteClient.Name, m_Scene.RegionInfo.RegionName);
 
             AgentAssetTransactions transactions =
                     GetUserTransactions(remoteClient.AgentId);

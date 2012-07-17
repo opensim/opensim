@@ -41,6 +41,7 @@ using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
@@ -245,6 +246,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // Reload serialized prims
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
+            UUID oldTelehubUUID = m_scene.RegionInfo.RegionSettings.TelehubObject;
+
             IRegionSerialiserModule serialiser = m_scene.RequestModuleInterface<IRegionSerialiserModule>();
             int sceneObjectsLoadedCount = 0;
 
@@ -266,10 +269,20 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
 
+                bool isTelehub = (sceneObject.UUID == oldTelehubUUID);
+
                 // For now, give all incoming scene objects new uuids.  This will allow scenes to be cloned
                 // on the same region server and multiple examples a single object archive to be imported
                 // to the same scene (when this is possible).
                 sceneObject.ResetIDs();
+
+                if (isTelehub)
+                {
+                    // Change the Telehub Object to the new UUID
+                    m_scene.RegionInfo.RegionSettings.TelehubObject = sceneObject.UUID;
+                    m_scene.RegionInfo.RegionSettings.Save();
+                    oldTelehubUUID = UUID.Zero;
+                }
 
                 // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
                 // or creator data is present.  Otherwise, use the estate owner instead.
@@ -347,7 +360,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             int ignoredObjects = serialisedSceneObjects.Count - sceneObjectsLoadedCount;
 
             if (ignoredObjects > 0)
-                m_log.WarnFormat("[ARCHIVER]: Ignored {0} scene objects that already existed in the scene", ignoredObjects);            
+                m_log.WarnFormat("[ARCHIVER]: Ignored {0} scene objects that already existed in the scene", ignoredObjects);
+
+            if (oldTelehubUUID != UUID.Zero)
+            {
+                m_log.WarnFormat("Telehub object not found: {0}", oldTelehubUUID);
+                m_scene.RegionInfo.RegionSettings.TelehubObject = UUID.Zero;
+                m_scene.RegionInfo.RegionSettings.ClearSpawnPoints();
+            }
         }
         
         /// <summary>
@@ -523,6 +543,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             currentRegionSettings.TerrainTexture4 = loadedRegionSettings.TerrainTexture4;
             currentRegionSettings.UseEstateSun = loadedRegionSettings.UseEstateSun;
             currentRegionSettings.WaterHeight = loadedRegionSettings.WaterHeight;
+            currentRegionSettings.TelehubObject = loadedRegionSettings.TelehubObject;
+            currentRegionSettings.ClearSpawnPoints();
+            foreach (SpawnPoint sp in loadedRegionSettings.SpawnPoints())
+                currentRegionSettings.AddSpawnPoint(sp);
 
             currentRegionSettings.Save();
 

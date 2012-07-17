@@ -83,7 +83,7 @@ namespace Flotsam.RegionModules.AssetCache
         private Dictionary<string, ManualResetEvent> m_CurrentlyWriting = new Dictionary<string, ManualResetEvent>();
         private int m_WaitOnInprogressTimeout = 3000;
 #else
-        private List<string> m_CurrentlyWriting = new List<string>();
+        private HashSet<string> m_CurrentlyWriting = new HashSet<string>();
 #endif
 
         private bool m_FileCacheEnabled = true;
@@ -143,7 +143,7 @@ namespace Flotsam.RegionModules.AssetCache
                     IConfig assetConfig = source.Configs["AssetCache"];
                     if (assetConfig == null)
                     {
-                        m_log.Warn(
+                        m_log.Debug(
                            "[FLOTSAM ASSET CACHE]: AssetCache section missing from config (not copied config-include/FlotsamCache.ini.example?  Using defaults.");
                     }
                     else
@@ -272,7 +272,11 @@ namespace Flotsam.RegionModules.AssetCache
                         // the other thread has updated the time for us.
                         try
                         {
-                            File.SetLastAccessTime(filename, DateTime.Now);
+                            lock (m_CurrentlyWriting)
+                            {
+                                if (!m_CurrentlyWriting.Contains(filename))
+                                    File.SetLastAccessTime(filename, DateTime.Now);
+                            }
                         }
                         catch
                         {

@@ -46,12 +46,10 @@ namespace OpenSim.Tests.Common.Mock
 
         EventWaitHandle wh = new EventWaitHandle (false, EventResetMode.AutoReset, "Crossing");
 
-        // TODO: This is a really nasty (and temporary) means of telling the test client which scene to invoke setup
-        // methods on when a teleport is requested
-        public Scene TeleportTargetScene;
         private TestClient TeleportSceneClient;
 
         private Scene m_scene;
+        private SceneManager m_sceneManager;
 
         // Properties so that we can get at received data for test purposes
         public List<UUID> ReceivedOfflineNotifications { get; private set; }
@@ -435,15 +433,29 @@ namespace OpenSim.Tests.Common.Mock
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <remarks>
+        /// Can be used for a test where there is only one region or where there are multiple regions that are not
+        /// neighbours and where no teleporting takes place.  In other situations, the constructor that takes in a
+        /// scene manager should be used.
+        /// </remarks>
         /// <param name="agentData"></param>
         /// <param name="scene"></param>
-        public TestClient(AgentCircuitData agentData, Scene scene)
+        public TestClient(AgentCircuitData agentData, Scene scene) : this(agentData, scene, null) {}
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="agentData"></param>
+        /// <param name="scene"></param>
+        /// <param name="sceneManager"></param>
+        public TestClient(AgentCircuitData agentData, Scene scene, SceneManager sceneManager)
         {
             m_agentId = agentData.AgentID;
             m_firstName = agentData.firstname;
             m_lastName = agentData.lastname;
             m_circuitCode = agentData.circuitcode;
             m_scene = scene;
+            m_sceneManager = sceneManager;
             SessionId = agentData.SessionID;
             SecureSessionId = agentData.SecureSessionID;
             CapsSeedUrl = agentData.CapsPath;
@@ -593,8 +605,16 @@ namespace OpenSim.Tests.Common.Mock
             AgentCircuitData newAgent = RequestClientInfo();
 
             // Stage 2: add the new client as a child agent to the scene
-            TeleportSceneClient = new TestClient(newAgent, TeleportTargetScene);
-            TeleportTargetScene.AddNewClient(TeleportSceneClient, PresenceType.User);
+            uint x, y;
+            Utils.LongToUInts(neighbourHandle, out x, out y);
+            x /= Constants.RegionSize;
+            y /= Constants.RegionSize;
+
+            Scene neighbourScene;
+            m_sceneManager.TryGetScene(x, y, out neighbourScene);
+
+            TeleportSceneClient = new TestClient(newAgent, neighbourScene, m_sceneManager);
+            neighbourScene.AddNewClient(TeleportSceneClient, PresenceType.User);
         }
 
         public virtual void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
@@ -604,6 +624,13 @@ namespace OpenSim.Tests.Common.Mock
 
             CapsSeedUrl = capsURL;
 
+            // We don't do this here so that the source region can complete processing first in a single-threaded
+            // regression test scenario.  The test itself will have to call CompleteTeleportClientSide() after a teleport
+            // CompleteTeleportClientSide();
+        }
+
+        public void CompleteTeleportClientSide()
+        {
             TeleportSceneClient.CompleteMovement();
             //TeleportTargetScene.AgentCrossing(newAgent.AgentID, new Vector3(90, 90, 90), false);
         }
@@ -944,11 +971,6 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public EndPoint GetClientEP()
-        {
-            return null;
-        }
-
         public ClientInfo GetClientInfo()
         {
             return null;
@@ -1101,10 +1123,6 @@ namespace OpenSim.Tests.Common.Mock
         }
 
         public void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags)
-        {
-        }
-
-        public void KillEndDone()
         {
         }
 

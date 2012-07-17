@@ -724,6 +724,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
             if (shouldTaint)
             {
+                m_scene.EventManager.TriggerTerrainTainted();
                 m_tainted = true;
             }
         }
@@ -1109,6 +1110,32 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             CheckForTerrainUpdates();
         }
 
+        private void InterfaceMinTerrain(Object[] args)
+        {
+            int x, y;
+            for (x = 0; x < m_channel.Width; x++)
+            {
+                for (y = 0; y < m_channel.Height; y++)
+                {
+                    m_channel[x, y] = Math.Max((double)args[0], m_channel[x, y]);
+                }
+            }
+            CheckForTerrainUpdates();
+        }
+
+        private void InterfaceMaxTerrain(Object[] args)
+        {
+            int x, y;
+            for (x = 0; x < m_channel.Width; x++)
+            {
+                for (y = 0; y < m_channel.Height; y++)
+                {
+                    m_channel[x, y] = Math.Min((double)args[0], m_channel[x, y]);
+                }
+            }
+            CheckForTerrainUpdates();
+        }
+
         private void InterfaceShowDebugStats(Object[] args)
         {
             double max = Double.MinValue;
@@ -1249,6 +1276,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             rescaleCommand.AddArgument("min", "min terrain height after rescaling", "Double");
             rescaleCommand.AddArgument("max", "max terrain height after rescaling", "Double");
 
+            Command minCommand = new Command("min", CommandIntentions.COMMAND_HAZARDOUS, InterfaceMinTerrain, "Sets the minimum terrain height to the specified value.");
+            minCommand.AddArgument("min", "terrain height to use as minimum", "Double");
+
+            Command maxCommand = new Command("max", CommandIntentions.COMMAND_HAZARDOUS, InterfaceMaxTerrain, "Sets the maximum terrain height to the specified value.");
+            maxCommand.AddArgument("min", "terrain height to use as maximum", "Double");
+
 
             // Debug
             Command showDebugStatsCommand =
@@ -1280,6 +1313,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_commander.RegisterCommand("effect", pluginRunCommand);
             m_commander.RegisterCommand("flip", flipCommand);
             m_commander.RegisterCommand("rescale", rescaleCommand);
+            m_commander.RegisterCommand("min", minCommand);
+            m_commander.RegisterCommand("max", maxCommand);
 
             // Add this to our scene so scripts can call these functions
             m_scene.RegisterModuleCommander(m_commander);

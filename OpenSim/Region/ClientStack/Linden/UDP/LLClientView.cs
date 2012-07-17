@@ -59,7 +59,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// Handles new client connections
     /// Constructor takes a single Packet and authenticates everything
     /// </summary>
-    public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IClientInventory, IClientIPEndpoint, IStatsCollector
+    public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IClientInventory, IStatsCollector
     {
         /// <value>
         /// Debug packet level.  See OpenSim.RegisterConsoleCommands() for more details.
@@ -365,7 +365,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected string m_lastName;
         protected Thread m_clientThread;
         protected Vector3 m_startpos;
-        protected EndPoint m_userEndPoint;
         protected UUID m_activeGroupID;
         protected string m_activeGroupName = String.Empty;
         protected ulong m_activeGroupPowers;
@@ -458,7 +457,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Constructor
         /// </summary>
-        public LLClientView(EndPoint remoteEP, Scene scene, LLUDPServer udpServer, LLUDPClient udpClient, AuthenticateResponse sessionInfo,
+        public LLClientView(Scene scene, LLUDPServer udpServer, LLUDPClient udpClient, AuthenticateResponse sessionInfo,
             UUID agentId, UUID sessionId, uint circuitCode)
         {
 //            DebugPacketLevel = 1;
@@ -466,7 +465,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RegisterInterface<IClientIM>(this);
             RegisterInterface<IClientInventory>(this);
             RegisterInterface<IClientChat>(this);
-            RegisterInterface<IClientIPEndpoint>(this);
 
             m_scene = scene;
             m_entityUpdates = new PriorityQueue(m_scene.Entities.Count);
@@ -483,7 +481,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_sessionId = sessionId;
             m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
             m_circuitCode = circuitCode;
-            m_userEndPoint = remoteEP;
             m_firstName = sessionInfo.LoginInfo.First;
             m_lastName = sessionInfo.LoginInfo.Last;
             m_startpos = sessionInfo.LoginInfo.StartPos;
@@ -515,6 +512,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void Close(bool sendStop)
         {
+            IsActive = false;
+
             m_log.DebugFormat(
                 "[CLIENT]: Close has been called for {0} attached to scene {1}",
                 Name, m_scene.RegionInfo.RegionName);
@@ -3902,7 +3901,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         canUseImproved = false;
                     }
                 }
-
+    
                 #endregion UpdateFlags to packet type conversion
 
                 #region Block Construction
@@ -11866,7 +11865,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (DebugPacketLevel <= 100 && (packet.Type == PacketType.AvatarAnimation || packet.Type == PacketType.ViewerEffect))
                     logPacket = false;
                 
-                if (DebugPacketLevel <= 50 && packet.Type == PacketType.ImprovedTerseObjectUpdate)
+                if (DebugPacketLevel <= 50
+                    & (packet.Type == PacketType.ImprovedTerseObjectUpdate || packet.Type == PacketType.ObjectUpdate))
                     logPacket = false;
 
                 if (DebugPacketLevel <= 25 && packet.Type == PacketType.ObjectPropertiesFamily)
@@ -11979,7 +11979,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             ClientInfo info = m_udpClient.GetClientInfo();
 
-            info.userEP = m_userEndPoint;
             info.proxyEP = null;
             info.agentcircuit = RequestClientInfo();
 
@@ -11989,11 +11988,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SetClientInfo(ClientInfo info)
         {
             m_udpClient.SetClientInfo(info);
-        }
-
-        public EndPoint GetClientEP()
-        {
-            return m_userEndPoint;
         }
 
         #region Media Parcel Members
@@ -12074,10 +12068,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
             }
             return string.Empty;
-        }
-
-        public void KillEndDone()
-        {
         }
 
         #region IClientCore
@@ -12167,21 +12157,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected void MakeAssetRequest(TransferRequestPacket transferRequest, UUID taskID)
         {
             UUID requestID = UUID.Zero;
-            if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset)
+            int sourceType = transferRequest.TransferInfo.SourceType;
+
+            if (sourceType == (int)SourceType.Asset)
             {
                 requestID = new UUID(transferRequest.TransferInfo.Params, 0);
             }
-            else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem)
+            else if (sourceType == (int)SourceType.SimInventoryItem)
             {
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
             }
-            else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimEstate)
+            else if (sourceType == (int)SourceType.SimEstate)
             {
                 requestID = taskID;
             }
 
-
-//            m_log.DebugFormat("[CLIENT]: {0} requesting asset {1}", Name, requestID);
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Received transfer request for {0} in {1} type {2} by {3}",
+//                requestID, taskID, (SourceType)sourceType, Name);
 
 
             //Note, the bool returned from the below function is useless since it is always false.
@@ -12269,24 +12262,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             return numPackets;
         }
-
-        #region IClientIPEndpoint Members
-
-        public IPAddress EndPoint
-        {
-            get
-            {
-                if (m_userEndPoint is IPEndPoint)
-                {
-                    IPEndPoint ep = (IPEndPoint)m_userEndPoint;
-
-                    return ep.Address;
-                }
-                return null;
-            }
-        }
-
-        #endregion
 
         public void SendRebakeAvatarTextures(UUID textureID)
         {

@@ -113,9 +113,11 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         /// <param name="landAtTarget">
         /// If true and the avatar is flying when it reaches the target, land.
-        /// </param>
+        /// </param> name="running">
+        /// If true, NPC moves with running speed.
         /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
-        bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget);
+        /// 
+        bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget, bool running);
 
         /// <summary>
         /// Stop the NPC's current movement.
@@ -135,6 +137,36 @@ namespace OpenSim.Region.Framework.Interfaces
         bool Say(UUID agentID, Scene scene, string text);
 
         /// <summary>
+        /// Get the NPC to say something.
+        /// </summary>
+        /// <param name="agentID">The UUID of the NPC</param>
+        /// <param name="scene"></param>
+        /// <param name="text"></param>
+        /// <param name="channel"></param>
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool Say(UUID agentID, Scene scene, string text, int channel);
+
+        /// <summary>
+        /// Get the NPC to shout something.
+        /// </summary>
+        /// <param name="agentID">The UUID of the NPC</param>
+        /// <param name="scene"></param>
+        /// <param name="text"></param>
+        /// <param name="channel"></param>
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool Shout(UUID agentID, Scene scene, string text, int channel);
+
+        /// <summary>
+        /// Get the NPC to whisper something.
+        /// </summary>
+        /// <param name="agentID">The UUID of the NPC</param>
+        /// <param name="scene"></param>
+        /// <param name="text"></param>
+        /// <param name="channel"></param>
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool Whisper(UUID agentID, Scene scene, string text, int channel);
+
+        /// <summary>
         /// Sit the NPC.
         /// </summary>
         /// <param name="agentID"></param>
@@ -150,6 +182,14 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="scene"></param>
         /// <returns>true if the stand succeeded, false if not</returns>
         bool Stand(UUID agentID, Scene scene);
+
+        /// <summary>
+        /// Get the NPC to touch an object.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="partID"></param>
+        /// <returns>true if the touch is actually attempted, false if not</returns>
+        bool Touch(UUID agentID, UUID partID);
 
         /// <summary>
         /// Delete an NPC.

@@ -47,18 +47,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     public class InventoryArchiverModule : IRegionModule, IInventoryArchiverModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public string Name { get { return "Inventory Archiver Module"; } }
-        
+
         public bool IsSharedModule { get { return true; } }
 
         /// <value>
-        /// Enable or disable checking whether the iar user is actually logged in 
+        /// Enable or disable checking whether the iar user is actually logged in
         /// </value>
 //        public bool DisablePresenceChecks { get; set; }
-        
+
         public event InventoryArchiveSaved OnInventoryArchiveSaved;
-        
+
         /// <summary>
         /// The file to load and save inventory if no filename has been specified
         /// </summary>
@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Pending save completions initiated from the console
         /// </value>
         protected List<Guid> m_pendingConsoleSaves = new List<Guid>();
-        
+
         /// <value>
         /// All scenes that this module knows about
         /// </value>
@@ -106,7 +106,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 scene.RegisterModuleInterface<IInventoryArchiverModule>(this);
                 OnInventoryArchiveSaved += SaveInvConsoleCommandCompleted;
-                
+
                 scene.AddCommand(
                     "Archiving", this, "load iar",
                     "load iar [-m|--merge] <first> <last> <inventory path> <password> [<IAR path>]",
@@ -119,11 +119,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     + "<IAR path> is the filesystem path or URI from which to load the IAR."
                     + string.Format("  If this is not given then the filename {0} in the current directory is used", DEFAULT_INV_BACKUP_FILENAME),
                     HandleLoadInvConsoleCommand);
-                
+
                 scene.AddCommand(
                     "Archiving", this, "save iar",
-                    "save iar [-h|--home=<url>] [--noassets] <first> <last> <inventory path> <password> [<IAR path>] [-c|--creators] [-v|--verbose]",
-                    "Save user inventory archive (IAR).", 
+                    "save iar [-h|--home=<url>] [--noassets] <first> <last> <inventory path> <password> [<IAR path>] [-c|--creators] [-e|--exclude=<name/uuid>] [-f|--excludefolder=<foldername/uuid>] [-v|--verbose]",
+                    "Save user inventory archive (IAR).",
                     "<first> is the user's first name.\n"
                     + "<last> is the user's last name.\n"
                     + "<inventory path> is the path inside the user's inventory for the folder/item to be saved.\n"
@@ -131,32 +131,34 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     + string.Format("  If this is not given then the filename {0} in the current directory is used.\n", DEFAULT_INV_BACKUP_FILENAME)
                     + "-h|--home=<url> adds the url of the profile service to the saved user information.\n"
                     + "-c|--creators preserves information about foreign creators.\n"
+                    + "-e|--exclude=<name/uuid> don't save the inventory item in archive" + Environment.NewLine
+                    + "-f|--excludefolder=<folder/uuid> don't save contents of the folder in archive" + Environment.NewLine
                     + "-v|--verbose extra debug messages.\n"
                     + "--noassets stops assets being saved to the IAR.",
                     HandleSaveInvConsoleCommand);
 
                 m_aScene = scene;
             }
-                        
+
             m_scenes[scene.RegionInfo.RegionID] = scene;
         }
 
         public void PostInitialise() {}
 
         public void Close() {}
-        
+
         /// <summary>
         /// Trigger the inventory archive saved event.
         /// </summary>
         protected internal void TriggerInventoryArchiveSaved(
-            Guid id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, 
+            Guid id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream,
             Exception reportedException)
         {
             InventoryArchiveSaved handlerInventoryArchiveSaved = OnInventoryArchiveSaved;
             if (handlerInventoryArchiveSaved != null)
                 handlerInventoryArchiveSaved(id, succeeded, userInfo, invPath, saveStream, reportedException);
         }
-        
+
         public bool ArchiveInventory(
              Guid id, string firstName, string lastName, string invPath, string pass, Stream saveStream)
         {
@@ -164,7 +166,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         public bool ArchiveInventory(
-            Guid id, string firstName, string lastName, string invPath, string pass, Stream saveStream, 
+            Guid id, string firstName, string lastName, string invPath, string pass, Stream saveStream,
             Dictionary<string, object> options)
         {
             if (m_scenes.Count > 0)
@@ -188,7 +190,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                             return false;
                         }
-                    
+
                         return true;
 //                    }
 //                    else
@@ -202,15 +204,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             return false;
         }
-                        
+
         public bool ArchiveInventory(
-            Guid id, string firstName, string lastName, string invPath, string pass, string savePath, 
+            Guid id, string firstName, string lastName, string invPath, string pass, string savePath,
             Dictionary<string, object> options)
         {
             if (m_scenes.Count > 0)
             {
                 UserAccount userInfo = GetUserInfo(firstName, lastName, pass);
-                
+
                 if (userInfo != null)
                 {
 //                    if (CheckPresence(userInfo.PrincipalID))
@@ -228,7 +230,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                             return false;
                         }
-                    
+
                         return true;
 //                    }
 //                    else
@@ -239,7 +241,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 //                    }
                 }
             }
-            
+
             return false;
         }
 
@@ -247,9 +249,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             return DearchiveInventory(firstName, lastName, invPath, pass, loadStream, new Dictionary<string, object>());
         }
-        
+
         public bool DearchiveInventory(
-            string firstName, string lastName, string invPath, string pass, Stream loadStream, 
+            string firstName, string lastName, string invPath, string pass, Stream loadStream,
             Dictionary<string, object> options)
         {
             if (m_scenes.Count > 0)
@@ -295,22 +297,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             return false;
         }
-        
+
         public bool DearchiveInventory(
-             string firstName, string lastName, string invPath, string pass, string loadPath, 
+             string firstName, string lastName, string invPath, string pass, string loadPath,
              Dictionary<string, object> options)
         {
             if (m_scenes.Count > 0)
             {
                 UserAccount userInfo = GetUserInfo(firstName, lastName, pass);
-                
+
                 if (userInfo != null)
                 {
 //                    if (CheckPresence(userInfo.PrincipalID))
 //                    {
                         InventoryArchiveReadRequest request;
                         bool merge = (options.ContainsKey("merge") ? (bool)options["merge"] : false);
-                        
+
                         try
                         {
                             request = new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadPath, merge);
@@ -324,7 +326,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                             return false;
                         }
-                        
+
                         UpdateClientWithLoadedNodes(userInfo, request.Execute());
 
                         return true;
@@ -340,7 +342,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             return false;
         }
-        
+
         /// <summary>
         /// Load inventory from an inventory file archive
         /// </summary>
@@ -351,26 +353,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 Dictionary<string, object> options = new Dictionary<string, object>();
                 OptionSet optionSet = new OptionSet().Add("m|merge", delegate (string v) { options["merge"] = v != null; });
-                
+
                 List<string> mainParams = optionSet.Parse(cmdparams);
-                
+
                 if (mainParams.Count < 6)
                 {
                     m_log.Error(
-                        "[INVENTORY ARCHIVER]: usage is load iar [-m|--merge] <first name> <last name> <inventory path> <user password> [<load file path>]");                    
+                        "[INVENTORY ARCHIVER]: usage is load iar [-m|--merge] <first name> <last name> <inventory path> <user password> [<load file path>]");
                     return;
                 }
-    
+
                 string firstName = mainParams[2];
                 string lastName = mainParams[3];
                 string invPath = mainParams[4];
                 string pass = mainParams[5];
                 string loadPath = (mainParams.Count > 6 ? mainParams[6] : DEFAULT_INV_BACKUP_FILENAME);
-    
+
                 m_log.InfoFormat(
                     "[INVENTORY ARCHIVER]: Loading archive {0} to inventory path {1} for {2} {3}",
                     loadPath, invPath, firstName, lastName);
-                
+
                 if (DearchiveInventory(firstName, lastName, invPath, pass, loadPath, options))
                     m_log.InfoFormat(
                         "[INVENTORY ARCHIVER]: Loaded archive {0} for {1} {2}",
@@ -381,7 +383,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_log.ErrorFormat("[INVENTORY ARCHIVER]: {0}", e.Message);
             }
         }
-        
+
         /// <summary>
         /// Save inventory to a file archive
         /// </summary>
@@ -398,6 +400,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             ops.Add("v|verbose", delegate(string v) { options["verbose"] = v; });
             ops.Add("c|creators", delegate(string v) { options["creators"] = v; });
             ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
+            ops.Add("e|exclude=", delegate(string v)
+                {
+                    if (!options.ContainsKey("exclude"))
+                        options["exclude"] = new List<String>();
+                    ((List<String>)options["exclude"]).Add(v);
+                });
+            ops.Add("f|excludefolder=", delegate(string v)
+                {
+                    if (!options.ContainsKey("excludefolders"))
+                        options["excludefolders"] = new List<String>();
+                    ((List<String>)options["excludefolders"]).Add(v);
+                });
 
             List<string> mainParams = ops.Parse(cmdparams);
 
@@ -406,10 +420,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (mainParams.Count < 6)
                 {
                     m_log.Error(
-                        "[INVENTORY ARCHIVER]: usage is save iar [-h|--home=<url>] [--noassets] <first name> <last name> <inventory path> <user password> [<save file path>] [-c|--creators] [-v|--verbose]");
+                        "[INVENTORY ARCHIVER]: save iar [-h|--home=<url>] [--noassets] <first> <last> <inventory path> <password> [<IAR path>] [-c|--creators] [-e|--exclude=<name/uuid>] [-f|--excludefolder=<foldername/uuid>] [-v|--verbose]");
                     return;
                 }
-    
+
                 if (options.ContainsKey("home"))
                     m_log.WarnFormat("[INVENTORY ARCHIVER]: Please be aware that inventory archives with creator information are not compatible with OpenSim 0.7.0.2 and earlier.  Do not use the -home option if you want to produce a compatible IAR");
 
@@ -418,7 +432,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 string invPath = mainParams[4];
                 string pass = mainParams[5];
                 string savePath = (mainParams.Count > 6 ? mainParams[6] : DEFAULT_INV_BACKUP_FILENAME);
-    
+
                 m_log.InfoFormat(
                     "[INVENTORY ARCHIVER]: Saving archive {0} using inventory path {1} for {2} {3}",
                     savePath, invPath, firstName, lastName);
@@ -433,9 +447,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_log.ErrorFormat("[INVENTORY ARCHIVER]: {0}", e.Message);
             }
         }
-        
+
         private void SaveInvConsoleCommandCompleted(
-            Guid id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, 
+            Guid id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream,
             Exception reportedException)
         {
             lock (m_pendingConsoleSaves)
@@ -445,7 +459,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 else
                     return;
             }
-            
+
             if (succeeded)
             {
                 m_log.InfoFormat("[INVENTORY ARCHIVER]: Saved archive for {0} {1}", userInfo.FirstName, userInfo.LastName);
@@ -453,11 +467,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             else
             {
                 m_log.ErrorFormat(
-                    "[INVENTORY ARCHIVER]: Archive save for {0} {1} failed - {2}", 
+                    "[INVENTORY ARCHIVER]: Archive save for {0} {1} failed - {2}",
                     userInfo.FirstName, userInfo.LastName, reportedException.Message);
             }
         }
-        
+
         /// <summary>
         /// Get user information for the given name.
         /// </summary>
@@ -467,13 +481,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <returns></returns>
         protected UserAccount GetUserInfo(string firstName, string lastName, string pass)
         {
-            UserAccount account 
+            UserAccount account
                 = m_aScene.UserAccountService.GetUserAccount(m_aScene.RegionInfo.ScopeID, firstName, lastName);
-            
+
             if (null == account)
             {
                 m_log.ErrorFormat(
-                    "[INVENTORY ARCHIVER]: Failed to find user info for {0} {1}", 
+                    "[INVENTORY ARCHIVER]: Failed to find user info for {0} {1}",
                     firstName, lastName);
                 return null;
             }
@@ -488,7 +502,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 else
                 {
                     m_log.ErrorFormat(
-                        "[INVENTORY ARCHIVER]: Password for user {0} {1} incorrect.  Please try again.", 
+                        "[INVENTORY ARCHIVER]: Password for user {0} {1} incorrect.  Please try again.",
                         firstName, lastName);
                     return null;
                 }
@@ -499,7 +513,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return null;
             }
         }
-        
+
         /// <summary>
         /// Notify the client of loaded nodes if they are logged in
         /// </summary>
@@ -508,22 +522,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (loadedNodes.Count == 0)
                 return;
-                   
+
             foreach (Scene scene in m_scenes.Values)
             {
                 ScenePresence user = scene.GetScenePresence(userInfo.PrincipalID);
-                
+
                 if (user != null && !user.IsChildAgent)
                 {
                     foreach (InventoryNodeBase node in loadedNodes)
                     {
 //                        m_log.DebugFormat(
-//                            "[INVENTORY ARCHIVER]: Notifying {0} of loaded inventory node {1}", 
+//                            "[INVENTORY ARCHIVER]: Notifying {0} of loaded inventory node {1}",
 //                            user.Name, node.Name);
-                        
+
                         user.ControllingClient.SendBulkUpdateInventory(node);
                     }
-                    
+
                     break;
                 }
             }
@@ -538,7 +552,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 //        {
 //            if (DisablePresenceChecks)
 //                return true;
-//            
+//
 //            foreach (Scene scene in m_scenes.Values)
 //            {
 //                ScenePresence p;

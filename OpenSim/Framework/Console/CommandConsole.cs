@@ -79,7 +79,11 @@ namespace OpenSim.Framework.Console
             public List<CommandDelegate> fn;
         }
 
-        public const string GeneralHelpText = "For more information, type 'help <item>' where <item> is one of the following categories:";
+        public const string GeneralHelpText
+            = "To enter an argument that contains spaces, surround the argument with double quotes.\nFor example, show object name \"My long object name\"\n";
+
+        public const string ItemHelpText
+                = "For more information, type 'help <item>' where <item> is one of the following:";
 
         /// <value>
         /// Commands organized by keyword in a tree
@@ -108,7 +112,9 @@ namespace OpenSim.Framework.Console
             // General help
             if (helpParts.Count == 0)
             {
+                help.Add(""); // Will become a newline.
                 help.Add(GeneralHelpText);
+                help.Add(ItemHelpText);
                 help.AddRange(CollectModulesHelp(tree));
             }
             else
@@ -132,7 +138,7 @@ namespace OpenSim.Framework.Console
             // Check modules first to see if we just need to display a list of those commands
             if (TryCollectModuleHelp(originalHelpRequest, help))
             {
-                help.Insert(0, GeneralHelpText);
+                help.Insert(0, ItemHelpText);
                 return help;
             }
             

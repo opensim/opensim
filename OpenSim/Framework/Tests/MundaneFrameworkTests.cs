@@ -227,10 +227,10 @@ namespace OpenSim.Framework.Tests
             es.AddEstateManager(UUID.Zero);
 
             es.AddEstateManager(bannedUserId);
-            Assert.IsTrue(es.IsEstateManager(bannedUserId), "bannedUserId should be EstateManager but isn't.");
+            Assert.IsTrue(es.IsEstateManagerOrOwner(bannedUserId), "bannedUserId should be EstateManager but isn't.");
 
             es.RemoveEstateManager(bannedUserId);
-            Assert.IsFalse(es.IsEstateManager(bannedUserId), "bannedUserID is estateManager but shouldn't be");
+            Assert.IsFalse(es.IsEstateManagerOrOwner(bannedUserId), "bannedUserID is estateManager but shouldn't be");
 
             Assert.IsFalse(es.HasAccess(bannedUserId), "bannedUserID has access but shouldn't");
 

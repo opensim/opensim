@@ -40,6 +40,9 @@ using OpenSim.Framework.Serialization;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using Ionic.Zlib;
+using GZipStream = Ionic.Zlib.GZipStream;
+using CompressionMode = Ionic.Zlib.CompressionMode;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -64,7 +67,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Determine whether this archive will save assets.  Default is true.
         /// </summary>
         public bool SaveAssets { get; set; }
-        
+
+        protected ArchiverModule m_module;
         protected Scene m_scene;
         protected Stream m_saveStream;
         protected Guid m_requestId;
@@ -72,17 +76,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="scene"></param>
+        /// <param name="module">Calling module</param>
         /// <param name="savePath">The path to which to save data.</param>
         /// <param name="requestId">The id associated with this request</param>
         /// <exception cref="System.IO.IOException">
         /// If there was a problem opening a stream for the file specified by the savePath
         /// </exception>
-        public ArchiveWriteRequestPreparation(Scene scene, string savePath, Guid requestId) : this(scene, requestId)
+        public ArchiveWriteRequestPreparation(ArchiverModule module, string savePath, Guid requestId) : this(module, requestId)
         {
             try
             {
-                m_saveStream = new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress);
+                m_saveStream = new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress, CompressionLevel.BestCompression);
             }
             catch (EntryPointNotFoundException e)
             {
@@ -96,17 +100,23 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="scene"></param>
+        /// <param name="module">Calling module</param>
         /// <param name="saveStream">The stream to which to save data.</param>
         /// <param name="requestId">The id associated with this request</param>
-        public ArchiveWriteRequestPreparation(Scene scene, Stream saveStream, Guid requestId) : this(scene, requestId)
+        public ArchiveWriteRequestPreparation(ArchiverModule module, Stream saveStream, Guid requestId) : this(module, requestId)
         {
             m_saveStream = saveStream;
         }
 
-        protected ArchiveWriteRequestPreparation(Scene scene, Guid requestId)
+        protected ArchiveWriteRequestPreparation(ArchiverModule module, Guid requestId)
         {
-            m_scene = scene;
+            m_module = module;
+
+            // FIXME: This is only here for regression test purposes since they do not supply a module.  Need to fix
+            // this.
+            if (m_module != null)
+                m_scene = m_module.Scene;
+
             m_requestId = requestId;
 
             SaveAssets = true;
@@ -297,10 +307,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (checkPermissions.Contains("T") && !canTransfer)
                     partPermitted = false;
 
+                // If the user is the Creator of the object then it can always be included in the OAR
+                bool creator = (obj.CreatorID.Guid == user.Guid);
+                if (creator)
+                    partPermitted = true;
+
                 //string name = (objGroup.PrimCount == 1) ? objGroup.Name : string.Format("{0} ({1}/{2})", obj.Name, primNumber, objGroup.PrimCount);
-                //m_log.DebugFormat("[ARCHIVER]: Object permissions: {0}: Base={1:X4}, Owner={2:X4}, Everyone={3:X4}, permissionClass={4}, checkPermissions={5}, canCopy={6}, canTransfer={7}, permitted={8}",
+                //m_log.DebugFormat("[ARCHIVER]: Object permissions: {0}: Base={1:X4}, Owner={2:X4}, Everyone={3:X4}, permissionClass={4}, checkPermissions={5}, canCopy={6}, canTransfer={7}, creator={8}, permitted={9}",
                 //    name, obj.BaseMask, obj.OwnerMask, obj.EveryoneMask,
-                //    permissionClass, checkPermissions, canCopy, canTransfer, permitted);
+                //    permissionClass, checkPermissions, canCopy, canTransfer, creator, partPermitted);
 
                 if (!partPermitted)
                 {
@@ -320,7 +335,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <returns></returns>
         public string CreateControlFile(Dictionary<string, object> options)
         {
-            int majorVersion = MAX_MAJOR_VERSION, minorVersion = 7;
+            int majorVersion = MAX_MAJOR_VERSION, minorVersion = 8;
 //
 //            if (options.ContainsKey("version"))
 //            {
@@ -356,32 +371,66 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             //if (majorVersion == 1)
             //{
             //    m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");
-            //}            
+            //}
+
+            String s;
             
-            StringWriter sw = new StringWriter();
-            XmlTextWriter xtw = new XmlTextWriter(sw);
-            xtw.Formatting = Formatting.Indented;
-            xtw.WriteStartDocument();
-            xtw.WriteStartElement("archive");
-            xtw.WriteAttributeString("major_version", majorVersion.ToString());
-            xtw.WriteAttributeString("minor_version", minorVersion.ToString());
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlTextWriter xtw = new XmlTextWriter(sw))
+                {
+                    xtw.Formatting = Formatting.Indented;
+                    xtw.WriteStartDocument();
+                    xtw.WriteStartElement("archive");
+                    xtw.WriteAttributeString("major_version", majorVersion.ToString());
+                    xtw.WriteAttributeString("minor_version", minorVersion.ToString());
+        
+                    xtw.WriteStartElement("creation_info");
+                    DateTime now = DateTime.UtcNow;
+                    TimeSpan t = now - new DateTime(1970, 1, 1);
+                    xtw.WriteElementString("datetime", ((int)t.TotalSeconds).ToString());
+                    xtw.WriteElementString("id", UUID.Random().ToString());
+                    xtw.WriteEndElement();
 
-            xtw.WriteStartElement("creation_info");
-            DateTime now = DateTime.UtcNow;
-            TimeSpan t = now - new DateTime(1970, 1, 1);
-            xtw.WriteElementString("datetime", ((int)t.TotalSeconds).ToString());
-            xtw.WriteElementString("id", UUID.Random().ToString());
-            xtw.WriteEndElement();
+                    xtw.WriteStartElement("region_info");
 
-            xtw.WriteElementString("assets_included", SaveAssets.ToString());
+                    bool isMegaregion;
+                    Vector2 size;
+                    IRegionCombinerModule rcMod = null;
 
-            xtw.WriteEndElement();
+                    // FIXME: This is only here for regression test purposes since they do not supply a module.  Need to fix
+                    // this, possibly by doing control file creation somewhere else.
+                    if (m_module != null)
+                        rcMod = m_module.RegionCombinerModule;
 
-            xtw.Flush();
-            xtw.Close();
+                    if (rcMod != null)
+                        isMegaregion = rcMod.IsRootForMegaregion(m_scene.RegionInfo.RegionID);
+                    else
+                        isMegaregion = false;
 
-            String s = sw.ToString();
-            sw.Close();
+                    if (isMegaregion)
+                        size = rcMod.GetSizeOfMegaregion(m_scene.RegionInfo.RegionID);
+                    else
+                        size = new Vector2((float)Constants.RegionSize, (float)Constants.RegionSize);
+
+                    xtw.WriteElementString("is_megaregion", isMegaregion.ToString());
+                    xtw.WriteElementString("size_in_meters", string.Format("{0},{1}", size.X, size.Y));
+
+                    xtw.WriteEndElement();
+        
+                    xtw.WriteElementString("assets_included", SaveAssets.ToString());
+
+                    xtw.WriteEndElement();
+        
+                    xtw.Flush();
+                }
+
+                s = sw.ToString();
+            }
+
+//            if (m_scene != null)
+//                Console.WriteLine(
+//                    "[ARCHIVE WRITE REQUEST PREPARATION]: Control file for {0} is: {1}", m_scene.RegionInfo.RegionName, s);
 
             return s;
         }

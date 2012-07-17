@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using NUnit.Framework;
 using OpenMetaverse;
@@ -68,10 +69,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 position = new Vector3(200,200,21);
             
             foreach (Border b in testborders)
-            {
                 Assert.That(!b.TestCross(position));
-
-            }
 
             position = new Vector3(200,280,21);
             Assert.That(NorthBorder.TestCross(position));

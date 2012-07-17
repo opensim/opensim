@@ -1537,51 +1537,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
         }
 
-        //////// Read /////////
-        public static bool Xml2ToSOG(XmlTextReader reader, SceneObjectGroup sog)
-        {
-            reader.Read();
-            reader.ReadStartElement("SceneObjectGroup");
-            SceneObjectPart root = Xml2ToSOP(reader);
-            if (root != null)
-                sog.SetRootPart(root);
-            else
-            {
-                return false;
-            }
-
-            if (sog.UUID == UUID.Zero)
-                sog.UUID = sog.RootPart.UUID;
-
-            reader.Read(); // OtherParts
-
-            while (!reader.EOF)
-            {
-                switch (reader.NodeType)
-                {
-                    case XmlNodeType.Element:
-                        if (reader.Name == "SceneObjectPart")
-                        {
-                            SceneObjectPart child = Xml2ToSOP(reader);
-                            if (child != null)
-                                sog.AddPart(child);
-                        }
-                        else
-                        {
-                            //Logger.Log("Found unexpected prim XML element " + reader.Name, Helpers.LogLevel.Debug);
-                            reader.Read();
-                        }
-                        break;
-                    case XmlNodeType.EndElement:
-                    default:
-                        reader.Read();
-                        break;
-                }
-
-            }
-            return true;
-        }
-
         public static SceneObjectPart Xml2ToSOP(XmlTextReader reader)
         {
             SceneObjectPart obj = new SceneObjectPart();

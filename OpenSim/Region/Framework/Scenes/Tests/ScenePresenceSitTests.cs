@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Nini.Config;
 using NUnit.Framework;
@@ -50,7 +51,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [SetUp]
         public void Init()
         {
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             m_sp = SceneHelpers.AddScenePresence(m_scene, TestHelpers.ParseTail(0x1));
         }
 
@@ -64,11 +65,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 startPos = new Vector3(10.1f, 0, 0);
             m_sp.AbsolutePosition = startPos;
 
-            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
 
             m_sp.HandleAgentRequestSit(m_sp.ControllingClient, m_sp.UUID, part.UUID, Vector3.Zero);
 
             Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
+            Assert.That(part.GetSittingAvatarsCount(), Is.EqualTo(0));
+            Assert.That(part.GetSittingAvatars(), Is.Null);
             Assert.That(m_sp.ParentID, Is.EqualTo(0));
         }
 
@@ -82,11 +85,17 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 startPos = new Vector3(9.9f, 0, 0);
             m_sp.AbsolutePosition = startPos;
 
-            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
 
             m_sp.HandleAgentRequestSit(m_sp.ControllingClient, m_sp.UUID, part.UUID, Vector3.Zero);
 
+            Assert.That(m_sp.PhysicsActor, Is.Null);
+
             Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
+            Assert.That(part.GetSittingAvatarsCount(), Is.EqualTo(1));
+            HashSet<UUID> sittingAvatars = part.GetSittingAvatars();
+            Assert.That(sittingAvatars.Count, Is.EqualTo(1));
+            Assert.That(sittingAvatars.Contains(m_sp.UUID));
             Assert.That(m_sp.ParentID, Is.EqualTo(part.LocalId));
         }
 
@@ -100,13 +109,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 startPos = new Vector3(1, 1, 1);
             m_sp.AbsolutePosition = startPos;
 
-            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
 
             m_sp.HandleAgentRequestSit(m_sp.ControllingClient, m_sp.UUID, part.UUID, Vector3.Zero);
-
-            Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
-            Assert.That(m_sp.ParentID, Is.EqualTo(part.LocalId));
-            Assert.That(m_sp.PhysicsActor, Is.Null);
 
             // FIXME: This is different for live avatars - z position is adjusted.  This is half the height of the
             // default avatar.
@@ -119,6 +124,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             m_sp.StandUp();
 
             Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
+            Assert.That(part.GetSittingAvatarsCount(), Is.EqualTo(0));
+            Assert.That(part.GetSittingAvatars(), Is.Null);
             Assert.That(m_sp.ParentID, Is.EqualTo(0));
             Assert.That(m_sp.PhysicsActor, Is.Not.Null);
         }
@@ -133,7 +140,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 startPos = new Vector3(128, 128, 30);
             m_sp.AbsolutePosition = startPos;
 
-            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
             part.SitTargetPosition = new Vector3(0, 0, 1);
 
             m_sp.HandleAgentRequestSit(m_sp.ControllingClient, m_sp.UUID, part.UUID, Vector3.Zero);
@@ -145,11 +152,20 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 Is.EqualTo(part.AbsolutePosition + part.SitTargetPosition + ScenePresence.SIT_TARGET_ADJUSTMENT));
             Assert.That(m_sp.PhysicsActor, Is.Null);
 
+            Assert.That(part.GetSittingAvatarsCount(), Is.EqualTo(1));
+            HashSet<UUID> sittingAvatars = part.GetSittingAvatars();
+            Assert.That(sittingAvatars.Count, Is.EqualTo(1));
+            Assert.That(sittingAvatars.Contains(m_sp.UUID));
+
             m_sp.StandUp();
 
             Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
             Assert.That(m_sp.ParentID, Is.EqualTo(0));
             Assert.That(m_sp.PhysicsActor, Is.Not.Null);
+
+            Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
+            Assert.That(part.GetSittingAvatarsCount(), Is.EqualTo(0));
+            Assert.That(part.GetSittingAvatars(), Is.Null);
         }
 
         [Test]

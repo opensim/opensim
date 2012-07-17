@@ -193,14 +193,15 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             //m_log.DebugFormat("[WORLD MAP]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
-            caps.RegisterHandler("MapLayer",
-                                 new RestStreamHandler("POST", capsBase + m_mapLayerPath,
-                                                       delegate(string request, string path, string param,
-                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-                                                           {
-                                                               return MapLayerRequest(request, path, param,
-                                                                                      agentID, caps);
-                                                           }));
+            caps.RegisterHandler(
+                "MapLayer",
+                new RestStreamHandler(
+                    "POST",
+                    capsBase + m_mapLayerPath,
+                    (request, path, param, httpRequest, httpResponse)
+                        => MapLayerRequest(request, path, param, agentID, caps),
+                    "MapLayer",
+                    agentID.ToString()));
         }
 
         /// <summary>
@@ -675,7 +676,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 {
                     if (Environment.TickCount > (m_blacklistedregions[regionhandle] + blacklistTimeout))
                     {
-                        m_log.DebugFormat("[WORLDMAP]: Unblock blacklisted region {0}", regionhandle);
+                        m_log.DebugFormat("[WORLD MAP]: Unblock blacklisted region {0}", regionhandle);
 
                         m_blacklistedregions.Remove(regionhandle);
                     }
@@ -730,7 +731,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 {
                     if (Environment.TickCount > (m_blacklistedurls[httpserver] + blacklistTimeout))
                     {
-                        m_log.DebugFormat("[WORLDMAP]: Unblock blacklisted URL {0}", httpserver);
+                        m_log.DebugFormat("[WORLD MAP]: Unblock blacklisted URL {0}", httpserver);
 
                         m_blacklistedurls.Remove(httpserver);
                     }
@@ -1427,13 +1428,13 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             if (terrain == null)
                 return;
 
+            m_log.DebugFormat("[WORLD MAP]: Generating map image for {0}", m_scene.RegionInfo.RegionName);
+
             byte[] data = terrain.WriteJpeg2000Image();
             if (data == null)
                 return;
 
             byte[] overlay = GenerateOverlay();
-
-            m_log.Debug("[WORLDMAP]: STORING MAPTILE IMAGE");
 
             UUID terrainImageID = UUID.Random();
             UUID parcelImageID = UUID.Zero;
@@ -1449,7 +1450,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             asset.Flags = AssetFlags.Maptile;
 
             // Store the new one
-            m_log.DebugFormat("[WORLDMAP]: Storing map tile {0}", asset.ID);
+            m_log.DebugFormat("[WORLD MAP]: Storing map tile {0} for {1}", asset.ID, m_scene.RegionInfo.RegionName);
+            
             m_scene.AssetService.Store(asset);
 
             if (overlay != null)

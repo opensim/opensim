@@ -45,7 +45,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private static readonly ILog m_log = 
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Scene m_scene;
+        public Scene Scene { get; private set; }
+        public IRegionCombinerModule RegionCombinerModule { get; private set; }
 
         /// <value>
         /// The file used to load and save an opensimulator archive if no filename has been specified
@@ -70,13 +71,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void AddRegion(Scene scene)
         {
-            m_scene = scene;
-            m_scene.RegisterModuleInterface<IRegionArchiverModule>(this);
+            Scene = scene;
+            Scene.RegisterModuleInterface<IRegionArchiverModule>(this);
             //m_log.DebugFormat("[ARCHIVER]: Enabled for region {0}", scene.RegionInfo.RegionName);
         }
 
         public void RegionLoaded(Scene scene)
         {
+            RegionCombinerModule = scene.RequestModuleInterface<IRegionCombinerModule>();
         }
 
         public void RemoveRegion(Scene scene)
@@ -165,9 +167,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public void ArchiveRegion(string savePath, Guid requestId, Dictionary<string, object> options)
         {
             m_log.InfoFormat(
-                "[ARCHIVER]: Writing archive for region {0} to {1}", m_scene.RegionInfo.RegionName, savePath);
+                "[ARCHIVER]: Writing archive for region {0} to {1}", Scene.RegionInfo.RegionName, savePath);
             
-            new ArchiveWriteRequestPreparation(m_scene, savePath, requestId).ArchiveRegion(options);
+            new ArchiveWriteRequestPreparation(this, savePath, requestId).ArchiveRegion(options);
         }
 
         public void ArchiveRegion(Stream saveStream)
@@ -182,7 +184,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void ArchiveRegion(Stream saveStream, Guid requestId, Dictionary<string, object> options)
         {
-            new ArchiveWriteRequestPreparation(m_scene, saveStream, requestId).ArchiveRegion(options);
+            new ArchiveWriteRequestPreparation(this, saveStream, requestId).ArchiveRegion(options);
         }
 
         public void DearchiveRegion(string loadPath)
@@ -193,9 +195,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public void DearchiveRegion(string loadPath, bool merge, bool skipAssets, Guid requestId)
         {
             m_log.InfoFormat(
-                "[ARCHIVER]: Loading archive to region {0} from {1}", m_scene.RegionInfo.RegionName, loadPath);
+                "[ARCHIVER]: Loading archive to region {0} from {1}", Scene.RegionInfo.RegionName, loadPath);
             
-            new ArchiveReadRequest(m_scene, loadPath, merge, skipAssets, requestId).DearchiveRegion();
+            new ArchiveReadRequest(Scene, loadPath, merge, skipAssets, requestId).DearchiveRegion();
         }
         
         public void DearchiveRegion(Stream loadStream)
@@ -205,7 +207,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         
         public void DearchiveRegion(Stream loadStream, bool merge, bool skipAssets, Guid requestId)
         {
-            new ArchiveReadRequest(m_scene, loadStream, merge, skipAssets, requestId).DearchiveRegion();
+            new ArchiveReadRequest(Scene, loadStream, merge, skipAssets, requestId).DearchiveRegion();
         }
     }
 }

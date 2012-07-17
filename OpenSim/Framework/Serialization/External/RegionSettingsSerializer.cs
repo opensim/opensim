@@ -30,6 +30,8 @@ using System.Text;
 using System.Xml;
 using OpenMetaverse;
 using OpenSim.Framework;
+using log4net;
+using System.Reflection;
 
 namespace OpenSim.Framework.Serialization.External
 {
@@ -38,8 +40,6 @@ namespace OpenSim.Framework.Serialization.External
     /// </summary>
     public class RegionSettingsSerializer
     {
-        protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
-        
         /// <summary>
         /// Deserialize settings
         /// </summary>
@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Serialization.External
         /// <exception cref="System.Xml.XmlException"></exception>
         public static RegionSettings Deserialize(byte[] serializedSettings)
         {
-            return Deserialize(m_asciiEncoding.GetString(serializedSettings, 0, serializedSettings.Length));
+            return Deserialize(Encoding.ASCII.GetString(serializedSettings, 0, serializedSettings.Length));
         }
         
         /// <summary>
@@ -187,7 +187,29 @@ namespace OpenSim.Framework.Serialization.External
                         break;
                 }
             }
-            
+
+            xtr.ReadEndElement();
+
+            if (xtr.IsStartElement("Telehub"))
+            {
+                xtr.ReadStartElement("Telehub");
+
+                while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+                {
+                    switch (xtr.Name)
+                    {
+                        case "TelehubObject":
+                            settings.TelehubObject = UUID.Parse(xtr.ReadElementContentAsString());
+                            break;
+                        case "SpawnPoint":
+                            string str = xtr.ReadElementContentAsString();
+                            SpawnPoint sp = SpawnPoint.Parse(str);
+                            settings.AddSpawnPoint(sp);
+                            break;
+                    }
+                }
+            }
+
             xtr.Close();
             sr.Close();
             
@@ -243,7 +265,16 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteElementString("SunPosition", settings.SunPosition.ToString());
             // Note: 'SunVector' isn't saved because this value is owned by the Sun Module, which
             // calculates it automatically according to the date and other factors.
-            xtw.WriteEndElement(); 
+            xtw.WriteEndElement();
+
+            xtw.WriteStartElement("Telehub");
+            if (settings.TelehubObject != UUID.Zero)
+            {
+                xtw.WriteElementString("TelehubObject", settings.TelehubObject.ToString());
+                foreach (SpawnPoint sp in settings.SpawnPoints())
+                    xtw.WriteElementString("SpawnPoint", sp.ToString());
+            }
+            xtw.WriteEndElement();
             
             xtw.WriteEndElement();
             

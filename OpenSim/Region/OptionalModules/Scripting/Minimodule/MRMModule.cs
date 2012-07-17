@@ -482,10 +482,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             // Convert to base64
             //
             string filetext = Convert.ToBase64String(data);
-
-            ASCIIEncoding enc = new ASCIIEncoding();
-
-            Byte[] buf = enc.GetBytes(filetext);
+            Byte[] buf = Encoding.ASCII.GetBytes(filetext);
 
             m_log.Info("MRM 9");
 

@@ -166,6 +166,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnDeedParcel += CanDeedParcel;
             m_scene.Permissions.OnDeedObject += CanDeedObject;
             m_scene.Permissions.OnIsGod += IsGod;
+            m_scene.Permissions.OnIsGridGod += IsGridGod;
             m_scene.Permissions.OnIsAdministrator += IsAdministrator;
             m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
             m_scene.Permissions.OnDeleteObject += CanDeleteObject; //MAYBE FULLY IMPLEMENTED
@@ -220,7 +221,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     "Force permissions on or off",
                     HandleForcePermissions);
 
-            m_scene.AddCommand("Users", this, "debug permissions",
+            m_scene.AddCommand("Debug", this, "debug permissions",
                     "debug permissions <true / false>",
                     "Turn on permissions debugging",
                     HandleDebugPermissions);                    
@@ -347,12 +348,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
 
             if (m_friendsModule == null)
-                m_log.Warn("[PERMISSIONS]: Friends module not found, friend permissions will not work");
+                m_log.Debug("[PERMISSIONS]: Friends module not found, friend permissions will not work");
 
             m_groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
 
             if (m_groupsModule == null)
-                m_log.Warn("[PERMISSIONS]: Groups module not found, group permissions will not work");
+                m_log.Debug("[PERMISSIONS]: Groups module not found, group permissions will not work");
             
             m_moapModule = m_scene.RequestModuleInterface<IMoapModule>();
             
@@ -449,39 +450,49 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         }
 
         /// <summary>
-        /// Is the given user an administrator (in other words, a god)?
+        /// Is the user regarded as an administrator?
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
         protected bool IsAdministrator(UUID user)
         {
-            if (user == UUID.Zero) return false;
-        
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-            {
-                if (m_scene.RegionInfo.EstateSettings.EstateOwner == user && m_RegionOwnerIsGod)
-                    return true;
-            }
+            if (user == UUID.Zero)
+                return false;
+
+            if (m_scene.RegionInfo.EstateSettings.EstateOwner == user && m_RegionOwnerIsGod)
+                return true;
             
             if (IsEstateManager(user) && m_RegionManagerIsGod)
                 return true;
+
+            if (IsGridGod(user, null))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Is the given user a God throughout the grid (not just in the current scene)?
+        /// </summary>
+        /// <param name="user">The user</param>
+        /// <param name="scene">Unused, can be null</param>
+        /// <returns></returns>
+        protected bool IsGridGod(UUID user, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (user == UUID.Zero) return false;
 
             if (m_allowGridGods)
             {
                 ScenePresence sp = m_scene.GetScenePresence(user);
                 if (sp != null)
-                {
-                    if (sp.UserLevel >= 200)
-                        return true;
-                    return false;
-                }
+                    return (sp.UserLevel >= 200);
 
                 UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, user);
                 if (account != null)
-                {
-                    if (account.UserLevel >= 200)
-                        return true;
-                }
+                    return (account.UserLevel >= 200);
             }
 
             return false;
@@ -503,7 +514,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         {
             if (user == UUID.Zero) return false;
         
-            return m_scene.RegionInfo.EstateSettings.IsEstateManager(user);
+            return m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(user);
         }
 
 #endregion

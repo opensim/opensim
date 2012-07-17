@@ -88,8 +88,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
-        protected uint m_localID;
-        protected UUID m_itemID;
+
+        /// <summary>
+        /// The item that hosts this script
+        /// </summary>
+        protected TaskInventoryItem m_item;
+
         protected bool throwErrorOnNotImplemented = true;
         protected AsyncCommandManager AsyncCommands = null;
         protected float m_ScriptDelayFactor = 1.0f;
@@ -107,6 +111,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IUrlModule m_UrlModule = null;
         protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache =
                 new Dictionary<UUID, UserInfoCacheEntry>();
+	    protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
 
 //        protected Timer m_ShoutSayTimer;
         protected int m_SayShoutCount = 0;
@@ -134,7 +139,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {"TURNRIGHT", "Turning Right"}
                 };
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
+        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
 /*
             m_ShoutSayTimer = new Timer(1000);
@@ -146,10 +151,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_ScriptEngine = ScriptEngine;
             m_host = host;
-            m_localID = localID;
-            m_itemID = itemID;
+            m_item = item;
             m_debuggerSafe = m_ScriptEngine.Config.GetBoolean("DebuggerSafe", false);
 
+            LoadLimits();  // read script limits from config.
+
+            m_TransferModule =
+                    m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
+            m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
+
+            AsyncCommands = new AsyncCommandManager(ScriptEngine);
+        }
+
+        /* load configuration items that affect script, object and run-time behavior. */
+        private void LoadLimits()
+        {
             m_ScriptDelayFactor =
                 m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
             m_ScriptDistanceFactor =
@@ -162,12 +178,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_ScriptEngine.Config.GetInt("NotecardLineReadCharsMax", 255);
             if (m_notecardLineReadCharsMax > 65535)
                 m_notecardLineReadCharsMax = 65535;
-
-            m_TransferModule =
-                    m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
-            m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
-
-            AsyncCommands = new AsyncCommandManager(ScriptEngine);
+            // load limits for particular subsystems.
+            IConfig SMTPConfig;
+            if ((SMTPConfig = m_ScriptEngine.ConfigSource.Configs["SMTP"]) != null) {
+                // there's an smtp config, so load in the snooze time.
+                EMAIL_PAUSE_TIME = SMTPConfig.GetInt("email_pause_time", EMAIL_PAUSE_TIME);
+            }
         }
 
         public override Object InitializeLifetimeService()
@@ -199,7 +215,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         [DebuggerNonUserCode]
         public void state(string newState)
         {
-            m_ScriptEngine.SetState(m_itemID, newState);
+            m_ScriptEngine.SetState(m_item.ItemID, newState);
         }
 
         /// <summary>
@@ -210,7 +226,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llResetScript()
         {
             m_host.AddScriptLPS(1);
-            m_ScriptEngine.ApiResetScript(m_itemID);
+            m_ScriptEngine.ApiResetScript(m_item.ItemID);
         }
 
         public void llResetOtherScript(string name)
@@ -219,7 +235,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            if ((item = ScriptByName(name)) != UUID.Zero)
+            if ((item = GetScriptByName(name)) != UUID.Zero)
                 m_ScriptEngine.ResetScript(item);
             else
                 ShoutError("llResetOtherScript: script "+name+" not found");
@@ -231,7 +247,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            if ((item = ScriptByName(name)) != UUID.Zero)
+            if ((item = GetScriptByName(name)) != UUID.Zero)
             {
                 return m_ScriptEngine.GetScriptState(item) ?1:0;
             }
@@ -253,7 +269,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // These functions are supposed to be robust,
             // so get the state one step at a time.
 
-            if ((item = ScriptByName(name)) != UUID.Zero)
+            if ((item = GetScriptByName(name)) != UUID.Zero)
             {
                 m_ScriptEngine.SetScriptState(item, run == 0 ? false : true);
             }
@@ -362,76 +378,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        protected UUID InventorySelf()
-        {
-            UUID invItemID = new UUID();
-            bool unlock = false;
-            if (!m_host.TaskInventory.IsReadLockedByMe())
-            {
-                m_host.TaskInventory.LockItemsForRead(true);
-                unlock = true;
-            }
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if (inv.Value.Type == 10 && inv.Value.ItemID == m_itemID)
-                {
-                    invItemID = inv.Key;
-                    break;
-                }
-            }
-            if (unlock)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-            }
-            return invItemID;
-        }
-
         protected UUID InventoryKey(string name, int type)
         {
-            m_host.AddScriptLPS(1);
-            m_host.TaskInventory.LockItemsForRead(true);
-            
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if (inv.Value.Name == name)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    
-                    if (inv.Value.Type != type)
-                    {
-                        return UUID.Zero;
-                    }
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
 
-                    return inv.Value.AssetID;
-                }
-            }
-
-            m_host.TaskInventory.LockItemsForRead(false);
-            return UUID.Zero;
+            if (item != null && item.Type == type)
+                return item.AssetID;
+            else
+                return UUID.Zero;
         }
-
-        protected UUID InventoryKey(string name)
-        {
-            m_host.AddScriptLPS(1);
-
-            
-            m_host.TaskInventory.LockItemsForRead(true);
-
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if (inv.Value.Name == name)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return inv.Value.AssetID;
-                }
-            }
-
-            m_host.TaskInventory.LockItemsForRead(false);
-
-
-            return UUID.Zero;
-        }
-
 
         /// <summary>
         /// accepts a valid UUID, -or- a name of an inventory item.
@@ -442,19 +397,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns></returns>
         protected UUID KeyOrName(string k)
         {
-            UUID key = UUID.Zero;
+            UUID key;
 
             // if we can parse the string as a key, use it.
-            if (UUID.TryParse(k, out key))
-            {
-                return key;
-            }
             // else try to locate the name in inventory of object. found returns key,
-            // not found returns UUID.Zero which will translate to the default particle texture
-            else
+            // not found returns UUID.Zero
+            if (!UUID.TryParse(k, out key))
             {
-                return InventoryKey(k);
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(k);
+
+                if (item != null)
+                    key = item.AssetID;
+                else
+                    key = UUID.Zero;
             }
+
+            return key;
         }
 
         // convert a LSL_Rotation to a Quaternion
@@ -559,13 +517,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return LSL_Vector.Norm(v);
         }
 
-        public LSL_Float llVecDist(LSL_Vector a, LSL_Vector b)
+        private double VecDist(LSL_Vector a, LSL_Vector b)
         {
-            m_host.AddScriptLPS(1);
             double dx = a.x - b.x;
             double dy = a.y - b.y;
             double dz = a.z - b.z;
             return Math.Sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
+        public LSL_Float llVecDist(LSL_Vector a, LSL_Vector b)
+        {
+            m_host.AddScriptLPS(1);
+            return VecDist(a, b);
         }
 
         //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
@@ -1010,7 +973,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID.TryParse(ID, out keyID);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if (wComm != null)
-                return wComm.Listen(m_localID, m_itemID, m_host.UUID, channelID, name, keyID, msg);
+                return wComm.Listen(m_host.LocalId, m_item.ItemID, m_host.UUID, channelID, name, keyID, msg);
             else
                 return -1;
         }
@@ -1020,7 +983,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if (wComm != null)
-                wComm.ListenControl(m_itemID, number, active);
+                wComm.ListenControl(m_item.ItemID, number, active);
         }
 
         public void llListenRemove(int number)
@@ -1028,7 +991,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if (wComm != null)
-                wComm.ListenRemove(m_itemID, number);
+                wComm.ListenRemove(m_item.ItemID, number);
         }
 
         public void llSensor(string name, string id, int type, double range, double arc)
@@ -1037,7 +1000,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID keyID = UUID.Zero;
             UUID.TryParse(id, out keyID);
 
-            AsyncCommands.SensorRepeatPlugin.SenseOnce(m_localID, m_itemID, name, keyID, type, range, arc, m_host);
+            AsyncCommands.SensorRepeatPlugin.SenseOnce(m_host.LocalId, m_item.ItemID, name, keyID, type, range, arc, m_host);
        }
 
         public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate)
@@ -1046,13 +1009,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID keyID = UUID.Zero;
             UUID.TryParse(id, out keyID);
 
-            AsyncCommands.SensorRepeatPlugin.SetSenseRepeatEvent(m_localID, m_itemID, name, keyID, type, range, arc, rate, m_host);
+            AsyncCommands.SensorRepeatPlugin.SetSenseRepeatEvent(m_host.LocalId, m_item.ItemID, name, keyID, type, range, arc, rate, m_host);
         }
 
         public void llSensorRemove()
         {
             m_host.AddScriptLPS(1);
-            AsyncCommands.SensorRepeatPlugin.UnSetSenseRepeaterEvents(m_localID, m_itemID);
+            AsyncCommands.SensorRepeatPlugin.UnSetSenseRepeaterEvents(m_host.LocalId, m_item.ItemID);
         }
 
         public string resolveName(UUID objecUUID)
@@ -1093,7 +1056,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llDetectedName(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
             if (detectedParams == null)
                 return String.Empty;
             return detectedParams.Name;
@@ -1102,7 +1065,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llDetectedKey(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
             if (detectedParams == null)
                 return String.Empty;
             return detectedParams.Key.ToString();
@@ -1111,7 +1074,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llDetectedOwner(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
             if (detectedParams == null)
                 return String.Empty;
             return detectedParams.Owner.ToString();
@@ -1120,7 +1083,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llDetectedType(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
             if (detectedParams == null)
                 return 0;
             return new LSL_Integer(detectedParams.Type);
@@ -1129,7 +1092,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedPos(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
             if (detectedParams == null)
                 return new LSL_Vector();
             return detectedParams.Position;
@@ -1138,7 +1101,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedVel(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
             if (detectedParams == null)
                 return new LSL_Vector();
             return detectedParams.Velocity;
@@ -1147,7 +1110,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedGrab(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams parms = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            DetectParams parms = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
             if (parms == null)
                 return new LSL_Vector(0, 0, 0);
 
@@ -1157,7 +1120,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Rotation llDetectedRot(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
             if (detectedParams == null)
                 return new LSL_Rotation();
             return detectedParams.Rotation;
@@ -1166,7 +1129,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llDetectedGroup(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
             if (detectedParams == null)
                 return new LSL_Integer(0);
             if (m_host.GroupID == detectedParams.Group)
@@ -1177,7 +1140,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llDetectedLinkNumber(int number)
         {
             m_host.AddScriptLPS(1);
-            DetectParams parms = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            DetectParams parms = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
             if (parms == null)
                 return new LSL_Integer(0);
 
@@ -1190,7 +1153,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedTouchBinormal(int index)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, index);
             if (detectedParams == null)
                 return new LSL_Vector();
             return detectedParams.TouchBinormal;
@@ -1202,7 +1165,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llDetectedTouchFace(int index)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, index);
             if (detectedParams == null)
                 return new LSL_Integer(-1);
             return new LSL_Integer(detectedParams.TouchFace);
@@ -1214,7 +1177,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedTouchNormal(int index)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, index);
             if (detectedParams == null)
                 return new LSL_Vector();
             return detectedParams.TouchNormal;
@@ -1226,7 +1189,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedTouchPos(int index)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, index);
             if (detectedParams == null)
                 return new LSL_Vector();
             return detectedParams.TouchPos;
@@ -1238,7 +1201,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedTouchST(int index)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, index);
             if (detectedParams == null)
                 return new LSL_Vector(-1.0, -1.0, 0.0);
             return detectedParams.TouchST;
@@ -1250,7 +1213,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llDetectedTouchUV(int index)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, index);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, index);
             if (detectedParams == null)
                 return new LSL_Vector(-1.0, -1.0, 0.0);
             return detectedParams.TouchUV;
@@ -1433,6 +1396,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        private bool IsPhysical()
+        {
+            return ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == (uint)PrimFlags.Physics);
+        }
+
         public LSL_Integer llGetStatus(int status)
         {
             m_host.AddScriptLPS(1);
@@ -1440,11 +1408,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             switch (status)
             {
                 case ScriptBaseClass.STATUS_PHYSICS:
-                    if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) == (uint)PrimFlags.Physics)
-                    {
-                        return 1;
-                    }
-                    return 0;
+                    return IsPhysical() ? 1 : 0;
 
                 case ScriptBaseClass.STATUS_PHANTOM:
                     if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) == (uint)PrimFlags.Phantom)
@@ -1962,6 +1926,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 rgb.x = texcolor.R;
                 rgb.y = texcolor.G;
                 rgb.z = texcolor.B;
+                
                 return rgb;
             }
             else
@@ -2196,9 +2161,66 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            SetPos(m_host, pos);
+            SetPos(m_host, pos, true);
 
             ScriptSleep(200);
+        }
+
+        /// <summary>
+        /// Tries to move the entire object so that the root prim is within 0.1m of position. http://wiki.secondlife.com/wiki/LlSetRegionPos
+        /// Documentation indicates that the use of x/y coordinates up to 10 meters outside the bounds of a region will work but do not specify what happens if there is no adjacent region for the object to move into.
+        /// Uses the RegionSize constant here rather than hard-coding 266.0 to alert any developer modifying OpenSim to support variable-sized regions that this method will need tweaking.
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns>1 if successful, 0 otherwise.</returns>
+        public LSL_Integer llSetRegionPos(LSL_Vector pos)
+        {
+            m_host.AddScriptLPS(1);
+
+            // BEGIN WORKAROUND
+            // IF YOU GET REGION CROSSINGS WORKING WITH THIS FUNCTION, REPLACE THE WORKAROUND.
+            //
+            // This workaround is to prevent silent failure of this function.
+            // According to the specification on the SL Wiki, providing a position outside of the 
+            if (pos.x < 0 || pos.x > Constants.RegionSize || pos.y < 0 || pos.y > Constants.RegionSize)
+            {
+                return 0;
+            }
+            // END WORK AROUND
+            else if ( // this is not part of the workaround if-block because it's not related to the workaround.
+                IsPhysical() ||
+                m_host.ParentGroup.IsAttachment || // return FALSE if attachment
+                (
+                    pos.x < -10.0 || // return FALSE if more than 10 meters into a west-adjacent region.
+                    pos.x > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a east-adjacent region.
+                    pos.y < -10.0 || // return FALSE if more than 10 meters into a south-adjacent region.
+                    pos.y > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a north-adjacent region.
+                    pos.z > 4096 // return FALSE if altitude than 4096m
+                )
+            )
+            {
+                return 0;
+            }
+
+            // if we reach this point, then the object is not physical, it's not an attachment, and the destination is within the valid range.
+            // this could possibly be done in the above else-if block, but we're doing the check here to keep the code easier to read.
+
+            Vector3 objectPos = m_host.ParentGroup.RootPart.AbsolutePosition;
+            LandData here = World.GetLandData((float)objectPos.X, (float)objectPos.Y);
+            LandData there = World.GetLandData((float)pos.x, (float)pos.y);
+
+            // we're only checking prim limits if it's moving to a different parcel under the assumption that if the object got onto the parcel without exceeding the prim limits.
+
+            bool sameParcel = here.GlobalID == there.GlobalID;
+
+            if (!sameParcel && !World.Permissions.CanObjectEntry(m_host.UUID, false, new Vector3((float)pos.x, (float)pos.y, (float)pos.z)))
+            {
+                return 0;
+            }
+
+            SetPos(m_host.ParentGroup.RootPart, pos, false);
+
+            return VecDist(pos, llGetRootPosition()) <= 0.1 ? 1 : 0;
         }
 
         // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
@@ -2232,55 +2254,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return real_vec;
         }
 
-        public LSL_Integer llSetRegionPos(LSL_Vector pos)
-        {
-            return new LSL_Integer(SetRegionPos(m_host, pos));
-        }
-
-        protected int SetRegionPos(SceneObjectPart part, LSL_Vector targetPos)
-        {
-            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
-                return 0;
-
-            SceneObjectGroup grp = part.ParentGroup;
-
-            if (grp.IsAttachment)
-                return 0;
-
-            if (grp.RootPart.PhysActor != null && grp.RootPart.PhysActor.IsPhysical)
-                return 0;
-
-            if (targetPos.x < -10.0f || targetPos.x >= (float)Constants.RegionSize || targetPos.y < -10.0f || targetPos.y >= (float)Constants.RegionSize || targetPos.z < 0 || targetPos.z >= 4096.0f)
-                return 0;
-
-            float constrainedX = (float)targetPos.x;
-            float constrainedY = (float)targetPos.y;
-
-            if (constrainedX < 0.0f)
-                constrainedX = 0.0f;
-            if (constrainedY < 0.0f)
-                constrainedY = 0.0f;
-            if (constrainedX >= (float)Constants.RegionSize)
-                constrainedX = (float)Constants.RegionSize - 0.1f;
-            if (constrainedY >= (float)Constants.RegionSize)
-                constrainedY = (float)Constants.RegionSize -0.1f;
-
-            float ground = World.GetGroundHeight(constrainedX, constrainedY);
-
-            if (targetPos.z < ground)
-                targetPos.z = ground;
-
-            Vector3 dest = new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z);
-
-            if (!World.Permissions.CanObjectEntry(grp.UUID, false, dest))
-                return 0;
-
-            grp.UpdateGroupPosition(dest);
-
-            return 1;
-        }
-
-        protected void SetPos(SceneObjectPart part, LSL_Vector targetPos)
+        /// <summary>
+        /// set object position, optionally capping the distance.
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="targetPos"></param>
+        /// <param name="adjust">if TRUE, will cap the distance to 10m.</param>
+        protected void SetPos(SceneObjectPart part, LSL_Vector targetPos, bool adjust)
         {
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
@@ -3044,20 +3024,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llGiveMoney(string destination, int amount)
         {
-            UUID invItemID=InventorySelf();
-            if (invItemID == UUID.Zero)
-                return 0;
-
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            TaskInventoryItem item = m_host.TaskInventory[invItemID];
-            m_host.TaskInventory.LockItemsForRead(false);
-
-            if (item.PermsGranter == UUID.Zero)
+            if (m_item.PermsGranter == UUID.Zero)
                 return 0;
 
-            if ((item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
             {
                 LSLError("No permissions to give money");
                 return 0;
@@ -3120,74 +3092,72 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            Util.FireAndForget(delegate (object x)
+            Util.FireAndForget(x =>
             {
                 if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
                     return;
+
                 float dist = (float)llVecDist(llGetPos(), pos);
 
                 if (dist > m_ScriptDistanceFactor * 10.0f)
                     return;
 
-                //Clone is thread-safe
-                TaskInventoryDictionary partInventory = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
 
-                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in partInventory)
+                if (item == null)
                 {
-                    if (inv.Value.Name == inventory)
-                    {
-                        // make sure we're an object.
-                        if (inv.Value.InvType != (int)InventoryType.Object)
-                        {
-                            llSay(0, "Unable to create requested object. Object is missing from database.");
-                            return;
-                        }
-
-                        Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
-                        Vector3 llvel = new Vector3((float)vel.x, (float)vel.y, (float)vel.z);
-
-                        // need the magnitude later
-                        // float velmag = (float)Util.GetMagnitude(llvel);
-
-                        SceneObjectGroup new_group = World.RezObject(m_host, inv.Value, llpos, Rot2Quaternion(rot), llvel, param);
-
-                        // If either of these are null, then there was an unknown error.
-                        if (new_group == null)
-                            continue;
-
-                        // objects rezzed with this method are die_at_edge by default.
-                        new_group.RootPart.SetDieAtEdge(true);
-
-                        new_group.ResumeScripts();
-
-                        m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
-                                "object_rez", new Object[] {
-                                new LSL_String(
-                                new_group.RootPart.UUID.ToString()) },
-                                new DetectParams[0]));
-
-                        // do recoil
-                        SceneObjectGroup hostgrp = m_host.ParentGroup;
-                        if (hostgrp == null)
-                            return;
-
-                        if (hostgrp.IsAttachment) // don't recoil avatars
-                            return;                      
-
-                        PhysicsActor pa = new_group.RootPart.PhysActor;
-
-                        if (pa != null && pa.IsPhysical && llvel != Vector3.Zero)
-                        {
-                            float groupmass = new_group.GetMass();
-                            llvel *= -groupmass;
-                            llApplyImpulse(new LSL_Vector(llvel.X, llvel.Y,llvel.Z), 0);
-                        }
-                        // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
-                        return;
-                    }
+                    llSay(0, "Could not find object " + inventory);
+                    return;
                 }
 
-                llSay(0, "Could not find object " + inventory);
+                if (item.InvType != (int)InventoryType.Object)
+                {
+                    llSay(0, "Unable to create requested object. Object is missing from database.");
+                    return;
+                }
+
+                Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
+                Vector3 llvel = new Vector3((float)vel.x, (float)vel.y, (float)vel.z);
+
+                // need the magnitude later
+                // float velmag = (float)Util.GetMagnitude(llvel);
+
+                SceneObjectGroup new_group = World.RezObject(m_host, item, llpos, Rot2Quaternion(rot), llvel, param);
+
+                // If either of these are null, then there was an unknown error.
+                if (new_group == null)
+                    return;
+
+                // objects rezzed with this method are die_at_edge by default.
+                new_group.RootPart.SetDieAtEdge(true);
+
+                new_group.ResumeScripts();
+
+                m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
+                        "object_rez", new Object[] {
+                        new LSL_String(
+                        new_group.RootPart.UUID.ToString()) },
+                        new DetectParams[0]));
+
+                // do recoil
+                SceneObjectGroup hostgrp = m_host.ParentGroup;
+                if (hostgrp == null)
+                    return;
+
+                if (hostgrp.IsAttachment) // don't recoil avatars
+                    return;
+
+                PhysicsActor pa = new_group.RootPart.PhysActor;
+
+                if (pa != null && pa.IsPhysical && llvel != Vector3.Zero)
+                {
+                    float groupmass = new_group.GetMass();
+                    llvel *= -groupmass;
+                    llApplyImpulse(new LSL_Vector(llvel.X, llvel.Y,llvel.Z), 0);
+                }
+                // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
+                return;
+
             });
 
             //ScriptSleep((int)((groupmass * velmag) / 10));
@@ -3251,11 +3221,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 sec = m_MinTimerInterval;
             m_host.AddScriptLPS(1);
             // Setting timer repeat
-            AsyncCommands.TimerPlugin.SetTimerEvent(m_localID, m_itemID, sec);
+            AsyncCommands.TimerPlugin.SetTimerEvent(m_host.LocalId, m_item.ItemID, sec);
         }
 
         public virtual void llSleep(double sec)
         {
+//            m_log.Info("llSleep snoozing " + sec + "s.");
             m_host.AddScriptLPS(1);
             Thread.Sleep((int)(sec * 1000));
         }
@@ -3314,29 +3285,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llTakeControls(int controls, int accept, int pass_on)
         {
-            TaskInventoryItem item;
-
-            m_host.TaskInventory.LockItemsForRead(true);
-            if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
+            if (m_item.PermsGranter != UUID.Zero)
             {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return;
-            }
-            else
-            {
-                item = m_host.TaskInventory[InventorySelf()];
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-
-            if (item.PermsGranter != UUID.Zero)
-            {
-                ScenePresence presence = World.GetScenePresence(item.PermsGranter);
+                ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
 
                 if (presence != null)
                 {
-                    if ((item.PermsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
+                    if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                     {
-                        presence.RegisterControlEventsToScript(controls, accept, pass_on, m_localID, m_itemID);
+                        presence.RegisterControlEventsToScript(controls, accept, pass_on, m_host.LocalId, m_item.ItemID);
                     }
                 }
             }
@@ -3346,38 +3303,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llReleaseControls()
         {
-            TaskInventoryItem item;
-
-            m_host.TaskInventory.LockItemsForRead(true);
-            lock (m_host.TaskInventory)
-            {
-                
-                if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return;
-                }
-                else
-                {
-                    item = m_host.TaskInventory[InventorySelf()];
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-
             m_host.AddScriptLPS(1);
 
-            if (item.PermsGranter != UUID.Zero)
+            if (m_item.PermsGranter != UUID.Zero)
             {
-                ScenePresence presence = World.GetScenePresence(item.PermsGranter);
+                ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
 
                 if (presence != null)
                 {
-                    if ((item.PermsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
+                    if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                     {
                         // Unregister controls from Presence
-                        presence.UnRegisterControlEventsToScript(m_localID, m_itemID);
+                        presence.UnRegisterControlEventsToScript(m_host.LocalId, m_item.ItemID);
                         // Remove Take Control permission.
-                        item.PermsMask &= ~ScriptBaseClass.PERMISSION_TAKE_CONTROLS;
+                        m_item.PermsMask &= ~ScriptBaseClass.PERMISSION_TAKE_CONTROLS;
                     }
                 }
             }
@@ -3390,39 +3329,54 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_UrlModule.ReleaseURL(url);
         }
 
-        public void llAttachToAvatar(int attachment)
+        /// <summary>
+        /// Attach the object containing this script to the avatar that owns it.
+        /// </summary>
+        /// <param name='attachment'>The attachment point (e.g. ATTACH_CHEST)</param>
+        /// <returns>true if the attach suceeded, false if it did not</returns>
+        public bool AttachToAvatar(int attachmentPoint)
+        {
+            SceneObjectGroup grp = m_host.ParentGroup;
+            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+
+            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+
+            if (attachmentsModule != null)
+                return attachmentsModule.AttachObject(presence, grp, (uint)attachmentPoint, false, true);
+            else
+                return false;
+        }
+
+        /// <summary>
+        /// Detach the object containing this script from the avatar it is attached to.
+        /// </summary>
+        /// <remarks>
+        /// Nothing happens if the object is not attached.
+        /// </remarks>
+        public void DetachFromAvatar()
+        {
+            Util.FireAndForget(DetachWrapper, m_host);
+        }
+
+        private void DetachWrapper(object o)
+        {
+            if (World.AttachmentsModule != null)
+            {
+                SceneObjectPart host = (SceneObjectPart)o;
+                ScenePresence presence = World.GetScenePresence(host.OwnerID);
+                World.AttachmentsModule.DetachSingleAttachmentToInv(presence, host.ParentGroup);
+            }
+        }
+
+        public void llAttachToAvatar(int attachmentPoint)
         {
             m_host.AddScriptLPS(1);
 
-            TaskInventoryItem item;
-
-            m_host.TaskInventory.LockItemsForRead(true);
-
-            if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return;
-            }
-            else
-            {
-                item = m_host.TaskInventory[InventorySelf()];
-            }
-
-            m_host.TaskInventory.LockItemsForRead(false);
-
-            if (item.PermsGranter != m_host.OwnerID)
+            if (m_item.PermsGranter != m_host.OwnerID)
                 return;
 
-            if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
-            {
-                SceneObjectGroup grp = m_host.ParentGroup;
-
-                ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
-
-                IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
-                if (attachmentsModule != null)
-                    attachmentsModule.AttachObject(presence, grp, (uint)attachment, false, true);
-            }
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
+                AttachToAvatar(attachmentPoint);
         }
 
         public void llDetachFromAvatar()
@@ -3432,44 +3386,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_host.ParentGroup.AttachmentPoint == 0)
                 return;
 
-            TaskInventoryItem item;
-
-            m_host.TaskInventory.LockItemsForRead(true);
-
-            if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return;
-            }
-            else
-            {
-                item = m_host.TaskInventory[InventorySelf()];
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-
-
-            if (item.PermsGranter != m_host.OwnerID)
+            if (m_item.PermsGranter != m_host.OwnerID)
                 return;
 
-            if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
-            {
-                IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
-                if (attachmentsModule != null)
-                    Util.FireAndForget(DetachWrapper, m_host);
-            }
-        }
-
-        private void DetachWrapper(object o)
-        {
-            SceneObjectPart host = (SceneObjectPart)o;
-
-            SceneObjectGroup grp = host.ParentGroup;
-            UUID itemID = grp.FromItemID;
-            ScenePresence presence = World.GetScenePresence(host.OwnerID);
-
-            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
-            if (attachmentsModule != null)
-                attachmentsModule.DetachSingleAttachmentToInv(presence, itemID);
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
+                DetachFromAvatar();
         }
 
         public void llTakeCamera(string avatar)
@@ -3590,7 +3511,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             emailModule.SendEmail(m_host.UUID, address, subject, message);
-            ScriptSleep(15000);
+            ScriptSleep(EMAIL_PAUSE_TIME * 1000);
         }
 
         public void llGetNextEmail(string address, string subject)
@@ -3625,6 +3546,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             return m_host.UUID.ToString();
+        }
+
+        public LSL_Key llGenerateKey()
+        {
+            m_host.AddScriptLPS(1);
+            return UUID.Random().ToString();
         }
 
         public void llSetBuoyancy(double buoyancy)
@@ -3673,7 +3600,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             try
             {
-                m_ScriptEngine.SetMinEventDelay(m_itemID, delay);
+                m_ScriptEngine.SetMinEventDelay(m_item.ItemID, delay);
             }
             catch (NotImplementedException)
             {
@@ -3726,29 +3653,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            UUID invItemID = InventorySelf();
-            if (invItemID == UUID.Zero)
+            if (m_item.PermsGranter == UUID.Zero)
                 return;
 
-            TaskInventoryItem item;
-
-            m_host.TaskInventory.LockItemsForRead(true);
-            if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
             {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return;
-            }
-            else
-            {
-                item = m_host.TaskInventory[InventorySelf()];
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-            if (item.PermsGranter == UUID.Zero)
-                return;
-
-            if ((item.PermsMask & ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
-            {
-                ScenePresence presence = World.GetScenePresence(item.PermsGranter);
+                ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
 
                 if (presence != null)
                 {
@@ -3766,41 +3676,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            UUID invItemID=InventorySelf();
-            if (invItemID == UUID.Zero)
+            if (m_item.PermsGranter == UUID.Zero)
                 return;
 
-            TaskInventoryItem item;
-
-            m_host.TaskInventory.LockItemsForRead(true);
-            if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
             {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return;
-            }
-            else
-            {
-                item = m_host.TaskInventory[InventorySelf()];
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-            
-
-            if (item.PermsGranter == UUID.Zero)
-                return;
-
-            if ((item.PermsMask & ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
-            {
-                UUID animID = new UUID();
-
-                if (!UUID.TryParse(anim, out animID))
-                {
-                    animID=InventoryKey(anim);
-                }
-
-                ScenePresence presence = World.GetScenePresence(item.PermsGranter);
+                ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
 
                 if (presence != null)
                 {
+                    UUID animID = KeyOrName(anim);
+
                     if (animID == UUID.Zero)
                         presence.Animator.RemoveAnimation(anim);
                     else
@@ -3833,44 +3719,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetStartParameter()
         {
             m_host.AddScriptLPS(1);
-            return m_ScriptEngine.GetStartParameter(m_itemID);
+            return m_ScriptEngine.GetStartParameter(m_item.ItemID);
         }
 
         public void llRequestPermissions(string agent, int perm)
         {
-            UUID agentID = new UUID();
+            UUID agentID;
 
             if (!UUID.TryParse(agent, out agentID))
                 return;
-
-            UUID invItemID = InventorySelf();
-
-            if (invItemID == UUID.Zero)
-                return; // Not in a prim? How??
-
-            TaskInventoryItem item;
-
-
-            m_host.TaskInventory.LockItemsForRead(true);
-            if (!m_host.TaskInventory.ContainsKey(invItemID))
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return;
-            }
-            else
-            {
-                item = m_host.TaskInventory[invItemID];
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
 
             if (agentID == UUID.Zero || perm == 0) // Releasing permissions
             {
                 llReleaseControls();
 
-                item.PermsGranter = UUID.Zero;
-                item.PermsMask = 0;
+                m_item.PermsGranter = UUID.Zero;
+                m_item.PermsMask = 0;
 
-                m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
                         "run_time_permissions", new Object[] {
                         new LSL_Integer(0) },
                         new DetectParams[0]));
@@ -3878,7 +3744,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            if (item.PermsGranter != agentID || (perm & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) == 0)
+            if (m_item.PermsGranter != agentID || (perm & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) == 0)
                 llReleaseControls();
 
             m_host.AddScriptLPS(1);
@@ -3895,11 +3761,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
                 {
                     m_host.TaskInventory.LockItemsForWrite(true);
-                    m_host.TaskInventory[invItemID].PermsGranter = agentID;
-                    m_host.TaskInventory[invItemID].PermsMask = perm;
+                    m_host.TaskInventory[m_item.ItemID].PermsGranter = agentID;
+                    m_host.TaskInventory[m_item.ItemID].PermsMask = perm;
                     m_host.TaskInventory.LockItemsForWrite(false);
 
-                    m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                    m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
                             "run_time_permissions", new Object[] {
                             new LSL_Integer(perm) },
                             new DetectParams[0]));
@@ -3934,11 +3800,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
                     {
                         m_host.TaskInventory.LockItemsForWrite(true);
-                        m_host.TaskInventory[invItemID].PermsGranter = agentID;
-                        m_host.TaskInventory[invItemID].PermsMask = perm;
+                        m_host.TaskInventory[m_item.ItemID].PermsGranter = agentID;
+                        m_host.TaskInventory[m_item.ItemID].PermsMask = perm;
                         m_host.TaskInventory.LockItemsForWrite(false);
 
-                        m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                        m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
                                 "run_time_permissions", new Object[] {
                                 new LSL_Integer(perm) },
                                 new DetectParams[0]));
@@ -3949,9 +3815,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             ScenePresence presence = World.GetScenePresence(agentID);
-
             if (presence != null)
             {
+                // If permissions are being requested from an NPC and were not implicitly granted above then
+                // auto grant all reuqested permissions if the script is owned by the NPC or the NPCs owner
+                INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
+                if (npcModule != null && npcModule.IsNPC(agentID, World))
+                {
+                    if (agentID == m_host.ParentGroup.OwnerID || npcModule.GetOwner(agentID) == m_host.ParentGroup.OwnerID)
+                    {
+                        lock (m_host.TaskInventory)
+                        {
+                            m_host.TaskInventory[m_item.ItemID].PermsGranter = agentID;
+                            m_host.TaskInventory[m_item.ItemID].PermsMask = perm;
+                        }
+
+                        m_ScriptEngine.PostScriptEvent(
+                            m_item.ItemID,
+                            new EventParams(
+                                "run_time_permissions", new Object[] { new LSL_Integer(perm) }, new DetectParams[0]));
+                    }
+
+                    // it is an NPC, exit even if the permissions werent granted above, they are not going to answer
+                    // the question!
+                    return;
+                }
+
                 string ownerName = resolveName(m_host.ParentGroup.RootPart.OwnerID);
                 if (ownerName == String.Empty)
                     ownerName = "(hippos)";
@@ -3959,8 +3848,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!m_waitingForScriptAnswer)
                 {
                     m_host.TaskInventory.LockItemsForWrite(true);
-                    m_host.TaskInventory[invItemID].PermsGranter = agentID;
-                    m_host.TaskInventory[invItemID].PermsMask = 0;
+                    m_host.TaskInventory[m_item.ItemID].PermsGranter = agentID;
+                    m_host.TaskInventory[m_item.ItemID].PermsMask = 0;
                     m_host.TaskInventory.LockItemsForWrite(false);
 
                     presence.ControllingClient.OnScriptAnswer += handleScriptAnswer;
@@ -3968,16 +3857,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
 
                 presence.ControllingClient.SendScriptQuestion(
-                    m_host.UUID, m_host.ParentGroup.RootPart.Name, ownerName, invItemID, perm);
+                    m_host.UUID, m_host.ParentGroup.RootPart.Name, ownerName, m_item.ItemID, perm);
 
                 return;
             }
 
             // Requested agent is not in range, refuse perms
-            m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
-                    "run_time_permissions", new Object[] {
-                    new LSL_Integer(0) },
-                    new DetectParams[0]));
+            m_ScriptEngine.PostScriptEvent(
+                m_item.ItemID,
+                new EventParams("run_time_permissions", new Object[] { new LSL_Integer(0) }, new DetectParams[0]));
         }
 
         void handleScriptAnswer(IClientAPI client, UUID taskID, UUID itemID, int answer)
@@ -3985,24 +3873,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (taskID != m_host.UUID)
                 return;
 
-            UUID invItemID = InventorySelf();
-
-            if (invItemID == UUID.Zero)
-                return;
-
-            client.OnScriptAnswer-=handleScriptAnswer;
-            m_waitingForScriptAnswer=false;
+            client.OnScriptAnswer -= handleScriptAnswer;
+            m_waitingForScriptAnswer = false;
 
             if ((answer & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) == 0)
                 llReleaseControls();
 
-            
             m_host.TaskInventory.LockItemsForWrite(true);
-            m_host.TaskInventory[invItemID].PermsMask = answer;
+            m_host.TaskInventory[m_item.ItemID].PermsMask = answer;
             m_host.TaskInventory.LockItemsForWrite(false);
             
-
-            m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+            m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
                     "run_time_permissions", new Object[] {
                     new LSL_Integer(answer) },
                     new DetectParams[0]));
@@ -4012,41 +3893,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            
-            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-            {
-                if (item.Type == 10 && item.ItemID == m_itemID)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return item.PermsGranter.ToString();
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-
-            return UUID.Zero.ToString();
+            return m_item.PermsGranter.ToString();
         }
 
         public LSL_Integer llGetPermissions()
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
+            int perms = m_item.PermsMask;
 
-            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-            {
-                if (item.Type == 10 && item.ItemID == m_itemID)
-                {
-                    int perms = item.PermsMask;
-                    if (m_automaticLinkPermission)
-                        perms |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return perms;
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
+            if (m_automaticLinkPermission)
+                perms |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
 
-            return 0;
+            return perms;
         }
 
         public LSL_Integer llGetLinkNumber()
@@ -4084,18 +3943,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCreateLink(string target, int parent)
         {
             m_host.AddScriptLPS(1);
-            UUID invItemID = InventorySelf();
+
             UUID targetID;
 
             if (!UUID.TryParse(target, out targetID))
                 return;
 
-            TaskInventoryItem item;
-            m_host.TaskInventory.LockItemsForRead(true);
-            item = m_host.TaskInventory[invItemID];
-            m_host.TaskInventory.LockItemsForRead(false);
-             
-            if ((item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
                 && !m_automaticLinkPermission)
             {
                 ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
@@ -4103,7 +3957,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             IClientAPI client = null;
-            ScenePresence sp = World.GetScenePresence(item.PermsGranter);
+            ScenePresence sp = World.GetScenePresence(m_item.PermsGranter);
             if (sp != null)
                 client = sp.ControllingClient;
 
@@ -4149,18 +4003,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llBreakLink(int linknum)
         {
             m_host.AddScriptLPS(1);
-            UUID invItemID = InventorySelf();
 
-            m_host.TaskInventory.LockItemsForRead(true);
-                if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
-                    && !m_automaticLinkPermission)
-                {
-                    ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return;
-                }
-            m_host.TaskInventory.LockItemsForRead(false);
-            
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
+                && !m_automaticLinkPermission)
+            {
+                ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
+                return;
+            }
+
             if (linknum < ScriptBaseClass.LINK_THIS)
                 return;
 
@@ -4259,12 +4109,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            UUID invItemID = InventorySelf();
-
-            TaskInventoryItem item;
-            m_host.TaskInventory.LockItemsForRead(true);
-            item = m_host.TaskInventory[invItemID];
-            m_host.TaskInventory.LockItemsForRead(false);
+            TaskInventoryItem item = m_item;
              
             if ((item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
                 && !m_automaticLinkPermission)
@@ -4461,11 +4306,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llGiveInventory(string destination, string inventory)
         {
             m_host.AddScriptLPS(1);
-            bool found = false;
+
             UUID destId = UUID.Zero;
-            UUID objId = UUID.Zero;
-            int assetType = 0;
-            string objName = String.Empty;
 
             if (!UUID.TryParse(destination, out destId))
             {
@@ -4473,27 +4315,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            // move the first object found with this inventory name
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if (inv.Value.Name == inventory)
-                {
-                    found = true;
-                    objId = inv.Key;
-                    assetType = inv.Value.Type;
-                    objName = inv.Value.Name;
-                    break;
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
 
-            if (!found)
+            if (item == null)
             {
                 llSay(0, String.Format("Could not find object '{0}'", inventory));
                 return;
 //                throw new Exception(String.Format("The inventory object '{0}' could not be found", inventory));
             }
+
+            UUID objId = item.ItemID;
 
             // check if destination is an object
             if (World.GetSceneObjectPart(destId) != null)
@@ -4526,14 +4357,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 byte[] bucket = new byte[1];
-                bucket[0] = (byte)assetType;
+                bucket[0] = (byte)item.Type;
                 //byte[] objBytes = agentItem.ID.GetBytes();
                 //Array.Copy(objBytes, 0, bucket, 1, 16);
 
                 GridInstantMessage msg = new GridInstantMessage(World,
                         m_host.OwnerID, m_host.Name, destId,
                         (byte)InstantMessageDialog.TaskInventoryOffered,
-                        false, objName+". "+m_host.Name+" is located at "+
+                        false, item.Name+". "+m_host.Name+" is located at "+
                         World.RegionInfo.RegionName+" "+
                         m_host.AbsolutePosition.ToString(),
                         agentItem.ID, true, m_host.AbsolutePosition,
@@ -4561,27 +4392,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            List<TaskInventoryItem> inv;
-            try
-            {
-                m_host.TaskInventory.LockItemsForRead(true);
-                inv = new List<TaskInventoryItem>(m_host.TaskInventory.Values);
-            }
-            finally
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-            }
-            foreach (TaskInventoryItem item in inv)
-            {
-                if (item.Name == name)
-                {
-                    if (item.ItemID == m_itemID)
-                        throw new ScriptDeleteException();
-                    else
-                        m_host.Inventory.RemoveInventoryItem(item.ItemID);
-                    return;
-                }
-            }
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+
+            if (item == null)
+                return;
+
+            if (item.ItemID == m_item.ItemID)
+                throw new ScriptDeleteException();
+            else
+                m_host.Inventory.RemoveInventoryItem(item.ItemID);
         }
 
         public void llSetText(string text, LSL_Vector color, double alpha)
@@ -4709,8 +4528,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 UUID rq = UUID.Random();
 
                 UUID tid = AsyncCommands.
-                    DataserverPlugin.RegisterRequest(m_localID,
-                                                 m_itemID, rq.ToString());
+                    DataserverPlugin.RegisterRequest(m_host.LocalId,
+                                                 m_item.ItemID, rq.ToString());
 
                 AsyncCommands.
                 DataserverPlugin.DataserverReply(rq.ToString(), reply);
@@ -4729,16 +4548,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            //Clone is thread safe
-            TaskInventoryDictionary itemDictionary = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
-
-            foreach (TaskInventoryItem item in itemDictionary.Values)
+            foreach (TaskInventoryItem item in m_host.Inventory.GetInventoryItems())
             {
                 if (item.Type == 3 && item.Name == name)
                 {
                     UUID tid = AsyncCommands.
-                        DataserverPlugin.RegisterRequest(m_localID,
-                                                     m_itemID, item.AssetID.ToString());
+                        DataserverPlugin.RegisterRequest(m_host.LocalId,
+                                                     m_item.ItemID, item.AssetID.ToString());
 
                     Vector3 region = new Vector3(
                         World.RegionInfo.RegionLocX * Constants.RegionSize,
@@ -4764,6 +4580,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return tid.ToString();
                 }
             }
+
             ScriptSleep(1000);
             return String.Empty;
         }
@@ -4956,19 +4773,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID soundId = UUID.Zero;
             if (!UUID.TryParse(impact_sound, out soundId))
             {
-                m_host.TaskInventory.LockItemsForRead(true);
-                foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-                {
-                    if (item.Type == (int)AssetType.Sound && item.Name == impact_sound)
-                    {
-                        soundId = item.AssetID;
-                        break;
-                    }
-                }
-                m_host.TaskInventory.LockItemsForRead(false);
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(impact_sound);
+
+                if (item != null && item.Type == (int)AssetType.Sound)
+                    soundId = item.AssetID;
             }
-            m_host.CollisionSoundVolume = (float)impact_volume;
+
             m_host.CollisionSound = soundId;
+            m_host.CollisionSoundVolume = (float)impact_volume;
             m_host.CollisionSoundType = 1;
         }
 
@@ -5010,10 +4822,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID partItemID;
             foreach (SceneObjectPart part in parts)
             {
-                //Clone is thread safe
-                TaskInventoryDictionary itemsDictionary = (TaskInventoryDictionary)part.TaskInventory.Clone();
-
-                foreach (TaskInventoryItem item in itemsDictionary.Values)
+                foreach (TaskInventoryItem item in part.Inventory.GetInventoryItems())
                 {
                     if (item.Type == ScriptBaseClass.INVENTORY_SCRIPT)
                     {
@@ -5211,22 +5020,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetScriptName()
         {
-            string result = String.Empty;
-
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-            {
-                if (item.Type == 10 && item.ItemID == m_itemID)
-                {
-                    result =  item.Name!=null?item.Name:String.Empty;
-                    break;
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-
-            return result;
+            return m_item.Name != null ? m_item.Name : String.Empty;
         }
 
         public LSL_Integer llGetLinkNumberOfSides(int link)
@@ -5397,22 +5193,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+
+            if (item == null)
+                return UUID.Zero.ToString();
+
+            if ((item.CurrentPermissions
+                 & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+                    == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
             {
-                if (inv.Value.Name == name)
-                {
-                    if ((inv.Value.CurrentPermissions & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify)) == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
-                    {
-                        m_host.TaskInventory.LockItemsForRead(false);
-                        return inv.Value.AssetID.ToString();
-                    }
-                    else
-                    {
-                        m_host.TaskInventory.LockItemsForRead(false);
-                        return UUID.Zero.ToString();
-                    }
-                }
+                return item.AssetID.ToString();
             }
             m_host.TaskInventory.LockItemsForRead(false);
 
@@ -6360,7 +6150,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
             }
-            List<UUID> presenceIds = new List<UUID>();
 
             World.ForEachRootScenePresence(
                 delegate (ScenePresence ssp)
@@ -6511,7 +6300,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (m_host.OwnerID == land.LandData.OwnerID)
                     {
                         Vector3 pos = World.GetNearestAllowedPosition(presence, land);
-                        presence.TeleportWithMomentum(pos);
+                        presence.TeleportWithMomentum(pos, null);
                         presence.ControllingClient.SendAlertMessage("You have been ejected from this land");
                     }
                 }
@@ -7036,22 +6825,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        protected UUID GetTaskInventoryItem(string name)
-        {
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if (inv.Value.Name == name)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return inv.Key;
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
-
-            return UUID.Zero;
-        }
-
         public void llGiveInventoryList(string destination, string category, LSL_List inventory)
         {
             m_host.AddScriptLPS(1);
@@ -7064,16 +6837,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             foreach (Object item in inventory.Data)
             {
+                string rawItemString = item.ToString();
+
                 UUID itemID;
-                if (UUID.TryParse(item.ToString(), out itemID))
+                if (UUID.TryParse(rawItemString, out itemID))
                 {
                     itemList.Add(itemID);
                 }
                 else
                 {
-                    itemID = GetTaskInventoryItem(item.ToString());
-                    if (itemID != UUID.Zero)
-                        itemList.Add(itemID);
+                    TaskInventoryItem taskItem = m_host.Inventory.GetInventoryItem(rawItemString);
+
+                    if (taskItem != null)
+                        itemList.Add(taskItem.ItemID);
                 }
             }
 
@@ -7395,9 +7171,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param)
         {
             m_host.AddScriptLPS(1);
-            bool found = false;
+
             UUID destId = UUID.Zero;
-            UUID srcId = UUID.Zero;
 
             if (!UUID.TryParse(target, out destId))
             {
@@ -7412,25 +7187,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // copy the first script found with this inventory name
-            TaskInventoryItem scriptItem = null;
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if (inv.Value.Name == name)
-                {
-                    // make sure the object is a script
-                    if (10 == inv.Value.Type)
-                    {
-                        found = true;
-                        srcId = inv.Key;
-                        scriptItem = inv.Value;
-                        break;
-                    }
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
 
-            if (!found)
+            // make sure the object is a script
+            if (item == null || item.Type != 10)
             {
                 llSay(0, "Could not find script " + name);
                 return;
@@ -7439,13 +7199,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SceneObjectPart dest = World.GetSceneObjectPart(destId);
             if (dest != null)
             {
-                if ((scriptItem.BasePermissions & (uint)PermissionMask.Transfer) != 0 || dest.ParentGroup.RootPart.OwnerID == m_host.ParentGroup.RootPart.OwnerID)
+                if ((item.BasePermissions & (uint)PermissionMask.Transfer) != 0 || dest.ParentGroup.RootPart.OwnerID == m_host.ParentGroup.RootPart.OwnerID)
                 {
                     // the rest of the permission checks are done in RezScript, so check the pin there as well
-                    World.RezScriptFromPrim(srcId, m_host, destId, pin, running, start_param);
+                    World.RezScriptFromPrim(item.ItemID, m_host, destId, pin, running, start_param);
 
-                    if ((scriptItem.BasePermissions & (uint)PermissionMask.Copy) == 0)
-                        m_host.Inventory.RemoveInventoryItem(srcId);
+                    if ((item.BasePermissions & (uint)PermissionMask.Copy) == 0)
+                        m_host.Inventory.RemoveInventoryItem(item.ItemID);
                 }
             }
             // this will cause the delay even if the script pin or permissions were wrong - seems ok
@@ -7458,14 +7218,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             if (xmlrpcMod.IsEnabled())
             {
-                UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID, UUID.Zero);
+                UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_host.LocalId, m_item.ItemID, UUID.Zero);
                 IXmlRpcRouter xmlRpcRouter = m_ScriptEngine.World.RequestModuleInterface<IXmlRpcRouter>();
                 if (xmlRpcRouter != null)
                 {
                     string ExternalHostName = m_ScriptEngine.World.RegionInfo.ExternalHostName;
 
                     xmlRpcRouter.RegisterNewReceiver(m_ScriptEngine.ScriptModule, channelID, m_host.UUID,
-                                                     m_itemID, String.Format("http://{0}:{1}/", ExternalHostName,
+                                                     m_item.ItemID, String.Format("http://{0}:{1}/", ExternalHostName,
                                                                              xmlrpcMod.Port.ToString()));
                 }
                 object[] resobj = new object[]
@@ -7477,7 +7237,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         new LSL_Integer(0),
                         new LSL_String(String.Empty)
                     };
-                m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams("remote_data", resobj,
+                m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams("remote_data", resobj,
                                                                          new DetectParams[0]));
             }
             ScriptSleep(1000);
@@ -7488,7 +7248,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             ScriptSleep(3000);
-            return (xmlrpcMod.SendRemoteData(m_localID, m_itemID, channel, dest, idata, sdata)).ToString();
+            return (xmlrpcMod.SendRemoteData(m_host.LocalId, m_item.ItemID, channel, dest, idata, sdata)).ToString();
         }
 
         public void llRemoteDataReply(string channel, string message_id, string sdata, int idata)
@@ -8475,7 +8235,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return;
                             face = (int)rules.GetLSLIntegerItem(idx++);
                             int shiny = (int)rules.GetLSLIntegerItem(idx++);
-                            Bumpiness bump = (Bumpiness)Convert.ToByte((int)rules.GetLSLIntegerItem(idx++));
+                            Bumpiness bump = (Bumpiness)(int)rules.GetLSLIntegerItem(idx++);
 
                             SetShiny(part, face, shiny, bump);
 
@@ -10317,7 +10077,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetSimulatorHostname()
         {
             m_host.AddScriptLPS(1);
-            return System.Environment.MachineName;
+            IUrlModule UrlModule = World.RequestModuleInterface<IUrlModule>();
+            return UrlModule.ExternalHostNameForLSL;
         }
 
         //  <summary>
@@ -10554,92 +10315,82 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public LSL_Integer llGetInventoryPermMask(string item, int mask)
+        public LSL_Integer llGetInventoryPermMask(string itemName, int mask)
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
+
+            if (item == null)
+                return -1;
+
+            switch (mask)
             {
-                if (inv.Value.Name == item)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    switch (mask)
-                    {
-                        case 0:
-                            return (int)inv.Value.BasePermissions;
-                        case 1:
-                            return (int)inv.Value.CurrentPermissions;
-                        case 2:
-                            return (int)inv.Value.GroupPermissions;
-                        case 3:
-                            return (int)inv.Value.EveryonePermissions;
-                        case 4:
-                            return (int)inv.Value.NextPermissions;
-                    }
-                }
+                case 0:
+                    return (int)item.BasePermissions;
+                case 1:
+                    return (int)item.CurrentPermissions;
+                case 2:
+                    return (int)item.GroupPermissions;
+                case 3:
+                    return (int)item.EveryonePermissions;
+                case 4:
+                    return (int)item.NextPermissions;
             }
             m_host.TaskInventory.LockItemsForRead(false);
 
             return -1;
         }
 
-        public void llSetInventoryPermMask(string item, int mask, int value)
+        public void llSetInventoryPermMask(string itemName, int mask, int value)
         {
             m_host.AddScriptLPS(1);
+
             if (m_ScriptEngine.Config.GetBoolean("AllowGodFunctions", false))
             {
                 if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
                 {
-                    lock (m_host.TaskInventory)
+                    TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
+
+                    if (item != null)
                     {
-                        foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                        switch (mask)
                         {
-                            if (inv.Value.Name == item)
-                            {
-                                switch (mask)
-                                {
-                                    case 0:
-                                        inv.Value.BasePermissions = (uint)value;
-                                        break;
-                                    case 1:
-                                        inv.Value.CurrentPermissions = (uint)value;
-                                        break;
-                                    case 2:
-                                        inv.Value.GroupPermissions = (uint)value;
-                                        break;
-                                    case 3:
-                                        inv.Value.EveryonePermissions = (uint)value;
-                                        break;
-                                    case 4:
-                                        inv.Value.NextPermissions = (uint)value;
-                                        break;
-                                }
-                            }
+                            case 0:
+                                item.BasePermissions = (uint)value;
+                                break;
+                            case 1:
+                                item.CurrentPermissions = (uint)value;
+                                break;
+                            case 2:
+                                item.GroupPermissions = (uint)value;
+                                break;
+                            case 3:
+                                item.EveryonePermissions = (uint)value;
+                                break;
+                            case 4:
+                                item.NextPermissions = (uint)value;
+                                break;
                         }
                     }
                 }
             }
         }
 
-        public LSL_String llGetInventoryCreator(string item)
+        public LSL_String llGetInventoryCreator(string itemName)
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
+
+            if (item == null)
             {
-                if (inv.Value.Name == item)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return inv.Value.CreatorID.ToString();
-                }
+                llSay(0, "No item name '" + item + "'");
+
+                return String.Empty;
             }
-            m_host.TaskInventory.LockItemsForRead(false);
 
-            llSay(0, "No item name '" + item + "'");
-
-            return String.Empty;
+            return item.CreatorID.ToString();
         }
 
         public void llOwnerSay(string msg)
@@ -10656,13 +10407,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (m_UrlModule != null)
-                return m_UrlModule.RequestSecureURL(m_ScriptEngine.ScriptModule, m_host, m_itemID).ToString();
+                return m_UrlModule.RequestSecureURL(m_ScriptEngine.ScriptModule, m_host, m_item.ItemID).ToString();
             return UUID.Zero.ToString();
         }
 
         public LSL_String llRequestSimulatorData(string simulator, int data)
         {
-            IOSSL_Api ossl = (IOSSL_Api)m_ScriptEngine.GetApi(m_itemID, "OSSL");
+            IOSSL_Api ossl = (IOSSL_Api)m_ScriptEngine.GetApi(m_item.ItemID, "OSSL");
 
             try
             {
@@ -10672,7 +10423,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 GridRegion info;
 
-                if (m_ScriptEngine.World.RegionInfo.RegionName == simulator)
+                if (m_ScriptEngine.World.RegionInfo.RegionName == simulator) //Det data for this simulator?
+
                     info = new GridRegion(m_ScriptEngine.World.RegionInfo);
                 else
                     info = m_ScriptEngine.World.GridService.GetRegionByName(m_ScriptEngine.World.RegionInfo.ScopeID, simulator);
@@ -10685,10 +10437,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ScriptSleep(1000);
                             return UUID.Zero.ToString();
                         }
-                        reply = new LSL_Vector(
-                            info.RegionLocX,
-                            info.RegionLocY,
-                            0).ToString();
+                        if (m_ScriptEngine.World.RegionInfo.RegionName != simulator)
+                        {
+                            //Hypergrid Region co-ordinates
+                            uint rx = 0, ry = 0;
+                            Utils.LongToUInts(Convert.ToUInt64(info.RegionSecret), out rx, out ry);
+
+                            reply = new LSL_Vector(
+                                rx,
+                                ry,
+                                0).ToString();
+                        }
+                        else
+                        {
+                            //Local-cooridnates
+                            reply = new LSL_Vector(
+                                info.RegionLocX,
+                                info.RegionLocY,
+                                0).ToString();
+                        }
                         break;
                     case ScriptBaseClass.DATA_SIM_STATUS:
                         if (info != null)
@@ -10724,7 +10491,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 UUID rq = UUID.Random();
 
                 UUID tid = AsyncCommands.
-                    DataserverPlugin.RegisterRequest(m_localID, m_itemID, rq.ToString());
+                    DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, rq.ToString());
 
                 AsyncCommands.
                     DataserverPlugin.DataserverReply(rq.ToString(), reply);
@@ -10743,7 +10510,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             if (m_UrlModule != null)
-                return m_UrlModule.RequestURL(m_ScriptEngine.ScriptModule, m_host, m_itemID).ToString();
+                return m_UrlModule.RequestURL(m_ScriptEngine.ScriptModule, m_host, m_item.ItemID).ToString();
             return UUID.Zero.ToString();
         }
 
@@ -10779,7 +10546,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             // child agents have a mass of 1.0
                             return 1;
                         else
-                            return avatar.GetMass();
+                            return (double)avatar.GetMass();
                 }
                 catch (KeyNotFoundException)
                 {
@@ -11183,18 +10950,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-            {
-                if (inv.Value.Name == name)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return inv.Value.Type;
-                }
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
 
-            return -1;
+            if (item == null)
+                return -1;
+
+            return item.Type;
         }
 
         public void llSetPayPrice(int price, LSL_List quick_pay_buttons)
@@ -11222,32 +10983,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetCameraPos()
         {
             m_host.AddScriptLPS(1);
-            UUID invItemID = InventorySelf();
 
-            if (invItemID == UUID.Zero)
-                return new LSL_Vector();
+            if (m_item.PermsGranter == UUID.Zero)
+               return new LSL_Vector();
 
-            m_host.TaskInventory.LockItemsForRead(true);
-
-            UUID agentID = m_host.TaskInventory[invItemID].PermsGranter;
-
-//            if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
-            if (agentID == UUID.Zero)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return new LSL_Vector();
-            }
-
-            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
                 ShoutError("No permissions to track the camera");
-                m_host.TaskInventory.LockItemsForRead(false);
                 return new LSL_Vector();
             }
-            m_host.TaskInventory.LockItemsForRead(false);
 
 //            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
-            ScenePresence presence = World.GetScenePresence(agentID);
+            ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
             if (presence != null)
             {
                 LSL_Vector pos = new LSL_Vector(presence.CameraPosition.X, presence.CameraPosition.Y, presence.CameraPosition.Z);
@@ -11259,30 +11006,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Rotation llGetCameraRot()
         {
             m_host.AddScriptLPS(1);
-            UUID invItemID = InventorySelf();
-            if (invItemID == UUID.Zero)
-                return new LSL_Rotation();
 
-            m_host.TaskInventory.LockItemsForRead(true);
+            if (m_item.PermsGranter == UUID.Zero)
+               return new LSL_Rotation();
 
-            UUID agentID = m_host.TaskInventory[invItemID].PermsGranter;
-
-//            if (m_host.TaskInventory[invItemID].PermsGranter == UUID.Zero)
-            if (agentID == UUID.Zero)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
-                return new LSL_Rotation();
-            }
-            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
                 ShoutError("No permissions to track the camera");
-                m_host.TaskInventory.LockItemsForRead(false);
                 return new LSL_Rotation();
             }
-            m_host.TaskInventory.LockItemsForRead(false);
 
 //            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
-            ScenePresence presence = World.GetScenePresence(agentID);
+            ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
             if (presence != null)
             {
                 return new LSL_Rotation(presence.CameraRotation.X, presence.CameraRotation.Y, presence.CameraRotation.Z, presence.CameraRotation.W);
@@ -11341,7 +11076,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llMapDestination(string simname, LSL_Vector pos, LSL_Vector lookAt)
         {
             m_host.AddScriptLPS(1);
-            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, 0);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, 0);
             if (detectedParams == null)
             {
                 if (m_host.ParentGroup.IsAttachment == true)
@@ -11465,30 +11200,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            // our key in the object we are in
-            UUID invItemID = InventorySelf();
-            if (invItemID == UUID.Zero) return;
-
             // the object we are in
             UUID objectID = m_host.ParentUUID;
-            if (objectID == UUID.Zero) return;
+            if (objectID == UUID.Zero)
+                return;
 
-            UUID agentID;
-            m_host.TaskInventory.LockItemsForRead(true);
             // we need the permission first, to know which avatar we want to set the camera for
-            agentID = m_host.TaskInventory[invItemID].PermsGranter;
+            UUID agentID = m_item.PermsGranter;
 
             if (agentID == UUID.Zero)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
                 return;
-            }
-            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CONTROL_CAMERA) == 0)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
+
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CONTROL_CAMERA) == 0)
                 return;
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
 
             ScenePresence presence = World.GetScenePresence(agentID);
 
@@ -11530,34 +11254,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            // our key in the object we are in
-            UUID invItemID=InventorySelf();
-            if (invItemID == UUID.Zero) return;
-
             // the object we are in
             UUID objectID = m_host.ParentUUID;
-            if (objectID == UUID.Zero) return;
+            if (objectID == UUID.Zero)
+                return;
 
             // we need the permission first, to know which avatar we want to clear the camera for
-            UUID agentID;
-            m_host.TaskInventory.LockItemsForRead(true);
-            agentID = m_host.TaskInventory[invItemID].PermsGranter;
+            UUID agentID = m_item.PermsGranter;
+
             if (agentID == UUID.Zero)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
                 return;
-            }
-            if ((m_host.TaskInventory[invItemID].PermsMask & ScriptBaseClass.PERMISSION_CONTROL_CAMERA) == 0)
-            {
-                m_host.TaskInventory.LockItemsForRead(false);
+
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CONTROL_CAMERA) == 0)
                 return;
-            }
-            m_host.TaskInventory.LockItemsForRead(false);
 
             ScenePresence presence = World.GetScenePresence(agentID);
 
             // we are not interested in child-agents
-            if (presence.IsChildAgent) return;
+            if (presence.IsChildAgent)
+                return;
 
             presence.ControllingClient.SendClearFollowCamProperties(objectID);
         }
@@ -11748,8 +11463,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
-            UUID reqID = httpScriptMod.
-                StartHttpRequest(m_localID, m_itemID, url, param, httpHeaders, body);
+            UUID reqID
+                = httpScriptMod.StartHttpRequest(m_host.LocalId, m_item.ItemID, url, param, httpHeaders, body);
 
             if (reqID != UUID.Zero)
                 return reqID.ToString();
@@ -12003,19 +11718,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
                             // For the following 8 see the Object version below
                             case ScriptBaseClass.OBJECT_RUNNING_SCRIPT_COUNT:
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(av.RunningScriptCount()));
                                 break;
                             case ScriptBaseClass.OBJECT_TOTAL_SCRIPT_COUNT:
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(av.ScriptCount()));
                                 break;
                             case ScriptBaseClass.OBJECT_SCRIPT_MEMORY:
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(av.RunningScriptCount() * 16384));
                                 break;
                             case ScriptBaseClass.OBJECT_SCRIPT_TIME:
-                                ret.Add(new LSL_Float(0));
+                                ret.Add(new LSL_Float(av.ScriptExecutionTime() / 1000.0f));
                                 break;
                             case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(1));
                                 break;
                             case ScriptBaseClass.OBJECT_SERVER_COST:
                                 ret.Add(new LSL_Float(0));
@@ -12073,37 +11788,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.OBJECT_CREATOR:
                                 ret.Add(new LSL_String(obj.CreatorID.ToString()));
                                 break;
-                            // The following 8 I have intentionaly coded to return zero. They are part of
-                            // "Land Impact" calculations. These calculations are probably not applicable
-                            // to OpenSim, required figures (cpu/memory usage) are not currently tracked
-                            // I have intentionally left these all at zero rather than return possibly
-                            // missleading numbers
                             case ScriptBaseClass.OBJECT_RUNNING_SCRIPT_COUNT:
-                                // in SL this currently includes crashed scripts
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(obj.ParentGroup.RunningScriptCount()));
                                 break;
                             case ScriptBaseClass.OBJECT_TOTAL_SCRIPT_COUNT:
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(obj.ParentGroup.ScriptCount()));
                                 break;
                             case ScriptBaseClass.OBJECT_SCRIPT_MEMORY:
                                 // The value returned in SL for mono scripts is 65536 * number of active scripts
-                                ret.Add(new LSL_Integer(0));
+                                // and 16384 * number of active scripts for LSO. since llGetFreememory
+                                // is coded to give the LSO value use it here
+                                ret.Add(new LSL_Integer(obj.ParentGroup.RunningScriptCount() * 16384));
                                 break;
                             case ScriptBaseClass.OBJECT_SCRIPT_TIME:
-                                // Average cpu time per simulator frame expended on all scripts in the objetc
-                                ret.Add(new LSL_Float(0));
+                                // Average cpu time in seconds per simulator frame expended on all scripts in the object
+                                ret.Add(new LSL_Float(obj.ParentGroup.ScriptExecutionTime() / 1000.0f));
                                 break;
                             case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
                                 // according to the SL wiki A prim or linkset will have prim
                                 // equivalent of the number of prims in a linkset if it does not
                                 // contain a mesh anywhere in the link set or is not a normal prim
                                 // The value returned in SL for normal prims is prim count
-                                ret.Add(new LSL_Integer(0));
+                                ret.Add(new LSL_Integer(obj.ParentGroup.PrimCount));
                                 break;
 
                             // costs below may need to be diferent for root parts, need to check
                             case ScriptBaseClass.OBJECT_SERVER_COST:
-                                // The value returned in SL for normal prims is prim count
+                                // The linden calculation is here
+                                // http://wiki.secondlife.com/wiki/Mesh/Mesh_Server_Weight
+                                // The value returned in SL for normal prims looks like the prim count
                                 ret.Add(new LSL_Float(0));
                                 break;
                             case ScriptBaseClass.OBJECT_STREAMING_COST:
@@ -12128,22 +11841,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_List();
         }
 
-        internal UUID ScriptByName(string name)
+        internal UUID GetScriptByName(string name)
         {
-            m_host.TaskInventory.LockItemsForRead(true);
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
 
-            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-            {
-                if (item.Type == 10 && item.Name == name)
-                {
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return item.ItemID;
-                }
-            }
+            if (item == null || item.Type != 10)
+                return UUID.Zero;
 
-            m_host.TaskInventory.LockItemsForRead(false);
-
-            return UUID.Zero;
+            return item.ItemID;
         }
 
         internal void ShoutError(string msg)
@@ -12183,21 +11888,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            //Clone is thread safe
-            TaskInventoryDictionary itemsDictionary = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
-
             UUID assetID = UUID.Zero;
 
             if (!UUID.TryParse(name, out assetID))
             {
-                foreach (TaskInventoryItem item in itemsDictionary.Values)
-                {
-                    if (item.Type == 7 && item.Name == name)
-                    {
-                        assetID = item.AssetID;
-                        break;
-                    }
-                }
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+
+                if (item != null && item.Type == 7)
+                    assetID = item.AssetID;
             }
 
             if (assetID == UUID.Zero)
@@ -12209,7 +11907,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // was: UUID tid = tid = AsyncCommands.
-            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_itemID, assetID.ToString());
+            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, assetID.ToString());
 
             if (NotecardCache.IsCached(assetID))
             {
@@ -12228,9 +11926,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                System.Text.UTF8Encoding enc =
-                    new System.Text.UTF8Encoding();
-                string data = enc.GetString(a.Data);
+                string data = Encoding.UTF8.GetString(a.Data);
                 //m_log.Debug(data);
                 NotecardCache.Cache(id, data);
                 AsyncCommands.
@@ -12246,21 +11942,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            //Clone is thread safe
-            TaskInventoryDictionary itemsDictionary = (TaskInventoryDictionary)m_host.TaskInventory.Clone();
-
             UUID assetID = UUID.Zero;
 
             if (!UUID.TryParse(name, out assetID))
             {
-                foreach (TaskInventoryItem item in itemsDictionary.Values)
-                {
-                    if (item.Type == 7 && item.Name == name)
-                    {
-                        assetID = item.AssetID;
-                        break;
-                    }
-                }
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+
+                if (item != null && item.Type == 7)
+                    assetID = item.AssetID;
             }
 
             if (assetID == UUID.Zero)
@@ -12272,7 +11961,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // was: UUID tid = tid = AsyncCommands.
-            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_itemID, assetID.ToString());
+            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, assetID.ToString());
 
             if (NotecardCache.IsCached(assetID))
             {
@@ -12290,9 +11979,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                  return;
                              }
 
-                             System.Text.UTF8Encoding enc =
-                                 new System.Text.UTF8Encoding();
-                             string data = enc.GetString(a.Data);
+                             string data = Encoding.UTF8.GetString(a.Data);
                              //m_log.Debug(data);
                              NotecardCache.Cache(id, data);
                              AsyncCommands.DataserverPlugin.DataserverReply(id.ToString(),
@@ -12356,7 +12043,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID rq = UUID.Random();
 
-            AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_itemID, rq.ToString());
+            AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, rq.ToString());
 
             AsyncCommands.DataserverPlugin.DataserverReply(rq.ToString(), Name2Username(llKey2Name(id)));
 
@@ -12372,7 +12059,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID rq = UUID.Random();
 
-            AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_itemID, rq.ToString());
+            AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, rq.ToString());
 
             AsyncCommands.DataserverPlugin.DataserverReply(rq.ToString(), llKey2Name(id));
 
@@ -12574,7 +12261,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     Tri t1 = new Tri();
                     Tri t2 = new Tri();
-                    
+
                     Vector3 p1 = new Vector3(x-1, y-1, (float)heightfield[x-1, y-1]);
                     Vector3 p2 = new Vector3(x, y-1, (float)heightfield[x, y-1]);
                     Vector3 p3 = new Vector3(x, y, (float)heightfield[x, y]);
@@ -12615,7 +12302,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // sometimes
                 if (Math.Abs(b) < 0.000001)
                     continue;
-                
+
                 double r = a / b;
 
                 // ray points away from plane
@@ -12875,7 +12562,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool isAccount = false;
             bool isGroup = false;
 
-            if (!estate.IsEstateOwner(m_host.OwnerID) || !estate.IsEstateManager(m_host.OwnerID))
+            if (!estate.IsEstateOwner(m_host.OwnerID) || !estate.IsEstateManagerOrOwner(m_host.OwnerID))
                 return 0;
 
             UUID id = new UUID();
@@ -12937,6 +12624,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 1;
         }
 
+        public LSL_Integer llGetMemoryLimit()
+        {
+            m_host.AddScriptLPS(1);
+            // The value returned for LSO scripts in SL
+            return 16384;
+        }
+
+        public LSL_Integer llSetMemoryLimit(LSL_Integer limit)
+        {
+            m_host.AddScriptLPS(1);
+            // Treat as an LSO script
+            return ScriptBaseClass.FALSE;
+        }
+
+        public LSL_Integer llGetSPMaxMemory()
+        {
+            m_host.AddScriptLPS(1);
+            // The value returned for LSO scripts in SL
+            return 16384;
+        }
+
+        public virtual LSL_Integer llGetUsedMemory()
+        {
+            m_host.AddScriptLPS(1);
+            // The value returned for LSO scripts in SL
+            return 16384;
+        }
+
+        public void llScriptProfiler(LSL_Integer flags)
+        {
+            m_host.AddScriptLPS(1);
+            // This does nothing for LSO scripts in SL
+        }
+
         #region Not Implemented
         //
         // Listing the unimplemented lsl functions here, please move
@@ -12947,25 +12668,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llGetEnv");
-        }
-
-        public void llGetSPMaxMemory()
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llGetSPMaxMemory");
-        }
-
-        public virtual LSL_Integer llGetUsedMemory()
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llGetUsedMemory");
-            return 0;
-        }
-
-        public void llScriptProfiler(LSL_Integer flags)
-        {
-            m_host.AddScriptLPS(1);
-            //NotImplemented("llScriptProfiler");
         }
 
         public void llSetSoundQueueing(int queue)
@@ -13045,18 +12747,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 try
                 {
-                    UUID invItemID=InventorySelf();
-                    if (invItemID == UUID.Zero)
+                    TaskInventoryItem item = m_item;
+                    if (item == null)
                     {
                         replydata = "SERVICE_ERROR";
                         return;
                     }
 
                     m_host.AddScriptLPS(1);
-
-                    m_host.TaskInventory.LockItemsForRead(true);
-                    TaskInventoryItem item = m_host.TaskInventory[invItemID];
-                    m_host.TaskInventory.LockItemsForRead(false);
 
                     if (item.PermsGranter == UUID.Zero)
                     {
@@ -13099,7 +12797,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 finally
                 {
-                    m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                    m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
                             "transaction_result", new Object[] {
                             new LSL_String(txn.ToString()),
                             new LSL_Integer(replycode),

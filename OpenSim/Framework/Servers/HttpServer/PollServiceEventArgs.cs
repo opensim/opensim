@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using OpenMetaverse;
+
 namespace OpenSim.Framework.Servers.HttpServer
 {
     public delegate void RequestMethod(UUID requestID, Hashtable request);
@@ -53,7 +54,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             LslHttp = 1
         }
 
-        public PollServiceEventArgs(RequestMethod pRequest, HasEventsMethod pHasEvents, GetEventsMethod pGetEvents, NoEventsMethod pNoEvents, UUID pId, int pTimeOutms)
+        public PollServiceEventArgs(
+            RequestMethod pRequest,
+            HasEventsMethod pHasEvents, GetEventsMethod pGetEvents, NoEventsMethod pNoEvents,
+            UUID pId, int pTimeOutms)
         {
             Request = pRequest;
             HasEvents = pHasEvents;

@@ -241,7 +241,21 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void AddPhysicsActorTaint(PhysicsActor prim);
 
+        /// <summary>
+        /// Perform a simulation of the current physics scene over the given timestep.
+        /// </summary>
+        /// <param name="timeStep"></param>
+        /// <returns>The number of frames simulated over that period.</returns>
         public abstract float Simulate(float timeStep);
+
+        /// <summary>
+        /// Get statistics about this scene.
+        /// </summary>
+        /// <remarks>This facility is currently experimental and subject to change.</remarks>
+        /// <returns>
+        /// A dictionary where the key is the statistic name.  If no statistics are supplied then returns null.
+        /// </returns>
+        public virtual Dictionary<string, float> GetStats() { return null; }
 
         public abstract void GetResults();
 

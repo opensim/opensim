@@ -27,7 +27,9 @@
 
 using System;
 using System.Reflection;
+using System.Threading;
 using log4net;
+using log4net.Config;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -51,6 +53,8 @@ namespace pCampBot
         [STAThread]
         public static void Main(string[] args)
         {
+            XmlConfigurator.Configure();
+
             IConfig config = ParseConfig(args);
             if (config.Get("help") != null || config.Get("loginuri") == null)
             {
@@ -67,7 +71,9 @@ namespace pCampBot
                 BotManager bm = new BotManager();
 
                 //startup specified number of bots.  1 is the default
-                bm.dobotStartup(botcount, config);
+                Thread startBotThread = new Thread(o => bm.dobotStartup(botcount, config));
+                startBotThread.Name = "Initial start bots thread";
+                startBotThread.Start();
 
                 while (true)
                 {

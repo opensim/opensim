@@ -60,19 +60,32 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Creates all the scripts in the scene which should be started.
         /// </summary>
-        public void CreateScriptInstances()
+        /// <returns>
+        /// Number of scripts that were valid for starting.  This does not guarantee that all these scripts
+        /// were actually started, but just that the start could be attempt (e.g. the asset data for the script could be found)
+        /// </returns>
+        public int CreateScriptInstances()
         {
-            m_log.Info("[PRIM INVENTORY]: Creating scripts in scene");
+            m_log.InfoFormat("[SCENE]: Initializing script instances in {0}", RegionInfo.RegionName);
+
+            int scriptsValidForStarting = 0;
 
             EntityBase[] entities = Entities.GetEntities();
             foreach (EntityBase group in entities)
             {
                 if (group is SceneObjectGroup)
                 {
-                    ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
+                    scriptsValidForStarting
+                        += ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
                     ((SceneObjectGroup) group).ResumeScripts();
                 }
             }
+
+            m_log.InfoFormat(
+                "[SCENE]: Initialized {0} script instances in {1}",
+                scriptsValidForStarting, RegionInfo.RegionName);
+
+            return scriptsValidForStarting;
         }
 
         /// <summary>
@@ -80,7 +93,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void StartScripts()
         {
-            m_log.Info("[PRIM INVENTORY]: Starting scripts in scene");
+            m_log.InfoFormat("[SCENE]: Starting scripts in {0}, please wait.", RegionInfo.RegionName);
 
             IScriptModule[] engines = RequestModuleInterfaces<IScriptModule>();
 
@@ -300,6 +313,10 @@ namespace OpenSim.Region.Framework.Scenes
             AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data, remoteClient.AgentId);
             AssetService.Store(asset);
 
+//            m_log.DebugFormat(
+//                "[PRIM INVENTORY]: Stored asset {0} when updating item {1} in prim {2} for {3}",
+//                asset.ID, item.Name, part.Name, remoteClient.Name);
+
             if (isScriptRunning)
             {
                 part.Inventory.RemoveScriptInstance(item.ItemID, false);
@@ -431,10 +448,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
-                    if (agentTransactions != null)
+                    if (AgentTransactionsModule != null)
                     {
-                        agentTransactions.HandleItemUpdateFromTransaction(remoteClient, transactionID, item);
+                        AgentTransactionsModule.HandleItemUpdateFromTransaction(remoteClient, transactionID, item);
                     }
                 }
             }
@@ -950,8 +966,8 @@ namespace OpenSim.Region.Framework.Scenes
                                              sbyte invType, sbyte type, UUID olditemID)
         {
 //            m_log.DebugFormat(
-//                "[AGENT INVENTORY]: Received request from {0} to create inventory item link {1} in folder {2} pointing to {3}",
-//                remoteClient.Name, name, folderID, olditemID);
+//                "[AGENT INVENTORY]: Received request from {0} to create inventory item link {1} in folder {2} pointing to {3}, assetType {4}, inventoryType {5}",
+//                remoteClient.Name, name, folderID, olditemID, (AssetType)type, (InventoryType)invType);
 
             if (!Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
@@ -984,10 +1000,10 @@ namespace OpenSim.Region.Framework.Scenes
                 asset.Type = type;
                 asset.Name = name;
                 asset.Description = description;
-                
+
                 CreateNewInventoryItem(
-                    remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID, name, 0, callbackID, asset, invType, 
-                    (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, 
+                    remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID, name, 0, callbackID, asset, invType,
+                    (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All,
                     (uint)PermissionMask.All, (uint)PermissionMask.All, Util.UnixTimeSinceEpoch());
             }
             else
@@ -1562,21 +1578,17 @@ namespace OpenSim.Region.Framework.Scenes
                     // Only look for an uploaded updated asset if we are passed a transaction ID.  This is only the
                     // case for updates uploded through UDP.  Updates uploaded via a capability (e.g. a script update)
                     // will not pass in a transaction ID in the update message.
-                    if (transactionID != UUID.Zero)
+                    if (transactionID != UUID.Zero && AgentTransactionsModule != null)
                     {
-                        IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
-                        if (agentTransactions != null)
-                        {
-                            agentTransactions.HandleTaskItemUpdateFromTransaction(
-                                remoteClient, part, transactionID, currentItem);
-    
-//                            if ((InventoryType)itemInfo.InvType == InventoryType.Notecard)
-//                                remoteClient.SendAgentAlertMessage("Notecard saved", false);
-//                            else if ((InventoryType)itemInfo.InvType == InventoryType.LSL)
-//                                remoteClient.SendAgentAlertMessage("Script saved", false);
-//                            else
-//                                remoteClient.SendAgentAlertMessage("Item saved", false);
-                        }
+                        AgentTransactionsModule.HandleTaskItemUpdateFromTransaction(
+                            remoteClient, part, transactionID, currentItem);
+
+//                        if ((InventoryType)itemInfo.InvType == InventoryType.Notecard)
+//                            remoteClient.SendAgentAlertMessage("Notecard saved", false);
+//                        else if ((InventoryType)itemInfo.InvType == InventoryType.LSL)
+//                            remoteClient.SendAgentAlertMessage("Script saved", false);
+//                        else
+//                            remoteClient.SendAgentAlertMessage("Item saved", false);
                     }
 
                     // Base ALWAYS has move
@@ -2286,10 +2298,24 @@ namespace OpenSim.Region.Framework.Scenes
             if (part == null)
                 return;
 
+            IScriptModule[] engines = RequestModuleInterfaces<IScriptModule>();
+
             if (running)
+            {
+                foreach (IScriptModule engine in engines)
+                {
+                    engine.SetRunEnable(itemID, true);
+                }
                 EventManager.TriggerStartScript(part.LocalId, itemID);
+            }
             else
+            {
+                foreach (IScriptModule engine in engines)
+                {
+                    engine.SetRunEnable(itemID, false);
+                }
                 EventManager.TriggerStopScript(part.LocalId, itemID);
+            }
         }
 
         public void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)

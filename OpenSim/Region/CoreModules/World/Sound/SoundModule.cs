@@ -78,11 +78,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
                 if (grp.IsAttachment)
                 {
-                    if (grp.AttachmentPoint > 30) // HUD
-                    {
-                        if (sp.ControllingClient.AgentId != grp.OwnerID)
-                            return;
-                    }
+                    if (grp.HasPrivateAttachmentPoint && sp.ControllingClient.AgentId != grp.OwnerID)
+                        return;
 
                     if (sp.ControllingClient.AgentId == grp.OwnerID)
                         dis = 0;

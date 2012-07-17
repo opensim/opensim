@@ -59,7 +59,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
             sp.Flying = true;
             sp.PhysicsCollisionUpdate(new CollisionEventUpdate());

@@ -1395,21 +1395,26 @@ namespace OpenSim.Region.CoreModules.World.Land
         private void EventManagerOnRegisterCaps(UUID agentID, Caps caps)
         {
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
-            caps.RegisterHandler("RemoteParcelRequest",
-                                 new RestStreamHandler("POST", capsBase + remoteParcelRequestPath,
-                                                       delegate(string request, string path, string param,
-                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-                                                           {
-                                                               return RemoteParcelRequest(request, path, param, agentID, caps);
-                                                           }));
+            caps.RegisterHandler(
+                "RemoteParcelRequest",
+                new RestStreamHandler(
+                    "POST",
+                    capsBase + remoteParcelRequestPath,
+                    (request, path, param, httpRequest, httpResponse)
+                        => RemoteParcelRequest(request, path, param, agentID, caps),
+                    "RemoteParcelRequest",
+                    agentID.ToString()));
+
             UUID parcelCapID = UUID.Random();
-            caps.RegisterHandler("ParcelPropertiesUpdate",
-                                 new RestStreamHandler("POST", "/CAPS/" + parcelCapID,
-                                                       delegate(string request, string path, string param,
-                                                                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-                                                           {
-                                                               return ProcessPropertiesUpdate(request, path, param, agentID, caps);
-                                                           }));
+            caps.RegisterHandler(
+                "ParcelPropertiesUpdate",
+                new RestStreamHandler(
+                    "POST",
+                    "/CAPS/" + parcelCapID,
+                        (request, path, param, httpRequest, httpResponse)
+                            => ProcessPropertiesUpdate(request, path, param, agentID, caps),
+                    "ParcelPropertiesUpdate",
+                    agentID.ToString()));
         }
         private string ProcessPropertiesUpdate(string request, string path, string param, UUID agentID, Caps caps)
         {
@@ -1774,7 +1779,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             Vector3 pos = m_scene.GetNearestAllowedPosition(targetAvatar, land);
 
-            targetAvatar.TeleportWithMomentum(pos);
+            targetAvatar.TeleportWithMomentum(pos, null);
             targetAvatar.ControllingClient.SendAlertMessage("You have been ejected by " + parcelManager.Firstname + " " + parcelManager.Lastname);
             parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected.");
             

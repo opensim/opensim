@@ -101,6 +101,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected internal Dictionary<uint, SceneObjectGroup> SceneObjectGroupsByLocalPartID = new Dictionary<uint, SceneObjectGroup>();        
 
+        /// <summary>
+        /// Lock to prevent object group update, linking, delinking and duplication operations from running concurrently.
+        /// </summary>
+        /// <remarks>
+        /// These operations rely on the parts composition of the object.  If allowed to run concurrently then race
+        /// conditions can occur.
+        /// </remarks>
         private Object m_updateLock = new Object();
 
         #endregion
@@ -394,9 +401,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (Entities.ContainsKey(sceneObject.UUID))
             {
-//                m_log.DebugFormat(
-//                    "[SCENEGRAPH]: Scene graph for {0} already contains object {1} in AddSceneObject()",
-//                    m_parentScene.RegionInfo.RegionName, sceneObject.UUID);
+                m_log.DebugFormat(
+                    "[SCENEGRAPH]: Scene graph for {0} already contains object {1} in AddSceneObject()",
+                    m_parentScene.RegionInfo.RegionName, sceneObject.UUID);
 
                 return false;
             }
@@ -775,12 +782,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int GetChildAgentCount()
         {
-            // some network situations come in where child agents get closed twice.
-            if (m_numChildAgents < 0)
-            {
-                m_numChildAgents = 0;
-            }
-
             return m_numChildAgents;
         }
 
@@ -850,11 +851,6 @@ namespace OpenSim.Region.Framework.Scenes
         private List<ScenePresence> GetScenePresences()
         {
             return m_scenePresenceArray;
-        }
-
-        public int GetNumberOfScenePresences()
-        {
-            return m_scenePresenceArray.Count;
         }
 
         /// <summary>
@@ -1042,6 +1038,18 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Get all the scene object groups.
+        /// </summary>
+        /// <returns>
+        /// The scene object groups.  If the scene is empty then an empty list is returned.
+        /// </returns>
+        protected internal List<SceneObjectGroup> GetSceneObjectGroups()
+        {
+            lock (SceneObjectGroupsByFullID)
+                return new List<SceneObjectGroup>(SceneObjectGroupsByFullID.Values);
+        }
+
+        /// <summary>
         /// Get a group in the scene
         /// </summary>
         /// <param name="fullID">UUID of the group</param>
@@ -1184,11 +1192,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="action"></param>
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)
         {
-            List<SceneObjectGroup> objlist;
-            lock (SceneObjectGroupsByFullID)
-                objlist = new List<SceneObjectGroup>(SceneObjectGroupsByFullID.Values);
-
-            foreach (SceneObjectGroup obj in objlist)
+            foreach (SceneObjectGroup obj in GetSceneObjectGroups())
             {
                 try
                 {
@@ -2065,12 +2069,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="AgentID"></param>
         /// <param name="GroupID"></param>
         /// <param name="rot"></param>
+        /// <returns>null if duplication fails, otherwise the duplicated object</returns>
+        /// <summary>
         public SceneObjectGroup DuplicateObject(uint originalPrimID, Vector3 offset, uint flags, UUID AgentID, UUID GroupID, Quaternion rot)
         {
 //            m_log.DebugFormat(
 //                "[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", 
 //                originalPrimID, offset, AgentID);
-            
+
             SceneObjectGroup original = GetGroupByPrim(originalPrimID);
             if (original != null)
             {
@@ -2100,25 +2106,25 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // FIXME: This section needs to be refactored so that it just calls AddSceneObject()
                     Entities.Add(copy);
-                    
+
                     lock (SceneObjectGroupsByFullID)
                         SceneObjectGroupsByFullID[copy.UUID] = copy;
-                    
+
                     SceneObjectPart[] children = copy.Parts;
-                    
+
                     lock (SceneObjectGroupsByFullPartID)
                     {
                         SceneObjectGroupsByFullPartID[copy.UUID] = copy;
                         foreach (SceneObjectPart part in children)
                             SceneObjectGroupsByFullPartID[part.UUID] = copy;
                     }
-        
+
                     lock (SceneObjectGroupsByLocalPartID)
                     {
                         SceneObjectGroupsByLocalPartID[copy.LocalId] = copy;
                         foreach (SceneObjectPart part in children)
                             SceneObjectGroupsByLocalPartID[part.LocalId] = copy;
-                    }   
+                    }
                     // PROBABLE END OF FIXME
 
                     // Since we copy from a source group that is in selected
@@ -2150,11 +2156,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.WarnFormat("[SCENE]: Attempted to duplicate nonexistant prim id {0}", GroupID);
             }
-            
+
             return null;
         }
-        
-        /// <summary>
+
         /// Calculates the distance between two Vector3s
         /// </summary>
         /// <param name="v1"></param>

@@ -52,14 +52,15 @@ namespace OpenSim.Data.MySQL
 
         public bool Delete(UUID principalID, string name)
         {
-            MySqlCommand cmd = new MySqlCommand();
-
-            cmd.CommandText = String.Format("delete from {0} where `PrincipalID` = ?PrincipalID and `Name` = ?Name", m_Realm);
-            cmd.Parameters.AddWithValue("?PrincipalID", principalID.ToString());
-            cmd.Parameters.AddWithValue("?Name", name);
-
-            if (ExecuteNonQuery(cmd) > 0)
-                return true;
+            using (MySqlCommand cmd = new MySqlCommand())
+            {
+                cmd.CommandText = String.Format("delete from {0} where `PrincipalID` = ?PrincipalID and `Name` = ?Name", m_Realm);
+                cmd.Parameters.AddWithValue("?PrincipalID", principalID.ToString());
+                cmd.Parameters.AddWithValue("?Name", name);
+    
+                if (ExecuteNonQuery(cmd) > 0)
+                    return true;
+            }
 
             return false;
         }

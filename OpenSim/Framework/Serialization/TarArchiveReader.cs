@@ -53,8 +53,6 @@ namespace OpenSim.Framework.Serialization
             TYPE_CONTIGUOUS_FILE = 8,
         }
 
-        protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
-
         /// <summary>
         /// Binary reader for the underlying stream
         /// </summary>
@@ -120,13 +118,13 @@ namespace OpenSim.Framework.Serialization
             if (header[156] == (byte)'L')
             {
                 int longNameLength = ConvertOctalBytesToDecimal(header, 124, 11);
-                tarHeader.FilePath = m_asciiEncoding.GetString(ReadData(longNameLength));
+                tarHeader.FilePath = Encoding.ASCII.GetString(ReadData(longNameLength));
                 //m_log.DebugFormat("[TAR ARCHIVE READER]: Got long file name {0}", tarHeader.FilePath);
                 header = m_br.ReadBytes(512);
             }
             else
             {
-                tarHeader.FilePath = m_asciiEncoding.GetString(header, 0, 100);
+                tarHeader.FilePath = Encoding.ASCII.GetString(header, 0, 100);
                 tarHeader.FilePath = tarHeader.FilePath.Trim(m_nullCharArray);
                 //m_log.DebugFormat("[TAR ARCHIVE READER]: Got short file name {0}", tarHeader.FilePath);
             }
@@ -205,7 +203,7 @@ namespace OpenSim.Framework.Serialization
         {
             // Trim leading white space: ancient tars do that instead
             // of leading 0s :-( don't ask. really.
-            string oString = m_asciiEncoding.GetString(bytes, startIndex, count).TrimStart(m_spaceCharArray);
+            string oString = Encoding.ASCII.GetString(bytes, startIndex, count).TrimStart(m_spaceCharArray);
 
             int d = 0;
 

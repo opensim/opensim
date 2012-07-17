@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             UUID ownerId = TestHelpers.ParseTail(0x1);
             int nParts = 3;
 
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(nParts, ownerId, "TestLinkToSelf_", 0x10);
             scene.AddSceneObject(sog1);
             scene.LinkObjects(ownerId, sog1.LocalId, new List<uint>() { sog1.Parts[1].LocalId });
@@ -71,11 +71,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             
             bool debugtest = false; 
 
-            Scene scene = SceneHelpers.SetupScene();
-            SceneObjectPart part1 = SceneHelpers.AddSceneObject(scene);
-            SceneObjectGroup grp1 = part1.ParentGroup;
-            SceneObjectPart part2 = SceneHelpers.AddSceneObject(scene);
-            SceneObjectGroup grp2 = part2.ParentGroup;
+            Scene scene = new SceneHelpers().SetupScene();
+            SceneObjectGroup grp1 = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part1 = grp1.RootPart;
+            SceneObjectGroup grp2 = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part2 = grp2.RootPart;
 
             grp1.AbsolutePosition = new Vector3(10, 10, 10);
             grp2.AbsolutePosition = Vector3.Zero;
@@ -153,15 +153,15 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             
             bool debugtest = false;
 
-            Scene scene = SceneHelpers.SetupScene();
-            SceneObjectPart part1 = SceneHelpers.AddSceneObject(scene);
-            SceneObjectGroup grp1 = part1.ParentGroup;
-            SceneObjectPart part2 = SceneHelpers.AddSceneObject(scene);
-            SceneObjectGroup grp2 = part2.ParentGroup;
-            SceneObjectPart part3 = SceneHelpers.AddSceneObject(scene);
-            SceneObjectGroup grp3 = part3.ParentGroup;
-            SceneObjectPart part4 = SceneHelpers.AddSceneObject(scene);
-            SceneObjectGroup grp4 = part4.ParentGroup;
+            Scene scene = new SceneHelpers().SetupScene();
+            SceneObjectGroup grp1 = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part1 = grp1.RootPart;
+            SceneObjectGroup grp2 = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part2 = grp2.RootPart;
+            SceneObjectGroup grp3 = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part3 = grp3.RootPart;
+            SceneObjectGroup grp4 = SceneHelpers.AddSceneObject(scene);
+            SceneObjectPart part4 = grp4.RootPart;
 
             grp1.AbsolutePosition = new Vector3(10, 10, 10);
             grp2.AbsolutePosition = Vector3.Zero;
@@ -286,7 +286,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
             
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
             
             string rootPartName = "rootpart";
             UUID rootPartUuid = new UUID("00000000-0000-0000-0000-000000000001");
@@ -325,7 +325,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
             
-            TestScene scene = SceneHelpers.SetupScene();
+            TestScene scene = new SceneHelpers().SetupScene();
             
             string rootPartName = "rootpart";
             UUID rootPartUuid = new UUID("00000000-0000-0000-0000-000000000001");

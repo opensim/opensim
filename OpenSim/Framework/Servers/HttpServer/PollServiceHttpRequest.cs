@@ -31,7 +31,6 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
-
     public class PollServiceHttpRequest
     {
         public readonly PollServiceEventArgs PollServiceArgs;
@@ -39,7 +38,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         public readonly IHttpRequest Request;
         public readonly int RequestTime;
         public readonly UUID RequestID;
-        public PollServiceHttpRequest(PollServiceEventArgs pPollServiceArgs, IHttpClientContext pHttpContext, IHttpRequest pRequest)
+
+        public PollServiceHttpRequest(
+            PollServiceEventArgs pPollServiceArgs, IHttpClientContext pHttpContext, IHttpRequest pRequest)
         {
             PollServiceArgs = pPollServiceArgs;
             HttpContext = pHttpContext;

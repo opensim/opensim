@@ -45,20 +45,23 @@ namespace OpenSim.Tests.Common
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="part"></param>
+        /// <param name="itemName"></param>
+        /// <param name="itemID"></param>
+        /// <param name="assetID"></param>
         /// <returns>The item that was added</returns>
-        public static TaskInventoryItem AddNotecard(Scene scene, SceneObjectPart part)
+        public static TaskInventoryItem AddNotecard(Scene scene, SceneObjectPart part, string itemName, UUID itemID, UUID assetID)
         {
             AssetNotecard nc = new AssetNotecard();
             nc.BodyText = "Hello World!";
             nc.Encode();
-            UUID ncAssetUuid = new UUID("00000000-0000-0000-1000-000000000000");
-            UUID ncItemUuid = new UUID("00000000-0000-0000-1100-000000000000");
+
             AssetBase ncAsset
-                = AssetHelpers.CreateAsset(ncAssetUuid, AssetType.Notecard, nc.AssetData, UUID.Zero);
+                = AssetHelpers.CreateAsset(assetID, AssetType.Notecard, nc.AssetData, UUID.Zero);
             scene.AssetService.Store(ncAsset);
+
             TaskInventoryItem ncItem 
                 = new TaskInventoryItem 
-                    { Name = "ncItem", AssetID = ncAssetUuid, ItemID = ncItemUuid, 
+                    { Name = itemName, AssetID = assetID, ItemID = itemID,
                       Type = (int)AssetType.Notecard, InvType = (int)InventoryType.Notecard };
             part.Inventory.AddInventoryItem(ncItem, true); 
             
@@ -66,8 +69,43 @@ namespace OpenSim.Tests.Common
         }
 
         /// <summary>
+        /// Add a simple script to the given part.
+        /// </summary>
+        /// <remarks>
+        /// TODO: Accept input for item and asset IDs to avoid mysterious script failures that try to use any of these
+        /// functions more than once in a test.
+        /// </remarks>
+        /// <param name="scene"></param>
+        /// <param name="part"></param>
+        /// <returns>The item that was added</returns>
+        public static TaskInventoryItem AddScript(Scene scene, SceneObjectPart part)
+        {
+            AssetScriptText ast = new AssetScriptText();
+            ast.Source = "default { state_entry() { llSay(0, \"Hello World\"); } }";
+            ast.Encode();
+
+            UUID assetUuid = new UUID("00000000-0000-0000-1000-000000000000");
+            UUID itemUuid = new UUID("00000000-0000-0000-1100-000000000000");
+            AssetBase asset
+                = AssetHelpers.CreateAsset(assetUuid, AssetType.LSLText, ast.AssetData, UUID.Zero);
+            scene.AssetService.Store(asset);
+            TaskInventoryItem item
+                = new TaskInventoryItem 
+                    { Name = "scriptItem", AssetID = assetUuid, ItemID = itemUuid,
+                      Type = (int)AssetType.LSLText, InvType = (int)InventoryType.LSL };
+            part.Inventory.AddInventoryItem(item, true);
+            
+            return item;
+        }
+
+        /// <summary>
         /// Add a scene object item to the given part.
         /// </summary>
+        /// <remarks>
+        /// TODO: Accept input for item and asset IDs to avoid mysterious script failures that try to use any of these
+        /// functions more than once in a test.
+        /// </remarks>
+        ///
         /// <param name="scene"></param>
         /// <param name="sop"></param>
         /// <param name="itemName"></param>

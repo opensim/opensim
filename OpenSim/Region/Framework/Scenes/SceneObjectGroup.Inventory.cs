@@ -54,26 +54,46 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Start the scripts contained in all the prims in this group.
         /// </summary>
-        public void CreateScriptInstances(int startParam, bool postOnRez,
-                string engine, int stateSource)
+        /// <param name="startParam"></param>
+        /// <param name="postOnRez"></param>
+        /// <param name="engine"></param>
+        /// <param name="stateSource"></param>
+        /// <returns>
+        /// Number of scripts that were valid for starting.  This does not guarantee that all these scripts
+        /// were actually started, but just that the start could be attempt (e.g. the asset data for the script could be found)
+        /// </returns>
+        public int CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource)
         {
+            int scriptsStarted = 0;
+
             // Don't start scripts if they're turned off in the region!
             if (!m_scene.RegionInfo.RegionSettings.DisableScripts)
             {
                 SceneObjectPart[] parts = m_parts.GetArray();
                 for (int i = 0; i < parts.Length; i++)
-                    parts[i].Inventory.CreateScriptInstances(startParam, postOnRez, engine, stateSource);
+                    scriptsStarted
+                        += parts[i].Inventory.CreateScriptInstances(startParam, postOnRez, engine, stateSource);
             }
+
+            return scriptsStarted;
         }
 
         /// <summary>
-        /// Stop the scripts contained in all the prims in this group
+        /// Stop and remove the scripts contained in all the prims in this group
         /// </summary>
         public void RemoveScriptInstances(bool sceneObjectBeingDeleted)
         {
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
                 parts[i].Inventory.RemoveScriptInstances(sceneObjectBeingDeleted);
+        }
+
+        /// <summary>
+        /// Stop the scripts contained in all the prims in this group
+        /// </summary>
+        public void StopScriptInstances()
+        {
+            Array.ForEach<SceneObjectPart>(m_parts.GetArray(), p => p.Inventory.StopScriptInstances());
         }
 
         /// <summary>

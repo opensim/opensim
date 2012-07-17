@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             SerialiserModule serialiserModule = new SerialiserModule();
             TerrainModule terrainModule = new TerrainModule();
 
-            m_scene = SceneHelpers.SetupScene();
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, m_archiverModule, serialiserModule, terrainModule);
         }
         
@@ -102,9 +102,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
             Vector3 groupPosition = new Vector3(10, 20, 30);
             Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
-            Vector3 offsetPosition = new Vector3(5, 10, 15);
+//            Vector3 offsetPosition = new Vector3(5, 10, 15);
 
-            return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition) { Name = partName };
+            return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, Vector3.Zero) { Name = partName };
         }
 
         protected SceneObjectPart CreateSceneObjectPart2()
@@ -292,6 +292,59 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         }
 
         /// <summary>
+        /// Test loading an OpenSim Region Archive where the scene object parts are not ordered by link number (e.g.
+        /// 2 can come after 3).
+        /// </summary>
+        [Test]
+        public void TestLoadOarUnorderedParts()
+        {
+            TestHelpers.InMethod();
+
+            UUID ownerId = TestHelpers.ParseTail(0xaaaa);
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
+
+            tar.WriteFile(
+                ArchiveConstants.CONTROL_FILE_PATH,
+                new ArchiveWriteRequestPreparation(null, (Stream)null, Guid.Empty).CreateControlFile(new Dictionary<string, Object>()));
+
+            SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, ownerId, "obj1-", 0x11);
+            SceneObjectPart sop2
+                = SceneHelpers.CreateSceneObjectPart("obj1-Part2", TestHelpers.ParseTail(0x12), ownerId);
+            SceneObjectPart sop3
+                = SceneHelpers.CreateSceneObjectPart("obj1-Part3", TestHelpers.ParseTail(0x13), ownerId);
+
+            // Add the parts so they will be written out in reverse order to the oar
+            sog1.AddPart(sop3);
+            sop3.LinkNum = 3;
+            sog1.AddPart(sop2);
+            sop2.LinkNum = 2;
+
+            tar.WriteFile(
+                ArchiveConstants.CreateOarObjectPath(sog1.Name, sog1.UUID, sog1.AbsolutePosition),
+                SceneObjectSerializer.ToXml2Format(sog1));
+
+            tar.Close();
+
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
+
+            lock (this)
+            {
+                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
+                m_archiverModule.DearchiveRegion(archiveReadStream);
+            }
+
+            Assert.That(m_lastErrorMessage, Is.Null);
+
+            SceneObjectPart part2 = m_scene.GetSceneObjectPart("obj1-Part2");
+            Assert.That(part2.LinkNum, Is.EqualTo(2));
+
+            SceneObjectPart part3 = m_scene.GetSceneObjectPart("obj1-Part3");
+            Assert.That(part3.LinkNum, Is.EqualTo(3));
+        }
+
+        /// <summary>
         /// Test loading an OpenSim Region Archive.
         /// </summary>
         [Test]
@@ -463,7 +516,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 SerialiserModule serialiserModule = new SerialiserModule();
                 TerrainModule terrainModule = new TerrainModule();
 
-                TestScene scene2 = SceneHelpers.SetupScene();
+                TestScene scene2 = new SceneHelpers().SetupScene();
                 SceneHelpers.SetupSceneModules(scene2, archiverModule, serialiserModule, terrainModule);
 
                 // Make sure there's a valid owner for the owner we saved (this should have been wiped if the code is
@@ -534,6 +587,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             rs.TerrainTexture4 = UUID.Parse("00000000-0000-0000-0000-000000000080");
             rs.UseEstateSun = true;
             rs.WaterHeight = 23;
+            rs.TelehubObject = UUID.Parse("00000000-0000-0000-0000-111111111111");
+            rs.AddSpawnPoint(SpawnPoint.Parse("1,-2,0.33"));
 
             tar.WriteFile(ArchiveConstants.SETTINGS_PATH + "region1.xml", RegionSettingsSerializer.Serialize(rs));
             
@@ -580,6 +635,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(loadedRs.TerrainTexture4, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000080")));
             Assert.That(loadedRs.UseEstateSun, Is.True);
             Assert.That(loadedRs.WaterHeight, Is.EqualTo(23));
+            Assert.AreEqual(UUID.Zero, loadedRs.TelehubObject); // because no object was found with the original UUID
+            Assert.AreEqual(0, loadedRs.SpawnPoints().Count);
         }
         
         /// <summary>
@@ -607,7 +664,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 SerialiserModule serialiserModule = new SerialiserModule();
                 TerrainModule terrainModule = new TerrainModule();
 
-                Scene scene = SceneHelpers.SetupScene();
+                Scene scene = new SceneHelpers().SetupScene();
                 SceneHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
 
                 m_scene.AddNewSceneObject(new SceneObjectGroup(part2), false);

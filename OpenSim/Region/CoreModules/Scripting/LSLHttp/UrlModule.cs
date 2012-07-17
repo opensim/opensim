@@ -77,7 +77,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         private Dictionary<string, UrlData> m_UrlMap =
                 new Dictionary<string, UrlData>();
 
-
+        /// <summary>
+        /// Maximum number of external urls that can be set up by this module.
+        /// </summary>
         private int m_TotalUrls = 5000;
 
         private uint https_port = 0;
@@ -85,6 +87,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         private IHttpServer m_HttpsServer = null;
 
         private string m_ExternalHostNameForLSL = "";
+        public string ExternalHostNameForLSL
+        {
+            get { return m_ExternalHostNameForLSL; } 
+        }
 
         public Type ReplaceableInterface 
         {
@@ -104,6 +110,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             {
                 https_port = (uint) config.Configs["Network"].GetInt("https_port",0);
             }
+
+            IConfig llFunctionsConfig = config.Configs["LL-Functions"];
+
+            if (llFunctionsConfig != null)
+                m_TotalUrls = llFunctionsConfig.GetInt("max_external_urls_per_simulator", m_TotalUrls);
         }
 
         public void PostInitialise()
@@ -147,6 +158,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public void Close()
         {
         }
+
         public UUID RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID)
         {
             UUID urlcode = UUID.Random();
@@ -175,6 +187,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 PollServiceEventArgs args = new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, urlcode, 25000);
                 args.Type = PollServiceEventArgs.EventType.LslHttp;
                 m_HttpServer.AddPollServiceHTTPHandler(uri, args);
+
+                m_log.DebugFormat(
+                    "[URL MODULE]: Set up incoming request url {0} for {1} in {2} {3}",
+                    uri, itemID, host.Name, host.LocalId);
 
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }
@@ -218,6 +234,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 args.Type = PollServiceEventArgs.EventType.LslHttp;
                 m_HttpsServer.AddPollServiceHTTPHandler(uri, args);
 
+                m_log.DebugFormat(
+                    "[URL MODULE]: Set up incoming secure request url {0} for {1} in {2} {3}",
+                    uri, itemID, host.Name, host.LocalId);
+
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }
 
@@ -241,6 +261,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                         m_RequestMap.Remove(req);
                 }
                         
+//                m_log.DebugFormat(
+//                    "[URL MODULE]: Releasing url {0} for {1} in {2}",
+//                    url, data.itemID, data.hostID);
+
                 RemoveUrl(data);
                 m_UrlMap.Remove(url);
             }

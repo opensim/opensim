@@ -62,7 +62,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
 
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(scene, archiverModule);
 
             // Create user
@@ -179,7 +179,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
             
             // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             
             SceneHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
 
@@ -222,7 +222,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             SerialiserModule serialiserModule = new SerialiserModule();
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
             
             UserAccountHelpers.CreateUserWithInventory(scene, m_uaMT, "password");
@@ -247,7 +247,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
 
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(scene, archiverModule);
 
             // Create user
@@ -326,7 +326,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene);
             
             Dictionary <string, InventoryFolderBase> foldersCreated = new Dictionary<string, InventoryFolderBase>();
@@ -393,7 +393,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene);
             
             string folder1ExistingName = "a";
@@ -444,7 +444,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneHelpers.SetupScene();
+            Scene scene = new SceneHelpers().SetupScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene);
             
             string folder1ExistingName = "a";

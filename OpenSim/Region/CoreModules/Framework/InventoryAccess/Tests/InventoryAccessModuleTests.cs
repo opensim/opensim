@@ -64,8 +64,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
-            
-            m_scene = SceneHelpers.SetupScene();
+
+            SceneHelpers sceneHelpers = new SceneHelpers();
+            m_scene = sceneHelpers.SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, config, m_iam);
             
             // Create user
@@ -76,7 +77,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = m_userId;
-            m_tc = new TestClient(acd, m_scene);            
+            m_tc = new TestClient(acd, m_scene);
         }
         
         [Test]

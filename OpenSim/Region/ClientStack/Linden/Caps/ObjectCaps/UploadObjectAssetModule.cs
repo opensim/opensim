@@ -106,12 +106,15 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID capID = UUID.Random();
 
 //            m_log.Debug("[UPLOAD OBJECT ASSET MODULE]: /CAPS/" + capID);
-            caps.RegisterHandler("UploadObjectAsset",
-                                 new RestHTTPHandler("POST", "/CAPS/OA/" + capID + "/",
-                                                       delegate(Hashtable m_dhttpMethod)
-                                                       {
-                                                           return ProcessAdd(m_dhttpMethod, agentID, caps);
-                                                       }));
+            caps.RegisterHandler(
+                "UploadObjectAsset",
+                new RestHTTPHandler(
+                    "POST",
+                    "/CAPS/OA/" + capID + "/",
+                    httpMethod => ProcessAdd(httpMethod, agentID, caps),
+                    "UploadObjectAsset",
+                    agentID.ToString()));
+
             /*
                    caps.RegisterHandler("NewFileAgentInventoryVariablePrice",
 
@@ -330,7 +333,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 grp.AbsolutePosition = obj.Position;
                 prim.RotationOffset = obj.Rotation;
                 
-                grp.IsAttachment = false;
                 // Required for linking
                 grp.RootPart.ClearUpdateSchedule();
                 

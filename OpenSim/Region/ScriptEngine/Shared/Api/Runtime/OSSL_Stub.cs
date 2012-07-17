@@ -289,8 +289,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osAvatarStopAnimation(avatar, animation);
         }
 
+        // Avatar functions
 
-        //Texture Draw functions
+        public void osForceAttachToAvatar(int attachmentPoint)
+        {
+            m_OSSL_Functions.osForceAttachToAvatar(attachmentPoint);
+        }
+
+        public void osForceAttachToAvatarFromInventory(string itemName, int attachmentPoint)
+        {
+            m_OSSL_Functions.osForceAttachToAvatarFromInventory(itemName, attachmentPoint);
+        }
+
+        public void osForceAttachToOtherAvatarFromInventory(string rawAvatarId, string itemName, int attachmentPoint)
+        {
+            m_OSSL_Functions.osForceAttachToOtherAvatarFromInventory(rawAvatarId, itemName, attachmentPoint);
+        }
+
+        public void osForceDetachFromAvatar()
+        {
+            m_OSSL_Functions.osForceDetachFromAvatar();
+        }
+
+        // Texture Draw functions
 
         public string osMovePen(string drawList, int x, int y)
         {
@@ -569,6 +590,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcSay(npc, message);
         }
 
+        public void osNpcSay(key npc, int channel, string message)
+        {
+            m_OSSL_Functions.osNpcSay(npc, channel, message);
+        }
+
+
+        public void osNpcShout(key npc, int channel, string message)
+        {
+            m_OSSL_Functions.osNpcShout(npc, channel, message);
+        }
+
         public void osNpcSit(LSL_Key npc, LSL_Key target, int options)
         {
             m_OSSL_Functions.osNpcSit(npc, target, options);
@@ -592,6 +624,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void osNpcStopAnimation(LSL_Key npc, string animation)
         {
             m_OSSL_Functions.osNpcStopAnimation(npc, animation);
+        }
+
+        public void osNpcWhisper(key npc, int channel, string message)
+        {
+            m_OSSL_Functions.osNpcWhisper(npc, channel, message);
+        }
+
+        public void osNpcTouch(LSL_Key npcLSL_Key, LSL_Key object_key, LSL_Integer link_num)
+        {
+            m_OSSL_Functions.osNpcTouch(npcLSL_Key, object_key, link_num);
         }
 
         public LSL_Key osOwnerSaveAppearance(string notecard)
@@ -877,6 +919,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_Integer osEjectFromGroup(LSL_Key agentId)
         {
             return m_OSSL_Functions.osEjectFromGroup(agentId);
+        }
+
+        public void osSetTerrainTexture(int level, LSL_Key texture)
+        {
+            m_OSSL_Functions.osSetTerrainTexture(level, texture);
+        }
+
+        public void osSetTerrainTextureHeight(int corner, double low, double high)
+        {
+            m_OSSL_Functions.osSetTerrainTextureHeight(corner, low, high);
         }
     }
 }
