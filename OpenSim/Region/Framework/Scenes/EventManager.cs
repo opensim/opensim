@@ -1210,6 +1210,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerRemoveScript failed - continuing.  {0} {1}", 
                             e.Message, e.StackTrace);
+                        m_log.ErrorFormat(Environment.StackTrace);
                     }
                 }
             }
