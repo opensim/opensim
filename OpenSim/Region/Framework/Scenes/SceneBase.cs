@@ -113,7 +113,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected ulong m_regionHandle;
         protected string m_regionName;
-        protected RegionInfo m_regInfo;
 
         public ITerrainChannel Heightmap;
 
