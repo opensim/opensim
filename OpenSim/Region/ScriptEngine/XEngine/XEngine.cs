@@ -108,6 +108,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private bool m_KillTimedOutScripts;
         private string m_ScriptEnginesPath = null;
 
+        private ExpiringCache<UUID, bool> m_runFlags = new ExpiringCache<UUID, bool>();
+
         /// <summary>
         /// Is the entire simulator in the process of shutting down?
         /// </summary>
@@ -1196,6 +1198,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (instance != null) 
                 instance.Init();
 
+            bool runIt;
+            if (m_runFlags.TryGetValue(itemID, out runIt))
+            {
+                if (!runIt)
+                    StopScript(itemID);
+                m_runFlags.Remove(itemID);
+            }
+
             return true;
         }
 
@@ -1568,6 +1578,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
                 instance.Start();
+            else
+                m_runFlags.AddOrUpdate(itemID, true, 240);
         }
 
         public void StopScript(UUID itemID)
@@ -1578,6 +1590,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 // Give the script some time to finish processing its last event.  Simply aborting the script thread can
                 // cause issues on mono 2.6, 2.10 and possibly later where locks are not released properly on abort.
                 instance.Stop(1000);
+            }
+            else
+            {
+                m_runFlags.AddOrUpdate(itemID, false, 240);
             }
         }
 
