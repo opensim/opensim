@@ -3925,8 +3925,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llGiveInventory(string destination, string inventory)
         {
             m_host.AddScriptLPS(1);
-
+            bool found = false;
             UUID destId = UUID.Zero;
+            UUID objId = UUID.Zero;
+            int assetType = 0;
+            string objName = String.Empty;
 
             if (!UUID.TryParse(destination, out destId))
             {
@@ -3934,15 +3937,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
+            // move the first object found with this inventory name
+            lock (m_host.TaskInventory)
+            {
+                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                {
+                    if (inv.Value.Name == inventory)
+                    {
+                        found = true;
+                        objId = inv.Key;
+                        assetType = inv.Value.Type;
+                        objName = inv.Value.Name;
+                        break;
+                    }
+                }
+            }
 
-            if (item == null)
+            if (!found)
             {
                 llSay(0, String.Format("Could not find object '{0}'", inventory));
                 throw new Exception(String.Format("The inventory object '{0}' could not be found", inventory));
             }
-
-            UUID objId = item.ItemID;
 
             // check if destination is an object
             if (World.GetSceneObjectPart(destId) != null)
@@ -3974,23 +3989,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 byte[] bucket = new byte[17];
-                bucket[0] = (byte)item.Type;
+                bucket[0] = (byte)assetType;
                 byte[] objBytes = agentItem.ID.GetBytes();
                 Array.Copy(objBytes, 0, bucket, 1, 16);
 
                 GridInstantMessage msg = new GridInstantMessage(World,
-                        m_host.UUID, m_host.Name + ", an object owned by " +
-                        resolveName(m_host.OwnerID) + ",", destId,
+                        m_host.UUID, m_host.Name+", an object owned by "+
+                        resolveName(m_host.OwnerID)+",", destId,
                         (byte)InstantMessageDialog.TaskInventoryOffered,
-                        false, item.Name + "\n" + m_host.Name + " is located at " +
+                        false, objName+"\n"+m_host.Name+" is located at "+
                         World.RegionInfo.RegionName+" "+
                         m_host.AbsolutePosition.ToString(),
                         agentItem.ID, true, m_host.AbsolutePosition,
                         bucket);
-
                 if (m_TransferModule != null)
                     m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
-
                 ScriptSleep(3000);
             }
         }
