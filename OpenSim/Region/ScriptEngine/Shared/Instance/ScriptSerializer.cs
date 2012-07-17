@@ -55,7 +55,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public static string Serialize(ScriptInstance instance)
         {
             bool running = instance.Running;
-            bool enabled = instance.Run;
 
             XmlDocument xmldoc = new XmlDocument();
 
@@ -77,12 +76,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     running.ToString()));
 
             rootElement.AppendChild(run);
-
-            XmlElement run_enable = xmldoc.CreateElement("", "Run", "");
-            run_enable.AppendChild(xmldoc.CreateTextNode(
-                enabled.ToString()));
-
-            rootElement.AppendChild(run_enable);
 
             Dictionary<string, Object> vars = instance.GetVars();
 
@@ -232,7 +225,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 object varValue;
                 XmlNodeList partL = rootNode.ChildNodes;
-                instance.Run = true;
 
                 foreach (XmlNode part in partL)
                 {
@@ -243,9 +235,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         break;
                     case "Running":
                         instance.Running=bool.Parse(part.InnerText);
-                        break;
-                    case "Run":
-                        instance.Run = bool.Parse(part.InnerText);
                         break;
                     case "Variables":
                         XmlNodeList varL = part.ChildNodes;

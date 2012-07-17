@@ -57,7 +57,12 @@ namespace OpenSim.Region.UserStatistics
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private static SqliteConnection dbConn;
+
+        /// <summary>
+        /// User statistics sessions keyed by agent ID
+        /// </summary>
         private Dictionary<UUID, UserSessionID> m_sessions = new Dictionary<UUID, UserSessionID>();
+
         private List<Scene> m_scenes = new List<Scene>();
         private Dictionary<string, IStatsController> reports = new Dictionary<string, IStatsController>();
         private Dictionary<UUID, USimStatsData> m_simstatsCounters = new Dictionary<UUID, USimStatsData>(); 
@@ -308,49 +313,41 @@ namespace OpenSim.Region.UserStatistics
                     scene.EventManager.OnDeregisterCaps += OnDeRegisterCaps;
                     scene.EventManager.OnClientClosed += OnClientClosed;
                     scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
-                    scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
                 }
             }
         }
 
         private void OnMakeRootAgent(ScenePresence agent)
         {
-            UUID regionUUID = GetRegionUUIDFromHandle(agent.RegionHandle);
-
             lock (m_sessions)
             {
+                UserSessionID uid;
+
                 if (!m_sessions.ContainsKey(agent.UUID))
                 {
                     UserSessionData usd = UserSessionUtil.newUserSessionData();
-
-                    UserSessionID uid = new UserSessionID();
+                    uid = new UserSessionID();
                     uid.name_f = agent.Firstname;
                     uid.name_l = agent.Lastname;
-                    uid.region_id = regionUUID;
-                    uid.session_id = agent.ControllingClient.SessionId;
                     uid.session_data = usd;
 
                     m_sessions.Add(agent.UUID, uid);
                 }
                 else
                 {
-                    UserSessionID uid = m_sessions[agent.UUID];
-                    uid.region_id = regionUUID;
-                    uid.session_id = agent.ControllingClient.SessionId;
-                    m_sessions[agent.UUID] = uid;
+                    uid = m_sessions[agent.UUID];
                 }
-            }
-        }
 
-        private void OnMakeChildAgent(ScenePresence agent)
-        {
+                uid.region_id = agent.Scene.RegionInfo.RegionID;
+                uid.session_id = agent.ControllingClient.SessionId;
+            }
         }
 
         private void OnClientClosed(UUID agentID, Scene scene)
         {
             lock (m_sessions)
             {
-                if (m_sessions.ContainsKey(agentID))
+                if (m_sessions.ContainsKey(agentID) && m_sessions[agentID].region_id == scene.RegionInfo.RegionID)
                 {
                     m_sessions.Remove(agentID);
                 }
@@ -393,20 +390,6 @@ namespace OpenSim.Region.UserStatistics
             fs.Close();
             fs.Dispose();
             return encoding.GetString(buffer);
-        }
-
-        private UUID GetRegionUUIDFromHandle(ulong regionhandle)
-        {
-            lock (m_scenes)
-            {
-                foreach (Scene scene in m_scenes)
-                {
-                    if (scene.RegionInfo.RegionHandle == regionhandle)
-                        return scene.RegionInfo.RegionID;
-                }
-            }
-
-            return UUID.Zero;
         }
 
         /// <summary>
