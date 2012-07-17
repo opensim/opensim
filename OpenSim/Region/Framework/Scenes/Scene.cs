@@ -225,7 +225,6 @@ namespace OpenSim.Region.Framework.Scenes
         private int backupMS;
         private int terrainMS;
         private int landMS;
-        private int spareMS;
 
         /// <summary>
         /// Tick at which the last frame was processed.
@@ -1434,16 +1433,20 @@ namespace OpenSim.Region.Framework.Scenes
                 endFrame = Frame + frames;
 
             float physicsFPS = 0f;
-            int previousFrameTick, tmpMS;
-            int maintc = Util.EnvironmentTickCount();
+            int tmpMS;
+            int previousFrameTick;
+            int maintc;
+            int sleepMS;
+            int framestart;
 
             while (!m_shuttingDown && (endFrame == null || Frame < endFrame))
             {
+                framestart = Util.EnvironmentTickCount();
                 ++Frame;
 
 //            m_log.DebugFormat("[SCENE]: Processing frame {0} in {1}", Frame, RegionInfo.RegionName);
 
-                agentMS = tempOnRezMS = eventMS = backupMS = terrainMS = landMS = spareMS = 0;
+                agentMS = tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
 
                 try
                 {
@@ -1495,6 +1498,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_sceneGraph.UpdatePresences();
     
                     agentMS += Util.EnvironmentTickCountSubtract(tmpMS);
+
     
                     // Delete temp-on-rez stuff
                     if (Frame % m_update_temp_cleaning == 0 && !m_cleaningTemps)
@@ -1573,36 +1577,37 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Watchdog.UpdateThread();
 
-                previousFrameTick = m_lastFrameTick;
-                m_lastFrameTick = Util.EnvironmentTickCount();
-                tmpMS = Util.EnvironmentTickCountSubtract(m_lastFrameTick, maintc);
-                tmpMS = (int)(MinFrameTime * 1000) - tmpMS;
-
-                m_firstHeartbeat = false;
-
-                if (tmpMS > 0)
-                {
-                    Thread.Sleep(tmpMS);
-                    spareMS += tmpMS;
-                }
-
-                frameMS = Util.EnvironmentTickCountSubtract(maintc);
-                maintc = Util.EnvironmentTickCount();
-
                 otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
 
-                // if (Frame%m_update_avatars == 0)
-                //   UpdateInWorldTime();
                 StatsReporter.AddPhysicsFPS(physicsFPS);
                 StatsReporter.AddTimeDilation(TimeDilation);
                 StatsReporter.AddFPS(1);
 
-                StatsReporter.addFrameMS(frameMS);
                 StatsReporter.addAgentMS(agentMS);
                 StatsReporter.addPhysicsMS(physicsMS + physicsMS2);
                 StatsReporter.addOtherMS(otherMS);
-                StatsReporter.AddSpareMS(spareMS);
                 StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
+
+                previousFrameTick = m_lastFrameTick;
+                m_lastFrameTick = Util.EnvironmentTickCount();
+                tmpMS = Util.EnvironmentTickCountSubtract(m_lastFrameTick, framestart);
+                tmpMS = (int)(MinFrameTime * 1000) - tmpMS;
+
+                m_firstHeartbeat = false;
+
+                sleepMS = Util.EnvironmentTickCount();
+
+                if (tmpMS > 0)
+                    Thread.Sleep(tmpMS);
+
+                sleepMS = Util.EnvironmentTickCountSubtract(sleepMS);
+                frameMS = Util.EnvironmentTickCountSubtract(framestart);
+                StatsReporter.addSleepMS(sleepMS);
+                StatsReporter.addFrameMS(frameMS);
+
+                // if (Frame%m_update_avatars == 0)
+                //   UpdateInWorldTime();
+
 
                // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates

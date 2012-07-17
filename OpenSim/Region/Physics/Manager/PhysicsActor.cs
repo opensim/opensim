@@ -43,7 +43,8 @@ namespace OpenSim.Region.Physics.Manager
         Unknown = 0,
         Agent = 1,
         Prim = 2,
-        Ground = 3
+        Ground = 3,
+        Water = 4
     }
 
     public enum PIDHoverType
@@ -114,7 +115,7 @@ namespace OpenSim.Region.Physics.Manager
                 m_objCollisionList.Add(localID, contact);
             }
             else
-            {
+            {              
                 if (m_objCollisionList[localID].PenetrationDepth < contact.PenetrationDepth)
                     m_objCollisionList[localID] = contact;
             }
@@ -202,7 +203,7 @@ namespace OpenSim.Region.Physics.Manager
         /// XXX: Bizarrely, this cannot be "Terrain" or "Water" right now unless it really is simulating terrain or
         /// water.  This is not a problem due to the formatting of names given by prims and avatars.
         /// </remarks>
-        public string Name { get; protected set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// This is being used by ODE joint code.
@@ -230,11 +231,6 @@ namespace OpenSim.Region.Physics.Manager
             }
         }
 
-        public virtual byte[] Serialize(bool PhysIsRunning)
-        {
-            return new byte[0];
-        }
-
         public virtual void RaiseOutOfBounds(Vector3 pos)
         {
             // Make a temporary copy of the event to avoid possibility of
@@ -258,10 +254,7 @@ namespace OpenSim.Region.Physics.Manager
                 handler(e);
         }
 
-        public virtual void SetMaterial (int material)
-        {
-        }
-
+        public virtual void SetMaterial (int material) { }
         public virtual float Density { get; set; }
         public virtual float GravModifier { get; set; }
         public virtual float Friction { get; set; }
@@ -373,13 +366,21 @@ namespace OpenSim.Region.Physics.Manager
         public abstract void SubscribeEvents(int ms);
         public abstract void UnSubscribeEvents();
         public abstract bool SubscribedEvents();
+
+        public virtual void AddCollisionEvent(uint CollidedWith, ContactPoint contact) { }
+
+        // Warning in a parent part it returns itself, not null
+        public virtual PhysicsActor ParentActor { get { return this; } }
+        
     }
 
     public class NullPhysicsActor : PhysicsActor
     {
+        private ActorTypes m_actorType = ActorTypes.Unknown;
+
         public override bool Stopped
         {
-            get{ return false; }
+            get{ return true; }
         }
 
         public override Vector3 Position
@@ -396,6 +397,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public override uint LocalID
         {
+            get { return 0; }
             set { return; }
         }
 
@@ -455,49 +457,17 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
 
-        public override void VehicleFloatParam(int param, float value)
-        {
-        }
+        public override void VehicleFloatParam(int param, float value) {}
+        public override void VehicleVectorParam(int param, Vector3 value) { }
+        public override void VehicleRotationParam(int param, Quaternion rotation) { }
+        public override void VehicleFlags(int param, bool remove) { }
+        public override void SetVolumeDetect(int param) {}
+        public override void SetMaterial(int material) {}
+        public override Vector3 CenterOfMass { get { return Vector3.Zero; }}
 
-        public override void VehicleVectorParam(int param, Vector3 value)
-        {
+        public override Vector3 GeometricCenter { get { return Vector3.Zero; }}
 
-        }
-
-        public override void VehicleRotationParam(int param, Quaternion rotation)
-        {
-
-        }
-
-        public override void VehicleFlags(int param, bool remove)
-        {
-            
-        }
-
-        public override void SetVolumeDetect(int param)
-        {
-
-        }
-
-        public override void SetMaterial(int material)
-        {
-            
-        }
-
-        public override Vector3 CenterOfMass
-        {
-            get { return Vector3.Zero; }
-        }
-
-        public override Vector3 GeometricCenter
-        {
-            get { return Vector3.Zero; }
-        }
-
-        public override PrimitiveBaseShape Shape
-        {
-            set { return; }
-        }
+        public override PrimitiveBaseShape Shape { set { return; }}
 
         public override Vector3 Velocity
         {
@@ -517,9 +487,7 @@ namespace OpenSim.Region.Physics.Manager
             set { }
         }
 
-        public override void CrossingFailure()
-        {
-        }
+        public override void CrossingFailure() {}
 
         public override Quaternion Orientation
         {
@@ -559,8 +527,20 @@ namespace OpenSim.Region.Physics.Manager
 
         public override int PhysicsActorType
         {
-            get { return (int) ActorTypes.Unknown; }
-            set { return; }
+            get { return (int)m_actorType; }
+            set {               
+                ActorTypes type = (ActorTypes)value;
+                switch (type)
+                {
+                    case ActorTypes.Ground:
+                    case ActorTypes.Water:
+                        m_actorType = type;
+                        break;
+                    default:
+                        m_actorType = ActorTypes.Unknown;
+                        break;
+                }
+            }
         }
 
         public override bool Kinematic
@@ -569,26 +549,11 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
 
-        public override void link(PhysicsActor obj)
-        {
-        }
-
-        public override void delink()
-        {
-        }
-
-        public override void LockAngularMotion(Vector3 axis)
-        {
-        }
-
-        public override void AddForce(Vector3 force, bool pushforce)
-        {
-        }
-
-        public override void AddAngularForce(Vector3 force, bool pushforce)
-        {
-            
-        }
+        public override void link(PhysicsActor obj) { }
+        public override void delink() { }
+        public override void LockAngularMotion(Vector3 axis) { }
+        public override void AddForce(Vector3 force, bool pushforce) { }
+        public override void AddAngularForce(Vector3 force, bool pushforce) { }
 
         public override Vector3 RotationalVelocity
         {
@@ -610,22 +575,10 @@ namespace OpenSim.Region.Physics.Manager
         public override float APIDStrength { set { return; } }
         public override float APIDDamping { set { return; } }
         
-        public override void SetMomentum(Vector3 momentum)
-        {
-        }
+        public override void SetMomentum(Vector3 momentum) { }
 
-        public override void SubscribeEvents(int ms)
-        {
-
-        }
-        public override void UnSubscribeEvents()
-        {
-
-        }
-        public override bool SubscribedEvents()
-        {
-            return false;
-        }
-
+        public override void SubscribeEvents(int ms) { }
+        public override void UnSubscribeEvents() { }
+        public override bool SubscribedEvents() { return false; }
     }
 }

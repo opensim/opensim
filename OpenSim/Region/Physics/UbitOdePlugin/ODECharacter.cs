@@ -106,7 +106,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_freemove = false;
         // private CollisionLocker ode;
 
-        private string m_name = String.Empty;
+//        private string m_name = String.Empty;
         // other filter control
         int m_colliderfilter = 0;
         int m_colliderGroundfilter = 0;
@@ -183,7 +183,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_isPhysical = false; // current status: no ODE information exists
 
-            m_name = avName;
+            Name = avName;
 
             AddChange(changes.Add, null);
         }
@@ -216,6 +216,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get { return m_localID; }     
             set { m_localID = value; }
+        }
+
+        public override PhysicsActor ParentActor
+        {
+            get { return (PhysicsActor)this; }
         }
 
         public override bool Grabbed
@@ -740,7 +745,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             //kill the Geometry
             if (Shell != IntPtr.Zero)
             {
-                _parent_scene.geom_name_map.Remove(Shell);
+//                _parent_scene.geom_name_map.Remove(Shell);
                 _parent_scene.actor_name_map.Remove(Shell);
                 _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
                 d.GeomDestroy(Shell);
@@ -1115,7 +1120,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_eventsubscription = 0;
         }
 
-        public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
+        public override void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
@@ -1184,7 +1189,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
 
                     AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z);
-                    _parent_scene.geom_name_map[Shell] = m_name;
+
                     _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
                     _parent_scene.AddCharacter(this);
                 }
@@ -1236,7 +1241,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         Velocity = Vector3.Zero;
 
-                        _parent_scene.geom_name_map[Shell] = m_name;
                         _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
                     }
                     else

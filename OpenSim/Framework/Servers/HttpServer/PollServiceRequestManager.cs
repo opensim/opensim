@@ -288,9 +288,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 foreach (PollServiceHttpRequest req in m_retryRequests)
                 {
-                    m_server.DoHTTPGruntWork(
-                        req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id),
-                        new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
+                   DoHTTPGruntWork(m_server,req,
+                        req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
                 }
             }
             catch
@@ -311,9 +310,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     wreq = m_requests.Dequeue(0);
-                    m_server.DoHTTPGruntWork(
-                        wreq.PollServiceArgs.NoEvents(wreq.RequestID, wreq.PollServiceArgs.Id),
-                        new OSHttpResponse(new HttpResponse(wreq.HttpContext, wreq.Request), wreq.HttpContext));
+                    DoHTTPGruntWork(m_server,wreq,
+                        wreq.PollServiceArgs.NoEvents(wreq.RequestID, wreq.PollServiceArgs.Id));
                 }
                 catch
                 {
@@ -357,8 +355,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             try
                             {
                                 Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
-                                m_server.DoHTTPGruntWork(responsedata,
-                                                     new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
+                                DoHTTPGruntWork(m_server, req, responsedata);
                             }
                             catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
                             {
@@ -374,8 +371,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                             if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                             {
-                                m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id),
-                                                         new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
+                                DoHTTPGruntWork(m_server, req, 
+                                    req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
                             }
                             else
                             {
@@ -387,6 +384,46 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         m_log.ErrorFormat("Exception in poll service thread: " + e.ToString());
                     }
+                }
+            }
+        }
+
+        // DoHTTPGruntWork  changed, not sending response
+        // do the same work around as core
+
+        internal static void DoHTTPGruntWork(BaseHttpServer server, PollServiceHttpRequest req, Hashtable responsedata)
+        {
+            OSHttpResponse response
+                = new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext);
+
+            byte[] buffer = server.DoHTTPGruntWork(responsedata, response);
+
+            response.SendChunked = false;
+            response.ContentLength64 = buffer.Length;
+            response.ContentEncoding = Encoding.UTF8;
+
+            try
+            {
+                response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
+            catch (Exception ex)
+            {
+                m_log.Warn(string.Format("[POLL SERVICE WORKER THREAD]: Error ", ex));
+            }
+            finally
+            {
+                //response.OutputStream.Close();
+                try
+                {
+                    response.OutputStream.Flush();
+                    response.Send();
+
+                    //if (!response.KeepAlive && response.ReuseContext)
+                    //    response.FreeContext();
+                }
+                catch (Exception e)
+                {
+                    m_log.Warn(String.Format("[POLL SERVICE WORKER THREAD]: Error ", e));
                 }
             }
         }

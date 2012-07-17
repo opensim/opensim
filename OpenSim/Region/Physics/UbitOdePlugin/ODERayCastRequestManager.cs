@@ -470,56 +470,77 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (p2 == null)
             {
-                string name;
+                /*
+                                string name;
 
-                if (!m_scene.geom_name_map.TryGetValue(g2, out name))
-                    return;
+                                if (!m_scene.geom_name_map.TryGetValue(g2, out name))
+                                    return;
 
-                if (name == "Terrain")
-                {
-                    // land colision
-                    if ((CurrentRayFilter & RayFilterFlags.land) == 0)
-                        return;
-                }
-                else if (name == "Water")
-                {
-                    if ((CurrentRayFilter & RayFilterFlags.water) == 0)
-                        return;
-                }
-                else
-                    return;
+                                if (name == "Terrain")
+                                {
+                                    // land colision
+                                    if ((CurrentRayFilter & RayFilterFlags.land) == 0)
+                                        return;
+                                }
+                                else if (name == "Water")
+                                {
+                                    if ((CurrentRayFilter & RayFilterFlags.water) == 0)
+                                        return;
+                                }
+                                else
+                                    return;
+                 */
+                return;
             }
             else
             {
-                if (p2 is OdePrim)
+                switch (p2.PhysicsActorType)
                 {
-                    RayFilterFlags thisFlags;
+                    case (int)ActorTypes.Prim:
 
-                    if (p2.IsPhysical)
-                        thisFlags = RayFilterFlags.physical;
-                    else
-                        thisFlags = RayFilterFlags.nonphysical;
+                        RayFilterFlags thisFlags;
 
-                    if (p2.Phantom)
-                        thisFlags |= RayFilterFlags.phantom;
+                        if (p2.IsPhysical)
+                            thisFlags = RayFilterFlags.physical;
+                        else
+                            thisFlags = RayFilterFlags.nonphysical;
 
-                    if (p2.IsVolumeDtc)
-                        thisFlags |= RayFilterFlags.volumedtc;
+                        if (p2.Phantom)
+                            thisFlags |= RayFilterFlags.phantom;
 
-                    if ((thisFlags & CurrentRayFilter) == 0)
+                        if (p2.IsVolumeDtc)
+                            thisFlags |= RayFilterFlags.volumedtc;
+
+                        if ((thisFlags & CurrentRayFilter) == 0)
+                            return;
+
+                        ID = ((OdePrim)p2).LocalID;
+                        break;
+
+                    case (int)ActorTypes.Agent:
+
+                        if ((CurrentRayFilter & RayFilterFlags.agent) == 0)
+                            return;
+                        else
+                            ID = ((OdeCharacter)p2).LocalID;
+                        break;
+
+                    case (int)ActorTypes.Ground:
+
+                        if ((CurrentRayFilter & RayFilterFlags.land) == 0)
+                            return;
+                        break;
+
+                    case (int)ActorTypes.Water:
+
+                        if ((CurrentRayFilter & RayFilterFlags.water) == 0)
+                            return;
+                        break;
+
+                    default:
                         return;
-
-                    ID = ((OdePrim)p2).LocalID;
+                        break;
                 }
-                else if (p2 is OdeCharacter)
-                {
-                    if ((CurrentRayFilter & RayFilterFlags.agent) == 0)
-                        return;
-                    else
-                        ID = ((OdeCharacter)p2).LocalID;
-                }
-                else //??
-                    return;
             }
 
             d.ContactGeom curcontact = new d.ContactGeom();
