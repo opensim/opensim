@@ -164,19 +164,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
 
         #endregion ISharedRegionModule
 
-        void OnLoginsEnabled(string regionName)
+        void OnLoginsEnabled(IScene scene)
         {
-            Scene scene = null;
-            foreach (Scene s in m_scenes.Values)
-                if (s.RegionInfo.RegionName == regionName)
-                {
-                    scene = s;
-                    break;
-                }
-            if (scene != null)
-                UploadMapTile(scene);
+            UploadMapTile(scene);
         }
-
 
         ///<summary>
         ///

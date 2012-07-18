@@ -59,7 +59,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         private bool m_disable_logins;
         private string m_uri = string.Empty;
         
-        Scene m_scene = null;
+        Scene m_scene;
         
         #region INonSharedRegionModule interface
 
@@ -192,7 +192,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                                  m_scene.RegionInfo.RegionName, c.Message, m_channelNotify);
 
                 m_scene.EventManager.TriggerOnChatBroadcast(this, c);
-                m_scene.EventManager.TriggerLoginsEnabled(m_scene.RegionInfo.RegionName);
+                m_scene.EventManager.TriggerLoginsEnabled(m_scene);
                 m_scene.SceneGridService.InformNeighborsThatRegionisUp(m_scene.RequestModuleInterface<INeighbourService>(), m_scene.RegionInfo);
             }
         }
@@ -200,20 +200,28 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         void OnOarFileLoaded(Guid requestId, string message)
         {
             m_oarFileLoading = true;
+
             if (message==String.Empty) 
             {
                 m_lastOarLoadedOk = true;
-            } else {
+            }
+            else
+            {
                 m_log.WarnFormat("[RegionReady]: Oar file load errors: {0}", message);
                 m_lastOarLoadedOk = false;
             }
         }
 
-        // This will be triggerd by Scene if we have no scripts
-        // m_ScriptsRezzing will be false if there were none
-        // else it will be true and we should wait on the
-        // empty compile queue
-        void OnLoginsEnabled(string regionName)
+        /// <summary>
+        /// This will be triggered by Scene directly if it contains no scripts on startup.
+        /// </summary>
+        /// <remarks>
+        /// m_ScriptsRezzing will be false if there were none
+        /// else it will be true and we should wait on the
+        /// empty compile queue
+        /// </remarks>
+        /// <param name='scene'></param>
+        void OnLoginsEnabled(IScene scene)
         {
             if (m_scene.StartDisabled == false)
             {

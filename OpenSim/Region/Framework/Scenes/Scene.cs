@@ -1493,7 +1493,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 // need to be able to tell these have changed in RegionReady
                                 LoginLock = false;
-                                EventManager.TriggerLoginsEnabled(RegionInfo.RegionName);
+                                EventManager.TriggerLoginsEnabled(this);
                             }
     
                             // For RegionReady lockouts
