@@ -100,7 +100,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.WarnFormat(
                     "[SCENE COMMUNICATION SERVICE]: Region {0} failed to inform neighbour at {1}-{2} that it is up.",
-                    x / Constants.RegionSize, y / Constants.RegionSize);
+                    m_scene.Name, x / Constants.RegionSize, y / Constants.RegionSize);
             }
         }
 
