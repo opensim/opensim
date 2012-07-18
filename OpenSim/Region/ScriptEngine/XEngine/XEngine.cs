@@ -644,6 +644,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_Scene.EventManager.OnGetScriptRunning += OnGetScriptRunning;
             m_Scene.EventManager.OnShutdown += OnShutdown;
 
+            // If region ready has been triggered, then the region had no scripts to compile and completed its other
+            // work.
+            m_Scene.EventManager.OnRegionReady += s => m_InitialStartup = false;
+
             if (m_SleepTime > 0)
             {
                 m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoMaintenance),
