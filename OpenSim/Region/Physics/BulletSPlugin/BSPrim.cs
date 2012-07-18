@@ -149,7 +149,7 @@ public sealed class BSPrim : PhysicsActor
     {
         // m_log.DebugFormat("{0}: Destroy, id={1}", LogHeader, LocalID);
         // Undo any vehicle properties
-        _vehicle.ProcessTypeChange(Vehicle.TYPE_NONE, 1f);
+        _vehicle.ProcessTypeChange(Vehicle.TYPE_NONE);
         _scene.RemoveVehiclePrim(this);     // just to make sure
 
         // undo any dependance with/on other objects
@@ -354,7 +354,7 @@ public sealed class BSPrim : PhysicsActor
         } 
         set {
             Vehicle type = (Vehicle)value;
-            _vehicle.ProcessTypeChange(type, _scene.LastSimulatedTimestep);
+            _vehicle.ProcessTypeChange(type);
             _scene.TaintedObject(delegate()
             {
                 if (type == Vehicle.TYPE_NONE)
@@ -389,7 +389,7 @@ public sealed class BSPrim : PhysicsActor
     // Called each simulation step to advance vehicle characteristics
     public void StepVehicle(float timeStep)
     {
-        _vehicle.Step(timeStep, _scene);
+        _vehicle.Step(timeStep);
     }
 
     // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more

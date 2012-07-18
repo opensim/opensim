@@ -57,7 +57,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private int frcount = 0;                                        // Used to limit dynamics debug output to
                                                                         // every 100th frame
 
-        // private BSScene m_parentScene = null;
         private BSPrim m_prim;      // the prim this dynamic controller belongs to
 
         // Vehicle properties
@@ -602,7 +601,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
         }//end SetDefaultsForType
 
-        internal void Step(float pTimestep,  BSScene pParentScene)
+        internal void Step(float pTimestep)
         {
             if (m_type == Vehicle.TYPE_NONE) return;
 
@@ -610,14 +609,15 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             if (frcount > 100)
                 frcount = 0;
 
-            MoveLinear(pTimestep, pParentScene);
+            MoveLinear(pTimestep);
             MoveAngular(pTimestep);
             LimitRotation(pTimestep);
-            DetailLog("{0},step,pos={1},force={2},velocity={3},angvel={4}", 
+
+            DetailLog("{0},step,done,pos={1},force={2},velocity={3},angvel={4}", 
                     m_prim.LocalID, m_prim.Position, m_prim.Force, m_prim.Velocity, m_prim.RotationalVelocity);
         }// end Step
 
-        private void MoveLinear(float pTimestep, BSScene _pParentScene)
+        private void MoveLinear(float pTimestep)
         {
             if (!m_linearMotorDirection.ApproxEquals(Vector3.Zero, 0.01f))  // requested m_linearMotorDirection is significant
             {
@@ -664,7 +664,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Vector3 grav = Vector3.Zero;
             // There is some gravity, make a gravity force vector that is applied after object velocity.
             // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g;
-            grav.Z = _pParentScene.DefaultGravity.Z * m_prim.Mass * (1f - m_VehicleBuoyancy);
+            grav.Z = m_prim.Scene.DefaultGravity.Z * m_prim.Mass * (1f - m_VehicleBuoyancy);
             // Preserve the current Z velocity
             Vector3 vel_now = m_prim.Velocity;
             m_dir.Z = vel_now.Z;        // Preserve the accumulated falling velocity
@@ -708,9 +708,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                                 m_prim.LocalID, m_BlockingEndPoint, posChange, pos);
                 }
             }
-            if (pos.Z < _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y))
+            if (pos.Z < m_prim.Scene.GetTerrainHeightAtXY(pos.X, pos.Y))
             {
-                pos.Z = _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y) + 2;
+                pos.Z = m_prim.Scene.GetTerrainHeightAtXY(pos.X, pos.Y) + 2;
                 m_prim.Position = pos;
                 DetailLog("{0},MoveLinear,terrainHeight,pos={1}", m_prim.LocalID, pos);
             }
@@ -721,11 +721,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // We should hover, get the target height
                 if ((m_Hoverflags & VehicleFlag.HOVER_WATER_ONLY) != 0)
                 {
-                    m_VhoverTargetHeight = _pParentScene.GetWaterLevel() + m_VhoverHeight;
+                    m_VhoverTargetHeight = m_prim.Scene.GetWaterLevel() + m_VhoverHeight;
                 }
                 if ((m_Hoverflags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
                 {
-                    m_VhoverTargetHeight = _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y) + m_VhoverHeight;
+                    m_VhoverTargetHeight = m_prim.Scene.GetTerrainHeightAtXY(pos.X, pos.Y) + m_VhoverHeight;
                 }
                 if ((m_Hoverflags & VehicleFlag.HOVER_GLOBAL_HEIGHT) != 0)
                 {
@@ -789,7 +789,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 {
                     grav.Z = (float)(grav.Z * 1.125);
                 }
-                float terraintemp = _pParentScene.GetTerrainHeightAtXYZ(pos);
+                float terraintemp = m_prim.Scene.GetTerrainHeightAtXYZ(pos);
                 float postemp = (pos.Z - terraintemp);
                 if (postemp > 2.5f)
                 {
@@ -940,7 +940,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             DetailLog("{0},MoveAngular,done,decay={1},lastAngular={2}", m_prim.LocalID, decayamount, m_lastAngularVelocity);
         } //end MoveAngular
 
-        } //end MoveAngular
         internal void LimitRotation(float timestep)
         {
             Quaternion rotq = m_prim.Orientation;
