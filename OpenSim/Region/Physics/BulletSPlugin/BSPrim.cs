@@ -52,6 +52,7 @@ public sealed class BSPrim : PhysicsActor
     private List<ConvexResult> _hulls;
 
     private BSScene _scene;
+    public BSScene Scene { get { return _scene; } }
     private String _avName;
     private uint _localID = 0;
 

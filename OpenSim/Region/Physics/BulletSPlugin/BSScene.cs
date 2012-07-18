@@ -29,12 +29,13 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using OpenSim.Framework;
+using OpenSim.Region.CoreModules.Framework.Statistics.Logging;
+using OpenSim.Region.Framework;
+using OpenSim.Region.Physics.Manager;
 using Nini.Config;
 using log4net;
-using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
 using OpenMetaverse;
-using OpenSim.Region.Framework;
 
 // TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
 // Debug linkset 
@@ -158,6 +159,19 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     private BulletSimAPI.DebugLogCallback m_DebugLogCallbackHandle;
 
+    // Sometimes you just have to log everything.
+    public LogWriter PhysicsLogging;
+    private bool m_physicsLoggingEnabled;
+    private string m_physicsLoggingDir;
+    private string m_physicsLoggingPrefix;
+    private int m_physicsLoggingFileMinutes;
+
+    public LogWriter VehicleLogging;
+    private bool m_vehicleLoggingEnabled;
+    private string m_vehicleLoggingDir;
+    private string m_vehicleLoggingPrefix;
+    private int m_vehicleLoggingFileMinutes;
+
     public BSScene(string identifier)
     {
         m_initialized = false;
@@ -177,6 +191,26 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         m_collisionArrayPinnedHandle = GCHandle.Alloc(m_collisionArray, GCHandleType.Pinned);
         m_updateArray = new EntityProperties[m_maxUpdatesPerFrame];
         m_updateArrayPinnedHandle = GCHandle.Alloc(m_updateArray, GCHandleType.Pinned);
+
+        // Enable very detailed logging.
+        // By creating an empty logger when not logging, the log message invocation code
+        // can be left in and every call doesn't have to check for null.
+        if (m_physicsLoggingEnabled)
+        {
+            PhysicsLogging = new LogWriter(m_physicsLoggingDir, m_physicsLoggingPrefix, m_physicsLoggingFileMinutes);
+        }
+        else
+        {
+            PhysicsLogging = new LogWriter();
+        }
+        if (m_vehicleLoggingEnabled)
+        {
+            VehicleLogging = new LogWriter(m_vehicleLoggingDir, m_vehicleLoggingPrefix, m_vehicleLoggingFileMinutes);
+        }
+        else
+        {
+            VehicleLogging = new LogWriter();
+        }
 
         // Get the version of the DLL
         // TODO: this doesn't work yet. Something wrong with marshaling the returned string.
@@ -321,6 +355,17 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 	            parms.shouldSplitSimulationIslands = ParamBoolean(pConfig, "ShouldSplitSimulationIslands", parms.shouldSplitSimulationIslands);
 	            parms.shouldEnableFrictionCaching = ParamBoolean(pConfig, "ShouldEnableFrictionCaching", parms.shouldEnableFrictionCaching);
 	            parms.numberOfSolverIterations = pConfig.GetFloat("NumberOfSolverIterations", parms.numberOfSolverIterations);
+
+                // Very detailed logging for physics debugging
+                m_physicsLoggingEnabled = pConfig.GetBoolean("PhysicsLoggingEnabled", false);
+                m_physicsLoggingDir = pConfig.GetString("PhysicsLoggingDir", ".");
+                m_physicsLoggingPrefix = pConfig.GetString("PhysicsLoggingPrefix", "physics-");
+                m_physicsLoggingFileMinutes = pConfig.GetInt("PhysicsLoggingFileMinutes", 5);
+                // Very detailed logging for vehicle debugging
+                m_vehicleLoggingEnabled = pConfig.GetBoolean("VehicleLoggingEnabled", false);
+                m_vehicleLoggingDir = pConfig.GetString("VehicleLoggingDir", ".");
+                m_vehicleLoggingPrefix = pConfig.GetString("VehicleLoggingPrefix", "vehicle-");
+                m_vehicleLoggingFileMinutes = pConfig.GetInt("VehicleLoggingFileMinutes", 5);
             }
         }
         m_params[0] = parms;
@@ -560,8 +605,17 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         });
     }
 
+    // Someday we will have complex terrain with caves and tunnels
+    // For the moment, it's flat and convex
+    public float GetTerrainHeightAtXYZ(Vector3 loc)
+    {
+        return GetTerrainHeightAtXY(loc.X, loc.Y);
+    }
+
     public float GetTerrainHeightAtXY(float tX, float tY)
     {
+        if (tX < 0 || tX >= Constants.RegionSize || tY < 0 || tY >= Constants.RegionSize)
+            return 30;
         return m_heightMap[((int)tX) * Constants.RegionSize + ((int)tY)];
     }
 
