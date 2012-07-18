@@ -1501,6 +1501,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 m_log.InfoFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
                                 LoginsDisabled = false;
+                                EventManager.TriggerRegionReady(this);
                             }
     
                             m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);

@@ -146,9 +146,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             lock (m_scenes)
                 m_scenes[scene.RegionInfo.RegionID] = scene;
 
-            scene.EventManager.OnLoginsEnabled += OnLoginsEnabled; 
+            scene.EventManager.OnRegionReady += s => UploadMapTile(s);
         }
-
 
         ///<summary>
         ///
@@ -163,12 +162,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         }
 
         #endregion ISharedRegionModule
-
-        void OnLoginsEnabled(IScene scene)
-        {
-            UploadMapTile(scene);
-        }
-
+        
         ///<summary>
         ///
         ///</summary>
