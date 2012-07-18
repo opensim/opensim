@@ -1496,6 +1496,9 @@ namespace OpenSim.Region.Framework.Scenes
                                 EventManager.TriggerLoginsEnabled(this);
                             }
 
+                            m_sceneGridService.InformNeighborsThatRegionisUp(
+                                RequestModuleInterface<INeighbourService>(), RegionInfo);
+
                             // Region ready should always be triggered whether logins are immediately enabled or not.
                             EventManager.TriggerRegionReady(this);
                         }
