@@ -56,7 +56,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         private bool m_lastOarLoadedOk;
         private int m_channelNotify = -1000;
         private bool m_enabled = false;
-        private bool m_disable_logins = false;
+        private bool m_disable_logins;
         private string m_uri = string.Empty;
         
         Scene m_scene = null;
@@ -100,24 +100,23 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 
             m_scene.EventManager.OnOarFileLoaded += OnOarFileLoaded;
             m_scene.EventManager.OnRezScript  += OnRezScript;
-            m_scene.EventManager.OnLoginsEnabled += OnLoginsEnabled;
 
             m_log.DebugFormat("[RegionReady]: Enabled for region {0}", scene.RegionInfo.RegionName);
 
-            if (m_disable_logins == true)
+            if (m_disable_logins)
             {
+                m_scene.EventManager.OnLoginsEnabled += OnLoginsEnabled;
                 scene.LoginLock = true;
-                scene.LoginsDisabled = true;
-                m_log.InfoFormat("[RegionReady]: Region {0} - logins disabled during initialization.",m_scene.RegionInfo.RegionName);
+                m_log.InfoFormat("[RegionReady]: Region {0} - LOGINS DISABLED DURING INITIALIZATION.", m_scene.Name);
 
-                if(m_uri != string.Empty)
+                if (m_uri != string.Empty)
                 {
                     RRAlert("disabled");
                 }
             }
         }
 
-        void OnRezScript (uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
+        void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
         {
             if (!m_ScriptRez)
             {
@@ -132,11 +131,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             if (!m_enabled)
                 return;
 
-            m_scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
             m_scene.EventManager.OnOarFileLoaded -= OnOarFileLoaded;
-            m_scene.EventManager.OnLoginsEnabled -= OnLoginsEnabled;
 
-            if(m_uri != string.Empty)
+            if (m_disable_logins)
+                m_scene.EventManager.OnLoginsEnabled -= OnLoginsEnabled;
+
+            if (m_uri != string.Empty)
             {
                 RRAlert("shutdown");
             }
@@ -158,7 +158,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         }
 
         #endregion
-
 
         void OnEmptyScriptCompileQueue(int numScriptsFailed, string message)
         {
@@ -216,27 +215,24 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         // empty compile queue
         void OnLoginsEnabled(string regionName)
         {
-            if (m_disable_logins == true)
+            if (m_scene.StartDisabled == false)
             {
-                if (m_scene.StartDisabled == false)
+                m_scene.LoginsDisabled = false;
+                m_scene.LoginLock = false;
+
+                // m_log.InfoFormat("[RegionReady]: Logins enabled for {0}, Oar {1}",
+                //                 m_scene.RegionInfo.RegionName, m_oarFileLoading.ToString());
+
+                m_log.InfoFormat(
+                    "[RegionReady]: INITIALIZATION COMPLETE FOR {0} - LOGINS ENABLED", m_scene.Name);
+
+                if (m_uri != string.Empty)
                 {
-                    m_scene.LoginsDisabled = false;
-                    m_scene.LoginLock = false;
-
-                    m_scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
-
-                    // m_log.InfoFormat("[RegionReady]: Logins enabled for {0}, Oar {1}",
-                    //                 m_scene.RegionInfo.RegionName, m_oarFileLoading.ToString());
-
-                    m_log.InfoFormat(
-                        "[RegionReady]: INITIALIZATION COMPLETE FOR {0} - LOGINS ENABLED", m_scene.Name);
-
-                    if (m_uri != string.Empty)
-                    {
-                        RRAlert("enabled");
-                    }
+                    RRAlert("enabled");
                 }
             }
+
+            m_scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
         }
 
         public void OarLoadingAlert(string msg)
