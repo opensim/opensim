@@ -99,30 +99,21 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             m_lastOarLoadedOk = true;
 
             m_scene.EventManager.OnOarFileLoaded += OnOarFileLoaded;
-            m_scene.EventManager.OnRezScript  += OnRezScript;
 
             m_log.DebugFormat("[RegionReady]: Enabled for region {0}", scene.RegionInfo.RegionName);
 
             if (m_disable_logins)
             {
+                m_scene.LoginLock = true;
                 m_scene.EventManager.OnLoginsEnabled += OnLoginsEnabled;
-                scene.LoginLock = true;
+                m_scene.EventManager.OnEmptyScriptCompileQueue += OnEmptyScriptCompileQueue;
+
                 m_log.InfoFormat("[RegionReady]: Region {0} - LOGINS DISABLED DURING INITIALIZATION.", m_scene.Name);
 
                 if (m_uri != string.Empty)
                 {
                     RRAlert("disabled");
                 }
-            }
-        }
-
-        void OnRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
-        {
-            if (!m_ScriptRez)
-            {
-                m_ScriptRez = true;
-                m_scene.EventManager.OnEmptyScriptCompileQueue += OnEmptyScriptCompileQueue;
-                m_scene.EventManager.OnRezScript  -= OnRezScript;
             }
         }
 
@@ -134,7 +125,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             m_scene.EventManager.OnOarFileLoaded -= OnOarFileLoaded;
 
             if (m_disable_logins)
+            {
                 m_scene.EventManager.OnLoginsEnabled -= OnLoginsEnabled;
+                m_scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
+            }
 
             if (m_uri != string.Empty)
             {
@@ -249,25 +243,24 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         {
             // Let's bypass this for now until some better feedback can be established
             //
-            return;
 
-            if (msg == "load")
-            {
-                m_scene.EventManager.OnEmptyScriptCompileQueue += OnEmptyScriptCompileQueue;
-                m_scene.EventManager.OnOarFileLoaded += OnOarFileLoaded;
-                m_scene.EventManager.OnLoginsEnabled += OnLoginsEnabled;
-                m_scene.EventManager.OnRezScript  += OnRezScript;
-                m_oarFileLoading = true;
-                m_firstEmptyCompileQueue = true;
-                
-                m_scene.LoginsDisabled = true;
-                m_scene.LoginLock = true;
-                if ( m_uri != string.Empty )
-                {
-                    RRAlert("loading oar");
-                    RRAlert("disabled");
-                }
-            }
+//            if (msg == "load")
+//            {
+//                m_scene.EventManager.OnEmptyScriptCompileQueue += OnEmptyScriptCompileQueue;
+//                m_scene.EventManager.OnOarFileLoaded += OnOarFileLoaded;
+//                m_scene.EventManager.OnLoginsEnabled += OnLoginsEnabled;
+//                m_scene.EventManager.OnRezScript  += OnRezScript;
+//                m_oarFileLoading = true;
+//                m_firstEmptyCompileQueue = true;
+//                
+//                m_scene.LoginsDisabled = true;
+//                m_scene.LoginLock = true;
+//                if ( m_uri != string.Empty )
+//                {
+//                    RRAlert("loading oar");
+//                    RRAlert("disabled");
+//                }
+//            }
         }
 
         public void RRAlert(string status)
