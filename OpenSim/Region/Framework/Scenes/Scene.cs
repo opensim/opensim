@@ -1488,22 +1488,25 @@ namespace OpenSim.Region.Framework.Scenes
                         IConfig startupConfig = m_config.Configs["Startup"];
                         if (startupConfig == null || !startupConfig.GetBoolean("StartDisabled", false))
                         {
-                            // This handles a case of a region having no scripts for the RegionReady module
-                            if (m_sceneGraph.GetActiveScriptsCount() == 0)
+                            if (LoginLock)
                             {
-                                // need to be able to tell these have changed in RegionReady
-                                LoginLock = false;
-                                EventManager.TriggerLoginsEnabled(this);
+                                // This handles a case of a region having no scripts for the RegionReady module
+                                if (m_sceneGraph.GetActiveScriptsCount() == 0)
+                                {
+                                    // XXX: need to be able to tell these have changed in RegionReady, since it will not
+                                    // detect a scenario where the region has no scripts - it's listening to the
+                                    // script compile queue.
+                                    EventManager.TriggerLoginsEnabled(this);
+                                }
                             }
-    
-                            // For RegionReady lockouts
-                            if (!LoginLock)
+                            else
                             {
                                 m_log.InfoFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
                                 LoginsDisabled = false;
+                                EventManager.TriggerLoginsEnabled(this);
                                 EventManager.TriggerRegionReady(this);
                             }
-    
+
                             m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
                         }
                         else
