@@ -301,7 +301,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             sp.AbsolutePosition = preTeleportPosition;
 
             // Make sceneB refuse CreateAgent
-            sceneB.LoginsDisabled = true;
+            sceneB.LoginsEnabled = false;
 
             sceneA.RequestTeleportLocation(
                 sp.ControllingClient,

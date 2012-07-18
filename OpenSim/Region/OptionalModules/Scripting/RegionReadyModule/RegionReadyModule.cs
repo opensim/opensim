@@ -210,15 +210,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 
             if (!m_scene.StartDisabled)
             {
-                m_scene.LoginsDisabled = false;
+                m_scene.LoginsEnabled = true;
 
                 // m_log.InfoFormat("[RegionReady]: Logins enabled for {0}, Oar {1}",
                 //                 m_scene.RegionInfo.RegionName, m_oarFileLoading.ToString());
 
                 m_log.InfoFormat(
                     "[RegionReady]: INITIALIZATION COMPLETE FOR {0} - LOGINS ENABLED", m_scene.Name);
-
-                m_scene.EventManager.TriggerLoginsEnabled(m_scene);
             }
 
             m_scene.SceneGridService.InformNeighborsThatRegionisUp(

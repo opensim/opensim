@@ -497,13 +497,14 @@ namespace OpenSim.Region.Framework.Scenes
         public event RegionHeartbeatEnd OnRegionHeartbeatEnd;
 
         /// <summary>
-        /// This should only fire in all circumstances if the RegionReady module is active.
+        /// Fired when logins to a region are enabled or disabled.
         /// </summary>
         /// <remarks>
-        /// TODO: Fire this even when the RegionReady module is not active.
+        /// 
         /// </remarks>
-        public delegate void LoginsEnabled(IScene scene);
-        public event LoginsEnabled OnLoginsEnabled;
+        /// Fired
+        public event RegionLoginsStatusChange OnRegionLoginsStatusChange;
+        public delegate void RegionLoginsStatusChange(IScene scene);
 
         /// <summary>
         /// Fired when a region is considered ready for use.
@@ -512,8 +513,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// A region is considered ready when startup operations such as loading of scripts already on the region
         /// have been completed.
         /// </remarks>
-        public delegate void RegionReady(IScene scene);
         public event RegionReady OnRegionReady;
+        public delegate void RegionReady(IScene scene);
 
         public delegate void PrimsLoaded(Scene s);
         public event PrimsLoaded OnPrimsLoaded;
@@ -2486,13 +2487,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerLoginsEnabled(IScene scene)
+        public void TriggerRegionLoginsStatusChange(IScene scene)
         {
-            LoginsEnabled handler = OnLoginsEnabled;
+            RegionLoginsStatusChange handler = OnRegionLoginsStatusChange;
 
             if (handler != null)
             {
-                foreach (LoginsEnabled d in handler.GetInvocationList())
+                foreach (RegionLoginsStatusChange d in handler.GetInvocationList())
                 {
                     try
                     {
@@ -2500,13 +2501,13 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for OnLoginsEnabled failed - continuing {0} - {1}",
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for OnRegionLoginsStatusChange failed - continuing {0} - {1}",
                             e.Message, e.StackTrace);
                     }
                 }
             }
         }
-        
+
         public void TriggerRegionReady(IScene scene)
         {
             RegionReady handler = OnRegionReady;

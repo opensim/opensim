@@ -190,7 +190,7 @@ namespace OpenSim.Tests.Common
                 = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher", new IniConfigSource(), "test");
 
             testScene.RegionInfo.EstateSettings = new EstateSettings();
-            testScene.LoginsDisabled = false;
+            testScene.LoginsEnabled = true;
             testScene.RegisterRegionWithGrid();
 
             SceneManager.Add(testScene);
