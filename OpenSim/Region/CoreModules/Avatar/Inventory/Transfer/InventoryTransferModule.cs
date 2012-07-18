@@ -297,7 +297,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         });
                 }
             }
-            else if (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
+            else if (
+                im.dialog == (byte)InstantMessageDialog.InventoryDeclined
+                || im.dialog == (byte)InstantMessageDialog.TaskInventoryDeclined)
             {
                 // Here, the recipient is local and we can assume that the
                 // inventory is loaded. Courtesy of the above bulk update,

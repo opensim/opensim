@@ -121,8 +121,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public bool Running { get; set; }
 
-        public bool Run { get; set; }
-
         public bool Suspended
         {
             get { return m_Suspended; }
@@ -218,7 +216,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_postOnRez = postOnRez;
             m_AttachedAvatar = part.ParentGroup.AttachedAvatar;
             m_RegionID = part.ParentGroup.Scene.RegionInfo.RegionID;
-            Run = true;
 
             if (part != null)
             {
@@ -315,10 +312,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             part.SetScriptEvents(ItemID,
                                     (int)m_Script.GetStateEventFlags(State));
 
-                            Running = false;
-
-                            if (ShuttingDown)
+                            if (!Running)
                                 m_startOnInit = false;
+
+                            Running = false;
 
                             // we get new rez events on sim restart, too
                             // but if there is state, then we fire the change
@@ -355,15 +352,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void Init()
         {
-            if (!m_startOnInit)
+            if (ShuttingDown)
                 return;
 
             if (m_startedFromSavedState) 
             {
-                if (!Run)
-                    return;
-
-                Start();
+                if (m_startOnInit)
+                    Start();
                 if (m_postOnRez) 
                 {
                     PostEvent(new EventParams("on_rez",
@@ -395,10 +390,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
             else 
             {
-                if (!Run)
-                    return;
-
-                Start();
+                if (m_startOnInit)
+                    Start();
                 PostEvent(new EventParams("state_entry",
                                           new Object[0], new DetectParams[0]));
                 if (m_postOnRez) 

@@ -2143,24 +2143,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (part == null)
                 return;
 
-            IScriptModule[] engines = RequestModuleInterfaces<IScriptModule>();
-
             if (running)
-            {
-                foreach (IScriptModule engine in engines)
-                {
-                    engine.SetRunEnable(itemID, true);
-                }
                 EventManager.TriggerStartScript(part.LocalId, itemID);
-            }
             else
-            {
-                foreach (IScriptModule engine in engines)
-                {
-                    engine.SetRunEnable(itemID, false);
-                }
                 EventManager.TriggerStopScript(part.LocalId, itemID);
-            }
         }
 
         public void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)

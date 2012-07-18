@@ -567,10 +567,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                     m_scene.InventoryService.UpdateItem(item);
 
-                    // this gets called when the agent logs off!
+                    // If the name of the object has been changed whilst attached then we want to update the inventory
+                    // item in the viewer.
                     if (sp.ControllingClient != null)
                         sp.ControllingClient.SendInventoryItemCreateUpdate(item, 0);
                 }
+
                 grp.HasGroupChanged = false; // Prevent it being saved over and over
             }
 //            else

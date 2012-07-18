@@ -1664,9 +1664,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Low, "osMessageObject");
             m_host.AddScriptLPS(1);
 
+            UUID objUUID;
+            if (!UUID.TryParse(objectUUID, out objUUID)) // prior to patching, a thrown exception regarding invalid GUID format would be shouted instead.
+            {
+                OSSLShoutError("osMessageObject() cannot send messages to objects with invalid UUIDs");
+                return;
+            }
+
             object[] resobj = new object[] { new LSL_Types.LSLString(m_host.UUID.ToString()), new LSL_Types.LSLString(message) };
 
-            SceneObjectPart sceneOP = World.GetSceneObjectPart(new UUID(objectUUID));
+            SceneObjectPart sceneOP = World.GetSceneObjectPart(objUUID);
+
+            if (sceneOP == null) // prior to patching, PostObjectEvent() would cause a throw exception to be shouted instead.
+            {
+                OSSLShoutError("osMessageObject() cannot send message to " + objUUID.ToString() + ", object was not found in scene.");
+                return;
+            }
 
             m_ScriptEngine.PostObjectEvent(
                 sceneOP.LocalId, new EventParams(

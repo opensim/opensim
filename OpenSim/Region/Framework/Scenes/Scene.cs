@@ -3317,24 +3317,30 @@ namespace OpenSim.Region.Framework.Scenes
                 if (AgentTransactionsModule != null)
                     AgentTransactionsModule.RemoveAgentAssetTransactions(agentID);
 
-                avatar.Close();
-
                 m_authenticateHandler.RemoveCircuit(avatar.ControllingClient.CircuitCode);
             }
             catch (Exception e)
             {
                 m_log.Error(
-                    string.Format("[SCENE]: Exception removing {0} from {1}, ", avatar.Name, RegionInfo.RegionName), e);
+                    string.Format("[SCENE]: Exception removing {0} from {1}.  Cleaning up.  Exception ", avatar.Name, Name), e);
             }
             finally
             {
-                // Always clean these structures up so that any failure above doesn't cause them to remain in the
-                // scene with possibly bad effects (e.g. continually timing out on unacked packets and triggering
-                // the same cleanup exception continually.
-                // TODO: This should probably extend to the whole method, but we don't want to also catch the NRE
-                // since this would hide the underlying failure and other associated problems.
-                m_sceneGraph.RemoveScenePresence(agentID);
-                m_clientManager.Remove(agentID);
+                try
+                {
+                    // Always clean these structures up so that any failure above doesn't cause them to remain in the
+                    // scene with possibly bad effects (e.g. continually timing out on unacked packets and triggering
+                    // the same cleanup exception continually.
+                    m_sceneGraph.RemoveScenePresence(agentID);
+                    m_clientManager.Remove(agentID);
+    
+                    avatar.Close();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(
+                        string.Format("[SCENE]: Exception in final clean up of {0} in {1}.  Exception ", avatar.Name, Name), e);
+                }
             }
 
             //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
