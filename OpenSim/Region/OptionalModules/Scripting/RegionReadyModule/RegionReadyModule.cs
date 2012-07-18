@@ -31,16 +31,14 @@ using System.Reflection;
 using System.Net;
 using System.IO;
 using System.Text;
-
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using OpenSim.Services.Interfaces;
-
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 {
@@ -105,7 +103,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             if (m_disable_logins)
             {
                 m_scene.LoginLock = true;
-                m_scene.EventManager.OnLoginsEnabled += OnLoginsEnabled;
                 m_scene.EventManager.OnEmptyScriptCompileQueue += OnEmptyScriptCompileQueue;
 
                 m_log.InfoFormat("[RegionReady]: Region {0} - LOGINS DISABLED DURING INITIALIZATION.", m_scene.Name);
@@ -125,15 +122,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             m_scene.EventManager.OnOarFileLoaded -= OnOarFileLoaded;
 
             if (m_disable_logins)
-            {
-                m_scene.EventManager.OnLoginsEnabled -= OnLoginsEnabled;
                 m_scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
-            }
 
             if (m_uri != string.Empty)
-            {
                 RRAlert("shutdown");
-            }
 
             m_scene = null;
         }
@@ -186,8 +178,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                                  m_scene.RegionInfo.RegionName, c.Message, m_channelNotify);
 
                 m_scene.EventManager.TriggerOnChatBroadcast(this, c);
-                m_scene.EventManager.TriggerLoginsEnabled(m_scene);
-                m_scene.SceneGridService.InformNeighborsThatRegionisUp(m_scene.RequestModuleInterface<INeighbourService>(), m_scene.RegionInfo);
+
+                TriggerRegionReady(m_scene);
             }
         }
 
@@ -207,20 +199,18 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         }
 
         /// <summary>
-        /// This will be triggered by Scene directly if it contains no scripts on startup.
+        /// This will be triggered by Scene directly if it contains no scripts on startup.  Otherwise it is triggered
+        /// when the script compile queue is empty after initial region startup.
         /// </summary>
-        /// <remarks>
-        /// m_ScriptsRezzing will be false if there were none
-        /// else it will be true and we should wait on the
-        /// empty compile queue
-        /// </remarks>
         /// <param name='scene'></param>
-        void OnLoginsEnabled(IScene scene)
+        public void TriggerRegionReady(IScene scene)
         {
-            if (m_scene.StartDisabled == false)
+            m_scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
+            m_scene.LoginLock = false;
+
+            if (!m_scene.StartDisabled)
             {
                 m_scene.LoginsDisabled = false;
-                m_scene.LoginLock = false;
 
                 // m_log.InfoFormat("[RegionReady]: Logins enabled for {0}, Oar {1}",
                 //                 m_scene.RegionInfo.RegionName, m_oarFileLoading.ToString());
@@ -228,15 +218,18 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 m_log.InfoFormat(
                     "[RegionReady]: INITIALIZATION COMPLETE FOR {0} - LOGINS ENABLED", m_scene.Name);
 
-                if (m_uri != string.Empty)
-                {
-                    RRAlert("enabled");
-                }
-
-                m_scene.EventManager.TriggerRegionReady(m_scene);
+                m_scene.EventManager.TriggerLoginsEnabled(m_scene);
             }
 
-            m_scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
+            m_scene.SceneGridService.InformNeighborsThatRegionisUp(
+                m_scene.RequestModuleInterface<INeighbourService>(), m_scene.RegionInfo);
+
+            if (m_uri != string.Empty)
+            {
+                RRAlert("enabled");
+            }
+
+            m_scene.EventManager.TriggerRegionReady(m_scene);
         }
 
         public void OarLoadingAlert(string msg)

@@ -2506,7 +2506,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
+        
         public void TriggerRegionReady(IScene scene)
         {
             RegionReady handler = OnRegionReady;

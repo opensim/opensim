@@ -702,6 +702,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 IConfig startupConfig = m_config.Configs["Startup"];
 
+                StartDisabled = startupConfig.GetBoolean("StartDisabled", false);
+
                 m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance", m_defaultDrawDistance);
                 m_useBackup = startupConfig.GetBoolean("UseSceneBackup", m_useBackup);
                 if (!m_useBackup)
@@ -1484,35 +1486,32 @@ namespace OpenSim.Region.Framework.Scenes
                         // this is a rare case where we know we have just went through a long cycle of heap
                         // allocations, and there is no more work to be done until someone logs in
                         GC.Collect();
-    
-                        IConfig startupConfig = m_config.Configs["Startup"];
-                        if (startupConfig == null || !startupConfig.GetBoolean("StartDisabled", false))
+
+                        if (!LoginLock)
                         {
-                            if (LoginLock)
-                            {
-                                // This handles a case of a region having no scripts for the RegionReady module
-                                if (m_sceneGraph.GetActiveScriptsCount() == 0)
-                                {
-                                    // XXX: need to be able to tell these have changed in RegionReady, since it will not
-                                    // detect a scenario where the region has no scripts - it's listening to the
-                                    // script compile queue.
-                                    EventManager.TriggerLoginsEnabled(this);
-                                }
-                            }
-                            else
+                            if (!StartDisabled)
                             {
                                 m_log.InfoFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
                                 LoginsDisabled = false;
                                 EventManager.TriggerLoginsEnabled(this);
-                                EventManager.TriggerRegionReady(this);
                             }
 
-                            m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
+                            // Region ready should always be triggered whether logins are immediately enabled or not.
+                            EventManager.TriggerRegionReady(this);
                         }
                         else
                         {
-                            StartDisabled = true;
-                            LoginsDisabled = true;
+                            // This handles a case of a region having no scripts for the RegionReady module
+                            if (m_sceneGraph.GetActiveScriptsCount() == 0)
+                            {
+                                // In this case, we leave it to the IRegionReadyModule to enable logins
+                               
+                                // LoginLock can currently only be set by a region module implementation.
+                                // If somehow this hasn't been done then the quickest way to bugfix is to see the
+                                // NullReferenceException
+                                IRegionReadyModule rrm = RequestModuleInterface<IRegionReadyModule>();
+                                rrm.TriggerRegionReady(this);
+                            }
                         }
                     }
                 }
