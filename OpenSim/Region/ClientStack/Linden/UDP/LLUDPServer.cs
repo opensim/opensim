@@ -1123,22 +1123,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// regular client pings.
         /// </remarks>
         /// <param name='client'></param>
-        private void DeactivateClientDueToTimeout(IClientAPI client)
+        private void DeactivateClientDueToTimeout(LLClientView client)
         {
-            // We must set IsActive synchronously so that we can stop the packet loop reinvoking this method, even
-            // though it's set later on by LLClientView.Close()
-            client.IsActive = false;
-
-            m_log.WarnFormat(
-                "[LLUDPSERVER]: Ack timeout, disconnecting {0} agent for {1} in {2}",
-                client.SceneAgent.IsChildAgent ? "child" : "root", client.Name, m_scene.RegionInfo.RegionName);
-
-            StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
-
-            if (!client.SceneAgent.IsChildAgent)
-                 client.Kick("Simulator logged you out due to connection timeout");
-
-            client.Close();
+            lock (client.CloseSyncLock)
+            {
+                m_log.WarnFormat(
+                    "[LLUDPSERVER]: Ack timeout, disconnecting {0} agent for {1} in {2}",
+                    client.SceneAgent.IsChildAgent ? "child" : "root", client.Name, m_scene.RegionInfo.RegionName);
+    
+                StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
+    
+                if (!client.SceneAgent.IsChildAgent)
+                     client.Kick("Simulator logged you out due to connection timeout");
+    
+                client.CloseWithoutChecks();
+            }
         }
 
         private void IncomingPacketHandler()
