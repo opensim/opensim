@@ -25,14 +25,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 using System;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IRegionReadyModule
     {
         void OarLoadingAlert(string msg);
+
+        /// <summary>
+        /// Trigger region ready status manually.
+        /// </summary>
+        /// <remarks>
+        /// This should be called by the scene if the IRegionReadyModule has set Scene.LoginLock == true
+        /// </remarks>
+        /// <param name='scene'></param>
+        void TriggerRegionReady(IScene scene);
     }
 }
 

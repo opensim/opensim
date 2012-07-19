@@ -129,9 +129,10 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_strictAccessControl = true;
         public bool m_seeIntoBannedRegion = false;
         public int MaxUndoCount = 5;
+
         // Using this for RegionReady module to prevent LoginsDisabled from changing under our feet;
         public bool LoginLock = false;
-        public bool LoginsDisabled = true;
+
         public bool StartDisabled = false;
         public bool LoadingPrims;
         public IXfer XferManager;
@@ -726,6 +727,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_config.Configs["Startup"] != null)
                 {
                     IConfig startupConfig = m_config.Configs["Startup"];
+
+                    StartDisabled = startupConfig.GetBoolean("StartDisabled", false);
 
                     m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
                     m_useBackup = startupConfig.GetBoolean("UseSceneBackup", m_useBackup);
@@ -1530,7 +1533,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //    landMS = Util.EnvironmentTickCountSubtract(ldMS);
                     //}
     
-                    if (LoginsDisabled && Frame == 20)
+                    if (!LoginsEnabled && Frame == 20)
                     {
     //                    m_log.DebugFormat("{0} {1} {2}", LoginsDisabled, m_sceneGraph.GetActiveScriptsCount(), LoginLock);
     
@@ -1538,31 +1541,34 @@ namespace OpenSim.Region.Framework.Scenes
                         // this is a rare case where we know we have just went through a long cycle of heap
                         // allocations, and there is no more work to be done until someone logs in
                         GC.Collect();
-    
-                        IConfig startupConfig = m_config.Configs["Startup"];
-                        if (startupConfig == null || !startupConfig.GetBoolean("StartDisabled", false))
+
+                        if (!LoginLock)
+                        {
+                            if (!StartDisabled)
+                            {
+                                m_log.InfoFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
+                                LoginsEnabled = true;
+                            }
+
+                            m_sceneGridService.InformNeighborsThatRegionisUp(
+                                RequestModuleInterface<INeighbourService>(), RegionInfo);
+
+                            // Region ready should always be triggered whether logins are immediately enabled or not.
+                            EventManager.TriggerRegionReady(this);
+                        }
+                        else
                         {
                             // This handles a case of a region having no scripts for the RegionReady module
                             if (m_sceneGraph.GetActiveScriptsCount() == 0)
                             {
-                                // need to be able to tell these have changed in RegionReady
-                                LoginLock = false;
-                                EventManager.TriggerLoginsEnabled(RegionInfo.RegionName);
+                                // In this case, we leave it to the IRegionReadyModule to enable logins
+                               
+                                // LoginLock can currently only be set by a region module implementation.
+                                // If somehow this hasn't been done then the quickest way to bugfix is to see the
+                                // NullReferenceException
+                                IRegionReadyModule rrm = RequestModuleInterface<IRegionReadyModule>();
+                                rrm.TriggerRegionReady(this);
                             }
-    
-                            // For RegionReady lockouts
-                            if (!LoginLock)
-                            {
-                                m_log.InfoFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
-                                LoginsDisabled = false;
-                            }
-    
-                            m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
-                        }
-                        else
-                        {
-                            StartDisabled = true;
-                            LoginsDisabled = true;
                         }
                     }
                 }
@@ -3487,25 +3493,31 @@ namespace OpenSim.Region.Framework.Scenes
                 if (AgentTransactionsModule != null)
                     AgentTransactionsModule.RemoveAgentAssetTransactions(agentID);
 
-                avatar.Close();
-
                 m_authenticateHandler.RemoveCircuit(avatar.ControllingClient.CircuitCode);
                 m_log.Debug("[Scene] The avatar has left the building");
             }
             catch (Exception e)
             {
                 m_log.Error(
-                    string.Format("[SCENE]: Exception removing {0} from {1}, ", avatar.Name, RegionInfo.RegionName), e);
+                    string.Format("[SCENE]: Exception removing {0} from {1}.  Cleaning up.  Exception ", avatar.Name, Name), e);
             }
             finally
             {
-                // Always clean these structures up so that any failure above doesn't cause them to remain in the
-                // scene with possibly bad effects (e.g. continually timing out on unacked packets and triggering
-                // the same cleanup exception continually.
-                // TODO: This should probably extend to the whole method, but we don't want to also catch the NRE
-                // since this would hide the underlying failure and other associated problems.
-                m_sceneGraph.RemoveScenePresence(agentID);
-                m_clientManager.Remove(agentID);
+                try
+                {
+                    // Always clean these structures up so that any failure above doesn't cause them to remain in the
+                    // scene with possibly bad effects (e.g. continually timing out on unacked packets and triggering
+                    // the same cleanup exception continually.
+                    m_sceneGraph.RemoveScenePresence(agentID);
+                    m_clientManager.Remove(agentID);
+    
+                    avatar.Close();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(
+                        string.Format("[SCENE]: Exception in final clean up of {0} in {1}.  Exception ", avatar.Name, Name), e);
+                }
             }
 
             //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
@@ -3619,7 +3631,7 @@ namespace OpenSim.Region.Framework.Scenes
                 agent.startpos
             );
 
-            if (LoginsDisabled)
+            if (!LoginsEnabled)
             {
                 reason = "Logins Disabled";
                 return false;

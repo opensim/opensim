@@ -66,6 +66,11 @@ namespace OpenSim.Framework
 
         IConfigSource Config { get; }
 
+        /// <summary>
+        /// Are logins enabled on this simulator?
+        /// </summary>
+        bool LoginsEnabled { get; set; }
+
         float TimeDilation { get; }
 
         bool AllowScriptCrossings { get; }
