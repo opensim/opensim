@@ -1122,7 +1122,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void SendXferPacket(ulong xferID, uint packet, byte[] data)
+        public void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory)
         {
             
         }

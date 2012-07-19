@@ -732,7 +732,7 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public virtual void SendXferPacket(ulong xferID, uint packet, byte[] data)
+        public virtual void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory)
         {
         }
 
