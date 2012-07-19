@@ -768,7 +768,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// pass a delegate to ForEachScenePresence.
         /// </summary>
         /// <returns></returns>
-        private List<ScenePresence> GetScenePresences()
+        protected internal List<ScenePresence> GetScenePresences()
         {
             return m_scenePresenceArray;
         }

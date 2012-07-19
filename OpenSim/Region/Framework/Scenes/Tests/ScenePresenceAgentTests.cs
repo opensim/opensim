@@ -107,6 +107,29 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(sp, Is.Not.Null);
             Assert.That(sp.IsChildAgent, Is.False);
             Assert.That(sp.UUID, Is.EqualTo(spUuid));
+
+            Assert.That(scene.GetScenePresences().Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void TestCreateDuplicateRootScenePresence()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID spUuid = TestHelpers.ParseTail(0x1);
+
+            TestScene scene = new SceneHelpers().SetupScene();
+            SceneHelpers.AddScenePresence(scene, spUuid);
+            SceneHelpers.AddScenePresence(scene, spUuid);
+
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(spUuid), Is.Not.Null);
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
+
+            ScenePresence sp = scene.GetScenePresence(spUuid);
+            Assert.That(sp, Is.Not.Null);
+            Assert.That(sp.IsChildAgent, Is.False);
+            Assert.That(sp.UUID, Is.EqualTo(spUuid));
         }
 
         [Test]

@@ -4470,6 +4470,23 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Gets all the scene presences in this scene.
+        /// </summary>
+        /// <remarks>
+        /// This method will return both root and child scene presences.
+        /// 
+        /// Consider using ForEachScenePresence() or ForEachRootScenePresence() if possible since these will not
+        /// involving creating a new List object.
+        /// </remarks>
+        /// <returns>
+        /// A list of the scene presences.  Adding or removing from the list will not affect the presences in the scene.
+        /// </returns>
+        public List<ScenePresence> GetScenePresences()
+        {
+            return new List<ScenePresence>(m_sceneGraph.GetScenePresences());
+        }
+
+        /// <summary>
         /// Performs action on all avatars in the scene (root scene presences)
         /// Avatars may be an NPC or a 'real' client.
         /// </summary>
