@@ -48,7 +48,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IConfig m_config = null;
-        private bool m_ScriptRez;
         private bool m_firstEmptyCompileQueue;
         private bool m_oarFileLoading;
         private bool m_lastOarLoadedOk;
@@ -91,7 +90,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 
             m_scene.RegisterModuleInterface<IRegionReadyModule>(this);
 
-            m_ScriptRez = false;
             m_firstEmptyCompileQueue = true;
             m_oarFileLoading = false;
             m_lastOarLoadedOk = true;
