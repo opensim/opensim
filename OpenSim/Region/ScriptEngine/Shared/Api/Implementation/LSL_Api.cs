@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+ 
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6371,22 +6371,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return agentSize;
         }
 
-        public LSL_Integer llSameGroup(string agent)
+        public LSL_Integer llSameGroup(string id)
         {
             m_host.AddScriptLPS(1);
-            UUID agentId = new UUID();
-            if (!UUID.TryParse(agent, out agentId))
+            UUID uuid = new UUID();
+            if (!UUID.TryParse(id, out uuid))
                 return new LSL_Integer(0);
-            if (agentId == m_host.GroupID)
+
+            // Check if it's a group key
+            if (uuid == m_host.ParentGroup.RootPart.GroupID)
                 return new LSL_Integer(1);
-            ScenePresence presence = World.GetScenePresence(agentId);
-            if (presence == null || presence.IsChildAgent) // Return false for child agents
+
+            // We got passed a UUID.Zero
+            if (uuid == UUID.Zero)
                 return new LSL_Integer(0);
-            IClientAPI client = presence.ControllingClient;
-            if (m_host.GroupID == client.ActiveGroupId)
-                return new LSL_Integer(1);
-            else
+
+            // Handle the case where id names an avatar
+            ScenePresence presence = World.GetScenePresence(uuid);
+            if (presence != null)
+            {
+                if (presence.IsChildAgent)
+                    return new LSL_Integer(0);
+
+                IClientAPI client = presence.ControllingClient;
+                if (m_host.ParentGroup.RootPart.GroupID == client.ActiveGroupId)
+                    return new LSL_Integer(1);
+
                 return new LSL_Integer(0);
+            }
+
+            // Handle object case
+            SceneObjectPart part = World.GetSceneObjectPart(uuid);
+            if (part != null)
+            {
+                // This will handle both deed and non-deed and also the no
+                // group case
+                if (part.ParentGroup.RootPart.GroupID == m_host.ParentGroup.RootPart.GroupID)
+                    return new LSL_Integer(1);
+
+                return new LSL_Integer(0);
+            }
+
+            return new LSL_Integer(0);
         }
 
         public void llUnSit(string id)

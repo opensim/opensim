@@ -70,7 +70,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                         ThreadPriority.Normal,
                         false,
                         true,
-                        null,
                         int.MaxValue);
             }
 
@@ -80,7 +79,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 ThreadPriority.Normal,
                 false,
                 true,
-                null,
                 1000 * 60 * 10);
         }
 
@@ -146,8 +144,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             foreach (object o in m_requests)
             {
                 PollServiceHttpRequest req = (PollServiceHttpRequest) o;
-                PollServiceWorkerThread.DoHTTPGruntWork(
-                    m_server, req, req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
+                m_server.DoHTTPGruntWork(
+                    req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id),
+                    new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
             }
 
             m_requests.Clear();
@@ -156,7 +155,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 t.Abort();
             }
-            
             m_running = false;
         }
     }
@@ -186,7 +184,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private bool m_running = true;
         private int slowCount = 0;
 
-        // private int m_timeout = 250;   //  increase timeout 250; now use the event one
+//        private int m_timeout = 1000;   //  increase timeout 250; now use the event one
 
         public PollServiceRequestManager(BaseHttpServer pSrv, uint pWorkerThreadCount, int pTimeout)
         {
@@ -369,7 +367,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                         }
                         else
                         {
-                            // if ((Environment.TickCount - req.RequestTime) > m_timeout)
+//                            if ((Environment.TickCount - req.RequestTime) > m_timeout)
+
                             if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                             {
                                 DoHTTPGruntWork(m_server, req, 
