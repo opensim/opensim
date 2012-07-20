@@ -3274,5 +3274,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             InitLSL();
             ((LSL_Api)m_LSL_Api).DetachFromAvatar();
         }
+
+        /// <summary>
+        /// Checks if thing is a UUID.
+        /// </summary>
+        /// <param name="thing"></param>
+        /// <returns>1 if thing is a valid UUID, 0 otherwise</returns>
+        public LSL_Integer osIsUUID(string thing)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osIsUUID");
+            m_host.AddScriptLPS(1);
+
+            UUID test;
+            return UUID.TryParse(thing, out test) ? 1 : 0;
+        }
     }
 }
