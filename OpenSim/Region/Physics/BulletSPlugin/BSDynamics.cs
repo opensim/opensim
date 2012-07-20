@@ -613,23 +613,30 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             MoveAngular(pTimestep);
             LimitRotation(pTimestep);
 
-            DetailLog("{0},step,done,pos={1},force={2},velocity={3},angvel={4}", 
+            DetailLog("{0},Dynamics,done,pos={1},force={2},velocity={3},angvel={4}", 
                     m_prim.LocalID, m_prim.Position, m_prim.Force, m_prim.Velocity, m_prim.RotationalVelocity);
         }// end Step
 
         private void MoveLinear(float pTimestep)
         {
-            if (!m_linearMotorDirection.ApproxEquals(Vector3.Zero, 0.01f))  // requested m_linearMotorDirection is significant
+            // requested m_linearMotorDirection is significant
+            // if (!m_linearMotorDirection.ApproxEquals(Vector3.Zero, 0.01f))
+            if (m_linearMotorDirection.LengthSquared() > 0.0001f)
             {
                 Vector3 origDir = m_linearMotorDirection;
                 Vector3 origVel = m_lastLinearVelocityVector;
 
                 // add drive to body
-                Vector3 addAmount = m_linearMotorDirection/(m_linearMotorTimescale/pTimestep);
-                m_lastLinearVelocityVector += (addAmount*10);  // lastLinearVelocityVector is the current body velocity vector?
+                // Vector3 addAmount = m_linearMotorDirection/(m_linearMotorTimescale/pTimestep);
+                Vector3 addAmount = m_linearMotorDirection/(m_linearMotorTimescale);
+                // lastLinearVelocityVector is the current body velocity vector?
+                // RA: Not sure what the *10 is for. A correction for pTimestep?
+                // m_lastLinearVelocityVector += (addAmount*10);  
+                m_lastLinearVelocityVector += addAmount;  
 
                 // This will work temporarily, but we really need to compare speed on an axis
                 // KF: Limit body velocity to applied velocity?
+                // Limit the velocity vector to less than the last set linear motor direction
                 if (Math.Abs(m_lastLinearVelocityVector.X) > Math.Abs(m_linearMotorDirectionLASTSET.X))
                     m_lastLinearVelocityVector.X = m_linearMotorDirectionLASTSET.X;
                 if (Math.Abs(m_lastLinearVelocityVector.Y) > Math.Abs(m_linearMotorDirectionLASTSET.Y))
@@ -641,19 +648,30 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Vector3 decayfraction = ((Vector3.One/(m_linearMotorDecayTimescale/pTimestep)));
                 m_linearMotorDirection -= m_linearMotorDirection * decayfraction * 0.5f;
 
+                /*
+                Vector3 addAmount = (m_linearMotorDirection - m_lastLinearVelocityVector)/m_linearMotorTimescale;
+                m_lastLinearVelocityVector += addAmount;
+
+                float decayfraction = (1.0f - 1.0f / m_linearMotorDecayTimescale);
+                m_linearMotorDirection *= decayfraction;
+
+                 */
+
                 DetailLog("{0},MoveLinear,nonZero,origdir={1},origvel={2},add={3},decay={4},dir={5},vel={6}",
                     m_prim.LocalID, origDir, origVel, addAmount, decayfraction, m_linearMotorDirection, m_lastLinearVelocityVector);
             }
             else
-            {        // requested is not significant
-                    // if what remains of applied is small, zero it.
-                if (m_lastLinearVelocityVector.ApproxEquals(Vector3.Zero, 0.01f))
-                    m_lastLinearVelocityVector = Vector3.Zero;
+            {
+                // if what remains of applied is small, zero it.
+                // if (m_lastLinearVelocityVector.ApproxEquals(Vector3.Zero, 0.01f))
+                //     m_lastLinearVelocityVector = Vector3.Zero;
+                m_linearMotorDirection = Vector3.Zero;
+                m_lastLinearVelocityVector = Vector3.Zero;
             }
 
             // convert requested object velocity to world-referenced vector
-            m_dir = m_lastLinearVelocityVector;
-            m_dir *= m_prim.Orientation;
+            Quaternion rotq = m_prim.Orientation;
+            m_dir = m_lastLinearVelocityVector * rotq;
 
             // Add the various forces into m_dir which will be our new direction vector (velocity)
 
@@ -708,9 +726,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                                 m_prim.LocalID, m_BlockingEndPoint, posChange, pos);
                 }
             }
-            if (pos.Z < m_prim.Scene.GetTerrainHeightAtXY(pos.X, pos.Y))
+
+            // If below the terrain, move us above the ground a little.
+            if (pos.Z < m_prim.Scene.GetTerrainHeightAtXYZ(pos))
             {
-                pos.Z = m_prim.Scene.GetTerrainHeightAtXY(pos.X, pos.Y) + 2;
+                pos.Z = m_prim.Scene.GetTerrainHeightAtXYZ(pos) + 2;
                 m_prim.Position = pos;
                 DetailLog("{0},MoveLinear,terrainHeight,pos={1}", m_prim.LocalID, pos);
             }
@@ -816,8 +836,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // Apply velocity
             m_prim.Velocity = m_dir;
             // apply gravity force
-            m_prim.Force = grav;
-
+            // Why is this set here? The physics engine already does gravity.
+            // m_prim.AddForce(grav, false);
+            // m_prim.Force = grav;
 
             // Apply friction
             Vector3 decayamount = Vector3.One / (m_linearFrictionTimescale / pTimestep);
@@ -990,7 +1011,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // Invoke the detailed logger and output something if it's enabled.
         private void DetailLog(string msg, params Object[] args)
         {
-            m_prim.Scene.VehicleLogging.Write(msg, args);
+            if (m_prim.Scene.VehicleLoggingEnabled)
+                m_prim.Scene.PhysicsLogging.Write(msg, args);
         }
     }
 }

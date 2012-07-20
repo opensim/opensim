@@ -30,9 +30,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using OpenSim.Framework;
-using OpenSim.Region.CoreModules.Framework.Statistics.Logging;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Physics.Manager;
+using Logging = OpenSim.Region.CoreModules.Framework.Statistics.Logging;
 using Nini.Config;
 using log4net;
 using OpenMetaverse;
@@ -45,15 +45,17 @@ using OpenMetaverse;
 // Compute physics FPS reasonably
 // Based on material, set density and friction
 // More efficient memory usage when passing hull information from BSPrim to BulletSim
+// Move all logic out of the C++ code and into the C# code for easier future modifications.
 // Four states of prim: Physical, regular, phantom and selected. Are we modeling these correctly?
 //     In SL one can set both physical and phantom (gravity, does not effect others, makes collisions with ground)
 //     At the moment, physical and phantom causes object to drop through the terrain
 // Physical phantom objects and related typing (collision options )
+// Use collision masks for collision with terrain and phantom objects 
 // Check out llVolumeDetect. Must do something for that.
 // Should prim.link() and prim.delink() membership checking happen at taint time?
+// changing the position and orientation of a linked prim must rebuild the constraint with the root.
 // Mesh sharing. Use meshHash to tell if we already have a hull of that shape and only create once
 // Do attachments need to be handled separately? Need collision events. Do not collide with VolumeDetect
-// Use collision masks for collision with terrain and phantom objects 
 // Implement the genCollisions feature in BulletSim::SetObjectProperties (don't pass up unneeded collisions)
 // Implement LockAngularMotion
 // Decide if clearing forces is the right thing to do when setting position (BulletSim::SetObjectTranslation)
@@ -61,9 +63,6 @@ using OpenMetaverse;
 // Remove mesh and Hull stuff. Use mesh passed to bullet and use convexdecom from bullet.
 // Add PID movement operations. What does ScenePresence.MoveToTarget do?
 // Check terrain size. 128 or 127?
-// Multiple contact points on collision?
-//    See code in ode::near... calls to collision_accounting_events()
-//    (This might not be a problem. ODE collects all the collisions with one object in one tick.)
 // Raycast
 // 
 namespace OpenSim.Region.Physics.BulletSPlugin
@@ -160,17 +159,14 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private BulletSimAPI.DebugLogCallback m_DebugLogCallbackHandle;
 
     // Sometimes you just have to log everything.
-    public LogWriter PhysicsLogging;
+    public Logging.LogWriter PhysicsLogging;
     private bool m_physicsLoggingEnabled;
     private string m_physicsLoggingDir;
     private string m_physicsLoggingPrefix;
     private int m_physicsLoggingFileMinutes;
 
-    public LogWriter VehicleLogging;
     private bool m_vehicleLoggingEnabled;
-    private string m_vehicleLoggingDir;
-    private string m_vehicleLoggingPrefix;
-    private int m_vehicleLoggingFileMinutes;
+    public bool VehicleLoggingEnabled { get { return m_vehicleLoggingEnabled; } }
 
     public BSScene(string identifier)
     {
@@ -197,19 +193,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // can be left in and every call doesn't have to check for null.
         if (m_physicsLoggingEnabled)
         {
-            PhysicsLogging = new LogWriter(m_physicsLoggingDir, m_physicsLoggingPrefix, m_physicsLoggingFileMinutes);
+            PhysicsLogging = new Logging.LogWriter(m_physicsLoggingDir, m_physicsLoggingPrefix, m_physicsLoggingFileMinutes);
         }
         else
         {
-            PhysicsLogging = new LogWriter();
-        }
-        if (m_vehicleLoggingEnabled)
-        {
-            VehicleLogging = new LogWriter(m_vehicleLoggingDir, m_vehicleLoggingPrefix, m_vehicleLoggingFileMinutes);
-        }
-        else
-        {
-            VehicleLogging = new LogWriter();
+            PhysicsLogging = new Logging.LogWriter();
         }
 
         // Get the version of the DLL
@@ -218,11 +206,14 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // m_log.WarnFormat("{0}: BulletSim.dll version='{1}'", LogHeader, BulletSimVersion);
 
         // if Debug, enable logging from the unmanaged code
-        if (m_log.IsDebugEnabled)
+        if (m_log.IsDebugEnabled || PhysicsLogging.Enabled)
         {
             m_log.DebugFormat("{0}: Initialize: Setting debug callback for unmanaged code", LogHeader);
-            // the handle is saved to it doesn't get freed after this call
-            m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLogger);
+            if (PhysicsLogging.Enabled)
+                m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLoggerPhysLog);
+            else
+                m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLogger);
+            // the handle is saved in a variable to make sure it doesn't get freed after this call
             BulletSimAPI.SetDebugLogCallback(m_DebugLogCallbackHandle);
         }
 
@@ -363,9 +354,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 m_physicsLoggingFileMinutes = pConfig.GetInt("PhysicsLoggingFileMinutes", 5);
                 // Very detailed logging for vehicle debugging
                 m_vehicleLoggingEnabled = pConfig.GetBoolean("VehicleLoggingEnabled", false);
-                m_vehicleLoggingDir = pConfig.GetString("VehicleLoggingDir", ".");
-                m_vehicleLoggingPrefix = pConfig.GetString("VehicleLoggingPrefix", "vehicle-");
-                m_vehicleLoggingFileMinutes = pConfig.GetInt("VehicleLoggingFileMinutes", 5);
             }
         }
         m_params[0] = parms;
@@ -386,11 +374,16 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         return ret;
     }
 
-
     // Called directly from unmanaged code so don't do much
     private void BulletLogger(string msg)
     {
         m_log.Debug("[BULLETS UNMANAGED]:" + msg);
+    }
+    
+    // Called directly from unmanaged code so don't do much
+    private void BulletLoggerPhysLog(string msg)
+    {
+        PhysicsLogging.Write("[BULLETS UNMANAGED]:" + msg);
     }
 
     public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
@@ -532,7 +525,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             for (int ii = 0; ii < updatedEntityCount; ii++)
             {
                 EntityProperties entprop = m_updateArray[ii];
-                // m_log.DebugFormat("{0}: entprop[{1}]: id={2}, pos={3}", LogHeader, ii, entprop.ID, entprop.Position);
                 BSPrim prim;
                 if (m_prims.TryGetValue(entprop.ID, out prim))
                 {

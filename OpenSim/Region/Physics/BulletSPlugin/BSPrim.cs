@@ -148,6 +148,7 @@ public sealed class BSPrim : PhysicsActor
     public void Destroy()
     {
         // m_log.DebugFormat("{0}: Destroy, id={1}", LogHeader, LocalID);
+        // DetailLog("{0},Destroy", LocalID);
         // Undo any vehicle properties
         _vehicle.ProcessTypeChange(Vehicle.TYPE_NONE);
         _scene.RemoveVehiclePrim(this);     // just to make sure
@@ -215,6 +216,7 @@ public sealed class BSPrim : PhysicsActor
     public override void link(PhysicsActor obj) {
         BSPrim parent = obj as BSPrim;
         DebugLog("{0}: link {1}/{2} to {3}", LogHeader, _avName, _localID, obj.LocalID);
+        DetailLog("{0},link,parent={1}", LocalID, obj.LocalID);
         // TODO: decide if this parent checking needs to happen at taint time
         if (_parentPrim == null)
         {
@@ -250,6 +252,7 @@ public sealed class BSPrim : PhysicsActor
         // Race condition here: if link() and delink() in same simulation tick, the delink will not happen
         DebugLog("{0}: delink {1}/{2}. Parent={3}", LogHeader, _avName, _localID, 
                 (_parentPrim==null ? "NULL" : _parentPrim._avName+"/"+_parentPrim.LocalID.ToString()));
+        DetailLog("{0},delink,parent={1}", LocalID, (_parentPrim==null ? "NULL" : _parentPrim.LocalID.ToString()));
         if (_parentPrim != null)
         {
             _parentPrim.RemoveChildFromLinkset(this);
@@ -266,6 +269,7 @@ public sealed class BSPrim : PhysicsActor
             if (!_childrenPrims.Contains(child))
             {
                 DebugLog("{0}: AddChildToLinkset: adding child {1} to {2}", LogHeader, child.LocalID, this.LocalID);
+                DetailLog("{0},AddChildToLinkset,child={1}", LocalID, pchild.LocalID);
                 _childrenPrims.Add(child);
                 child._parentPrim = this;    // the child has gained a parent
                 RecreateGeomAndObject();    // rebuild my shape with the new child added
@@ -284,6 +288,7 @@ public sealed class BSPrim : PhysicsActor
             if (_childrenPrims.Contains(child))
             {
                 DebugLog("{0}: RemoveChildFromLinkset: Removing constraint to {1}", LogHeader, child.LocalID);
+                DetailLog("{0},RemoveChildToLinkset,child={1}", LocalID, pchild.LocalID);
                 if (!BulletSimAPI.RemoveConstraintByID(_scene.WorldID, child.LocalID))
                 {
                     m_log.ErrorFormat("{0}: RemoveChildFromLinkset: Failed remove constraint for {1}", LogHeader, child.LocalID);
@@ -317,20 +322,28 @@ public sealed class BSPrim : PhysicsActor
         base.RequestPhysicsterseUpdate();
     }
 
-    public override void LockAngularMotion(OMV.Vector3 axis) { return; }
+    public override void LockAngularMotion(OMV.Vector3 axis)
+    { 
+        DetailLog("{0},LockAngularMotion,call,axis={1}", LocalID, axis);
+        return;
+    }
 
     public override OMV.Vector3 Position { 
         get { 
-            // don't do the following GetObjectPosition because this function is called a zillion times
+            // child prims move around based on their parent. Need to get the latest location
+            if (_parentPrim != null)
+                _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
+            // don't do the GetObjectPosition for root elements because this function is called a zillion times
             // _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
             return _position; 
         } 
         set {
             _position = value;
+            // TODO: what does it mean to set the position of a child prim?? Rebuild the constraint?
             _scene.TaintedObject(delegate()
             {
+                DetailLog("{0},SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
-                // m_log.DebugFormat("{0}: setPosition: id={1}, position={2}", LogHeader, _localID, _position);
             });
         } 
     }
@@ -343,6 +356,7 @@ public sealed class BSPrim : PhysicsActor
             _force = value;
             _scene.TaintedObject(delegate()
             {
+                DetailLog("{0},SetForce,taint,force={1}", LocalID, _force);
                 BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
             });
         } 
@@ -354,15 +368,23 @@ public sealed class BSPrim : PhysicsActor
         } 
         set {
             Vehicle type = (Vehicle)value;
-            _vehicle.ProcessTypeChange(type);
             _scene.TaintedObject(delegate()
             {
+                DetailLog("{0},SetVehicleType,taint,type={1}", LocalID, type);
+                _vehicle.ProcessTypeChange(type);
                 if (type == Vehicle.TYPE_NONE)
                 {
                     _scene.RemoveVehiclePrim(this);
                 }
                 else
                 {
+                    _scene.TaintedObject(delegate()
+                    {
+                        // Tell the physics engine to clear state
+                        IntPtr obj = BulletSimAPI.GetBodyHandleWorldID2(_scene.WorldID, LocalID);
+                        BulletSimAPI.ClearForces2(obj);
+                    });
+
                     // make it so the scene will call us each tick to do vehicle things
                     _scene.AddVehiclePrim(this);
                 }
@@ -372,21 +394,39 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void VehicleFloatParam(int param, float value) 
     {
-        _vehicle.ProcessFloatVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
+        m_log.DebugFormat("{0} VehicleFloatParam. {1} <= {2}", LogHeader, param, value);
+        _scene.TaintedObject(delegate()
+        {
+            _vehicle.ProcessFloatVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
+        });
     }
     public override void VehicleVectorParam(int param, OMV.Vector3 value) 
     {
-        _vehicle.ProcessVectorVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
+        m_log.DebugFormat("{0} VehicleVectorParam. {1} <= {2}", LogHeader, param, value);
+        _scene.TaintedObject(delegate()
+        {
+            _vehicle.ProcessVectorVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
+        });
     }
     public override void VehicleRotationParam(int param, OMV.Quaternion rotation) 
     {
-        _vehicle.ProcessRotationVehicleParam((Vehicle)param, rotation);
+        m_log.DebugFormat("{0} VehicleRotationParam. {1} <= {2}", LogHeader, param, rotation);
+        _scene.TaintedObject(delegate()
+        {
+            _vehicle.ProcessRotationVehicleParam((Vehicle)param, rotation);
+        });
     }
     public override void VehicleFlags(int param, bool remove) 
     {
-        _vehicle.ProcessVehicleFlags(param, remove);
+        m_log.DebugFormat("{0} VehicleFlags. {1}. Remove={2}", LogHeader, param, remove);
+        _scene.TaintedObject(delegate()
+        {
+            _vehicle.ProcessVehicleFlags(param, remove);
+        });
     }
-    // Called each simulation step to advance vehicle characteristics
+
+    // Called each simulation step to advance vehicle characteristics.
+    // Called from Scene when doing simulation step so we're in taint processing time.
     public void StepVehicle(float timeStep)
     {
         _vehicle.Step(timeStep);
@@ -395,14 +435,11 @@ public sealed class BSPrim : PhysicsActor
     // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more
     public override void SetVolumeDetect(int param) {
         bool newValue = (param != 0);
-        if (_isVolumeDetect != newValue)
+        _isVolumeDetect = newValue;
+        _scene.TaintedObject(delegate()
         {
-            _isVolumeDetect = newValue;
-            _scene.TaintedObject(delegate()
-            {
-                SetObjectDynamic();
-            });
-        }
+            SetObjectDynamic();
+        });
         return; 
     }
 
@@ -410,9 +447,11 @@ public sealed class BSPrim : PhysicsActor
     public override OMV.Vector3 CenterOfMass { get { return OMV.Vector3.Zero; } }
     public override OMV.Vector3 Velocity { 
         get { return _velocity; } 
-        set { _velocity = value; 
+        set {
+            _velocity = value;
             _scene.TaintedObject(delegate()
             {
+                DetailLog("{0},SetVelocity,taint,vel={1}", LocalID, _velocity);
                 BulletSimAPI.SetObjectVelocity(_scene.WorldID, LocalID, _velocity);
             });
         } 
@@ -420,6 +459,7 @@ public sealed class BSPrim : PhysicsActor
     public override OMV.Vector3 Torque { 
         get { return _torque; } 
         set { _torque = value; 
+            DetailLog("{0},SetTorque,call,torque={1}", LocalID, _torque);
         } 
     }
     public override float CollisionScore { 
@@ -432,13 +472,21 @@ public sealed class BSPrim : PhysicsActor
         set { _acceleration = value; }
     }
     public override OMV.Quaternion Orientation { 
-        get { return _orientation; } 
+        get {
+            if (_parentPrim != null)
+            {
+                // children move around because tied to parent. Get a fresh value.
+                _orientation = BulletSimAPI.GetObjectOrientation(_scene.WorldID, LocalID);
+            }
+            return _orientation;
+        } 
         set {
             _orientation = value;
-            // m_log.DebugFormat("{0}: set orientation: id={1}, ori={2}", LogHeader, LocalID, _orientation);
+            // TODO: what does it mean if a child in a linkset changes its orientation? Rebuild the constraint?
             _scene.TaintedObject(delegate()
             {
                 // _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
+                DetailLog("{0},SetOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
             });
         } 
@@ -471,8 +519,9 @@ public sealed class BSPrim : PhysicsActor
         get { return !IsPhantom && !_isVolumeDetect; }
     }
 
-    // make gravity work if the object is physical and not selected
-    // no locking here because only called when it is safe
+    // Make gravity work if the object is physical and not selected
+    // No locking here because only called when it is safe
+    // Only called at taint time so it is save to call into Bullet.
     private void SetObjectDynamic()
     {
         // m_log.DebugFormat("{0}: ID={1}, SetObjectDynamic: IsStatic={2}, IsSolid={3}", LogHeader, _localID, IsStatic, IsSolid);
@@ -489,6 +538,7 @@ public sealed class BSPrim : PhysicsActor
             RecreateGeomAndObject();
 
         }
+        DetailLog("{0},SetObjectDynamic,taint,static={1},solid={2},mass={3}", LocalID, IsStatic, IsSolid, _mass);
         BulletSimAPI.SetObjectProperties(_scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), _mass);
     }
 
@@ -529,11 +579,24 @@ public sealed class BSPrim : PhysicsActor
         set { _floatOnWater = value; } 
     }
     public override OMV.Vector3 RotationalVelocity { 
-        get { return _rotationalVelocity; } 
-        set { _rotationalVelocity = value; 
+        get {
+            /*
+            OMV.Vector3 pv = OMV.Vector3.Zero;
+            // if close to zero, report zero
+            // This is copied from ODE but I'm not sure why it returns zero but doesn't
+            //    zero the property in the physics engine.
+            if (_rotationalVelocity.ApproxEquals(pv, 0.2f))
+                return pv;
+             */
+
+            return _rotationalVelocity;
+        } 
+        set {
+            _rotationalVelocity = value;
             // m_log.DebugFormat("{0}: RotationalVelocity={1}", LogHeader, _rotationalVelocity);
             _scene.TaintedObject(delegate()
             {
+                DetailLog("{0},SetRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
                 BulletSimAPI.SetObjectAngularVelocity(_scene.WorldID, LocalID, _rotationalVelocity);
             });
         } 
@@ -546,11 +609,13 @@ public sealed class BSPrim : PhysicsActor
     }
     public override float Buoyancy { 
         get { return _buoyancy; } 
-        set { _buoyancy = value;
-        _scene.TaintedObject(delegate()
-        {
-            BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, _localID, _buoyancy);
-        });
+        set {
+            _buoyancy = value;
+            _scene.TaintedObject(delegate()
+            {
+                DetailLog("{0},SetBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
+                BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, _localID, _buoyancy);
+            });
         } 
     }
 
@@ -586,27 +651,45 @@ public sealed class BSPrim : PhysicsActor
     public override float APIDStrength { set { return; } }
     public override float APIDDamping { set { return; } }
 
+    private List<OMV.Vector3> m_accumulatedForces = new List<OMV.Vector3>();
     public override void AddForce(OMV.Vector3 force, bool pushforce) {
         if (force.IsFinite())
         {
-            _force.X += force.X;
-            _force.Y += force.Y;
-            _force.Z += force.Z;
+            // _force += force;
+            lock (m_accumulatedForces)
+                m_accumulatedForces.Add(new OMV.Vector3(force));
         }
         else
         {
             m_log.WarnFormat("{0}: Got a NaN force applied to a Character", LogHeader);
+            return;
         }
         _scene.TaintedObject(delegate()
         {
-            BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
+            lock (m_accumulatedForces)
+            {
+                if (m_accumulatedForces.Count > 0)
+                {
+                    OMV.Vector3 fSum = OMV.Vector3.Zero;
+                    foreach (OMV.Vector3 v in m_accumulatedForces)
+                    {
+                        fSum += v;
+                    }
+                    m_accumulatedForces.Clear();
+
+                    DetailLog("{0},SetObjectForce,taint,force={1}", LocalID, fSum);
+                    BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, fSum);
+                }
+            }
         });
     }
 
     public override void AddAngularForce(OMV.Vector3 force, bool pushforce) { 
+        DetailLog("{0},AddAngularForce,call,angForce={1},push={2}", LocalID, force, pushforce);
         // m_log.DebugFormat("{0}: AddAngularForce. f={1}, push={2}", LogHeader, force, pushforce);
     }
     public override void SetMomentum(OMV.Vector3 momentum) { 
+        DetailLog("{0},SetMomentum,call,mom={1}", LocalID, momentum);
     }
     public override void SubscribeEvents(int ms) { 
         _subscribedEventsMs = ms;
@@ -931,6 +1014,7 @@ public sealed class BSPrim : PhysicsActor
                 {
                     // m_log.DebugFormat("{0}: CreateGeom: Defaulting to sphere of size {1}", LogHeader, _size);
                     _shapeType = ShapeData.PhysicsShapeType.SHAPE_SPHERE;
+                    DetailLog("{0},CreateGeom,sphere", LocalID);
                     // Bullet native objects are scaled by the Bullet engine so pass the size in
                     _scale = _size;
                 }
@@ -938,6 +1022,7 @@ public sealed class BSPrim : PhysicsActor
             else
             {
                 // m_log.DebugFormat("{0}: CreateGeom: Defaulting to box. lid={1}, size={2}", LogHeader, LocalID, _size);
+                DetailLog("{0},CreateGeom,box", LocalID);
                 _shapeType = ShapeData.PhysicsShapeType.SHAPE_BOX;
                 _scale = _size;
             }
@@ -974,10 +1059,12 @@ public sealed class BSPrim : PhysicsActor
         // if this new shape is the same as last time, don't recreate the mesh
         if (_meshKey == newMeshKey) return;
 
+        DetailLog("{0},CreateGeomMesh,create,key={1}", LocalID, _meshKey);
         // Since we're recreating new, get rid of any previously generated shape
         if (_meshKey != 0)
         {
             // m_log.DebugFormat("{0}: CreateGeom: deleting old mesh. lID={1}, Key={2}", LogHeader, _localID, _meshKey);
+            DetailLog("{0},CreateGeomMesh,deleteOld,key={1}", LocalID, _meshKey);
             BulletSimAPI.DestroyMesh(_scene.WorldID, _meshKey);
             _mesh = null;
             _meshKey = 0;
@@ -1007,6 +1094,7 @@ public sealed class BSPrim : PhysicsActor
         _shapeType = ShapeData.PhysicsShapeType.SHAPE_MESH;
         // meshes are already scaled by the meshmerizer
         _scale = new OMV.Vector3(1f, 1f, 1f);
+        DetailLog("{0},CreateGeomMesh,done", LocalID);
         return;
     }
 
@@ -1020,13 +1108,17 @@ public sealed class BSPrim : PhysicsActor
         // if the hull hasn't changed, don't rebuild it
         if (newHullKey == _hullKey) return;
 
+        DetailLog("{0},CreateGeomHull,create,key={1}", LocalID, _meshKey);
+        
         // Since we're recreating new, get rid of any previously generated shape
         if (_hullKey != 0)
         {
             // m_log.DebugFormat("{0}: CreateGeom: deleting old hull. Key={1}", LogHeader, _hullKey);
+            DetailLog("{0},CreateGeomHull,deleteOldHull,key={1}", LocalID, _meshKey);
             BulletSimAPI.DestroyHull(_scene.WorldID, _hullKey);
             _hullKey = 0;
             _hulls.Clear();
+            DetailLog("{0},CreateGeomHull,deleteOldMesh,key={1}", LocalID, _meshKey);
             BulletSimAPI.DestroyMesh(_scene.WorldID, _meshKey);
             _mesh = null;   // the mesh cannot match either
             _meshKey = 0;
@@ -1123,6 +1215,7 @@ public sealed class BSPrim : PhysicsActor
         _shapeType = ShapeData.PhysicsShapeType.SHAPE_HULL;
         // meshes are already scaled by the meshmerizer
         _scale = new OMV.Vector3(1f, 1f, 1f);
+        DetailLog("{0},CreateGeomHull,done", LocalID);
         return;
     }
 
@@ -1310,6 +1403,7 @@ public sealed class BSPrim : PhysicsActor
         */
 
         // Don't check for damping here -- it's done in BulletSim and SceneObjectPart.
+
         // Updates only for individual prims and for the root object of a linkset.
         if (this._parentPrim == null)
         {
@@ -1319,8 +1413,12 @@ public sealed class BSPrim : PhysicsActor
             _velocity = entprop.Velocity;
             _acceleration = entprop.Acceleration;
             _rotationalVelocity = entprop.RotationalVelocity;
+
             // m_log.DebugFormat("{0}: RequestTerseUpdate. id={1}, ch={2}, pos={3}, rot={4}, vel={5}, acc={6}, rvel={7}", 
             //         LogHeader, LocalID, changed, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
+            DetailLog("{0},UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
+                    LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
+
             base.RequestPhysicsterseUpdate();
         }
     }
@@ -1360,6 +1458,12 @@ public sealed class BSPrim : PhysicsActor
             base.SendCollisionUpdate(collisionCollection);
             collisionCollection.Clear();
         }
+    }
+
+    // Invoke the detailed logger and output something if it's enabled.
+    private void DetailLog(string msg, params Object[] args)
+    {
+        Scene.PhysicsLogging.Write(msg, args);
     }
 }
 }
