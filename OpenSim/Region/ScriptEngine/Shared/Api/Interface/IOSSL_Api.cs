@@ -276,5 +276,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         void osSetTerrainTexture(int level, LSL_Key texture);
         void osSetTerrainTextureHeight(int corner, double low, double high);
+
+        /// <summary>
+        /// Checks if thing is a UUID.
+        /// </summary>
+        /// <param name="thing"></param>
+        /// <returns>1 if thing is a valid UUID, 0 otherwise</returns>
+        LSL_Integer osIsUUID(string thing);
     }
 }

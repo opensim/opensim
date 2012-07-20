@@ -930,5 +930,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osSetTerrainTextureHeight(corner, low, high);
         }
+
+        public LSL_Integer osIsUUID(string thing)
+        {
+            return m_OSSL_Functions.osIsUUID(thing);
+        }
     }
 }
