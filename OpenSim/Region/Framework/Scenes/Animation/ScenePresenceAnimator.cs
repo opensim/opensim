@@ -551,11 +551,5 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             SendAnimPack(animIDs, sequenceNums, objectIDs);
         }
-
-        public void Close()
-        {
-            m_animations = null;
-            m_scenePresence = null;
-        }
     }
 }

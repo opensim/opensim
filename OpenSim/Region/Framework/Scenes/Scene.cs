@@ -3688,8 +3688,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // We have a zombie from a crashed session. 
                 // Or the same user is trying to be root twice here, won't work.
                 // Kill it.
-                m_log.DebugFormat(
-                    "[SCENE]: Zombie scene presence detected for {0} {1} in {2}",
+                m_log.WarnFormat(
+                    "[SCENE]: Existing root scene presence detected for {0} {1} in {2} when connecting.  Removing existing presence.",
                     sp.Name, sp.UUID, RegionInfo.RegionName);
 
                 sp.ControllingClient.Close();
@@ -4677,6 +4677,23 @@ namespace OpenSim.Region.Framework.Scenes
         public ScenePresence GetScenePresence(uint localID)
         {
             return m_sceneGraph.GetScenePresence(localID);
+        }
+
+        /// <summary>
+        /// Gets all the scene presences in this scene.
+        /// </summary>
+        /// <remarks>
+        /// This method will return both root and child scene presences.
+        ///
+        /// Consider using ForEachScenePresence() or ForEachRootScenePresence() if possible since these will not
+        /// involving creating a new List object.
+        /// </remarks>
+        /// <returns>
+        /// A list of the scene presences.  Adding or removing from the list will not affect the presences in the scene.
+        /// </returns>
+        public List<ScenePresence> GetScenePresences()
+        {
+            return new List<ScenePresence>(m_sceneGraph.GetScenePresences());
         }
 
         /// <summary>

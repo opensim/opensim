@@ -110,15 +110,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public UUID currentParcelUUID = UUID.Zero;
 
-        protected ScenePresenceAnimator m_animator;
         /// <value>
         /// The animator for this avatar
         /// </value>
-        public ScenePresenceAnimator Animator
-        {
-            get { return m_animator; }
-            private set { m_animator = value; }
-        }
+        public ScenePresenceAnimator Animator { get; private set; }
 
         /// <summary>
         /// Attachments recorded on this avatar.
@@ -2761,8 +2756,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAgent from {0} ({1}) to {2} ({3})", Name, UUID, avatar.Name, avatar.UUID);
 
             avatar.ControllingClient.SendAvatarDataImmediate(this);
-            if (Animator != null)
-                Animator.SendAnimPackToClient(avatar.ControllingClient);
+            Animator.SendAnimPackToClient(avatar.ControllingClient);
         }
 
         /// <summary>
@@ -3438,6 +3432,16 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent)
                 return;
             
+            //if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))
+            // The Physics Scene will send updates every 500 ms grep: PhysicsActor.SubscribeEvents(
+            // as of this comment the interval is set in AddToPhysicalScene
+
+//                if (m_updateCount > 0)
+//                {
+            Animator.UpdateMovementAnimations();
+//                    m_updateCount--;
+//                }
+
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
 
@@ -3451,7 +3455,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_lastColCount = coldata.Count;
 //            }
 
-            if (coldata.Count != 0 && Animator != null)
+            if (coldata.Count != 0)
             {
                 switch (Animator.CurrentMovementAnimation)
                 {
@@ -3563,7 +3567,7 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.SendHealth(Health);
         }
 
-        public void Close()
+        protected internal void Close()
         {
             // Clear known regions
             KnownRegions = new Dictionary<ulong, string>();
@@ -3579,9 +3583,6 @@ namespace OpenSim.Region.Framework.Scenes
             // m_reprioritizationTimer.Dispose(); 
 
             RemoveFromPhysicalScene();
-            if(Animator != null)
-                Animator.Close();
-            Animator = null;
         }
 
         public void AddAttachment(SceneObjectGroup gobj)

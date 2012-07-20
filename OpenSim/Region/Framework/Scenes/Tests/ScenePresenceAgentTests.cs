@@ -53,48 +53,83 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Scene presence tests
     /// </summary>
     [TestFixture]
-    public class ScenePresenceAgentTests
+    public class ScenePresenceAgentTests : OpenSimTestCase
     {
-        public Scene scene, scene2, scene3;
-        public UUID agent1, agent2, agent3;
-        public static Random random;
-        public ulong region1,region2,region3;
-        public AgentCircuitData acd1;
-        public SceneObjectGroup sog1, sog2, sog3;
-        public TestClient testclient;
+//        public Scene scene, scene2, scene3;
+//        public UUID agent1, agent2, agent3;
+//        public static Random random;
+//        public ulong region1, region2, region3;
+//        public AgentCircuitData acd1;
+//        public TestClient testclient;
 
-        [TestFixtureSetUp]
-        public void Init()
+//        [TestFixtureSetUp]
+//        public void Init()
+//        {
+////            TestHelpers.InMethod();
+////
+////            SceneHelpers sh = new SceneHelpers();
+////
+////            scene = sh.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
+////            scene2 = sh.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
+////            scene3 = sh.SetupScene("Neighbour x-1", UUID.Random(), 999, 1000);
+////
+////            ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
+////            interregionComms.Initialise(new IniConfigSource());
+////            interregionComms.PostInitialise();
+////            SceneHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);
+////            SceneHelpers.SetupSceneModules(scene2, new IniConfigSource(), interregionComms);
+////            SceneHelpers.SetupSceneModules(scene3, new IniConfigSource(), interregionComms);
+//
+////            agent1 = UUID.Random();
+////            agent2 = UUID.Random();
+////            agent3 = UUID.Random();
+//
+////            region1 = scene.RegionInfo.RegionHandle;
+////            region2 = scene2.RegionInfo.RegionHandle;
+////            region3 = scene3.RegionInfo.RegionHandle;
+//        }
+
+        [Test]
+        public void TestCreateRootScenePresence()
         {
             TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
 
-            SceneHelpers sh = new SceneHelpers();
+            UUID spUuid = TestHelpers.ParseTail(0x1);
 
-            scene = sh.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
-            scene2 = sh.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
-            scene3 = sh.SetupScene("Neighbour x-1", UUID.Random(), 999, 1000);
+            TestScene scene = new SceneHelpers().SetupScene();
+            SceneHelpers.AddScenePresence(scene, spUuid);
 
-            ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
-            interregionComms.Initialise(new IniConfigSource());
-            interregionComms.PostInitialise();
-            SceneHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);
-            SceneHelpers.SetupSceneModules(scene2, new IniConfigSource(), interregionComms);
-            SceneHelpers.SetupSceneModules(scene3, new IniConfigSource(), interregionComms);
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(spUuid), Is.Not.Null);
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
 
-            agent1 = UUID.Random();
-            agent2 = UUID.Random();
-            agent3 = UUID.Random();
-            random = new Random();
-            sog1 = SceneHelpers.CreateSceneObject(1, agent1);
-            scene.AddSceneObject(sog1);
-            sog2 = SceneHelpers.CreateSceneObject(1, agent1);
-            scene.AddSceneObject(sog2);
-            sog3 = SceneHelpers.CreateSceneObject(1, agent1);
-            scene.AddSceneObject(sog3);
+            ScenePresence sp = scene.GetScenePresence(spUuid);
+            Assert.That(sp, Is.Not.Null);
+            Assert.That(sp.IsChildAgent, Is.False);
+            Assert.That(sp.UUID, Is.EqualTo(spUuid));
 
-            region1 = scene.RegionInfo.RegionHandle;
-            region2 = scene2.RegionInfo.RegionHandle;
-            region3 = scene3.RegionInfo.RegionHandle;
+            Assert.That(scene.GetScenePresences().Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void TestCreateDuplicateRootScenePresence()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID spUuid = TestHelpers.ParseTail(0x1);
+
+            TestScene scene = new SceneHelpers().SetupScene();
+            SceneHelpers.AddScenePresence(scene, spUuid);
+            SceneHelpers.AddScenePresence(scene, spUuid);
+
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(spUuid), Is.Not.Null);
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
+
+            ScenePresence sp = scene.GetScenePresence(spUuid);
+            Assert.That(sp, Is.Not.Null);
+            Assert.That(sp.IsChildAgent, Is.False);
+            Assert.That(sp.UUID, Is.EqualTo(spUuid));
         }
 
         [Test]
@@ -105,9 +140,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             TestScene scene = new SceneHelpers().SetupScene();
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
-
-            Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(sp.UUID), Is.Not.Null);
-            Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
 
             scene.IncomingCloseAgent(sp.UUID);
 
@@ -266,99 +298,99 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         // but things are synchronous among them. So there should be
         // 3 threads in here.
         //[Test]
-        public void T021_TestCrossToNewRegion()
-        {
-            TestHelpers.InMethod();
-
-            scene.RegisterRegionWithGrid();
-            scene2.RegisterRegionWithGrid();
-
-            // Adding child agent to region 1001
-            string reason;
-            scene2.NewUserConnection(acd1,0, out reason);
-            scene2.AddNewClient(testclient, PresenceType.User);
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-            presence.MakeRootAgent(new Vector3(0,unchecked(Constants.RegionSize-1),0), true);
-
-            ScenePresence presence2 = scene2.GetScenePresence(agent1);
-
-           // Adding neighbour region caps info to presence2
-
-            string cap = presence.ControllingClient.RequestClientInfo().CapsPath;
-            presence2.AddNeighbourRegion(region1, cap);
-
-            Assert.That(presence.IsChildAgent, Is.False, "Did not start root in origin region.");
-            Assert.That(presence2.IsChildAgent, Is.True, "Is not a child on destination region.");
-
-            // Cross to x+1
-            presence.AbsolutePosition = new Vector3(Constants.RegionSize+1,3,100);
-            presence.Update();
-
-            EventWaitHandle wh = new EventWaitHandle (false, EventResetMode.AutoReset, "Crossing");
-
-            // Mimicking communication between client and server, by waiting OK from client
-            // sent by TestClient.CrossRegion call. Originally, this is network comm.
-            if (!wh.WaitOne(5000,false))
-            {
-                presence.Update();
-                if (!wh.WaitOne(8000,false))
-                    throw new ArgumentException("1 - Timeout waiting for signal/variable.");
-            }
-
-            // This is a TestClient specific method that fires OnCompleteMovementToRegion event, which
-            // would normally be fired after receiving the reply packet from comm. done on the last line.
-            testclient.CompleteMovement();
-
-            // Crossings are asynchronous
-            int timer = 10;
-
-            // Make sure cross hasn't already finished
-            if (!presence.IsInTransit && !presence.IsChildAgent)
-            {
-                // If not and not in transit yet, give it some more time
-                Thread.Sleep(5000);
-            }
-
-            // Enough time, should at least be in transit by now.
-            while (presence.IsInTransit && timer > 0)
-            {
-                Thread.Sleep(1000);
-                timer-=1;
-            }
-
-            Assert.That(timer,Is.GreaterThan(0),"Timed out waiting to cross 2->1.");
-            Assert.That(presence.IsChildAgent, Is.True, "Did not complete region cross as expected.");
-            Assert.That(presence2.IsChildAgent, Is.False, "Did not receive root status after receiving agent.");
-
-            // Cross Back
-            presence2.AbsolutePosition = new Vector3(-10, 3, 100);
-            presence2.Update();
-
-            if (!wh.WaitOne(5000,false))
-            {
-                presence2.Update();
-                if (!wh.WaitOne(8000,false))
-                    throw new ArgumentException("2 - Timeout waiting for signal/variable.");
-            }
-            testclient.CompleteMovement();
-
-            if (!presence2.IsInTransit && !presence2.IsChildAgent)
-            {
-                // If not and not in transit yet, give it some more time
-                Thread.Sleep(5000);
-            }
-
-            // Enough time, should at least be in transit by now.
-            while (presence2.IsInTransit && timer > 0)
-            {
-                Thread.Sleep(1000);
-                timer-=1;
-            }
-
-            Assert.That(timer,Is.GreaterThan(0),"Timed out waiting to cross 1->2.");
-            Assert.That(presence2.IsChildAgent, Is.True, "Did not return from region as expected.");
-            Assert.That(presence.IsChildAgent, Is.False, "Presence was not made root in old region again.");
-        }
+//        public void T021_TestCrossToNewRegion()
+//        {
+//            TestHelpers.InMethod();
+//
+//            scene.RegisterRegionWithGrid();
+//            scene2.RegisterRegionWithGrid();
+//
+//            // Adding child agent to region 1001
+//            string reason;
+//            scene2.NewUserConnection(acd1,0, out reason);
+//            scene2.AddNewClient(testclient, PresenceType.User);
+//
+//            ScenePresence presence = scene.GetScenePresence(agent1);
+//            presence.MakeRootAgent(new Vector3(0,unchecked(Constants.RegionSize-1),0), true);
+//
+//            ScenePresence presence2 = scene2.GetScenePresence(agent1);
+//
+//           // Adding neighbour region caps info to presence2
+//
+//            string cap = presence.ControllingClient.RequestClientInfo().CapsPath;
+//            presence2.AddNeighbourRegion(region1, cap);
+//
+//            Assert.That(presence.IsChildAgent, Is.False, "Did not start root in origin region.");
+//            Assert.That(presence2.IsChildAgent, Is.True, "Is not a child on destination region.");
+//
+//            // Cross to x+1
+//            presence.AbsolutePosition = new Vector3(Constants.RegionSize+1,3,100);
+//            presence.Update();
+//
+//            EventWaitHandle wh = new EventWaitHandle (false, EventResetMode.AutoReset, "Crossing");
+//
+//            // Mimicking communication between client and server, by waiting OK from client
+//            // sent by TestClient.CrossRegion call. Originally, this is network comm.
+//            if (!wh.WaitOne(5000,false))
+//            {
+//                presence.Update();
+//                if (!wh.WaitOne(8000,false))
+//                    throw new ArgumentException("1 - Timeout waiting for signal/variable.");
+//            }
+//
+//            // This is a TestClient specific method that fires OnCompleteMovementToRegion event, which
+//            // would normally be fired after receiving the reply packet from comm. done on the last line.
+//            testclient.CompleteMovement();
+//
+//            // Crossings are asynchronous
+//            int timer = 10;
+//
+//            // Make sure cross hasn't already finished
+//            if (!presence.IsInTransit && !presence.IsChildAgent)
+//            {
+//                // If not and not in transit yet, give it some more time
+//                Thread.Sleep(5000);
+//            }
+//
+//            // Enough time, should at least be in transit by now.
+//            while (presence.IsInTransit && timer > 0)
+//            {
+//                Thread.Sleep(1000);
+//                timer-=1;
+//            }
+//
+//            Assert.That(timer,Is.GreaterThan(0),"Timed out waiting to cross 2->1.");
+//            Assert.That(presence.IsChildAgent, Is.True, "Did not complete region cross as expected.");
+//            Assert.That(presence2.IsChildAgent, Is.False, "Did not receive root status after receiving agent.");
+//
+//            // Cross Back
+//            presence2.AbsolutePosition = new Vector3(-10, 3, 100);
+//            presence2.Update();
+//
+//            if (!wh.WaitOne(5000,false))
+//            {
+//                presence2.Update();
+//                if (!wh.WaitOne(8000,false))
+//                    throw new ArgumentException("2 - Timeout waiting for signal/variable.");
+//            }
+//            testclient.CompleteMovement();
+//
+//            if (!presence2.IsInTransit && !presence2.IsChildAgent)
+//            {
+//                // If not and not in transit yet, give it some more time
+//                Thread.Sleep(5000);
+//            }
+//
+//            // Enough time, should at least be in transit by now.
+//            while (presence2.IsInTransit && timer > 0)
+//            {
+//                Thread.Sleep(1000);
+//                timer-=1;
+//            }
+//
+//            Assert.That(timer,Is.GreaterThan(0),"Timed out waiting to cross 1->2.");
+//            Assert.That(presence2.IsChildAgent, Is.True, "Did not return from region as expected.");
+//            Assert.That(presence.IsChildAgent, Is.False, "Presence was not made root in old region again.");
+//        }
     }
 }
