@@ -2149,16 +2149,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             replytask.InventoryData.TaskID = taskID;
             replytask.InventoryData.Serial = serial;
             replytask.InventoryData.Filename = fileName;
-            OutPacket(replytask, ThrottleOutPacketType.Asset);
+            OutPacket(replytask, ThrottleOutPacketType.Task);
         }
 
-        public void SendXferPacket(ulong xferID, uint packet, byte[] data)
+        public void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory)
         {
+            ThrottleOutPacketType type = ThrottleOutPacketType.Asset;
+            if (isTaskInventory)
+                type = ThrottleOutPacketType.Task;
+
             SendXferPacketPacket sendXfer = (SendXferPacketPacket)PacketPool.Instance.GetPacket(PacketType.SendXferPacket);
             sendXfer.XferID.ID = xferID;
             sendXfer.XferID.Packet = packet;
             sendXfer.DataPacket.Data = data;
-            OutPacket(sendXfer, ThrottleOutPacketType.Asset);
+            OutPacket(sendXfer, type);
         }
 
         public void SendAbortXferPacket(ulong xferID)
