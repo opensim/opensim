@@ -146,6 +146,22 @@ public struct ConfigurationParameters
     public const float numericFalse = 0f;
 }
 
+// Values used by Bullet and BulletSim to control collisions
+public enum CollisionFlags : uint
+{
+    STATIC_OBJECT                 = 1 << 0,
+    KINEMATIC_OBJECT              = 1 << 1,
+    NO_CONTACT_RESPONSE           = 1 << 2,
+    CUSTOM_MATERIAL_CALLBACK      = 1 << 3,
+    CHARACTER_OBJECT              = 1 << 4,
+    DISABLE_VISUALIZE_OBJECT      = 1 << 5,
+    DISABLE_SPU_COLLISION_PROCESS = 1 << 6,
+    // Following used by BulletSim to control collisions
+    VOLUME_DETECT_OBJECT          = 1 << 10,
+    PHANTOM_OBJECT                = 1 << 11,
+    PHYSICAL_OBJECT               = 1 << 12,
+};
+
 static class BulletSimAPI {
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -214,6 +230,9 @@ public static extern bool RemoveConstraint(uint worldID, uint id1, uint id2);
 public static extern Vector3 GetObjectPosition(uint WorldID, uint id);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern Quaternion GetObjectOrientation(uint WorldID, uint id);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool SetObjectTranslation(uint worldID, uint id, Vector3 position, Quaternion rotation);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -268,5 +287,37 @@ public static extern void DumpBulletStatistics();
 public delegate void DebugLogCallback([MarshalAs(UnmanagedType.LPStr)]string msg);
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void SetDebugLogCallback(DebugLogCallback callback);
+
+// ===============================================================================
+// ===============================================================================
+// ===============================================================================
+// A new version of the API that moves all the logic out of the C++ code and into
+//    the C# code. This will make modifications easier for the next person.
+// This interface passes the actual pointers to the objects in the unmanaged
+//    address space. All the management (calls for creation/destruction/lookup)
+//    is done in the C# code.
+// The names have a 2 tacked on. This will be removed as the code gets rebuilt
+//    and the old code is removed from the C# code.
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr GetSimHandle2(uint worldID);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr GetBodyHandleWorldID2(uint worldID, uint id);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr GetBodyHandle2(IntPtr sim, uint id);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr ClearForces2(IntPtr obj);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr SetCollisionFlags2(IntPtr obj, uint flags);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr AddToCollisionFlags2(IntPtr obj, uint flags);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr RemoveFromCollisionFlags2(IntPtr obj, uint flags);
+
 }
 }
