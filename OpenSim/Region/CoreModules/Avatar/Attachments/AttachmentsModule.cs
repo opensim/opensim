@@ -690,18 +690,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             m_scene.EventManager.TriggerOnAttach(so.LocalId, so.FromItemID, UUID.Zero);
             sp.RemoveAttachment(so);
 
-            // We can only remove the script instances from the script engine after we've retrieved their xml state
-            // when we update the attachment item.
-            m_scene.DeleteSceneObject(so, false, false);
-
             // Prepare sog for storage
             so.AttachedAvatar = UUID.Zero;
             so.RootPart.SetParentLocalId(0);
             so.IsAttachment = false;
-            so.AbsolutePosition = so.RootPart.AttachedPos;
+
+            // We cannot use AbsolutePosition here because that would
+            // attempt to cross the prim as it is detached
+            so.ForEachPart(x => { x.GroupPosition = so.RootPart.AttachedPos; });
 
             UpdateKnownItem(sp, so, true);
-            so.RemoveScriptInstances(true);
+
+            // This MUST happen AFTER serialization because it will
+            // either stop or remove the scripts. Both will cause scripts
+            // to be serialized in a stopped state with the true run
+            // state already lost.
+            m_scene.DeleteSceneObject(so, false, true);
         }
 
         private SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
