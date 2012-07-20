@@ -599,7 +599,6 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
-      <Reference name="OpenSim.Region.CoreModules.Framework.Statistics.Logging"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Region.Physics.ConvexDecompositionDotNet"/>
