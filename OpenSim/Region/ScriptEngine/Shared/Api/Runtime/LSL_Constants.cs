@@ -56,6 +56,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int ACTIVE = 2;
         public const int PASSIVE = 4;
         public const int SCRIPTED = 8;
+        public const int OS_NPC = 0x01000000;
 
         public const int CONTROL_FWD = 1;
         public const int CONTROL_BACK = 2;
