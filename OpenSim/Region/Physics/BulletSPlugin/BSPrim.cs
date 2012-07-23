@@ -133,10 +133,7 @@ public sealed class BSPrim : PhysicsActor
         _parentPrim = null;     // not a child or a parent
         _vehicle = new BSDynamics(this);    // add vehicleness
         _childrenPrims = new List<BSPrim>();
-        if (_isPhysical)
-            _mass = CalculateMass();
-        else
-            _mass = 0f;
+        _mass = CalculateMass();
         // do the actual object creation at taint time
         _scene.TaintedObject(delegate()
         {
@@ -181,8 +178,8 @@ public sealed class BSPrim : PhysicsActor
             _size = value;
             _scene.TaintedObject(delegate()
             {
-                if (_isPhysical) _mass = CalculateMass();   // changing size changes the mass
-                BulletSimAPI.SetObjectScaleMass(_scene.WorldID, _localID, _scale, _mass, _isPhysical);
+                _mass = CalculateMass();   // changing size changes the mass
+                BulletSimAPI.SetObjectScaleMass(_scene.WorldID, _localID, _scale, Mass, IsPhysical);
                 RecreateGeomAndObject();
             });
         } 
@@ -192,7 +189,7 @@ public sealed class BSPrim : PhysicsActor
             _pbs = value;
             _scene.TaintedObject(delegate()
             {
-                if (_isPhysical) _mass = CalculateMass();   // changing the shape changes the mass
+                _mass = CalculateMass();   // changing the shape changes the mass
                 RecreateGeomAndObject();
             });
         } 
@@ -278,6 +275,8 @@ public sealed class BSPrim : PhysicsActor
                 child._parentPrim = this;    // the child has gained a parent
                 // RecreateGeomAndObject();    // rebuild my shape with the new child added
                 LinkAChildToMe(pchild);     // build the physical binding between me and the child
+
+                _mass = CalculateMass();
             }
         });
         return;
@@ -306,6 +305,8 @@ public sealed class BSPrim : PhysicsActor
                     // RecreateGeomAndObject();    // rebuild my shape with the child removed
                     UnlinkAChildFromMe(pchild);
                 }
+
+                _mass = CalculateMass();
             }
             else
             {
@@ -364,9 +365,17 @@ public sealed class BSPrim : PhysicsActor
             });
         } 
     }
+
+    // Return the effective mass of the object. Non-physical objects do not have mass.
     public override float Mass { 
-        get { return _mass; } 
+        get {
+            if (IsPhysical)
+                return _mass;
+            else
+                return 0f;
+        }
     }
+
     public override OMV.Vector3 Force { 
         get { return _force; } 
         set {
@@ -446,7 +455,8 @@ public sealed class BSPrim : PhysicsActor
     // Called from Scene when doing simulation step so we're in taint processing time.
     public void StepVehicle(float timeStep)
     {
-        _vehicle.Step(timeStep);
+        if (IsPhysical)
+            _vehicle.Step(timeStep);
     }
 
     // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more
@@ -543,20 +553,13 @@ public sealed class BSPrim : PhysicsActor
     {
         // m_log.DebugFormat("{0}: ID={1}, SetObjectDynamic: IsStatic={2}, IsSolid={3}", LogHeader, _localID, IsStatic, IsSolid);
         // non-physical things work best with a mass of zero
-        if (IsStatic)
-        {
-            _mass = 0f;
-        }
-        else
+        if (!IsStatic)
         {
             _mass = CalculateMass();
-            // If it's dynamic, make sure the hull has been created for it
-            // This shouldn't do much work if the object had previously been built
             RecreateGeomAndObject();
-
         }
-        DetailLog("{0},SetObjectDynamic,taint,static={1},solid={2},mass={3}", LocalID, IsStatic, IsSolid, _mass);
-        BulletSimAPI.SetObjectProperties(_scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), _mass);
+        DetailLog("{0},SetObjectDynamic,taint,static={1},solid={2},mass={3}", LocalID, IsStatic, IsSolid, Mass);
+        BulletSimAPI.SetObjectProperties(_scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), Mass);
     }
 
     // prims don't fly
@@ -1273,7 +1276,7 @@ public sealed class BSPrim : PhysicsActor
         shape.Rotation = _orientation;
         shape.Velocity = _velocity;
         shape.Scale = _scale;
-        shape.Mass = _isPhysical ? _mass : 0f;
+        shape.Mass = Mass;
         shape.Buoyancy = _buoyancy;
         shape.HullKey = _hullKey;
         shape.MeshKey = _meshKey;
