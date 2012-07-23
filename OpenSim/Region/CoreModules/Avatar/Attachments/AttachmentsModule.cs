@@ -28,6 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.IO;
+using System.Xml;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
@@ -202,7 +204,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
 
-        public void DeRezAttachments(IScenePresence sp, bool saveChanged, bool saveAllScripted)
+        public void DeRezAttachments(IScenePresence sp)
         {
             if (!Enabled)
                 return;
@@ -213,18 +215,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             {
                 foreach (SceneObjectGroup so in sp.GetAttachments())
                 {
-                    // We can only remove the script instances from the script engine after we've retrieved their xml state
-                    // when we update the attachment item.
-                    m_scene.DeleteSceneObject(so, false, false);
-    
-                    if (saveChanged || saveAllScripted)
-                    {
-                        so.IsAttachment = false;
-                        so.AbsolutePosition = so.RootPart.AttachedPos;
-                        UpdateKnownItem(sp, so, saveAllScripted);
-                    }
-
-                    so.RemoveScriptInstances(true);
+                    UpdateDetachedObject(sp, so);
                 }
     
                 sp.ClearAttachments();
@@ -528,7 +519,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="sp"></param>
         /// <param name="grp"></param>
         /// <param name="saveAllScripted"></param>
-        private void UpdateKnownItem(IScenePresence sp, SceneObjectGroup grp, bool saveAllScripted)
+        private void UpdateKnownItem(IScenePresence sp, SceneObjectGroup grp, string scriptedState)
         {
             // Saving attachments for NPCs messes them up for the real owner!
             INPCModule module = m_scene.RequestModuleInterface<INPCModule>();
@@ -538,13 +529,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     return;
             }
 
-            if (grp.HasGroupChanged || (saveAllScripted && grp.ContainsScripts()))
+            if (grp.HasGroupChanged)
             {
 //                m_log.DebugFormat(
 //                    "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
 //                    grp.UUID, grp.AttachmentPoint);
 
-                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
+                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, scriptedState);
 
                 InventoryItemBase item = new InventoryItemBase(grp.FromItemID, sp.UUID);
                 item = m_scene.InventoryService.GetItem(item);
@@ -683,6 +674,60 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             return newItem;
         }
 
+        private string GetObjectScriptStates(SceneObjectGroup grp)
+        {
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlTextWriter writer = new XmlTextWriter(sw))
+                {
+                    grp.SaveScriptedState(writer);
+                }
+
+                return sw.ToString();
+            }
+        }
+
+        private void UpdateDetachedObject(IScenePresence sp, SceneObjectGroup so)
+        {
+            // Don't save attachments for HG visitors, it
+            // messes up their inventory. When a HG visitor logs
+            // out on a foreign grid, their attachments will be
+            // reloaded in the state they were in when they left
+            // the home grid. This is best anyway as the visited
+            // grid may use an incompatible script engine.
+            bool saveChanged
+                    = sp.PresenceType != PresenceType.Npc
+                    && (m_scene.UserManagementModule == null
+                    || m_scene.UserManagementModule.IsLocalGridUser(sp.UUID));
+
+            // Scripts MUST be snapshotted before the object is
+            // removed from the scene because doing otherwise will
+            // clobber the run flag
+            string scriptedState = GetObjectScriptStates(so);
+
+            // Remove the object from the scene so no more updates
+            // are sent. Doing this before the below changes will ensure
+            // updates can't cause "HUD artefacts"
+            m_scene.DeleteSceneObject(so, false, false);
+
+            // Prepare sog for storage
+            so.AttachedAvatar = UUID.Zero;
+            so.RootPart.SetParentLocalId(0);
+            so.IsAttachment = false;
+
+            if (saveChanged)
+            {
+                // We cannot use AbsolutePosition here because that would
+                // attempt to cross the prim as it is detached
+                so.ForEachPart(x => { x.GroupPosition = so.RootPart.AttachedPos; });
+
+                UpdateKnownItem(sp, so, scriptedState);
+            }
+
+            // Now, remove the scripts
+            so.RemoveScriptInstances(true);
+        }
+
         private void DetachSingleAttachmentToInvInternal(IScenePresence sp, SceneObjectGroup so)
         {
             //            m_log.DebugFormat("[ATTACHMENTS MODULE]: Detaching item {0} to inventory for {1}", itemID, sp.Name);
@@ -690,22 +735,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             m_scene.EventManager.TriggerOnAttach(so.LocalId, so.FromItemID, UUID.Zero);
             sp.RemoveAttachment(so);
 
-            // Prepare sog for storage
-            so.AttachedAvatar = UUID.Zero;
-            so.RootPart.SetParentLocalId(0);
-            so.IsAttachment = false;
-
-            // We cannot use AbsolutePosition here because that would
-            // attempt to cross the prim as it is detached
-            so.ForEachPart(x => { x.GroupPosition = so.RootPart.AttachedPos; });
-
-            UpdateKnownItem(sp, so, true);
-
-            // This MUST happen AFTER serialization because it will
-            // either stop or remove the scripts. Both will cause scripts
-            // to be serialized in a stopped state with the true run
-            // state already lost.
-            m_scene.DeleteSceneObject(so, false, true);
+            UpdateDetachedObject(sp, so);
         }
 
         private SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
