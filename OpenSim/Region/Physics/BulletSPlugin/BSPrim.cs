@@ -293,7 +293,7 @@ public sealed class BSPrim : PhysicsActor
             if (_childrenPrims.Contains(child))
             {
                 DebugLog("{0}: RemoveChildFromLinkset: Removing constraint to {1}", LogHeader, child.LocalID);
-                DetailLog("{0},RemoveChildToLinkset,child={1}", LocalID, pchild.LocalID);
+                DetailLog("{0},RemoveChildFromLinkset,child={1}", LocalID, pchild.LocalID);
                 _childrenPrims.Remove(child);
                 child._parentPrim = null;    // the child has lost its parent
                 if (_childrenPrims.Count == 0)
@@ -331,14 +331,12 @@ public sealed class BSPrim : PhysicsActor
         _acceleration = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
 
+        // Zero some other properties directly into the physics engine
         IntPtr obj = BulletSimAPI.GetBodyHandleWorldID2(_scene.WorldID, LocalID);
         BulletSimAPI.SetVelocity2(obj, OMV.Vector3.Zero);
         BulletSimAPI.SetAngularVelocity2(obj, OMV.Vector3.Zero);
         BulletSimAPI.SetInterpolation2(obj, OMV.Vector3.Zero, OMV.Vector3.Zero);
         BulletSimAPI.ClearForces2(obj);
-
-        // make sure this new information is pushed to the client
-        base.RequestPhysicsterseUpdate();
     }
 
     public override void LockAngularMotion(OMV.Vector3 axis)
@@ -1253,7 +1251,7 @@ public sealed class BSPrim : PhysicsActor
         if (IsRootOfLinkset)
         {
             // Create a linkset around this object
-            CreateLinksetWithConstraints();
+            CreateLinkset();
         }
         else
         {
@@ -1289,16 +1287,14 @@ public sealed class BSPrim : PhysicsActor
 
     // Create the linkset by putting constraints between the objects of the set so they cannot move
     // relative to each other.
-    void CreateLinksetWithConstraints()
+    void CreateLinkset()
     {
         DebugLog("{0}: CreateLinkset. Root prim={1}, prims={2}", LogHeader, LocalID, _childrenPrims.Count+1);
 
         // remove any constraints that might be in place
-        foreach (BSPrim prim in _childrenPrims)
-        {
-            DebugLog("{0}: CreateLinkset: RemoveConstraint between root prim {1} and child prim {2}", LogHeader, LocalID, prim.LocalID);
-            BulletSimAPI.RemoveConstraint(_scene.WorldID, LocalID, prim.LocalID);
-        }
+        DebugLog("{0}: CreateLinkset: RemoveConstraints between me and any children", LogHeader, LocalID);
+        BulletSimAPI.RemoveConstraintByID(_scene.WorldID, LocalID);
+
         // create constraints between the root prim and each of the children
         foreach (BSPrim prim in _childrenPrims)
         {
@@ -1430,7 +1426,7 @@ public sealed class BSPrim : PhysicsActor
         // Don't check for damping here -- it's done in BulletSim and SceneObjectPart.
 
         // Updates only for individual prims and for the root object of a linkset.
-        if (this._parentPrim == null)
+        if (_parentPrim == null)
         {
             // Assign to the local variables so the normal set action does not happen
             _position = entprop.Position;
