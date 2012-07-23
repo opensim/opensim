@@ -1177,7 +1177,7 @@ namespace OpenSim.Framework
         /// <param name="node"></param>
         void SendBulkUpdateInventory(InventoryNodeBase node);
 
-        void SendXferPacket(ulong xferID, uint packet, byte[] data);
+        void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory);
 
         void SendAbortXferPacket(ulong xferID);
 
