@@ -99,8 +99,13 @@ namespace OpenSim.Framework
                     }
                     else
                     {
-                        item = oldHeadNext.Item;
+                        item = oldHeadNext.Item;                       
                         haveAdvancedHead = CAS(ref head, oldHead, oldHeadNext);
+                        if (haveAdvancedHead)
+                        {
+                            oldHeadNext.Item = default(T);
+                            oldHead.Next = null;
+                        }
                     }
                 }
             }
@@ -111,6 +116,10 @@ namespace OpenSim.Framework
 
         public void Clear()
         {
+            // ugly
+            T item;
+            while(count > 0)
+                Dequeue(out item);
             Init();
         }
 
