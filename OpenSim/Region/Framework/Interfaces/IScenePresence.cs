@@ -40,6 +40,8 @@ namespace OpenSim.Region.Framework.Interfaces
     /// </remarks>
     public interface IScenePresence : ISceneAgent
     {
+        PresenceType PresenceType { get; }
+
         /// <summary>
         /// Copy of the script states while the agent is in transit. This state may
         /// need to be placed back in case of transfer fail.

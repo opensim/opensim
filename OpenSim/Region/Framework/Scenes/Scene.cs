@@ -3467,17 +3467,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (AttachmentsModule != null)
                     {
-                        // Don't save attachments for HG visitors, it
-                        // messes up their inventory. When a HG visitor logs
-                        // out on a foreign grid, their attachments will be
-                        // reloaded in the state they were in when they left
-                        // the home grid. This is best anyway as the visited
-                        // grid may use an incompatible script engine.
-                        bool saveChanged
-                            = avatar.PresenceType != PresenceType.Npc
-                                && (UserManagementModule == null || UserManagementModule.IsLocalGridUser(avatar.UUID));
-
-                        AttachmentsModule.DeRezAttachments(avatar, saveChanged, false);
+                        AttachmentsModule.DeRezAttachments(avatar);
                     }
 
                     ForEachClient(
