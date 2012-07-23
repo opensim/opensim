@@ -36,6 +36,7 @@ using OpenSim.Framework;
 using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.Shared
 {
@@ -83,6 +84,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
     public class DetectParams
     {
+        public const int AGENT = 1;
+        public const int ACTIVE = 2;
+        public const int PASSIVE = 4;
+        public const int SCRIPTED = 8;
+        public const int OS_NPC = 0x01000000;
+
         public DetectParams()
         {
             Key = UUID.Zero;
@@ -199,8 +206,27 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 Type = 0x01; // Avatar
                 if (presence.PresenceType == PresenceType.Npc)
                     Type = 0x20;
+
+                // Cope Impl. We don't use OS_NPC.
+                //if (presence.PresenceType != PresenceType.Npc)
+                //{
+                //    Type = AGENT;
+                //}
+                //else
+                //{
+                //    Type = OS_NPC;
+
+                //    INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
+                //    INPC npcData = npcModule.GetNPC(presence.UUID, presence.Scene);
+
+                //    if (npcData.SenseAsAgent)
+                //    {
+                //        Type |= AGENT;
+                //    }
+                //}
+
                 if (presence.Velocity != Vector3.Zero)
-                    Type |= 0x02; // Active
+                    Type |= ACTIVE;
 
                 Group = presence.ControllingClient.ActiveGroupId;
 
@@ -215,15 +241,15 @@ namespace OpenSim.Region.ScriptEngine.Shared
             Name = part.Name;
             Owner = part.OwnerID;
             if (part.Velocity == Vector3.Zero)
-                Type = 0x04; // Passive
+                Type = PASSIVE;
             else
-                Type = 0x02; // Passive
+                Type = ACTIVE;
 
             foreach (SceneObjectPart p in part.ParentGroup.Parts)
             {
                 if (p.Inventory.ContainsScripts())
                 {
-                    Type |= 0x08; // Scripted
+                    Type |= SCRIPTED; // Scripted
                     break;
                 }
             }

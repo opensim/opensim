@@ -1834,6 +1834,31 @@
       </Files>
     </Project>
 
+    <Project frameworkVersion="v3_5" name="OpenSim.Region.Physics.ConvexDecompositionDotNet" path="OpenSim/Region/Physics/ConvexDecompositionDotNet" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Core"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Xml"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+        </Match>
+      </Files>
+    </Project>
+
     <!-- OpenSim app -->
     <Project frameworkVersion="v4_0" name="OpenSim" path="OpenSim/Region/Application" type="Exe">
       <Configuration name="Debug">

@@ -29,12 +29,14 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using OpenSim.Framework;
+using OpenSim.Region.Framework;
+using OpenSim.Region.CoreModules;
+using Logging = OpenSim.Region.CoreModules.Framework.Statistics.Logging;
+using OpenSim.Region.Physics.Manager;
 using Nini.Config;
 using log4net;
-using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
 using OpenMetaverse;
-using OpenSim.Region.Framework;
 
 // TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
 // Debug linkset 
@@ -44,15 +46,17 @@ using OpenSim.Region.Framework;
 // Compute physics FPS reasonably
 // Based on material, set density and friction
 // More efficient memory usage when passing hull information from BSPrim to BulletSim
+// Move all logic out of the C++ code and into the C# code for easier future modifications.
 // Four states of prim: Physical, regular, phantom and selected. Are we modeling these correctly?
 //     In SL one can set both physical and phantom (gravity, does not effect others, makes collisions with ground)
 //     At the moment, physical and phantom causes object to drop through the terrain
 // Physical phantom objects and related typing (collision options )
+// Use collision masks for collision with terrain and phantom objects 
 // Check out llVolumeDetect. Must do something for that.
 // Should prim.link() and prim.delink() membership checking happen at taint time?
+// changing the position and orientation of a linked prim must rebuild the constraint with the root.
 // Mesh sharing. Use meshHash to tell if we already have a hull of that shape and only create once
 // Do attachments need to be handled separately? Need collision events. Do not collide with VolumeDetect
-// Use collision masks for collision with terrain and phantom objects 
 // Implement the genCollisions feature in BulletSim::SetObjectProperties (don't pass up unneeded collisions)
 // Implement LockAngularMotion
 // Decide if clearing forces is the right thing to do when setting position (BulletSim::SetObjectTranslation)
@@ -60,9 +64,6 @@ using OpenSim.Region.Framework;
 // Remove mesh and Hull stuff. Use mesh passed to bullet and use convexdecom from bullet.
 // Add PID movement operations. What does ScenePresence.MoveToTarget do?
 // Check terrain size. 128 or 127?
-// Multiple contact points on collision?
-//    See code in ode::near... calls to collision_accounting_events()
-//    (This might not be a problem. ODE collects all the collisions with one object in one tick.)
 // Raycast
 // 
 namespace OpenSim.Region.Physics.BulletSPlugin
@@ -71,6 +72,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 {
     private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS SCENE]";
+
+    private void DebugLog(string mm, params Object[] xx) { if (shouldDebugLog) m_log.DebugFormat(mm, xx); }
 
     public string BulletSimVersion = "?";
 
@@ -105,6 +108,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private long m_simulationStep = 0;
     public long SimulationStep { get { return m_simulationStep; } }
 
+    public float LastSimulatedTimestep { get; private set; }
+
     // A value of the time now so all the collision and update routines do not have to get their own
     // Set to 'now' just before all the prims and actors are called for collisions and updates
     private int m_simulationNowTime;
@@ -120,6 +125,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     private bool _meshSculptedPrim = true;         // cause scuplted prims to get meshed
     private bool _forceSimplePrimMeshing = false;   // if a cube or sphere, let Bullet do internal shapes
+
+    public float PID_D { get; private set; }    // derivative
+    public float PID_P { get; private set; }    // proportional
 
     public const uint TERRAIN_ID = 0;       // OpenSim senses terrain with a localID of zero
     public const uint GROUNDPLANE_ID = 1;
@@ -147,7 +155,19 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     ConfigurationParameters[] m_params;
     GCHandle m_paramsHandle;
 
+    public bool shouldDebugLog { get; private set; }
+
     private BulletSimAPI.DebugLogCallback m_DebugLogCallbackHandle;
+
+    // Sometimes you just have to log everything.
+    public Logging.LogWriter PhysicsLogging;
+    private bool m_physicsLoggingEnabled;
+    private string m_physicsLoggingDir;
+    private string m_physicsLoggingPrefix;
+    private int m_physicsLoggingFileMinutes;
+
+    private bool m_vehicleLoggingEnabled;
+    public bool VehicleLoggingEnabled { get { return m_vehicleLoggingEnabled; } }
 
     public BSScene(string identifier)
     {
@@ -169,17 +189,32 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         m_updateArray = new EntityProperties[m_maxUpdatesPerFrame];
         m_updateArrayPinnedHandle = GCHandle.Alloc(m_updateArray, GCHandleType.Pinned);
 
+        // Enable very detailed logging.
+        // By creating an empty logger when not logging, the log message invocation code
+        // can be left in and every call doesn't have to check for null.
+        if (m_physicsLoggingEnabled)
+        {
+            PhysicsLogging = new Logging.LogWriter(m_physicsLoggingDir, m_physicsLoggingPrefix, m_physicsLoggingFileMinutes);
+        }
+        else
+        {
+            PhysicsLogging = new Logging.LogWriter();
+        }
+
         // Get the version of the DLL
         // TODO: this doesn't work yet. Something wrong with marshaling the returned string.
         // BulletSimVersion = BulletSimAPI.GetVersion();
         // m_log.WarnFormat("{0}: BulletSim.dll version='{1}'", LogHeader, BulletSimVersion);
 
         // if Debug, enable logging from the unmanaged code
-        if (m_log.IsDebugEnabled)
+        if (m_log.IsDebugEnabled || PhysicsLogging.Enabled)
         {
             m_log.DebugFormat("{0}: Initialize: Setting debug callback for unmanaged code", LogHeader);
-            // the handle is saved to it doesn't get freed after this call
-            m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLogger);
+            if (PhysicsLogging.Enabled)
+                m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLoggerPhysLog);
+            else
+                m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLogger);
+            // the handle is saved in a variable to make sure it doesn't get freed after this call
             BulletSimAPI.SetDebugLogCallback(m_DebugLogCallbackHandle);
         }
 
@@ -209,6 +244,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         m_meshLOD = 8f;
         m_sculptLOD = 32f;
 
+        shouldDebugLog = false;
         m_detailedStatsStep = 0;            // disabled
 
         m_maxSubSteps = 10;
@@ -216,6 +252,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         m_maxCollisionsPerFrame = 2048;
         m_maxUpdatesPerFrame = 2048;
         m_maximumObjectMass = 10000.01f;
+
+        PID_D = 2200f;
+        PID_P = 900f;
 
         parms.defaultFriction = 0.5f;
         parms.defaultDensity = 10.000006836f; // Aluminum g/cm3
@@ -261,7 +300,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 _meshSculptedPrim = pConfig.GetBoolean("MeshSculptedPrim", _meshSculptedPrim);
                 _forceSimplePrimMeshing = pConfig.GetBoolean("ForceSimplePrimMeshing", _forceSimplePrimMeshing);
 
+                shouldDebugLog = pConfig.GetBoolean("ShouldDebugLog", shouldDebugLog);
                 m_detailedStatsStep = pConfig.GetInt("DetailedStatsStep", m_detailedStatsStep);
+
                 m_meshLOD = pConfig.GetFloat("MeshLevelOfDetail", m_meshLOD);
                 m_sculptLOD = pConfig.GetFloat("SculptLevelOfDetail", m_sculptLOD);
 
@@ -270,6 +311,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 m_maxCollisionsPerFrame = pConfig.GetInt("MaxCollisionsPerFrame", m_maxCollisionsPerFrame);
                 m_maxUpdatesPerFrame = pConfig.GetInt("MaxUpdatesPerFrame", m_maxUpdatesPerFrame);
                 m_maximumObjectMass = pConfig.GetFloat("MaxObjectMass", m_maximumObjectMass);
+
+                PID_D = pConfig.GetFloat("PIDDerivative", PID_D);
+                PID_P = pConfig.GetFloat("PIDProportional", PID_P);
 
                 parms.defaultFriction = pConfig.GetFloat("DefaultFriction", parms.defaultFriction);
                 parms.defaultDensity = pConfig.GetFloat("DefaultDensity", parms.defaultDensity);
@@ -303,6 +347,14 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 	            parms.shouldSplitSimulationIslands = ParamBoolean(pConfig, "ShouldSplitSimulationIslands", parms.shouldSplitSimulationIslands);
 	            parms.shouldEnableFrictionCaching = ParamBoolean(pConfig, "ShouldEnableFrictionCaching", parms.shouldEnableFrictionCaching);
 	            parms.numberOfSolverIterations = pConfig.GetFloat("NumberOfSolverIterations", parms.numberOfSolverIterations);
+
+                // Very detailed logging for physics debugging
+                m_physicsLoggingEnabled = pConfig.GetBoolean("PhysicsLoggingEnabled", false);
+                m_physicsLoggingDir = pConfig.GetString("PhysicsLoggingDir", ".");
+                m_physicsLoggingPrefix = pConfig.GetString("PhysicsLoggingPrefix", "physics-");
+                m_physicsLoggingFileMinutes = pConfig.GetInt("PhysicsLoggingFileMinutes", 5);
+                // Very detailed logging for vehicle debugging
+                m_vehicleLoggingEnabled = pConfig.GetBoolean("VehicleLoggingEnabled", false);
             }
         }
         m_params[0] = parms;
@@ -323,11 +375,16 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         return ret;
     }
 
-
     // Called directly from unmanaged code so don't do much
     private void BulletLogger(string msg)
     {
         m_log.Debug("[BULLETS UNMANAGED]:" + msg);
+    }
+    
+    // Called directly from unmanaged code so don't do much
+    private void BulletLoggerPhysLog(string msg)
+    {
+        PhysicsLogging.Write("[BULLETS UNMANAGED]:" + msg);
     }
 
     public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
@@ -347,34 +404,42 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public override void RemoveAvatar(PhysicsActor actor)
     {
         // m_log.DebugFormat("{0}: RemoveAvatar", LogHeader);
-        if (actor is BSCharacter)
+        BSCharacter bsactor = actor as BSCharacter;
+        if (bsactor != null)
         {
-            ((BSCharacter)actor).Destroy();
-        }
-        try
-        {
-            lock (m_avatars) m_avatars.Remove(actor.LocalID);
-        }
-        catch (Exception e)
-        {
-            m_log.WarnFormat("{0}: Attempt to remove avatar that is not in physics scene: {1}", LogHeader, e);
+            try
+            {
+                lock (m_avatars) m_avatars.Remove(actor.LocalID);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("{0}: Attempt to remove avatar that is not in physics scene: {1}", LogHeader, e);
+            }
+            bsactor.Destroy();
+            // bsactor.dispose();
         }
     }
 
     public override void RemovePrim(PhysicsActor prim)
     {
-        // m_log.DebugFormat("{0}: RemovePrim", LogHeader);
-        if (prim is BSPrim)
+        BSPrim bsprim = prim as BSPrim;
+        if (bsprim != null)
         {
-            ((BSPrim)prim).Destroy();
+            m_log.DebugFormat("{0}: RemovePrim. id={1}/{2}", LogHeader, bsprim.Name, bsprim.LocalID);
+            try
+            {
+                lock (m_prims) m_prims.Remove(bsprim.LocalID);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("{0}: Attempt to remove prim that is not in physics scene: {1}", LogHeader, e);
+            }
+            bsprim.Destroy();
+            // bsprim.dispose();
         }
-        try
+        else
         {
-            lock (m_prims) m_prims.Remove(prim.LocalID);
-        }
-        catch (Exception e)
-        {
-            m_log.WarnFormat("{0}: Attempt to remove prim that is not in physics scene: {1}", LogHeader, e);
+            m_log.ErrorFormat("{0}: Attempt to remove prim that is not a BSPrim type.", LogHeader);
         }
     }
 
@@ -399,6 +464,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         IntPtr updatedEntitiesPtr;
         int collidersCount;
         IntPtr collidersPtr;
+
+        LastSimulatedTimestep = timeStep;
 
         // prevent simulation until we've been initialized
         if (!m_initialized) return 10.0f;
@@ -459,7 +526,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             for (int ii = 0; ii < updatedEntityCount; ii++)
             {
                 EntityProperties entprop = m_updateArray[ii];
-                // m_log.DebugFormat("{0}: entprop[{1}]: id={2}, pos={3}", LogHeader, ii, entprop.ID, entprop.Position);
                 BSPrim prim;
                 if (m_prims.TryGetValue(entprop.ID, out prim))
                 {
@@ -532,8 +598,17 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         });
     }
 
+    // Someday we will have complex terrain with caves and tunnels
+    // For the moment, it's flat and convex
+    public float GetTerrainHeightAtXYZ(Vector3 loc)
+    {
+        return GetTerrainHeightAtXY(loc.X, loc.Y);
+    }
+
     public float GetTerrainHeightAtXY(float tX, float tY)
     {
+        if (tX < 0 || tX >= Constants.RegionSize || tY < 0 || tY >= Constants.RegionSize)
+            return 30;
         return m_heightMap[((int)tX) * Constants.RegionSize + ((int)tY)];
     }
 
