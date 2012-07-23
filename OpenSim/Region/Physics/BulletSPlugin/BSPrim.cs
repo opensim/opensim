@@ -324,11 +324,20 @@ public sealed class BSPrim : PhysicsActor
     // Set motion values to zero.
     // Do it to the properties so the values get set in the physics engine.
     // Push the setting of the values to the viewer.
+    // Called at taint time!
     private void ZeroMotion()
     {
-        Velocity = OMV.Vector3.Zero;
+        _velocity = OMV.Vector3.Zero;
         _acceleration = OMV.Vector3.Zero;
-        RotationalVelocity = OMV.Vector3.Zero;
+        _rotationalVelocity = OMV.Vector3.Zero;
+
+        IntPtr obj = BulletSimAPI.GetBodyHandleWorldID2(_scene.WorldID, LocalID);
+        BulletSimAPI.SetVelocity2(obj, OMV.Vector3.Zero);
+        BulletSimAPI.SetAngularVelocity2(obj, OMV.Vector3.Zero);
+        BulletSimAPI.SetInterpolation2(obj, OMV.Vector3.Zero, OMV.Vector3.Zero);
+        BulletSimAPI.ClearForces2(obj);
+
+        // make sure this new information is pushed to the client
         base.RequestPhysicsterseUpdate();
     }
 
