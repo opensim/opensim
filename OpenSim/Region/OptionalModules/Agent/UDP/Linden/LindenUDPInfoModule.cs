@@ -82,18 +82,6 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 m_scenes[scene.RegionInfo.RegionID] = scene;
 
             scene.AddCommand(
-                "Comms", this, "image queues clear",
-                "image queues clear <first-name> <last-name>",
-                "Clear the image queues (textures downloaded via UDP) for a particular client.",
-                (mod, cmd) => MainConsole.Instance.Output(HandleImageQueuesClear(cmd)));
-
-            scene.AddCommand(
-                "Comms", this, "image queues show",
-                "image queues show <first-name> <last-name>",
-                "Show the image queues (textures downloaded via UDP) for a particular client.",
-                (mod, cmd) => MainConsole.Instance.Output(GetImageQueuesReport(cmd)));
-
-            scene.AddCommand(
                 "Comms", this, "show pqueues",
                 "show pqueues [full]",
                 "Show priority queue data for each client", 
@@ -121,6 +109,12 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "show image queues <first-name> <last-name>",
                 "Show the image queues (textures downloaded via UDP) for a particular client.",
                 (mod, cmd) => MainConsole.Instance.Output(GetImageQueuesReport(cmd)));
+
+            scene.AddCommand(
+                "Comms", this, "clear image queues",
+                "clear image queues <first-name> <last-name>",
+                "Clear the image queues (textures downloaded via UDP) for a particular client.",
+                (mod, cmd) => MainConsole.Instance.Output(HandleImageQueuesClear(cmd)));
             
             scene.AddCommand(
                 "Comms", this, "show throttles",
