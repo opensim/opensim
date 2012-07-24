@@ -48,7 +48,6 @@ using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
-using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Region.ScriptEngine.XEngine;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
@@ -307,7 +306,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             // FIXME: Right now, we have to do a tricksy chat listen to make sure we know when the script is running.
             // In the future, we need to be able to do this programatically more predicably.
-            scene.EventManager.OnChatFromWorld += OnChatFromWorld;            
+            scene.EventManager.OnChatFromWorld += OnChatFromWorld;
 
             scene.AttachmentsModule.RezSingleAttachmentFromInventory(sp, userItem.ID, (uint)AttachmentPoint.Chest);
 
