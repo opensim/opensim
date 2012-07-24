@@ -47,6 +47,8 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.ScriptEngine.Interfaces;
+using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Region.ScriptEngine.XEngine;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
@@ -379,29 +381,49 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1);
 
             SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, sp.UUID, "att-name", 0x10);
-            TaskInventoryHelpers.AddScript(scene, so.RootPart);
+            TaskInventoryItem scriptTaskItem
+                = TaskInventoryHelpers.AddScript(
+                    scene,
+                    so.RootPart,
+                    "scriptItem",
+                    "default { attach(key id) { if (id != NULL_KEY) { llSay(0, \"Hello World\"); } } }");
+
             InventoryItemBase userItem = UserInventoryHelpers.AddInventoryItem(scene, so, 0x100, 0x1000);
 
             // FIXME: Right now, we have to do a tricksy chat listen to make sure we know when the script is running.
             // In the future, we need to be able to do this programatically more predicably.
             scene.EventManager.OnChatFromWorld += OnChatFromWorld;
 
-            SceneObjectGroup soRezzed
+            SceneObjectGroup rezzedSo
                 = scene.AttachmentsModule.RezSingleAttachmentFromInventory(sp, userItem.ID, (uint)AttachmentPoint.Chest);
 
             // Wait for chat to signal rezzed script has been started.
             m_chatEvent.WaitOne(60000);
 
-            scene.AttachmentsModule.DetachSingleAttachmentToInv(sp, soRezzed);
+            scene.AttachmentsModule.DetachSingleAttachmentToInv(sp, rezzedSo);
 
             InventoryItemBase userItemUpdated = scene.InventoryService.GetItem(userItem);
             AssetBase asset = scene.AssetService.Get(userItemUpdated.AssetID.ToString());
 
+            // TODO: It would probably be better here to check script state via the saving and retrieval of state
+            // information at a higher level, rather than having to inspect the serialization.
             XmlDocument soXml = new XmlDocument();
             soXml.LoadXml(Encoding.UTF8.GetString(asset.Data));
 
             XmlNodeList scriptStateNodes = soXml.GetElementsByTagName("ScriptState");
             Assert.That(scriptStateNodes.Count, Is.EqualTo(1));
+
+            // Re-rez the attachment to check script running state
+            SceneObjectGroup reRezzedSo = scene.AttachmentsModule.RezSingleAttachmentFromInventory(sp, userItem.ID, (uint)AttachmentPoint.Chest);
+
+            // Wait for chat to signal rezzed script has been started.
+            m_chatEvent.WaitOne(60000);
+
+            TaskInventoryItem reRezzedScriptItem = reRezzedSo.RootPart.Inventory.GetInventoryItem(scriptTaskItem.Name);
+            IScriptModule xengine = scene.RequestModuleInterface<IScriptModule>();
+            Assert.That(xengine.GetScriptState(reRezzedScriptItem.ItemID), Is.True);
+
+//            Console.WriteLine(soXml.OuterXml);
         }
 
         /// <summary>
