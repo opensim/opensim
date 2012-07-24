@@ -47,6 +47,7 @@ using ArchiveConstants = OpenSim.Framework.Serialization.ArchiveConstants;
 using TarArchiveReader = OpenSim.Framework.Serialization.TarArchiveReader;
 using TarArchiveWriter = OpenSim.Framework.Serialization.TarArchiveWriter;
 using RegionSettings = OpenSim.Framework.RegionSettings;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 {
@@ -70,9 +71,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, m_archiverModule, serialiserModule, terrainModule);
+
+            new SceneManager();
+            SceneManager.Instance.Add(m_scene);
         }
-        
-        private void LoadCompleted(Guid requestId, string errorMessage)
+
+        private void LoadCompleted(Guid requestId, List<UUID> loadedScenes, string errorMessage)
         {
             lock (this)
             {
@@ -186,7 +190,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
             
             ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, false, false, Guid.Empty);
-            arr.LoadControlFile(filePath, data);
+            arr.LoadControlFile(filePath, data, new DearchiveScenesInfo());
             
             Assert.That(arr.ControlFileLoaded, Is.True);        
             
@@ -270,7 +274,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
             
             ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, false, false, Guid.Empty);
-            arr.LoadControlFile(filePath, data);
+            arr.LoadControlFile(filePath, data, new DearchiveScenesInfo());
             
             Assert.That(arr.ControlFileLoaded, Is.True);        
             
@@ -307,7 +311,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             tar.WriteFile(
                 ArchiveConstants.CONTROL_FILE_PATH,
-                new ArchiveWriteRequestPreparation(null, (Stream)null, Guid.Empty).CreateControlFile(new Dictionary<string, Object>()));
+                new ArchiveWriteRequestPreparation(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
 
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, ownerId, "obj1-", 0x11);
             SceneObjectPart sop2
@@ -362,11 +366,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             // Also check that direct entries which will also have a file entry containing that directory doesn't 
             // upset load
             tar.WriteDir(ArchiveConstants.TERRAINS_PATH);
-            
+
             tar.WriteFile(
                 ArchiveConstants.CONTROL_FILE_PATH,
-                new ArchiveWriteRequestPreparation(null, (Stream)null, Guid.Empty).CreateControlFile(new Dictionary<string, Object>()));
-
+                new ArchiveWriteRequestPreparation(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
             SceneObjectPart part1 = CreateSceneObjectPart1();
 
             part1.SitTargetOrientation = new Quaternion(0.2f, 0.3f, 0.4f, 0.5f);
@@ -519,6 +522,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 TestScene scene2 = new SceneHelpers().SetupScene();
                 SceneHelpers.SetupSceneModules(scene2, archiverModule, serialiserModule, terrainModule);
 
+                SceneManager.Instance.Add(scene2);
+
                 // Make sure there's a valid owner for the owner we saved (this should have been wiped if the code is
                 // behaving correctly
                 UserAccountHelpers.CreateUserWithInventory(scene2, objectOwner);
@@ -554,7 +559,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             tar.WriteDir(ArchiveConstants.TERRAINS_PATH);
             tar.WriteFile(
                 ArchiveConstants.CONTROL_FILE_PATH,
-                new ArchiveWriteRequestPreparation(null, (Stream)null, Guid.Empty).CreateControlFile(new Dictionary<string, Object>()));
+                new ArchiveWriteRequestPreparation(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
 
             RegionSettings rs = new RegionSettings();
             rs.AgentLimit = 17;

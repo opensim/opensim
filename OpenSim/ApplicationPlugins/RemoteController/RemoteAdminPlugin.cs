@@ -1369,6 +1369,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>profile url</description></item>
         /// <item><term>noassets</term>
         ///       <description>true if no assets should be saved</description></item>
+        /// <item><term>all</term>
+        ///       <description>true to save all the regions in the simulator</description></item>
         /// <item><term>perm</term>
         ///       <description>C and/or T</description></item>
         /// </list>
@@ -1423,6 +1425,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (requestData.Contains("perm"))
                 {
                     options["checkPermissions"] = (string)requestData["perm"];
+                }
+
+                if ((string)requestData["all"] == "true")
+                {
+                    options["all"] = (string)requestData["all"];
                 }
 
                 IRegionArchiverModule archiver = scene.RequestModuleInterface<IRegionArchiverModule>();
