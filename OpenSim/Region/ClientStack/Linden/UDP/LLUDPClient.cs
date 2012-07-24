@@ -278,7 +278,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public string GetStats()
         {
             return string.Format(
-                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7}",
+                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7} {12,7}",
+                Util.EnvironmentTickCountSubtract(TickLastPacketReceived),
                 PacketsReceived,                                 
                 PacketsSent,
                 PacketsResent,

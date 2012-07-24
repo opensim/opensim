@@ -373,17 +373,22 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             int maxNameLength = 18;                                    
             int maxRegionNameLength = 14;
             int maxTypeLength = 4;
-            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
+
+            int totalInfoFieldsLength
+                = maxNameLength + columnPadding
+                + maxRegionNameLength + columnPadding
+                + maxTypeLength + columnPadding;
                                     
             report.Append(GetColumnEntry("User", maxNameLength, columnPadding));
             report.Append(GetColumnEntry("Region", maxRegionNameLength, columnPadding));
             report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));
             
             report.AppendFormat(
-                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7}\n",
+                "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7} {12,7}\n",
+                "Since",
                 "Pkts",
                 "Pkts",
-                "Pkts",                                
+                "Pkts",
                 "Bytes",
                 "Q Pkts",
                 "Q Pkts",
@@ -396,7 +401,8 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
     
             report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
             report.AppendFormat(
-                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7}\n",
+                "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7} {12,7}\n",
+                "Last In",
                 "In",
                 "Out",
                 "Resent",
@@ -417,22 +423,22 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                     scene.ForEachClient(
                         delegate(IClientAPI client)
                         {
+                            bool isChild = client.SceneAgent.IsChildAgent;
+                            if (isChild && !showChildren)
+                                return;
+                    
+                            string name = client.Name;
+                            if (pname != "" && name != pname)
+                                return;
+
+                            string regionName = scene.RegionInfo.RegionName;
+
+                            report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
+                            report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
+                            report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));
+
                             if (client is IStatsCollector)
                             {
-                                bool isChild = client.SceneAgent.IsChildAgent;
-                                if (isChild && !showChildren)
-                                    return;
-                        
-                                string name = client.Name;
-                                if (pname != "" && name != pname)
-                                    return;
-
-                                string regionName = scene.RegionInfo.RegionName;
-                                
-                                report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
-                                report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
-                                report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));                                  
-
                                 IStatsCollector stats = (IStatsCollector)client;
                         
                                 report.AppendLine(stats.Report());
