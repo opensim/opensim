@@ -291,21 +291,37 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         {
             TestHelpers.InMethod();
 
-            Scene scene = CreateTestScene();
+            Scene scene = CreateScriptingEnabledTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
-            ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1.PrincipalID);
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, ua1);
 
             SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, sp.UUID, "att-name", 0x10);
-            TaskInventoryHelpers.AddScript(scene, so.RootPart);
+            TaskInventoryItem scriptItem
+                = TaskInventoryHelpers.AddScript(
+                    scene,
+                    so.RootPart,
+                    "scriptItem",
+                    "default { attach(key id) { if (id != NULL_KEY) { llSay(0, \"Hello World\"); } } }");
+
             InventoryItemBase userItem = UserInventoryHelpers.AddInventoryItem(scene, so, 0x100, 0x1000);
 
+            // FIXME: Right now, we have to do a tricksy chat listen to make sure we know when the script is running.
+            // In the future, we need to be able to do this programatically more predicably.
+            scene.EventManager.OnChatFromWorld += OnChatFromWorld;            
+
             scene.AttachmentsModule.RezSingleAttachmentFromInventory(sp, userItem.ID, (uint)AttachmentPoint.Chest);
+
+            m_chatEvent.WaitOne(60000);
 
             // TODO: Need to have a test that checks the script is actually started but this involves a lot more
             // plumbing of the script engine and either pausing for events or more infrastructure to turn off various
             // script engine delays/asychronicity that isn't helpful in an automated regression testing context.
             SceneObjectGroup attSo = scene.GetSceneObjectGroup(so.Name);
             Assert.That(attSo.ContainsScripts(), Is.True);
+
+            TaskInventoryItem reRezzedScriptItem = attSo.RootPart.Inventory.GetInventoryItem(scriptItem.Name);
+            IScriptModule xengine = scene.RequestModuleInterface<IScriptModule>();
+            Assert.That(xengine.GetScriptState(reRezzedScriptItem.ItemID), Is.True);
         }
 
         [Test]
