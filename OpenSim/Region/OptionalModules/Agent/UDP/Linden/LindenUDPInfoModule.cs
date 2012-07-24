@@ -105,8 +105,15 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "Comms", this, "show queues",
                 "show queues [full]",
                 "Show queue data for each client", 
-                "Without the 'full' option, only root agents are shown."
-                  + "  With the 'full' option child agents are also shown.",                                          
+                "Without the 'full' option, only root agents are shown.\n"
+                    + "With the 'full' option child agents are also shown.\n\n"
+                    + "Type          - Rt is a root (avatar) client whilst cd is a child (neighbour interacting) client.\n"
+                    + "Since Last In - Time in milliseconds since last packet received.\n"
+                    + "Pkts In       - Number of packets processed from the client.\n"
+                    + "Pkts Out      - Number of packets sent to the client.\n"
+                    + "Pkts Resent   - Number of packets resent to the client.\n"
+                    + "Bytes Unacked - Number of bytes transferred to the client that are awaiting acknowledgement.\n"
+                    + "Q Pkts *      - Number of packets of various types (land, wind, etc.) to be sent to the client that are waiting for available bandwidth.\n",
                 (mod, cmd) => MainConsole.Instance.Output(GetQueuesReport(cmd)));
 
             scene.AddCommand(
