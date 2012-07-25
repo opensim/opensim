@@ -169,7 +169,7 @@ public sealed class BSPrim : PhysicsActor
                 _parentPrim = null;
             }
 
-            // make sure there are no other prims are linked to me
+            // make sure there are no other prims linked to me
             UnlinkAllChildren();
 
             // everything in the C# world will get garbage collected. Tell the C++ world to free stuff.
@@ -341,11 +341,10 @@ public sealed class BSPrim : PhysicsActor
         _rotationalVelocity = OMV.Vector3.Zero;
 
         // Zero some other properties directly into the physics engine
-        BulletBody obj = new BulletBody(LocalID, BulletSimAPI.GetBodyHandleWorldID2(_scene.WorldID, LocalID));
-        BulletSimAPI.SetVelocity2(obj.Ptr, OMV.Vector3.Zero);
-        BulletSimAPI.SetAngularVelocity2(obj.Ptr, OMV.Vector3.Zero);
-        BulletSimAPI.SetInterpolation2(obj.Ptr, OMV.Vector3.Zero, OMV.Vector3.Zero);
-        BulletSimAPI.ClearForces2(obj.Ptr);
+        BulletSimAPI.SetVelocity2(Body.Ptr, OMV.Vector3.Zero);
+        BulletSimAPI.SetAngularVelocity2(Body.Ptr, OMV.Vector3.Zero);
+        BulletSimAPI.SetInterpolation2(Body.Ptr, OMV.Vector3.Zero, OMV.Vector3.Zero);
+        BulletSimAPI.ClearForces2(Body.Ptr);
     }
 
     public override void LockAngularMotion(OMV.Vector3 axis)
