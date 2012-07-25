@@ -325,6 +325,9 @@ namespace OpenSim.Framework
                         callback(callbackInfo);
             }
 
+            if (MemoryWatchdog.Enabled)
+                MemoryWatchdog.Update();
+
             m_watchdogTimer.Start();
         }
     }

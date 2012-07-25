@@ -44,14 +44,18 @@ namespace OpenSim.Framework.Statistics
             StringBuilder sb = new StringBuilder(Environment.NewLine);
             sb.Append("MEMORY STATISTICS");
             sb.Append(Environment.NewLine);
-            sb.Append(
-                string.Format(
-                    "Allocated to OpenSim objects: {0} MB\n",
-                    Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0)));
-            sb.Append(
-                string.Format(
-                    "Process memory              : {0} MB\n",
-                    Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0)));
+
+            sb.AppendFormat(
+                "Allocated to OpenSim objects: {0} MB\n",
+                Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0));
+
+            sb.AppendFormat(
+                "OpenSim object memory churn : {0} KB/s\n",
+                Math.Round((MemoryWatchdog.AverageMemoryChurn * 1000) / 1024.0 / 1024, 3));
+
+            sb.AppendFormat(
+                "Process memory              : {0} MB\n",
+                Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0));
 
             return sb.ToString();
         }
