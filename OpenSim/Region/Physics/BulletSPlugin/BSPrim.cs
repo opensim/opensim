@@ -1295,10 +1295,9 @@ public sealed class BSPrim : PhysicsActor
     // relative to each other.
     void CreateLinkset()
     {
-        DebugLog("{0}: CreateLinkset. Root prim={1}, prims={2}", LogHeader, LocalID, _childrenPrims.Count+1);
+        // DebugLog("{0}: CreateLinkset. Root prim={1}, prims={2}", LogHeader, LocalID, _childrenPrims.Count+1);
 
         // remove any constraints that might be in place
-        DebugLog("{0}: CreateLinkset: RemoveConstraints between me and any children", LogHeader, LocalID);
         UnlinkAllChildren();
 
         // create constraints between the root prim and each of the children
@@ -1324,18 +1323,8 @@ public sealed class BSPrim : PhysicsActor
 
         // create a constraint that allows no freedom of movement between the two objects
         // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
-        DebugLog("{0}: CreateLinkset: Adding a constraint between root prim {1} and child prim {2}", LogHeader, LocalID, childPrim.LocalID);
+        // DebugLog("{0}: CreateLinkset: Adding a constraint between root prim {1} and child prim {2}", LogHeader, LocalID, childPrim.LocalID);
         DetailLog("{0},LinkAChildToMe,taint,root={1},child={2}", LocalID, LocalID, childPrim.LocalID);
-        /*
-        BulletSimAPI.AddConstraint(_scene.WorldID, LocalID, childPrim.LocalID, 
-            childRelativePosition,
-            childRelativeRotation,
-            OMV.Vector3.Zero,
-            OMV.Quaternion.Identity,
-            OMV.Vector3.Zero, OMV.Vector3.Zero,
-            OMV.Vector3.Zero, OMV.Vector3.Zero);
-         */
-        // BSConstraint constrain = new BSConstraint(_scene.World, this.Body, childPrim.Body,
         BSConstraint constrain = _scene.Constraints.CreateConstraint(
                         _scene.World, this.Body, childPrim.Body,
                         childRelativePosition,
@@ -1346,8 +1335,13 @@ public sealed class BSPrim : PhysicsActor
         constrain.SetAngularLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
 
         // tweek the constraint to increase stability
-        constrain.UseFrameOffset(true);
-        constrain.TranslationalLimitMotor(true, 5f, 0.1f);
+        constrain.UseFrameOffset(_scene.BoolNumeric(_scene.Params.linkConstraintUseFrameOffset));
+        if (_scene.BoolNumeric(_scene.Params.linkConstraintEnableTransMotor))
+        {
+            constrain.TranslationalLimitMotor(true, 
+                            _scene.Params.linkConstraintTransMotorMaxVel,
+                            _scene.Params.linkConstraintTransMotorMaxForce);
+        }
     }
 
     // Remove linkage between myself and a particular child

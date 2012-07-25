@@ -1025,6 +1025,27 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].numberOfSolverIterations; },
             (s,p,l,v) => { s.m_params[0].numberOfSolverIterations = v; } ),
 
+	    new ParameterDefn("LinkConstraintUseFrameOffset", "For linksets built with constraints, enable frame offsetFor linksets built with constraints, enable frame offset.",
+            ConfigurationParameters.numericTrue,
+            (s,cf,p,v) => { s.m_params[0].linkConstraintUseFrameOffset = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
+            (s) => { return s.m_params[0].linkConstraintUseFrameOffset; },
+            (s,p,l,v) => { s.m_params[0].linkConstraintUseFrameOffset = v; } ),
+	    new ParameterDefn("LinkConstraintEnableTransMotor", "Whether to enable translational motor on linkset constraints",
+            ConfigurationParameters.numericTrue,
+            (s,cf,p,v) => { s.m_params[0].linkConstraintEnableTransMotor = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
+            (s) => { return s.m_params[0].linkConstraintEnableTransMotor; },
+            (s,p,l,v) => { s.m_params[0].linkConstraintEnableTransMotor = v; } ),
+	    new ParameterDefn("LinkConstraintTransMotorMaxVel", "Maximum velocity to be applied by translational motor in linkset constraints",
+            5.0f,
+            (s,cf,p,v) => { s.m_params[0].linkConstraintTransMotorMaxVel = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].linkConstraintTransMotorMaxVel; },
+            (s,p,l,v) => { s.m_params[0].linkConstraintTransMotorMaxVel = v; } ),
+	    new ParameterDefn("LinkConstraintTransMotorMaxForce", "Maximum force to be applied by translational motor in linkset constraints",
+            0.1f,
+            (s,cf,p,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].linkConstraintTransMotorMaxForce; },
+            (s,p,l,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = v; } ),
+
         new ParameterDefn("DetailedStats", "Frames between outputting detailed phys stats. (0 is off)",
             0f,
             (s,cf,p,v) => { s.m_detailedStatsStep = cf.GetInt(p, (int)v); },
@@ -1039,13 +1060,13 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     };
 
     // Convert a boolean to our numeric true and false values
-    protected float NumericBool(bool b)
+    public float NumericBool(bool b)
     {
         return (b ? ConfigurationParameters.numericTrue : ConfigurationParameters.numericFalse);
     }
 
     // Convert numeric true and false values to a boolean
-    protected bool BoolNumeric(float b)
+    public bool BoolNumeric(float b)
     {
         return (b == ConfigurationParameters.numericTrue ? true : false);
     }
