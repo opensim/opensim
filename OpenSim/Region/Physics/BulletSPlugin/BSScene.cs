@@ -630,6 +630,27 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public override void Dispose()
     {
         // m_log.DebugFormat("{0}: Dispose()", LogHeader);
+
+        // make sure no stepping happens while we're deleting stuff
+        m_initialized = false;
+
+        foreach (KeyValuePair<uint, BSCharacter> kvp in m_avatars)
+        {
+            kvp.Value.Destroy();
+        }
+        m_avatars.Clear();
+
+        foreach (KeyValuePair<uint, BSPrim> kvp in m_prims)
+        {
+            kvp.Value.Destroy();
+        }
+        m_prims.Clear();
+
+        // Anything left in the unmanaged code should be cleaned out
+        BulletSimAPI.Shutdown(WorldID);
+
+        // Not logging any more
+        PhysicsLogging.Close();
     }
 
     public override Dictionary<uint, float> GetTopColliders()

@@ -82,18 +82,6 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 m_scenes[scene.RegionInfo.RegionID] = scene;
 
             scene.AddCommand(
-                "Comms", this, "image queues clear",
-                "image queues clear <first-name> <last-name>",
-                "Clear the image queues (textures downloaded via UDP) for a particular client.",
-                (mod, cmd) => MainConsole.Instance.Output(HandleImageQueuesClear(cmd)));
-
-            scene.AddCommand(
-                "Comms", this, "image queues show",
-                "image queues show <first-name> <last-name>",
-                "Show the image queues (textures downloaded via UDP) for a particular client.",
-                (mod, cmd) => MainConsole.Instance.Output(GetImageQueuesReport(cmd)));
-
-            scene.AddCommand(
                 "Comms", this, "show pqueues",
                 "show pqueues [full]",
                 "Show priority queue data for each client", 
@@ -105,8 +93,15 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "Comms", this, "show queues",
                 "show queues [full]",
                 "Show queue data for each client", 
-                "Without the 'full' option, only root agents are shown."
-                  + "  With the 'full' option child agents are also shown.",                                          
+                "Without the 'full' option, only root agents are shown.\n"
+                    + "With the 'full' option child agents are also shown.\n\n"
+                    + "Type          - Rt is a root (avatar) client whilst cd is a child (neighbour interacting) client.\n"
+                    + "Since Last In - Time in milliseconds since last packet received.\n"
+                    + "Pkts In       - Number of packets processed from the client.\n"
+                    + "Pkts Out      - Number of packets sent to the client.\n"
+                    + "Pkts Resent   - Number of packets resent to the client.\n"
+                    + "Bytes Unacked - Number of bytes transferred to the client that are awaiting acknowledgement.\n"
+                    + "Q Pkts *      - Number of packets of various types (land, wind, etc.) to be sent to the client that are waiting for available bandwidth.\n",
                 (mod, cmd) => MainConsole.Instance.Output(GetQueuesReport(cmd)));
 
             scene.AddCommand(
@@ -114,6 +109,12 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "show image queues <first-name> <last-name>",
                 "Show the image queues (textures downloaded via UDP) for a particular client.",
                 (mod, cmd) => MainConsole.Instance.Output(GetImageQueuesReport(cmd)));
+
+            scene.AddCommand(
+                "Comms", this, "clear image queues",
+                "clear image queues <first-name> <last-name>",
+                "Clear the image queues (textures downloaded via UDP) for a particular client.",
+                (mod, cmd) => MainConsole.Instance.Output(HandleImageQueuesClear(cmd)));
             
             scene.AddCommand(
                 "Comms", this, "show throttles",
@@ -373,17 +374,22 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             int maxNameLength = 18;                                    
             int maxRegionNameLength = 14;
             int maxTypeLength = 4;
-            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
+
+            int totalInfoFieldsLength
+                = maxNameLength + columnPadding
+                + maxRegionNameLength + columnPadding
+                + maxTypeLength + columnPadding;
                                     
             report.Append(GetColumnEntry("User", maxNameLength, columnPadding));
             report.Append(GetColumnEntry("Region", maxRegionNameLength, columnPadding));
             report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));
             
             report.AppendFormat(
-                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7}\n",
+                "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7} {12,7}\n",
+                "Since",
                 "Pkts",
                 "Pkts",
-                "Pkts",                                
+                "Pkts",
                 "Bytes",
                 "Q Pkts",
                 "Q Pkts",
@@ -396,7 +402,8 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
     
             report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
             report.AppendFormat(
-                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7}\n",
+                "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7} {12,7}\n",
+                "Last In",
                 "In",
                 "Out",
                 "Resent",
@@ -417,22 +424,22 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                     scene.ForEachClient(
                         delegate(IClientAPI client)
                         {
+                            bool isChild = client.SceneAgent.IsChildAgent;
+                            if (isChild && !showChildren)
+                                return;
+                    
+                            string name = client.Name;
+                            if (pname != "" && name != pname)
+                                return;
+
+                            string regionName = scene.RegionInfo.RegionName;
+
+                            report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
+                            report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
+                            report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));
+
                             if (client is IStatsCollector)
                             {
-                                bool isChild = client.SceneAgent.IsChildAgent;
-                                if (isChild && !showChildren)
-                                    return;
-                        
-                                string name = client.Name;
-                                if (pname != "" && name != pname)
-                                    return;
-
-                                string regionName = scene.RegionInfo.RegionName;
-                                
-                                report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
-                                report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
-                                report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));                                  
-
                                 IStatsCollector stats = (IStatsCollector)client;
                         
                                 report.AppendLine(stats.Report());
