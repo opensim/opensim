@@ -32,6 +32,7 @@ using System.Reflection;
 using log4net;
 using HttpServer;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
