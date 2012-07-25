@@ -48,14 +48,6 @@ public class BSConstraint : IDisposable
         m_world = world;
         m_body1 = obj1;
         m_body2 = obj2;
-        /*
-        BulletSimAPI.AddConstraint(world.ID, m_body1.ID, m_body2.ID, 
-                            frame1, frame1rot,
-                            frame2, frame2rot,
-                            linearLow, linearHigh,
-                            angularLow, angularHigh
-        );
-        */
         m_constraint = new BulletConstraint(BulletSimAPI.CreateConstraint2(m_world.Ptr, m_body1.Ptr, m_body2.Ptr,
                             frame1, frame1rot,
                             frame2, frame2rot));
