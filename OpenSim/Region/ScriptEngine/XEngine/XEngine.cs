@@ -646,7 +646,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             // If region ready has been triggered, then the region had no scripts to compile and completed its other
             // work.
-            m_Scene.EventManager.OnRegionReady += s => m_InitialStartup = false;
+            m_Scene.EventManager.OnRegionReadyStatusChange += s => { if (s.Ready) m_InitialStartup = false; };
 
             if (m_SleepTime > 0)
             {

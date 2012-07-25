@@ -513,8 +513,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// A region is considered ready when startup operations such as loading of scripts already on the region
         /// have been completed.
         /// </remarks>
-        public event RegionReady OnRegionReady;
-        public delegate void RegionReady(IScene scene);
+        public event Action<IScene> OnRegionReadyStatusChange;
 
         public delegate void PrimsLoaded(Scene s);
         public event PrimsLoaded OnPrimsLoaded;
@@ -2508,13 +2507,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerRegionReady(IScene scene)
+        public void TriggerRegionReadyStatusChange(IScene scene)
         {
-            RegionReady handler = OnRegionReady;
+            Action<IScene> handler = OnRegionReadyStatusChange;
 
             if (handler != null)
             {
-                foreach (RegionReady d in handler.GetInvocationList())
+                foreach (Action<IScene> d in handler.GetInvocationList())
                 {
                     try
                     {
@@ -2522,7 +2521,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for OnRegionReady failed - continuing {0} - {1}",
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for OnRegionReadyStatusChange failed - continuing {0} - {1}",
                             e.Message, e.StackTrace);
                     }
                 }

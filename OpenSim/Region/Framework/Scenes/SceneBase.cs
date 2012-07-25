@@ -124,6 +124,24 @@ namespace OpenSim.Region.Framework.Scenes
         }
         private bool m_loginsEnabled;
 
+        public bool Ready
+        {
+            get
+            {
+                return m_ready;
+            }
+
+            set
+            {
+                if (m_ready != value)
+                {
+                    m_ready = value;
+                    EventManager.TriggerRegionReadyStatusChange(this);
+                }
+            }
+        }
+        private bool m_ready;
+
         public float TimeDilation
         {
             get { return 1.0f; }

@@ -47,6 +47,48 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event RestartSim OnRestartSim;
 
+        /// <summary>
+        /// Fired when either all regions are ready for use or at least one region has become unready for use where
+        /// previously all regions were ready.
+        /// </summary>
+        public event Action<SceneManager> OnRegionsReadyStatusChange;
+
+        /// <summary>
+        /// Are all regions ready for use?
+        /// </summary>
+        public bool AllRegionsReady
+        {
+            get
+            {
+                return m_allRegionsReady;
+            }
+
+            private set
+            {
+                if (m_allRegionsReady != value)
+                {
+                    m_allRegionsReady = value;
+                    Action<SceneManager> handler = OnRegionsReadyStatusChange;
+                    if (handler != null)
+                    {
+                        foreach (Action<SceneManager> d in handler.GetInvocationList())
+                        {
+                            try
+                            {
+                                d(this);
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.ErrorFormat("[SCENE MANAGER]: Delegate for OnRegionsReadyStatusChange failed - continuing {0} - {1}",
+                                    e.Message, e.StackTrace);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        private bool m_allRegionsReady;
+
         private static SceneManager m_instance = null;
         public static SceneManager Instance
         { 
@@ -141,10 +183,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Add(Scene scene)
         {
-            scene.OnRestart += HandleRestart;
-
             lock (m_localScenes)
                 m_localScenes.Add(scene);
+
+            scene.OnRestart += HandleRestart;
+            scene.EventManager.OnRegionReadyStatusChange += HandleRegionReadyStatusChange;
         }
 
         public void HandleRestart(RegionInfo rdata)
@@ -173,6 +216,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Send signal to main that we're restarting this sim.
             OnRestartSim(rdata);
+        }
+
+        private void HandleRegionReadyStatusChange(IScene scene)
+        {
+            lock (m_localScenes)
+                AllRegionsReady = m_localScenes.TrueForAll(s => s.Ready);
         }
 
         public void SendSimOnlineNotification(ulong regionHandle)
