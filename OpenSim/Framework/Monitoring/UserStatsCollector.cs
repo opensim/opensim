@@ -27,7 +27,7 @@
 
 using System.Timers;
 
-namespace OpenSim.Framework.Statistics
+namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
     /// Collects user service statistics

@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Timers;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
-using OpenSim.Framework.Statistics;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes

@@ -42,7 +42,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Framework.Statistics;
+using OpenSim.Framework.Monitoring;
 using Timer=System.Timers.Timer;
 
 using OpenMetaverse;

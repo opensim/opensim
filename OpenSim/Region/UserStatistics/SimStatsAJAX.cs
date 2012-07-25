@@ -33,7 +33,7 @@ using System.Text;
 using Mono.Data.SqliteClient;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Framework.Statistics;
+using OpenSim.Framework.Monitoring;
 
 namespace OpenSim.Region.UserStatistics
 {

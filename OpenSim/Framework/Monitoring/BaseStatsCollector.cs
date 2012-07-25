@@ -31,8 +31,7 @@ using System.Text;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
-
-namespace OpenSim.Framework.Statistics
+namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
     /// Statistics which all collectors are interested in reporting
