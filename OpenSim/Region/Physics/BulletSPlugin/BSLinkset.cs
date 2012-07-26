@@ -50,7 +50,7 @@ public class BSLinkset
 
     // We keep the prim's mass in the linkset structure since it could be dependent on other prims
     private float m_mass;
-    public float Mass 
+    public float LinksetMass 
     { 
         get 
         {
@@ -150,10 +150,10 @@ public class BSLinkset
 
     private float ComputeLinksetMass()
     {
-        float mass = m_linksetRoot.Mass;
+        float mass = m_linksetRoot.MassRaw;
         foreach (BSPrim bp in m_children)
         {
-            mass += bp.Mass;
+            mass += bp.MassRaw;
         }
         return mass;
     }

@@ -289,7 +289,7 @@ public sealed class BSPrim : PhysicsActor
     { 
         get
         {
-            return _linkset.Mass;
+            return _linkset.LinksetMass;
         }
     }
 
