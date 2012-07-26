@@ -489,6 +489,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         internal Object OdeLock = new Object();
 
+        private bool _worldInitialized = false;
+
         public IMesher mesher;
 
         private IConfigSource m_config;
@@ -875,6 +877,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     staticPrimspace[i, j] = IntPtr.Zero;
                 }
             }
+
+            _worldInitialized = true;
         }
 
 //        internal void waitForSpaceUnlock(IntPtr space)
@@ -2896,6 +2900,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns>The number of frames simulated over that period.</returns>
         public override float Simulate(float timeStep)
         {
+            if (!_worldInitialized) return 11f;
+
             int startFrameTick = CollectStats ? Util.EnvironmentTickCount() : 0;
             int tempTick = 0, tempTick2 = 0;
 
@@ -4017,6 +4023,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void Dispose()
         {
+            _worldInitialized = false;
+
             m_rayCastManager.Dispose();
             m_rayCastManager = null;
 
@@ -4037,6 +4045,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.WorldDestroy(world);
                 //d.CloseODE();
             }
+
         }
 
         public override Dictionary<uint, float> GetTopColliders()
