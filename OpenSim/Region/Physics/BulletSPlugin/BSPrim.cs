@@ -97,6 +97,9 @@ public sealed class BSPrim : PhysicsActor
     long _collidingStep;
     long _collidingGroundStep;
 
+    private BulletBody m_body;
+    public BulletBody Body { get { return m_body; } }
+
     private BSDynamics _vehicle;
 
     private OMV.Vector3 _PIDTarget;
@@ -138,6 +141,11 @@ public sealed class BSPrim : PhysicsActor
         _scene.TaintedObject(delegate()
         {
             RecreateGeomAndObject();
+
+            // Get the pointer to the physical body for this object.
+            // At the moment, we're still letting BulletSim manage the creation and destruction
+            //    of the object. Someday we'll move that into the C# code.
+            m_body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID));
         });
     }
 
@@ -161,7 +169,7 @@ public sealed class BSPrim : PhysicsActor
                 _parentPrim = null;
             }
 
-            // make sure there are no possible children depending on me
+            // make sure there are no other prims linked to me
             UnlinkAllChildren();
 
             // everything in the C# world will get garbage collected. Tell the C++ world to free stuff.
@@ -333,11 +341,10 @@ public sealed class BSPrim : PhysicsActor
         _rotationalVelocity = OMV.Vector3.Zero;
 
         // Zero some other properties directly into the physics engine
-        IntPtr obj = BulletSimAPI.GetBodyHandleWorldID2(_scene.WorldID, LocalID);
-        BulletSimAPI.SetVelocity2(obj, OMV.Vector3.Zero);
-        BulletSimAPI.SetAngularVelocity2(obj, OMV.Vector3.Zero);
-        BulletSimAPI.SetInterpolation2(obj, OMV.Vector3.Zero, OMV.Vector3.Zero);
-        BulletSimAPI.ClearForces2(obj);
+        BulletSimAPI.SetVelocity2(Body.Ptr, OMV.Vector3.Zero);
+        BulletSimAPI.SetAngularVelocity2(Body.Ptr, OMV.Vector3.Zero);
+        BulletSimAPI.SetInterpolation2(Body.Ptr, OMV.Vector3.Zero, OMV.Vector3.Zero);
+        BulletSimAPI.ClearForces2(Body.Ptr);
     }
 
     public override void LockAngularMotion(OMV.Vector3 axis)
@@ -383,7 +390,8 @@ public sealed class BSPrim : PhysicsActor
             _scene.TaintedObject(delegate()
             {
                 DetailLog("{0},SetForce,taint,force={1}", LocalID, _force);
-                BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
+                // BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
+                BulletSimAPI.SetObjectForce2(Body.Ptr, _force);
             });
         } 
     }
@@ -407,8 +415,7 @@ public sealed class BSPrim : PhysicsActor
                     _scene.TaintedObject(delegate()
                     {
                         // Tell the physics engine to clear state
-                        IntPtr obj = BulletSimAPI.GetBodyHandleWorldID2(_scene.WorldID, LocalID);
-                        BulletSimAPI.ClearForces2(obj);
+                        BulletSimAPI.ClearForces2(this.Body.Ptr);
                     });
 
                     // make it so the scene will call us each tick to do vehicle things
@@ -420,7 +427,6 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void VehicleFloatParam(int param, float value) 
     {
-        m_log.DebugFormat("{0} VehicleFloatParam. {1} <= {2}", LogHeader, param, value);
         _scene.TaintedObject(delegate()
         {
             _vehicle.ProcessFloatVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
@@ -428,7 +434,6 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void VehicleVectorParam(int param, OMV.Vector3 value) 
     {
-        m_log.DebugFormat("{0} VehicleVectorParam. {1} <= {2}", LogHeader, param, value);
         _scene.TaintedObject(delegate()
         {
             _vehicle.ProcessVectorVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
@@ -436,7 +441,6 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void VehicleRotationParam(int param, OMV.Quaternion rotation) 
     {
-        m_log.DebugFormat("{0} VehicleRotationParam. {1} <= {2}", LogHeader, param, rotation);
         _scene.TaintedObject(delegate()
         {
             _vehicle.ProcessRotationVehicleParam((Vehicle)param, rotation);
@@ -444,7 +448,6 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void VehicleFlags(int param, bool remove) 
     {
-        m_log.DebugFormat("{0} VehicleFlags. {1}. Remove={2}", LogHeader, param, remove);
         _scene.TaintedObject(delegate()
         {
             _vehicle.ProcessVehicleFlags(param, remove);
@@ -1292,11 +1295,10 @@ public sealed class BSPrim : PhysicsActor
     // relative to each other.
     void CreateLinkset()
     {
-        DebugLog("{0}: CreateLinkset. Root prim={1}, prims={2}", LogHeader, LocalID, _childrenPrims.Count+1);
+        // DebugLog("{0}: CreateLinkset. Root prim={1}, prims={2}", LogHeader, LocalID, _childrenPrims.Count+1);
 
         // remove any constraints that might be in place
-        DebugLog("{0}: CreateLinkset: RemoveConstraints between me and any children", LogHeader, LocalID);
-        BulletSimAPI.RemoveConstraintByID(_scene.WorldID, LocalID);
+        UnlinkAllChildren();
 
         // create constraints between the root prim and each of the children
         foreach (BSPrim prim in _childrenPrims)
@@ -1321,15 +1323,25 @@ public sealed class BSPrim : PhysicsActor
 
         // create a constraint that allows no freedom of movement between the two objects
         // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
-        DebugLog("{0}: CreateLinkset: Adding a constraint between root prim {1} and child prim {2}", LogHeader, LocalID, childPrim.LocalID);
+        // DebugLog("{0}: CreateLinkset: Adding a constraint between root prim {1} and child prim {2}", LogHeader, LocalID, childPrim.LocalID);
         DetailLog("{0},LinkAChildToMe,taint,root={1},child={2}", LocalID, LocalID, childPrim.LocalID);
-        BulletSimAPI.AddConstraint(_scene.WorldID, LocalID, childPrim.LocalID, 
-            childRelativePosition,
-            childRelativeRotation,
-            OMV.Vector3.Zero,
-            OMV.Quaternion.Identity,
-            OMV.Vector3.Zero, OMV.Vector3.Zero,
-            OMV.Vector3.Zero, OMV.Vector3.Zero);
+        BSConstraint constrain = _scene.Constraints.CreateConstraint(
+                        _scene.World, this.Body, childPrim.Body,
+                        childRelativePosition,
+                        childRelativeRotation,
+                        OMV.Vector3.Zero,
+                        OMV.Quaternion.Identity);
+        constrain.SetLinearLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
+        constrain.SetAngularLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
+
+        // tweek the constraint to increase stability
+        constrain.UseFrameOffset(_scene.BoolNumeric(_scene.Params.linkConstraintUseFrameOffset));
+        if (_scene.BoolNumeric(_scene.Params.linkConstraintEnableTransMotor))
+        {
+            constrain.TranslationalLimitMotor(true, 
+                            _scene.Params.linkConstraintTransMotorMaxVel,
+                            _scene.Params.linkConstraintTransMotorMaxForce);
+        }
     }
 
     // Remove linkage between myself and a particular child
@@ -1339,7 +1351,8 @@ public sealed class BSPrim : PhysicsActor
         DebugLog("{0}: UnlinkAChildFromMe: RemoveConstraint between root prim {1} and child prim {2}", 
                     LogHeader, LocalID, childPrim.LocalID);
         DetailLog("{0},UnlinkAChildFromMe,taint,root={1},child={2}", LocalID, LocalID, childPrim.LocalID);
-        BulletSimAPI.RemoveConstraint(_scene.WorldID, LocalID, childPrim.LocalID);
+        // BulletSimAPI.RemoveConstraint(_scene.WorldID, LocalID, childPrim.LocalID);
+        _scene.Constraints.RemoveAndDestroyConstraint(this.Body, childPrim.Body);
     }
 
     // Remove linkage between myself and any possible children I might have
@@ -1348,7 +1361,8 @@ public sealed class BSPrim : PhysicsActor
     {
         DebugLog("{0}: UnlinkAllChildren:", LogHeader);
         DetailLog("{0},UnlinkAllChildren,taint", LocalID);
-        BulletSimAPI.RemoveConstraintByID(_scene.WorldID, LocalID);
+        _scene.Constraints.RemoveAndDestroyConstraint(this.Body);
+        // BulletSimAPI.RemoveConstraintByID(_scene.WorldID, LocalID);
     }
 
     #endregion // Linkset creation and destruction
