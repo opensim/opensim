@@ -1222,6 +1222,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_sceneGraph.Close();
 
+            if (PhysicsScene != null)
+            {
+                PhysicsScene phys = PhysicsScene;
+                // remove the physics engine from both Scene and SceneGraph
+                PhysicsScene = null;
+                phys.Dispose();
+                phys = null;
+            }
+
             if (!GridService.DeregisterRegion(RegionInfo.RegionID))
                 m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
 
