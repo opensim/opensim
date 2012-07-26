@@ -73,7 +73,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS SCENE]";
 
-    private void DebugLog(string mm, params Object[] xx) { if (shouldDebugLog) m_log.DebugFormat(mm, xx); }
+    public void DebugLog(string mm, params Object[] xx) { if (shouldDebugLog) m_log.DebugFormat(mm, xx); }
 
     public string BulletSimVersion = "?";
 
@@ -86,6 +86,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private float m_waterLevel;
     private uint m_worldID;
     public uint WorldID { get { return m_worldID; } }
+
+    // let my minuions use my logger
+    public ILog Logger { get { return m_log; } }
 
     private bool m_initialized = false;
 
@@ -1026,7 +1029,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,p,l,v) => { s.m_params[0].numberOfSolverIterations = v; } ),
 
 	    new ParameterDefn("LinkConstraintUseFrameOffset", "For linksets built with constraints, enable frame offsetFor linksets built with constraints, enable frame offset.",
-            ConfigurationParameters.numericTrue,
+            ConfigurationParameters.numericFalse,
             (s,cf,p,v) => { s.m_params[0].linkConstraintUseFrameOffset = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
             (s) => { return s.m_params[0].linkConstraintUseFrameOffset; },
             (s,p,l,v) => { s.m_params[0].linkConstraintUseFrameOffset = v; } ),

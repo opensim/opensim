@@ -239,10 +239,10 @@ public static extern bool DestroyMesh(uint worldID, System.UInt64 meshKey);
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool CreateObject(uint worldID, ShapeData shapeData);
 
+/*  Remove old functionality
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void CreateLinkset(uint worldID, int objectCount, ShapeData[] shapeDatas);
 
-/*  Remove old functionality
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void AddConstraint(uint worldID, uint id1, uint id2, 
                         Vector3 frame1, Quaternion frame1rot,
