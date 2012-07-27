@@ -3242,8 +3242,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     ((LSL_Api)m_LSL_Api).llSay(0, string.Format("Unable to attach, item '{0}' is not an object.", itemName));
 
                 throw new Exception(String.Format("The inventory item '{0}' is not an object", itemName));
-
-                return;
             }
 
             ScenePresence sp = World.GetScenePresence(avatarId);
