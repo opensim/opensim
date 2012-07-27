@@ -3286,5 +3286,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID test;
             return UUID.TryParse(thing, out test) ? 1 : 0;
         }
+
+        /// <summary>
+        /// Wraps to Math.Min()
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public LSL_Float osMin(double a, double b)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osMin");
+            m_host.AddScriptLPS(1);
+
+            return Math.Min(a, b);
+        }
+
+        /// <summary>
+        /// Wraps to Math.max()
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public LSL_Float osMax(double a, double b)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osMax");
+            m_host.AddScriptLPS(1);
+
+            return Math.Max(a, b);
+        }
     }
 }

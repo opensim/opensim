@@ -935,5 +935,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osIsUUID(thing);
         }
+
+        public LSL_Float osMin(double a, double b)
+        {
+            return m_OSSL_Functions.osMin(a, b);
+        }
+
+        public LSL_Float osMax(double a, double b)
+        {
+            return m_OSSL_Functions.osMax(a, b);
+        }
     }
 }
