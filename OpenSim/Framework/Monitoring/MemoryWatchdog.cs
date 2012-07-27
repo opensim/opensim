@@ -89,7 +89,7 @@ namespace OpenSim.Framework.Monitoring
         /// <summary>
         /// Memory churn rate per millisecond.
         /// </summary>
-        private static double m_churnRatePerMillisecond;
+//        private static double m_churnRatePerMillisecond;
 
         /// <summary>
         /// Historical samples for calculating moving average.
