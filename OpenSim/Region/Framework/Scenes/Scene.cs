@@ -1199,14 +1199,16 @@ namespace OpenSim.Region.Framework.Scenes
                                      avatar.ControllingClient.SendShutdownConnectionNotice();
                                  });
 
+            // Stop updating the scene objects and agents.
+            m_shuttingDown = true;
+
             // Wait here, or the kick messages won't actually get to the agents before the scene terminates.
+            // We also need to wait to avoid a race condition with the scene update loop which might not yet
+            // have checked ShuttingDown.
             Thread.Sleep(500);
 
             // Stop all client threads.
             ForEachScenePresence(delegate(ScenePresence avatar) { avatar.ControllingClient.Close(); });
-
-            // Stop updating the scene objects and agents.
-            m_shuttingDown = true;
 
             m_log.Debug("[SCENE]: Persisting changed objects");
             EventManager.TriggerSceneShuttingDown(this);
