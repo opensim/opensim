@@ -290,7 +290,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private readonly IntPtr contactgroup;
 
-        internal IntPtr LandGeom;
         internal IntPtr WaterGeom;
 
         private float nmTerrainContactFriction = 255.0f;
@@ -1512,8 +1511,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f)
                         && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f)
-                        && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f))
-                        && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                        && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)))
                     {
                         if (Math.Abs(contact.depth - contactGeom.depth) < 0.052f)
                         {
@@ -1542,7 +1540,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //d.GeomGetAABB(contactGeom.g2, out aabb2);
                     //d.GeomGetAABB(contactGeom.g1, out aabb1);
                     //aabb1.
-                    if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)) && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                    if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)))
                     {
                         if (contactGeom.normal.X == contact.normal.X && contactGeom.normal.Y == contact.normal.Y && contactGeom.normal.Z == contact.normal.Z)
                         {
