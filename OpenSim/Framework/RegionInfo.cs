@@ -480,9 +480,16 @@ namespace OpenSim.Framework
                 MainConsole.Instance.Output("=====================================\n");
 
                 if (name == String.Empty)
-                    name = MainConsole.Instance.CmdPrompt("New region name", name);
-                if (name == String.Empty)
-                    throw new Exception("Cannot interactively create region with no name");
+                {
+                    while (name.Trim() == string.Empty)
+                    {
+                        name = MainConsole.Instance.CmdPrompt("New region name", name);
+                        if (name.Trim() == string.Empty)
+                        {
+                            MainConsole.Instance.Output("Cannot interactively create region with no name");
+                        }
+                    }
+                }
 
                 source.AddConfig(name);
 
@@ -513,15 +520,20 @@ namespace OpenSim.Framework
             //
             allKeys.Remove("RegionUUID");
             string regionUUID = config.GetString("RegionUUID", string.Empty);
-            if (regionUUID == String.Empty)
+            if (!UUID.TryParse(regionUUID.Trim(), out RegionID))
             {
                 UUID newID = UUID.Random();
-
-                regionUUID = MainConsole.Instance.CmdPrompt("RegionUUID", newID.ToString());
+                while (RegionID == UUID.Zero)
+                {
+                    regionUUID = MainConsole.Instance.CmdPrompt("RegionUUID", newID.ToString());
+                    if (!UUID.TryParse(regionUUID.Trim(), out RegionID))
+                    {
+                        MainConsole.Instance.Output("RegionUUID must be a valid UUID");
+                    }
+                }
                 config.Set("RegionUUID", regionUUID);
             }
 
-            RegionID = new UUID(regionUUID);
             originRegionID = RegionID; // What IS this?! (Needed for RegionCombinerModule?)
 
             // Location
