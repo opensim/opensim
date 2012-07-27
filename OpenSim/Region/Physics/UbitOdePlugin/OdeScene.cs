@@ -1027,7 +1027,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     {
                                         d.AABB aabb;
                                         d.GeomGetAABB(g2, out aabb);
-                                        float tmp = vtmp.Z - sz * .25f;
+                                        float tmp = vtmp.Z - sz * .18f;
 
                                         if (aabb.MaxZ < tmp)
                                         {
@@ -1057,7 +1057,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     {
                                         d.AABB aabb;
                                         d.GeomGetAABB(g1, out aabb);
-                                        float tmp = vtmp.Z - sz * .25f;
+                                        float tmp = vtmp.Z - sz * .18f;
 
                                         if (aabb.MaxZ < tmp)
                                         {
