@@ -71,6 +71,14 @@ namespace OpenSim.Framework
         /// </summary>
         bool LoginsEnabled { get; set; }
 
+        /// <summary>
+        /// Is this region ready for use?
+        /// </summary>
+        /// <remarks>
+        /// This does not mean that logins are enabled, merely that they can be.
+        /// </remarks>
+        bool Ready { get; set; }
+
         float TimeDilation { get; }
 
         bool AllowScriptCrossings { get; }

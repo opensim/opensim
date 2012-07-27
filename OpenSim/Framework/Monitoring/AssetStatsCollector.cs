@@ -28,7 +28,7 @@
 using System;
 using System.Timers;
 
-namespace OpenSim.Framework.Statistics
+namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
     /// Asset service statistics collection

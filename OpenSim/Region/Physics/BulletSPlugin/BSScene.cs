@@ -73,7 +73,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS SCENE]";
 
-    private void DebugLog(string mm, params Object[] xx) { if (shouldDebugLog) m_log.DebugFormat(mm, xx); }
+    public void DebugLog(string mm, params Object[] xx) { if (shouldDebugLog) m_log.DebugFormat(mm, xx); }
 
     public string BulletSimVersion = "?";
 
@@ -86,6 +86,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private float m_waterLevel;
     private uint m_worldID;
     public uint WorldID { get { return m_worldID; } }
+
+    // let my minuions use my logger
+    public ILog Logger { get { return m_log; } }
 
     private bool m_initialized = false;
 
@@ -101,6 +104,17 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public float SculptLOD
     {
         get { return m_sculptLOD; }
+    }
+
+    private BulletSim m_worldSim;
+    public BulletSim World
+    {
+        get { return m_worldSim; }
+    }
+    private BSConstraintCollection m_constraintCollection;
+    public BSConstraintCollection Constraints
+    { 
+        get { return m_constraintCollection; }
     }
 
     private int m_maxSubSteps;
@@ -229,6 +243,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                                         m_maxCollisionsPerFrame, m_collisionArrayPinnedHandle.AddrOfPinnedObject(),
                                         m_maxUpdatesPerFrame, m_updateArrayPinnedHandle.AddrOfPinnedObject());
 
+        // Initialization to support the transition to a new API which puts most of the logic
+        //   into the C# code so it is easier to modify and add to.
+        m_worldSim = new BulletSim(m_worldID, BulletSimAPI.GetSimHandle2(m_worldID));
+        m_constraintCollection = new BSConstraintCollection(World);
+
         m_initialized = true;
     }
 
@@ -237,116 +256,17 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private void GetInitialParameterValues(IConfigSource config)
     {
         ConfigurationParameters parms = new ConfigurationParameters();
+        m_params[0] = parms;
 
-        _meshSculptedPrim = true;           // mesh sculpted prims
-        _forceSimplePrimMeshing = false;    // use complex meshing if called for
-
-        m_meshLOD = 8f;
-        m_sculptLOD = 32f;
-
-        shouldDebugLog = false;
-        m_detailedStatsStep = 0;            // disabled
-
-        m_maxSubSteps = 10;
-        m_fixedTimeStep = 1f / 60f;
-        m_maxCollisionsPerFrame = 2048;
-        m_maxUpdatesPerFrame = 2048;
-        m_maximumObjectMass = 10000.01f;
-
-        PID_D = 2200f;
-        PID_P = 900f;
-
-        parms.defaultFriction = 0.5f;
-        parms.defaultDensity = 10.000006836f; // Aluminum g/cm3
-        parms.defaultRestitution = 0f;
-        parms.collisionMargin = 0.0f;
-        parms.gravity = -9.80665f;
-
-        parms.linearDamping = 0.0f;
-        parms.angularDamping = 0.0f;
-        parms.deactivationTime = 0.2f;
-        parms.linearSleepingThreshold = 0.8f;
-        parms.angularSleepingThreshold = 1.0f;
-        parms.ccdMotionThreshold = 0.0f;    // set to zero to disable
-        parms.ccdSweptSphereRadius = 0.0f;
-        parms.contactProcessingThreshold = 0.1f;
-
-        parms.terrainFriction = 0.5f;
-        parms.terrainHitFraction = 0.8f;
-        parms.terrainRestitution = 0f;
-        parms.avatarFriction = 0.5f;
-        parms.avatarRestitution = 0.0f;
-        parms.avatarDensity = 60f;
-        parms.avatarCapsuleRadius = 0.37f;
-        parms.avatarCapsuleHeight = 1.5f; // 2.140599f
-    	parms.avatarContactProcessingThreshold = 0.1f;
-
-    	parms.maxPersistantManifoldPoolSize = 0f;
-    	parms.shouldDisableContactPoolDynamicAllocation = ConfigurationParameters.numericTrue;
-    	parms.shouldForceUpdateAllAabbs = ConfigurationParameters.numericFalse;
-    	parms.shouldRandomizeSolverOrder = ConfigurationParameters.numericFalse;
-    	parms.shouldSplitSimulationIslands = ConfigurationParameters.numericFalse;
-    	parms.shouldEnableFrictionCaching = ConfigurationParameters.numericFalse;
-    	parms.numberOfSolverIterations = 0f;    // means use default
+        SetParameterDefaultValues();
 
         if (config != null)
         {
             // If there are specifications in the ini file, use those values
-            // WHEN ADDING OR UPDATING THIS SECTION, BE SURE TO UPDATE OpenSimDefaults.ini
-            // ALSO REMEMBER TO UPDATE THE RUNTIME SETTING OF THE PARAMETERS.
             IConfig pConfig = config.Configs["BulletSim"];
             if (pConfig != null)
             {
-                _meshSculptedPrim = pConfig.GetBoolean("MeshSculptedPrim", _meshSculptedPrim);
-                _forceSimplePrimMeshing = pConfig.GetBoolean("ForceSimplePrimMeshing", _forceSimplePrimMeshing);
-
-                shouldDebugLog = pConfig.GetBoolean("ShouldDebugLog", shouldDebugLog);
-                m_detailedStatsStep = pConfig.GetInt("DetailedStatsStep", m_detailedStatsStep);
-
-                m_meshLOD = pConfig.GetFloat("MeshLevelOfDetail", m_meshLOD);
-                m_sculptLOD = pConfig.GetFloat("SculptLevelOfDetail", m_sculptLOD);
-
-                m_maxSubSteps = pConfig.GetInt("MaxSubSteps", m_maxSubSteps);
-                m_fixedTimeStep = pConfig.GetFloat("FixedTimeStep", m_fixedTimeStep);
-                m_maxCollisionsPerFrame = pConfig.GetInt("MaxCollisionsPerFrame", m_maxCollisionsPerFrame);
-                m_maxUpdatesPerFrame = pConfig.GetInt("MaxUpdatesPerFrame", m_maxUpdatesPerFrame);
-                m_maximumObjectMass = pConfig.GetFloat("MaxObjectMass", m_maximumObjectMass);
-
-                PID_D = pConfig.GetFloat("PIDDerivative", PID_D);
-                PID_P = pConfig.GetFloat("PIDProportional", PID_P);
-
-                parms.defaultFriction = pConfig.GetFloat("DefaultFriction", parms.defaultFriction);
-                parms.defaultDensity = pConfig.GetFloat("DefaultDensity", parms.defaultDensity);
-                parms.defaultRestitution = pConfig.GetFloat("DefaultRestitution", parms.defaultRestitution);
-                parms.collisionMargin = pConfig.GetFloat("CollisionMargin", parms.collisionMargin);
-                parms.gravity = pConfig.GetFloat("Gravity", parms.gravity);
-
-                parms.linearDamping = pConfig.GetFloat("LinearDamping", parms.linearDamping);
-                parms.angularDamping = pConfig.GetFloat("AngularDamping", parms.angularDamping);
-                parms.deactivationTime = pConfig.GetFloat("DeactivationTime", parms.deactivationTime);
-                parms.linearSleepingThreshold = pConfig.GetFloat("LinearSleepingThreshold", parms.linearSleepingThreshold);
-                parms.angularSleepingThreshold = pConfig.GetFloat("AngularSleepingThreshold", parms.angularSleepingThreshold);
-                parms.ccdMotionThreshold = pConfig.GetFloat("CcdMotionThreshold", parms.ccdMotionThreshold);
-                parms.ccdSweptSphereRadius = pConfig.GetFloat("CcdSweptSphereRadius", parms.ccdSweptSphereRadius);
-                parms.contactProcessingThreshold = pConfig.GetFloat("ContactProcessingThreshold", parms.contactProcessingThreshold);
-
-                parms.terrainFriction = pConfig.GetFloat("TerrainFriction", parms.terrainFriction);
-                parms.terrainHitFraction = pConfig.GetFloat("TerrainHitFraction", parms.terrainHitFraction);
-                parms.terrainRestitution = pConfig.GetFloat("TerrainRestitution", parms.terrainRestitution);
-                parms.avatarFriction = pConfig.GetFloat("AvatarFriction", parms.avatarFriction);
-                parms.avatarRestitution = pConfig.GetFloat("AvatarRestitution", parms.avatarRestitution);
-                parms.avatarDensity = pConfig.GetFloat("AvatarDensity", parms.avatarDensity);
-                parms.avatarCapsuleRadius = pConfig.GetFloat("AvatarCapsuleRadius", parms.avatarCapsuleRadius);
-                parms.avatarCapsuleHeight = pConfig.GetFloat("AvatarCapsuleHeight", parms.avatarCapsuleHeight);
-                parms.avatarContactProcessingThreshold = pConfig.GetFloat("AvatarContactProcessingThreshold", parms.avatarContactProcessingThreshold);
-
-                parms.maxPersistantManifoldPoolSize = pConfig.GetFloat("MaxPersistantManifoldPoolSize", parms.maxPersistantManifoldPoolSize);
-                parms.shouldDisableContactPoolDynamicAllocation = ParamBoolean(pConfig, "ShouldDisableContactPoolDynamicAllocation", parms.shouldDisableContactPoolDynamicAllocation);
-	            parms.shouldForceUpdateAllAabbs = ParamBoolean(pConfig, "ShouldForceUpdateAllAabbs", parms.shouldForceUpdateAllAabbs);
-	            parms.shouldRandomizeSolverOrder = ParamBoolean(pConfig, "ShouldRandomizeSolverOrder", parms.shouldRandomizeSolverOrder);
-	            parms.shouldSplitSimulationIslands = ParamBoolean(pConfig, "ShouldSplitSimulationIslands", parms.shouldSplitSimulationIslands);
-	            parms.shouldEnableFrictionCaching = ParamBoolean(pConfig, "ShouldEnableFrictionCaching", parms.shouldEnableFrictionCaching);
-	            parms.numberOfSolverIterations = pConfig.GetFloat("NumberOfSolverIterations", parms.numberOfSolverIterations);
+                SetParameterConfigurationValues(pConfig);
 
                 // Very detailed logging for physics debugging
                 m_physicsLoggingEnabled = pConfig.GetBoolean("PhysicsLoggingEnabled", false);
@@ -357,7 +277,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 m_vehicleLoggingEnabled = pConfig.GetBoolean("VehicleLoggingEnabled", false);
             }
         }
-        m_params[0] = parms;
     }
 
     // A helper function that handles a true/false parameter and returns the proper float number encoding
@@ -634,6 +553,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // make sure no stepping happens while we're deleting stuff
         m_initialized = false;
 
+        if (m_constraintCollection != null)
+        {
+            m_constraintCollection.Dispose();
+            m_constraintCollection = null;
+        }
+
         foreach (KeyValuePair<uint, BSCharacter> kvp in m_avatars)
         {
             kvp.Value.Destroy();
@@ -776,10 +701,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     // The calls to the PhysicsActors can't directly call into the physics engine
-    // because it might be busy. We we delay changes to a known time.
+    // because it might be busy. We delay changes to a known time.
     // We rely on C#'s closure to save and restore the context for the delegate.
     public void TaintedObject(TaintCallback callback)
     {
+        if (!m_initialized) return;
+
         lock (_taintLock)
             _taintedObjects.Add(callback);
         return;
@@ -853,61 +780,371 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
     #endregion Vehicles
 
-    #region Runtime settable parameters
-    public static PhysParameterEntry[] SettableParameters = new PhysParameterEntry[]
+    #region Parameters
+
+    delegate void ParamUser(BSScene scene, IConfig conf, string paramName, float val);
+    delegate float ParamGet(BSScene scene);
+    delegate void ParamSet(BSScene scene, string paramName, uint localID, float val);
+
+    private struct ParameterDefn
     {
-        new PhysParameterEntry("MeshLOD", "Level of detail to render meshes (32, 16, 8 or 4. 32=most detailed)"),
-        new PhysParameterEntry("SculptLOD", "Level of detail to render sculpties (32, 16, 8 or 4. 32=most detailed)"),
-        new PhysParameterEntry("MaxSubStep", "In simulation step, maximum number of substeps"),
-        new PhysParameterEntry("FixedTimeStep", "In simulation step, seconds of one substep (1/60)"),
-        new PhysParameterEntry("MaxObjectMass", "Maximum object mass (10000.01)"),
-        new PhysParameterEntry("DetailedStats", "Frames between outputting detailed phys stats. Zero is off"),
+        public string name;
+        public string desc;
+        public float defaultValue;
+        public ParamUser userParam;
+        public ParamGet getter;
+        public ParamSet setter;
+        public ParameterDefn(string n, string d, float v, ParamUser u, ParamGet g, ParamSet s)
+        {
+            name = n;
+            desc = d;
+            defaultValue = v;
+            userParam = u;
+            getter = g;
+            setter = s;
+        }
+    }
 
-        new PhysParameterEntry("DefaultFriction", "Friction factor used on new objects"),
-        new PhysParameterEntry("DefaultDensity", "Density for new objects" ),
-        new PhysParameterEntry("DefaultRestitution", "Bouncyness of an object" ),
-        // new PhysParameterEntry("CollisionMargin", "Margin around objects before collisions are calculated (must be zero!!)" ),
-        new PhysParameterEntry("Gravity", "Vertical force of gravity (negative means down)" ),
+    // List of all of the externally visible parameters.
+    // For each parameter, this table maps a text name to getter and setters.
+    // A ParameterDefn() takes the following parameters:
+    //    -- the text name of the parameter. This is used for console input and ini file.
+    //    -- a short text description of the parameter. This shows up in the console listing.
+    //    -- a delegate for fetching the parameter from the ini file.
+    //          Should handle fetching the right type from the ini file and converting it.
+    //    -- a delegate for getting the value as a float
+    //    -- a delegate for setting the value from a float
+    //
+    // To add a new variable, it is best to find an existing definition and copy it.
+    private ParameterDefn[] ParameterDefinitions =
+    {
+        new ParameterDefn("MeshSculptedPrim", "Whether to create meshes for sculpties",
+            ConfigurationParameters.numericTrue,
+            (s,cf,p,v) => { s._meshSculptedPrim = cf.GetBoolean(p, s.BoolNumeric(v)); },
+            (s) => { return s.NumericBool(s._meshSculptedPrim); },
+            (s,p,l,v) => { s._meshSculptedPrim = s.BoolNumeric(v); } ),
+        new ParameterDefn("ForceSimplePrimMeshing", "If true, only use primitive meshes for objects",
+            ConfigurationParameters.numericFalse,
+            (s,cf,p,v) => { s._forceSimplePrimMeshing = cf.GetBoolean(p, s.BoolNumeric(v)); },
+            (s) => { return s.NumericBool(s._forceSimplePrimMeshing); },
+            (s,p,l,v) => { s._forceSimplePrimMeshing = s.BoolNumeric(v); } ),
 
-        new PhysParameterEntry("LinearDamping", "Factor to damp linear movement per second (0.0 - 1.0)" ),
-        new PhysParameterEntry("AngularDamping", "Factor to damp angular movement per second (0.0 - 1.0)" ),
-        new PhysParameterEntry("DeactivationTime", "Seconds before considering an object potentially static" ),
-        new PhysParameterEntry("LinearSleepingThreshold", "Seconds to measure linear movement before considering static" ),
-        new PhysParameterEntry("AngularSleepingThreshold", "Seconds to measure angular movement before considering static" ),
-        new PhysParameterEntry("CcdMotionThreshold", "Continuious collision detection threshold (0 means no CCD)" ),
-        new PhysParameterEntry("CcdSweptSphereRadius", "Continuious collision detection test radius" ),
-        new PhysParameterEntry("ContactProcessingThreshold", "Distance between contacts before doing collision check" ),
-        // Can only change the following at initialization time. Change the INI file and reboot.
-	    new PhysParameterEntry("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default)"),
-	    new PhysParameterEntry("ShouldDisableContactPoolDynamicAllocation", "Enable to allow large changes in object count"),
-	    new PhysParameterEntry("ShouldForceUpdateAllAabbs", "Enable to recomputer AABBs every simulator step"),
-	    new PhysParameterEntry("ShouldRandomizeSolverOrder", "Enable for slightly better stacking interaction"),
-	    new PhysParameterEntry("ShouldSplitSimulationIslands", "Enable splitting active object scanning islands"),
-	    new PhysParameterEntry("ShouldEnableFrictionCaching", "Enable friction computation caching"),
-	    new PhysParameterEntry("NumberOfSolverIterations", "Number of internal iterations (0 means default)"),
+        new ParameterDefn("MeshLOD", "Level of detail to render meshes (32, 16, 8 or 4. 32=most detailed)",
+            8f,
+            (s,cf,p,v) => { s.m_meshLOD = cf.GetInt(p, (int)v); },
+            (s) => { return (float)s.m_meshLOD; },
+            (s,p,l,v) => { s.m_meshLOD = (int)v; } ),
+        new ParameterDefn("SculptLOD", "Level of detail to render sculpties (32, 16, 8 or 4. 32=most detailed)",
+            32,
+            (s,cf,p,v) => { s.m_sculptLOD = cf.GetInt(p, (int)v); },
+            (s) => { return (float)s.m_sculptLOD; },
+            (s,p,l,v) => { s.m_sculptLOD = (int)v; } ),
 
-        new PhysParameterEntry("Friction", "Set friction parameter for a specific object" ),
-        new PhysParameterEntry("Restitution", "Set restitution parameter for a specific object" ),
+        new ParameterDefn("MaxSubStep", "In simulation step, maximum number of substeps",
+            10f,
+            (s,cf,p,v) => { s.m_maxSubSteps = cf.GetInt(p, (int)v); },
+            (s) => { return (float)s.m_maxSubSteps; },
+            (s,p,l,v) => { s.m_maxSubSteps = (int)v; } ),
+        new ParameterDefn("FixedTimeStep", "In simulation step, seconds of one substep (1/60)",
+            1f / 60f,
+            (s,cf,p,v) => { s.m_fixedTimeStep = cf.GetFloat(p, v); },
+            (s) => { return (float)s.m_fixedTimeStep; },
+            (s,p,l,v) => { s.m_fixedTimeStep = v; } ),
+        new ParameterDefn("MaxCollisionsPerFrame", "Max collisions returned at end of each frame",
+            2048f,
+            (s,cf,p,v) => { s.m_maxCollisionsPerFrame = cf.GetInt(p, (int)v); },
+            (s) => { return (float)s.m_maxCollisionsPerFrame; },
+            (s,p,l,v) => { s.m_maxCollisionsPerFrame = (int)v; } ),
+        new ParameterDefn("MaxUpdatesPerFrame", "Max updates returned at end of each frame",
+            8000f,
+            (s,cf,p,v) => { s.m_maxUpdatesPerFrame = cf.GetInt(p, (int)v); },
+            (s) => { return (float)s.m_maxUpdatesPerFrame; },
+            (s,p,l,v) => { s.m_maxUpdatesPerFrame = (int)v; } ),
+        new ParameterDefn("MaxObjectMass", "Maximum object mass (10000.01)",
+            10000.01f,
+            (s,cf,p,v) => { s.m_maximumObjectMass = cf.GetFloat(p, v); },
+            (s) => { return (float)s.m_maximumObjectMass; },
+            (s,p,l,v) => { s.m_maximumObjectMass = v; } ),
 
-        new PhysParameterEntry("Friction", "Set friction parameter for a specific object" ),
-        new PhysParameterEntry("Restitution", "Set restitution parameter for a specific object" ),
+        new ParameterDefn("PID_D", "Derivitive factor for motion smoothing",
+            2200f,
+            (s,cf,p,v) => { s.PID_D = cf.GetFloat(p, v); },
+            (s) => { return (float)s.PID_D; },
+            (s,p,l,v) => { s.PID_D = v; } ),
+        new ParameterDefn("PID_P", "Parameteric factor for motion smoothing",
+            900f,
+            (s,cf,p,v) => { s.PID_P = cf.GetFloat(p, v); },
+            (s) => { return (float)s.PID_P; },
+            (s,p,l,v) => { s.PID_P = v; } ),
 
-        new PhysParameterEntry("TerrainFriction", "Factor to reduce movement against terrain surface" ),
-        new PhysParameterEntry("TerrainHitFraction", "Distance to measure hit collisions" ),
-        new PhysParameterEntry("TerrainRestitution", "Bouncyness" ),
-        new PhysParameterEntry("AvatarFriction", "Factor to reduce movement against an avatar. Changed on avatar recreation." ),
-        new PhysParameterEntry("AvatarDensity", "Density of an avatar. Changed on avatar recreation." ),
-        new PhysParameterEntry("AvatarRestitution", "Bouncyness. Changed on avatar recreation." ),
-        new PhysParameterEntry("AvatarCapsuleRadius", "Radius of space around an avatar" ),
-        new PhysParameterEntry("AvatarCapsuleHeight", "Default height of space around avatar" ),
-	    new PhysParameterEntry("AvatarContactProcessingThreshold", "Distance from capsule to check for collisions")
+        new ParameterDefn("DefaultFriction", "Friction factor used on new objects",
+            0.5f,
+            (s,cf,p,v) => { s.m_params[0].defaultFriction = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].defaultFriction; },
+            (s,p,l,v) => { s.m_params[0].defaultFriction = v; } ),
+        new ParameterDefn("DefaultDensity", "Density for new objects" ,
+            10.000006836f,  // Aluminum g/cm3
+            (s,cf,p,v) => { s.m_params[0].defaultDensity = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].defaultDensity; },
+            (s,p,l,v) => { s.m_params[0].defaultDensity = v; } ),
+        new ParameterDefn("DefaultRestitution", "Bouncyness of an object" ,
+            0f,
+            (s,cf,p,v) => { s.m_params[0].defaultRestitution = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].defaultRestitution; },
+            (s,p,l,v) => { s.m_params[0].defaultRestitution = v; } ),
+        new ParameterDefn("CollisionMargin", "Margin around objects before collisions are calculated (must be zero!)",
+            0f,
+            (s,cf,p,v) => { s.m_params[0].collisionMargin = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].collisionMargin; },
+            (s,p,l,v) => { s.m_params[0].collisionMargin = v; } ),
+        new ParameterDefn("Gravity", "Vertical force of gravity (negative means down)",
+            -9.80665f,
+            (s,cf,p,v) => { s.m_params[0].gravity = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].gravity; },
+            (s,p,l,v) => { s.m_params[0].gravity = v; s.TaintedUpdateParameter(p,l,v); } ),
+
+
+        new ParameterDefn("LinearDamping", "Factor to damp linear movement per second (0.0 - 1.0)",
+            0f,
+            (s,cf,p,v) => { s.m_params[0].linearDamping = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].linearDamping; },
+            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].linearDamping, p, l, v); } ),
+        new ParameterDefn("AngularDamping", "Factor to damp angular movement per second (0.0 - 1.0)",
+            0f,
+            (s,cf,p,v) => { s.m_params[0].angularDamping = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].angularDamping; },
+            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].angularDamping, p, l, v); } ),
+        new ParameterDefn("DeactivationTime", "Seconds before considering an object potentially static",
+            0.2f,
+            (s,cf,p,v) => { s.m_params[0].deactivationTime = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].deactivationTime; },
+            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].deactivationTime, p, l, v); } ),
+        new ParameterDefn("LinearSleepingThreshold", "Seconds to measure linear movement before considering static",
+            0.8f,
+            (s,cf,p,v) => { s.m_params[0].linearSleepingThreshold = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].linearSleepingThreshold; },
+            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].linearSleepingThreshold, p, l, v); } ),
+        new ParameterDefn("AngularSleepingThreshold", "Seconds to measure angular movement before considering static",
+            1.0f,
+            (s,cf,p,v) => { s.m_params[0].angularSleepingThreshold = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].angularSleepingThreshold; },
+            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].angularSleepingThreshold, p, l, v); } ),
+        new ParameterDefn("CcdMotionThreshold", "Continuious collision detection threshold (0 means no CCD)" ,
+            0f,     // set to zero to disable
+            (s,cf,p,v) => { s.m_params[0].ccdMotionThreshold = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].ccdMotionThreshold; },
+            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].ccdMotionThreshold, p, l, v); } ),
+        new ParameterDefn("CcdSweptSphereRadius", "Continuious collision detection test radius" ,
+            0f,
+            (s,cf,p,v) => { s.m_params[0].ccdSweptSphereRadius = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].ccdSweptSphereRadius; },
+            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].ccdSweptSphereRadius, p, l, v); } ),
+        new ParameterDefn("ContactProcessingThreshold", "Distance between contacts before doing collision check" ,
+            0.1f,
+            (s,cf,p,v) => { s.m_params[0].contactProcessingThreshold = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].contactProcessingThreshold; },
+            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].contactProcessingThreshold, p, l, v); } ),
+
+        new ParameterDefn("TerrainFriction", "Factor to reduce movement against terrain surface" ,
+            0.5f,
+            (s,cf,p,v) => { s.m_params[0].terrainFriction = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].terrainFriction; },
+            (s,p,l,v) => { s.m_params[0].terrainFriction = v; s.TaintedUpdateParameter(p,l,v); } ),
+        new ParameterDefn("TerrainHitFraction", "Distance to measure hit collisions" ,
+            0.8f,
+            (s,cf,p,v) => { s.m_params[0].terrainHitFraction = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].terrainHitFraction; },
+            (s,p,l,v) => { s.m_params[0].terrainHitFraction = v; s.TaintedUpdateParameter(p,l,v); } ),
+        new ParameterDefn("TerrainRestitution", "Bouncyness" ,
+            0f,
+            (s,cf,p,v) => { s.m_params[0].terrainRestitution = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].terrainRestitution; },
+            (s,p,l,v) => { s.m_params[0].terrainRestitution = v; s.TaintedUpdateParameter(p,l,v); } ),
+        new ParameterDefn("AvatarFriction", "Factor to reduce movement against an avatar. Changed on avatar recreation.",
+            0.5f,
+            (s,cf,p,v) => { s.m_params[0].avatarFriction = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].avatarFriction; },
+            (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarFriction, p, l, v); } ),
+        new ParameterDefn("AvatarDensity", "Density of an avatar. Changed on avatar recreation.",
+            60f,
+            (s,cf,p,v) => { s.m_params[0].avatarDensity = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].avatarDensity; },
+            (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarDensity, p, l, v); } ),
+        new ParameterDefn("AvatarRestitution", "Bouncyness. Changed on avatar recreation.",
+            0f,
+            (s,cf,p,v) => { s.m_params[0].avatarRestitution = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].avatarRestitution; },
+            (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarRestitution, p, l, v); } ),
+        new ParameterDefn("AvatarCapsuleRadius", "Radius of space around an avatar",
+            0.37f,
+            (s,cf,p,v) => { s.m_params[0].avatarCapsuleRadius = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].avatarCapsuleRadius; },
+            (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarCapsuleRadius, p, l, v); } ),
+        new ParameterDefn("AvatarCapsuleHeight", "Default height of space around avatar",
+            1.5f,
+            (s,cf,p,v) => { s.m_params[0].avatarCapsuleHeight = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].avatarCapsuleHeight; },
+            (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarCapsuleHeight, p, l, v); } ),
+	    new ParameterDefn("AvatarContactProcessingThreshold", "Distance from capsule to check for collisions",
+            0.1f,
+            (s,cf,p,v) => { s.m_params[0].avatarContactProcessingThreshold = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].avatarContactProcessingThreshold; },
+            (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarContactProcessingThreshold, p, l, v); } ),
+
+
+	    new ParameterDefn("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default)",
+            0f,     // zero to disable
+            (s,cf,p,v) => { s.m_params[0].maxPersistantManifoldPoolSize = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].maxPersistantManifoldPoolSize; },
+            (s,p,l,v) => { s.m_params[0].maxPersistantManifoldPoolSize = v; } ),
+	    new ParameterDefn("ShouldDisableContactPoolDynamicAllocation", "Enable to allow large changes in object count",
+            ConfigurationParameters.numericTrue,
+            (s,cf,p,v) => { s.m_params[0].maxPersistantManifoldPoolSize = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
+            (s) => { return s.m_params[0].shouldDisableContactPoolDynamicAllocation; },
+            (s,p,l,v) => { s.m_params[0].shouldDisableContactPoolDynamicAllocation = v; } ),
+	    new ParameterDefn("ShouldForceUpdateAllAabbs", "Enable to recomputer AABBs every simulator step",
+            ConfigurationParameters.numericFalse,
+            (s,cf,p,v) => { s.m_params[0].shouldForceUpdateAllAabbs = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
+            (s) => { return s.m_params[0].shouldForceUpdateAllAabbs; },
+            (s,p,l,v) => { s.m_params[0].shouldForceUpdateAllAabbs = v; } ),
+	    new ParameterDefn("ShouldRandomizeSolverOrder", "Enable for slightly better stacking interaction",
+            ConfigurationParameters.numericFalse,
+            (s,cf,p,v) => { s.m_params[0].shouldRandomizeSolverOrder = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
+            (s) => { return s.m_params[0].shouldRandomizeSolverOrder; },
+            (s,p,l,v) => { s.m_params[0].shouldRandomizeSolverOrder = v; } ),
+	    new ParameterDefn("ShouldSplitSimulationIslands", "Enable splitting active object scanning islands",
+            ConfigurationParameters.numericFalse,
+            (s,cf,p,v) => { s.m_params[0].shouldSplitSimulationIslands = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
+            (s) => { return s.m_params[0].shouldSplitSimulationIslands; },
+            (s,p,l,v) => { s.m_params[0].shouldSplitSimulationIslands = v; } ),
+	    new ParameterDefn("ShouldEnableFrictionCaching", "Enable friction computation caching",
+            ConfigurationParameters.numericFalse,
+            (s,cf,p,v) => { s.m_params[0].shouldEnableFrictionCaching = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
+            (s) => { return s.m_params[0].shouldEnableFrictionCaching; },
+            (s,p,l,v) => { s.m_params[0].shouldEnableFrictionCaching = v; } ),
+	    new ParameterDefn("NumberOfSolverIterations", "Number of internal iterations (0 means default)",
+            0f,     // zero says use Bullet default
+            (s,cf,p,v) => { s.m_params[0].numberOfSolverIterations = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].numberOfSolverIterations; },
+            (s,p,l,v) => { s.m_params[0].numberOfSolverIterations = v; } ),
+
+	    new ParameterDefn("LinkConstraintUseFrameOffset", "For linksets built with constraints, enable frame offsetFor linksets built with constraints, enable frame offset.",
+            ConfigurationParameters.numericFalse,
+            (s,cf,p,v) => { s.m_params[0].linkConstraintUseFrameOffset = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
+            (s) => { return s.m_params[0].linkConstraintUseFrameOffset; },
+            (s,p,l,v) => { s.m_params[0].linkConstraintUseFrameOffset = v; } ),
+	    new ParameterDefn("LinkConstraintEnableTransMotor", "Whether to enable translational motor on linkset constraints",
+            ConfigurationParameters.numericTrue,
+            (s,cf,p,v) => { s.m_params[0].linkConstraintEnableTransMotor = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
+            (s) => { return s.m_params[0].linkConstraintEnableTransMotor; },
+            (s,p,l,v) => { s.m_params[0].linkConstraintEnableTransMotor = v; } ),
+	    new ParameterDefn("LinkConstraintTransMotorMaxVel", "Maximum velocity to be applied by translational motor in linkset constraints",
+            5.0f,
+            (s,cf,p,v) => { s.m_params[0].linkConstraintTransMotorMaxVel = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].linkConstraintTransMotorMaxVel; },
+            (s,p,l,v) => { s.m_params[0].linkConstraintTransMotorMaxVel = v; } ),
+	    new ParameterDefn("LinkConstraintTransMotorMaxForce", "Maximum force to be applied by translational motor in linkset constraints",
+            0.1f,
+            (s,cf,p,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].linkConstraintTransMotorMaxForce; },
+            (s,p,l,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = v; } ),
+
+        new ParameterDefn("DetailedStats", "Frames between outputting detailed phys stats. (0 is off)",
+            0f,
+            (s,cf,p,v) => { s.m_detailedStatsStep = cf.GetInt(p, (int)v); },
+            (s) => { return (float)s.m_detailedStatsStep; },
+            (s,p,l,v) => { s.m_detailedStatsStep = (int)v; } ),
+        new ParameterDefn("ShouldDebugLog", "Enables detailed DEBUG log statements",
+            ConfigurationParameters.numericFalse,
+            (s,cf,p,v) => { s.shouldDebugLog = cf.GetBoolean(p, s.BoolNumeric(v)); },
+            (s) => { return s.NumericBool(s.shouldDebugLog); },
+            (s,p,l,v) => { s.shouldDebugLog = s.BoolNumeric(v); } ),
 
     };
+
+    // Convert a boolean to our numeric true and false values
+    public float NumericBool(bool b)
+    {
+        return (b ? ConfigurationParameters.numericTrue : ConfigurationParameters.numericFalse);
+    }
+
+    // Convert numeric true and false values to a boolean
+    public bool BoolNumeric(float b)
+    {
+        return (b == ConfigurationParameters.numericTrue ? true : false);
+    }
+
+    // Search through the parameter definitions and return the matching
+    //    ParameterDefn structure.
+    // Case does not matter as names are compared after converting to lower case.
+    // Returns 'false' if the parameter is not found.
+    private bool TryGetParameter(string paramName, out ParameterDefn defn)
+    {
+        bool ret = false;
+        ParameterDefn foundDefn = new ParameterDefn();
+        string pName = paramName.ToLower();
+
+        foreach (ParameterDefn parm in ParameterDefinitions)
+        {
+            if (pName == parm.name.ToLower())
+            {
+                foundDefn = parm;
+                ret = true;
+                break;
+            }
+        }
+        defn = foundDefn;
+        return ret;
+    }
+
+    // Pass through the settable parameters and set the default values
+    private void SetParameterDefaultValues()
+    {
+        foreach (ParameterDefn parm in ParameterDefinitions)
+        {
+            parm.setter(this, parm.name, PhysParameterEntry.APPLY_TO_NONE, parm.defaultValue);
+        }
+    }
+
+    // Get user set values out of the ini file.
+    private void SetParameterConfigurationValues(IConfig cfg)
+    {
+        foreach (ParameterDefn parm in ParameterDefinitions)
+        {
+            parm.userParam(this, cfg, parm.name, parm.defaultValue);
+        }
+    }
+
+    private PhysParameterEntry[] SettableParameters = new PhysParameterEntry[1];
+
+    private void BuildParameterTable()
+    {
+        if (SettableParameters.Length < ParameterDefinitions.Length)
+        {
+
+            List<PhysParameterEntry> entries = new List<PhysParameterEntry>();
+            for (int ii = 0; ii < ParameterDefinitions.Length; ii++)
+            {
+                ParameterDefn pd = ParameterDefinitions[ii];
+                entries.Add(new PhysParameterEntry(pd.name, pd.desc));
+            }
+
+            // make the list in alphabetical order for estetic reasons
+            entries.Sort(delegate(PhysParameterEntry ppe1, PhysParameterEntry ppe2)
+            {
+                return ppe1.name.CompareTo(ppe2.name);
+            });
+
+            SettableParameters = entries.ToArray();
+        }
+    }
+
 
     #region IPhysicsParameters
     // Get the list of parameters this physics engine supports
     public PhysParameterEntry[] GetParameterList()
     {
+        BuildParameterTable();
         return SettableParameters;
     }
 
@@ -919,63 +1156,18 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     //   value activated ('terrainFriction' for instance).
     public bool SetPhysicsParameter(string parm, float val, uint localID)
     {
-        bool ret = true;
-        string lparm = parm.ToLower();
-        switch (lparm)
+        bool ret = false;
+        ParameterDefn theParam;
+        if (TryGetParameter(parm, out theParam))
         {
-            case "detailedstats": m_detailedStatsStep = (int)val; break;
-
-            case "meshlod": m_meshLOD = (int)val; break;
-            case "sculptlod": m_sculptLOD = (int)val; break;
-            case "maxsubstep": m_maxSubSteps = (int)val; break;
-            case "fixedtimestep": m_fixedTimeStep = val; break;
-            case "maxobjectmass": m_maximumObjectMass = val; break;
-
-            case "defaultfriction": m_params[0].defaultFriction = val; break;
-            case "defaultdensity": m_params[0].defaultDensity = val; break;
-            case "defaultrestitution": m_params[0].defaultRestitution = val; break;
-            case "collisionmargin": m_params[0].collisionMargin = val; break;
-            case "gravity": m_params[0].gravity = val; TaintedUpdateParameter(lparm, localID, val); break;
-
-            case "lineardamping": UpdateParameterPrims(ref m_params[0].linearDamping, lparm, localID, val); break;
-            case "angulardamping": UpdateParameterPrims(ref m_params[0].angularDamping, lparm, localID, val); break;
-            case "deactivationtime": UpdateParameterPrims(ref m_params[0].deactivationTime, lparm, localID, val); break;
-            case "linearsleepingthreshold": UpdateParameterPrims(ref m_params[0].linearSleepingThreshold, lparm, localID, val); break;
-            case "angularsleepingthreshold": UpdateParameterPrims(ref m_params[0].angularDamping, lparm, localID, val); break;
-            case "ccdmotionthreshold": UpdateParameterPrims(ref m_params[0].ccdMotionThreshold, lparm, localID, val); break;
-            case "ccdsweptsphereradius": UpdateParameterPrims(ref m_params[0].ccdSweptSphereRadius, lparm, localID, val); break;
-            case "contactprocessingthreshold": UpdateParameterPrims(ref m_params[0].contactProcessingThreshold, lparm, localID, val); break;
-            // the following are used only at initialization time so setting them makes no sense
-	        // case "maxPersistantmanifoldpoolSize": m_params[0].maxPersistantManifoldPoolSize = val; break;
-	        // case "shoulddisablecontactpooldynamicallocation": m_params[0].shouldDisableContactPoolDynamicAllocation = val; break;
-	        // case "shouldforceupdateallaabbs": m_params[0].shouldForceUpdateAllAabbs = val; break;
-	        // case "shouldrandomizesolverorder": m_params[0].shouldRandomizeSolverOrder = val; break;
-	        // case "shouldsplitsimulationislands": m_params[0].shouldSplitSimulationIslands = val; break;
-	        // case "shouldenablefrictioncaching": m_params[0].shouldEnableFrictionCaching = val; break;
-	        // case "numberofsolveriterations": m_params[0].numberOfSolverIterations = val; break;
-
-            case "friction": TaintedUpdateParameter(lparm, localID, val); break;
-            case "restitution": TaintedUpdateParameter(lparm, localID, val); break;
-
-            // set a terrain physical feature and cause terrain to be recalculated
-            case "terrainfriction": m_params[0].terrainFriction = val; TaintedUpdateParameter("terrain", 0, val); break;
-            case "terrainhitfraction": m_params[0].terrainHitFraction = val; TaintedUpdateParameter("terrain", 0, val); break;
-            case "terrainrestitution": m_params[0].terrainRestitution = val; TaintedUpdateParameter("terrain", 0, val); break;
-            // set an avatar physical feature and cause avatar(s) to be recalculated
-            case "avatarfriction": UpdateParameterAvatars(ref m_params[0].avatarFriction, "avatar", localID, val); break;
-            case "avatardensity": UpdateParameterAvatars(ref m_params[0].avatarDensity, "avatar", localID, val); break;
-            case "avatarrestitution": UpdateParameterAvatars(ref m_params[0].avatarRestitution, "avatar", localID, val); break;
-            case "avatarcapsuleradius": UpdateParameterAvatars(ref m_params[0].avatarCapsuleRadius, "avatar", localID, val); break;
-            case "avatarcapsuleheight": UpdateParameterAvatars(ref m_params[0].avatarCapsuleHeight, "avatar", localID, val); break;
-            case "avatarcontactprocessingthreshold": UpdateParameterAvatars(ref m_params[0].avatarContactProcessingThreshold, "avatar", localID, val); break;
-
-            default: ret = false; break;
+            theParam.setter(this, parm, localID, val);
+            ret = true;
         }
         return ret;
     }
 
     // check to see if we are updating a parameter for a particular or all of the prims
-    private void UpdateParameterPrims(ref float loc, string parm, uint localID, float val)
+    protected void UpdateParameterPrims(ref float loc, string parm, uint localID, float val)
     {
         List<uint> operateOn;
         lock (m_prims) operateOn = new List<uint>(m_prims.Keys);
@@ -983,7 +1175,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     // check to see if we are updating a parameter for a particular or all of the avatars
-    private void UpdateParameterAvatars(ref float loc, string parm, uint localID, float val)
+    protected void UpdateParameterAvatars(ref float loc, string parm, uint localID, float val)
     {
         List<uint> operateOn;
         lock (m_avatars) operateOn = new List<uint>(m_avatars.Keys);
@@ -994,7 +1186,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // If the local ID is APPLY_TO_NONE, just change the default value
     // If the localID is APPLY_TO_ALL change the default value and apply the new value to all the lIDs
     // If the localID is a specific object, apply the parameter change to only that object
-    private void UpdateParameterSet(List<uint> lIDs, ref float defaultLoc, string parm, uint localID, float val)
+    protected void UpdateParameterSet(List<uint> lIDs, ref float defaultLoc, string parm, uint localID, float val)
     {
         switch (localID)
         {
@@ -1021,7 +1213,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     // schedule the actual updating of the paramter to when the phys engine is not busy
-    private void TaintedUpdateParameter(string parm, uint localID, float val)
+    protected void TaintedUpdateParameter(string parm, uint localID, float val)
     {
         uint xlocalID = localID;
         string xparm = parm.ToLower();
@@ -1036,50 +1228,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public bool GetPhysicsParameter(string parm, out float value)
     {
         float val = 0f;
-        bool ret = true;
-        switch (parm.ToLower())
+        bool ret = false;
+        ParameterDefn theParam;
+        if (TryGetParameter(parm, out theParam))
         {
-            case "detailedstats": val = (int)m_detailedStatsStep; break;
-            case "meshlod": val = (float)m_meshLOD; break;
-            case "sculptlod": val = (float)m_sculptLOD; break;
-            case "maxsubstep": val = (float)m_maxSubSteps; break;
-            case "fixedtimestep": val = m_fixedTimeStep; break;
-            case "maxobjectmass": val = m_maximumObjectMass; break;
-
-            case "defaultfriction": val = m_params[0].defaultFriction; break;
-            case "defaultdensity": val = m_params[0].defaultDensity; break;
-            case "defaultrestitution": val = m_params[0].defaultRestitution; break;
-            case "collisionmargin": val = m_params[0].collisionMargin; break;
-            case "gravity": val = m_params[0].gravity; break;
-
-            case "lineardamping": val = m_params[0].linearDamping; break;
-            case "angulardamping": val = m_params[0].angularDamping; break;
-            case "deactivationtime": val = m_params[0].deactivationTime; break;
-            case "linearsleepingthreshold": val = m_params[0].linearSleepingThreshold; break;
-            case "angularsleepingthreshold": val = m_params[0].angularDamping; break;
-            case "ccdmotionthreshold": val = m_params[0].ccdMotionThreshold; break;
-            case "ccdsweptsphereradius": val = m_params[0].ccdSweptSphereRadius; break;
-            case "contactprocessingthreshold": val = m_params[0].contactProcessingThreshold; break;
-	        case "maxPersistantmanifoldpoolSize": val = m_params[0].maxPersistantManifoldPoolSize; break;
-	        case "shoulddisablecontactpooldynamicallocation": val = m_params[0].shouldDisableContactPoolDynamicAllocation; break;
-	        case "shouldforceupdateallaabbs": val = m_params[0].shouldForceUpdateAllAabbs; break;
-	        case "shouldrandomizesolverorder": val = m_params[0].shouldRandomizeSolverOrder; break;
-	        case "shouldsplitsimulationislands": val = m_params[0].shouldSplitSimulationIslands; break;
-	        case "shouldenablefrictioncaching": val = m_params[0].shouldEnableFrictionCaching; break;
-	        case "numberofsolveriterations": val = m_params[0].numberOfSolverIterations; break;
-
-            case "terrainfriction": val = m_params[0].terrainFriction; break;
-            case "terrainhitfraction": val = m_params[0].terrainHitFraction; break;
-            case "terrainrestitution": val = m_params[0].terrainRestitution; break;
-
-            case "avatarfriction": val = m_params[0].avatarFriction; break;
-            case "avatardensity": val = m_params[0].avatarDensity; break;
-            case "avatarrestitution": val = m_params[0].avatarRestitution; break;
-            case "avatarcapsuleradius": val = m_params[0].avatarCapsuleRadius; break;
-            case "avatarcapsuleheight": val = m_params[0].avatarCapsuleHeight; break;
-            case "avatarcontactprocessingthreshold": val = m_params[0].avatarContactProcessingThreshold; break;
-            default: ret = false; break;
-
+            val = theParam.getter(this);
+            ret = true;
         }
         value = val;
         return ret;

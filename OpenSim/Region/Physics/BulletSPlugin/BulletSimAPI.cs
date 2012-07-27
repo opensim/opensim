@@ -32,6 +32,28 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin {
 
+// Classes to allow some type checking for the API
+public struct BulletSim
+{
+    public BulletSim(uint id, IntPtr xx) { ID = id;  Ptr = xx; }
+    public IntPtr Ptr;
+    public uint ID;
+}
+
+public struct BulletBody
+{
+    public BulletBody(uint id, IntPtr xx) { ID = id;  Ptr = xx; }
+    public IntPtr Ptr;
+    public uint ID;
+}
+
+public struct BulletConstraint
+{
+    public BulletConstraint(IntPtr xx) { Ptr = xx; }
+    public IntPtr Ptr;
+}
+
+// ===============================================================================
 [StructLayout(LayoutKind.Sequential)]
 public struct ConvexHull 
 {
@@ -142,6 +164,11 @@ public struct ConfigurationParameters
 	public float shouldEnableFrictionCaching;
 	public float numberOfSolverIterations;
 
+    public float linkConstraintUseFrameOffset;
+    public float linkConstraintEnableTransMotor;
+    public float linkConstraintTransMotorMaxVel;
+    public float linkConstraintTransMotorMaxForce;
+
     public const float numericTrue = 1f;
     public const float numericFalse = 0f;
 }
@@ -162,6 +189,7 @@ public enum CollisionFlags : uint
     PHYSICAL_OBJECT               = 1 << 12,
 };
 
+// ===============================================================================
 static class BulletSimAPI {
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -211,6 +239,7 @@ public static extern bool DestroyMesh(uint worldID, System.UInt64 meshKey);
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool CreateObject(uint worldID, ShapeData shapeData);
 
+/*  Remove old functionality
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void CreateLinkset(uint worldID, int objectCount, ShapeData[] shapeDatas);
 
@@ -225,6 +254,7 @@ public static extern bool RemoveConstraintByID(uint worldID, uint id1);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool RemoveConstraint(uint worldID, uint id1, uint id2);
+ */
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern Vector3 GetObjectPosition(uint WorldID, uint id);
@@ -350,8 +380,22 @@ public static extern IntPtr CreateObject2(IntPtr sim, ShapeData shapeData);
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateConstraint2(IntPtr sim, IntPtr obj1, IntPtr obj2,
                     Vector3 frame1loc, Quaternion frame1rot,
-                    Vector3 frame2loc, Quaternion frame2rot,
-                    Vector3 lowLinear, Vector3 hiLinear, Vector3 lowAngular, Vector3 hiAngular);
+                    Vector3 frame2loc, Quaternion frame2rot);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool SetLinearLimits2(IntPtr constrain, Vector3 low, Vector3 hi);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool SetAngularLimits2(IntPtr constrain, Vector3 low, Vector3 hi);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool UseFrameOffset2(IntPtr constrain, float enable);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool TranslationalLimitMotor2(IntPtr constrain, float enable, float targetVel, float maxMotorForce);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool CalculateTransforms2(IntPtr constrain);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool DestroyConstraint2(IntPtr sim, IntPtr constrain);

@@ -66,7 +66,7 @@ public sealed class BSPrim : PhysicsActor
     private bool _isSelected;
     private bool _isVolumeDetect;
     private OMV.Vector3 _position;
-    private float _mass;
+    private float _mass;    // the mass of this object
     private float _density;
     private OMV.Vector3 _force;
     private OMV.Vector3 _velocity;
@@ -89,13 +89,21 @@ public sealed class BSPrim : PhysicsActor
     private bool _kinematic;
     private float _buoyancy;
 
-    private BSPrim _parentPrim;
-    private List<BSPrim> _childrenPrims;
+    // Membership in a linkset is controlled by this class.
+    private BSLinkset _linkset;
+    public BSLinkset Linkset
+    {
+        get { return _linkset; }
+        set { _linkset = value; }
+    }
 
     private int _subscribedEventsMs = 0;
     private int _nextCollisionOkTime = 0;
     long _collidingStep;
     long _collidingGroundStep;
+
+    private BulletBody m_body;
+    public BulletBody Body { get { return m_body; } }
 
     private BSDynamics _vehicle;
 
@@ -130,14 +138,18 @@ public sealed class BSPrim : PhysicsActor
         _friction = _scene.Params.defaultFriction; // TODO: compute based on object material
         _density = _scene.Params.defaultDensity; // TODO: compute based on object material
         _restitution = _scene.Params.defaultRestitution;
-        _parentPrim = null;     // not a child or a parent
+        _linkset = new BSLinkset(_scene, this);     // a linkset of one
         _vehicle = new BSDynamics(this);    // add vehicleness
-        _childrenPrims = new List<BSPrim>();
         _mass = CalculateMass();
         // do the actual object creation at taint time
         _scene.TaintedObject(delegate()
         {
             RecreateGeomAndObject();
+
+            // Get the pointer to the physical body for this object.
+            // At the moment, we're still letting BulletSim manage the creation and destruction
+            //    of the object. Someday we'll move that into the C# code.
+            m_body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID));
         });
     }
 
@@ -153,16 +165,8 @@ public sealed class BSPrim : PhysicsActor
 
         _scene.TaintedObject(delegate()
         {
-            // undo any dependance with/on other objects
-            if (_parentPrim != null)
-            {
-                // If I'm someone's child, tell them to forget about me.
-                _parentPrim.RemoveChildFromLinkset(this);
-                _parentPrim = null;
-            }
-
-            // make sure there are no possible children depending on me
-            UnlinkAllChildren();
+            // Undo any links between me and any other object
+            _linkset = _linkset.RemoveMeFromLinkset(this);
 
             // everything in the C# world will get garbage collected. Tell the C++ world to free stuff.
             BulletSimAPI.DestroyObject(_scene.WorldID, LocalID);
@@ -179,7 +183,7 @@ public sealed class BSPrim : PhysicsActor
             _scene.TaintedObject(delegate()
             {
                 _mass = CalculateMass();   // changing size changes the mass
-                BulletSimAPI.SetObjectScaleMass(_scene.WorldID, _localID, _scale, Mass, IsPhysical);
+                BulletSimAPI.SetObjectScaleMass(_scene.WorldID, _localID, _scale, (IsPhysical ? _mass : 0f), IsPhysical);
                 RecreateGeomAndObject();
             });
         } 
@@ -218,32 +222,8 @@ public sealed class BSPrim : PhysicsActor
         BSPrim parent = obj as BSPrim;
         DebugLog("{0}: link {1}/{2} to {3}", LogHeader, _avName, _localID, obj.LocalID);
         DetailLog("{0},link,parent={1}", LocalID, obj.LocalID);
-        // TODO: decide if this parent checking needs to happen at taint time
-        if (_parentPrim == null)
-        {
-            if (parent != null)
-            {
-                // I don't have a parent so I am joining a linkset
-                parent.AddChildToLinkset(this);
-            }
-        }
-        else
-        {
-            // I already have a parent, is parenting changing?
-            if (parent != _parentPrim)
-            {
-                if (parent == null)
-                {
-                    // we are being removed from a linkset
-                    _parentPrim.RemoveChildFromLinkset(this);
-                }
-                else
-                {
-                    // asking to reparent a prim should not happen
-                    m_log.ErrorFormat("{0}: link(): Reparenting a prim. ", LogHeader);
-                }
-            }
-        }
+
+        _linkset = _linkset.AddMeToLinkset(this, parent);
         return; 
     }
 
@@ -252,92 +232,28 @@ public sealed class BSPrim : PhysicsActor
         // TODO: decide if this parent checking needs to happen at taint time
         // Race condition here: if link() and delink() in same simulation tick, the delink will not happen
         DebugLog("{0}: delink {1}/{2}. Parent={3}", LogHeader, _avName, _localID, 
-                (_parentPrim==null ? "NULL" : _parentPrim._avName+"/"+_parentPrim.LocalID.ToString()));
-        DetailLog("{0},delink,parent={1}", LocalID, (_parentPrim==null ? "NULL" : _parentPrim.LocalID.ToString()));
-        if (_parentPrim != null)
-        {
-            _parentPrim.RemoveChildFromLinkset(this);
-        }
+                            _linkset.Root._avName+"/"+_linkset.Root.LocalID.ToString());
+        DetailLog("{0},delink,parent={1}", LocalID, _linkset.Root.LocalID.ToString());
+
+        _linkset.RemoveMeFromLinkset(this);
         return; 
-    }
-
-    // I am the root of a linkset and a new child is being added
-    public void AddChildToLinkset(BSPrim pchild)
-    {
-        BSPrim child = pchild;
-        _scene.TaintedObject(delegate()
-        {
-            if (!_childrenPrims.Contains(child))
-            {
-                DebugLog("{0}: AddChildToLinkset: adding child {1} to {2}", LogHeader, child.LocalID, this.LocalID);
-                DetailLog("{0},AddChildToLinkset,child={1}", LocalID, pchild.LocalID);
-                _childrenPrims.Add(child);
-                child._parentPrim = this;    // the child has gained a parent
-                // RecreateGeomAndObject();    // rebuild my shape with the new child added
-                LinkAChildToMe(pchild);     // build the physical binding between me and the child
-
-                _mass = CalculateMass();
-            }
-        });
-        return;
-    }
-
-    // I am the root of a linkset and one of my children is being removed.
-    // Safe to call even if the child is not really in my linkset.
-    public void RemoveChildFromLinkset(BSPrim pchild)
-    {
-        BSPrim child = pchild;
-        _scene.TaintedObject(delegate()
-        {
-            if (_childrenPrims.Contains(child))
-            {
-                DebugLog("{0}: RemoveChildFromLinkset: Removing constraint to {1}", LogHeader, child.LocalID);
-                DetailLog("{0},RemoveChildFromLinkset,child={1}", LocalID, pchild.LocalID);
-                _childrenPrims.Remove(child);
-                child._parentPrim = null;    // the child has lost its parent
-                if (_childrenPrims.Count == 0)
-                {
-                    // if the linkset is empty, make sure all linkages have been removed
-                    UnlinkAllChildren();
-                }
-                else
-                {
-                    // RecreateGeomAndObject();    // rebuild my shape with the child removed
-                    UnlinkAChildFromMe(pchild);
-                }
-
-                _mass = CalculateMass();
-            }
-            else
-            {
-                m_log.ErrorFormat("{0}: Asked to remove child from linkset that was not in linkset");
-            }
-        });
-        return;
-    }
-
-    // return true if we are the root of a linkset (there are children to manage)
-    public bool IsRootOfLinkset
-    {
-        get { return (_parentPrim == null && _childrenPrims.Count != 0); }
     }
 
     // Set motion values to zero.
     // Do it to the properties so the values get set in the physics engine.
     // Push the setting of the values to the viewer.
     // Called at taint time!
-    private void ZeroMotion()
+    public void ZeroMotion()
     {
         _velocity = OMV.Vector3.Zero;
         _acceleration = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
 
         // Zero some other properties directly into the physics engine
-        IntPtr obj = BulletSimAPI.GetBodyHandleWorldID2(_scene.WorldID, LocalID);
-        BulletSimAPI.SetVelocity2(obj, OMV.Vector3.Zero);
-        BulletSimAPI.SetAngularVelocity2(obj, OMV.Vector3.Zero);
-        BulletSimAPI.SetInterpolation2(obj, OMV.Vector3.Zero, OMV.Vector3.Zero);
-        BulletSimAPI.ClearForces2(obj);
+        BulletSimAPI.SetVelocity2(Body.Ptr, OMV.Vector3.Zero);
+        BulletSimAPI.SetAngularVelocity2(Body.Ptr, OMV.Vector3.Zero);
+        BulletSimAPI.SetInterpolation2(Body.Ptr, OMV.Vector3.Zero, OMV.Vector3.Zero);
+        BulletSimAPI.ClearForces2(Body.Ptr);
     }
 
     public override void LockAngularMotion(OMV.Vector3 axis)
@@ -348,9 +264,10 @@ public sealed class BSPrim : PhysicsActor
 
     public override OMV.Vector3 Position { 
         get { 
-            // child prims move around based on their parent. Need to get the latest location
-            if (_parentPrim != null)
+            if (!_linkset.IsRoot(this))
+                // child prims move around based on their parent. Need to get the latest location
                 _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
+
             // don't do the GetObjectPosition for root elements because this function is called a zillion times
             // _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
             return _position; 
@@ -366,14 +283,29 @@ public sealed class BSPrim : PhysicsActor
         } 
     }
 
-    // Return the effective mass of the object. Non-physical objects do not have mass.
-    public override float Mass { 
-        get {
-            if (IsPhysical)
-                return _mass;
-            else
-                return 0f;
+    // Return the effective mass of the object.
+    // If there are multiple items in the linkset, add them together for the root
+    public override float Mass
+    { 
+        get
+        {
+            return _linkset.LinksetMass;
         }
+    }
+
+    // used when we only want this prim's mass and not the linkset thing
+    public float MassRaw { get { return _mass; } }
+
+    // Is this used?
+    public override OMV.Vector3 CenterOfMass
+    {
+        get { return _linkset.CenterOfMass; }
+    }
+
+    // Is this used?
+    public override OMV.Vector3 GeometricCenter
+    {
+        get { return _linkset.GeometricCenter; }
     }
 
     public override OMV.Vector3 Force { 
@@ -383,7 +315,8 @@ public sealed class BSPrim : PhysicsActor
             _scene.TaintedObject(delegate()
             {
                 DetailLog("{0},SetForce,taint,force={1}", LocalID, _force);
-                BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
+                // BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
+                BulletSimAPI.SetObjectForce2(Body.Ptr, _force);
             });
         } 
     }
@@ -407,8 +340,7 @@ public sealed class BSPrim : PhysicsActor
                     _scene.TaintedObject(delegate()
                     {
                         // Tell the physics engine to clear state
-                        IntPtr obj = BulletSimAPI.GetBodyHandleWorldID2(_scene.WorldID, LocalID);
-                        BulletSimAPI.ClearForces2(obj);
+                        BulletSimAPI.ClearForces2(this.Body.Ptr);
                     });
 
                     // make it so the scene will call us each tick to do vehicle things
@@ -420,7 +352,6 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void VehicleFloatParam(int param, float value) 
     {
-        m_log.DebugFormat("{0} VehicleFloatParam. {1} <= {2}", LogHeader, param, value);
         _scene.TaintedObject(delegate()
         {
             _vehicle.ProcessFloatVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
@@ -428,7 +359,6 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void VehicleVectorParam(int param, OMV.Vector3 value) 
     {
-        m_log.DebugFormat("{0} VehicleVectorParam. {1} <= {2}", LogHeader, param, value);
         _scene.TaintedObject(delegate()
         {
             _vehicle.ProcessVectorVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
@@ -436,7 +366,6 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void VehicleRotationParam(int param, OMV.Quaternion rotation) 
     {
-        m_log.DebugFormat("{0} VehicleRotationParam. {1} <= {2}", LogHeader, param, rotation);
         _scene.TaintedObject(delegate()
         {
             _vehicle.ProcessRotationVehicleParam((Vehicle)param, rotation);
@@ -444,7 +373,6 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void VehicleFlags(int param, bool remove) 
     {
-        m_log.DebugFormat("{0} VehicleFlags. {1}. Remove={2}", LogHeader, param, remove);
         _scene.TaintedObject(delegate()
         {
             _vehicle.ProcessVehicleFlags(param, remove);
@@ -470,8 +398,6 @@ public sealed class BSPrim : PhysicsActor
         return; 
     }
 
-    public override OMV.Vector3 GeometricCenter { get { return OMV.Vector3.Zero; } }
-    public override OMV.Vector3 CenterOfMass { get { return OMV.Vector3.Zero; } }
     public override OMV.Vector3 Velocity { 
         get { return _velocity; } 
         set {
@@ -500,9 +426,9 @@ public sealed class BSPrim : PhysicsActor
     }
     public override OMV.Quaternion Orientation { 
         get {
-            if (_parentPrim != null)
+            if (!_linkset.IsRoot(this))
             {
-                // children move around because tied to parent. Get a fresh value.
+                // Children move around because tied to parent. Get a fresh value.
                 _orientation = BulletSimAPI.GetObjectOrientation(_scene.WorldID, LocalID);
             }
             return _orientation;
@@ -552,14 +478,16 @@ public sealed class BSPrim : PhysicsActor
     private void SetObjectDynamic()
     {
         // m_log.DebugFormat("{0}: ID={1}, SetObjectDynamic: IsStatic={2}, IsSolid={3}", LogHeader, _localID, IsStatic, IsSolid);
-        // non-physical things work best with a mass of zero
-        if (!IsStatic)
-        {
-            _mass = CalculateMass();
-            RecreateGeomAndObject();
-        }
-        DetailLog("{0},SetObjectDynamic,taint,static={1},solid={2},mass={3}", LocalID, IsStatic, IsSolid, Mass);
-        BulletSimAPI.SetObjectProperties(_scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), Mass);
+
+        RecreateGeomAndObject();
+
+        float mass = _mass;
+        // Bullet wants static objects have a mass of zero
+        if (IsStatic) 
+            mass = 0f;
+
+        DetailLog("{0},SetObjectDynamic,taint,static={1},solid={2},mass={3}", LocalID, IsStatic, IsSolid, mass);
+        BulletSimAPI.SetObjectProperties(_scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), mass);
     }
 
     // prims don't fly
@@ -1001,6 +929,9 @@ public sealed class BSPrim : PhysicsActor
 
         returnMass = _density * volume;
 
+        /*
+         * This change means each object keeps its own mass and the Mass property
+         * will return the sum if we're part of a linkset.
         if (IsRootOfLinkset)
         {
             foreach (BSPrim prim in _childrenPrims)
@@ -1008,6 +939,7 @@ public sealed class BSPrim : PhysicsActor
                 returnMass += prim.CalculateMass();
             }
         }
+         */
 
         if (returnMass <= 0)
             returnMass = 0.0001f;
@@ -1023,9 +955,11 @@ public sealed class BSPrim : PhysicsActor
     // The objects needs a hull if it's physical otherwise a mesh is enough
     // No locking here because this is done when we know physics is not simulating
     // if 'forceRebuild' is true, the geometry is rebuilt. Otherwise a previously built version is used
-    private void CreateGeom(bool forceRebuild)
+    // Returns 'true' if the geometry was rebuilt
+    private bool CreateGeom(bool forceRebuild)
     {
         // the mesher thought this was too simple to mesh. Use a native Bullet collision shape.
+        bool ret = false;
         if (!_scene.NeedsMeshing(_pbs))
         {
             if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1)
@@ -1033,18 +967,26 @@ public sealed class BSPrim : PhysicsActor
                 if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
                 {
                     // m_log.DebugFormat("{0}: CreateGeom: Defaulting to sphere of size {1}", LogHeader, _size);
-                    _shapeType = ShapeData.PhysicsShapeType.SHAPE_SPHERE;
-                    DetailLog("{0},CreateGeom,sphere", LocalID);
-                    // Bullet native objects are scaled by the Bullet engine so pass the size in
-                    _scale = _size;
+                    if (_shapeType != ShapeData.PhysicsShapeType.SHAPE_SPHERE)
+                    {
+                        DetailLog("{0},CreateGeom,sphere", LocalID);
+                        _shapeType = ShapeData.PhysicsShapeType.SHAPE_SPHERE;
+                        ret = true;
+                        // Bullet native objects are scaled by the Bullet engine so pass the size in
+                        _scale = _size;
+                    }
                 }
             }
             else
             {
                 // m_log.DebugFormat("{0}: CreateGeom: Defaulting to box. lid={1}, size={2}", LogHeader, LocalID, _size);
-                DetailLog("{0},CreateGeom,box", LocalID);
-                _shapeType = ShapeData.PhysicsShapeType.SHAPE_BOX;
-                _scale = _size;
+                if (_shapeType != ShapeData.PhysicsShapeType.SHAPE_BOX)
+                {
+                    DetailLog("{0},CreateGeom,box", LocalID);
+                    _shapeType = ShapeData.PhysicsShapeType.SHAPE_BOX;
+                    ret = true;
+                    _scale = _size;
+                }
             }
         }
         else
@@ -1056,6 +998,7 @@ public sealed class BSPrim : PhysicsActor
                     // physical objects require a hull for interaction.
                     // This will create the mesh if it doesn't already exist
                     CreateGeomHull();
+                    ret = true;
                 }
             }
             else
@@ -1064,9 +1007,11 @@ public sealed class BSPrim : PhysicsActor
                 {
                     // Static (non-physical) objects only need a mesh for bumping into
                     CreateGeomMesh();
+                    ret = true;
                 }
             }
         }
+        return ret;
     }
 
     // No locking here because this is done when we know physics is not simulating
@@ -1251,20 +1196,18 @@ public sealed class BSPrim : PhysicsActor
     // No locking here because this is done when the physics engine is not simulating
     private void CreateObject()
     {
-        if (IsRootOfLinkset)
-        {
-            // Create a linkset around this object
-            CreateLinkset();
-        }
-        else
-        {
-            // simple object
-            // the mesh or hull must have already been created in Bullet
-            ShapeData shape;
-            FillShapeInfo(out shape);
-            // m_log.DebugFormat("{0}: CreateObject: lID={1}, shape={2}", LogHeader, _localID, shape.Type);
-            BulletSimAPI.CreateObject(_scene.WorldID, shape);
-        }
+        // this routine is called when objects are rebuilt. 
+
+        // the mesh or hull must have already been created in Bullet
+        ShapeData shape;
+        FillShapeInfo(out shape);
+        // m_log.DebugFormat("{0}: CreateObject: lID={1}, shape={2}", LogHeader, _localID, shape.Type);
+        BulletSimAPI.CreateObject(_scene.WorldID, shape);
+        // the CreateObject() may have recreated the rigid body. Make sure we have the latest.
+        m_body.Ptr = BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID);
+
+        // The root object could have been recreated. Make sure everything linksety is up to date.
+        _linkset.RefreshLinkset(this);
     }
 
     // Copy prim's info into the BulletSim shape description structure
@@ -1276,7 +1219,7 @@ public sealed class BSPrim : PhysicsActor
         shape.Rotation = _orientation;
         shape.Velocity = _velocity;
         shape.Scale = _scale;
-        shape.Mass = Mass;
+        shape.Mass = _isPhysical ? _mass : 0f;
         shape.Buoyancy = _buoyancy;
         shape.HullKey = _hullKey;
         shape.MeshKey = _meshKey;
@@ -1286,72 +1229,6 @@ public sealed class BSPrim : PhysicsActor
         shape.Static = _isPhysical ? ShapeData.numericFalse : ShapeData.numericTrue;
     }
 
-    #region Linkset creation and destruction
-
-    // Create the linkset by putting constraints between the objects of the set so they cannot move
-    // relative to each other.
-    void CreateLinkset()
-    {
-        DebugLog("{0}: CreateLinkset. Root prim={1}, prims={2}", LogHeader, LocalID, _childrenPrims.Count+1);
-
-        // remove any constraints that might be in place
-        DebugLog("{0}: CreateLinkset: RemoveConstraints between me and any children", LogHeader, LocalID);
-        BulletSimAPI.RemoveConstraintByID(_scene.WorldID, LocalID);
-
-        // create constraints between the root prim and each of the children
-        foreach (BSPrim prim in _childrenPrims)
-        {
-            LinkAChildToMe(prim);
-        }
-    }
-
-    // Create a constraint between me (root of linkset) and the passed prim (the child).
-    // Called at taint time!
-    private void LinkAChildToMe(BSPrim childPrim)
-    {
-        // Zero motion for children so they don't interpolate
-        childPrim.ZeroMotion();
-
-        // relative position normalized to the root prim
-        OMV.Quaternion invThisOrientation = OMV.Quaternion.Inverse(this._orientation);
-        OMV.Vector3 childRelativePosition = (childPrim._position - this._position) * invThisOrientation;
-
-        // relative rotation of the child to the parent
-        OMV.Quaternion childRelativeRotation = invThisOrientation * childPrim._orientation;
-
-        // create a constraint that allows no freedom of movement between the two objects
-        // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
-        DebugLog("{0}: CreateLinkset: Adding a constraint between root prim {1} and child prim {2}", LogHeader, LocalID, childPrim.LocalID);
-        DetailLog("{0},LinkAChildToMe,taint,root={1},child={2}", LocalID, LocalID, childPrim.LocalID);
-        BulletSimAPI.AddConstraint(_scene.WorldID, LocalID, childPrim.LocalID, 
-            childRelativePosition,
-            childRelativeRotation,
-            OMV.Vector3.Zero,
-            OMV.Quaternion.Identity,
-            OMV.Vector3.Zero, OMV.Vector3.Zero,
-            OMV.Vector3.Zero, OMV.Vector3.Zero);
-    }
-
-    // Remove linkage between myself and a particular child
-    // Called at taint time!
-    private void UnlinkAChildFromMe(BSPrim childPrim)
-    {
-        DebugLog("{0}: UnlinkAChildFromMe: RemoveConstraint between root prim {1} and child prim {2}", 
-                    LogHeader, LocalID, childPrim.LocalID);
-        DetailLog("{0},UnlinkAChildFromMe,taint,root={1},child={2}", LocalID, LocalID, childPrim.LocalID);
-        BulletSimAPI.RemoveConstraint(_scene.WorldID, LocalID, childPrim.LocalID);
-    }
-
-    // Remove linkage between myself and any possible children I might have
-    // Called at taint time!
-    private void UnlinkAllChildren()
-    {
-        DebugLog("{0}: UnlinkAllChildren:", LogHeader);
-        DetailLog("{0},UnlinkAllChildren,taint", LocalID);
-        BulletSimAPI.RemoveConstraintByID(_scene.WorldID, LocalID);
-    }
-
-    #endregion // Linkset creation and destruction
 
     // Rebuild the geometry and object.
     // This is called when the shape changes so we need to recreate the mesh/hull.
@@ -1429,7 +1306,7 @@ public sealed class BSPrim : PhysicsActor
         // Don't check for damping here -- it's done in BulletSim and SceneObjectPart.
 
         // Updates only for individual prims and for the root object of a linkset.
-        if (_parentPrim == null)
+        if (_linkset.IsRoot(this))
         {
             // Assign to the local variables so the normal set action does not happen
             _position = entprop.Position;

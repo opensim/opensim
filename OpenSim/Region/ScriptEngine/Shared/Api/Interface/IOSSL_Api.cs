@@ -283,5 +283,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// <param name="thing"></param>
         /// <returns>1 if thing is a valid UUID, 0 otherwise</returns>
         LSL_Integer osIsUUID(string thing);
+
+        /// <summary>
+        /// Wraps to Math.Min()
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        LSL_Float osMin(double a, double b);
+
+        /// <summary>
+        /// Wraps to Math.max()
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        LSL_Float osMax(double a, double b);
     }
 }

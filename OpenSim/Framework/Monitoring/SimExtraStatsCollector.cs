@@ -28,12 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
 using OpenMetaverse;
-using OpenSim.Framework.Statistics.Interfaces;
 using OpenMetaverse.StructuredData;
+using OpenSim.Framework.Monitoring.Interfaces;
 
-namespace OpenSim.Framework.Statistics
+namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
     /// Collects sim statistics which aren't already being collected for the linden viewer's statistics pane

@@ -225,7 +225,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 RRAlert("enabled");
             }
 
-            m_scene.EventManager.TriggerRegionReady(m_scene);
+            m_scene.Ready = true;
         }
 
         public void OarLoadingAlert(string msg)

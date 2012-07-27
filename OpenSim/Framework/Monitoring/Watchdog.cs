@@ -31,7 +31,7 @@ using System.Linq;
 using System.Threading;
 using log4net;
 
-namespace OpenSim.Framework
+namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
     /// Manages launching threads and keeping watch over them for timeouts
@@ -324,6 +324,9 @@ namespace OpenSim.Framework
                     foreach (ThreadWatchdogInfo callbackInfo in callbackInfos)
                         callback(callbackInfo);
             }
+
+            if (MemoryWatchdog.Enabled)
+                MemoryWatchdog.Update();
 
             m_watchdogTimer.Start();
         }

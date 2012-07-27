@@ -40,7 +40,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Framework.Statistics;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts;
 using OpenSim.Region.Framework;
@@ -300,7 +300,7 @@ namespace OpenSim
 
         private void HandleCommanderCommand(string module, string[] cmd)
         {
-            m_sceneManager.SendCommandToPluginModules(cmd);
+            SceneManager.SendCommandToPluginModules(cmd);
         }
 
         private void HandleCommanderHelp(string module, string[] cmd)
@@ -318,7 +318,10 @@ namespace OpenSim
             // Called from base.StartUp()
 
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
-            m_sceneManager.OnRestartSim += handleRestartRegion;
+            SceneManager.OnRestartSim += handleRestartRegion;
+
+            // Only start the memory watchdog once all regions are ready
+            SceneManager.OnRegionsReadyStatusChange += sm => MemoryWatchdog.Enabled = sm.AllRegionsReady;
         }
 
         /// <summary>
@@ -480,7 +483,7 @@ namespace OpenSim
                 scene.SnmpService.BootInfo("ScriptEngine started", scene);
             }
 
-            m_sceneManager.Add(scene);
+            SceneManager.Add(scene);
 
             if (m_autoCreateClientStack)
             {
@@ -510,7 +513,6 @@ namespace OpenSim
             }
 
             scene.Start();
-
             scene.StartScripts();
 
             return clientServer;
@@ -644,14 +646,14 @@ namespace OpenSim
         {
             // only need to check this if we are not at the
             // root level
-            if ((m_sceneManager.CurrentScene != null) &&
-                (m_sceneManager.CurrentScene.RegionInfo.RegionID == scene.RegionInfo.RegionID))
+            if ((SceneManager.CurrentScene != null) &&
+                (SceneManager.CurrentScene.RegionInfo.RegionID == scene.RegionInfo.RegionID))
             {
-                m_sceneManager.TrySetCurrentScene("..");
+                SceneManager.TrySetCurrentScene("..");
             }
 
             scene.DeleteAllSceneObjects();
-            m_sceneManager.CloseScene(scene);
+            SceneManager.CloseScene(scene);
             ShutdownClientServer(scene.RegionInfo);
             
             if (!cleanup)
@@ -693,7 +695,7 @@ namespace OpenSim
         public void RemoveRegion(string name, bool cleanUp)
         {
             Scene target;
-            if (m_sceneManager.TryGetScene(name, out target))
+            if (SceneManager.TryGetScene(name, out target))
                 RemoveRegion(target, cleanUp);
         }
 
@@ -706,13 +708,13 @@ namespace OpenSim
         {
             // only need to check this if we are not at the
             // root level
-            if ((m_sceneManager.CurrentScene != null) &&
-                (m_sceneManager.CurrentScene.RegionInfo.RegionID == scene.RegionInfo.RegionID))
+            if ((SceneManager.CurrentScene != null) &&
+                (SceneManager.CurrentScene.RegionInfo.RegionID == scene.RegionInfo.RegionID))
             {
-                m_sceneManager.TrySetCurrentScene("..");
+                SceneManager.TrySetCurrentScene("..");
             }
 
-            m_sceneManager.CloseScene(scene);
+            SceneManager.CloseScene(scene);
             ShutdownClientServer(scene.RegionInfo);
         }
         
@@ -724,7 +726,7 @@ namespace OpenSim
         public void CloseRegion(string name)
         {
             Scene target;
-            if (m_sceneManager.TryGetScene(name, out target))
+            if (SceneManager.TryGetScene(name, out target))
                 CloseRegion(target);
         }
         
@@ -980,7 +982,7 @@ namespace OpenSim
 
             try
             {
-                m_sceneManager.Close();
+                SceneManager.Close();
             }
             catch (Exception e)
             {
@@ -1005,7 +1007,7 @@ namespace OpenSim
         /// <param name="usernum">The first out parameter describing the number of all the avatars in the Region server</param>
         public void GetAvatarNumber(out int usernum)
         {
-            usernum = m_sceneManager.GetCurrentSceneAvatars().Count;
+            usernum = SceneManager.GetCurrentSceneAvatars().Count;
         }
 
         /// <summary>
@@ -1014,7 +1016,7 @@ namespace OpenSim
         /// <param name="regionnum">The first out parameter describing the number of regions</param>
         public void GetRegionNumber(out int regionnum)
         {
-            regionnum = m_sceneManager.Scenes.Count;
+            regionnum = SceneManager.Scenes.Count;
         }
         
         /// <summary>

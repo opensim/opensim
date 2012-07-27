@@ -40,9 +40,9 @@ using log4net.Core;
 using log4net.Repository;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Framework.Statistics;
 using Timer=System.Timers.Timer;
 
 using OpenMetaverse;

@@ -40,6 +40,7 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
@@ -1232,14 +1233,16 @@ namespace OpenSim.Region.Framework.Scenes
                                      avatar.ControllingClient.SendShutdownConnectionNotice();
                                  });
 
+            // Stop updating the scene objects and agents.
+            m_shuttingDown = true;
+
             // Wait here, or the kick messages won't actually get to the agents before the scene terminates.
+            // We also need to wait to avoid a race condition with the scene update loop which might not yet
+            // have checked ShuttingDown.
             Thread.Sleep(500);
 
             // Stop all client threads.
             ForEachScenePresence(delegate(ScenePresence avatar) { avatar.ControllingClient.Close(); });
-
-            // Stop updating the scene objects and agents.
-            m_shuttingDown = true;
 
             m_log.Debug("[SCENE]: Persisting changed objects");
             EventManager.TriggerSceneShuttingDown(this);
@@ -1254,6 +1257,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_sceneGraph.Close();
+
+            if (PhysicsScene != null)
+            {
+                PhysicsScene phys = PhysicsScene;
+                // remove the physics engine from both Scene and SceneGraph
+                PhysicsScene = null;
+                phys.Dispose();
+                phys = null;
+            }
 
             if (!GridService.DeregisterRegion(RegionInfo.RegionID))
                 m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
@@ -1553,8 +1565,8 @@ namespace OpenSim.Region.Framework.Scenes
                             m_sceneGridService.InformNeighborsThatRegionisUp(
                                 RequestModuleInterface<INeighbourService>(), RegionInfo);
 
-                            // Region ready should always be triggered whether logins are immediately enabled or not.
-                            EventManager.TriggerRegionReady(this);
+                            // Region ready should always be set
+                            Ready = true;
                         }
                         else
                         {

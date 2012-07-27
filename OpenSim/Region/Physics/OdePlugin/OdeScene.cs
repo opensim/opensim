@@ -290,7 +290,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private readonly IntPtr contactgroup;
 
-        internal IntPtr LandGeom;
         internal IntPtr WaterGeom;
 
         private float nmTerrainContactFriction = 255.0f;
@@ -488,6 +487,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// Used to lock the entire physics scene.  Locked during the main part of Simulate()
         /// </summary>
         internal Object OdeLock = new Object();
+
+        private bool _worldInitialized = false;
 
         public IMesher mesher;
 
@@ -875,6 +876,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     staticPrimspace[i, j] = IntPtr.Zero;
                 }
             }
+
+            _worldInitialized = true;
         }
 
 //        internal void waitForSpaceUnlock(IntPtr space)
@@ -1508,8 +1511,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f)
                         && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f)
-                        && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f))
-                        && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                        && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)))
                     {
                         if (Math.Abs(contact.depth - contactGeom.depth) < 0.052f)
                         {
@@ -1538,7 +1540,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //d.GeomGetAABB(contactGeom.g2, out aabb2);
                     //d.GeomGetAABB(contactGeom.g1, out aabb1);
                     //aabb1.
-                    if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)) && contactGeom.g1 != LandGeom && contactGeom.g2 != LandGeom)
+                    if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)))
                     {
                         if (contactGeom.normal.X == contact.normal.X && contactGeom.normal.Y == contact.normal.Y && contactGeom.normal.Z == contact.normal.Z)
                         {
@@ -2896,6 +2898,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns>The number of frames simulated over that period.</returns>
         public override float Simulate(float timeStep)
         {
+            if (!_worldInitialized) return 11f;
+
             int startFrameTick = CollectStats ? Util.EnvironmentTickCount() : 0;
             int tempTick = 0, tempTick2 = 0;
 
@@ -4017,6 +4021,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void Dispose()
         {
+            _worldInitialized = false;
+
             m_rayCastManager.Dispose();
             m_rayCastManager = null;
 
@@ -4037,6 +4043,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.WorldDestroy(world);
                 //d.CloseODE();
             }
+
         }
 
         public override Dictionary<uint, float> GetTopColliders()

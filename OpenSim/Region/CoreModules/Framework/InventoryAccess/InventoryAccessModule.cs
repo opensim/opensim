@@ -204,8 +204,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                     AssetBase asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
                     m_Scene.AssetService.Store(asset);
-
-                    m_Scene.CreateNewInventoryItem(remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID, asset.Name, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
+                    m_Scene.CreateNewInventoryItem(
+                        remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
+                        name, description, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
                 }
                 else
                 {
