@@ -192,7 +192,7 @@ namespace OpenSim.Region.Framework.Scenes
         private void HandleRegionReadyStatusChange(IScene scene)
         {
             lock (m_localScenes)
-                AllRegionsReady = m_localScenes.TrueForAll(s => s.Ready);
+                AllRegionsReady = m_localScenes.FindAll(s => !s.Ready).Count == 0;
         }
 
         public void SendSimOnlineNotification(ulong regionHandle)

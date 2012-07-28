@@ -112,10 +112,7 @@
       </Files>
     </Project>
 
-<<<<<<< HEAD:prebuild.xml
-    <Project frameworkVersion="v4_0" name="OpenSim.Framework.Servers.HttpServer" path="OpenSim/Framework/Servers/HttpServer" type="Library">
-=======
-    <Project frameworkVersion="v3_5" name="OpenSim.Framework.Monitoring" path="OpenSim/Framework/Monitoring" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Framework.Monitoring" path="OpenSim/Framework/Monitoring" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -141,8 +138,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Framework.Servers.HttpServer" path="OpenSim/Framework/Servers/HttpServer" type="Library">
->>>>>>> master:prebuild.xml
+    <Project frameworkVersion="v4_0" name="OpenSim.Framework.Servers.HttpServer" path="OpenSim/Framework/Servers/HttpServer" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>
@@ -266,35 +262,7 @@
       </Files>
     </Project>
 
-<<<<<<< HEAD:prebuild.xml
-    <Project frameworkVersion="v4_0" name="OpenSim.Framework.Statistics" path="OpenSim/Framework/Statistics" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
-      <Reference name="OpenMetaverse" path="../../../bin/"/>
-      <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
-      <Reference name="OpenSim.Framework"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project frameworkVersion="v4_0" name="OpenSim.Data" path="OpenSim/Data" type="Library">
-=======
-    <Project frameworkVersion="v3_5" name="OpenSim.Data" path="OpenSim/Data" type="Library">
->>>>>>> master:prebuild.xml
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>
@@ -2565,12 +2533,7 @@
       </Files>
     </Project>
 
-<<<<<<< HEAD:prebuild.xml
-
     <Project frameworkVersion="v4_0" name="OpenSim.Region.UserStatistics" path="OpenSim/Region/UserStatistics" type="Library">
-=======
-    <Project frameworkVersion="v3_5" name="OpenSim.Region.UserStatistics" path="OpenSim/Region/UserStatistics" type="Library">
->>>>>>> master:prebuild.xml
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
