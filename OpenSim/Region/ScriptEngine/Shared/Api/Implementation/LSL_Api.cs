@@ -11471,6 +11471,59 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (userAgent != null)
                 httpHeaders["User-Agent"] = userAgent;
 
+            // See if the URL contains any header hacks
+            string[] urlParts = url.Split(new char[] {'\n'});
+            if (urlParts.Length > 1)
+            {
+                // Iterate the passed headers and parse them
+                for (int i = 1 ; i < urlParts.Length ; i++ )
+                {
+                    // The rest of those would be added to the body in SL.
+                    // Let's not do that.
+                    if (urlParts[i] == String.Empty)
+                        break;
+
+                    // See if this could be a valid header
+                    string[] headerParts = urlParts[i].Split(new char[] {':'}, 2);
+                    if (headerParts.Length != 2)
+                        continue;
+
+                    string headerName = headerParts[0].Trim();
+                    string headerValue = headerParts[1].Trim();
+
+                    // Filter out headers that could be used to abuse
+                    // another system or cloak the request
+                    if (headerName.ToLower() == "x-secondlife-shard" ||
+                        headerName.ToLower() == "x-secondlife-object-name" ||
+                        headerName.ToLower() == "x-secondlife-object-key" ||
+                        headerName.ToLower() == "x-secondlife-region" ||
+                        headerName.ToLower() == "x-secondlife-local-position" ||
+                        headerName.ToLower() == "x-secondlife-local-velocity" ||
+                        headerName.ToLower() == "x-secondlife-local-rotation" ||
+                        headerName.ToLower() == "x-secondlife-owner-name" ||
+                        headerName.ToLower() == "x-secondlife-owner-key" ||
+                        headerName.ToLower() == "connection" ||
+                        headerName.ToLower() == "content-length" ||
+                        headerName.ToLower() == "from" ||
+                        headerName.ToLower() == "host" ||
+                        headerName.ToLower() == "proxy-authorization" ||
+                        headerName.ToLower() == "referer" ||
+                        headerName.ToLower() == "trailer" ||
+                        headerName.ToLower() == "transfer-encoding" ||
+                        headerName.ToLower() == "via" ||
+                        headerName.ToLower() == "authorization")
+                        continue;
+
+                    httpHeaders[headerName] = headerValue;
+                }
+
+                // Finally, strip any protocol specifier from the URL
+                url = urlParts[0].Trim();
+                int idx = url.IndexOf(" HTTP/");
+                if (idx != -1)
+                    url = url.Substring(0, idx);
+            }
+
             string authregex = @"^(https?:\/\/)(\w+):(\w+)@(.*)$";
             Regex r = new Regex(authregex);
             int[] gnums = r.GetGroupNumbers();

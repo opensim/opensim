@@ -151,6 +151,24 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             ToOriginalXmlFormat(sceneObject, writer, doScriptStates, false);
         }
         
+        public static string ToOriginalXmlFormat(SceneObjectGroup sceneObject, string scriptedState)
+        {
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlTextWriter writer = new XmlTextWriter(sw))
+                {
+                    writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
+
+                    ToOriginalXmlFormat(sceneObject, writer, false, true);
+
+                    writer.WriteRaw(scriptedState);
+
+                    writer.WriteEndElement();
+                }
+                return sw.ToString();
+            }
+        }
+
         /// <summary>
         /// Serialize a scene object to the original xml format
         /// </summary>
