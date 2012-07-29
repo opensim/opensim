@@ -492,6 +492,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return null;
             }
 
+            return account;
+            /*
             try
             {
                 string encpass = Util.Md5Hash(pass);
@@ -512,6 +514,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_log.ErrorFormat("[INVENTORY ARCHIVER]: Could not authenticate password, {0}", e.Message);
                 return null;
             }
+            */
         }
 
         /// <summary>

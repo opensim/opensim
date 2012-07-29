@@ -3817,6 +3817,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (p == null)
                 return;
 
+            ControllingClient.SendTakeControls(controls, false, false);
+            ControllingClient.SendTakeControls(controls, true, false);
+
             ScriptControllers obj = new ScriptControllers();
             obj.ignoreControls = ScriptControlled.CONTROL_ZERO;
             obj.eventControls = ScriptControlled.CONTROL_ZERO;
