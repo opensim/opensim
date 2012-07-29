@@ -3315,8 +3315,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         // Unregister controls from Presence
                         presence.UnRegisterControlEventsToScript(m_host.LocalId, m_item.ItemID);
-                        // Remove Take Control permission.
-                        m_item.PermsMask &= ~ScriptBaseClass.PERMISSION_TAKE_CONTROLS;
                     }
                 }
             }
