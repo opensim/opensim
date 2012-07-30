@@ -3315,8 +3315,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         // Unregister controls from Presence
                         presence.UnRegisterControlEventsToScript(m_host.LocalId, m_item.ItemID);
-                        // Remove Take Control permission.
-                        m_item.PermsMask &= ~ScriptBaseClass.PERMISSION_TAKE_CONTROLS;
                     }
                 }
             }
@@ -11848,11 +11846,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_Vector(opos.X, opos.Y, opos.Z));
                                 break;
                             case ScriptBaseClass.OBJECT_ROT:
-//                                Quaternion orot = obj.RotationOffset;                               
-//                                ret.Add(new LSL_Rotation(orot.X, orot.Y, orot.Z, orot.W));
+                                {
+                                    Quaternion rot = Quaternion.Identity; 
 
-                                LSL_Rotation objrot = GetPartRot(obj);
-                                ret.Add(objrot);
+                                    if (obj.ParentGroup.RootPart == obj)
+                                        rot = obj.ParentGroup.GroupRotation;
+                                    else
+                                        rot = obj.GetWorldRotation();
+
+                                    LSL_Rotation objrot = new LSL_Rotation(rot.X, rot.Y, rot.Z, rot.W);
+                                    ret.Add(objrot);
+                                }
                                 break;
                             case ScriptBaseClass.OBJECT_VELOCITY:
                                 Vector3 ovel = obj.Velocity;

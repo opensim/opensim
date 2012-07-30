@@ -80,7 +80,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         /// <summary>
         /// Maximum number of external urls that can be set up by this module.
         /// </summary>
-        private int m_TotalUrls = 5000;
+        private int m_TotalUrls = 15000;
 
         private uint https_port = 0;
         private IHttpServer m_HttpServer = null;
