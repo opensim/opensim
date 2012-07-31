@@ -212,9 +212,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Use the camera position for local agents and avatar position for remote agents
-            Vector3 presencePos = (presence.IsChildAgent) ?
-                presence.AbsolutePosition :
-                presence.CameraPosition;
+            // Why would I want that? They could be camming but I still see them at the
+            // avatar position, so why should I update them as if they were at their
+            // camera positions? Makes no sense!
+            // TODO: Fix this mess
+            //Vector3 presencePos = (presence.IsChildAgent) ?
+            //    presence.AbsolutePosition :
+            //    presence.CameraPosition;
+
+            Vector3 presencePos = presence.AbsolutePosition;
 
             // Compute the distance... 
             double distance = Vector3.Distance(presencePos, entityPos);

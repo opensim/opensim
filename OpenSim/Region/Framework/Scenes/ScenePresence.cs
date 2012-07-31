@@ -1947,7 +1947,9 @@ namespace OpenSim.Region.Framework.Scenes
 
 //                m_pos += ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
 //                ParentPosition = Vector3.Zero;
-                m_pos += part.GetWorldPosition() + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
+                m_pos = part.AbsolutePosition + (m_pos * part.GetWorldRotation()) + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
+                if (part.SitTargetAvatar == UUID)
+                    m_bodyRot = part.GetWorldRotation() * part.SitTargetOrientation;
 
                 ParentID = 0;
                 ParentPart = null;
