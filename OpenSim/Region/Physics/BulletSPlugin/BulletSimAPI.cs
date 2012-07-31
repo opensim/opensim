@@ -87,12 +87,12 @@ public struct ShapeData
     public System.UInt64 MeshKey;
     public float Friction;
     public float Restitution;
-    public int Collidable;
-    public int Static;  // true if a static object. Otherwise gravity, etc.
+    public float Collidable;    // true of things bump into this
+    public float Static;        // true if a static object. Otherwise gravity, etc.
 
-    // note that bools are passed as ints since bool size changes by language and architecture
-    public const int numericTrue = 1;
-    public const int numericFalse = 0;
+    // note that bools are passed as floats since bool size changes by language and architecture
+    public const float numericTrue = 1f;
+    public const float numericFalse = 0f;
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct SweepHit 

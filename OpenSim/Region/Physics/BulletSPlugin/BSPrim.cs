@@ -187,6 +187,7 @@ public sealed class BSPrim : PhysicsActor
             {
                 _mass = CalculateMass();   // changing size changes the mass
                 BulletSimAPI.SetObjectScaleMass(_scene.WorldID, _localID, _scale, (IsPhysical ? _mass : 0f), IsPhysical);
+                DetailLog("{0}: setSize: size={1}, mass={2}, physical={3}", LocalID, _size, _mass, IsPhysical);
                 RecreateGeomAndObject();
             });
         } 
@@ -1201,7 +1202,8 @@ public sealed class BSPrim : PhysicsActor
 
     // Create an object in Bullet if it has not already been created
     // No locking here because this is done when the physics engine is not simulating
-    private void CreateObject()
+    // Returns 'true' if an object was actually created.
+    private bool CreateObject()
     {
         // this routine is called when objects are rebuilt. 
 
@@ -1209,10 +1211,12 @@ public sealed class BSPrim : PhysicsActor
         ShapeData shape;
         FillShapeInfo(out shape);
         // m_log.DebugFormat("{0}: CreateObject: lID={1}, shape={2}", LogHeader, _localID, shape.Type);
-        BulletSimAPI.CreateObject(_scene.WorldID, shape);
+        bool ret = BulletSimAPI.CreateObject(_scene.WorldID, shape);
 
         // the CreateObject() may have recreated the rigid body. Make sure we have the latest.
         m_body.Ptr = BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID);
+
+        return ret;
     }
 
     // Copy prim's info into the BulletSim shape description structure
