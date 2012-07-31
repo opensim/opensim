@@ -38,7 +38,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 {
     public class CSCodeGenerator : ICodeConverter
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//      private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private SYMBOL m_astRoot = null;
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap;
@@ -255,7 +255,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             else if (s is IdentDotExpression)
                 retstr += Generate(CheckName(((IdentDotExpression) s).Name) + "." + ((IdentDotExpression) s).Member, s);
             else if (s is IdentExpression)
-                retstr += Generate(CheckName(((IdentExpression) s).Name), s);
+                retstr += GenerateIdentifier(((IdentExpression) s).Name, s);
             else if (s is IDENT)
                 retstr += Generate(CheckName(((TOKEN) s).yytext), s);
             else
@@ -865,6 +865,41 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             retstr += Generate(")");
 
             return retstr;
+        }
+
+        /// <summary>
+        /// Generates the code for an identifier
+        /// </summary>
+        /// <param name="id">The symbol name</param>
+        /// <param name="s">The Symbol node.</param>
+        /// <returns>String containing C# code for identifier reference.</returns>
+        private string GenerateIdentifier(string id, SYMBOL s)
+        {
+            if (m_comms != null)
+            {
+                object value = m_comms.LookupModConstant(id);
+                if (value != null)
+                {
+                    string retval = null;
+                    if (value is int)
+                        retval = ((int)value).ToString();
+                    else if (value is float)
+                        retval = String.Format("new LSL_Types.LSLFloat({0})",((float)value).ToString());
+                    else if (value is string)
+                        retval = String.Format("new LSL_Types.LSLString(\"{0}\")",((string)value));
+                    else if (value is OpenMetaverse.UUID)
+                        retval = String.Format("new LSL_Types.key(\"{0}\")",((OpenMetaverse.UUID)value).ToString());
+                    else if (value is OpenMetaverse.Vector3)
+                        retval = String.Format("new LSL_Types.Vector3(\"{0}\")",((OpenMetaverse.Vector3)value).ToString());
+                    else if (value is OpenMetaverse.Quaternion)
+                        retval = String.Format("new LSL_Types.Quaternion(\"{0}\")",((OpenMetaverse.Quaternion)value).ToString());
+                    else retval = id;
+                    
+                    return Generate(retval, s);
+                }
+            }
+
+            return Generate(CheckName(id), s);
         }
 
         /// <summary>

@@ -67,6 +67,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="key"></param>
         void DispatchReply(UUID scriptId, int code, string text, string key);
 
+        /// For constants
+        void RegisterConstant(string cname, object value);
+        object LookupModConstant(string cname);
+
         // For use ONLY by the script API
         void RaiseEvent(UUID script, string id, string module, string command, string key);
     }
