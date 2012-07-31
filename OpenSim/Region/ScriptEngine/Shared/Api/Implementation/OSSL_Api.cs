@@ -3549,6 +3549,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_UrlModule != null)
                 m_UrlModule.HttpContentType(new UUID(id),type);
         }
-        
-   }
+
+        public void osDropAttachment()
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osDropAttachment");
+            m_host.AddScriptLPS(1);
+
+            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+            ScenePresence sp = attachmentsModule == null ? null : m_host.ParentGroup.Scene.GetScenePresence(m_host.ParentGroup.OwnerID);
+
+            if (attachmentsModule != null && sp != null)
+            {
+                attachmentsModule.DetachSingleAttachmentToGround(sp, m_host.ParentGroup.LocalId);
+            }
+        }
+
+        public void osDropAttachmentAt(LSL_Vector pos, LSL_Rotation rot)
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osDropAttachment");
+            m_host.AddScriptLPS(1);
+
+            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+            ScenePresence sp = attachmentsModule == null ? null : m_host.ParentGroup.Scene.GetScenePresence(m_host.ParentGroup.OwnerID);
+
+            if (attachmentsModule != null && sp != null)
+            {
+                Vector3 omvPos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
+                Quaternion omvRot = LSL_Api.Rot2Quaternion(rot);
+                attachmentsModule.DetachSingleAttachmentToGround(sp, m_host.ParentGroup.LocalId, omvPos, omvRot);
+            }
+        }
+    }
 }

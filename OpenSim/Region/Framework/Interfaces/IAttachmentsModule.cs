@@ -109,6 +109,15 @@ namespace OpenSim.Region.Framework.Interfaces
         void DetachSingleAttachmentToGround(IScenePresence sp, uint objectLocalID);
 
         /// <summary>
+        /// Detach the given item to the ground at the specified coordinates & rotation
+        /// </summary>
+        /// <param name="sp"></param>
+        /// <param name="objectLocalID"></param>
+        /// <param name="absolutePos"></param>
+        /// <param name="absoluteRot"></param>
+        void DetachSingleAttachmentToGround(IScenePresence sp, uint objectLocalID, Vector3 absolutePos, Quaternion absoluteRot);
+
+        /// <summary>
         /// Detach the given attachment so that it remains in the user's inventory.
         /// </summary>
         /// <param name="sp">/param>
