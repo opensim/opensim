@@ -315,6 +315,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public override PhysicsActor AddAvatar(uint localID, string avName, Vector3 position, Vector3 size, bool isFlying)
     {
         // m_log.DebugFormat("{0}: AddAvatar: {1}", LogHeader, avName);
+
+        if (!m_initialized) return null;
+
         BSCharacter actor = new BSCharacter(localID, avName, this, position, size, isFlying);
         lock (m_avatars) m_avatars.Add(localID, actor);
         return actor;
@@ -323,6 +326,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public override void RemoveAvatar(PhysicsActor actor)
     {
         // m_log.DebugFormat("{0}: RemoveAvatar", LogHeader);
+
+        if (!m_initialized) return;
+
         BSCharacter bsactor = actor as BSCharacter;
         if (bsactor != null)
         {
@@ -341,6 +347,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public override void RemovePrim(PhysicsActor prim)
     {
+        if (!m_initialized) return;
+
         BSPrim bsprim = prim as BSPrim;
         if (bsprim != null)
         {
@@ -366,6 +374,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                                               Vector3 size, Quaternion rotation, bool isPhysical, uint localID)
     {
         // m_log.DebugFormat("{0}: AddPrimShape2: {1}", LogHeader, primName);
+
+        if (!m_initialized) return null;
+
         BSPrim prim = new BSPrim(localID, primName, this, position, size, rotation, pbs, isPhysical);
         lock (m_prims) m_prims.Add(localID, prim);
         return prim;
@@ -807,6 +818,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     // List of all of the externally visible parameters.
     // For each parameter, this table maps a text name to getter and setters.
+    // To add a new externally referencable/settable parameter, add the paramter storage
+    //    location somewhere in the program and make an entry in this table with the
+    //    getters and setters.
+    // To add a new variable, it is easiest to find an existing definition and copy it.
+    // Parameter values are floats. Booleans are converted to a floating value.
+    // 
     // A ParameterDefn() takes the following parameters:
     //    -- the text name of the parameter. This is used for console input and ini file.
     //    -- a short text description of the parameter. This shows up in the console listing.
@@ -815,7 +832,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     //    -- a delegate for getting the value as a float
     //    -- a delegate for setting the value from a float
     //
-    // To add a new variable, it is best to find an existing definition and copy it.
+    // The single letter parameters for the delegates are:
+    //    s = BSScene
+    //    p = string parameter name
+    //    l = localID of referenced object
+    //    v = float value
+    //    cf = parameter configuration class (for fetching values from ini file)
     private ParameterDefn[] ParameterDefinitions =
     {
         new ParameterDefn("MeshSculptedPrim", "Whether to create meshes for sculpties",
@@ -1048,6 +1070,16 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintTransMotorMaxForce; },
             (s,p,l,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = v; } ),
+	    new ParameterDefn("LinkConstraintCFM", "Amount constraint can be violated. 0=none, 1=all. Default=0",
+            0.0f,
+            (s,cf,p,v) => { s.m_params[0].linkConstraintCFM = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].linkConstraintCFM; },
+            (s,p,l,v) => { s.m_params[0].linkConstraintCFM = v; } ),
+	    new ParameterDefn("LinkConstraintERP", "Amount constraint is corrected each tick. 0=none, 1=all. Default = 0.2",
+            0.2f,
+            (s,cf,p,v) => { s.m_params[0].linkConstraintERP = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].linkConstraintERP; },
+            (s,p,l,v) => { s.m_params[0].linkConstraintERP = v; } ),
 
         new ParameterDefn("DetailedStats", "Frames between outputting detailed phys stats. (0 is off)",
             0f,

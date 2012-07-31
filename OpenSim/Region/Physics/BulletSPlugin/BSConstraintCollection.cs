@@ -83,7 +83,8 @@ public class BSConstraintCollection : IDisposable
         return true;
     }
 
-    // Get the constraint between two bodies. There can be only one the way we're using them.
+    // Get the constraint between two bodies. There can be only one.
+    // Return 'true' if a constraint was found.
     public bool TryGetConstraint(BulletBody body1, BulletBody body2, out BSConstraint returnConstraint)
     {
         bool found = false;
@@ -105,6 +106,9 @@ public class BSConstraintCollection : IDisposable
         return found;
     }
 
+    // Remove any constraint between the passed bodies.
+    // Presumed there is only one such constraint possible.
+    // Return 'true' if a constraint was found and destroyed.
     public bool RemoveAndDestroyConstraint(BulletBody body1, BulletBody body2)
     {
         // return BulletSimAPI.RemoveConstraint(m_world.ID, obj1.ID, obj2.ID);
@@ -125,6 +129,8 @@ public class BSConstraintCollection : IDisposable
         return ret;
     }
 
+    // Remove all constraints that reference the passed body.
+    // Return 'true' if any constraints were destroyed.
     public bool RemoveAndDestroyConstraint(BulletBody body1)
     {
         // return BulletSimAPI.RemoveConstraintByID(m_world.ID, obj.ID);
