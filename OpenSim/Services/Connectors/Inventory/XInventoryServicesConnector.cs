@@ -122,7 +122,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception unwrapping folder list: {0}", e.Message);
+                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception unwrapping folder list: ", e);
             }
 
             return fldrs;
@@ -191,7 +191,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception in GetFolderContent: {0}", e.Message);
+                m_log.WarnFormat("[XINVENTORY SERVICES CONNECTOR]: Exception in GetFolderContent: {0}", e.Message);
             }
 
             return inventory;
@@ -432,7 +432,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception in GetItem: {0}", e.Message);
+                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception in GetItem: ", e);
             }
 
             return null;
@@ -456,7 +456,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception in GetFolder: {0}", e.Message);
+                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception in GetFolder: ", e);
             }
 
             return null;
@@ -525,7 +525,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception in GetUserInventory: {0}", e.Message);
+                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception in GetUserInventory: ", e);
             }
 
             return inventory;
@@ -574,7 +574,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception building folder: {0}", e.Message);
+                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception building folder: ", e);
             }
 
             return folder;
@@ -613,11 +613,10 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception building item: {0}", e.Message);
+                m_log.Error("[XINVENTORY CONNECTOR]: Exception building item: ", e);
             }
 
             return item;
         }
-
     }
 }
