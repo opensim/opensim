@@ -474,7 +474,7 @@ namespace OpenSim.Services.Connectors
 
             List<InventoryItemBase> items = new List<InventoryItemBase>();
 
-            foreach (Object o in ret.Values) // getting the values directly, we don't care about the keys item_i
+            foreach (Object o in ((Dictionary<string,object>)ret["ITEMS"]).Values)
                 items.Add(BuildItem((Dictionary<string, object>)o));
 
             return items;

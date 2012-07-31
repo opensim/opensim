@@ -51,8 +51,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             get
             {
-                lock (SenseRepeatListLock)
-                    return SenseRepeaters.Count;
+                return SenseRepeaters.Count;
             }
         }
 
@@ -115,6 +114,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             public double distance;
         }
 
+        /// <summary>
+        /// Sensors to process.
+        /// </summary>
+        /// <remarks>
+        /// Do not add or remove sensors from this list directly.  Instead, copy the list and substitute the updated
+        /// copy.  This is to avoid locking the list for the duration of the sensor sweep, which increases the danger
+        /// of deadlocks with future code updates.
+        ///
+        /// Always lock SenseRepeatListLock when updating this list.
+        /// </remarks>
         private List<SenseRepeatClass> SenseRepeaters = new List<SenseRepeatClass>();
         private object SenseRepeatListLock = new object();
 
@@ -124,6 +133,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             // Always remove first, in case this is a re-set
             UnSetSenseRepeaterEvents(m_localID, m_itemID);
+
             if (sec == 0) // Disabling timer
                 return;
 
@@ -143,9 +153,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             ts.host = host;
 
             ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+
+            AddSenseRepeater(ts);
+        }
+
+        private void AddSenseRepeater(SenseRepeatClass senseRepeater)
+        {
             lock (SenseRepeatListLock)
             {
-                SenseRepeaters.Add(ts);
+                List<SenseRepeatClass> newSenseRepeaters = new List<SenseRepeatClass>(SenseRepeaters);
+                newSenseRepeaters.Add(senseRepeater);
+                SenseRepeaters = newSenseRepeaters;
             }
         }
 
@@ -154,39 +172,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             // Remove from timer
             lock (SenseRepeatListLock)
             {
-                List<SenseRepeatClass> NewSensors = new List<SenseRepeatClass>();
+                List<SenseRepeatClass> newSenseRepeaters = new List<SenseRepeatClass>();
                 foreach (SenseRepeatClass ts in SenseRepeaters)
                 {
                     if (ts.localID != m_localID || ts.itemID != m_itemID)
                     {
-                        NewSensors.Add(ts);
+                        newSenseRepeaters.Add(ts);
                     }
                 }
-                SenseRepeaters.Clear();
-                SenseRepeaters = NewSensors;
+
+                SenseRepeaters = newSenseRepeaters;
             }
         }
 
         public void CheckSenseRepeaterEvents()
         {
-            lock (SenseRepeatListLock)
+            // Go through all timers
+            foreach (SenseRepeatClass ts in SenseRepeaters)
             {
-                // Nothing to do here?
-                if (SenseRepeaters.Count == 0)
-                    return;
-
-                // Go through all timers
-                foreach (SenseRepeatClass ts in SenseRepeaters)
+                // Time has passed?
+                if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
                 {
-                    // Time has passed?
-                    if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
-                    {
-                        SensorSweep(ts);
-                        // set next interval
-                        ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
-                    }
+                    SensorSweep(ts);
+                    // set next interval
+                    ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
                 }
-            } // lock
+            }
         }
 
         public void SenseOnce(uint m_localID, UUID m_itemID,
@@ -619,21 +630,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             List<Object> data = new List<Object>();
 
-            lock (SenseRepeatListLock)
+            foreach (SenseRepeatClass ts in SenseRepeaters)
             {
-                foreach (SenseRepeatClass ts in SenseRepeaters)
+                if (ts.itemID == itemID)
                 {
-                    if (ts.itemID == itemID)
-                    {
-                        data.Add(ts.interval);
-                        data.Add(ts.name);
-                        data.Add(ts.keyID);
-                        data.Add(ts.type);
-                        data.Add(ts.range);
-                        data.Add(ts.arc);
-                    }
+                    data.Add(ts.interval);
+                    data.Add(ts.name);
+                    data.Add(ts.keyID);
+                    data.Add(ts.type);
+                    data.Add(ts.range);
+                    data.Add(ts.arc);
                 }
             }
+
             return data.ToArray();
         }
 
@@ -667,8 +676,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 ts.next =
                     DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
 
-                lock (SenseRepeatListLock)
-                    SenseRepeaters.Add(ts);
+                AddSenseRepeater(ts);
                 
                 idx += 6;
             }

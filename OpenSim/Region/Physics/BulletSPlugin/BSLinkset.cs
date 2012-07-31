@@ -117,10 +117,50 @@ public class BSLinkset
     }
 
     // An existing linkset had one of its members rebuilt or something.
-    // Undo all the physical linking and rebuild the physical linkset.
-    public bool RefreshLinkset(BSPrim requestor)
+    // Go through the linkset and rebuild the pointers to the bodies of the linkset members.
+    public BSLinkset RefreshLinkset(BSPrim requestor)
     {
-        return true;
+        BSLinkset ret = requestor.Linkset;
+
+        lock (m_linksetActivityLock)
+        {
+            System.IntPtr aPtr = BulletSimAPI.GetBodyHandle2(m_scene.World.Ptr, m_linksetRoot.LocalID);
+            if (aPtr == System.IntPtr.Zero)
+            {
+                // That's odd. We can't find the root of the linkset.
+                // The linkset is somehow dead.  The requestor is now a member of a linkset of one.
+                DetailLog("{0},RefreshLinkset.RemoveRoot,child={1}", m_linksetRoot.LocalID, m_linksetRoot.LocalID);
+                ret = RemoveMeFromLinkset(m_linksetRoot);
+            }
+            else
+            {
+                // Reconstruct the pointer to the body of the linkset root.
+                DetailLog("{0},RefreshLinkset.RebuildRoot,rootID={1},ptr={2}", m_linksetRoot.LocalID, m_linksetRoot.LocalID, aPtr);
+                m_linksetRoot.Body = new BulletBody(m_linksetRoot.LocalID, aPtr);
+
+                List<BSPrim> toRemove = new List<BSPrim>();
+                foreach (BSPrim bsp in m_children)
+                {
+                    aPtr = BulletSimAPI.GetBodyHandle2(m_scene.World.Ptr, bsp.LocalID);
+                    if (aPtr == System.IntPtr.Zero)
+                    {
+                        toRemove.Add(bsp);
+                    }
+                    else
+                    {
+                        // Reconstruct the pointer to the body of the linkset root.
+                        DetailLog("{0},RefreshLinkset.RebuildChild,rootID={1},ptr={2}", bsp.LocalID, m_linksetRoot.LocalID, aPtr);
+                        bsp.Body = new BulletBody(bsp.LocalID, aPtr);
+                    }
+                }
+                foreach (BSPrim bsp in toRemove)
+                {
+                    RemoveChildFromLinkset(bsp);
+                }
+            }
+        }
+
+        return ret;
     }
 
 
@@ -256,10 +296,13 @@ public class BSLinkset
         DetailLog("{0},LinkAChildToMe,taint,root={1},child={2}", m_linksetRoot.LocalID, m_linksetRoot.LocalID, childPrim.LocalID);
         BSConstraint constrain = m_scene.Constraints.CreateConstraint(
                         m_scene.World, m_linksetRoot.Body, childPrim.Body,
-                        childRelativePosition,
-                        childRelativeRotation,
+                        // childRelativePosition,
+                        // childRelativeRotation,
                         OMV.Vector3.Zero,
-                        OMV.Quaternion.Identity);
+                        OMV.Quaternion.Identity,
+                        OMV.Vector3.Zero,
+                        OMV.Quaternion.Identity
+                        );
         constrain.SetLinearLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
         constrain.SetAngularLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
 
@@ -268,6 +311,7 @@ public class BSLinkset
         constrain.TranslationalLimitMotor(m_scene.BoolNumeric(m_scene.Params.linkConstraintEnableTransMotor),
                         m_scene.Params.linkConstraintTransMotorMaxVel,
                         m_scene.Params.linkConstraintTransMotorMaxForce);
+        constrain.SetCFMAndERP(m_scene.Params.linkConstraintCFM, m_scene.Params.linkConstraintERP);
 
     }
 

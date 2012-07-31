@@ -103,7 +103,10 @@ public sealed class BSPrim : PhysicsActor
     long _collidingGroundStep;
 
     private BulletBody m_body;
-    public BulletBody Body { get { return m_body; } }
+    public BulletBody Body { 
+        get { return m_body; }
+        set { m_body = value; }
+    }
 
     private BSDynamics _vehicle;
 
@@ -477,9 +480,11 @@ public sealed class BSPrim : PhysicsActor
     // Only called at taint time so it is save to call into Bullet.
     private void SetObjectDynamic()
     {
-        // m_log.DebugFormat("{0}: ID={1}, SetObjectDynamic: IsStatic={2}, IsSolid={3}", LogHeader, _localID, IsStatic, IsSolid);
-
-        RecreateGeomAndObject();
+        // RA: remove this for the moment.
+        // The problem is that dynamic objects are hulls so if we are becoming physical
+        //    the shape has to be checked and possibly built.
+        //    Maybe a VerifyCorrectPhysicalShape() routine?
+        // RecreateGeomAndObject();
 
         float mass = _mass;
         // Bullet wants static objects have a mass of zero
@@ -971,21 +976,23 @@ public sealed class BSPrim : PhysicsActor
                     {
                         DetailLog("{0},CreateGeom,sphere", LocalID);
                         _shapeType = ShapeData.PhysicsShapeType.SHAPE_SPHERE;
-                        ret = true;
                         // Bullet native objects are scaled by the Bullet engine so pass the size in
                         _scale = _size;
+                        // TODO: do we need to check for and destroy a mesh or hull that might have been left from before?
+                        ret = true;
                     }
                 }
             }
             else
             {
-                // m_log.DebugFormat("{0}: CreateGeom: Defaulting to box. lid={1}, size={2}", LogHeader, LocalID, _size);
+                // m_log.DebugFormat("{0}: CreateGeom: Defaulting to box. lid={1}, type={2}, size={3}", LogHeader, LocalID, _shapeType, _size);
                 if (_shapeType != ShapeData.PhysicsShapeType.SHAPE_BOX)
                 {
                     DetailLog("{0},CreateGeom,box", LocalID);
                     _shapeType = ShapeData.PhysicsShapeType.SHAPE_BOX;
-                    ret = true;
                     _scale = _size;
+                    // TODO: do we need to check for and destroy a mesh or hull that might have been left from before?
+                    ret = true;
                 }
             }
         }
@@ -1203,11 +1210,9 @@ public sealed class BSPrim : PhysicsActor
         FillShapeInfo(out shape);
         // m_log.DebugFormat("{0}: CreateObject: lID={1}, shape={2}", LogHeader, _localID, shape.Type);
         BulletSimAPI.CreateObject(_scene.WorldID, shape);
+
         // the CreateObject() may have recreated the rigid body. Make sure we have the latest.
         m_body.Ptr = BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID);
-
-        // The root object could have been recreated. Make sure everything linksety is up to date.
-        _linkset.RefreshLinkset(this);
     }
 
     // Copy prim's info into the BulletSim shape description structure
@@ -1236,8 +1241,8 @@ public sealed class BSPrim : PhysicsActor
     private void RecreateGeomAndObject()
     {
         // m_log.DebugFormat("{0}: RecreateGeomAndObject. lID={1}", LogHeader, _localID);
-        CreateGeom(true);
-        CreateObject();
+        if (CreateGeom(true))
+            CreateObject();
         return;
     }
 
@@ -1322,6 +1327,15 @@ public sealed class BSPrim : PhysicsActor
 
             base.RequestPhysicsterseUpdate();
         }
+            /*
+        else
+        {
+            // For debugging, we can also report the movement of children
+            DetailLog("{0},UpdateProperties,child,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
+                    LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
+                    entprop.Acceleration, entprop.RotationalVelocity);
+        }
+             */
     }
 
     // I've collided with something

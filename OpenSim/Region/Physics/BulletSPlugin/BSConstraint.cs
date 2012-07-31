@@ -50,7 +50,8 @@ public class BSConstraint : IDisposable
         m_body2 = obj2;
         m_constraint = new BulletConstraint(BulletSimAPI.CreateConstraint2(m_world.Ptr, m_body1.Ptr, m_body2.Ptr,
                             frame1, frame1rot,
-                            frame2, frame2rot));
+                            frame2, frame2rot,
+                            true /*useLinearReferenceFrameA*/, true /*disableCollisionsBetweenLinkedBodies*/));
         m_enabled = true;
     }
 
@@ -80,6 +81,15 @@ public class BSConstraint : IDisposable
         bool ret = false;
         if (m_enabled)
             ret = BulletSimAPI.SetAngularLimits2(m_constraint.Ptr, low, high);
+        return ret;
+    }
+
+    public bool SetCFMAndERP(float cfm, float erp)
+    {
+        bool ret = false;
+        BulletSimAPI.SetConstraintParam2(m_constraint.Ptr, ConstraintParams.BT_CONSTRAINT_STOP_CFM, cfm, ConstraintParamAxis.AXIS_ALL);
+        BulletSimAPI.SetConstraintParam2(m_constraint.Ptr, ConstraintParams.BT_CONSTRAINT_STOP_ERP, erp, ConstraintParamAxis.AXIS_ALL);
+        BulletSimAPI.SetConstraintParam2(m_constraint.Ptr, ConstraintParams.BT_CONSTRAINT_CFM, cfm, ConstraintParamAxis.AXIS_ALL);
         return ret;
     }
 

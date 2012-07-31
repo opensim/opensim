@@ -66,13 +66,14 @@ public struct ShapeData
 {
     public enum PhysicsShapeType
     {
-		SHAPE_AVATAR = 0,
-		SHAPE_BOX = 1,
-		SHAPE_CONE = 2,
-		SHAPE_CYLINDER = 3,
-		SHAPE_SPHERE = 4,
-		SHAPE_MESH = 5,
-		SHAPE_HULL = 6
+		SHAPE_UNKNOWN   = 0,
+		SHAPE_AVATAR    = 1,
+		SHAPE_BOX       = 2,
+		SHAPE_CONE      = 3,
+		SHAPE_CYLINDER  = 4,
+		SHAPE_SPHERE    = 5,
+		SHAPE_MESH      = 6,
+		SHAPE_HULL      = 7
     };
     public uint ID;
     public PhysicsShapeType Type;
@@ -168,6 +169,8 @@ public struct ConfigurationParameters
     public float linkConstraintEnableTransMotor;
     public float linkConstraintTransMotorMaxVel;
     public float linkConstraintTransMotorMaxForce;
+    public float linkConstraintERP;
+    public float linkConstraintCFM;
 
     public const float numericTrue = 1f;
     public const float numericFalse = 0f;
@@ -187,6 +190,28 @@ public enum CollisionFlags : uint
     VOLUME_DETECT_OBJECT          = 1 << 10,
     PHANTOM_OBJECT                = 1 << 11,
     PHYSICAL_OBJECT               = 1 << 12,
+};
+
+// CFM controls the 'hardness' of the constraint. 0=fixed, 0..1=violatable. Default=0
+// ERP controls amount of correction per tick. Usable range=0.1..0.8. Default=0.2.
+public enum ConstraintParams : int
+{
+    BT_CONSTRAINT_ERP = 1,  // this one is not used in Bullet as of 20120730
+    BT_CONSTRAINT_STOP_ERP,
+    BT_CONSTRAINT_CFM,
+    BT_CONSTRAINT_STOP_CFM,
+};
+public enum ConstraintParamAxis : int
+{
+    AXIS_LINEAR_X = 0,
+    AXIS_LINEAR_Y,
+    AXIS_LINEAR_Z,
+    AXIS_ANGULAR_X,
+    AXIS_ANGULAR_Y,
+    AXIS_ANGULAR_Z,
+    AXIS_LINEAR_ALL = 20,    // these last three added by BulletSim so we don't have to do zillions of calls
+    AXIS_ANGULAR_ALL,
+    AXIS_ALL
 };
 
 // ===============================================================================
@@ -380,7 +405,8 @@ public static extern IntPtr CreateObject2(IntPtr sim, ShapeData shapeData);
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateConstraint2(IntPtr sim, IntPtr obj1, IntPtr obj2,
                     Vector3 frame1loc, Quaternion frame1rot,
-                    Vector3 frame2loc, Quaternion frame2rot);
+                    Vector3 frame2loc, Quaternion frame2rot,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool SetLinearLimits2(IntPtr constrain, Vector3 low, Vector3 hi);
@@ -396,6 +422,9 @@ public static extern bool TranslationalLimitMotor2(IntPtr constrain, float enabl
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool CalculateTransforms2(IntPtr constrain);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool SetConstraintParam2(IntPtr constrain, ConstraintParams paramIndex, float value, ConstraintParamAxis axis);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool DestroyConstraint2(IntPtr sim, IntPtr constrain);
