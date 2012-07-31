@@ -3566,7 +3566,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osDropAttachmentAt(LSL_Vector pos, LSL_Rotation rot)
         {
-            CheckThreatLevel(ThreatLevel.Moderate, "osDropAttachment");
+            CheckThreatLevel(ThreatLevel.Moderate, "osDropAttachmentAt");
             m_host.AddScriptLPS(1);
 
             IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
