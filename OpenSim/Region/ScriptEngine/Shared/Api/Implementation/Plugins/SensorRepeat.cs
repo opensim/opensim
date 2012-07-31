@@ -60,7 +60,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             m_CmdManager = CmdManager;
             maximumRange = CmdManager.m_ScriptEngine.Config.GetDouble("SensorMaxRange", 96.0d);
             maximumToReturn = CmdManager.m_ScriptEngine.Config.GetInt("SensorMaxResults", 16);
+            m_npcModule = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<INPCModule>();
         }
+
+        private INPCModule m_npcModule;
 
         private Object SenseLock = new Object();
 
@@ -450,8 +453,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         private List<SensedEntity> doAgentSensor(SenseRepeatClass ts)
         {
-            INPCModule npcModule = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<INPCModule>();
-
             List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
             // If nobody about quit fast
@@ -484,7 +485,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             bool attached = (SensePoint.ParentGroup.AttachmentPoint != 0);
             Vector3 toRegionPos;
             double dis;
-
+            
             Action<ScenePresence> senseEntity = new Action<ScenePresence>(presence =>
             {
 //                m_log.DebugFormat(
@@ -493,7 +494,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                 if ((ts.type & NPC) == 0 && (ts.type & OS_NPC) == 0 && presence.PresenceType == PresenceType.Npc)
                 {
-                    INPC npcData = npcModule.GetNPC(presence.UUID, presence.Scene);
+                    INPC npcData = m_npcModule.GetNPC(presence.UUID, presence.Scene);
                     if (npcData == null || !npcData.SenseAsAgent)
                     {
 //                        m_log.DebugFormat(
@@ -511,7 +512,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     }
                     else
                     {
-                        INPC npcData = npcModule.GetNPC(presence.UUID, presence.Scene);
+                        INPC npcData = m_npcModule.GetNPC(presence.UUID, presence.Scene);
                         if (npcData != null && npcData.SenseAsAgent)
                         {
 //                            m_log.DebugFormat(
