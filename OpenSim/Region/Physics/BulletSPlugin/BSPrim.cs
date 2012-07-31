@@ -973,7 +973,7 @@ public sealed class BSPrim : PhysicsActor
                 if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
                 {
                     // m_log.DebugFormat("{0}: CreateGeom: Defaulting to sphere of size {1}", LogHeader, _size);
-                    if (_shapeType != ShapeData.PhysicsShapeType.SHAPE_SPHERE)
+                    if (forceRebuild || (_shapeType != ShapeData.PhysicsShapeType.SHAPE_SPHERE))
                     {
                         DetailLog("{0},CreateGeom,sphere", LocalID);
                         _shapeType = ShapeData.PhysicsShapeType.SHAPE_SPHERE;
@@ -987,7 +987,7 @@ public sealed class BSPrim : PhysicsActor
             else
             {
                 // m_log.DebugFormat("{0}: CreateGeom: Defaulting to box. lid={1}, type={2}, size={3}", LogHeader, LocalID, _shapeType, _size);
-                if (_shapeType != ShapeData.PhysicsShapeType.SHAPE_BOX)
+                if (forceRebuild || (_shapeType != ShapeData.PhysicsShapeType.SHAPE_BOX))
                 {
                     DetailLog("{0},CreateGeom,box", LocalID);
                     _shapeType = ShapeData.PhysicsShapeType.SHAPE_BOX;
@@ -1331,7 +1331,6 @@ public sealed class BSPrim : PhysicsActor
 
             base.RequestPhysicsterseUpdate();
         }
-            /*
         else
         {
             // For debugging, we can also report the movement of children
@@ -1339,7 +1338,6 @@ public sealed class BSPrim : PhysicsActor
                     LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
                     entprop.Acceleration, entprop.RotationalVelocity);
         }
-             */
     }
 
     // I've collided with something
