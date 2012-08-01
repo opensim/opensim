@@ -5816,5 +5816,21 @@ Environment.Exit(1);
         {
             GC.Collect();
         }
+
+        // Wrappers to get physics modules retrieve assets. Has to be done this way
+        // because we can't assign the asset service to physics directly - at the
+        // time physics are instantiated it's not registered but it will be by
+        // the time the first prim exists.
+        public void PhysicsRequestAsset(UUID assetID, AssetReceivedDelegate callback)
+        {
+            AssetService.Get(assetID.ToString(), callback, PhysicsAssetReceived);
+        }
+
+        private void PhysicsAssetReceived(string id, Object sender, AssetBase asset)
+        {
+            AssetReceivedDelegate callback = (AssetReceivedDelegate)sender;
+
+            callback(asset);
+        }
     }
 }

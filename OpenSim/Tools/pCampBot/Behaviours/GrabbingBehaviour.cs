@@ -47,6 +47,9 @@ namespace pCampBot
         {
             Dictionary<UUID, Primitive> objects = Bot.Objects;
 
+            if (objects.Count <= 0)
+                return;
+
             Primitive prim = objects.ElementAt(Bot.Random.Next(0, objects.Count - 1)).Value;
 
             // This appears to be a typical message sent when a viewer user clicks a clickable object
