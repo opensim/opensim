@@ -2467,7 +2467,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Schedule a terse update for this prim.  Terse updates only send position,
-        /// rotation, velocity, rotational velocity and shape information.
+        /// rotation, velocity and rotational velocity information.
         /// </summary>
         public void ScheduleTerseUpdate()
         {
