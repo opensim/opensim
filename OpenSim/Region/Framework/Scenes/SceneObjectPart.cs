@@ -4236,6 +4236,56 @@ namespace OpenSim.Region.Framework.Scenes
             ScheduleFullUpdate();
         }
 
+        public void UpdateSlice(float begin, float end)
+        {
+            if (end < begin)
+            {
+                float temp = begin;
+                begin = end;
+                end = temp;
+            }
+            end = Math.Min(1f, Math.Max(0f, end));
+            begin = Math.Min(Math.Min(1f, Math.Max(0f, begin)), end - 0.02f);
+            if (begin < 0.02f && end < 0.02f)
+            {
+                begin = 0f;
+                end = 0.02f;
+            }
+
+            ushort uBegin = (ushort)(50000.0 * begin);
+            ushort uEnd = (ushort)(50000.0 * (1f - end));
+            bool updatePossiblyNeeded = false;
+            if (GetPrimType() == PrimType.SPHERE)
+            {
+                if (m_shape.ProfileBegin != uBegin || m_shape.ProfileEnd != uEnd)
+                {
+                    m_shape.ProfileBegin = uBegin;
+                    m_shape.ProfileEnd = uEnd;
+                    updatePossiblyNeeded = true;
+                }
+            }
+            else if (m_shape.PathBegin != uBegin || m_shape.PathEnd != uEnd)
+            {
+                m_shape.PathBegin = uBegin;
+                m_shape.PathEnd = uEnd;
+                updatePossiblyNeeded = true;
+            }
+
+            if (updatePossiblyNeeded && ParentGroup != null)
+            {
+                ParentGroup.HasGroupChanged = true;
+            }
+            if (updatePossiblyNeeded && PhysActor != null)
+            {
+                PhysActor.Shape = m_shape;
+                ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+            }
+            if (updatePossiblyNeeded)
+            {
+                ScheduleFullUpdate();
+            }
+        }
+
         /// <summary>
         /// If the part is a sculpt/mesh, retrieve the mesh data and reinsert it into the shape so that the physics
         /// engine can use it.

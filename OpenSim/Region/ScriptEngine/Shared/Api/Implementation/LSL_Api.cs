@@ -7666,6 +7666,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             LSL_Float gain = rules.GetLSLFloatItem(idx++);
                             TargetOmega(part, axis, (double)spinrate, (double)gain);
                             break;
+                        case (int)ScriptBaseClass.PRIM_SLICE:
+                            if (remain < 1)
+                                return;
+                            LSL_Vector slice = rules.GetVector3Item(idx++);
+                            part.UpdateSlice((float)slice.x, (float)slice.y);
+                            break;
                         case (int)ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
                                 return null;
@@ -8339,6 +8345,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
                     case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                         res.Add(new LSL_Vector(GetPartLocalPos(part)));
+                        break;
+                    case (int)ScriptBaseClass.PRIM_SLICE:
+                        res.Add(new LSL_Vector(
+                            (part.GetPrimType() == PrimType.SPHERE ? part.Shape.ProfileBegin : part.Shape.PathBegin) / 50000.0,
+                            1 - (part.GetPrimType() == PrimType.SPHERE ? part.Shape.ProfileEnd : part.Shape.PathEnd) / 50000.0,
+                            0
+                        ));
                         break;
                 }
             }
