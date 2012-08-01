@@ -448,6 +448,9 @@ public static extern bool SetAngularVelocity2(IntPtr obj, Vector3 angularVelocit
 public static extern bool SetObjectForce2(IntPtr obj, Vector3 force);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool AddObjectForce2(IntPtr obj, Vector3 force);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool SetCcdMotionThreshold2(IntPtr obj, float val);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
