@@ -978,9 +978,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osDropAttachment();
         }
 
+        public void osForceDropAttachment()
+        {
+            m_OSSL_Functions.osForceDropAttachment();
+        }
+
         public void osDropAttachmentAt(vector pos, rotation rot)
         {
             m_OSSL_Functions.osDropAttachmentAt(pos, rot);
+        }
+
+        public void osForceDropAttachmentAt(vector pos, rotation rot)
+        {
+            m_OSSL_Functions.osForceDropAttachmentAt(pos, rot);
         }
     }
 }
