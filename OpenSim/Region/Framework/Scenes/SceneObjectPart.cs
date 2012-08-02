@@ -4255,7 +4255,8 @@ namespace OpenSim.Region.Framework.Scenes
             ushort uBegin = (ushort)(50000.0 * begin);
             ushort uEnd = (ushort)(50000.0 * (1f - end));
             bool updatePossiblyNeeded = false;
-            if (GetPrimType() == PrimType.SPHERE)
+            PrimType primType = GetPrimType();
+            if (primType == PrimType.SPHERE || primType == PrimType.TORUS || primType == PrimType.TUBE || primType == PrimType.RING)
             {
                 if (m_shape.ProfileBegin != uBegin || m_shape.ProfileEnd != uEnd)
                 {

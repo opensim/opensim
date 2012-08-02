@@ -8347,9 +8347,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Vector(GetPartLocalPos(part)));
                         break;
                     case (int)ScriptBaseClass.PRIM_SLICE:
+                        PrimType prim_type = part.GetPrimType();
+                        bool useProfileBeginEnd = (prim_type == PrimType.SPHERE || prim_type == PrimType.TORUS || prim_type == PrimType.TUBE || prim_type == PrimType.RING);
                         res.Add(new LSL_Vector(
-                            (part.GetPrimType() == PrimType.SPHERE ? part.Shape.ProfileBegin : part.Shape.PathBegin) / 50000.0,
-                            1 - (part.GetPrimType() == PrimType.SPHERE ? part.Shape.ProfileEnd : part.Shape.PathEnd) / 50000.0,
+                            (useProfileBeginEnd ? part.Shape.ProfileBegin : part.Shape.PathBegin) / 50000.0,
+                            1 - (useProfileBeginEnd ? part.Shape.ProfileEnd : part.Shape.PathEnd) / 50000.0,
                             0
                         ));
                         break;
