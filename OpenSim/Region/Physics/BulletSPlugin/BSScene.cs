@@ -390,9 +390,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // Simulate one timestep
     public override float Simulate(float timeStep)
     {
-        int updatedEntityCount;
+        int updatedEntityCount = 0;
         IntPtr updatedEntitiesPtr;
-        int collidersCount;
+        int collidersCount = 0;
         IntPtr collidersPtr;
 
         LastSimulatedTimestep = timeStep;
@@ -411,8 +411,21 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // step the physical world one interval
         m_simulationStep++;
-        int numSubSteps = BulletSimAPI.PhysicsStep(m_worldID, timeStep, m_maxSubSteps, m_fixedTimeStep, 
-                    out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
+        int numSubSteps = 0;
+        try
+        {
+            numSubSteps = BulletSimAPI.PhysicsStep(m_worldID, timeStep, m_maxSubSteps, m_fixedTimeStep,
+                        out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
+            DetailLog("{0},Simulate,call, substeps={1}, updates={2}, colliders={3}", "0000000000", numSubSteps, updatedEntityCount, collidersCount); 
+        }
+        catch (Exception e)
+        {
+            m_log.WarnFormat("{0},PhysicsStep Exception: substeps={1}, updates={2}, colliders={3}, e={4}", LogHeader, numSubSteps, updatedEntityCount, collidersCount, e);
+            DetailLog("{0},PhysicsStepException,call, substeps={1}, updates={2}, colliders={3}", "0000000000", numSubSteps, updatedEntityCount, collidersCount);
+            // updatedEntityCount = 0;
+            collidersCount = 0;
+        }
+
 
         // Don't have to use the pointers passed back since we know it is the same pinned memory we passed in
 
@@ -711,7 +724,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         return true; 
     }
 
-    // The calls to the PhysicsActors can't directly call into the physics engine
+    // Calls to the PhysicsActors can't directly call into the physics engine
     // because it might be busy. We delay changes to a known time.
     // We rely on C#'s closure to save and restore the context for the delegate.
     public void TaintedObject(TaintCallback callback)
@@ -1274,6 +1287,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     #endregion IPhysicsParameters
 
     #endregion Runtime settable parameters
+
+    // Invoke the detailed logger and output something if it's enabled.
+    private void DetailLog(string msg, params Object[] args)
+    {
+        PhysicsLogging.Write(msg, args);
+    }
 
 }
 }
