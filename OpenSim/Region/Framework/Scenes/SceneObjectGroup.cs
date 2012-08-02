@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -641,6 +642,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public SceneObjectGroup()
         {
+            RezzingObjectID = UUID.Zero;
         }
 
         /// <summary>
@@ -648,7 +650,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// The original SceneObjectPart will be used rather than a copy, preserving
         /// its existing localID and UUID.
         /// </summary>
-        public SceneObjectGroup(SceneObjectPart part)
+        public SceneObjectGroup(SceneObjectPart part) : this()
         {
             SetRootPart(part);
         }
@@ -656,9 +658,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Constructor.  This object is added to the scene later via AttachToScene()
         /// </summary>
-        public SceneObjectGroup(UUID ownerID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
+        public SceneObjectGroup(UUID ownerID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape) :this(new SceneObjectPart(ownerID, shape, pos, rot, Vector3.Zero))
         { 
-            SetRootPart(new SceneObjectPart(ownerID, shape, pos, rot, Vector3.Zero));
         }
 
         /// <summary>
