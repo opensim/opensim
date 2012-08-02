@@ -86,6 +86,7 @@ namespace OpenSim.Services.Connectors.Simulation
             reason = String.Empty;
             if (destination == null)
             {
+                reason = "Destination not found";
                 m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Given destination is null");
                 return false;
             }
