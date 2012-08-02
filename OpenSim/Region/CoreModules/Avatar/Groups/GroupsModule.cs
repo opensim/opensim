@@ -96,7 +96,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
 
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnClientClosed += OnClientClosed;
-            scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
+//            scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
         }
 
         public void PostInitialise()
@@ -133,7 +133,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
         private void OnNewClient(IClientAPI client)
         {
             // Subscribe to instant messages
-            client.OnInstantMessage += OnInstantMessage;
+//            client.OnInstantMessage += OnInstantMessage;
             client.OnAgentDataUpdateRequest += OnAgentDataUpdateRequest;
             client.OnUUIDGroupNameRequest += HandleUUIDGroupNameRequest;
             lock (m_ClientMap)
@@ -171,15 +171,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
                                              ActiveGroupTitle);
         }
 
-        private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
-        {
-        }
+//        private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
+//        {
+//        }
 
-        private void OnGridInstantMessage(GridInstantMessage msg)
-        {
-            // Trigger the above event handler
-            OnInstantMessage(null, msg);
-        }
+//        private void OnGridInstantMessage(GridInstantMessage msg)
+//        {
+//            // Trigger the above event handler
+//            OnInstantMessage(null, msg);
+//        }
 
         private void HandleUUIDGroupNameRequest(UUID id,IClientAPI remote_client)
         {

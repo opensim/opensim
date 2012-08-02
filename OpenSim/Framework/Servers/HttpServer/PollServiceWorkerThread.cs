@@ -36,6 +36,7 @@ using HttpServer;
 using OpenMetaverse;
 using System.Reflection;
 using log4net;
+using OpenSim.Framework.Monitoring;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {

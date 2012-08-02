@@ -3290,8 +3290,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     ((LSL_Api)m_LSL_Api).llSay(0, string.Format("Unable to attach, item '{0}' is not an object.", itemName));
 
                 throw new Exception(String.Format("The inventory item '{0}' is not an object", itemName));
-
-                return;
             }
 
             ScenePresence sp = World.GetScenePresence(avatarId);
@@ -3321,6 +3319,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             InitLSL();
             ((LSL_Api)m_LSL_Api).DetachFromAvatar();
+        }
+
+        /// <summary>
+        /// Checks if thing is a UUID.
+        /// </summary>
+        /// <param name="thing"></param>
+        /// <returns>1 if thing is a valid UUID, 0 otherwise</returns>
+        public LSL_Integer osIsUUID(string thing)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osIsUUID");
+            m_host.AddScriptLPS(1);
+
+            UUID test;
+            return UUID.TryParse(thing, out test) ? 1 : 0;
+        }
+
+        /// <summary>
+        /// Wraps to Math.Min()
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public LSL_Float osMin(double a, double b)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osMin");
+            m_host.AddScriptLPS(1);
+
+            return Math.Min(a, b);
+        }
+
+        /// <summary>
+        /// Wraps to Math.max()
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public LSL_Float osMax(double a, double b)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osMax");
+            m_host.AddScriptLPS(1);
+
+            return Math.Max(a, b);
         }
     }
 }

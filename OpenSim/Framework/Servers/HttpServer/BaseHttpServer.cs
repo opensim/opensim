@@ -45,6 +45,7 @@ using OpenMetaverse.StructuredData;
 using CoolHTTPListener = HttpServer.HttpListener;
 using HttpListener=System.Net.HttpListener;
 using LogPrio=HttpServer.LogPrio;
+using OpenSim.Framework.Monitoring;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {

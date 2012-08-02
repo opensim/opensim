@@ -25,41 +25,25 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace OpenSim.Framework.Statistics
+namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
-    /// Singleton used to provide access to statistics reporters
+    /// Implemented by classes which collect up non-viewer statistical information
     /// </summary>
-    public class StatsManager
+    public interface IStatsCollector
     {
-        private static AssetStatsCollector assetStats;
-        private static UserStatsCollector userStats;
-        private static SimExtraStatsCollector simExtraStats = new SimExtraStatsCollector();
-
-        public static AssetStatsCollector AssetStats { get { return assetStats; } }
-        public static UserStatsCollector UserStats { get { return userStats; } }
-        public static SimExtraStatsCollector SimExtraStats { get { return simExtraStats; } }
-
         /// <summary>
-        /// Start collecting statistics related to assets.
-        /// Should only be called once.
+        /// Report back collected statistical information.
         /// </summary>
-        public static AssetStatsCollector StartCollectingAssetStats()
-        {
-            assetStats = new AssetStatsCollector();
-
-            return assetStats;
-        }
-
+        /// <returns></returns>
+        string Report();
+         
         /// <summary>
-        /// Start collecting statistics related to users.
-        /// Should only be called once.
+        /// Report back collected statistical information in json
         /// </summary>
-        public static UserStatsCollector StartCollectingUserStats()
-        {
-            userStats = new UserStatsCollector();
-
-            return userStats;
-        }
+        /// <returns>
+        /// A <see cref="System.String"/>
+        /// </returns>
+        string XReport(string uptime, string version);
     }
 }

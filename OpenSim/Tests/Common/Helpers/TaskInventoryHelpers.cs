@@ -80,8 +80,26 @@ namespace OpenSim.Tests.Common
         /// <returns>The item that was added</returns>
         public static TaskInventoryItem AddScript(Scene scene, SceneObjectPart part)
         {
+            return AddScript(scene, part, "scriptItem", "default { state_entry() { llSay(0, \"Hello World\"); } }");
+        }
+
+        /// <summary>
+        /// Add a simple script to the given part.
+        /// </summary>
+        /// <remarks>
+        /// TODO: Accept input for item and asset IDs to avoid mysterious script failures that try to use any of these
+        /// functions more than once in a test.
+        /// </remarks>
+        /// <param name="scene"></param>
+        /// <param name="part"></param>
+        /// <param name="scriptName">Name of the script to add</param>
+        /// <param name="scriptSource">LSL script source</param>
+        /// <returns>The item that was added</returns>
+        public static TaskInventoryItem AddScript(
+            Scene scene, SceneObjectPart part, string scriptName, string scriptSource)
+        {
             AssetScriptText ast = new AssetScriptText();
-            ast.Source = "default { state_entry() { llSay(0, \"Hello World\"); } }";
+            ast.Source = scriptSource;
             ast.Encode();
 
             UUID assetUuid = new UUID("00000000-0000-0000-1000-000000000000");
@@ -91,7 +109,7 @@ namespace OpenSim.Tests.Common
             scene.AssetService.Store(asset);
             TaskInventoryItem item
                 = new TaskInventoryItem 
-                    { Name = "scriptItem", AssetID = assetUuid, ItemID = itemUuid,
+                    { Name = scriptName, AssetID = assetUuid, ItemID = itemUuid,
                       Type = (int)AssetType.LSLText, InvType = (int)InventoryType.LSL };
             part.Inventory.AddInventoryItem(item, true);
             

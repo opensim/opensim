@@ -46,6 +46,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private Dictionary<string,object> m_constants = new Dictionary<string,object>();
+
 #region ScriptInvocation
         protected class ScriptInvocationData
         {
@@ -269,6 +271,37 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
             Delegate fn = LookupScriptInvocation(fname);
             return fn.DynamicInvoke(olist.ToArray());
         }
+
+        /// <summary>
+        /// Operation to for a region module to register a constant to be used
+        /// by the script engine
+        /// </summary>
+        public void RegisterConstant(string cname, object value)
+        {
+            m_log.DebugFormat("[MODULE COMMANDS] register constant <{0}> with value {1}",cname,value.ToString());
+            lock (m_constants)
+            {
+                m_constants.Add(cname,value);
+            }
+        }
+
+        /// <summary>
+        /// Operation to check for a registered constant
+        /// </summary>
+        public object LookupModConstant(string cname)
+        {
+            // m_log.DebugFormat("[MODULE COMMANDS] lookup constant <{0}>",cname);
+            
+            lock (m_constants)
+            {
+                object value = null;
+                if (m_constants.TryGetValue(cname,out value))
+                    return value;
+            }
+            
+            return null;
+        }
+
 #endregion
 
     }

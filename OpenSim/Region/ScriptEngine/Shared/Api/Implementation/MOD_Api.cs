@@ -200,24 +200,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             for (int i = 0; i < result.Length; i++)
             {
                 if (result[i] is string)
+                {
                     llist[i] = new LSL_String((string)result[i]);
+                }
                 else if (result[i] is int)
+                {
                     llist[i] = new LSL_Integer((int)result[i]);
+                }
                 else if (result[i] is float)
+                {
                     llist[i] = new LSL_Float((float)result[i]);
+                }
+                else if (result[i] is UUID)
+                {
+                    llist[i] = new LSL_Key(result[i].ToString());
+                }
                 else if (result[i] is OpenMetaverse.Vector3)
                 {
                     OpenMetaverse.Vector3 vresult = (OpenMetaverse.Vector3)result[i];
-                    llist[i] = new LSL_Vector(vresult.X,vresult.Y,vresult.Z);
+                    llist[i] = new LSL_Vector(vresult.X, vresult.Y, vresult.Z);
                 }
                 else if (result[i] is OpenMetaverse.Quaternion)
                 {
                     OpenMetaverse.Quaternion qresult = (OpenMetaverse.Quaternion)result[i];
-                    llist[i] = new LSL_Rotation(qresult.X,qresult.Y,qresult.Z,qresult.W);
+                    llist[i] = new LSL_Rotation(qresult.X, qresult.Y, qresult.Z, qresult.W);
                 }
                 else
                 {
-                    MODError(String.Format("unknown list element returned by {0}",fname));
+                    MODError(String.Format("unknown list element {1} returned by {0}", fname, result[i].GetType().Name));
                 }
             }
 

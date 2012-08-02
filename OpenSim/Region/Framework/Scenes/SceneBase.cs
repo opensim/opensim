@@ -106,6 +106,42 @@ namespace OpenSim.Region.Framework.Scenes
         
         protected readonly ClientManager m_clientManager = new ClientManager();
 
+        public bool LoginsEnabled
+        {
+            get
+            {
+                return m_loginsEnabled;
+            }
+
+            set
+            {
+                if (m_loginsEnabled != value)
+                {
+                    m_loginsEnabled = value;
+                    EventManager.TriggerRegionLoginsStatusChange(this);
+                }
+            }
+        }
+        private bool m_loginsEnabled;
+
+        public bool Ready
+        {
+            get
+            {
+                return m_ready;
+            }
+
+            set
+            {
+                if (m_ready != value)
+                {
+                    m_ready = value;
+                    EventManager.TriggerRegionReadyStatusChange(this);
+                }
+            }
+        }
+        private bool m_ready;
+
         public float TimeDilation
         {
             get { return 1.0f; }

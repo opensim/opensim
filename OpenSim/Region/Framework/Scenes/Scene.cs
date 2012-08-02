@@ -40,6 +40,7 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
@@ -129,9 +130,10 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_strictAccessControl = true;
         public bool m_seeIntoBannedRegion = false;
         public int MaxUndoCount = 5;
+
         // Using this for RegionReady module to prevent LoginsDisabled from changing under our feet;
         public bool LoginLock = false;
-        public bool LoginsDisabled = true;
+
         public bool StartDisabled = false;
         public bool LoadingPrims;
         public IXfer XferManager;
@@ -727,6 +729,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     IConfig startupConfig = m_config.Configs["Startup"];
 
+                    StartDisabled = startupConfig.GetBoolean("StartDisabled", false);
+
                     m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
                     m_useBackup = startupConfig.GetBoolean("UseSceneBackup", m_useBackup);
                     if (!m_useBackup)
@@ -1229,14 +1233,16 @@ namespace OpenSim.Region.Framework.Scenes
                                      avatar.ControllingClient.SendShutdownConnectionNotice();
                                  });
 
+            // Stop updating the scene objects and agents.
+            m_shuttingDown = true;
+
             // Wait here, or the kick messages won't actually get to the agents before the scene terminates.
+            // We also need to wait to avoid a race condition with the scene update loop which might not yet
+            // have checked ShuttingDown.
             Thread.Sleep(500);
 
             // Stop all client threads.
             ForEachScenePresence(delegate(ScenePresence avatar) { avatar.ControllingClient.Close(); });
-
-            // Stop updating the scene objects and agents.
-            m_shuttingDown = true;
 
             m_log.Debug("[SCENE]: Persisting changed objects");
             EventManager.TriggerSceneShuttingDown(this);
@@ -1251,6 +1257,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_sceneGraph.Close();
+
+            if (PhysicsScene != null)
+            {
+                PhysicsScene phys = PhysicsScene;
+                // remove the physics engine from both Scene and SceneGraph
+                PhysicsScene = null;
+                phys.Dispose();
+                phys = null;
+            }
 
             if (!GridService.DeregisterRegion(RegionInfo.RegionID))
                 m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
@@ -1530,7 +1545,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //    landMS = Util.EnvironmentTickCountSubtract(ldMS);
                     //}
     
-                    if (LoginsDisabled && Frame == 20)
+                    if (!LoginsEnabled && Frame == 20)
                     {
     //                    m_log.DebugFormat("{0} {1} {2}", LoginsDisabled, m_sceneGraph.GetActiveScriptsCount(), LoginLock);
     
@@ -1538,31 +1553,34 @@ namespace OpenSim.Region.Framework.Scenes
                         // this is a rare case where we know we have just went through a long cycle of heap
                         // allocations, and there is no more work to be done until someone logs in
                         GC.Collect();
-    
-                        IConfig startupConfig = m_config.Configs["Startup"];
-                        if (startupConfig == null || !startupConfig.GetBoolean("StartDisabled", false))
+
+                        if (!LoginLock)
+                        {
+                            if (!StartDisabled)
+                            {
+                                m_log.InfoFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
+                                LoginsEnabled = true;
+                            }
+
+                            m_sceneGridService.InformNeighborsThatRegionisUp(
+                                RequestModuleInterface<INeighbourService>(), RegionInfo);
+
+                            // Region ready should always be set
+                            Ready = true;
+                        }
+                        else
                         {
                             // This handles a case of a region having no scripts for the RegionReady module
                             if (m_sceneGraph.GetActiveScriptsCount() == 0)
                             {
-                                // need to be able to tell these have changed in RegionReady
-                                LoginLock = false;
-                                EventManager.TriggerLoginsEnabled(RegionInfo.RegionName);
+                                // In this case, we leave it to the IRegionReadyModule to enable logins
+                               
+                                // LoginLock can currently only be set by a region module implementation.
+                                // If somehow this hasn't been done then the quickest way to bugfix is to see the
+                                // NullReferenceException
+                                IRegionReadyModule rrm = RequestModuleInterface<IRegionReadyModule>();
+                                rrm.TriggerRegionReady(this);
                             }
-    
-                            // For RegionReady lockouts
-                            if (!LoginLock)
-                            {
-                                m_log.InfoFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
-                                LoginsDisabled = false;
-                            }
-    
-                            m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
-                        }
-                        else
-                        {
-                            StartDisabled = true;
-                            LoginsDisabled = true;
                         }
                     }
                 }
@@ -3477,25 +3495,31 @@ namespace OpenSim.Region.Framework.Scenes
                 if (AgentTransactionsModule != null)
                     AgentTransactionsModule.RemoveAgentAssetTransactions(agentID);
 
-                avatar.Close();
-
                 m_authenticateHandler.RemoveCircuit(avatar.ControllingClient.CircuitCode);
                 m_log.Debug("[Scene] The avatar has left the building");
             }
             catch (Exception e)
             {
                 m_log.Error(
-                    string.Format("[SCENE]: Exception removing {0} from {1}, ", avatar.Name, RegionInfo.RegionName), e);
+                    string.Format("[SCENE]: Exception removing {0} from {1}.  Cleaning up.  Exception ", avatar.Name, Name), e);
             }
             finally
             {
-                // Always clean these structures up so that any failure above doesn't cause them to remain in the
-                // scene with possibly bad effects (e.g. continually timing out on unacked packets and triggering
-                // the same cleanup exception continually.
-                // TODO: This should probably extend to the whole method, but we don't want to also catch the NRE
-                // since this would hide the underlying failure and other associated problems.
-                m_sceneGraph.RemoveScenePresence(agentID);
-                m_clientManager.Remove(agentID);
+                try
+                {
+                    // Always clean these structures up so that any failure above doesn't cause them to remain in the
+                    // scene with possibly bad effects (e.g. continually timing out on unacked packets and triggering
+                    // the same cleanup exception continually.
+                    m_sceneGraph.RemoveScenePresence(agentID);
+                    m_clientManager.Remove(agentID);
+    
+                    avatar.Close();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(
+                        string.Format("[SCENE]: Exception in final clean up of {0} in {1}.  Exception ", avatar.Name, Name), e);
+                }
             }
 
             //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
@@ -3609,7 +3633,7 @@ namespace OpenSim.Region.Framework.Scenes
                 agent.startpos
             );
 
-            if (LoginsDisabled)
+            if (!LoginsEnabled)
             {
                 reason = "Logins Disabled";
                 return false;
@@ -3666,8 +3690,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // We have a zombie from a crashed session. 
                 // Or the same user is trying to be root twice here, won't work.
                 // Kill it.
-                m_log.DebugFormat(
-                    "[SCENE]: Zombie scene presence detected for {0} {1} in {2}",
+                m_log.WarnFormat(
+                    "[SCENE]: Existing root scene presence detected for {0} {1} in {2} when connecting.  Removing existing presence.",
                     sp.Name, sp.UUID, RegionInfo.RegionName);
 
                 sp.ControllingClient.Close();
@@ -4655,6 +4679,23 @@ namespace OpenSim.Region.Framework.Scenes
         public ScenePresence GetScenePresence(uint localID)
         {
             return m_sceneGraph.GetScenePresence(localID);
+        }
+
+        /// <summary>
+        /// Gets all the scene presences in this scene.
+        /// </summary>
+        /// <remarks>
+        /// This method will return both root and child scene presences.
+        ///
+        /// Consider using ForEachScenePresence() or ForEachRootScenePresence() if possible since these will not
+        /// involving creating a new List object.
+        /// </remarks>
+        /// <returns>
+        /// A list of the scene presences.  Adding or removing from the list will not affect the presences in the scene.
+        /// </returns>
+        public List<ScenePresence> GetScenePresences()
+        {
+            return new List<ScenePresence>(m_sceneGraph.GetScenePresences());
         }
 
         /// <summary>
@@ -5774,6 +5815,22 @@ Environment.Exit(1);
         private void HandleGcCollect(string module, string[] args)
         {
             GC.Collect();
+        }
+
+        // Wrappers to get physics modules retrieve assets. Has to be done this way
+        // because we can't assign the asset service to physics directly - at the
+        // time physics are instantiated it's not registered but it will be by
+        // the time the first prim exists.
+        public void PhysicsRequestAsset(UUID assetID, AssetReceivedDelegate callback)
+        {
+            AssetService.Get(assetID.ToString(), callback, PhysicsAssetReceived);
+        }
+
+        private void PhysicsAssetReceived(string id, Object sender, AssetBase asset)
+        {
+            AssetReceivedDelegate callback = (AssetReceivedDelegate)sender;
+
+            callback(asset);
         }
     }
 }

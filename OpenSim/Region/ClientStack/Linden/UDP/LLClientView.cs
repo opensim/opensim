@@ -41,7 +41,7 @@ using OpenMetaverse.Messages.Linden;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
-using OpenSim.Framework.Statistics;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
@@ -355,8 +355,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_animationSequenceNumber = 1;
         private bool m_SendLogoutPacketWhenClosing = true;
         private AgentUpdateArgs lastarg;
-        private bool m_IsActive = true;
-        private bool m_IsLoggingOut = false;
 
         protected Dictionary<PacketType, PacketProcessor> m_packetHandlers = new Dictionary<PacketType, PacketProcessor>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
@@ -428,16 +426,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public uint CircuitCode { get { return m_circuitCode; } }
         public int MoneyBalance { get { return m_moneyBalance; } }
         public int NextAnimationSequenceNumber { get { return m_animationSequenceNumber++; } }
-        public bool IsActive
-        {
-            get { return m_IsActive; }
-            set { m_IsActive = value; }
-        }
-        public bool IsLoggingOut
-        {
-            get { return m_IsLoggingOut; }
-            set { m_IsLoggingOut = value; }
-        }
+
+        /// <summary>
+        /// As well as it's function in IClientAPI, in LLClientView we are locking on this property in order to
+        /// prevent race conditions by different threads calling Close().
+        /// </summary>
+        public bool IsActive { get; set; }
+
+        /// <summary>
+        /// Used to synchronise threads when client is being closed.
+        /// </summary>
+        public Object CloseSyncLock { get; private set; }
+
+        public bool IsLoggingOut { get; set; }
 
         public bool DisableFacelights
         {
@@ -461,6 +462,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             UUID agentId, UUID sessionId, uint circuitCode)
         {
 //            DebugPacketLevel = 1;
+
+            CloseSyncLock = new Object();
 
             RegisterInterface<IClientIM>(this);
             RegisterInterface<IClientInventory>(this);
@@ -494,13 +497,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_prioritizer = new Prioritizer(m_scene);
 
             RegisterLocalPacketHandlers();
+
+            IsActive = true;
         }
 
         #region Client Methods
 
 
         /// <summary>
-        /// Shut down the client view
+        /// Close down the client view
         /// </summary>
         public void Close()
         {
@@ -513,7 +518,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Close(bool sendStop)
         {
             IsActive = false;
+            // We lock here to prevent race conditions between two threads calling close simultaneously (e.g.
+            // a simultaneous relog just as a client is being closed out due to no packet ack from the old connection.
+            lock (CloseSyncLock)
+            {
+                if (!IsActive)
+                    return;
 
+                IsActive = false;
+                CloseWithoutChecks(sendStop);
+            }
+        }
+
+        /// <summary>
+        /// Closes down the client view without first checking whether it is active.
+        /// </summary>
+        /// <remarks>
+        /// This exists because LLUDPServer has to set IsActive = false in earlier synchronous code before calling
+        /// CloseWithoutIsActiveCheck asynchronously.
+        ///
+        /// Callers must lock ClosingSyncLock before calling.
+        /// </remarks>
+        public void CloseWithoutChecks(bool sendStop)
+        {
             m_log.DebugFormat(
                 "[CLIENT]: Close has been called for {0} attached to scene {1}",
                 Name, m_scene.RegionInfo.RegionName);
@@ -3634,7 +3661,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)
         {
-            if (!IsActive) return; // We don't need to update inactive clients.
+            // We don't need to update inactive clients.
+            if (!IsActive)
+                return;
 
             CoarseLocationUpdatePacket loc = (CoarseLocationUpdatePacket)PacketPool.Instance.GetPacket(PacketType.CoarseLocationUpdate);
             loc.Header.Reliable = false;
@@ -5267,7 +5296,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             AddLocalPacketHandler(PacketType.AvatarPropertiesUpdate, HandlerAvatarPropertiesUpdate);
             AddLocalPacketHandler(PacketType.ScriptDialogReply, HandlerScriptDialogReply);
-            AddLocalPacketHandler(PacketType.ImprovedInstantMessage, HandlerImprovedInstantMessage, false);
+            AddLocalPacketHandler(PacketType.ImprovedInstantMessage, HandlerImprovedInstantMessage);
             AddLocalPacketHandler(PacketType.AcceptFriendship, HandlerAcceptFriendship);
             AddLocalPacketHandler(PacketType.DeclineFriendship, HandlerDeclineFriendship);
             AddLocalPacketHandler(PacketType.TerminateFriendship, HandlerTerminateFriendship);

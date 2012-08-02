@@ -38,6 +38,7 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
