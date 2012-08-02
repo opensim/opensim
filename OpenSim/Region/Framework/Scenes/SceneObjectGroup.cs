@@ -611,6 +611,14 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID FromItemID { get; set; }
 
         /// <summary>
+        /// Refers to the SceneObjectPart.UUID property of the object that this object was rezzed from, if applicable.
+        /// </summary>
+        /// <remarks>
+        /// If not applicable will be UUID.Zero
+        /// </remarks>
+        public UUID RezzingObjectID { get; set; }
+
+        /// <summary>
         /// The folder ID that this object was rezzed from, if applicable.
         /// </summary>
         /// <remarks>
