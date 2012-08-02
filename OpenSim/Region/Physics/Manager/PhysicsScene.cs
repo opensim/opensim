@@ -43,6 +43,9 @@ namespace OpenSim.Region.Physics.Manager
     public delegate void JointDeactivated(PhysicsJoint joint);
     public delegate void JointErrorMessage(PhysicsJoint joint, string message); // this refers to an "error message due to a problem", not "amount of joint constraint violation"
 
+    public delegate void RequestAssetDelegate(UUID assetID, AssetReceivedDelegate callback);
+    public delegate void AssetReceivedDelegate(AssetBase asset);
+
     /// <summary>
     /// Contact result from a raycast.
     /// </summary>
@@ -72,6 +75,8 @@ namespace OpenSim.Region.Physics.Manager
         {
             get { return new NullPhysicsScene(); }
         }
+
+        public RequestAssetDelegate RequestAssetMethod { private get; set; }
 
         public virtual void TriggerPhysicsBasedRestart()
         {

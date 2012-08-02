@@ -2131,7 +2131,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                     sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
             }
-                                    
+
+            group.RezzingObjectID = sourcePart.UUID;
             AddNewSceneObject(group, true, pos, rot, vel);
             
             // We can only call this after adding the scene object, since the scene object references the scene

@@ -945,5 +945,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osMax(a, b);
         }
+
+        public LSL_Key osGetRezzingObject()
+        {
+            return m_OSSL_Functions.osGetRezzingObject();
+        }
     }
 }
