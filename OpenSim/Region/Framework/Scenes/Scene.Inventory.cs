@@ -2132,7 +2132,7 @@ namespace OpenSim.Region.Framework.Scenes
                     sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
             }
 
-            group.RezzingObjectID = sourcePart.UUID;
+            group.FromPartID = sourcePart.UUID;
             AddNewSceneObject(group, true, pos, rot, vel);
             
             // We can only call this after adding the scene object, since the scene object references the scene

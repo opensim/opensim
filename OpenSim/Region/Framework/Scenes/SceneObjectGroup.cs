@@ -617,7 +617,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <remarks>
         /// If not applicable will be UUID.Zero
         /// </remarks>
-        public UUID RezzingObjectID { get; set; }
+        public UUID FromPartID { get; set; }
 
         /// <summary>
         /// The folder ID that this object was rezzed from, if applicable.

@@ -3320,7 +3320,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osGetRezzingObject");
             m_host.AddScriptLPS(1);
 
-            return new LSL_Key(m_host.ParentGroup.RezzingObjectID.ToString());
+            return new LSL_Key(m_host.ParentGroup.FromPartID.ToString());
         }
     }
 }
