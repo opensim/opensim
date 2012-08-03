@@ -551,8 +551,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(disable, ThrottleOutPacketType.Unknown);
             }
 
-//            IsActive = false;
-
             // Shutdown the image manager
             ImageManager.Close();
 
