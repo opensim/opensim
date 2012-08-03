@@ -814,8 +814,14 @@ namespace OpenSim.Region.Framework.Scenes
                 m_update_presences        = startupConfig.GetInt(   "UpdateAgentsEveryNFrames",          m_update_presences);
                 m_update_terrain          = startupConfig.GetInt(   "UpdateTerrainEveryNFrames",         m_update_terrain);
                 m_update_temp_cleaning    = startupConfig.GetInt(   "UpdateTempCleaningEveryNFrames",    m_update_temp_cleaning);
+            }
 
-                SendPeriodicAppearanceUpdates = startupConfig.GetBoolean("SendPeriodicAppearanceUpdates", SendPeriodicAppearanceUpdates);
+            // FIXME: Ultimately this should be in a module.
+            IConfig appearanceConfig = m_config.Configs["Appearance"];
+            if (appearanceConfig != null)
+            {
+                SendPeriodicAppearanceUpdates
+                    = appearanceConfig.GetBoolean("ResendAppearanceUpdates", SendPeriodicAppearanceUpdates);
             }
 
             #endregion Region Config
