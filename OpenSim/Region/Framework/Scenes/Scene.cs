@@ -2966,10 +2966,12 @@ namespace OpenSim.Region.Framework.Scenes
                     try
                     {
                         ScenePresence sp = GetScenePresence(agentID);
-                        PresenceService.LogoutAgent(sp.ControllingClient.SessionId);
-                        
+
                         if (sp != null)
+                        {
+                            PresenceService.LogoutAgent(sp.ControllingClient.SessionId);
                             sp.ControllingClient.Close();
+                        }
 
                         // BANG! SLASH!
                         m_authenticateHandler.RemoveCircuit(agentID);
