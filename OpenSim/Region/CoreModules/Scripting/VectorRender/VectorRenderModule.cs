@@ -98,15 +98,17 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         public void GetDrawStringSize(string text, string fontName, int fontSize, 
                                       out double xSize, out double ySize)
         {
-            Font myFont = new Font(fontName, fontSize);
-            SizeF stringSize = new SizeF();
-            lock (m_graph) {
-                stringSize = m_graph.MeasureString(text, myFont);
-                xSize = stringSize.Width;
-                ySize = stringSize.Height;
+            using (Font myFont = new Font(fontName, fontSize))
+            {
+                SizeF stringSize = new SizeF();
+                lock (m_graph)
+                {
+                    stringSize = m_graph.MeasureString(text, myFont);
+                    xSize = stringSize.Width;
+                    ySize = stringSize.Height;
+                }
             }
         }
-
 
         #endregion
 
@@ -121,6 +123,8 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
             if (m_graph == null)
             {
+                // We won't dispose of these explicitly since this module is only removed when the entire simulator
+                // is shut down.
                 Bitmap bitmap = new Bitmap(1024, 1024, PixelFormat.Format32bppArgb);
                 m_graph = Graphics.FromImage(bitmap);
             }
@@ -299,53 +303,64 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 }
             }
 
-            Bitmap bitmap;
-            
-            if (alpha == 256)
-            {
-                bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
-            }
-            else
-            {
-                bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-            }
-
-            Graphics graph = Graphics.FromImage(bitmap);
-
-            // this is really just to save people filling the 
-            // background color in their scripts, only do when fully opaque
-            if (alpha >= 255)
-            {
-                graph.FillRectangle(new SolidBrush(bgColor), 0, 0, width, height); 
-            }
-
-            for (int w = 0; w < bitmap.Width; w++)
-            {
-                if (alpha <= 255) 
-                {
-                    for (int h = 0; h < bitmap.Height; h++)
-                    {
-                        bitmap.SetPixel(w, h, Color.FromArgb(alpha, bitmap.GetPixel(w, h)));
-                    }
-                }
-            }
-
-            GDIDraw(data, graph, altDataDelim);
-
-            byte[] imageJ2000 = new byte[0];
+            Bitmap bitmap = null;
+            Graphics graph = null;
 
             try
             {
-                imageJ2000 = OpenJPEG.EncodeFromImage(bitmap, true);
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat(
-                    "[VECTORRENDERMODULE]: OpenJpeg Encode Failed.  Exception {0}{1}",
-                    e.Message, e.StackTrace);
-            }
+                if (alpha == 256)
+                    bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
+                else
+                    bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
 
-            m_textureManager.ReturnData(id, imageJ2000);
+                graph = Graphics.FromImage(bitmap);
+    
+                // this is really just to save people filling the 
+                // background color in their scripts, only do when fully opaque
+                if (alpha >= 255)
+                {
+                    using (SolidBrush bgFillBrush = new SolidBrush(bgColor))
+                    {
+                        graph.FillRectangle(bgFillBrush, 0, 0, width, height);
+                    }
+                }
+    
+                for (int w = 0; w < bitmap.Width; w++)
+                {
+                    if (alpha <= 255) 
+                    {
+                        for (int h = 0; h < bitmap.Height; h++)
+                        {
+                            bitmap.SetPixel(w, h, Color.FromArgb(alpha, bitmap.GetPixel(w, h)));
+                        }
+                    }
+                }
+    
+                GDIDraw(data, graph, altDataDelim);
+    
+                byte[] imageJ2000 = new byte[0];
+    
+                try
+                {
+                    imageJ2000 = OpenJPEG.EncodeFromImage(bitmap, true);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[VECTORRENDERMODULE]: OpenJpeg Encode Failed.  Exception {0}{1}",
+                        e.Message, e.StackTrace);
+                }
+
+                m_textureManager.ReturnData(id, imageJ2000);
+            }
+            finally
+            {
+                if (graph != null)
+                    graph.Dispose();
+
+                if (bitmap != null)
+                    bitmap.Dispose();
+            }
         }
         
         private int parseIntParam(string strInt)
@@ -407,237 +422,284 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         {
             Point startPoint = new Point(0, 0);
             Point endPoint = new Point(0, 0);
-            Pen drawPen = new Pen(Color.Black, 7);
-            string fontName = m_fontName;
-            float fontSize = 14;
-            Font myFont = new Font(fontName, fontSize);
-            SolidBrush myBrush = new SolidBrush(Color.Black);
-            
-            char[] lineDelimiter = {dataDelim};
-            char[] partsDelimiter = {','};
-            string[] lines = data.Split(lineDelimiter);
+            Pen drawPen = null;
+            Font myFont = null;
+            SolidBrush myBrush = null;
 
-            foreach (string line in lines)
+            try
             {
-                string nextLine = line.Trim();
-                //replace with switch, or even better, do some proper parsing
-                if (nextLine.StartsWith("MoveTo"))
+                drawPen = new Pen(Color.Black, 7);
+                string fontName = m_fontName;
+                float fontSize = 14;
+                myFont = new Font(fontName, fontSize);
+                myBrush = new SolidBrush(Color.Black);
+
+                char[] lineDelimiter = {dataDelim};
+                char[] partsDelimiter = {','};
+                string[] lines = data.Split(lineDelimiter);
+
+                foreach (string line in lines)
                 {
-                    float x = 0;
-                    float y = 0;
-                    GetParams(partsDelimiter, ref nextLine, 6, ref x, ref y);
-                    startPoint.X = (int) x;
-                    startPoint.Y = (int) y;
-                }
-                else if (nextLine.StartsWith("LineTo"))
-                {
-                    float x = 0;
-                    float y = 0;
-                    GetParams(partsDelimiter, ref nextLine, 6, ref x, ref y);
-                    endPoint.X = (int) x;
-                    endPoint.Y = (int) y;
-                    graph.DrawLine(drawPen, startPoint, endPoint);
-                    startPoint.X = endPoint.X;
-                    startPoint.Y = endPoint.Y;
-                }
-                else if (nextLine.StartsWith("Text"))
-                {
-                    nextLine = nextLine.Remove(0, 4);
-                    nextLine = nextLine.Trim();
-                    graph.DrawString(nextLine, myFont, myBrush, startPoint);
-                }
-                else if (nextLine.StartsWith("Image"))
-                {
-                    float x = 0;
-                    float y = 0;
-                    GetParams(partsDelimiter, ref nextLine, 5, ref x, ref y);
-                    endPoint.X = (int) x;
-                    endPoint.Y = (int) y;
-                    Image image = ImageHttpRequest(nextLine);
-                    if (image != null)
+                    string nextLine = line.Trim();
+                    //replace with switch, or even better, do some proper parsing
+                    if (nextLine.StartsWith("MoveTo"))
                     {
-                        graph.DrawImage(image, (float)startPoint.X, (float)startPoint.Y, x, y);
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 6, ref x, ref y);
+                        startPoint.X = (int) x;
+                        startPoint.Y = (int) y;
                     }
-                    else
+                    else if (nextLine.StartsWith("LineTo"))
                     {
-                        graph.DrawString("URL couldn't be resolved or is", new Font(m_fontName,6), 
-                                         myBrush, startPoint);
-                        graph.DrawString("not an image. Please check URL.", new Font(m_fontName, 6), 
-                                         myBrush, new Point(startPoint.X, 12 + startPoint.Y));
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 6, ref x, ref y);
+                        endPoint.X = (int) x;
+                        endPoint.Y = (int) y;
+                        graph.DrawLine(drawPen, startPoint, endPoint);
+                        startPoint.X = endPoint.X;
+                        startPoint.Y = endPoint.Y;
+                    }
+                    else if (nextLine.StartsWith("Text"))
+                    {
+                        nextLine = nextLine.Remove(0, 4);
+                        nextLine = nextLine.Trim();
+                        graph.DrawString(nextLine, myFont, myBrush, startPoint);
+                    }
+                    else if (nextLine.StartsWith("Image"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 5, ref x, ref y);
+                        endPoint.X = (int) x;
+                        endPoint.Y = (int) y;
+
+                        using (Image image = ImageHttpRequest(nextLine))
+                        {
+                            if (image != null)
+                            {
+                                graph.DrawImage(image, (float)startPoint.X, (float)startPoint.Y, x, y);
+                            }
+                            else
+                            {
+                                using (Font errorFont = new Font(m_fontName,6))
+                                {
+                                    graph.DrawString("URL couldn't be resolved or is", errorFont,
+                                                     myBrush, startPoint);
+                                    graph.DrawString("not an image. Please check URL.", errorFont,
+                                                     myBrush, new Point(startPoint.X, 12 + startPoint.Y));
+                                }
+    
+                                graph.DrawRectangle(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+                            }
+                        }
+
+                        startPoint.X += endPoint.X;
+                        startPoint.Y += endPoint.Y;
+                    }
+                    else if (nextLine.StartsWith("Rectangle"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 9, ref x, ref y);
+                        endPoint.X = (int) x;
+                        endPoint.Y = (int) y;
                         graph.DrawRectangle(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+                        startPoint.X += endPoint.X;
+                        startPoint.Y += endPoint.Y;
                     }
-                    startPoint.X += endPoint.X;
-                    startPoint.Y += endPoint.Y;
-                }
-                else if (nextLine.StartsWith("Rectangle"))
-                {
-                    float x = 0;
-                    float y = 0;
-                    GetParams(partsDelimiter, ref nextLine, 9, ref x, ref y);
-                    endPoint.X = (int) x;
-                    endPoint.Y = (int) y;
-                    graph.DrawRectangle(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
-                    startPoint.X += endPoint.X;
-                    startPoint.Y += endPoint.Y;
-                }
-                else if (nextLine.StartsWith("FillRectangle"))
-                {
-                    float x = 0;
-                    float y = 0;
-                    GetParams(partsDelimiter, ref nextLine, 13, ref x, ref y);
-                    endPoint.X = (int) x;
-                    endPoint.Y = (int) y;
-                    graph.FillRectangle(myBrush, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
-                    startPoint.X += endPoint.X;
-                    startPoint.Y += endPoint.Y;
-                }
-                else if (nextLine.StartsWith("FillPolygon"))
-                {
-                    PointF[] points = null;
-                    GetParams(partsDelimiter, ref nextLine, 11, ref points);
-                    graph.FillPolygon(myBrush, points);
-                }
-                else if (nextLine.StartsWith("Polygon"))
-                {
-                    PointF[] points = null;
-                    GetParams(partsDelimiter, ref nextLine, 7, ref points);
-                    graph.DrawPolygon(drawPen, points);
-                }
-                else if (nextLine.StartsWith("Ellipse"))
-                {
-                    float x = 0;
-                    float y = 0;
-                    GetParams(partsDelimiter, ref nextLine, 7, ref x, ref y);
-                    endPoint.X = (int)x;
-                    endPoint.Y = (int)y;
-                    graph.DrawEllipse(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
-                    startPoint.X += endPoint.X;
-                    startPoint.Y += endPoint.Y;
-                }
-                else if (nextLine.StartsWith("FontSize"))
-                {
-                    nextLine = nextLine.Remove(0, 8);
-                    nextLine = nextLine.Trim();
-                    fontSize = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
-                    myFont = new Font(fontName, fontSize);
-                }
-                else if (nextLine.StartsWith("FontProp"))
-                {
-                    nextLine = nextLine.Remove(0, 8);
-                    nextLine = nextLine.Trim();
-
-                    string[] fprops = nextLine.Split(partsDelimiter);
-                    foreach (string prop in fprops)
+                    else if (nextLine.StartsWith("FillRectangle"))
                     {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 13, ref x, ref y);
+                        endPoint.X = (int) x;
+                        endPoint.Y = (int) y;
+                        graph.FillRectangle(myBrush, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+                        startPoint.X += endPoint.X;
+                        startPoint.Y += endPoint.Y;
+                    }
+                    else if (nextLine.StartsWith("FillPolygon"))
+                    {
+                        PointF[] points = null;
+                        GetParams(partsDelimiter, ref nextLine, 11, ref points);
+                        graph.FillPolygon(myBrush, points);
+                    }
+                    else if (nextLine.StartsWith("Polygon"))
+                    {
+                        PointF[] points = null;
+                        GetParams(partsDelimiter, ref nextLine, 7, ref points);
+                        graph.DrawPolygon(drawPen, points);
+                    }
+                    else if (nextLine.StartsWith("Ellipse"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 7, ref x, ref y);
+                        endPoint.X = (int)x;
+                        endPoint.Y = (int)y;
+                        graph.DrawEllipse(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+                        startPoint.X += endPoint.X;
+                        startPoint.Y += endPoint.Y;
+                    }
+                    else if (nextLine.StartsWith("FontSize"))
+                    {
+                        nextLine = nextLine.Remove(0, 8);
+                        nextLine = nextLine.Trim();
+                        fontSize = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
 
-                        switch (prop)
+                        myFont.Dispose();
+                        myFont = new Font(fontName, fontSize);
+                    }
+                    else if (nextLine.StartsWith("FontProp"))
+                    {
+                        nextLine = nextLine.Remove(0, 8);
+                        nextLine = nextLine.Trim();
+    
+                        string[] fprops = nextLine.Split(partsDelimiter);
+                        foreach (string prop in fprops)
                         {
-                            case "B":
-                                if (!(myFont.Bold))
-                                    myFont = new Font(myFont, myFont.Style | FontStyle.Bold);
-                                break;
-                            case "I":
-                                if (!(myFont.Italic))
-                                    myFont = new Font(myFont, myFont.Style | FontStyle.Italic);
-                                break;
-                            case "U":
-                                if (!(myFont.Underline))
-                                    myFont = new Font(myFont, myFont.Style | FontStyle.Underline);
-                                break;
-                            case "S":
-                                if (!(myFont.Strikeout))
-                                    myFont = new Font(myFont, myFont.Style | FontStyle.Strikeout);
-                                break;
-                            case "R":
-                                myFont = new Font(myFont, FontStyle.Regular);
-                                break;
+    
+                            switch (prop)
+                            {
+                                case "B":
+                                    if (!(myFont.Bold))
+                                    {
+                                        Font newFont = new Font(myFont, myFont.Style | FontStyle.Bold);
+                                        myFont.Dispose();
+                                        myFont = newFont;
+                                    }
+                                    break;
+                                case "I":
+                                    if (!(myFont.Italic))
+                                    {
+                                        Font newFont = new Font(myFont, myFont.Style | FontStyle.Italic);
+                                        myFont.Dispose();
+                                        myFont = newFont;
+                                    }
+                                    break;
+                                case "U":
+                                    if (!(myFont.Underline))
+                                    {
+                                        Font newFont = new Font(myFont, myFont.Style | FontStyle.Underline);
+                                        myFont.Dispose();
+                                        myFont = newFont;
+                                    }
+                                    break;
+                                case "S":
+                                    if (!(myFont.Strikeout))
+                                    {
+                                        Font newFont = new Font(myFont, myFont.Style | FontStyle.Strikeout);
+                                        myFont.Dispose();
+                                        myFont = newFont;
+                                    }
+                                    break;
+                                case "R":
+                                    Font newFont = new Font(myFont, FontStyle.Regular);
+                                    myFont.Dispose();
+                                    myFont = newFont;
+                                    break;
+                            }
                         }
                     }
-                }
-                else if (nextLine.StartsWith("FontName"))
-                {
-                    nextLine = nextLine.Remove(0, 8);
-                    fontName = nextLine.Trim();
-                    myFont = new Font(fontName, fontSize);
-                }
-                else if (nextLine.StartsWith("PenSize"))
-                {
-                    nextLine = nextLine.Remove(0, 7);
-                    nextLine = nextLine.Trim();
-                    float size = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
-                    drawPen.Width = size;
-                }
-                else if (nextLine.StartsWith("PenCap"))
-                {
-                    bool start = true, end = true;
-                    nextLine = nextLine.Remove(0, 6);
-                    nextLine = nextLine.Trim();
-                    string[] cap = nextLine.Split(partsDelimiter);
-                    if (cap[0].ToLower() == "start")
-                        end = false;
-                    else if (cap[0].ToLower() == "end")
-                        start = false;
-                    else if (cap[0].ToLower() != "both")
-                        return;
-                    string type = cap[1].ToLower();
-                    
-                    if (end)
+                    else if (nextLine.StartsWith("FontName"))
                     {
-                        switch (type)
+                        nextLine = nextLine.Remove(0, 8);
+                        fontName = nextLine.Trim();
+                        myFont.Dispose();
+                        myFont = new Font(fontName, fontSize);
+                    }
+                    else if (nextLine.StartsWith("PenSize"))
+                    {
+                        nextLine = nextLine.Remove(0, 7);
+                        nextLine = nextLine.Trim();
+                        float size = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
+                        drawPen.Width = size;
+                    }
+                    else if (nextLine.StartsWith("PenCap"))
+                    {
+                        bool start = true, end = true;
+                        nextLine = nextLine.Remove(0, 6);
+                        nextLine = nextLine.Trim();
+                        string[] cap = nextLine.Split(partsDelimiter);
+                        if (cap[0].ToLower() == "start")
+                            end = false;
+                        else if (cap[0].ToLower() == "end")
+                            start = false;
+                        else if (cap[0].ToLower() != "both")
+                            return;
+                        string type = cap[1].ToLower();
+                        
+                        if (end)
                         {
-                            case "arrow":
-                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
-                                break;
-                            case "round":
-                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.RoundAnchor;
-                                break;
-                            case "diamond":
-                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.DiamondAnchor;
-                                break;
-                            case "flat":
-                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.Flat;
-                                break;
+                            switch (type)
+                            {
+                                case "arrow":
+                                    drawPen.EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
+                                    break;
+                                case "round":
+                                    drawPen.EndCap = System.Drawing.Drawing2D.LineCap.RoundAnchor;
+                                    break;
+                                case "diamond":
+                                    drawPen.EndCap = System.Drawing.Drawing2D.LineCap.DiamondAnchor;
+                                    break;
+                                case "flat":
+                                    drawPen.EndCap = System.Drawing.Drawing2D.LineCap.Flat;
+                                    break;
+                            }
+                        }
+                        if (start)
+                        {
+                            switch (type)
+                            {
+                                case "arrow":
+                                    drawPen.StartCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
+                                    break;
+                                case "round":
+                                    drawPen.StartCap = System.Drawing.Drawing2D.LineCap.RoundAnchor;
+                                    break;
+                                case "diamond":
+                                    drawPen.StartCap = System.Drawing.Drawing2D.LineCap.DiamondAnchor;
+                                    break;
+                                case "flat":
+                                    drawPen.StartCap = System.Drawing.Drawing2D.LineCap.Flat;
+                                    break;
+                            }
                         }
                     }
-                    if (start)
+                    else if (nextLine.StartsWith("PenColour") || nextLine.StartsWith("PenColor"))
                     {
-                        switch (type)
+                        nextLine = nextLine.Remove(0, 9);
+                        nextLine = nextLine.Trim();
+                        int hex = 0;
+    
+                        Color newColor;
+                        if (Int32.TryParse(nextLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
                         {
-                            case "arrow":
-                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
-                                break;
-                            case "round":
-                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.RoundAnchor;
-                                break;
-                            case "diamond":
-                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.DiamondAnchor;
-                                break;
-                            case "flat":
-                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.Flat;
-                                break;
+                            newColor = Color.FromArgb(hex);
                         }
+                        else
+                        {
+                            // this doesn't fail, it just returns black if nothing is found
+                            newColor = Color.FromName(nextLine);
+                        }
+
+                        myBrush.Color = newColor;
+                        drawPen.Color = newColor;
                     }
                 }
-                else if (nextLine.StartsWith("PenColour") || nextLine.StartsWith("PenColor"))
-                {
-                    nextLine = nextLine.Remove(0, 9);
-                    nextLine = nextLine.Trim();
-                    int hex = 0;
+            }
+            finally
+            {
+                if (drawPen != null)
+                    drawPen.Dispose();
 
-                    Color newColor;
-                    if (Int32.TryParse(nextLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
-                    {
-                        newColor = Color.FromArgb(hex);
-                    }
-                    else
-                    {
-                        // this doesn't fail, it just returns black if nothing is found
-                        newColor = Color.FromName(nextLine);
-                    }
+                if (myFont != null)
+                    myFont.Dispose();
 
-                    myBrush.Color = newColor;
-                    drawPen.Color = newColor;
-                }
+                if (myBrush != null)
+                    myBrush.Dispose();
             }
         }
 
@@ -691,7 +753,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         {
             try
             {
-            WebRequest request = HttpWebRequest.Create(url);
+                WebRequest request = HttpWebRequest.Create(url);
 //Ckrinke: Comment out for now as 'str' is unused. Bring it back into play later when it is used.
 //Ckrinke            Stream str = null;
                 HttpWebResponse response = (HttpWebResponse)(request).GetResponse();
@@ -702,6 +764,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 }
             }
             catch { }
+
             return null;
         }
     }
