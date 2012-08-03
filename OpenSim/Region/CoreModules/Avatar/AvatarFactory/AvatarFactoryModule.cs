@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             scene.RegisterModuleInterface<IAvatarFactoryModule>(this);
             scene.EventManager.OnNewClient += SubscribeToClientEvents;
 
-            IConfig appearanceConfig = appearanceConfig.Configs["Appearance"];
+            IConfig appearanceConfig = config.Configs["Appearance"];
             if (appearanceConfig != null)
             {
                 m_savetime = Convert.ToInt32(appearanceConfig.GetString("DelayBeforeAppearanceSave",Convert.ToString(m_savetime)));
