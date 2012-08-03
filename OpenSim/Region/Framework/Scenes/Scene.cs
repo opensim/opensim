@@ -3886,6 +3886,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TestLandRestrictions(UUID agentID, out string reason, ref float posX, ref float posY)
         {
+            if (posX < 0)
+                posX = 0;
+            else if (posX >= 256)
+                posX = 255.999f;
+            if (posY < 0)
+                posY = 0;
+            else if (posY >= 256)
+                posY = 255.999f;
+
             reason = String.Empty;
             if (Permissions.IsGod(agentID))
                 return true;
