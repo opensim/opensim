@@ -123,8 +123,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 IConfig sconfig = config.Configs["Startup"];
                 if (sconfig != null)
                 {
-                    m_persistBakedTextures = sconfig.GetBoolean("PersistBakedTextures", m_persistBakedTextures);
                     m_levelUpload = sconfig.GetInt("LevelUpload", 0);
+                }
+
+                IConfig appearanceConfig = config.Configs["Appearance"];
+                if (appearanceConfig != null)
+                {
+                    m_persistBakedTextures = appearanceConfig.GetBoolean("PersistBakedTextures", m_persistBakedTextures);
                 }
             }
 
