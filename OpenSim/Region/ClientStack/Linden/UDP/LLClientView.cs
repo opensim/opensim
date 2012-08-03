@@ -517,7 +517,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void Close(bool sendStop)
         {
-//            IsActive = false;
             // We lock here to prevent race conditions between two threads calling close simultaneously (e.g.
             // a simultaneous relog just as a client is being closed out due to no packet ack from the old connection.
             lock (CloseSyncLock)
@@ -525,7 +524,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!IsActive)
                     return;
 
-//                IsActive = false;
+                IsActive = false;
                 CloseWithoutChecks(sendStop);
             }
         }
