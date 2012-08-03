@@ -642,11 +642,23 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void SubscribeEvents(int ms) { 
         _subscribedEventsMs = ms;
-        // make sure first collision happens
-        _nextCollisionOkTime = Util.EnvironmentTickCount() - _subscribedEventsMs;
+        if (ms > 0)
+        {
+            // make sure first collision happens
+            _nextCollisionOkTime = Util.EnvironmentTickCount() - _subscribedEventsMs;
+
+            Scene.TaintedObject(delegate()
+            {
+                BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            });
+        }
     }
     public override void UnSubscribeEvents() { 
         _subscribedEventsMs = 0;
+        Scene.TaintedObject(delegate()
+        {
+            BulletSimAPI.RemoveFromCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+        });
     }
     public override bool SubscribedEvents() { 
         return (_subscribedEventsMs > 0);

@@ -125,6 +125,8 @@ public class BSCharacter : PhysicsActor
             BulletSimAPI.CreateObject(parent_scene.WorldID, shapeData);
 
             m_body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID));
+            // avatars get all collisions no matter what
+            BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
             
         return;
@@ -384,11 +386,25 @@ public class BSCharacter : PhysicsActor
     // Turn on collision events at a rate no faster than one every the given milliseconds
     public override void SubscribeEvents(int ms) {
         _subscribedEventsMs = ms;
-        _nextCollisionOkTime = Util.EnvironmentTickCount() - _subscribedEventsMs; // make first collision happen
+        if (ms > 0)
+        {
+            // make sure first collision happens
+            _nextCollisionOkTime = Util.EnvironmentTickCount() - _subscribedEventsMs;
+
+            Scene.TaintedObject(delegate()
+            {
+                BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            });
+        }
     }
     // Stop collision events
     public override void UnSubscribeEvents() { 
         _subscribedEventsMs = 0;
+        // Avatars get all their collision events
+        // Scene.TaintedObject(delegate()
+        // {
+        //     BulletSimAPI.RemoveFromCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+        // });
     }
     // Return 'true' if someone has subscribed to events
     public override bool SubscribedEvents() {
