@@ -596,9 +596,9 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                                     }
                                     break;
                                 case "R":
-                                    Font newFont = new Font(myFont, FontStyle.Regular);
+                                    Font anewFont = new Font(myFont, FontStyle.Regular);
                                     myFont.Dispose();
-                                    myFont = newFont;
+                                    myFont = anewFont;
                                     break;
                             }
                         }
