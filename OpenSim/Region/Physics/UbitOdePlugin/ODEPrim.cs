@@ -1092,17 +1092,20 @@ namespace OpenSim.Region.Physics.OdePlugin
             CalcPrimBodyData();
 
             m_mesh = null;
-            if (_parent_scene.needsMeshing(pbs))
+            if (_parent_scene.needsMeshing(pbs) && (pbs.SculptData.Length > 0))
             {
                 bool convex;
+                int clod = (int)LevelOfDetail.High;
                 if (m_shapetype == 0)
                     convex = false;
                 else
+                {
                     convex = true;
-
-                m_mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, (int)LevelOfDetail.High, true, convex);
+                    if (_pbs.SculptType != (byte)SculptType.Mesh)
+                        clod = (int)LevelOfDetail.Low;
+                }
+                m_mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, clod, true, convex);
             }
-
 
             m_building = true; // control must set this to false when done
 
@@ -1360,12 +1363,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_mesh == null)
                 {
                     bool convex;
+                    int clod = (int)LevelOfDetail.High;
+
                     if (m_shapetype == 0)
                         convex = false;
                     else
+                    {
                         convex = true;
+                        if (_pbs.SculptType != (byte)SculptType.Mesh)
+                            clod = (int)LevelOfDetail.Low;
+                    }
 
-                    mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, (int)LevelOfDetail.High, true, convex);
+                    mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, clod, true, convex);
                 }
                 else
                 {
@@ -1373,7 +1382,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
                 if (mesh == null)
-                {
+                {                  
                     m_log.WarnFormat("[PHYSICS]: CreateMesh Failed on prim {0} at <{1},{2},{3}>.", Name, _position.X, _position.Y, _position.Z);
                     return false;
                 }
