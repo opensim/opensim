@@ -1331,13 +1331,15 @@ public sealed class BSPrim : PhysicsActor
 
             base.RequestPhysicsterseUpdate();
         }
+            /*
         else
         {
-            // For debugging, we can also report the movement of children
+            // For debugging, we also report the movement of children
             DetailLog("{0},UpdateProperties,child,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                     LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
                     entprop.Acceleration, entprop.RotationalVelocity);
         }
+             */
     }
 
     // I've collided with something

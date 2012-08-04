@@ -299,5 +299,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// <param name="b"></param>
         /// <returns></returns>
         LSL_Float osMax(double a, double b);
+
+        /// <summary>
+        /// Get the key of the object that rezzed this object.
+        /// </summary>
+        /// <returns>Rezzing object key or NULL_KEY if rezzed by agent or otherwise unknown.</returns>
+        LSL_Key osGetRezzingObject();
     }
 }

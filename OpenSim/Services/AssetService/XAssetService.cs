@@ -188,7 +188,8 @@ namespace OpenSim.Services.AssetService
 
         public virtual bool Delete(string id)
         {
-            m_log.DebugFormat("[XASSET SERVICE]: Deleting asset {0}", id);
+//            m_log.DebugFormat("[XASSET SERVICE]: Deleting asset {0}", id);
+
             UUID assetID;
             if (!UUID.TryParse(id, out assetID))
                 return false;

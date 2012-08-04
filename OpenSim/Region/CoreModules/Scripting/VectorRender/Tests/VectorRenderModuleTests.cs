@@ -27,11 +27,49 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.IO;
+using System.Reflection;
+using System.Threading;
+using log4net.Config;
+using NUnit.Framework;
+using OpenMetaverse;
+using OpenMetaverse.Assets;
+using OpenSim.Framework;
+using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
+using OpenSim.Region.CoreModules.Scripting.VectorRender;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Region.CoreModules.World.Tests
+namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
 {
-    class SOGSpamTest
+    [TestFixture]
+    public class VectorRenderModuleTests
     {
+        [Test]
+        public void TestDraw()
+        {
+            TestHelpers.InMethod();
+
+            Scene scene = new SceneHelpers().SetupScene();
+            DynamicTextureModule dtm = new DynamicTextureModule();
+            VectorRenderModule vrm = new VectorRenderModule();
+            SceneHelpers.SetupSceneModules(scene, dtm, vrm);
+
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(scene);
+            UUID originalTextureID = so.RootPart.Shape.Textures.GetFace(0).TextureID;
+
+            dtm.AddDynamicTextureData(
+                scene.RegionInfo.RegionID,
+                so.UUID,
+                vrm.GetContentType(),
+                "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World;",
+                "",
+                0);
+
+
+            Assert.That(originalTextureID, Is.Not.EqualTo(so.RootPart.Shape.Textures.GetFace(0).TextureID));
+        }
     }
 }

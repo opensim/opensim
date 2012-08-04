@@ -3362,5 +3362,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return Math.Max(a, b);
         }
+
+        public LSL_Key osGetRezzingObject()
+        {
+            CheckThreatLevel(ThreatLevel.None, "osGetRezzingObject");
+            m_host.AddScriptLPS(1);
+
+            return new LSL_Key(m_host.ParentGroup.FromPartID.ToString());
+        }
     }
 }
