@@ -596,9 +596,14 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                                     }
                                     break;
                                 case "R":
-                                    Font newFont = new Font(myFont, FontStyle.Regular);
-                                    myFont.Dispose();
-                                    myFont = newFont;
+                                    // We need to place this newFont inside its own context so that the .NET compiler
+                                    // doesn't complain about a redefinition of an existing newFont, even though there is none
+                                    // The mono compiler doesn't produce this error.
+                                    {
+                                        Font newFont = new Font(myFont, FontStyle.Regular);
+                                        myFont.Dispose();
+                                        myFont = newFont;
+                                    }
                                     break;
                             }
                         }

@@ -179,17 +179,18 @@ public struct ConfigurationParameters
 // Values used by Bullet and BulletSim to control collisions
 public enum CollisionFlags : uint
 {
-    STATIC_OBJECT                 = 1 << 0,
-    KINEMATIC_OBJECT              = 1 << 1,
-    NO_CONTACT_RESPONSE           = 1 << 2,
-    CUSTOM_MATERIAL_CALLBACK      = 1 << 3,
-    CHARACTER_OBJECT              = 1 << 4,
-    DISABLE_VISUALIZE_OBJECT      = 1 << 5,
-    DISABLE_SPU_COLLISION_PROCESS = 1 << 6,
+    CF_STATIC_OBJECT                 = 1 << 0,
+    CF_KINEMATIC_OBJECT              = 1 << 1,
+    CF_NO_CONTACT_RESPONSE           = 1 << 2,
+    CF_CUSTOM_MATERIAL_CALLBACK      = 1 << 3,
+    CF_CHARACTER_OBJECT              = 1 << 4,
+    CF_DISABLE_VISUALIZE_OBJECT      = 1 << 5,
+    CF_DISABLE_SPU_COLLISION_PROCESS = 1 << 6,
     // Following used by BulletSim to control collisions
-    VOLUME_DETECT_OBJECT          = 1 << 10,
-    PHANTOM_OBJECT                = 1 << 11,
-    PHYSICAL_OBJECT               = 1 << 12,
+    BS_SUBSCRIBE_COLLISION_EVENTS    = 1 << 10,
+    BS_VOLUME_DETECT_OBJECT          = 1 << 11,
+    BS_PHANTOM_OBJECT                = 1 << 12,
+    BS_PHYSICAL_OBJECT               = 1 << 13,
 };
 
 // CFM controls the 'hardness' of the constraint. 0=fixed, 0..1=violatable. Default=0
@@ -448,6 +449,9 @@ public static extern bool SetAngularVelocity2(IntPtr obj, Vector3 angularVelocit
 public static extern bool SetObjectForce2(IntPtr obj, Vector3 force);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool AddObjectForce2(IntPtr obj, Vector3 force);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool SetCcdMotionThreshold2(IntPtr obj, float val);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -478,13 +482,13 @@ public static extern bool SetLinearVelocity2(IntPtr obj, Vector3 val);
 public static extern bool SetInterpolation2(IntPtr obj, Vector3 lin, Vector3 ang);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr SetCollisionFlags2(IntPtr obj, uint flags);
+public static extern IntPtr SetCollisionFlags2(IntPtr obj, CollisionFlags flags);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr AddToCollisionFlags2(IntPtr obj, uint flags);
+public static extern IntPtr AddToCollisionFlags2(IntPtr obj, CollisionFlags flags);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr RemoveFromCollisionFlags2(IntPtr obj, uint flags);
+public static extern IntPtr RemoveFromCollisionFlags2(IntPtr obj, CollisionFlags flags);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool SetMassProps2(IntPtr obj, float mass, Vector3 inertia);

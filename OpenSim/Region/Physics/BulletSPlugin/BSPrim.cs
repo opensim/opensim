@@ -187,7 +187,7 @@ public sealed class BSPrim : PhysicsActor
             {
                 _mass = CalculateMass();   // changing size changes the mass
                 BulletSimAPI.SetObjectScaleMass(_scene.WorldID, _localID, _scale, (IsPhysical ? _mass : 0f), IsPhysical);
-                DetailLog("{0}: setSize: size={1}, mass={2}, physical={3}", LocalID, _size, _mass, IsPhysical);
+                // DetailLog("{0}: setSize: size={1}, mass={2}, physical={3}", LocalID, _size, _mass, IsPhysical);
                 RecreateGeomAndObject();
             });
         } 
@@ -318,7 +318,7 @@ public sealed class BSPrim : PhysicsActor
             _force = value;
             _scene.TaintedObject(delegate()
             {
-                DetailLog("{0},SetForce,taint,force={1}", LocalID, _force);
+                DetailLog("{0},setForce,taint,force={1}", LocalID, _force);
                 // BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
                 BulletSimAPI.SetObjectForce2(Body.Ptr, _force);
             });
@@ -443,7 +443,7 @@ public sealed class BSPrim : PhysicsActor
             _scene.TaintedObject(delegate()
             {
                 // _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
-                DetailLog("{0},SetOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
+                DetailLog("{0},setOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
             });
         } 
@@ -487,10 +487,8 @@ public sealed class BSPrim : PhysicsActor
         //    Maybe a VerifyCorrectPhysicalShape() routine?
         // RecreateGeomAndObject();
 
-        float mass = _mass;
-        // Bullet wants static objects have a mass of zero
-        if (IsStatic) 
-            mass = 0f;
+        // Bullet wants static objects to have a mass of zero
+        float mass = IsStatic ? 0f : _mass;
 
         DetailLog("{0},SetObjectDynamic,taint,static={1},solid={2},mass={3}", LocalID, IsStatic, IsSolid, mass);
         BulletSimAPI.SetObjectProperties(_scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), mass);
@@ -607,6 +605,7 @@ public sealed class BSPrim : PhysicsActor
 
     private List<OMV.Vector3> m_accumulatedForces = new List<OMV.Vector3>();
     public override void AddForce(OMV.Vector3 force, bool pushforce) {
+        // for an object, doesn't matter if force is a pushforce or not
         if (force.IsFinite())
         {
             // _force += force;
@@ -620,21 +619,17 @@ public sealed class BSPrim : PhysicsActor
         }
         _scene.TaintedObject(delegate()
         {
+            OMV.Vector3 fSum = OMV.Vector3.Zero;
             lock (m_accumulatedForces)
             {
-                if (m_accumulatedForces.Count > 0)
+                foreach (OMV.Vector3 v in m_accumulatedForces)
                 {
-                    OMV.Vector3 fSum = OMV.Vector3.Zero;
-                    foreach (OMV.Vector3 v in m_accumulatedForces)
-                    {
-                        fSum += v;
-                    }
-                    m_accumulatedForces.Clear();
-
-                    DetailLog("{0},SetObjectForce,taint,force={1}", LocalID, fSum);
-                    BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, fSum);
+                    fSum += v;
                 }
+                m_accumulatedForces.Clear();
             }
+            DetailLog("{0},AddObjectForce,taint,force={1}", LocalID, _force);
+            BulletSimAPI.AddObjectForce2(Body.Ptr, fSum);
         });
     }
 
@@ -647,11 +642,23 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void SubscribeEvents(int ms) { 
         _subscribedEventsMs = ms;
-        // make sure first collision happens
-        _nextCollisionOkTime = Util.EnvironmentTickCount() - _subscribedEventsMs;
+        if (ms > 0)
+        {
+            // make sure first collision happens
+            _nextCollisionOkTime = Util.EnvironmentTickCount() - _subscribedEventsMs;
+
+            Scene.TaintedObject(delegate()
+            {
+                BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            });
+        }
     }
     public override void UnSubscribeEvents() { 
         _subscribedEventsMs = 0;
+        Scene.TaintedObject(delegate()
+        {
+            BulletSimAPI.RemoveFromCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+        });
     }
     public override bool SubscribedEvents() { 
         return (_subscribedEventsMs > 0);

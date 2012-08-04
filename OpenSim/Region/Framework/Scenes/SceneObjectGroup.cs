@@ -951,7 +951,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// its existing localID and UUID.
         /// </summary>
         /// <param name='part'>Root part for this scene object.</param>
-        public SceneObjectGroup(SceneObjectPart part)
+        public SceneObjectGroup(SceneObjectPart part) : this()
         {
             SetRootPart(part);
         }

@@ -40,6 +40,7 @@ public class BSCharacter : PhysicsActor
     private static readonly string LogHeader = "[BULLETS CHAR]";
 
     private BSScene _scene;
+    public BSScene Scene { get { return _scene; } }
     private String _avName;
     // private bool _stopped;
     private Vector3 _size;
@@ -72,6 +73,12 @@ public class BSCharacter : PhysicsActor
     private Vector3 _rotationalVelocity;
     private bool _kinematic;
     private float _buoyancy;
+
+    private BulletBody m_body;
+    public BulletBody Body { 
+        get { return m_body; }
+        set { m_body = value; }
+    }
 
     private int _subscribedEventsMs = 0;
     private int _nextCollisionOkTime = 0;
@@ -116,6 +123,10 @@ public class BSCharacter : PhysicsActor
         _scene.TaintedObject(delegate()
         {
             BulletSimAPI.CreateObject(parent_scene.WorldID, shapeData);
+
+            m_body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID));
+            // avatars get all collisions no matter what
+            BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
             
         return;
@@ -124,6 +135,7 @@ public class BSCharacter : PhysicsActor
     // called when this character is being destroyed and the resources should be released
     public void Destroy()
     {
+        // DetailLog("{0},Destroy", LocalID);
         _scene.TaintedObject(delegate()
         {
             BulletSimAPI.DestroyObject(_scene.WorldID, _localID);
@@ -174,6 +186,7 @@ public class BSCharacter : PhysicsActor
             _position = value;
             _scene.TaintedObject(delegate()
             {
+                DetailLog("{0},SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
             });
         } 
@@ -188,9 +201,10 @@ public class BSCharacter : PhysicsActor
         set {
             _force = value;
             // m_log.DebugFormat("{0}: Force = {1}", LogHeader, _force);
-            _scene.TaintedObject(delegate()
+            Scene.TaintedObject(delegate()
             {
-                BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
+                DetailLog("{0},setForce,taint,force={1}", LocalID, _force);
+                BulletSimAPI.SetObjectForce(Scene.WorldID, LocalID, _force);
             });
         } 
     }
@@ -216,6 +230,7 @@ public class BSCharacter : PhysicsActor
             // m_log.DebugFormat("{0}: set velocity = {1}", LogHeader, _velocity);
             _scene.TaintedObject(delegate()
             {
+                DetailLog("{0},setVelocity,taint,vel={1}", LocalID, _velocity);
                 BulletSimAPI.SetObjectVelocity(_scene.WorldID, _localID, _velocity);
             });
         } 
@@ -305,6 +320,7 @@ public class BSCharacter : PhysicsActor
         set { _buoyancy = value; 
             _scene.TaintedObject(delegate()
             {
+                DetailLog("{0},setBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
                 BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, LocalID, _buoyancy);
             });
         } 
@@ -351,7 +367,8 @@ public class BSCharacter : PhysicsActor
             // m_log.DebugFormat("{0}: AddForce. adding={1}, newForce={2}", LogHeader, force, _force);
             _scene.TaintedObject(delegate()
             {
-                BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
+                DetailLog("{0},setAddForce,taint,addedForce={1}", LocalID, _force);
+                BulletSimAPI.AddObjectForce2(Body.Ptr, _force);
             });
         }
         else
@@ -369,11 +386,25 @@ public class BSCharacter : PhysicsActor
     // Turn on collision events at a rate no faster than one every the given milliseconds
     public override void SubscribeEvents(int ms) {
         _subscribedEventsMs = ms;
-        _nextCollisionOkTime = Util.EnvironmentTickCount() - _subscribedEventsMs; // make first collision happen
+        if (ms > 0)
+        {
+            // make sure first collision happens
+            _nextCollisionOkTime = Util.EnvironmentTickCount() - _subscribedEventsMs;
+
+            Scene.TaintedObject(delegate()
+            {
+                BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            });
+        }
     }
     // Stop collision events
     public override void UnSubscribeEvents() { 
         _subscribedEventsMs = 0;
+        // Avatars get all their collision events
+        // Scene.TaintedObject(delegate()
+        // {
+        //     BulletSimAPI.RemoveFromCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+        // });
     }
     // Return 'true' if someone has subscribed to events
     public override bool SubscribedEvents() {
@@ -480,5 +511,10 @@ public class BSCharacter : PhysicsActor
         // End kludge
     }
 
+    // Invoke the detailed logger and output something if it's enabled.
+    private void DetailLog(string msg, params Object[] args)
+    {
+        Scene.PhysicsLogging.Write(msg, args);
+    }
 }
 }
