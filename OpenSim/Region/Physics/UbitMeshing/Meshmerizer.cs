@@ -780,7 +780,9 @@ namespace OpenSim.Region.Physics.Meshing
             }
 
             PrimMesher.SculptMesh.SculptType sculptType;
-            switch ((OpenMetaverse.SculptType)primShape.SculptType)
+            // remove mirror and invert bits
+            OpenMetaverse.SculptType pbsSculptType = ((OpenMetaverse.SculptType)(primShape.SculptType & 0x3f));
+            switch (pbsSculptType)
             {
                 case OpenMetaverse.SculptType.Cylinder:
                     sculptType = PrimMesher.SculptMesh.SculptType.cylinder;
@@ -802,7 +804,7 @@ namespace OpenSim.Region.Physics.Meshing
             bool mirror = ((primShape.SculptType & 128) != 0);
             bool invert = ((primShape.SculptType & 64) != 0);
 
-            sculptMesh = new PrimMesher.SculptMesh((Bitmap)idata, sculptType, (int)lod, false, mirror, invert);
+            sculptMesh = new PrimMesher.SculptMesh((Bitmap)idata, sculptType, (int)lod, mirror, invert);
 
             idata.Dispose();
 
