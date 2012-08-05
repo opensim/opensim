@@ -48,7 +48,12 @@ namespace PrimMesher
         {
             if (mirror)
                 invert = !invert;
-            _SculptMesh(new SculptMap(sculptBitmap, lod).ToRows(mirror), sculptType, invert);
+
+            SculptMap smap = new SculptMap(sculptBitmap, lod);
+
+            List<List<Coord>> rows = smap.ToRows(mirror);
+
+            _SculptMesh(rows, sculptType, invert);
         }
 
         private void _SculptMesh(List<List<Coord>> rows, SculptType sculptType, bool invert)
