@@ -314,6 +314,9 @@ namespace OpenSim.Region.Physics.Meshing
                                         coords[f.v3].X, coords[f.v3].Y, coords[f.v3].Z));
             }
 
+            coords.Clear();
+            faces.Clear();
+
             return mesh;
         }
 
