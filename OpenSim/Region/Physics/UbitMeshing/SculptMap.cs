@@ -25,14 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// to build without references to System.Drawing, comment this out
-#define SYSTEM_DRAWING
-
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-#if SYSTEM_DRAWING
 using System.Drawing;
 using System.Drawing.Imaging;
 
@@ -140,7 +136,6 @@ namespace PrimMesher
             int rowNdx, colNdx;
             int smNdx = 0;
 
-
             for (rowNdx = 0; rowNdx < numRows; rowNdx++)
             {
                 List<Coord> row = new List<Coord>(numCols);
@@ -163,11 +158,11 @@ namespace PrimMesher
         {
 
             Bitmap scaledImage = new Bitmap(destWidth, destHeight, PixelFormat.Format24bppRgb);
-            
+
             Color c;
             float xscale = srcImage.Width / destWidth;
             float yscale = srcImage.Height / destHeight;
-            
+
             float sy = 0.5f;
             for (int y = 0; y < destHeight; y++)
             {
@@ -190,8 +185,5 @@ namespace PrimMesher
             srcImage.Dispose();
             return scaledImage;
         }
-
-    }        
-    
     }
-#endif
+}
