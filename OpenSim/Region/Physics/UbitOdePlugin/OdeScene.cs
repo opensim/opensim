@@ -194,7 +194,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float metersInSpace = 25.6f;
         private float m_timeDilation = 1.0f;
 
-        DateTime m_lastframe;
+        private DateTime m_lastframe;
+        private DateTime m_lastMeshExpire;
 
         public float gravityx = 0f;
         public float gravityy = 0f;
@@ -202,6 +203,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private float waterlevel = 0f;
         private int framecount = 0;
+
+        private int m_meshExpireCntr;
 
 //        private IntPtr WaterGeom = IntPtr.Zero;
 //        private IntPtr WaterHeightmapData = IntPtr.Zero;
@@ -262,7 +265,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         const int maxContactsbeforedeath = 4000;
         private volatile int m_global_contactcount = 0;
-
 
         private IntPtr contactgroup;
 
@@ -594,6 +596,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
             m_lastframe = DateTime.UtcNow;
+            m_lastMeshExpire = m_lastframe;
         }
 
         internal void waitForSpaceUnlock(IntPtr space)
@@ -1768,9 +1771,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
 
             DateTime now = DateTime.UtcNow;
-            TimeSpan SinceLastFrame = now - m_lastframe;
+            TimeSpan timedif = now - m_lastframe;
             m_lastframe = now;
-            timeStep = (float)SinceLastFrame.TotalSeconds;
+            timeStep = (float)timedif.TotalSeconds;
             
             // acumulate time so we can reduce error
             step_time += timeStep;
@@ -1971,6 +1974,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         _badCharacter.Clear();
                     }
+                }
+
+                timedif = now - m_lastMeshExpire;
+
+                if (timedif.Seconds > 10)
+                {
+                    mesher.ExpireReleaseMeshs();
+                    m_lastMeshExpire = now;
                 }
 /*
                 int nactivegeoms = d.SpaceGetNumGeoms(ActiveSpace);
