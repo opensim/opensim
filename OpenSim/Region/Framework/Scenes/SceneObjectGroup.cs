@@ -2674,17 +2674,17 @@ namespace OpenSim.Region.Framework.Scenes
 
             RootPart.StoreUndoState(true);
 
-            scale.X = Math.Min(scale.X, Scene.m_maxNonphys);
-            scale.Y = Math.Min(scale.Y, Scene.m_maxNonphys);
-            scale.Z = Math.Min(scale.Z, Scene.m_maxNonphys);
+            scale.X = Math.Max(Scene.m_minNonphys, Math.Min(Scene.m_maxNonphys, scale.X));
+            scale.Y = Math.Max(Scene.m_minNonphys, Math.Min(Scene.m_maxNonphys, scale.Y));
+            scale.Z = Math.Max(Scene.m_minNonphys, Math.Min(Scene.m_maxNonphys, scale.Z));
 
             PhysicsActor pa = m_rootPart.PhysActor;
 
             if (pa != null && pa.IsPhysical)
             {
-                scale.X = Math.Min(scale.X, Scene.m_maxPhys);
-                scale.Y = Math.Min(scale.Y, Scene.m_maxPhys);
-                scale.Z = Math.Min(scale.Z, Scene.m_maxPhys);
+                scale.X = Math.Max(Scene.m_minPhys, Math.Min(Scene.m_maxPhys, scale.X));
+                scale.Y = Math.Max(Scene.m_minPhys, Math.Min(Scene.m_maxPhys, scale.Y));
+                scale.Z = Math.Max(Scene.m_minPhys, Math.Min(Scene.m_maxPhys, scale.Z));
             }
 
             float x = (scale.X / RootPart.Scale.X);
@@ -2716,6 +2716,14 @@ namespace OpenSim.Region.Framework.Scenes
                                 y *= a;
                                 z *= a;
                             }
+                            else if (oldSize.X * x < m_scene.m_minPhys)
+                            {
+                                f = m_scene.m_minPhys / oldSize.X;
+                                a = f / x;
+                                x *= a;
+                                y *= a;
+                                z *= a;
+                            }
 
                             if (oldSize.Y * y > m_scene.m_maxPhys)
                             {
@@ -2725,10 +2733,26 @@ namespace OpenSim.Region.Framework.Scenes
                                 y *= a;
                                 z *= a;
                             }
+                            else if (oldSize.Y * y < m_scene.m_minPhys)
+                            {
+                                f = m_scene.m_minPhys / oldSize.Y;
+                                a = f / y;
+                                x *= a;
+                                y *= a;
+                                z *= a;
+                            }
 
                             if (oldSize.Z * z > m_scene.m_maxPhys)
                             {
                                 f = m_scene.m_maxPhys / oldSize.Z;
+                                a = f / z;
+                                x *= a;
+                                y *= a;
+                                z *= a;
+                            }
+                            else if (oldSize.Z * z < m_scene.m_minPhys)
+                            {
+                                f = m_scene.m_minPhys / oldSize.Z;
                                 a = f / z;
                                 x *= a;
                                 y *= a;
@@ -2745,6 +2769,14 @@ namespace OpenSim.Region.Framework.Scenes
                                 y *= a;
                                 z *= a;
                             }
+                            else if (oldSize.X * x < m_scene.m_minNonphys)
+                            {
+                                f = m_scene.m_minNonphys / oldSize.X;
+                                a = f / x;
+                                x *= a;
+                                y *= a;
+                                z *= a;
+                            }
 
                             if (oldSize.Y * y > m_scene.m_maxNonphys)
                             {
@@ -2754,10 +2786,26 @@ namespace OpenSim.Region.Framework.Scenes
                                 y *= a;
                                 z *= a;
                             }
+                            else if (oldSize.Y * y < m_scene.m_minNonphys)
+                            {
+                                f = m_scene.m_minNonphys / oldSize.Y;
+                                a = f / y;
+                                x *= a;
+                                y *= a;
+                                z *= a;
+                            }
 
                             if (oldSize.Z * z > m_scene.m_maxNonphys)
                             {
                                 f = m_scene.m_maxNonphys / oldSize.Z;
+                                a = f / z;
+                                x *= a;
+                                y *= a;
+                                z *= a;
+                            }
+                            else if (oldSize.Z * z < m_scene.m_minNonphys)
+                            {
+                                f = m_scene.m_minNonphys / oldSize.Z;
                                 a = f / z;
                                 x *= a;
                                 y *= a;

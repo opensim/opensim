@@ -2368,17 +2368,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="scale"></param>
         public void Resize(Vector3 scale)
         {
-            scale.X = Math.Min(scale.X, ParentGroup.Scene.m_maxNonphys);
-            scale.Y = Math.Min(scale.Y, ParentGroup.Scene.m_maxNonphys);
-            scale.Z = Math.Min(scale.Z, ParentGroup.Scene.m_maxNonphys);
+            scale.X = Math.Max(ParentGroup.Scene.m_minNonphys, Math.Min(ParentGroup.Scene.m_maxNonphys, scale.X));
+            scale.Y = Math.Max(ParentGroup.Scene.m_minNonphys, Math.Min(ParentGroup.Scene.m_maxNonphys, scale.Y));
+            scale.Z = Math.Max(ParentGroup.Scene.m_minNonphys, Math.Min(ParentGroup.Scene.m_maxNonphys, scale.Z));
 
             PhysicsActor pa = PhysActor;
-
             if (pa != null && pa.IsPhysical)
             {
-                scale.X = Math.Min(scale.X, ParentGroup.Scene.m_maxPhys);
-                scale.Y = Math.Min(scale.Y, ParentGroup.Scene.m_maxPhys);
-                scale.Z = Math.Min(scale.Z, ParentGroup.Scene.m_maxPhys);
+                scale.X = Math.Max(ParentGroup.Scene.m_minPhys, Math.Min(ParentGroup.Scene.m_maxPhys, scale.X));
+                scale.Y = Math.Max(ParentGroup.Scene.m_minPhys, Math.Min(ParentGroup.Scene.m_maxPhys, scale.Y));
+                scale.Z = Math.Max(ParentGroup.Scene.m_minPhys, Math.Min(ParentGroup.Scene.m_maxPhys, scale.Z));
             }
 
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Resizing {0} {1} to {2}", Name, LocalId, scale);

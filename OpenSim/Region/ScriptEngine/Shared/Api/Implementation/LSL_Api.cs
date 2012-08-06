@@ -1343,31 +1343,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup.IsDeleted)
                 return;
 
-            if (scale.x < 0.01)
-                scale.x = 0.01;
-            if (scale.y < 0.01)
-                scale.y = 0.01;
-            if (scale.z < 0.01)
-                scale.z = 0.01;
-
+            // First we need to check whether or not we need to clamp the size of a physics-enabled prim
             PhysicsActor pa = part.ParentGroup.RootPart.PhysActor;
-
             if (pa != null && pa.IsPhysical)
             {
-                if (scale.x > World.m_maxPhys)
-                    scale.x = World.m_maxPhys;
-                if (scale.y > World.m_maxPhys)
-                    scale.y = World.m_maxPhys;
-                if (scale.z > World.m_maxPhys)
-                    scale.z = World.m_maxPhys;
+                scale.x = Math.Max(World.m_minPhys, Math.Min(World.m_maxPhys, scale.x));
+                scale.y = Math.Max(World.m_minPhys, Math.Min(World.m_maxPhys, scale.y));
+                scale.z = Math.Max(World.m_minPhys, Math.Min(World.m_maxPhys, scale.z));
             }
 
-            if (scale.x > World.m_maxNonphys)
-                scale.x = World.m_maxNonphys;
-            if (scale.y > World.m_maxNonphys)
-                scale.y = World.m_maxNonphys;
-            if (scale.z > World.m_maxNonphys)
-                scale.z = World.m_maxNonphys;
+            // Next we clamp the scale to the non-physical min/max
+            scale.x = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, scale.x));
+            scale.y = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, scale.y));
+            scale.z = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, scale.z));
 
             Vector3 tmp = part.Scale;
             tmp.X = (float)scale.x;

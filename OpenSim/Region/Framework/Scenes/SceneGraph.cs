@@ -375,12 +375,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     Vector3 scale = part.Shape.Scale;
 
-                    if (scale.X > m_parentScene.m_maxNonphys)
-                        scale.X = m_parentScene.m_maxNonphys;
-                    if (scale.Y > m_parentScene.m_maxNonphys)
-                        scale.Y = m_parentScene.m_maxNonphys;
-                    if (scale.Z > m_parentScene.m_maxNonphys)
-                        scale.Z = m_parentScene.m_maxNonphys;
+                    scale.X = Math.Max(m_parentScene.m_minNonphys, Math.Min(m_parentScene.m_maxNonphys, scale.X));
+                    scale.Y = Math.Max(m_parentScene.m_minNonphys, Math.Min(m_parentScene.m_maxNonphys, scale.Y));
+                    scale.Z = Math.Max(m_parentScene.m_minNonphys, Math.Min(m_parentScene.m_maxNonphys, scale.Z));
 
                     part.Shape.Scale = scale;
                 }
