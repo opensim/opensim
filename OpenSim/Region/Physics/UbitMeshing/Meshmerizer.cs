@@ -83,6 +83,7 @@ namespace OpenSim.Region.Physics.Meshing
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
 
         private Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
+        private Dictionary<ulong, Mesh> m_uniqueReleasedMeshes = new Dictionary<ulong, Mesh>();
 
         public Meshmerizer(IConfigSource config)
         {
@@ -986,6 +987,8 @@ namespace OpenSim.Region.Physics.Meshing
             return CreateMesh(primName, primShape, size, lod, false,false);
         }
 
+        private static Vector3 m_MeshUnitSize = new Vector3(0.5f, 0.5f, 0.5f);
+
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
         {
 #if SPAM
@@ -995,17 +998,60 @@ namespace OpenSim.Region.Physics.Meshing
             Mesh mesh = null;
             ulong key = 0;
 
-            // If this mesh has been created already, return it instead of creating another copy
-            // For large regions with 100k+ prims and hundreds of copies of each, this can save a GB or more of memory
-            key = primShape.GetMeshKey(size, lod, convex);
-            if (m_uniqueMeshes.TryGetValue(key, out mesh))
-                return mesh;
-
             if (size.X < 0.01f) size.X = 0.01f;
             if (size.Y < 0.01f) size.Y = 0.01f;
             if (size.Z < 0.01f) size.Z = 0.01f;
 
+            // try to find a identical mesh on meshs in use
+            key = primShape.GetMeshKey(size, lod, convex);
+
+            lock (m_uniqueMeshes)
+            {
+                m_uniqueMeshes.TryGetValue(key, out mesh);
+
+                if (mesh != null)
+                {
+                    mesh.RefCount++;
+                    return mesh;
+                }
+            }
+
+            // try to find a identical mesh on meshs recently released
+            lock (m_uniqueReleasedMeshes)
+            {
+                m_uniqueReleasedMeshes.TryGetValue(key, out mesh);
+                if (mesh != null)
+                {
+                    m_uniqueReleasedMeshes.Remove(key);
+                    lock (m_uniqueMeshes)
+                        m_uniqueMeshes.Add(key, mesh);
+                    mesh.RefCount = 1;
+                    return mesh;
+                }
+            }
+/*
+            Mesh UnitSizeMesh = null;
+            ulong unitsizekey = 0;
+
+            unitsizekey = primShape.GetMeshKey(m_MeshUnitSize, lod, convex);
+
+            lock(m_uniqueMeshes)
+                m_uniqueMeshes.TryGetValue(unitsizekey, out UnitSizeMesh);
+
+            if (UnitSizeMesh !=null)
+            {
+                UnitSizeMesh.RefCount++;
+                mesh = UnitSizeMesh.Clone();
+                mesh.Key = key;
+                mesh.Scale(size);
+                mesh.RefCount++;
+                lock(m_uniqueMeshes)
+                    m_uniqueMeshes.Add(key, mesh);
+                return mesh;
+            }
+*/
             mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod,convex);
+//            mesh.Key = unitsizekey;
 
             if (mesh != null)
             {
@@ -1021,11 +1067,68 @@ namespace OpenSim.Region.Physics.Meshing
 
                 // trim the vertex and triangle lists to free up memory
                 mesh.TrimExcess();
+                mesh.Key = key;
+                mesh.RefCount++;
 
-                m_uniqueMeshes.Add(key, mesh);
+                lock(m_uniqueMeshes)
+                    m_uniqueMeshes.Add(key, mesh);
             }
 
             return mesh;
+        }
+
+        public void ReleaseMesh(IMesh imesh)
+        {
+            if (imesh == null)
+                return;
+
+            Mesh mesh = (Mesh)imesh;
+
+            int curRefCount = mesh.RefCount;
+            curRefCount--;
+
+            if (curRefCount > 0)
+            {
+                mesh.RefCount = curRefCount;
+                return;
+            }
+
+            lock (m_uniqueMeshes)
+            {
+                mesh.RefCount = 0;
+                m_uniqueMeshes.Remove(mesh.Key);
+                lock (m_uniqueReleasedMeshes)
+                    m_uniqueReleasedMeshes.Add(mesh.Key, mesh);
+            }
+        }
+
+        public void ExpireReleaseMeshs()
+        {
+            if (m_uniqueMeshes.Count == 0)
+                return;
+
+            List<Mesh> meshstodelete = new List<Mesh>();
+            int refcntr;
+
+            lock (m_uniqueReleasedMeshes)
+            {
+                foreach (Mesh m in m_uniqueReleasedMeshes.Values)
+                {
+                    refcntr = m.RefCount;
+                    refcntr--;
+                    if (refcntr > -6)
+                        m.RefCount = refcntr;
+                    else
+                        meshstodelete.Add(m);
+                }
+
+                foreach (Mesh m in meshstodelete)
+                {
+                    m_uniqueReleasedMeshes.Remove(m.Key);
+                    m.releaseSourceMeshData();
+                    m.releasePinned();
+                }
+            }
         }
     }
 }

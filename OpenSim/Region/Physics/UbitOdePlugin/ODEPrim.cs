@@ -57,7 +57,6 @@ using OdeAPI;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
-
 namespace OpenSim.Region.Physics.OdePlugin
 {
     public class OdePrim : PhysicsActor
@@ -538,24 +537,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             set
             {
-/*                
-                IMesh mesh = null;
-                if (_parent_scene.needsMeshing(value))
-                {
-                    bool convex;
-                    if (m_shapetype == 0)
-                        convex = false;
-                    else
-                        convex = true;
-                    mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, (int)LevelOfDetail.High, true, convex);
-                }
-
-                if (mesh != null)
-                {
-                    lock (m_meshlock)
-                        m_mesh = mesh;
-                }
-*/
                 AddChange(changes.Shape, value);
             }
         }
@@ -1357,7 +1338,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             IMesh mesh = null;
 
-
             lock (m_meshlock)
             {
                 if (m_mesh == null)
@@ -1403,7 +1383,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 hasOOBoffsetFromMesh = true;
 
                 mesh.releaseSourceMeshData();
-                m_mesh = null;
+                m_mesh = mesh;
             }
 
             IntPtr geo = IntPtr.Zero;
@@ -1545,7 +1525,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.GeomTriMeshDataDestroy(_triMeshData);
                         _triMeshData = IntPtr.Zero;
                     }
+
                 }
+
+
                 //                catch (System.AccessViolationException)
                 catch (Exception e)
                 {
@@ -1559,6 +1542,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_log.ErrorFormat("[PHYSICS]: PrimGeom destruction BAD {0}", Name);
             }
+
+            if (m_mesh != null)
+            {
+                _parent_scene.mesher.ReleaseMesh(m_mesh);
+                m_mesh = null;
+            }
+
             Body = IntPtr.Zero;
             hasOOBoffsetFromMesh = false;
         }

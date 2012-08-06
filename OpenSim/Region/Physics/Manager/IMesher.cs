@@ -37,6 +37,8 @@ namespace OpenSim.Region.Physics.Manager
         IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod);
         IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical);
         IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical,bool convex);
+        void ReleaseMesh(IMesh mesh);
+        void ExpireReleaseMeshs();
     }
 
     // Values for level of detail to be passed to the mesher.

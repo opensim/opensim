@@ -79,5 +79,7 @@ namespace OpenSim.Region.Physics.Manager
 
             return null;
         }
+        public void ReleaseMesh(IMesh mesh) { }
+        public void ExpireReleaseMeshs() { }
     }
 }
