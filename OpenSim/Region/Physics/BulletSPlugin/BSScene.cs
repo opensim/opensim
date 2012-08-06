@@ -352,7 +352,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         BSPrim bsprim = prim as BSPrim;
         if (bsprim != null)
         {
-            m_log.DebugFormat("{0}: RemovePrim. id={1}/{2}", LogHeader, bsprim.Name, bsprim.LocalID);
+            // m_log.DebugFormat("{0}: RemovePrim. id={1}/{2}", LogHeader, bsprim.Name, bsprim.LocalID);
             try
             {
                 lock (m_prims) m_prims.Remove(bsprim.LocalID);
