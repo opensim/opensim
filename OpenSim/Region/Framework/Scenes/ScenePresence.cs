@@ -3585,6 +3585,13 @@ namespace OpenSim.Region.Framework.Scenes
             // m_reprioritizationTimer.Dispose(); 
 
             RemoveFromPhysicalScene();
+          
+            m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
+
+//            if (Animator != null)
+//                Animator.Close();
+            Animator = null;
+
         }
 
         public void AddAttachment(SceneObjectGroup gobj)
