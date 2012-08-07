@@ -183,6 +183,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llResetScript()
         {
             m_host.AddScriptLPS(1);
+
+            // We need to tell the URL module, if we hav one, to release
+            // the allocated URLs
+            if (m_UrlModule != null)
+                m_UrlModule.ScriptRemoved(m_item.ItemID);
+
             m_ScriptEngine.ApiResetScript(m_item.ItemID);
         }
 
