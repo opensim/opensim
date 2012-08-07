@@ -274,9 +274,12 @@ public class BSCharacter : PhysicsActor
     public override bool Flying { 
         get { return _flying; } 
         set {
-            _flying = value;
-            // simulate flying by changing the effect of gravity
-            this.Buoyancy = ComputeBuoyancyFromFlying(_flying);
+            if (_flying != value)
+            {
+                _flying = value;
+                // simulate flying by changing the effect of gravity
+                this.Buoyancy = ComputeBuoyancyFromFlying(_flying);
+            }
         } 
     }
     private float ComputeBuoyancyFromFlying(bool ifFlying) {
