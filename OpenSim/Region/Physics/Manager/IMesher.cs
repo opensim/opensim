@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using OpenSim.Framework;
 using OpenMetaverse;
 
@@ -54,6 +55,17 @@ namespace OpenSim.Region.Physics.Manager
 
     public interface IVertex
     {
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct AMeshKey
+    {
+        [FieldOffset(0)]
+        public UUID uuid;
+        [FieldOffset(0)]
+        public ulong hashA;
+        [FieldOffset(8)]
+        public ulong hashB;
     }
 
     public interface IMesh

@@ -37,6 +37,7 @@ namespace OpenSim.Region.Physics.Meshing
 {
     public class Mesh : IMesh
     {
+
         private Dictionary<Vertex, int> m_vertices;
         private List<Triangle> m_triangles;
         GCHandle m_pinnedVertexes;
@@ -47,7 +48,8 @@ namespace OpenSim.Region.Physics.Meshing
         int m_indexCount = 0;
         public float[] m_normals;
         Vector3 m_centroid;
-        int m_centroidDiv;       
+        int m_centroidDiv;
+
 
         private class vertexcomp : IEqualityComparer<Vertex>
         {
@@ -79,7 +81,7 @@ namespace OpenSim.Region.Physics.Meshing
 
         public int RefCount { get; set; }
 
-        public ulong Key { get; set; }
+        public AMeshKey Key { get; set; }
 
         public void Scale(Vector3 scale)
         {

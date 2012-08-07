@@ -82,8 +82,10 @@ namespace OpenSim.Region.Physics.Meshing
 
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
 
-        private Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
-        private Dictionary<ulong, Mesh> m_uniqueReleasedMeshes = new Dictionary<ulong, Mesh>();
+//        private Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
+//        private Dictionary<ulong, Mesh> m_uniqueReleasedMeshes = new Dictionary<ulong, Mesh>();
+        private Dictionary<AMeshKey, Mesh> m_uniqueMeshes = new Dictionary<AMeshKey, Mesh>();
+        private Dictionary<AMeshKey, Mesh> m_uniqueReleasedMeshes = new Dictionary<AMeshKey, Mesh>();
 
         public Meshmerizer(IConfigSource config)
         {
@@ -977,6 +979,76 @@ namespace OpenSim.Region.Physics.Meshing
             return true;
         }
 
+        public AMeshKey GetMeshUniqueKey(PrimitiveBaseShape primShape, Vector3 size, byte lod, bool convex)
+        {
+            AMeshKey key = new AMeshKey();
+            Byte[] someBytes;
+
+            key.hashB = 5181;
+            ulong hash = 5381;
+
+            if (primShape.SculptEntry)
+            {
+                key.uuid = primShape.SculptTexture;
+                key.hashB = mdjb2(key.hashB, primShape.SculptType);
+            }
+            else
+            {
+                hash = mdjb2(hash, primShape.PathCurve);
+                hash = mdjb2(hash, (byte)primShape.HollowShape);
+                hash = mdjb2(hash, (byte)primShape.ProfileShape);
+                hash = mdjb2(hash, primShape.PathBegin);
+                hash = mdjb2(hash, primShape.PathEnd);
+                hash = mdjb2(hash, primShape.PathScaleX);
+                hash = mdjb2(hash, primShape.PathScaleY);
+                hash = mdjb2(hash, primShape.PathShearX);
+                hash = mdjb2(hash, primShape.PathShearY);
+                hash = mdjb2(hash, (byte)primShape.PathTwist);
+                hash = mdjb2(hash, (byte)primShape.PathTwistBegin);
+                hash = mdjb2(hash, (byte)primShape.PathRadiusOffset);
+                hash = mdjb2(hash, (byte)primShape.PathTaperX);
+                hash = mdjb2(hash, (byte)primShape.PathTaperY);
+                hash = mdjb2(hash, primShape.PathRevolutions);
+                hash = mdjb2(hash, (byte)primShape.PathSkew);
+                hash = mdjb2(hash, primShape.ProfileBegin);
+                hash = mdjb2(hash, primShape.ProfileEnd);
+                hash = mdjb2(hash, primShape.ProfileHollow);
+                key.hashA = hash;
+            }
+
+            hash = key.hashB;
+
+            someBytes = size.GetBytes();
+            for (int i = 0; i < someBytes.Length; i++)
+                hash = mdjb2(hash, someBytes[i]);
+
+            hash = mdjb2(hash, lod);
+            
+            hash &= 0x3fffffffffffffff; 
+
+            if (convex)
+                hash |= 0x4000000000000000;
+
+            if (primShape.SculptEntry)
+                hash |= 0x8000000000000000;
+
+            key.hashB = hash;
+
+            return key;
+        }
+
+        private ulong mdjb2(ulong hash, byte c)
+        {
+            return ((hash << 5) + hash) + (ulong)c;
+        }
+
+        private ulong mdjb2(ulong hash, ushort c)
+        {
+            hash = ((hash << 5) + hash) + (ulong)((byte)c);
+            return ((hash << 5) + hash) + (ulong)(c >> 8);
+        }
+
+
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
             return CreateMesh(primName, primShape, size, lod, false,false);
@@ -996,14 +1068,16 @@ namespace OpenSim.Region.Physics.Meshing
 #endif
 
             Mesh mesh = null;
-            ulong key = 0;
+//            ulong key = 0;
+            
 
             if (size.X < 0.01f) size.X = 0.01f;
             if (size.Y < 0.01f) size.Y = 0.01f;
             if (size.Z < 0.01f) size.Z = 0.01f;
 
             // try to find a identical mesh on meshs in use
-            key = primShape.GetMeshKey(size, lod, convex);
+//            key = primShape.GetMeshKey(size, lod, convex);
+            AMeshKey key = GetMeshUniqueKey(primShape,size,(byte)lod, convex);
 
             lock (m_uniqueMeshes)
             {
@@ -1029,29 +1103,8 @@ namespace OpenSim.Region.Physics.Meshing
                     return mesh;
                 }
             }
-/*
-            Mesh UnitSizeMesh = null;
-            ulong unitsizekey = 0;
 
-            unitsizekey = primShape.GetMeshKey(m_MeshUnitSize, lod, convex);
-
-            lock(m_uniqueMeshes)
-                m_uniqueMeshes.TryGetValue(unitsizekey, out UnitSizeMesh);
-
-            if (UnitSizeMesh !=null)
-            {
-                UnitSizeMesh.RefCount++;
-                mesh = UnitSizeMesh.Clone();
-                mesh.Key = key;
-                mesh.Scale(size);
-                mesh.RefCount++;
-                lock(m_uniqueMeshes)
-                    m_uniqueMeshes.Add(key, mesh);
-                return mesh;
-            }
-*/
             mesh = CreateMeshFromPrimMesher(primName, primShape, size, lod,convex);
-//            mesh.Key = unitsizekey;
 
             if (mesh != null)
             {
@@ -1068,7 +1121,7 @@ namespace OpenSim.Region.Physics.Meshing
                 // trim the vertex and triangle lists to free up memory
                 mesh.TrimExcess();
                 mesh.Key = key;
-                mesh.RefCount++;
+                mesh.RefCount = 1;
 
                 lock(m_uniqueMeshes)
                     m_uniqueMeshes.Add(key, mesh);
@@ -1104,7 +1157,7 @@ namespace OpenSim.Region.Physics.Meshing
 
         public void ExpireReleaseMeshs()
         {
-            if (m_uniqueMeshes.Count == 0)
+            if (m_uniqueReleasedMeshes.Count == 0)
                 return;
 
             List<Mesh> meshstodelete = new List<Mesh>();
