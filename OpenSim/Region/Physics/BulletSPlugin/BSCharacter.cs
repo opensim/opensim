@@ -205,6 +205,8 @@ public class BSCharacter : PhysicsActor
         } 
         set {
             _position = value;
+            PositionSanityCheck();
+
             _scene.TaintedObject(delegate()
             {
                 DetailLog("{0},SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
@@ -212,6 +214,28 @@ public class BSCharacter : PhysicsActor
             });
         } 
     }
+
+    // Check that the current position is sane and, if not, modify the position to make it so.
+    // Check for being below terrain and being out of bounds.
+    // Returns 'true' of the position was made sane by some action.
+    private bool PositionSanityCheck()
+    {
+        bool ret = false;
+        
+        // If below the ground, move the avatar up
+        float terrainHeight = Scene.GetTerrainHeightAtXYZ(_position);
+        if (_position.Z < terrainHeight)
+        {
+            DetailLog("{0},PositionAdjustUnderGround,call,pos={1},orient={2}", LocalID, _position, _orientation);
+            _position.Z = terrainHeight + 2.0f;
+            ret = true;
+        }
+
+        // TODO: check for out of bounds
+
+        return ret;
+    }
+
     public override float Mass { 
         get { 
             return _mass; 
@@ -456,42 +480,12 @@ public class BSCharacter : PhysicsActor
     // the world that things have changed.
     public void UpdateProperties(EntityProperties entprop)
     {
-        /*
-        bool changed = false;
-        // we assign to the local variables so the normal set action does not happen
-        if (_position != entprop.Position) {
-            _position = entprop.Position;
-            changed = true;
-        }
-        if (_orientation != entprop.Rotation) {
-            _orientation = entprop.Rotation;
-            changed = true;
-        }
-        if (_velocity != entprop.Velocity) {
-            _velocity = entprop.Velocity;
-            changed = true;
-        }
-        if (_acceleration != entprop.Acceleration) {
-            _acceleration = entprop.Acceleration;
-            changed = true;
-        }
-        if (_rotationalVelocity != entprop.RotationalVelocity) {
-            _rotationalVelocity = entprop.RotationalVelocity;
-            changed = true;
-        }
-        if (changed) {
-            // m_log.DebugFormat("{0}: UpdateProperties: id={1}, c={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
-            // Avatar movement is not done by generating this event. There is code in the heartbeat
-            //   loop that updates avatars.
-            // base.RequestPhysicsterseUpdate();
-        }
-        */
         _position = entprop.Position;
         _orientation = entprop.Rotation;
         _velocity = entprop.Velocity;
         _acceleration = entprop.Acceleration;
         _rotationalVelocity = entprop.RotationalVelocity;
-        // Avatars don't report theirr changes the usual way. Changes are checked for in the heartbeat loop.
+        // Avatars don't report their changes the usual way. Changes are checked for in the heartbeat loop.
         // base.RequestPhysicsterseUpdate();
     }
 

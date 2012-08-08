@@ -42,7 +42,7 @@ public sealed class BSPrim : PhysicsActor
     private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS PRIM]";
 
-    private void DebugLog(string mm, params Object[] xx) { if (_scene.shouldDebugLog) m_log.DebugFormat(mm, xx); }
+    private void DebugLog(string mm, params Object[] xx) { if (_scene.ShouldDebugLog) m_log.DebugFormat(mm, xx); }
 
     private IMesh _mesh;
     private PrimitiveBaseShape _pbs;
@@ -1338,7 +1338,6 @@ public sealed class BSPrim : PhysicsActor
 
             base.RequestPhysicsterseUpdate();
         }
-            /*
         else
         {
             // For debugging, we also report the movement of children
@@ -1346,7 +1345,6 @@ public sealed class BSPrim : PhysicsActor
                     LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
                     entprop.Acceleration, entprop.RotationalVelocity);
         }
-             */
     }
 
     // I've collided with something

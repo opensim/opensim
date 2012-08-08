@@ -296,13 +296,13 @@ public class BSLinkset
         DetailLog("{0},LinkAChildToMe,taint,root={1},child={2}", m_linksetRoot.LocalID, m_linksetRoot.LocalID, childPrim.LocalID);
         BSConstraint constrain = m_scene.Constraints.CreateConstraint(
                         m_scene.World, m_linksetRoot.Body, childPrim.Body,
-                        // childRelativePosition,
-                        // childRelativeRotation,
+                        childRelativePosition,
+                        childRelativeRotation,
                         OMV.Vector3.Zero,
-                        OMV.Quaternion.Identity,
-                        OMV.Vector3.Zero,
-                        OMV.Quaternion.Identity
+                        -childRelativeRotation
                         );
+
+        // zero linear and angular limits makes the objects unable to move in relation to each other
         constrain.SetLinearLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
         constrain.SetAngularLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
 
@@ -339,7 +339,8 @@ public class BSLinkset
     // Invoke the detailed logger and output something if it's enabled.
     private void DebugLog(string msg, params Object[] args)
     {
-        m_scene.Logger.DebugFormat(msg, args);
+        if (m_scene.ShouldDebugLog)
+            m_scene.Logger.DebugFormat(msg, args);
     }
 
     // Invoke the detailed logger and output something if it's enabled.

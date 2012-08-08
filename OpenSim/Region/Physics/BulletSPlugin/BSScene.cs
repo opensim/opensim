@@ -73,7 +73,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS SCENE]";
 
-    public void DebugLog(string mm, params Object[] xx) { if (shouldDebugLog) m_log.DebugFormat(mm, xx); }
+    public void DebugLog(string mm, params Object[] xx) { if (ShouldDebugLog) m_log.DebugFormat(mm, xx); }
 
     public string BulletSimVersion = "?";
 
@@ -169,7 +169,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     ConfigurationParameters[] m_params;
     GCHandle m_paramsHandle;
 
-    public bool shouldDebugLog { get; private set; }
+    public bool ShouldDebugLog { get; private set; }
 
     private BulletSimAPI.DebugLogCallback m_DebugLogCallbackHandle;
 
@@ -812,12 +812,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     private struct ParameterDefn
     {
-        public string name;
-        public string desc;
-        public float defaultValue;
-        public ParamUser userParam;
-        public ParamGet getter;
-        public ParamSet setter;
+        public string name;         // string name of the parameter
+        public string desc;         // a short description of what the parameter means
+        public float defaultValue;  // default value if not specified anywhere else
+        public ParamUser userParam; // get the value from the configuration file
+        public ParamGet getter;     // return the current value stored for this parameter
+        public ParamSet setter;     // set the current value for this parameter
         public ParameterDefn(string n, string d, float v, ParamUser u, ParamGet g, ParamSet s)
         {
             name = n;
@@ -834,7 +834,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // To add a new externally referencable/settable parameter, add the paramter storage
     //    location somewhere in the program and make an entry in this table with the
     //    getters and setters.
-    // To add a new variable, it is easiest to find an existing definition and copy it.
+    // It is easiest to find an existing definition and copy it.
     // Parameter values are floats. Booleans are converted to a floating value.
     // 
     // A ParameterDefn() takes the following parameters:
@@ -870,7 +870,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return (float)s.m_meshLOD; },
             (s,p,l,v) => { s.m_meshLOD = (int)v; } ),
         new ParameterDefn("SculptLOD", "Level of detail to render sculpties (32, 16, 8 or 4. 32=most detailed)",
-            32,
+            32f,
             (s,cf,p,v) => { s.m_sculptLOD = cf.GetInt(p, (int)v); },
             (s) => { return (float)s.m_sculptLOD; },
             (s,p,l,v) => { s.m_sculptLOD = (int)v; } ),
@@ -1106,9 +1106,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,p,l,v) => { s.m_detailedStatsStep = (int)v; } ),
         new ParameterDefn("ShouldDebugLog", "Enables detailed DEBUG log statements",
             ConfigurationParameters.numericFalse,
-            (s,cf,p,v) => { s.shouldDebugLog = cf.GetBoolean(p, s.BoolNumeric(v)); },
-            (s) => { return s.NumericBool(s.shouldDebugLog); },
-            (s,p,l,v) => { s.shouldDebugLog = s.BoolNumeric(v); } ),
+            (s,cf,p,v) => { s.ShouldDebugLog = cf.GetBoolean(p, s.BoolNumeric(v)); },
+            (s) => { return s.NumericBool(s.ShouldDebugLog); },
+            (s,p,l,v) => { s.ShouldDebugLog = s.BoolNumeric(v); } ),
 
     };
 
