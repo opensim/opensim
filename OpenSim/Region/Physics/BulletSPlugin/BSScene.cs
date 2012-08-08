@@ -1027,14 +1027,19 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarContactProcessingThreshold, p, l, v); } ),
 
 
-	    new ParameterDefn("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default)",
+	    new ParameterDefn("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
             0f,     // zero to disable
             (s,cf,p,v) => { s.m_params[0].maxPersistantManifoldPoolSize = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].maxPersistantManifoldPoolSize; },
             (s,p,l,v) => { s.m_params[0].maxPersistantManifoldPoolSize = v; } ),
+	    new ParameterDefn("MaxCollisionAlgorithmPoolSize", "Number of collisions pooled (0 means default of 4096)",
+            0f,     // zero to disable
+            (s,cf,p,v) => { s.m_params[0].maxCollisionAlgorithmPoolSize = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].maxCollisionAlgorithmPoolSize; },
+            (s,p,l,v) => { s.m_params[0].maxCollisionAlgorithmPoolSize = v; } ),
 	    new ParameterDefn("ShouldDisableContactPoolDynamicAllocation", "Enable to allow large changes in object count",
-            ConfigurationParameters.numericTrue,
-            (s,cf,p,v) => { s.m_params[0].maxPersistantManifoldPoolSize = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
+            ConfigurationParameters.numericFalse,
+            (s,cf,p,v) => { s.m_params[0].shouldDisableContactPoolDynamicAllocation = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
             (s) => { return s.m_params[0].shouldDisableContactPoolDynamicAllocation; },
             (s,p,l,v) => { s.m_params[0].shouldDisableContactPoolDynamicAllocation = v; } ),
 	    new ParameterDefn("ShouldForceUpdateAllAabbs", "Enable to recomputer AABBs every simulator step",
