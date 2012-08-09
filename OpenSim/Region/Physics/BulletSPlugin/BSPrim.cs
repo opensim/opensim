@@ -977,8 +977,8 @@ public sealed class BSPrim : PhysicsActor
         {
             if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1)
             {
-                if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
-                {
+                // if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
+                // {
                     // m_log.DebugFormat("{0}: CreateGeom: Defaulting to sphere of size {1}", LogHeader, _size);
                     if (forceRebuild || (_shapeType != ShapeData.PhysicsShapeType.SHAPE_SPHERE))
                     {
@@ -989,7 +989,7 @@ public sealed class BSPrim : PhysicsActor
                         // TODO: do we need to check for and destroy a mesh or hull that might have been left from before?
                         ret = true;
                     }
-                }
+                // }
             }
             else
             {
@@ -1039,7 +1039,7 @@ public sealed class BSPrim : PhysicsActor
         // if this new shape is the same as last time, don't recreate the mesh
         if (_meshKey == newMeshKey) return;
 
-        DetailLog("{0},CreateGeomMesh,create,key={1}", LocalID, _meshKey);
+        DetailLog("{0},CreateGeomMesh,create,key={1}", LocalID, newMeshKey);
         // Since we're recreating new, get rid of any previously generated shape
         if (_meshKey != 0)
         {

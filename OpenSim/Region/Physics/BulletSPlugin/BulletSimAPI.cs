@@ -158,6 +158,7 @@ public struct ConfigurationParameters
 	public float avatarContactProcessingThreshold;
 
 	public float maxPersistantManifoldPoolSize;
+	public float maxCollisionAlgorithmPoolSize;
 	public float shouldDisableContactPoolDynamicAllocation;
 	public float shouldForceUpdateAllAabbs;
 	public float shouldRandomizeSolverOrder;

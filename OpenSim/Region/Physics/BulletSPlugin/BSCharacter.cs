@@ -102,7 +102,9 @@ public class BSCharacter : PhysicsActor
         _orientation = Quaternion.Identity;
         _velocity = Vector3.Zero;
         _buoyancy = ComputeBuoyancyFromFlying(isFlying);
-        _scale = new Vector3(1f, 1f, 1f);
+        // The dimensions of the avatar capsule are kept in the scale.
+        // Physics creates a unit capsule which is scaled by the physics engine.
+        _scale = new Vector3(_scene.Params.avatarCapsuleRadius, _scene.Params.avatarCapsuleRadius, size.Z);
         _density = _scene.Params.avatarDensity;
         ComputeAvatarVolumeAndMass();   // set _avatarVolume and _mass based on capsule size, _density and _scale
 
@@ -150,9 +152,28 @@ public class BSCharacter : PhysicsActor
     public override bool Stopped { 
         get { return false; } 
     }
-    public override Vector3 Size { 
-        get { return _size; } 
-        set { _size = value;
+    public override Vector3 Size {
+        get
+        {
+            // Avatar capsule size is kept in the scale parameter.
+            return new Vector3(_scale.X * 2, _scale.Y * 2, _scale.Z);
+        }
+
+        set { 
+            // When an avatar's size is set, only the height is changed
+            //    and that really only depends on the radius.
+            _size = value;
+            _scale.Z = (_size.Z * 1.15f) - (_scale.X + _scale.Y);
+
+            // TODO: something has to be done with the avatar's vertical position
+
+            ComputeAvatarVolumeAndMass();
+
+            _scene.TaintedObject(delegate()
+            {
+                BulletSimAPI.SetObjectScaleMass(_scene.WorldID, LocalID, _scale, _mass, true);
+            });
+
         } 
     }
     public override PrimitiveBaseShape Shape { 
@@ -419,9 +440,15 @@ public class BSCharacter : PhysicsActor
     {
         _avatarVolume = (float)(
                         Math.PI
-                        * _scene.Params.avatarCapsuleRadius * _scale.X
-                        * _scene.Params.avatarCapsuleRadius * _scale.Y
-                        * _scene.Params.avatarCapsuleHeight * _scale.Z);
+                        * _scale.X
+                        * _scale.Y  // the area of capsule cylinder
+                        * _scale.Z  // times height of capsule cylinder
+                      + 1.33333333f
+                        * Math.PI
+                        * _scale.X
+                        * Math.Min(_scale.X, _scale.Y)
+                        * _scale.Y  // plus the volume of the capsule end caps
+                        );
         _mass = _density * _avatarVolume;
     }
 
