@@ -224,10 +224,12 @@ public sealed class BSPrim : PhysicsActor
     // link me to the specified parent
     public override void link(PhysicsActor obj) {
         BSPrim parent = obj as BSPrim;
-        DebugLog("{0}: link {1}/{2} to {3}", LogHeader, _avName, _localID, obj.LocalID);
-        DetailLog("{0},link,parent={1}", LocalID, obj.LocalID);
-
-        _linkset = _linkset.AddMeToLinkset(this, parent);
+        if (parent != null)
+        {
+            DebugLog("{0}: link {1}/{2} to {3}", LogHeader, _avName, _localID, parent.LocalID);
+            DetailLog("{0},link,parent={1}", LocalID, parent.LocalID);
+            _linkset = _linkset.AddMeToLinkset(this, parent);
+        }
         return; 
     }
 
@@ -478,7 +480,6 @@ public sealed class BSPrim : PhysicsActor
 
     // Make gravity work if the object is physical and not selected
     // No locking here because only called when it is safe
-    // Only called at taint time so it is save to call into Bullet.
     private void SetObjectDynamic()
     {
         // RA: remove this for the moment.
@@ -982,7 +983,7 @@ public sealed class BSPrim : PhysicsActor
                     // m_log.DebugFormat("{0}: CreateGeom: Defaulting to sphere of size {1}", LogHeader, _size);
                     if (forceRebuild || (_shapeType != ShapeData.PhysicsShapeType.SHAPE_SPHERE))
                     {
-                        DetailLog("{0},CreateGeom,sphere", LocalID);
+                        DetailLog("{0},CreateGeom,sphere (force={1}", LocalID, forceRebuild);
                         _shapeType = ShapeData.PhysicsShapeType.SHAPE_SPHERE;
                         // Bullet native objects are scaled by the Bullet engine so pass the size in
                         _scale = _size;
@@ -996,7 +997,7 @@ public sealed class BSPrim : PhysicsActor
                 // m_log.DebugFormat("{0}: CreateGeom: Defaulting to box. lid={1}, type={2}, size={3}", LogHeader, LocalID, _shapeType, _size);
                 if (forceRebuild || (_shapeType != ShapeData.PhysicsShapeType.SHAPE_BOX))
                 {
-                    DetailLog("{0},CreateGeom,box", LocalID);
+                    DetailLog("{0},CreateGeom,box (force={1})", LocalID, forceRebuild);
                     _shapeType = ShapeData.PhysicsShapeType.SHAPE_BOX;
                     _scale = _size;
                     // TODO: do we need to check for and destroy a mesh or hull that might have been left from before?

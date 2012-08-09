@@ -63,16 +63,6 @@ public class BSConstraintCollection : IDisposable
         m_constraints.Clear();
     }
 
-    public BSConstraint CreateConstraint(BulletSim world, BulletBody obj1, BulletBody obj2,
-                    Vector3 frame1, Quaternion frame1rot,
-                    Vector3 frame2, Quaternion frame2rot)
-    {
-        BSConstraint constrain = new BSConstraint(world, obj1, obj2, frame1, frame1rot, frame2, frame2rot);
-
-        this.AddConstraint(constrain);
-        return constrain;
-    }
-
     public bool AddConstraint(BSConstraint cons)
     {
         // There is only one constraint between any bodies. Remove any old just to make sure.
