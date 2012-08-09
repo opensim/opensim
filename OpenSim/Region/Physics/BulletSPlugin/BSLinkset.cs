@@ -236,7 +236,7 @@ public class BSLinkset
         {
             m_children.Add(child);
 
-            m_scene.TaintedObject(delegate()
+            m_scene.TaintedObject("AddChildToLinkset", delegate()
             {
                 DebugLog("{0}: AddChildToLinkset: adding child {1} to {2}", LogHeader, child.LocalID, m_linksetRoot.LocalID);
                 DetailLog("{0},AddChildToLinkset,taint,child={1}", m_linksetRoot.LocalID, pchild.LocalID);
@@ -265,7 +265,7 @@ public class BSLinkset
 
         if (m_children.Remove(child))
         {
-            m_scene.TaintedObject(delegate()
+            m_scene.TaintedObject("RemoveChildFromLinkset", delegate()
             {
                 DebugLog("{0}: RemoveChildFromLinkset: Removing constraint to {1}", LogHeader, child.LocalID);
                 DetailLog("{0},RemoveChildFromLinkset,taint,child={1}", m_linksetRoot.LocalID, pchild.LocalID);

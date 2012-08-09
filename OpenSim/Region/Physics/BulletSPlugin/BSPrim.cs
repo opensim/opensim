@@ -145,7 +145,7 @@ public sealed class BSPrim : PhysicsActor
         _vehicle = new BSDynamics(this);    // add vehicleness
         _mass = CalculateMass();
         // do the actual object creation at taint time
-        _scene.TaintedObject(delegate()
+        _scene.TaintedObject("BSPrim.create", delegate()
         {
             RecreateGeomAndObject();
 
@@ -166,7 +166,7 @@ public sealed class BSPrim : PhysicsActor
         _vehicle.ProcessTypeChange(Vehicle.TYPE_NONE);
         _scene.RemoveVehiclePrim(this);     // just to make sure
 
-        _scene.TaintedObject(delegate()
+        _scene.TaintedObject("BSPrim.destroy", delegate()
         {
             // Undo any links between me and any other object
             _linkset = _linkset.RemoveMeFromLinkset(this);
@@ -183,7 +183,7 @@ public sealed class BSPrim : PhysicsActor
         get { return _size; } 
         set {
             _size = value;
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSPrim.setSize", delegate()
             {
                 _mass = CalculateMass();   // changing size changes the mass
                 BulletSimAPI.SetObjectScaleMass(_scene.WorldID, _localID, _scale, (IsPhysical ? _mass : 0f), IsPhysical);
@@ -195,7 +195,7 @@ public sealed class BSPrim : PhysicsActor
     public override PrimitiveBaseShape Shape { 
         set {
             _pbs = value;
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSPrim.setShape", delegate()
             {
                 _mass = CalculateMass();   // changing the shape changes the mass
                 RecreateGeomAndObject();
@@ -213,7 +213,7 @@ public sealed class BSPrim : PhysicsActor
     public override bool Selected { 
         set {
             _isSelected = value;
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSPrim.setSelected", delegate()
             {
                 SetObjectDynamic();
             });
@@ -281,7 +281,7 @@ public sealed class BSPrim : PhysicsActor
         set {
             _position = value;
             // TODO: what does it mean to set the position of a child prim?? Rebuild the constraint?
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSPrim.setPosition", delegate()
             {
                 DetailLog("{0},SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
@@ -318,7 +318,7 @@ public sealed class BSPrim : PhysicsActor
         get { return _force; } 
         set {
             _force = value;
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSPrim.setForce", delegate()
             {
                 DetailLog("{0},setForce,taint,force={1}", LocalID, _force);
                 // BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
@@ -333,7 +333,7 @@ public sealed class BSPrim : PhysicsActor
         } 
         set {
             Vehicle type = (Vehicle)value;
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSPrim.setVehicleType", delegate()
             {
                 DetailLog("{0},SetVehicleType,taint,type={1}", LocalID, type);
                 _vehicle.ProcessTypeChange(type);
@@ -343,12 +343,7 @@ public sealed class BSPrim : PhysicsActor
                 }
                 else
                 {
-                    _scene.TaintedObject(delegate()
-                    {
-                        // Tell the physics engine to clear state
-                        BulletSimAPI.ClearForces2(this.Body.Ptr);
-                    });
-
+                    BulletSimAPI.ClearForces2(this.Body.Ptr);
                     // make it so the scene will call us each tick to do vehicle things
                     _scene.AddVehiclePrim(this);
                 }
@@ -358,28 +353,28 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void VehicleFloatParam(int param, float value) 
     {
-        _scene.TaintedObject(delegate()
+        _scene.TaintedObject("BSPrim.VehicleFloatParam", delegate()
         {
             _vehicle.ProcessFloatVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
         });
     }
     public override void VehicleVectorParam(int param, OMV.Vector3 value) 
     {
-        _scene.TaintedObject(delegate()
+        _scene.TaintedObject("BSPrim.VehicleVectorParam", delegate()
         {
             _vehicle.ProcessVectorVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
         });
     }
     public override void VehicleRotationParam(int param, OMV.Quaternion rotation) 
     {
-        _scene.TaintedObject(delegate()
+        _scene.TaintedObject("BSPrim.VehicleRotationParam", delegate()
         {
             _vehicle.ProcessRotationVehicleParam((Vehicle)param, rotation);
         });
     }
     public override void VehicleFlags(int param, bool remove) 
     {
-        _scene.TaintedObject(delegate()
+        _scene.TaintedObject("BSPrim.VehicleFlags", delegate()
         {
             _vehicle.ProcessVehicleFlags(param, remove);
         });
@@ -397,7 +392,7 @@ public sealed class BSPrim : PhysicsActor
     public override void SetVolumeDetect(int param) {
         bool newValue = (param != 0);
         _isVolumeDetect = newValue;
-        _scene.TaintedObject(delegate()
+        _scene.TaintedObject("BSPrim.SetVolumeDetect", delegate()
         {
             SetObjectDynamic();
         });
@@ -408,7 +403,7 @@ public sealed class BSPrim : PhysicsActor
         get { return _velocity; } 
         set {
             _velocity = value;
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSPrim.setVelocity", delegate()
             {
                 DetailLog("{0},SetVelocity,taint,vel={1}", LocalID, _velocity);
                 BulletSimAPI.SetObjectVelocity(_scene.WorldID, LocalID, _velocity);
@@ -442,7 +437,7 @@ public sealed class BSPrim : PhysicsActor
         set {
             _orientation = value;
             // TODO: what does it mean if a child in a linkset changes its orientation? Rebuild the constraint?
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSPrim.setOrientation", delegate()
             {
                 // _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
                 DetailLog("{0},setOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
@@ -459,7 +454,7 @@ public sealed class BSPrim : PhysicsActor
         get { return _isPhysical; } 
         set {
             _isPhysical = value;
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSPrim.setIsPhysical", delegate()
             {
                 SetObjectDynamic();
             });
@@ -547,7 +542,7 @@ public sealed class BSPrim : PhysicsActor
         set {
             _rotationalVelocity = value;
             // m_log.DebugFormat("{0}: RotationalVelocity={1}", LogHeader, _rotationalVelocity);
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSPrim.setRotationalVelocity", delegate()
             {
                 DetailLog("{0},SetRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
                 BulletSimAPI.SetObjectAngularVelocity(_scene.WorldID, LocalID, _rotationalVelocity);
@@ -564,7 +559,7 @@ public sealed class BSPrim : PhysicsActor
         get { return _buoyancy; } 
         set {
             _buoyancy = value;
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSPrim.setBuoyancy", delegate()
             {
                 DetailLog("{0},SetBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
                 BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, _localID, _buoyancy);
@@ -618,7 +613,7 @@ public sealed class BSPrim : PhysicsActor
             m_log.WarnFormat("{0}: Got a NaN force applied to a Character", LogHeader);
             return;
         }
-        _scene.TaintedObject(delegate()
+        _scene.TaintedObject("BSPrim.AddForce", delegate()
         {
             OMV.Vector3 fSum = OMV.Vector3.Zero;
             lock (m_accumulatedForces)
@@ -648,7 +643,7 @@ public sealed class BSPrim : PhysicsActor
             // make sure first collision happens
             _nextCollisionOkTime = Util.EnvironmentTickCount() - _subscribedEventsMs;
 
-            Scene.TaintedObject(delegate()
+            Scene.TaintedObject("BSPrim.SubscribeEvents", delegate()
             {
                 BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
             });
@@ -656,7 +651,7 @@ public sealed class BSPrim : PhysicsActor
     }
     public override void UnSubscribeEvents() { 
         _subscribedEventsMs = 0;
-        Scene.TaintedObject(delegate()
+        Scene.TaintedObject("BSPrim.UnSubscribeEvents", delegate()
         {
             BulletSimAPI.RemoveFromCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });

@@ -162,7 +162,17 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     public delegate void TaintCallback();
-    private List<TaintCallback> _taintedObjects;
+    private struct TaintCallbackEntry
+    {
+        public String ident;
+        public TaintCallback callback;
+        public TaintCallbackEntry(string i, TaintCallback c)
+        {
+            ident = i;
+            callback = c;
+        }
+    }
+    private List<TaintCallbackEntry> _taintedObjects;
     private Object _taintLock = new Object();
 
     // A pointer to an instance if this structure is passed to the C++ code
@@ -232,7 +242,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             BulletSimAPI.SetDebugLogCallback(m_DebugLogCallbackHandle);
         }
 
-        _taintedObjects = new List<TaintCallback>();
+        _taintedObjects = new List<TaintCallbackEntry>();
 
         mesher = meshmerizer;
         // The bounding box for the simulated world
@@ -535,7 +545,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public override void SetTerrain(float[] heightMap) {
         m_heightMap = heightMap;
-        this.TaintedObject(delegate()
+        this.TaintedObject("BSScene.SetTerrain", delegate()
         {
             BulletSimAPI.SetHeightmap(m_worldID, m_heightMap);
         });
@@ -727,12 +737,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // Calls to the PhysicsActors can't directly call into the physics engine
     // because it might be busy. We delay changes to a known time.
     // We rely on C#'s closure to save and restore the context for the delegate.
-    public void TaintedObject(TaintCallback callback)
+    public void TaintedObject(String ident, TaintCallback callback)
     {
         if (!m_initialized) return;
 
         lock (_taintLock)
-            _taintedObjects.Add(callback);
+            _taintedObjects.Add(new TaintCallbackEntry(ident, callback));
         return;
     }
 
@@ -744,22 +754,22 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         if (_taintedObjects.Count > 0)  // save allocating new list if there is nothing to process
         {
             // swizzle a new list into the list location so we can process what's there
-            List<TaintCallback> oldList;
+            List<TaintCallbackEntry> oldList;
             lock (_taintLock)
             {
                 oldList = _taintedObjects;
-                _taintedObjects = new List<TaintCallback>();
+                _taintedObjects = new List<TaintCallbackEntry>();
             }
 
-            foreach (TaintCallback callback in oldList)
+            foreach (TaintCallbackEntry tcbe in oldList)
             {
                 try
                 {
-                    callback();
+                    tcbe.callback();
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("{0}: ProcessTaints: Exception: {1}", LogHeader, e);
+                    m_log.ErrorFormat("{0}: ProcessTaints: {1}: Exception: {2}", LogHeader, tcbe.ident, e);
                 }
             }
             oldList.Clear();
@@ -1248,7 +1258,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 List<uint> objectIDs = lIDs;
                 string xparm = parm.ToLower();
                 float xval = val;
-                TaintedObject(delegate() {
+                TaintedObject("BSScene.UpdateParameterSet", delegate() {
                     foreach (uint lID in objectIDs)
                     {
                         BulletSimAPI.UpdateParameter(m_worldID, lID, xparm, xval);
@@ -1268,7 +1278,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         uint xlocalID = localID;
         string xparm = parm.ToLower();
         float xval = val;
-        TaintedObject(delegate() {
+        TaintedObject("BSScene.TaintedUpdateParameter", delegate() {
             BulletSimAPI.UpdateParameter(m_worldID, xlocalID, xparm, xval);
         });
     }
