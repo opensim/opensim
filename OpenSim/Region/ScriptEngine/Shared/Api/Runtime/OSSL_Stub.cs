@@ -865,7 +865,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osSetSpeed(UUID, SpeedModifier);
         }
-        
+
+        public LSL_Float osGetHealth(string avatar)
+        {
+            return m_OSSL_Functions.osGetHealth(avatar);
+        }
+
         public void osCauseDamage(string avatar, double damage)
         {
             m_OSSL_Functions.osCauseDamage(avatar, damage);

@@ -2895,6 +2895,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             });
         }
+
+        public LSL_Float osGetHealth(string avatar)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osGetHealth");
+            m_host.AddScriptLPS(1);
+
+            UUID avatarId = new UUID(avatar);
+            Vector3 pos = m_host.GetWorldPosition();
+
+            LSL_Float health = new LSL_Float(-1);
+            ScenePresence presence = World.GetScenePresence(avatarId);
+            if (presence != null)
+            {
+                LandData land = World.GetLandData((float)pos.X, (float)pos.Y);
+                if ((land.Flags & (uint)ParcelFlags.AllowDamage) == (uint)ParcelFlags.AllowDamage)
+                {
+                    health = presence.Health;
+                }
+            }
+            return health;
+        }
         
         public void osCauseDamage(string avatar, double damage)
         {
