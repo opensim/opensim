@@ -35,9 +35,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin {
 // Classes to allow some type checking for the API
 public struct BulletSim
 {
-    public BulletSim(uint id, IntPtr xx) { ID = id;  Ptr = xx; }
-    public IntPtr Ptr;
+    public BulletSim(uint id, BSScene bss, IntPtr xx) { ID = id; scene = bss;  Ptr = xx; }
     public uint ID;
+    // The scene is only in here so very low level routines have a handle to print debug/error messages
+    public BSScene scene;
+    public IntPtr Ptr;
 }
 
 public struct BulletBody
@@ -490,6 +492,9 @@ public static extern bool SetLinearVelocity2(IntPtr obj, Vector3 val);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool SetInterpolation2(IntPtr obj, Vector3 lin, Vector3 ang);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern CollisionFlags GetCollisionFlags2(IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr SetCollisionFlags2(IntPtr obj, CollisionFlags flags);

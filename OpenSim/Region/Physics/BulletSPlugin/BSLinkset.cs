@@ -44,8 +44,6 @@ public class BSLinkset
 
     private List<BSPrim> m_children;
 
-    public int NumberOfChildren { get { return m_children.Count; } }
-
     // We lock the diddling of linkset classes to prevent any badness.
     // This locks the modification of the instances of this class. Changes
     //    to the physical representation is done via the tainting mechenism.
@@ -83,14 +81,14 @@ public class BSLinkset
 
     // Link to a linkset where the child knows the parent.
     // Parent changing should not happen so do some sanity checking.
-    // We return the parent's linkset so the child can track it's membership.
-    public BSLinkset AddMeToLinkset(BSPrim child, BSPrim parent)
+    // We return the parent's linkset so the child can track its membership.
+    public BSLinkset AddMeToLinkset(BSPrim child)
     {
         lock (m_linksetActivityLock)
         {
-            parent.Linkset.AddChildToLinkset(child);
+            AddChildToLinkset(child);
         }
-        return parent.Linkset;
+        return this;
     }
 
     public BSLinkset RemoveMeFromLinkset(BSPrim child)
@@ -175,6 +173,8 @@ public class BSLinkset
     {
         return (requestor.LocalID == m_linksetRoot.LocalID);
     }
+
+    public int NumberOfChildren { get { return m_children.Count; } }
 
     // Return 'true' if this linkset has any children (more than the root member)
     public bool HasAnyChildren { get { return (m_children.Count > 0); } }
@@ -303,7 +303,7 @@ public class BSLinkset
         // create a constraint that allows no freedom of movement between the two objects
         // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
         // DebugLog("{0}: CreateLinkset: Adding a constraint between root prim {1} and child prim {2}", LogHeader, LocalID, childPrim.LocalID);
-        DetailLog("{0},LinkAChildToMe,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID);
+        DetailLog("{0},PhysicallyLinkAChildToRoot,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID);
         BS6DofConstraint constrain = new BS6DofConstraint(
                         m_scene.World, rootPrim.Body, childPrim.Body,
                         childRelativePosition,

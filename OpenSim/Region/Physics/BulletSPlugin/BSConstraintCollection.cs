@@ -68,6 +68,8 @@ public class BSConstraintCollection : IDisposable
         // There is only one constraint between any bodies. Remove any old just to make sure.
         RemoveAndDestroyConstraint(cons.Body1, cons.Body2);
 
+        m_world.scene.DetailLog("{0},BSConstraintCollection.AddConstraint,call,body1={1},body2={2}", BSScene.DetailLogZero, cons.Body1.ID, cons.Body2.ID);
+
         m_constraints.Add(cons);
 
         return true;
@@ -108,6 +110,7 @@ public class BSConstraintCollection : IDisposable
 
         if (this.TryGetConstraint(body1, body2, out constrain))
         {
+            m_world.scene.DetailLog("{0},BSConstraintCollection.RemoveAndDestroyConstraint,taint,body1={1},body2={2}", BSScene.DetailLogZero, body1.ID, body2.ID);
             // remove the constraint from our collection
             m_constraints.Remove(constrain);
             // tell the engine that all its structures need to be freed
@@ -148,10 +151,11 @@ public class BSConstraintCollection : IDisposable
 
     public bool RecalculateAllConstraints()
     {
-        foreach (BSConstraint constrain in m_constraints)
+        ForEachConstraint(delegate(BSConstraint constrain)
         {
             constrain.CalculateTransforms();
-        }
+            return false;
+        });
         return true;
     }
 

@@ -138,13 +138,14 @@ public sealed class BSPrim : PhysicsActor
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
         _subscribedEventsMs = 0;
-        _friction = _scene.Params.defaultFriction; // TODO: compute based on object material
-        _density = _scene.Params.defaultDensity; // TODO: compute based on object material
+        _friction = _scene.Params.defaultFriction;  // TODO: compute based on object material
+        _density = _scene.Params.defaultDensity;    // TODO: compute based on object material
         _restitution = _scene.Params.defaultRestitution;
         _linkset = new BSLinkset(_scene, this);     // a linkset of one
-        _vehicle = new BSDynamics(this);    // add vehicleness
+        _vehicle = new BSDynamics(this);            // add vehicleness
         _mass = CalculateMass();
         // do the actual object creation at taint time
+        DetailLog("{0},BSPrim.constructor,call", LocalID);
         _scene.TaintedObject("BSPrim.create", delegate()
         {
             RecreateGeomAndObject();
@@ -160,19 +161,22 @@ public sealed class BSPrim : PhysicsActor
     public void Destroy()
     {
         // m_log.DebugFormat("{0}: Destroy, id={1}", LogHeader, LocalID);
-        // DetailLog("{0},BSPrim.Destroy", LocalID);
-
-        // Undo any vehicle properties
-        _vehicle.ProcessTypeChange(Vehicle.TYPE_NONE);
-        _scene.RemoveVehiclePrim(this);     // just to make sure
 
         // Undo any links between me and any other object
+        BSPrim parentBefore = _linkset.Root;
+        int childrenBefore = _linkset.NumberOfChildren;
+
         _linkset = _linkset.RemoveMeFromLinkset(this);
+
+        DetailLog("{0},BSPrim.Destroy,call,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}",
+            LocalID, parentBefore.LocalID, childrenBefore, _linkset.Root.LocalID, _linkset.NumberOfChildren);
+
+        // Undo any vehicle properties
+        this.VehicleType = (int)Vehicle.TYPE_NONE;
 
         _scene.TaintedObject("BSPrim.destroy", delegate()
         {
             DetailLog("{0},BSPrim.Destroy,taint,", LocalID);
-
             // everything in the C# world will get garbage collected. Tell the C++ world to free stuff.
             BulletSimAPI.DestroyObject(_scene.WorldID, LocalID);
         });
@@ -229,8 +233,13 @@ public sealed class BSPrim : PhysicsActor
         if (parent != null)
         {
             DebugLog("{0}: link {1}/{2} to {3}", LogHeader, _avName, _localID, parent.LocalID);
-            DetailLog("{0},BSPrim.link,parent={1}", LocalID, parent.LocalID);
-            _linkset = _linkset.AddMeToLinkset(this, parent);
+            BSPrim parentBefore = _linkset.Root;
+            int childrenBefore = _linkset.NumberOfChildren;
+
+            _linkset = parent.Linkset.AddMeToLinkset(this);
+
+            DetailLog("{0},BSPrim.link,call,parentBefore={1}, childrenBefore=={2}, parentAfter={3}, childrenAfter={4}", 
+                LocalID, parentBefore.LocalID, childrenBefore, _linkset.Root.LocalID, _linkset.NumberOfChildren);
         }
         return; 
     }
@@ -340,21 +349,14 @@ public sealed class BSPrim : PhysicsActor
         } 
         set {
             Vehicle type = (Vehicle)value;
-            _scene.TaintedObject("BSPrim.setVehicleType", delegate()
+            BSPrim vehiclePrim = this;
+            _scene.TaintedObject("setVehicleType", delegate()
             {
-                DetailLog("{0},BSPrim.SetVehicleType,taint,type={1}", LocalID, type);
+                // Done at taint time so we're sure the physics engine is not using the variables
+                // Vehicle code changes the parameters for this vehicle type.
                 _vehicle.ProcessTypeChange(type);
-                if (type == Vehicle.TYPE_NONE)
-                {
-                    _scene.RemoveVehiclePrim(this);
-                }
-                else
-                {
-                    BulletSimAPI.ClearForces2(this.Body.Ptr);
-                    // make it so the scene will call us each tick to do vehicle things
-                    _scene.AddVehiclePrim(this);
-                }
-                return;
+                // Tell the scene about the vehicle so it will get processing each frame.
+                _scene.VehicleInSceneTypeChanged(this, type);
             });
         } 
     }
@@ -493,8 +495,10 @@ public sealed class BSPrim : PhysicsActor
         // Bullet wants static objects to have a mass of zero
         float mass = IsStatic ? 0f : _mass;
 
-        DetailLog("{0},BSPrim.SetObjectDynamic,taint,static={1},solid={2},mass={3}", LocalID, IsStatic, IsSolid, mass);
         BulletSimAPI.SetObjectProperties(_scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), mass);
+
+        CollisionFlags cf = BulletSimAPI.GetCollisionFlags2(Body.Ptr);
+        DetailLog("{0},BSPrim.SetObjectDynamic,taint,static={1},solid={2},mass={3}, cf={4}", LocalID, IsStatic, IsSolid, mass, cf);
     }
 
     // prims don't fly
@@ -1224,7 +1228,7 @@ public sealed class BSPrim : PhysicsActor
         bool ret = BulletSimAPI.CreateObject(_scene.WorldID, shape);
 
         // the CreateObject() may have recreated the rigid body. Make sure we have the latest.
-        m_body.Ptr = BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID);
+        Body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID));
 
         return ret;
     }
@@ -1344,7 +1348,7 @@ public sealed class BSPrim : PhysicsActor
         else
         {
             // For debugging, we also report the movement of children
-            DetailLog("{0},BSPrim.BSPrim.UpdateProperties,child,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
+            DetailLog("{0},BSPrim.UpdateProperties,child,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                     LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
                     entprop.Acceleration, entprop.RotationalVelocity);
         }

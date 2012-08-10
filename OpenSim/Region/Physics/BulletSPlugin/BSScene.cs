@@ -255,7 +255,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // Initialization to support the transition to a new API which puts most of the logic
         //   into the C# code so it is easier to modify and add to.
-        m_worldSim = new BulletSim(m_worldID, BulletSimAPI.GetSimHandle2(m_worldID));
+        m_worldSim = new BulletSim(m_worldID, this, BulletSimAPI.GetSimHandle2(m_worldID));
         m_constraintCollection = new BSConstraintCollection(World);
 
         m_initialized = true;
@@ -362,6 +362,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         BSPrim bsprim = prim as BSPrim;
         if (bsprim != null)
         {
+            DetailLog("{0},RemovePrim,call", bsprim.LocalID);
             // m_log.DebugFormat("{0}: RemovePrim. id={1}/{2}", LogHeader, bsprim.Name, bsprim.LocalID);
             try
             {
@@ -386,6 +387,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // m_log.DebugFormat("{0}: AddPrimShape2: {1}", LogHeader, primName);
 
         if (!m_initialized) return null;
+
+        DetailLog("{0},AddPrimShape,call", localID);
 
         BSPrim prim = new BSPrim(localID, primName, this, position, size, rotation, pbs, isPhysical);
         lock (m_prims) m_prims.Add(localID, prim);
@@ -426,12 +429,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         {
             numSubSteps = BulletSimAPI.PhysicsStep(m_worldID, timeStep, m_maxSubSteps, m_fixedTimeStep,
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
-            DetailLog("{0},Simulate,call, substeps={1}, updates={2}, colliders={3}", "0000000000", numSubSteps, updatedEntityCount, collidersCount); 
+            DetailLog("{0},Simulate,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount); 
         }
         catch (Exception e)
         {
             m_log.WarnFormat("{0},PhysicsStep Exception: substeps={1}, updates={2}, colliders={3}, e={4}", LogHeader, numSubSteps, updatedEntityCount, collidersCount, e);
-            DetailLog("{0},PhysicsStepException,call, substeps={1}, updates={2}, colliders={3}", "0000000000", numSubSteps, updatedEntityCount, collidersCount);
+            DetailLog("{0},PhysicsStepException,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount);
             // updatedEntityCount = 0;
             collidersCount = 0;
         }
@@ -777,6 +780,20 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     #region Vehicles
+
+    public void VehicleInSceneTypeChanged(BSPrim vehic, Vehicle newType)
+    {
+        if (newType == Vehicle.TYPE_NONE)
+        {
+            RemoveVehiclePrim(vehic);
+        }
+        else
+        {
+            // make it so the scene will call us each tick to do vehicle things
+           AddVehiclePrim(vehic);
+        }
+    }
+
     // Make so the scene will call this prim for vehicle actions each tick.
     // Safe to call if prim is already in the vehicle list.
     public void AddVehiclePrim(BSPrim vehicle)
@@ -1304,10 +1321,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     #endregion Runtime settable parameters
 
     // Invoke the detailed logger and output something if it's enabled.
-    private void DetailLog(string msg, params Object[] args)
+    public void DetailLog(string msg, params Object[] args)
     {
         PhysicsLogging.Write(msg, args);
     }
+    // used to fill in the LocalID when there isn't one
+    public const string DetailLogZero = "0000000000";
 
 }
 }
