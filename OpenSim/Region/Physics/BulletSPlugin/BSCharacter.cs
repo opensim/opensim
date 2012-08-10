@@ -248,7 +248,7 @@ public class BSCharacter : PhysicsActor
             // m_log.DebugFormat("{0}: Force = {1}", LogHeader, _force);
             Scene.TaintedObject("BSCharacter.SetForce", delegate()
             {
-                DetailLog("{0},setForce,taint,force={1}", LocalID, _force);
+                DetailLog("{0},BSCharacter.setForce,taint,force={1}", LocalID, _force);
                 BulletSimAPI.SetObjectForce(Scene.WorldID, LocalID, _force);
             });
         } 
@@ -275,7 +275,7 @@ public class BSCharacter : PhysicsActor
             // m_log.DebugFormat("{0}: set velocity = {1}", LogHeader, _velocity);
             _scene.TaintedObject("BSCharacter.setVelocity", delegate()
             {
-                DetailLog("{0},setVelocity,taint,vel={1}", LocalID, _velocity);
+                DetailLog("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, _velocity);
                 BulletSimAPI.SetObjectVelocity(_scene.WorldID, _localID, _velocity);
             });
         } 
@@ -487,6 +487,10 @@ public class BSCharacter : PhysicsActor
         _rotationalVelocity = entprop.RotationalVelocity;
         // Avatars don't report their changes the usual way. Changes are checked for in the heartbeat loop.
         // base.RequestPhysicsterseUpdate();
+
+        DetailLog("{0},BSCharacter.UpdateProperties,child,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
+                LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
+                entprop.Acceleration, entprop.RotationalVelocity);
     }
 
     // Called by the scene when a collision with this object is reported

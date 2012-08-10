@@ -40,8 +40,11 @@ public class BSLinkset
     public BSPrim Root { get { return m_linksetRoot; } }
 
     private BSScene m_scene;
+    public BSScene Scene { get { return m_scene; } }
 
     private List<BSPrim> m_children;
+
+    public int NumberOfChildren { get { return m_children.Count; } }
 
     // We lock the diddling of linkset classes to prevent any badness.
     // This locks the modification of the instances of this class. Changes
@@ -113,9 +116,10 @@ public class BSLinkset
         }
 
         // The child is down to a linkset of just itself
-        return new BSLinkset(m_scene, child);
+        return new BSLinkset(Scene, child);
     }
 
+    /* DEPRECATED: this is really bad in that it trys to unlink other prims.
     // An existing linkset had one of its members rebuilt or something.
     // Go through the linkset and rebuild the pointers to the bodies of the linkset members.
     public BSLinkset RefreshLinkset(BSPrim requestor)
@@ -163,6 +167,7 @@ public class BSLinkset
 
         return ret;
     }
+     */
 
 
     // Return 'true' if the passed object is the root object of this linkset
@@ -229,18 +234,19 @@ public class BSLinkset
     }
 
     // I am the root of a linkset and a new child is being added
-    public void AddChildToLinkset(BSPrim pchild)
+    // Called while LinkActivity is locked.
+    public void AddChildToLinkset(BSPrim child)
     {
-        BSPrim child = pchild;
         if (!HasChild(child))
         {
             m_children.Add(child);
 
+            BSPrim root = Root; // capture the root as of now
             m_scene.TaintedObject("AddChildToLinkset", delegate()
             {
                 DebugLog("{0}: AddChildToLinkset: adding child {1} to {2}", LogHeader, child.LocalID, m_linksetRoot.LocalID);
-                DetailLog("{0},AddChildToLinkset,taint,child={1}", m_linksetRoot.LocalID, pchild.LocalID);
-                PhysicallyLinkAChildToRoot(pchild);     // build the physical binding between me and the child
+                DetailLog("{0},AddChildToLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
+                PhysicallyLinkAChildToRoot(root, child);     // build the physical binding between me and the child
             });
         }
         return;
@@ -259,26 +265,17 @@ public class BSLinkset
 
     // I am the root of a linkset and one of my children is being removed.
     // Safe to call even if the child is not really in my linkset.
-    public void RemoveChildFromLinkset(BSPrim pchild)
+    public void RemoveChildFromLinkset(BSPrim child)
     {
-        BSPrim child = pchild;
-
         if (m_children.Remove(child))
         {
+            BSPrim root = Root; // capture the root as of now
             m_scene.TaintedObject("RemoveChildFromLinkset", delegate()
             {
                 DebugLog("{0}: RemoveChildFromLinkset: Removing constraint to {1}", LogHeader, child.LocalID);
-                DetailLog("{0},RemoveChildFromLinkset,taint,child={1}", m_linksetRoot.LocalID, pchild.LocalID);
+                DetailLog("{0},RemoveChildFromLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
 
-                if (m_children.Count == 0)
-                {
-                    // if the linkset is empty, make sure all linkages have been removed
-                    PhysicallyUnlinkAllChildrenFromRoot();
-                }
-                else
-                {
-                    PhysicallyUnlinkAChildFromRoot(pchild);
-                }
+                PhysicallyUnlinkAChildFromRoot(root, child);
             });
         }
         else
@@ -291,14 +288,14 @@ public class BSLinkset
 
     // Create a constraint between me (root of linkset) and the passed prim (the child).
     // Called at taint time!
-    private void PhysicallyLinkAChildToRoot(BSPrim childPrim)
+    private void PhysicallyLinkAChildToRoot(BSPrim rootPrim, BSPrim childPrim)
     {
         // Zero motion for children so they don't interpolate
         childPrim.ZeroMotion();
 
         // relative position normalized to the root prim
-        OMV.Quaternion invThisOrientation = OMV.Quaternion.Inverse(m_linksetRoot.Orientation);
-        OMV.Vector3 childRelativePosition = (childPrim.Position - m_linksetRoot.Position) * invThisOrientation;
+        OMV.Quaternion invThisOrientation = OMV.Quaternion.Inverse(rootPrim.Orientation);
+        OMV.Vector3 childRelativePosition = (childPrim.Position - rootPrim.Position) * invThisOrientation;
 
         // relative rotation of the child to the parent
         OMV.Quaternion childRelativeRotation = invThisOrientation * childPrim.Orientation;
@@ -306,9 +303,9 @@ public class BSLinkset
         // create a constraint that allows no freedom of movement between the two objects
         // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
         // DebugLog("{0}: CreateLinkset: Adding a constraint between root prim {1} and child prim {2}", LogHeader, LocalID, childPrim.LocalID);
-        DetailLog("{0},LinkAChildToMe,taint,root={1},child={2}", m_linksetRoot.LocalID, m_linksetRoot.LocalID, childPrim.LocalID);
+        DetailLog("{0},LinkAChildToMe,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID);
         BS6DofConstraint constrain = new BS6DofConstraint(
-                        m_scene.World, m_linksetRoot.Body, childPrim.Body,
+                        m_scene.World, rootPrim.Body, childPrim.Body,
                         childRelativePosition,
                         childRelativeRotation,
                         OMV.Vector3.Zero,
@@ -331,25 +328,25 @@ public class BSLinkset
 
     // Remove linkage between myself and a particular child
     // Called at taint time!
-    private void PhysicallyUnlinkAChildFromRoot(BSPrim childPrim)
+    private void PhysicallyUnlinkAChildFromRoot(BSPrim rootPrim, BSPrim childPrim)
     {
         // DebugLog("{0}: PhysicallyUnlinkAChildFromRoot: RemoveConstraint between root prim {1} and child prim {2}", 
-        //             LogHeader, m_linksetRoot.LocalID, childPrim.LocalID);
-        DetailLog("{0},PhysicallyUnlinkAChildFromRoot,taint,root={1},child={2}", m_linksetRoot.LocalID, m_linksetRoot.LocalID, childPrim.LocalID);
+        //             LogHeader, rootPrim.LocalID, childPrim.LocalID);
+        DetailLog("{0},PhysicallyUnlinkAChildFromRoot,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID);
 
-        m_scene.Constraints.RemoveAndDestroyConstraint(m_linksetRoot.Body, childPrim.Body);
+        m_scene.Constraints.RemoveAndDestroyConstraint(rootPrim.Body, childPrim.Body);
         // Make the child refresh its location
         BulletSimAPI.PushUpdate2(childPrim.Body.Ptr);
     }
 
     // Remove linkage between myself and any possible children I might have
     // Called at taint time!
-    private void PhysicallyUnlinkAllChildrenFromRoot()
+    private void PhysicallyUnlinkAllChildrenFromRoot(BSPrim rootPrim)
     {
         // DebugLog("{0}: PhysicallyUnlinkAllChildren:", LogHeader);
-        DetailLog("{0},PhysicallyUnlinkAllChildren,taint", m_linksetRoot.LocalID);
+        DetailLog("{0},PhysicallyUnlinkAllChildren,taint", rootPrim.LocalID);
 
-        m_scene.Constraints.RemoveAndDestroyConstraint(m_linksetRoot.Body);
+        m_scene.Constraints.RemoveAndDestroyConstraint(rootPrim.Body);
     }
 
     // Invoke the detailed logger and output something if it's enabled.
