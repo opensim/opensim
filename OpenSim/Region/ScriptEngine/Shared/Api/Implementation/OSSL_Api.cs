@@ -2901,19 +2901,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osGetHealth");
             m_host.AddScriptLPS(1);
 
-            UUID avatarId = new UUID(avatar);
-            Vector3 pos = m_host.GetWorldPosition();
-
             LSL_Float health = new LSL_Float(-1);
-            ScenePresence presence = World.GetScenePresence(avatarId);
-            if (presence != null)
-            {
-                LandData land = World.GetLandData((float)pos.X, (float)pos.Y);
-                if ((land.Flags & (uint)ParcelFlags.AllowDamage) == (uint)ParcelFlags.AllowDamage)
-                {
-                    health = presence.Health;
-                }
-            }
+            ScenePresence presence = World.GetScenePresence(new UUID(avatar));
+            if (presence != null) health = presence.Health;
             return health;
         }
         
